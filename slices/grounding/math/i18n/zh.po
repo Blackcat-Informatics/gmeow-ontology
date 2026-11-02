@@ -5226,28 +5226,28 @@ msgid "domain"
 msgstr "定义域"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."
-msgstr "函数或关系的源集合，即输入所来自的集合。定义域为 math:Relation，值域为 math:Set（以文字说明）。每个 math:Function 都声明一个定义域；缺少定义域的函数不合规范。"
+msgid "Existing uses include the declared input set of a mathematical function or relation; every math:Function declares one, and a function without it is ill-formed. Selected native binder lowering also reads a math:domain reference on a bound math:VariableDeclaration as its declared sort. These documented carrier uses do not impose a global RDF domain restriction."
+msgstr "现有用法包括数学函数或关系所声明的输入集合；每个 math:Function 都声明一个，缺少它的函数不合规范。所选原生绑定降级还将已绑定 math:VariableDeclaration 上的 math:domain 引用读作其声明的论域类型。这些已有载体用法的说明并不施加全局 RDF 定义域限制。"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "This mathematical frame link runs from a function or relation to its source set. It is not the schema-level domain declaration of an RDF property; a source set and target set may be the same resource while serving different roles."
-msgstr "此数学框架链接从函数或关系指向源集合。它不是 RDF 属性在模式层面的定义域声明；源集合与目标集合可以是同一资源，但承担不同角色。"
+msgid "This property records a function/relation input set and, in selected native binder lowering, an explicit sort on a bound math:VariableDeclaration. Neither use is a schema-level RDF domain axiom or a reason to type the declaration as math:Relation. Source and target sets may coincide while retaining different roles."
+msgstr "此属性记录函数或关系的输入集合，并在所选原生绑定降级中记录已绑定 math:VariableDeclaration 上的显式论域类型。两种用法都不是模式层的 RDF 定义域公理，也不意味着应将该声明定为 math:Relation。源集合与目标集合可以相同，但仍承担不同角色。"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#example"
 msgid "For n ↦ n + 1 on integers, math:domain math:integers records the allowed inputs. The same rule on natural numbers has a different declared domain."
 msgstr "对于整数上的 n ↦ n + 1，math:domain math:integers 记录允许的输入。同一规则在自然数上具有不同的声明定义域。"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to state the identified input set of a mathematical relation, including the required source frame of a total function."
-msgstr "用于声明数学关系的有标识输入集合，包括全函数所必需的源框架。"
+msgid "Use for a mathematical function or relation’s input set, or to preserve an explicitly supplied bound-declaration sort in the selected native binder consumer."
+msgstr "用于数学函数或关系的输入集合，或在所选原生绑定消费者中保留已显式提供的绑定声明论域类型。"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid a datatype-name string, a function argument occurrence or a single sample input where the source-set resource is required."
 msgstr "不要在需要源集合资源的位置使用数据类型名称字符串、函数参数出现项或单个样本输入。"
 
 msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point math:domain from the map or relation to the set of declared inputs and retain math:codomain separately. Describe partial definedness separately when using math:PartialFunction rather than silently deleting undefined inputs from the stated source."
-msgstr "使 math:domain 从映射或关系指向声明的输入集合，并另行保留 math:codomain。使用 math:PartialFunction 时，应另行描述有定义范围，不要从所声明源集合中默默删除未定义输入。"
+msgid "For a function or relation, link math:domain to its source set, retain math:codomain and describe partial definedness separately. In selected native binder lowering, retain a supplied math:domain sort reference on the bound math:VariableDeclaration; omission retains that consumer’s existing untyped sort behavior. Do not impose a required bound domain, global cardinality or substitution with math:variableDomain."
+msgstr "对于函数或关系，将 math:domain 连接到源集合，保留 math:codomain，并另行描述有定义范围。在所选原生绑定降级中，保留已绑定 math:VariableDeclaration 上提供的 math:domain 论域类型引用；省略时保留该消费者现有的无类型论域行为。不要强制要求绑定声明具有定义域，不要施加全局基数要求，也不要用 math:variableDomain 替换。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "codomain"
@@ -5562,28 +5562,28 @@ msgid "operator"
 msgstr "应用运算符"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."
-msgstr "math:ApplicationExpression 所应用的唯一运算符：将应用连接到其调用的 math:Operation，例如 math:ArithmeticOperation 个体。定义域为 math:ApplicationExpression，值域为 math:Operation（以文字说明）。"
+msgid "The operator a math:ApplicationExpression applies or a math:BindingExpression uses: relates the expression to the math:Operation it invokes, such as an arithmetic or binder operation. Applications and admitted binding forms follow their concrete operator-count requirements. Operand or body structure is carried separately through indexed argument slots."
+msgstr "math:ApplicationExpression 所应用或 math:BindingExpression 所使用的运算符：将表达式连接到它所调用的 math:Operation，例如算术或绑定运算。应用及已准入的绑定形式遵循各自具体的运算符数量要求。运算对象或主体结构由索引参数槽位另行承载。"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The edge runs from an application expression to one operation individual. Operand positions belong to math:ArgumentSlot resources; the operator link itself neither stores argument values nor determines an evaluation result."
-msgstr "此边从应用表达式指向一个运算个体。运算对象位置属于 math:ArgumentSlot 资源；运算符链接本身既不存储参数值，也不确定计算结果。"
+msgid "The edge runs from an application or binding expression to an operation individual. Applications require exactly one operator; the native binding consumer also checks exactly one binder operator. Typed argument slots carry ordered operands or a binder body independently of this operation link."
+msgstr "此边从应用或绑定表达式指向运算个体。应用要求恰好一个运算符；原生绑定消费者也检查恰好一个绑定运算符。带类型参数槽位独立于此运算链接承载有序运算对象或绑定器主体。"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#example"
 msgid "An application representing 7 − 2 points through math:operator to math:Subtraction, while its separate indexed slots hold the expressions for 7 and 2 in that order."
 msgstr "表示 7 − 2 的应用通过 math:operator 指向 math:Subtraction，其独立索引槽位则按该顺序承载 7 和 2 的表达式。"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to identify the operation invoked at a particular application node in the mathematical expression AST."
-msgstr "用于标识数学表达式 AST 中某个应用节点所调用的运算。"
+msgid "Use to identify the operation invoked by an application or binding expression under its applicable concrete consumer contract."
+msgstr "用于根据适用的具体消费者契约标识应用或绑定表达式所调用的运算。"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid an operator glyph string, the class math:ArithmeticOperation itself, multiple operator objects on one application, or raw operand literals in place of the operation individual."
 msgstr "不要使用运算符字形字符串、math:ArithmeticOperation 类本身、同一应用上的多个运算符宾语，也不要以原始运算对象字面量替代运算个体。"
 
 msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point math:operator from the math:ApplicationExpression to the chosen operation individual. Link each math:ArgumentSlot through math:argumentSlot and give it one math:slotIndex and math:slotExpression; indexes must be unique, non-negative, zero-based and contiguous."
-msgstr "使 math:operator 从 math:ApplicationExpression 指向选定运算个体。通过 math:argumentSlot 连接各 math:ArgumentSlot，并为其给出一个 math:slotIndex 和一个 math:slotExpression；索引必须唯一、非负、从零开始且连续。"
+msgid "Point math:operator from the application or binding expression to the chosen operation individual. Applications and native binding lowering check their required single operator. Use typed math:ArgumentSlot resources with math:slotIndex and math:slotExpression for operands or body, and retain any binding-specific declarations separately."
+msgstr "使 math:operator 从应用或绑定表达式指向选定的运算个体。应用及原生绑定降级检查各自所需的单运算符。使用带类型的 math:ArgumentSlot 资源，以 math:slotIndex 和 math:slotExpression 表示运算对象或主体，并另行保留绑定特定声明。"
 
 msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This individual is binary addition over its declared real-number signature. Commutativity of real addition does not erase the ordered AST slots or authorize rewriting the source expression automatically."
@@ -5792,3 +5792,311 @@ msgstr "不要默认将一元符号变换编码为二元减法，不要将它与
 msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Use math:operator math:Negation with one indexed argument expression. Preserve the declared math:ExtendedRealLine signature and the identities of any pole operands; keep the unary AST distinct from binary subtraction and do not claim support from the four-operator exact-scalar profile."
 msgstr "使用 math:operator math:Negation，并提供一个有索引的参数表达式。保留声明的 math:ExtendedRealLine 签名及极点运算对象的标识；使一元 AST 区别于二元减法，不要声称四运算符精确标量配置支持它。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Expression"
+msgstr "数学表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The abstract root of the mathematical expression tree: a computable form is an abstract syntax tree, not a display string. Literal, symbol-reference, variable, application, and binding nodes compose through indexed argument slots; expression type and normalization are explicit, while concrete notation remains a separate rendering."
+msgstr "数学表达式树的抽象根：可计算形式是抽象语法树，而非显示字符串。字面量、符号引用、变量、应用及绑定节点通过有索引的参数槽位组合；表达式类型及规范化显式给出，具体记法则保留为独立呈现。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This abstract class identifies mathematical syntax, not a complete executable node form. A concrete structure must be admitted by the intended consumer; neither the root type nor a display string supplies evaluation, normalization or logic lowering."
+msgstr "此抽象类标识数学语法，而非完整可执行的节点形式。具体结构必须由目标消费者准入；根类型或显示字符串都不提供求值、规范化或逻辑降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The displayed string 7 / 2 can render an application tree with math:Division and two ordered slots. Typing a resource math:MathematicalExpression and giving it that label does not build the tree."
+msgstr "显示字符串 7 / 2 可以呈现具有 math:Division 及两个有序槽位的应用树。将资源定为 math:MathematicalExpression 并赋予该标签，并未构建此树。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the common expression classification when mathematical syntax must remain structured independently of notation."
+msgstr "当数学语法需要保持结构化并独立于记法时，用作表达式的共同分类。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this abstract type alone instead of a concrete node, storing the whole formula only as text, or assuming every declared expression form works in every consumer profile."
+msgstr "不要仅以此抽象类型替代具体节点，不要只将整个公式存为文本，也不要假定每种已声明表达式形式都适用于每个消费者配置。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose a concrete form supported by the intended consumer and supply its declared structure, such as an application’s operator and slots or a reference’s local symbol resolution. Keep renderings separate and retain explicit typing and lowering declarations where required."
+msgstr "选择目标消费者支持的具体形式，并提供其声明结构，例如应用的运算符及槽位，或引用的本地符号解析。呈现应另行保留，并在需要时保留显式类型及降级声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Literal Expression"
+msgstr "字面量表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A literal leaf in a mathematical expression AST: a syntactic node that denotes a value without applying an operator. math:NumberLiteral is its numeric specialization; the leaf remains a structured expression node rather than a raw RDF literal."
+msgstr "数学 AST 中的字面量叶节点：不应用运算符而指称某个值的语法节点。math:NumberLiteral 是其数值特化；该叶仍是结构化表达式节点，而非原始 RDF 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a generic value-denoting leaf category. Its type alone supplies neither a concrete value representation nor consumer support; a raw RDF literal is not interchangeable with the expression resource."
+msgstr "这是指称值的通用叶节点类别。仅有类型既不提供具体值表示，也不保证消费者支持；原始 RDF 字面量不能与表达式资源互换。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A numeric leaf for the exact number two can use math:NumberLiteral and math:literalValue pointing to the situated number object. The numeric literal 2 alone is not that expression node."
+msgstr "精确数二的数值叶节点可以使用 math:NumberLiteral，并通过 math:literalValue 指向有数系归属的数对象。单独的数值字面量 2 并非该表达式节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a structured leaf that directly denotes a value, retaining the concrete specialization needed to represent that value."
+msgstr "用于分类直接指称值的结构化叶节点，并保留表示该值所需的具体特化。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an invented generic value slot, a display label used as the denoted value, or assuming support for one literal specialization covers every generic literal leaf."
+msgstr "不要臆造通用值槽位，不要将显示标签用作所指称的值，也不要假定支持某一种字面量特化就意味着支持所有通用字面量叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/LiteralExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the existing concrete leaf specialization and its declared value relation, then reference the leaf through math:slotExpression where appropriate. Preserve the value’s mathematical identity and check the consumer’s admitted forms rather than relying on generic typing."
+msgstr "选择已有具体叶节点特化及其声明的值关系，并在适当时通过 math:slotExpression 引用该叶。保留值的数学标识，并检查消费者准入的形式，不要依赖通用类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Application Expression"
+msgstr "应用表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The application of an operator to ordered operands. It applies exactly one math:operator — zero operators leave the application undefined and two or more make it ambiguous (math:ApplicationOperatorCardinality) — and carries its operands through unique, strict zero-based contiguous math:ArgumentSlot cells. The sibling math:BindingExpression is not a subclass, so the operator-cardinality obligation targets only true applications."
+msgstr "将运算符应用于有序运算对象的形式。它恰好应用一个 math:operator；没有运算符时应用未定义，两个或更多则导致歧义（math:ApplicationOperatorCardinality）。运算对象通过唯一、连续且严格从零开始索引的 math:ArgumentSlot 单元承载。同级的 math:BindingExpression 并非其子类，因此运算符基数约束仅针对真正的应用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An application invokes exactly one operation and carries operand order through typed slots. This class’s operator requirement does not make the sibling binding form a subclass; binding consumers have their own applicable operator checks."
+msgstr "应用恰好调用一个运算，并通过带类型槽位承载运算对象顺序。此类的运算符要求并不使同级绑定形式成为其子类；绑定消费者具有各自适用的运算符检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing exact-scalar quotient is a math:ApplicationExpression with math:operator math:Division and slots 0 and 1 referencing symbol leaves. Evaluation additionally requires that profile’s explicit admitted bindings."
+msgstr "已有精确标量商是 math:ApplicationExpression，具有 math:operator math:Division，槽位 0 和 1 引用符号叶节点。求值还需要该配置显式准入的绑定。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when mathematical syntax applies an identified operation to an ordered family of operand expressions."
+msgstr "当数学语法将有标识运算应用于一组有序运算对象表达式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero or multiple operator objects, raw literal operands instead of expression nodes, or assuming structurally valid application typing guarantees execution support."
+msgstr "不要使用零个或多个运算符宾语，不要以原始字面量运算对象替代表达式节点，也不要假定结构有效的应用类型保证执行支持。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApplicationExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the node math:ApplicationExpression, link one operation through math:operator and each typed math:ArgumentSlot through math:argumentSlot. Supply each slot’s index and expression, retaining the operator’s arity and the intended consumer’s admission requirements."
+msgstr "将节点定为 math:ApplicationExpression，通过 math:operator 连接一个运算，通过 math:argumentSlot 连接每个带类型的 math:ArgumentSlot。提供各槽位的索引及表达式，并保留运算符元数及目标消费者的准入要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symbol Reference"
+msgstr "符号引用"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symbol-occurrence leaf in a mathematical expression AST. It resolves through exactly one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol whose meaning is scoped by theory/context; a dangling or multiply resolved reference is ill-formed (math:UnresolvedSymbolReference)."
+msgstr "数学 AST 中的符号出现叶节点。它通过恰好一条 math:hasMathematicalSymbol 边解析到本地 math:MathematicalSymbol，其含义由理论或上下文限定；悬空或多重解析的引用不合规范（math:UnresolvedSymbolReference）。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resource records a symbol use and resolves to one local mathematical symbol. Occurrence and symbol identity play different roles; matching glyphs do not establish resolution, and several references may resolve to the same symbol."
+msgstr "此资源记录符号使用，并解析到一个本地数学符号。出现项与符号标识承担不同角色；字形相同不能确立解析关系，多个引用也可以解析到同一个符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two math:SymbolReference leaves can both resolve to one local symbol through math:hasMathematicalSymbol. The glyph e alone cannot distinguish Euler’s number from an identity element in another theory."
+msgstr "两个 math:SymbolReference 叶节点可以都通过 math:hasMathematicalSymbol 解析到同一个本地符号。仅有字形 e，无法区分欧拉数与另一理论中的单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a structured symbol occurrence whose meaning must resolve locally rather than be guessed from notation."
+msgstr "用于含义必须通过本地解析确定、而不能从记法猜测的结构化符号出现项。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid unresolved or multiply resolved references, a glyph or external identifier in place of the local symbol, or requiring a new symbol identity for each occurrence."
+msgstr "不要使用未解析或多重解析的引用，不要以字形或外部标识替代本地符号，也不要要求每个出现项使用新的符号标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the leaf math:SymbolReference and give it exactly one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol, retaining the applicable theory or context. Keep occurrence annotations on the expression use and symbol-level meaning on the resolved symbol."
+msgstr "将叶节点定为 math:SymbolReference，并为其提供恰好一条指向本地 math:MathematicalSymbol 的 math:hasMathematicalSymbol 边，保留适用理论或上下文。出现项注解应放在表达式使用处，符号层含义则保留在解析后的符号上。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Expression Type"
+msgstr "表达式类型"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical type assigned to an expression independently of its rendering — scalar, matrix, proposition, function-space member, or another theory-scoped expression category. It is descriptive mathematical typing, not an undeclared promotion into the logic: type system."
+msgstr "独立于呈现而赋予表达式的数学类型，例如标量、矩阵、命题、函数空间成员，或其他由理论限定的表达式类别。这是描述性数学类型标注，而非未经声明就提升为 logic: 类型系统中的类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An expression type is a descriptive mathematical category resource, not the RDF class of an AST node. It is separate from a denotation declaration and from an explicitly authored logic-type lowering."
+msgstr "表达式类型是描述性数学类别资源，而非 AST 节点的 RDF 类。它不同于指称声明及显式编写的逻辑类型降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|http://www.w3.org/2004/02/skos/core#example"
+msgid "A matrix-product application can use math:expressionType to name a local matrix-valued expression category while retaining rdf:type math:ApplicationExpression for its structural node class."
+msgstr "矩阵乘积应用可用 math:expressionType 指定本地矩阵值表达式类别，同时保留 rdf:type math:ApplicationExpression 作为其结构性节点类。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a theory or context assigns a mathematical expression category independently of the expression’s rendering."
+msgstr "当理论或上下文赋予独立于呈现的数学表达式类别时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an ExpressionType label as proof of typing correctness, a denotation declaration or an automatic promotion into the logic: type system."
+msgstr "不要将 ExpressionType 标签当作类型正确性的证明、指称声明或自动提升到 logic: 类型系统的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpressionType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the descriptive category as a math:ExpressionType and link expressions to it through math:expressionType. Preserve the theory or context of the assignment and state any additional denotation or lowering claim separately."
+msgstr "将描述性类别标识为 math:ExpressionType，并通过 math:expressionType 连接表达式。保留赋型的理论或上下文，任何额外指称或降级声明均应另行给出。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Argument Slot"
+msgstr "参数槽位"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique, non-negative, zero-based, and contiguous within one parent. A slot missing its index or expression, a duplicate index, or a gap is ill-formed."
+msgstr "math:ApplicationExpression 或 math:BindingExpression 的一个有索引运算对象位置，恰好承载一个整数 math:slotIndex 及一个 math:slotExpression。运算对象顺序由这些槽位承载，而不是由 RDF 列表顺序承载；交换两个槽位的表达式会形成不同表达式，从而保持不可交换运算符（矩阵乘积、函数复合、减法、绑定器主体）的顺序。每个父节点内的索引唯一、非负、从零开始且连续。槽位缺少索引或表达式、索引重复或有缺口均不合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A slot is a typed position resource with one strict integer index and one structured expression. Positions are checked within each parent; repeated operands may share an expression resource without requiring separate values or expression identities."
+msgstr "槽位是具有一个严格整数索引及一个结构化表达式的带类型位置资源。位置在每个父节点内检查；重复运算对象可以共享表达式资源，无须要求值不同或另建表达式标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "For x + x, two math:ArgumentSlot resources at indexes 0 and 1 can both point through math:slotExpression to the same reference expression for x."
+msgstr "对于 x + x，索引为 0 和 1 的两个 math:ArgumentSlot 资源可以都通过 math:slotExpression 指向同一个 x 引用表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an application or binding form needs an explicit operand position that survives changes in RDF serialization order."
+msgstr "当应用或绑定形式需要显式运算对象位置，且该位置应在 RDF 序列化顺序变化后保持不变时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid untyped slots, multiple indexes or expressions on one slot, duplicate or gapped positions under a parent, or an unsupported global ownership rule on shared expressions."
+msgstr "不要使用未声明类型的槽位，不要在同一槽位放置多个索引或表达式，不要在同一父节点下使用重复或有缺口的位置，也不要对共享表达式施加未经支持的全局归属规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArgumentSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type each position math:ArgumentSlot, give it one math:slotIndex and one math:slotExpression, and link it from the parent through math:argumentSlot. Ensure positions form 0 through n−1 and preserve repeated operands without inventing inequality constraints."
+msgstr "将每个位置定为 math:ArgumentSlot，为其提供一个 math:slotIndex 和一个 math:slotExpression，并从父节点通过 math:argumentSlot 连接。确保位置构成 0 到 n−1，并保留重复运算对象，不臆造不等约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "argument slot"
+msgstr "参数槽位"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:ApplicationExpression or math:BindingExpression to one math:ArgumentSlot carrying an indexed operand (or, for a binder, the body). Domain a math:ApplicationExpression or math:BindingExpression, range math:ArgumentSlot (stated in prose). Operand order is carried by the slots' math:slotIndex, never by RDF list ordering."
+msgstr "将 math:ApplicationExpression 或 math:BindingExpression 连接到承载有索引运算对象的 math:ArgumentSlot（对绑定器而言是主体）。定义域为 math:ApplicationExpression 或 math:BindingExpression，值域为 math:ArgumentSlot（以文字说明）。运算对象顺序由槽位的 math:slotIndex 承载，绝非由 RDF 列表顺序承载。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from a parent expression to a typed slot resource, not directly to the operand expression. RDF edge order is immaterial; the slot indexes supply operand order for that parent."
+msgstr "此边从父表达式指向带类型槽位资源，而不是直接指向运算对象表达式。RDF 边顺序不重要；槽位索引给出该父节点的运算对象顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "An application for a − b may serialize its math:argumentSlot edges in either order while slot 0 still contains a and slot 1 contains b."
+msgstr "a − b 的应用可以按任意顺序序列化 math:argumentSlot 边，而槽位 0 仍承载 a，槽位 1 仍承载 b。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to attach indexed positions carrying an application’s operands or a binding form’s body."
+msgstr "用于连接承载应用运算对象或绑定形式主体的索引位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a raw expression, numeric literal or RDF list in the slot-object position, or treating edge insertion order as operand order."
+msgstr "不要在槽位宾语位置放置裸表达式、数值字面量或 RDF 列表，也不要将边的插入顺序当作运算对象顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/argumentSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each required math:ArgumentSlot from the parent through math:argumentSlot and populate its index and expression. Check the complete index family under that parent; keep operand resources behind math:slotExpression rather than collapsing the two edges."
+msgstr "通过 math:argumentSlot 从父节点连接每个所需 math:ArgumentSlot，并填写索引及表达式。检查该父节点下的完整索引族；运算对象资源应位于 math:slotExpression 之后，不要合并这两条边。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot index"
+msgstr "槽位索引"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; two slots sharing an index are math:DuplicateArgumentSlotIndex; a family with a gap is math:NonContiguousArgumentSlots."
+msgstr "math:ArgumentSlot 在其应用中的整数位置，即运算对象顺序。定义域为 math:ArgumentSlot，值域为 xsd:nonNegativeInteger（以文字说明）。同一父节点下的索引严格从零开始、唯一且连续。槽位若非恰有一个索引则为 math:MalformedArgumentSlot；两个槽位共享同一索引则为 math:DuplicateArgumentSlotIndex；索引族有缺口则为 math:NonContiguousArgumentSlots。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The index is one strict integer literal on a slot, interpreted among its parent’s positions. Positions must be non-negative, zero-based, unique and contiguous; display order or lexical sorting of strings does not replace integer order."
+msgstr "索引是槽位上的一个严格整数字面量，在其父节点的位置中解释。位置必须非负、从零开始、唯一且连续；显示顺序或字符串词法排序不能替代整数顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "A binary application uses math:slotIndex 0 and math:slotIndex 1 on two slots. An unrelated application also starts at 0 rather than continuing a global counter."
+msgstr "二元应用在两个槽位上使用 math:slotIndex 0 和 math:slotIndex 1。另一个无关应用同样从 0 开始，而不是继续全局计数器。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make a declared operand position explicit and stable when RDF triples are reordered."
+msgstr "用于使已声明运算对象位置明确，并在 RDF 三元组重新排序时保持稳定。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fractional or string indexes, a one-based convention, duplicate positions, gaps, or deriving the index from a slot identifier’s spelling."
+msgstr "不要使用分数或字符串索引、从一开始的约定、重复位置或缺口，也不要从槽位标识的拼写推导索引。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put exactly one non-negative integer math:slotIndex on each typed slot and verify the parent’s complete sequence 0 through n−1. Preserve the explicit literal instead of silently coercing text or decimal values into indexes."
+msgstr "在每个带类型槽位上放置恰好一个非负整数 math:slotIndex，并验证父节点从 0 到 n−1 的完整序列。保留显式字面量，不要默默将文本或小数强制转为索引。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot expression"
+msgstr "槽位表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot)."
+msgstr "填充一个 math:ArgumentSlot 的 math:MathematicalExpression，即运算对象或绑定器主体。定义域为 math:ArgumentSlot，值域为 math:MathematicalExpression（以文字说明）。每个槽位恰好指定一个；缺少表达式的槽位不合规范（math:MalformedArgumentSlot）。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link assigns one structured expression to a slot. Position and operand expression are different roles; multiple slots may reference the same expression without requiring different values or imposing a global ownership rule."
+msgstr "此链接为槽位指定一个结构化表达式。位置和运算对象表达式是不同角色；多个槽位可以引用同一表达式，无须要求值不同，也不施加全局归属规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "In x × x, slots 0 and 1 can both use math:slotExpression to reference one math:SymbolReference for x, preserving two positions and one shared expression resource."
+msgstr "在 x × x 中，槽位 0 和 1 都可以通过 math:slotExpression 引用一个 x 的 math:SymbolReference，从而保留两个位置及一个共享表达式资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the expression occupying an indexed operand position, including an admitted nested application or leaf."
+msgstr "用于标识占据索引运算对象位置的表达式，包括已准入的嵌套应用或叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid numeric or prose literals here, multiple expression objects on one slot, or cloning shared expressions solely to satisfy an undeclared ownership restriction."
+msgstr "不要在此使用数值或文字字面量，不要在一个槽位放置多个表达式宾语，也不要仅为满足未声明的归属限制而克隆共享表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/slotExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:slotExpression from each typed math:ArgumentSlot to exactly one structured expression and keep math:slotIndex on the slot. Supply the concrete structure admitted by the intended consumer; this link alone does not make an abstract node executable."
+msgstr "使每个带类型 math:ArgumentSlot 的 math:slotExpression 指向恰好一个结构化表达式，并将 math:slotIndex 保留在槽位上。提供目标消费者准入的具体结构；仅有此链接并不会使抽象节点可执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has mathematical symbol"
+msgstr "具有数学符号"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical concept, operation, or math:SymbolReference occurrence to the math:MathematicalSymbol that denotes it in the applicable theory or context. A symbol reference resolves through exactly one such edge; the symbol identity is distinct from every glyph or rendering."
+msgstr "将数学概念、运算或 math:SymbolReference 出现项连接到在适用理论或上下文中表示它的 math:MathematicalSymbol。符号引用通过恰好一条此类边解析；符号标识区别于任何字形或呈现。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property serves concepts, operations and symbol-reference occurrences. Exactly-one resolution applies to each math:SymbolReference; that occurrence-specific rule does not create a global subject-class or exact-one restriction for every other use."
+msgstr "此属性用于概念、运算及符号引用出现项。唯一解析要求适用于每个 math:SymbolReference；这一出现项特定规则并未对所有其他用法建立全局主语类或唯一性限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reference to a local symbol for e uses math:hasMathematicalSymbol to that symbol resource. A concept may also use this property for its symbol associations without becoming a reference occurrence."
+msgstr "对本地 e 符号的引用通过 math:hasMathematicalSymbol 指向该符号资源。概念也可用此属性关联符号，而不会因此成为引用出现项。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the local mathematical symbol associated with a concept, operation or expression use in its theory or context."
+msgstr "用于保留在理论或上下文中与概念、运算或表达式使用关联的本地数学符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid glyph strings or external vocabulary identifiers instead of the local symbol, or promoting the SymbolReference exact-one rule into a new global domain or cardinality axiom."
+msgstr "不要以字形字符串或外部词汇标识替代本地符号，也不要将 SymbolReference 的唯一性规则提升为新的全局定义域或基数公理。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMathematicalSymbol|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the concept, operation or reference to the appropriate local math:MathematicalSymbol and retain its theory/context interpretation. Check exactly one resolution for a math:SymbolReference, without importing that occurrence-only restriction into other recorded symbol associations."
+msgstr "将概念、运算或引用连接到适当的本地 math:MathematicalSymbol，并保留其理论或上下文解释。对 math:SymbolReference 检查恰好一次解析，不要将仅针对出现项的限制引入其他已记录符号关联。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression type"
+msgstr "表达式类型"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MathematicalExpression to the math:ExpressionType assigned to it in its mathematical theory or context. This is AST-level mathematical typing, kept distinct from math:denotationKind and from an explicit math:compilesToLogicType lowering."
+msgstr "将 math:MathematicalExpression 连接到其数学理论或上下文所赋予的 math:ExpressionType。这是 AST 层的数学类型标注，不同于 math:denotationKind 及显式的 math:compilesToLogicType 降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from an expression to a descriptive math:ExpressionType individual. It is not the node’s rdf:type classification, a math:denotationKind statement or an implicit math:compilesToLogicType declaration."
+msgstr "此边从表达式指向描述性 math:ExpressionType 个体。它不是节点的 rdf:type 分类、math:denotationKind 声明或隐含的 math:compilesToLogicType 声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|http://www.w3.org/2004/02/skos/core#example"
+msgid "A matrix-product application can retain rdf:type math:ApplicationExpression while math:expressionType names a theory-scoped matrix-expression category. That annotation alone supplies neither matrix evaluation nor a logic type."
+msgstr "矩阵乘积应用可以保留 rdf:type math:ApplicationExpression，同时以 math:expressionType 指定由理论限定的矩阵表达式类别。仅有此注解既不提供矩阵求值，也不提供逻辑类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a descriptive mathematical type assignment on an expression must be retained as an explicit relation."
+msgstr "当表达式的描述性数学赋型需要以显式关系保留时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a type-name string as object, replacing structural rdf:type with this edge, or claiming a proposition is true or a lowering complete merely because this annotation exists."
+msgstr "不要以类型名称字符串作为宾语，不要用此边替代结构性 rdf:type，也不要仅因存在此注解就声称命题为真或降级已完成。"
+
+msgctxt "https://blackcatinformatics.ca/math/expressionType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:expressionType from the structured expression to the applicable math:ExpressionType and preserve its theory or context. State denotation and actual logic lowering separately; a type-denoting expression needs an explicit math:compilesToLogicType claim when that lowering is authored."
+msgstr "使 math:expressionType 从结构化表达式指向适用的 math:ExpressionType，并保留其理论或上下文。指称及实际逻辑降级应另行声明；当编写类型降级时，指称类型的表达式需要显式的 math:compilesToLogicType 声明。"
