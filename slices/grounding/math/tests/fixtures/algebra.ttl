@@ -58,4 +58,5 @@ exf:e8RootSystem a math:RootSystem ;
     math:weylGroup exf:e8Weyl .
 
 exf:e8Weyl a math:WeylGroup ;
+    math:hasRootSystem exf:e8RootSystem ;
     math:groupOrder 696729600 .

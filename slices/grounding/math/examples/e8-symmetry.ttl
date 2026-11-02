@@ -3,9 +3,9 @@
 #
 # The symmetry of E8 — flagship 1. E8 is the 248-dimensional exceptional simple Lie
 # group; its root system has 240 roots in rank 8, with an 8×8 Cartan matrix, an 8-node
-# Dynkin diagram, and a Weyl group of order 696,729,600. The Weyl group is modelled as
-# the AUTOMORPHISM GROUP that ACTS ON the root system (a symmetry group IS an
-# automorphism group — the unification), and its action law ((g·h)·x = g·(h·x)) is a
+# Dynkin diagram, and a Weyl group of order 696,729,600. In this E8 case the Weyl group
+# is also the full automorphism group of the root system; that equality is not generic.
+# The group acts on the root system, and its action law ((g·h)·x = g·(h·x)) is a
 # real logic:Formula the reasoner owns. The numbers (240 roots, rank 8, Weyl order) are
 # carried as data and pinned by the E8 competency question; wrong data fails that
 # exact-match gate. Group data cited to the ATLAS of Finite Groups / GAP; concept
@@ -54,11 +54,12 @@ exa:e8SimpleRoot6 a math:SimpleRoot ; rdfs:label "α₆"@x-gmeow-english .
 exa:e8SimpleRoot7 a math:SimpleRoot ; rdfs:label "α₇"@x-gmeow-english .
 exa:e8SimpleRoot8 a math:SimpleRoot ; rdfs:label "α₈"@x-gmeow-english .
 
-# --- The Weyl group: the automorphism group that acts on the roots --------- #
-# A symmetry group IS an automorphism group. As a math:Group (via AutomorphismGroup) it
-# is a well-formed structure; it carries its order (696,729,600) and acts on the roots.
+# --- The E8 Weyl group: also the full automorphism group of these roots ---- #
+# Both classifications inherit math:Group. The reflection-group root anchor and full
+# automorphism-group anchor are explicit; it carries its order and acts on the roots.
 
-exa:e8Weyl a math:WeylGroup ;
+exa:e8Weyl a math:WeylGroup , math:AutomorphismGroup ;
+    math:hasRootSystem exa:e8Roots ;
     rdfs:label "W(E8) — the Weyl group of E8 (order 696,729,600)"@x-gmeow-english ;
     math:underlyingSet exa:e8Reflections ;
     math:structureOperation exa:reflectionComposition ;

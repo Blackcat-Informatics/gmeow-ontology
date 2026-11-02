@@ -132,14 +132,17 @@ pub fn e8_weyl_order() -> E8WeylOrder {
     debug_assert_eq!(order, E8_WEYL_ORDER, "E8 Weyl order must be 696 729 600");
 
     let mut t = header();
-    t.push_str("# Flagship 1 — the E8 root system and its Weyl (automorphism) group.\n");
+    t.push_str(
+        "# Flagship 1 — the E8 root system and its Weyl group, also its full automorphism group.\n",
+    );
     t.push_str("p:e8Roots a math:RootSystem ;\n");
     t.push_str("    math:rootSystemRank 8 ;\n");
     t.push_str("    math:rootCount 240 ;\n");
     t.push_str("    math:cartanMatrix p:e8Cartan ;\n");
     t.push_str("    math:weylGroup p:e8Weyl .\n\n");
     t.push_str("p:e8Cartan a math:CartanMatrix .\n\n");
-    t.push_str("p:e8Weyl a math:WeylGroup ;\n");
+    t.push_str("p:e8Weyl a math:WeylGroup , math:AutomorphismGroup ;\n");
+    t.push_str("    math:hasRootSystem p:e8Roots ;\n");
     t.push_str("    math:automorphismGroupOf p:e8Roots ;\n");
     t.push_str("    math:underlyingSet p:e8Reflections ;\n");
     t.push_str("    math:structureOperation p:reflectionComposition ;\n");
