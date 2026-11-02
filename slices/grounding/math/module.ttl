@@ -38,6 +38,11 @@ math:MathematicalConcept
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Concept"@x-gmeow-english ;
+    skos:scopeNote "A concept is the locally identified mathematical referent behind its symbols, definitions and presentations. Matching names, glyphs or external alignments alone do not establish local concept identity or justify global equality."@x-gmeow-english ;
+    skos:example "The reference example identifies matrix multiplication as a math:MathematicalConcept, associating a local symbol, an infix notation, a definition and a structured expression through separate descriptive links."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical notion must retain a stable local identity across different notations, explanations or external references."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a rendered formula or Wikidata item as a substitute for the local concept, or minting a new class merely because a named mathematical individual needs description."@x-gmeow-english ;
+    gmeow:howToUse "Type the local referent math:MathematicalConcept and retain its theory, symbol, notation and definition associations with existing properties. Record external correspondences through the owning alignment surface; no descriptive edge alone establishes evaluation or proof."@x-gmeow-english ;
     skos:definition "A locally identified mathematical concept: the abstract referent a symbol, notation, definition, expression, or external alignment may present, such as matrix multiplication or the Riemann zeta function. Its identity is the math: resource, never a glyph, prose gloss, rendering, Wikidata item, or OpenMath symbol."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -46,6 +51,11 @@ math:MathematicalSymbol
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Symbol"@x-gmeow-english ;
+    skos:scopeNote "A mathematical symbol carries contextual meaning independently of its glyph and of individual reference occurrences. Several occurrences may resolve to one symbol, and one visual glyph can serve different meanings in different theories."@x-gmeow-english ;
+    skos:example "The glyph e can present Euler’s number or an identity element in a different theory. A math:SymbolReference resolves to the intended local math:MathematicalSymbol instead of choosing by that glyph alone."@x-gmeow-english ;
+    gmeow:useWhen "Use when a symbol’s mathematical identity and interpretation must survive changes in typography or repeated uses in expression trees."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating symbols solely from their glyph, replacing a local symbol with an external symbol IRI, or cloning the symbol identity for every expression occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Identify the symbol as math:MathematicalSymbol, retain its applicable theory or context and notation, and resolve expression uses through math:hasMathematicalSymbol. Keep occurrence-specific structure on math:SymbolReference rather than treating its glyph as resolution."@x-gmeow-english ;
     skos:definition "A symbol identity used to refer to a mathematical concept or operation within a declared theory or context. It is distinct from its visual glyph and from a math:SymbolReference occurrence in an expression; one symbol may have several notations, and the same glyph may realize different symbols in different theories."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -54,6 +64,11 @@ math:MathematicalNotation
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Notation"@x-gmeow-english ;
+    skos:scopeNote "Notation identifies a presentation convention, not one rendered string or image. The convention can be theory-scoped and reused across many expressions without supplying their mathematical identity or semantics by itself."@x-gmeow-english ;
+    skos:example "The reference example’s infix matrix notation is a math:MathematicalNotation under linear algebra. The convention resource is not the concrete rendering of one matrix-product expression."@x-gmeow-english ;
+    gmeow:useWhen "Use when a concept or symbol needs to name the convention under which it may be presented."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing a rendered formula in place of the convention resource, inferring a parser or evaluator from a notation label, or using convention identity as proof of expression equivalence."@x-gmeow-english ;
+    gmeow:howToUse "Type the convention math:MathematicalNotation and associate concepts or symbols through math:hasNotation. Retain any math:definedInTheory scope and carry concrete rendered forms through the existing rendering vocabulary rather than overloading the convention."@x-gmeow-english ;
     skos:definition "A convention for presenting mathematical symbols and expressions, such as a conventional infix notation, MathML content notation, or a named diagrammatic calculus. It is the mathematical convention selected by a rendering, not the rendered form and not the concept it presents."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -62,6 +77,11 @@ math:MathematicalTheory
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Theory"@x-gmeow-english ;
+    skos:scopeNote "A theory provides an identified setting for mathematical meaning and assumptions. Naming it scopes a claim; it does not establish that every statement associated with that theory is proved or unconditionally true."@x-gmeow-english ;
+    skos:example "The reference example’s linear-algebra theory scopes its matrix context, notation convention and expression-type category, as well as its concept, symbol and definition."@x-gmeow-english ;
+    gmeow:useWhen "Use when mathematical resources need an explicit shared theory identity for their interpretation or statement roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a theory label as a proof, identifying revisions merely because their names match, or silently exporting a theory-relative assertion as global truth."@x-gmeow-english ;
+    gmeow:howToUse "Identify the theory resource and connect scoped resources with math:definedInTheory where applicable. Keep a statement’s math:statementRole and math:roleInTheory explicit on the statement, and preserve revision identity with existing versioning mechanisms rather than inventing theory-version slots."@x-gmeow-english ;
     skos:definition "A named mathematical theory that scopes concepts, symbols, definitions, axioms, and statement roles. Theory identity is explicit and may be versioned; a statement or symbol meaningful in one theory is never silently globalized to every theory."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -70,6 +90,11 @@ math:MathematicalContext
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Context"@x-gmeow-english ;
+    skos:scopeNote "A context records local interpretive conditions within a theory. It is not a global truth setting or an automatic scope resolver, and the context-versus-theory distinction alone imposes no resource-inequality rule."@x-gmeow-english ;
+    skos:example "The matrix context in reference-ast-act.ttl is a math:MathematicalContext with math:definedInTheory pointing to linear algebra. Its label alone does not assign meanings to every symbol in an unrelated expression."@x-gmeow-english ;
+    gmeow:useWhen "Use for a local mathematical interpretation or set of assumptions that must remain identifiable within its broader theory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reducing a context to a display string, inferring symbol resolution from matching labels, or treating contextual assumptions as unconditional facts."@x-gmeow-english ;
+    gmeow:howToUse "Type the local context math:MathematicalContext and retain its math:definedInTheory relation. Describe the relevant assumptions with the existing mathematical vocabulary and preserve explicit symbol resolution; do not invent a context-selection predicate or implicit reasoning behavior."@x-gmeow-english ;
     skos:definition "A local interpretive context within which mathematical symbols, assumptions, and definitions are read. It narrows a theory for a particular construction or discourse so a reused glyph can resolve without being treated as globally unambiguous."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -78,6 +103,11 @@ math:MathematicalDefinition
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Definition"@x-gmeow-english ;
+    skos:scopeNote "A definition is an identified resource carrying a theory-scoped meaning, not just replacement text on a concept. Its resource role, the concept it describes and a definition-statement role must remain explicit without inferring global class disjointness."@x-gmeow-english ;
+    skos:example "The matrix-product definition carries an informal explanation and math:formalizesExpression to a structured product AST. Its math:definedInTheory identifies the relevant linear-algebra theory."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical definition and its revisions must be identifiable and cited independently of the concept’s name or rendering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid overwriting the meaning of a definition already cited by another resource, treating a gloss as a checked formalization, or deriving a proved theorem role from this class."@x-gmeow-english ;
+    gmeow:howToUse "Identify the definition, retain math:definedInTheory and use math:informalGloss or math:formalizesExpression for their respective content. Let dependent resources name it through math:usesDefinition, preserving revisions through existing versioning rather than inventing new version fields."@x-gmeow-english ;
     skos:definition "A first-class, theory-scoped definition of a mathematical concept. It may carry an informal gloss and formalize a structured expression; an evolving definition is versioned rather than overwritten, and it remains distinct from the concept it defines and from a math:DefinitionStatement role projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -97,6 +127,11 @@ math:hasNotation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has notation"@x-gmeow-english ;
+    skos:scopeNote "The direction is from a concept or symbol to a notation convention. The edge does not identify a concrete rendered form, assign a unique glyph or declare that all expressions under the convention have equal meaning."@x-gmeow-english ;
+    skos:example "The matrix-multiplication concept and its local symbol can both use math:hasNotation to reference the same infix convention. That shared convention establishes neither resource equality nor one particular rendered formula."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which presentation convention is associated with an identified mathematical concept or symbol."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a raw MathML string or glyph as object, replacing a rendering relation with this edge, or assuming one notation is a universal preferred form."@x-gmeow-english ;
+    gmeow:howToUse "Point math:hasNotation to the applicable math:MathematicalNotation resource and preserve any theory scope on that convention. Keep the expression’s concrete rendering and its preservation claims in the existing rendering layer rather than on this association alone."@x-gmeow-english ;
     skos:definition "Relates a mathematical concept or symbol to a math:MathematicalNotation convention under which it may be presented. This records the notation system, not a concrete rendered form; expression renderings remain on the lang: rendering seam."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -104,13 +139,23 @@ math:definedInTheory
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "defined in theory"@x-gmeow-english ;
-    skos:definition "Relates a mathematical concept, symbol, context, definition, or statement to the math:MathematicalTheory that scopes its meaning. It prevents a theory-relative use from being read as an unconditional global identity or truth."@x-gmeow-english ;
+    skos:scopeNote "This relation scopes a resource’s mathematical meaning to an identified theory. Existing notation and expression-type carriers are valid examples, and the descriptive list of carriers does not impose a global domain class or cardinality restriction."@x-gmeow-english ;
+    skos:example "In reference-ast-act.ttl, both the infix notation convention and the matrix expression-type resource point through math:definedInTheory to linear algebra, alongside the concept and definition."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical resource’s interpretation depends on an explicitly identified theory rather than an assumed universal setting."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a theory-name string as object, treating theory membership as proof of truth, or narrowing the property to only concepts and symbols despite existing additional carriers."@x-gmeow-english ;
+    gmeow:howToUse "Link the relevant resource to its math:MathematicalTheory and retain the intended theory identity or revision. Keep statement-role scope and proof evidence explicit through their own properties; this link does not supply either automatically."@x-gmeow-english ;
+    skos:definition "Relates a mathematical resource to the math:MathematicalTheory that scopes its meaning. Existing uses include concepts, symbols, contexts, definitions, statements, math:MathematicalNotation and math:ExpressionType; these are examples rather than an exhaustive domain. A theory-relative use does not assert unconditional global identity or truth."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:usesDefinition
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "uses definition"@x-gmeow-english ;
+    skos:scopeNote "The edge records dependence on an identified definition resource. It does not copy that definition’s text, imply equality with the definition or certify that a consumer has checked or applied it."@x-gmeow-english ;
+    skos:example "The matrix-multiplication concept uses math:usesDefinition to reference its identified product definition, while that definition separately supplies its gloss and structured AST."@x-gmeow-english ;
+    gmeow:useWhen "Use when a resource’s mathematical description must retain which definition, including an identified revision, it relies on."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a pasted definition string as object, silently redirecting historical references to changed text, or treating definitional dependence as a proof or evaluation result."@x-gmeow-english ;
+    gmeow:howToUse "Point math:usesDefinition from the dependent resource to the intended math:MathematicalDefinition. Preserve that resource’s identity and theory scope, keeping revisions and their dependencies explicit with existing vocabulary rather than overwriting the referenced meaning."@x-gmeow-english ;
     skos:definition "Relates a mathematical concept, context, expression, or statement to the math:MathematicalDefinition it relies on. The edge makes definitional dependence explicit and version-addressable rather than burying it in prose."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -118,13 +163,23 @@ math:formalizesExpression
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "formalizes expression"@x-gmeow-english ;
-    skos:definition "Relates a mathematical concept or definition to the structured math:MathematicalExpression that formalizes it. The target is an AST, never an opaque display string; a rendering of that AST is a separate lang:-grounded projection."@x-gmeow-english ;
+    skos:scopeNote "This relation retains structured syntax for the source resource’s role. Existing proof steps can target proof-term ASTs, while imported premises target conclusion ASTs; the relation itself establishes neither truth, proof success nor an exhaustive subject class."@x-gmeow-english ;
+    skos:example "The proof importer emits math:formalizesExpression from a math:ProofStep to its proof-term AST, and from an axiom or generic premise to its conclusion AST. The step’s math:hasConclusion link has a separate role."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical resource must retain the actual structured expression that formalizes its concept, definition or proof-related role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a display string as target, assuming every proof-related target is a conclusion rather than a proof term, or claiming a structural matrix AST is executable in the exact-decimal scalar profile."@x-gmeow-english ;
+    gmeow:howToUse "Link the source carrier to the structured math:MathematicalExpression serving its actual role, distinguishing proof-term and conclusion uses. Preserve rendering, denotation, logic lowering and proof evidence through their existing vocabulary; none is supplied merely by this formalization edge."@x-gmeow-english ;
+    skos:definition "Relates a mathematical resource to structured math:MathematicalExpression syntax used to formalize it. Existing carriers include concepts and definitions, math:ProofStep records, and math:Axiom or generic math:MathematicalObject premises. A proof step may target its proof-term AST, while a premise targets its asserted conclusion AST; these uses are not an exhaustive domain or a proof-success claim. The target is an AST, never an opaque display string; rendering remains separate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:informalGloss
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "informal gloss"@x-gmeow-english ;
+    skos:scopeNote "A gloss is explanatory prose attached to a mathematical resource. It supports human interpretation without becoming the resource’s identity, a formal AST, an executable rule or a proof of the explanation’s claims."@x-gmeow-english ;
+    skos:example "The matrix-product definition says to multiply compatible matrices in the declared order through math:informalGloss, while its separate math:formalizesExpression link retains the ordered AST."@x-gmeow-english ;
+    gmeow:useWhen "Use to add a human-readable explanation that helps interpret an identified mathematical concept or definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using prose as a substitute for structured syntax when checking or projection is intended, parsing the gloss as an undeclared fallback, or deriving truth from explanatory wording."@x-gmeow-english ;
+    gmeow:howToUse "Attach the explanatory literal with math:informalGloss and keep the concept or definition identity explicit. When formal content is needed, author its structured AST separately through math:formalizesExpression and retain the relevant theory rather than treating the gloss as machine semantics."@x-gmeow-english ;
     skos:definition "A human-readable informal explanation of a mathematical concept or definition. It aids interpretation but is never the concept's identity and never substitutes for a structured expression when one is intended to be checked or projected."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -5290,6 +5345,11 @@ math:MathematicalObject
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Object"@x-gmeow-english ;
+    skos:scopeNote "This general object type supplies an identified mathematical referent, not its full structure or an execution claim. Object, expression and reference-layer distinctions do not by themselves create global class disjointness or resource-inequality rules."@x-gmeow-english ;
+    skos:example "The proof importer can type a non-foundational premise math:MathematicalObject and link its conclusion AST with math:formalizesExpression, without promoting that premise to math:Axiom."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical referent needs object identity, adding a more specific existing class when its structure or role is established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this broad type as proof that an object is an axiom, a computed value or a valid specialized structure, or replacing its identity with a label or external identifier."@x-gmeow-english ;
+    gmeow:howToUse "Identify the object locally and retain justified specialized types and descriptive relations. Keep expression syntax, statement roles and evidence explicit through their existing vocabulary rather than inferring them from this root type."@x-gmeow-english ;
     skos:definition "The universal object-layer root: any object mathematics quantifies, indexes, maps, or measures over — an element, a value, a vector, a decomposition, a learned object. The top type the bedrock ranges over (math:hasElement, math:convergesTo) and the ground the specialized object classes (math:Basis, math:Rank, math:Eigendecomposition, math:PrincipalComponent, math:WeightTensor, and the rest) build on. Distinct from the expression layer (math:MathematicalExpression) and the relation/function layer, which name what denotes or maps rather than what is denoted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -7506,6 +7566,11 @@ math:MathematicalStatement
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Statement"@x-gmeow-english ;
+    skos:scopeNote "A statement identifies an assertion, while its theory-scoped role and supporting proof or warrant are separate claims. A bare class or descriptive formalization link does not establish theorem status, truth or successful verification."@x-gmeow-english ;
+    skos:example "The proof importer emits math:statementRole and math:roleInTheory on an identified statement, then keeps its conclusion and proof-step records explicit. A conjecture premise is not made a foundational axiom by being imported."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical assertion needs an identified conclusion, dependencies and an explicit theory-relative epistemic role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a theorem-like type as unconditional truth, dropping premise or theory context, or treating a proof-term AST as a successful proof merely because it exists."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:hasConclusion and dependencies on the statement, and state math:statementRole with math:roleInTheory explicitly. Link an in-graph math:Proof to the statement through math:provesStatement or retain the statement’s declared math:externalWarrant; preserve what that evidence actually establishes."@x-gmeow-english ;
     skos:definition "The canonical bearer of statement-hood: a mathematical assertion that states a conclusion (math:hasConclusion) under premises (math:hasPremise), depends on axioms (math:dependsOnAxiom) under a named, versioned theory (math:roleInTheory), and is proved by a math:Proof (via math:provesStatement) or backed by a declared external warrant (math:externalWarrant). A subclass of math:MathematicalObject. Its epistemic status is NOT a truth bit read off its type: theorem-hood, lemma-hood, and the rest are carried as a math:statementRole scoped to a theory, never as an unconditional global fact — so a consumer can never read a bare type as 'proved, everywhere, unconditionally'. The flat classes math:Theorem, math:Lemma, math:Corollary, math:Conjecture, and math:DefinitionStatement are convenience projections of this class + its role, retained for consumers wanting a flat type, never the canonical truth bearer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -7513,14 +7578,24 @@ math:statementRole
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "statement role"@x-gmeow-english ;
-    skos:definition "Relates a math:MathematicalStatement to the math:StatementRole it holds — the canonical carrier of theorem-hood, lemma-hood, conjecture-hood, and the rest AS A ROLE rather than a bare class assertion. Domain math:MathematicalStatement, range math:StatementRole (a value individual, stated in prose). The role holds math:roleInTheory a named, versioned theory, so the status is theory- and standpoint-relative: 'this statement is a theorem in Euclidean geometry v2' is a scoped claim, not a global truth bit. The flat math:Theorem/math:Lemma/… projections are generated from this role, never the other way round."@x-gmeow-english ;
+    skos:scopeNote "The edge runs from a mathematical statement to one declared role value. Its theory context is recorded separately by math:roleInTheory on the statement, not by moving context onto the shared math:StatementRole individual."@x-gmeow-english ;
+    skos:example "A statement carrying math:statementRole math:roleTheorem also names its theory with math:roleInTheory and needs the appropriate proof or external warrant. The role edge alone supplies none of that evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the identified epistemic role under which a mathematical assertion is held in its declared theory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a role-name string or the class math:StatementRole as object, inferring truth from a convenience type, or assigning theory scope to the shared role value instead of the statement."@x-gmeow-english ;
+    gmeow:howToUse "Point math:statementRole from the math:MathematicalStatement to its declared role individual, preserve math:roleInTheory on the statement and retain the actual supporting dependencies and evidence. No automatic truth, proof discharge or flat-type conversion is established by this descriptive link alone."@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement to the math:StatementRole it holds — the canonical carrier of theorem-hood, lemma-hood, conjecture-hood, and the rest AS A ROLE rather than a bare class assertion. Domain math:MathematicalStatement, range math:StatementRole (a value individual, stated in prose). The statement records its named, versioned theory through math:roleInTheory, so the status is theory- and standpoint-relative: 'this statement is a theorem in Euclidean geometry v2' is a scoped claim, not a global truth bit. The flat math:Theorem/math:Lemma/… projections are generated from this role, never the other way round."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:StatementRole
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Statement Role"@x-gmeow-english ;
-    skos:definition "The closed value class of the epistemic ROLE a math:MathematicalStatement holds under a theory — theorem-hood as a role, not a truth bit. Its six named individuals are math:roleTheorem (a proved conclusion, held under a theory with a proof or external warrant), math:roleLemma (an auxiliary result proved en route to a larger theorem), math:roleCorollary (a result following readily from a theorem), math:roleConjecture (a candidate held under active test, not yet proved or refuted), math:roleAxiom (a stated law taken as a foundation of the theory rather than derived within it), and math:roleDefinition (a statement introducing a term or notion, true by stipulation). A statement names exactly one through math:statementRole, and the role holds math:roleInTheory a named, versioned theory; the status is theory-relative, so the same statement may carry different roles under different theories. The set is closed; a misspelt role names no declared value and is rejected rather than silently accepted."@x-gmeow-english ;
+    skos:scopeNote "This class contains the six declared epistemic role values. A selected role describes a statement’s status under its theory; the shared role value is not a per-statement context record or a proof-success flag."@x-gmeow-english ;
+    skos:example "The importer can record math:statementRole math:roleConjecture and math:roleInTheory on a statement. The shared math:roleConjecture value does not acquire that individual statement’s theory scope."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value category for the explicitly recorded epistemic role of a mathematical statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an undeclared role value, putting a statement’s theory on the shared role individual, or treating the label theorem as sufficient evidence of a proved result."@x-gmeow-english ;
+    gmeow:howToUse "Choose an existing math:StatementRole individual through math:statementRole on the statement, and retain math:roleInTheory on that same statement. Keep premises, proof or warrant evidence explicit rather than adding per-statement context to the shared value."@x-gmeow-english ;
+    skos:definition "The closed value class of the epistemic ROLE a math:MathematicalStatement holds under a theory — theorem-hood as a role, not a truth bit. Its six named individuals are math:roleTheorem (a proved conclusion, held under a theory with a proof or external warrant), math:roleLemma (an auxiliary result proved en route to a larger theorem), math:roleCorollary (a result following readily from a theorem), math:roleConjecture (a candidate held under active test, not yet proved or refuted), math:roleAxiom (a stated law taken as a foundation of the theory rather than derived within it), and math:roleDefinition (a statement introducing a term or notion, true by stipulation). A statement names exactly one through math:statementRole and records its named, versioned theory through math:roleInTheory; the status is theory-relative, so the same statement may carry different roles under different theories. The set is closed; a misspelt role names no declared value and is rejected rather than silently accepted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:roleTheorem
