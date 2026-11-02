@@ -124,13 +124,15 @@ over their n-ary predication is a relational-core capability, not an algebra-sli
   first-isomorphism triple (`math:Quotient`, `math:normalSubgroupOf`). The determinant example authors
   `det(A·B) = det(A)·det(B)` as a `logic:Formula`, with `GL₂/SL₂ ≅ ℝ*`.
 - **Lie theory and the E8 flagship** — `math:LieGroup`, `math:LieAlgebra`, `math:RootSystem`,
-  `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup` (⊑ `math:AutomorphismGroup`), `math:Lattice`,
-  `math:GroupRepresentation`, and `math:GroupAction`/`math:actsOn`. E8 is authored with 240 roots, rank
-  8, and a Weyl group of order 696,729,600 modelled as the automorphism group acting on the roots. The
-  Weyl group is anchored to the roots through `math:automorphismGroupOf` (every automorphism group is
-  the symmetry OF some structure), and E8's numbers are pinned two ways: an exact-match competency
-  question, and `math:E8WeylOrderShape` — a by-value SHACL gate that rejects a root system claiming the
-  E8 fingerprint (240 roots, rank 8) whose Weyl order is not 696,729,600.
+  `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup` (⊑ `math:Group`), `math:Lattice`,
+  `math:GroupRepresentation`, and `math:GroupAction`/`math:actsOn`. The E8 example declares 240 roots,
+  rank 8, and a Weyl group of order 696,729,600 explicitly also typed `math:AutomorphismGroup`, acting
+  on the roots. Generic Weyl groups retain their typed `math:hasRootSystem` anchor under class-local
+  closure, without an existential minimum. E8 separately declares `math:automorphismGroupOf` for its
+  full-automorphism role; that role does not apply to every Weyl group. An exact-match competency
+  question checks its fixed E8 fixture. The canonical `math:E8WeylOrderConstraint` has a generated
+  validation view that rejects a supplied incorrect Weyl order for the E8 fingerprint (240 roots,
+  rank 8).
 - **Homomorphic encryption (flagship 2) and secret sharing** — `math:HomomorphicEncryptionScheme` (a
   `math:RingHomomorphism`) with `math:homomorphicOver`, `math:securityAssumption` (LWE/RLWE), and
   `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`
