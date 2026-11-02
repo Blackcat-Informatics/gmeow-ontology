@@ -1786,6 +1786,11 @@ math:AlgebraicStructure
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Algebraic Structure"@x-gmeow-english ;
+    skos:scopeNote "The structure resource records a carrier together with selected operations and laws. Sharing a carrier does not identify two structures, and a descriptive frame or class label alone establishes neither evaluated operations nor a proof of the laws."@x-gmeow-english ;
+    skos:example "In algebra-structures.ttl, exa:integerAddition and exa:integerRing share exa:integerSet and exa:plus; the ring also names exa:times and distributivity. The set alone does not encode either full structure."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical object must retain its carrier, operations and stated laws as a structure rather than a bare set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the structure by its carrier, deriving operation behavior from a label, or treating a named axiom as a discharged proof."@x-gmeow-english ;
+    gmeow:howToUse "Choose the justified structure class, name math:underlyingSet and the required math:structureOperation values, and retain math:satisfiesAxiom links to the actual laws. Supply identity and inverse roles where applicable, keeping structured formulas and evidence separate from the descriptive frame."@x-gmeow-english ;
     skos:definition "A set equipped with operations satisfying stated axioms: a math:underlyingSet, one or more math:structureOperation, an identity/inverse where they exist, and the math:satisfiesAxiom laws it obeys. A group is not a labelled set — a math:Group asserted without an operation and axioms is ill-formed. The root of the algebraic hierarchy math:Magma … math:Field; substructures are related through math:substructureOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1794,6 +1799,11 @@ math:Magma
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Magma"@x-gmeow-english ;
+    skos:scopeNote "A magma requires a closed binary operation without requiring associativity, identity or inverses at this level. Stronger structures remain magmas through the hierarchy; this classification does not assert that stronger laws are false."@x-gmeow-english ;
+    skos:example "The operation exa:plus on exa:integerSet in algebra-structures.ttl supplies the magma operation inherited by exa:integerAddition, even though that example is classified more strongly as math:AbelianGroup."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier with one closed binary operation is the level of algebraic structure being described."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring associativity or commutativity from closure, omitting the operation, or rejecting a group merely because it also satisfies stronger laws."@x-gmeow-english ;
+    gmeow:howToUse "Identify the carrier through math:underlyingSet and the closed binary operation through math:structureOperation, retaining the inherited structure frame. Record any stronger justified laws explicitly rather than interpreting math:Magma as their negation."@x-gmeow-english ;
     skos:definition "A set with a single closed binary math:structureOperation and no further axioms: the weakest algebraic structure, a subclass of math:AlgebraicStructure. A math:Semigroup is a magma whose operation is associative."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1802,6 +1812,11 @@ math:Semigroup
     rdfs:subClassOf math:Magma ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Semigroup"@x-gmeow-english ;
+    skos:scopeNote "Associativity makes grouping irrelevant for the selected binary operation; it does not exchange operand order. Identity and inverses are not required at the semigroup level, but their presence in a stronger structure does not exclude semigroup membership."@x-gmeow-english ;
+    skos:example "exa:integerAddition names exa:associativity through math:satisfiesAxiom in algebra-structures.ttl. Its math:AbelianGroup classification includes the semigroup level without reducing associativity to commutativity."@x-gmeow-english ;
+    gmeow:useWhen "Use when the carrier’s closed binary operation has a stated associative law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating associative as commutative, assuming an identity from this class alone, or requiring the absence of inverses."@x-gmeow-english ;
+    gmeow:howToUse "Retain the magma carrier and operation, link the associativity axiom with math:satisfiesAxiom, and preserve its structured formula and supporting evidence. Add monoid or group classification only when their additional conditions are justified."@x-gmeow-english ;
     skos:definition "A math:Magma whose binary operation is associative — it satisfies the associativity axiom (∀a,b,c: (a·b)·c = a·(b·c)) through math:satisfiesAxiom. A subclass of math:Magma; a math:Monoid is a semigroup with an identity element."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1810,6 +1825,11 @@ math:Monoid
     rdfs:subClassOf math:Semigroup ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Monoid"@x-gmeow-english ;
+    skos:scopeNote "A monoid adds a two-sided identity element to an associative operation. The identity occupies the carrier-element role; for a carrier of transformations it may itself be the identity function. Inverses are not required at this level, and groups still inherit monoid membership."@x-gmeow-english ;
+    skos:example "In algebra-structures.ttl, exa:integerAddition names exa:zero as math:identityElement and exa:identity as a satisfied axiom. Its stronger group classification preserves this monoid frame."@x-gmeow-english ;
+    gmeow:useWhen "Use when an associative carrier operation has an identified element that acts as identity on both sides."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying only a left or right identity, confusing the identity element with an operation, or asserting inverses solely from math:Monoid."@x-gmeow-english ;
+    gmeow:howToUse "Retain the semigroup carrier, operation and associativity law, identify the carrier element with math:identityElement, and link the two-sided identity axiom through math:satisfiesAxiom. Keep the element distinct in role from any inverse-operation resource."@x-gmeow-english ;
     skos:definition "A math:Semigroup with a two-sided identity element (∀a: a·e = e·a = a), named through math:identityElement. A subclass of math:Semigroup; a math:Group is a monoid in which every element has an inverse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1818,6 +1838,11 @@ math:Group
     rdfs:subClassOf math:Monoid ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Group"@x-gmeow-english ;
+    skos:scopeNote "A group retains associativity and a two-sided identity and supplies a two-sided inverse for every carrier element. Commutativity is additional, not a condition of every group; the inverse-operation resource is not an individual inverse value or a generic inverse-function declaration."@x-gmeow-english ;
+    skos:example "exa:integerAddition uses exa:plus, exa:zero and exa:negation and names associativity, identity and inverse laws in algebra-structures.ttl. Its commutativity law additionally supports math:AbelianGroup."@x-gmeow-english ;
+    gmeow:useWhen "Use when every element of an associative structure with identity has a two-sided inverse under the selected group operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring commutativity for all groups, confusing the unary inverse map with its output element, or inferring law proofs from a symmetry label."@x-gmeow-english ;
+    gmeow:howToUse "Provide the inherited monoid frame, name the unary math:Operation through math:inverseOperation, and retain the inverse axiom through math:satisfiesAxiom alongside associativity and identity. Preserve formula and proof evidence rather than treating these links as an evaluator."@x-gmeow-english ;
     skos:definition "A math:Monoid in which every element has a two-sided inverse (∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e), the inverse reached through math:inverseOperation. A subclass of math:Monoid — the central structure of symmetry, of which a math:AutomorphismGroup and a math:WeylGroup are instances. A math:AbelianGroup is a group whose operation additionally commutes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1826,6 +1851,11 @@ math:AbelianGroup
     rdfs:subClassOf math:Group ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Abelian Group"@x-gmeow-english ;
+    skos:scopeNote "This specialization adds commutativity to all group laws: exchanging operands preserves the result, in addition to associativity, identity and inverses. The additive part of a ring is abelian; that does not make its multiplication commutative."@x-gmeow-english ;
+    skos:example "exa:integerAddition is a math:AbelianGroup with exa:commutativity among its math:satisfiesAxiom values in algebra-structures.ttl, alongside the associativity, identity and inverse axioms."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected group operation is justified as commutative as well as satisfying the inherited group conditions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping inherited group roles, confusing commutativity with associativity, or transferring additive commutativity to a ring’s multiplication without justification."@x-gmeow-english ;
+    gmeow:howToUse "Keep the carrier, group operation, identity and inverse frame, and name the commutativity axiom through math:satisfiesAxiom with the other group laws. Retain the law’s actual formula and evidence for the selected operation."@x-gmeow-english ;
     skos:definition "A math:Group whose operation is commutative (∀a,b: a·b = b·a) — it additionally satisfies the commutativity axiom through math:satisfiesAxiom. A subclass of math:Group; the additive group of a math:Ring is abelian."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1834,6 +1864,11 @@ math:Ring
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ring"@x-gmeow-english ;
+    skos:scopeNote "A ring coordinates additive and multiplicative operation roles on one carrier: addition forms an abelian group, multiplication is associative, and distributivity relates them. Two operation roles do not introduce resource-inequality rules, and additive commutativity does not establish multiplicative commutativity."@x-gmeow-english ;
+    skos:example "exa:integerRing names exa:plus and exa:times and links exa:leftDistributivity through both math:satisfiesAxiom and math:satisfiesDistributivity in algebra-structures.ttl."@x-gmeow-english ;
+    gmeow:useWhen "Use when addition and multiplication on a carrier have the stated ring laws, including the distributive connection between them."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling two unrelated operations a ring, assuming multiplicative inverses for every element, or relying only on an entailed general axiom edge for a consumer that reads asserted triples."@x-gmeow-english ;
+    gmeow:howToUse "Name the carrier and the two math:structureOperation values, retain their additive and multiplicative meanings in the existing definitions and laws, and link the distributivity axiom through both math:satisfiesDistributivity and math:satisfiesAxiom when asserted-triple consumers require both."@x-gmeow-english ;
     skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1842,6 +1877,11 @@ math:CommutativeRing
     rdfs:subClassOf math:Ring ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Commutative Ring"@x-gmeow-english ;
+    skos:scopeNote "The additional commutativity condition applies to multiplication; the ring already has an abelian additive group. This specialization retains both operations and distributivity and does not by itself supply multiplicative inverses for all nonzero elements."@x-gmeow-english ;
+    skos:example "exa:integerRing is typed math:CommutativeRing in algebra-structures.ttl. Its integer multiplication commutes, but the integer 2 has no multiplicative inverse within its integer carrier."@x-gmeow-english ;
+    gmeow:useWhen "Use when the full ring frame is retained and multiplication is justified as commutative."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid justifying this class only by additive commutativity, omitting distributivity, or promoting the structure to a field without the nonzero inverse condition."@x-gmeow-english ;
+    gmeow:howToUse "Keep the ring’s carrier, two operations and distributivity links, and associate the commutativity law with the multiplicative role through the existing mathematical definitions and math:satisfiesAxiom record. Do not invent operation-position predicates."@x-gmeow-english ;
     skos:definition "A math:Ring whose multiplication commutes (∀a,b: a·b = b·a). A subclass of math:Ring; a math:Field is a commutative ring whose non-zero elements form a group under multiplication, and a math:PolynomialRing is a commutative ring of polynomials."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1850,6 +1890,11 @@ math:Field
     rdfs:subClassOf math:CommutativeRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Field"@x-gmeow-english ;
+    skos:scopeNote "A field retains the commutative-ring laws and restricts the multiplicative inverse requirement to nonzero elements. Its full carrier still includes zero for addition; it is the nonzero multiplicative part that forms a group."@x-gmeow-english ;
+    skos:example "Over ℚ, the nonzero element 2 has multiplicative inverse 1/2. This distinguishes a field from the integer-ring example in algebra-structures.ttl, where 1/2 is outside exa:integerSet."@x-gmeow-english ;
+    gmeow:useWhen "Use when a commutative ring’s nonzero elements have the multiplicative group structure required of a field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an inverse of zero, treating every commutative ring as a field, or confusing additive negation with multiplicative inversion."@x-gmeow-english ;
+    gmeow:howToUse "Retain the commutative-ring carrier, operation roles and laws, and state the multiplicative identity and inverse law over the nonzero elements with the existing axiom/formula vocabulary. Keep zero in the full additive carrier and retain evidence for the field claim."@x-gmeow-english ;
     skos:definition "A math:CommutativeRing whose non-zero elements form an abelian group under multiplication — every non-zero element has a multiplicative inverse. A subclass of math:CommutativeRing; ℚ, ℝ, ℂ and the finite fields are fields, the ground over which a math:VectorSpace and Shamir secret sharing are defined."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1899,6 +1944,11 @@ math:underlyingSet
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "underlying set"@x-gmeow-english ;
+    skos:scopeNote "This link names the carrier set, not the structure’s operation or the structure itself. Different structures may share the same carrier while selecting different operations or laws; the link alone does not enumerate or evaluate its members."@x-gmeow-english ;
+    skos:example "Both exa:integerAddition and exa:integerRing point through math:underlyingSet to exa:integerSet in algebra-structures.ttl, while retaining their separate structure frames."@x-gmeow-english ;
+    gmeow:useWhen "Use when the elements supporting an algebraic structure must be identified as a math:Set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing to an operation, substituting a datatype label for the carrier resource, or merging structures solely because their math:underlyingSet values match."@x-gmeow-english ;
+    gmeow:howToUse "Link the structure to its carrier math:Set with math:underlyingSet and keep its operation and law links on the structure. Reuse an existing carrier when it denotes the same set, without discarding the surrounding structure identity."@x-gmeow-english ;
     skos:definition "Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1906,6 +1956,11 @@ math:structureOperation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "structure operation"@x-gmeow-english ;
+    skos:scopeNote "This property names an operation resource in a structure’s frame; it does not provide operand positions, an evaluated result or a law proof. A magma selects one closed binary operation, while a ring carries additive and multiplicative roles without new resource-inequality requirements."@x-gmeow-english ;
+    skos:example "exa:integerAddition names exa:plus through math:structureOperation; exa:integerRing names both exa:plus and exa:times in algebra-structures.ttl. The shared plus resource does not make the structures identical."@x-gmeow-english ;
+    gmeow:useWhen "Use when a structure must identify the math:Operation resources that participate in its algebraic laws."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing an element or result value here, treating this link as an executable function call, or inventing ordered operation slots to distinguish ring addition and multiplication."@x-gmeow-english ;
+    gmeow:howToUse "Link the structure to each required math:Operation, and preserve the chosen operation roles through their existing definitions and the actual axiom formulas. Keep the carrier on math:underlyingSet and any identity element or inverse map in its corresponding field."@x-gmeow-english ;
     skos:definition "Names a binary (or n-ary) operation of an algebraic structure — the group operation, or a ring's addition and multiplication. Domain math:AlgebraicStructure, range math:Operation (stated in prose). A ring carries two such operations; a structure with none is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1913,6 +1968,11 @@ math:identityElement
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "identity element"@x-gmeow-english ;
+    skos:scopeNote "The value is a carrier element acting as identity on both sides of the selected operation. It records the element role rather than a function call or inverse-map role; a carrier of functions may use its identity function. Its role depends on the operation being described."@x-gmeow-english ;
+    skos:example "exa:integerAddition points to exa:zero with math:identityElement in algebra-structures.ttl, while exa:plus is the operation and exa:negation is the inverse operation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the monoid or richer structure has an identified carrier element satisfying the two-sided identity law for its operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a function call or inverse-operation role for the required carrier element, accepting only a one-sided neutral element, or silently reusing an additive identity as a multiplicative identity."@x-gmeow-english ;
+    gmeow:howToUse "Point math:identityElement to the element resource and retain the relevant carrier, operation and identity axiom. Make the operation’s meaning explicit with the existing definitions and formulas, without adding role-position predicates or treating the link itself as a proof."@x-gmeow-english ;
     skos:definition "Names the two-sided identity of a monoid operation (the e with a·e = e·a = a). Domain math:Monoid or a richer structure, range an element of the math:underlyingSet (stated in prose). A math:Group inherits it from math:Monoid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1920,6 +1980,11 @@ math:inverseOperation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "inverse operation"@x-gmeow-english ;
+    skos:scopeNote "This field names the unary math:Operation assigning each group element its inverse under the chosen group operation. It does not name one inverse element or assert a math:inverseFunction link between bijective functions; the group law requires both multiplication orders to yield the identity."@x-gmeow-english ;
+    skos:example "exa:integerAddition uses exa:negation as math:inverseOperation in algebra-structures.ttl: an integer n is sent to −n under addition, while exa:zero remains the identity element."@x-gmeow-english ;
+    gmeow:useWhen "Use when a group frame needs to identify the unary operation realizing its two-sided inverse role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a single member value as the map, confusing additive negation with reciprocal multiplication, or inferring that every monoid has inverses."@x-gmeow-english ;
+    gmeow:howToUse "Connect the group to the inverse math:Operation through math:inverseOperation, retaining its main operation, identity element and inverse law through the existing frame and math:satisfiesAxiom. Preserve the law’s formula and evidence; the edge alone does not compute inverses."@x-gmeow-english ;
     skos:definition "Names the unary inverse map of a group (a ↦ a⁻¹ with a·a⁻¹ = e). Domain math:Group, range math:Operation (stated in prose). The existence of inverses is what distinguishes a math:Group from a math:Monoid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1927,7 +1992,12 @@ math:satisfiesAxiom
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "satisfies axiom"@x-gmeow-english ;
-    skos:definition "Relates an algebraic structure to a math:Axiom it obeys — associativity, commutativity, distributivity. Domain math:AlgebraicStructure, range math:Axiom (stated in prose). The axiom denotes a logic: formula the logic: reasoner owns: math: declares that the structure satisfies the law, logic: reasons over it."@x-gmeow-english ;
+    skos:scopeNote "A satisfaction link declares a law for its subject without supplying that law’s formula or proof. Existing subjects include algebraic structures and group actions; these examples do not define a closed global domain or reclassify actions as algebraic structures."@x-gmeow-english ;
+    skos:example "exa:integerAddition names exa:associativity in algebra-structures.ttl; exa:e8WeylAction names exa:groupActionLaw in e8-symmetry.ttl. Their referenced laws are realized as logic:Formula trees rather than being proved by the links alone."@x-gmeow-english ;
+    gmeow:useWhen "Use when an existing mathematical resource must name an explicit math:Axiom it is declared to satisfy, retaining the law’s actual realization and evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a named axiom as an automatic proof, a class label as a realized formula, or the carrier and operation frame as universal execution support."@x-gmeow-english ;
+    gmeow:howToUse "Point math:satisfiesAxiom to the law resource and retain its structured logic:Formula where realized and the supporting evidence. The ONNX ParameterSpace carrier, operation and named-axiom record is descriptive framing; that record alone supplies neither a formula tree nor a proof."@x-gmeow-english ;
+    skos:definition "Relates a mathematical resource, such as an algebraic structure or a group action, to a math:Axiom it is declared to obey — associativity, commutativity, distributivity or an action law, for example. The axiom denotes a logic: formula the logic: reasoner owns: math: declares satisfaction of the law, logic: reasons over it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:satisfiesDistributivity
@@ -1935,6 +2005,11 @@ math:satisfiesDistributivity
     rdfs:subPropertyOf math:satisfiesAxiom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "satisfies distributivity"@x-gmeow-english ;
+    skos:scopeNote "This refinement selects the distributivity axiom relating ring multiplication and addition. It entails the general math:satisfiesAxiom edge through the existing hierarchy, but an asserted-triple consumer does not gain that edge merely by reading the specific assertion."@x-gmeow-english ;
+    skos:example "exa:integerRing points to exa:leftDistributivity through both math:satisfiesDistributivity and math:satisfiesAxiom in algebra-structures.ttl; algebra-axioms.ttl realizes that same law as a logic:Formula tree."@x-gmeow-english ;
+    gmeow:useWhen "Use when a ring must explicitly identify the distributivity law that connects its additive and multiplicative operations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting an unrelated associativity or commutativity axiom, omitting the general axiom assertion required by a direct consumer, or treating this edge as proof that the law has executed."@x-gmeow-english ;
+    gmeow:howToUse "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."@x-gmeow-english ;
     skos:definition "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

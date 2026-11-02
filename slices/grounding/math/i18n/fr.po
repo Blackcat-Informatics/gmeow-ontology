@@ -7164,3 +7164,407 @@ msgstr "Ne pas le confondre avec math:codomain (l’ensemble cible d’une fonct
 msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, honestly widening to ℂ where a real root or logarithm requires it."
 msgstr "Le renseigner sur un math:ArithmeticOperation avec un math:NumberSystem ; exactement un par opération, en élargissant honnêtement à ℂ lorsqu’une racine réelle ou un logarithme l’exige."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The structure resource records a carrier together with selected operations and laws. Sharing a carrier does not identify two structures, and a descriptive frame or class label alone establishes neither evaluated operations nor a proof of the laws."
+msgstr "La ressource structure consigne un ensemble support avec des opérations et des lois choisies. Partager un support n’identifie pas deux structures, et un cadre descriptif ou un libellé de classe ne suffit à établir ni des opérations évaluées ni une preuve des lois."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-structures.ttl, exa:integerAddition and exa:integerRing share exa:integerSet and exa:plus; the ring also names exa:times and distributivity. The set alone does not encode either full structure."
+msgstr "Dans algebra-structures.ttl, exa:integerAddition et exa:integerRing partagent exa:integerSet et exa:plus ; l’anneau nomme aussi exa:times et la distributivité. L’ensemble seul n’encode aucune des deux structures complètes."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical object must retain its carrier, operations and stated laws as a structure rather than a bare set."
+msgstr "Utiliser lorsqu’un objet mathématique doit conserver son support, ses opérations et ses lois énoncées en tant que structure plutôt que simple ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the structure by its carrier, deriving operation behavior from a label, or treating a named axiom as a discharged proof."
+msgstr "Ne pas remplacer la structure par son support, déduire le comportement d’une opération d’un libellé ou traiter un axiome nommé comme une preuve achevée."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose the justified structure class, name math:underlyingSet and the required math:structureOperation values, and retain math:satisfiesAxiom links to the actual laws. Supply identity and inverse roles where applicable, keeping structured formulas and evidence separate from the descriptive frame."
+msgstr "Choisir la classe de structure justifiée, nommer math:underlyingSet et les valeurs math:structureOperation requises, puis conserver les liens math:satisfiesAxiom vers les lois réelles. Fournir les rôles de neutre et d’inverse lorsqu’ils s’appliquent, en distinguant formules structurées et preuves du cadre descriptif."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Magma"
+msgstr "Magma algébrique"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set with a single closed binary math:structureOperation and no further axioms: the weakest algebraic structure, a subclass of math:AlgebraicStructure. A math:Semigroup is a magma whose operation is associative."
+msgstr "Un ensemble muni d’une seule opération binaire interne math:structureOperation et d’aucun axiome supplémentaire : la structure algébrique la plus faible, sous-classe de math:AlgebraicStructure. Un math:Semigroup est un magma dont l’opération est associative."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A magma requires a closed binary operation without requiring associativity, identity or inverses at this level. Stronger structures remain magmas through the hierarchy; this classification does not assert that stronger laws are false."
+msgstr "Un magma requiert une opération binaire interne sans exiger à ce niveau associativité, neutre ou inverses. Les structures plus fortes restent des magmas par la hiérarchie ; cette classification n’affirme pas que les lois plus fortes sont fausses."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#example"
+msgid "The operation exa:plus on exa:integerSet in algebra-structures.ttl supplies the magma operation inherited by exa:integerAddition, even though that example is classified more strongly as math:AbelianGroup."
+msgstr "L’opération exa:plus sur exa:integerSet dans algebra-structures.ttl fournit l’opération de magma héritée par exa:integerAddition, bien que cet exemple porte la classification plus forte math:AbelianGroup."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier with one closed binary operation is the level of algebraic structure being described."
+msgstr "Utiliser lorsque le niveau de structure algébrique décrit est un support muni d’une opération binaire interne."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring associativity or commutativity from closure, omitting the operation, or rejecting a group merely because it also satisfies stronger laws."
+msgstr "Ne pas déduire l’associativité ou la commutativité de la fermeture, omettre l’opération ou rejeter un groupe au seul motif qu’il satisfait aussi des lois plus fortes."
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the carrier through math:underlyingSet and the closed binary operation through math:structureOperation, retaining the inherited structure frame. Record any stronger justified laws explicitly rather than interpreting math:Magma as their negation."
+msgstr "Identifier le support par math:underlyingSet et l’opération binaire interne par math:structureOperation, en conservant le cadre de structure hérité. Consigner explicitement les lois plus fortes justifiées plutôt qu’interpréter math:Magma comme leur négation."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Semigroup"
+msgstr "Demi-groupe"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Magma whose binary operation is associative — it satisfies the associativity axiom (∀a,b,c: (a·b)·c = a·(b·c)) through math:satisfiesAxiom. A subclass of math:Magma; a math:Monoid is a semigroup with an identity element."
+msgstr "Un math:Magma dont l’opération binaire est associative — il satisfait l’axiome d’associativité (∀a,b,c: (a·b)·c = a·(b·c)) par math:satisfiesAxiom. Sous-classe de math:Magma ; un math:Monoid est un demi-groupe avec élément neutre."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associativity makes grouping irrelevant for the selected binary operation; it does not exchange operand order. Identity and inverses are not required at the semigroup level, but their presence in a stronger structure does not exclude semigroup membership."
+msgstr "L’associativité rend le parenthésage indifférent pour l’opération binaire choisie ; elle ne permute pas l’ordre des opérandes. Neutre et inverses ne sont pas requis au niveau du demi-groupe, mais leur présence dans une structure plus forte n’exclut pas cette appartenance."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:associativity through math:satisfiesAxiom in algebra-structures.ttl. Its math:AbelianGroup classification includes the semigroup level without reducing associativity to commutativity."
+msgstr "exa:integerAddition nomme exa:associativity par math:satisfiesAxiom dans algebra-structures.ttl. Sa classification math:AbelianGroup inclut le niveau du demi-groupe sans réduire l’associativité à la commutativité."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the carrier’s closed binary operation has a stated associative law."
+msgstr "Utiliser lorsque l’opération binaire interne du support possède une loi associative énoncée."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating associative as commutative, assuming an identity from this class alone, or requiring the absence of inverses."
+msgstr "Ne pas confondre associatif et commutatif, présumer un neutre de cette seule classe ou exiger l’absence d’inverses."
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the magma carrier and operation, link the associativity axiom with math:satisfiesAxiom, and preserve its structured formula and supporting evidence. Add monoid or group classification only when their additional conditions are justified."
+msgstr "Conserver le support et l’opération du magma, relier l’axiome d’associativité par math:satisfiesAxiom et préserver sa formule structurée ainsi que les preuves qui l’étayent. Ajouter la classification monoïde ou groupe seulement lorsque ses conditions supplémentaires sont justifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Monoid"
+msgstr "Monoïde"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Semigroup with a two-sided identity element (∀a: a·e = e·a = a), named through math:identityElement. A subclass of math:Semigroup; a math:Group is a monoid in which every element has an inverse."
+msgstr "Un math:Semigroup avec un élément neutre bilatère (∀a: a·e = e·a = a), nommé par math:identityElement. Sous-classe de math:Semigroup ; un math:Group est un monoïde dans lequel chaque élément possède un inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A monoid adds a two-sided identity element to an associative operation. The identity occupies the carrier-element role; for a carrier of transformations it may itself be the identity function. Inverses are not required at this level, and groups still inherit monoid membership."
+msgstr "Un monoïde ajoute un élément neutre bilatère à une opération associative. Le neutre occupe le rôle d’élément du support ; pour un support de transformations, il peut lui-même être la fonction identité. Les inverses ne sont pas requis à ce niveau, et les groupes restent des monoïdes par héritage."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-structures.ttl, exa:integerAddition names exa:zero as math:identityElement and exa:identity as a satisfied axiom. Its stronger group classification preserves this monoid frame."
+msgstr "Dans algebra-structures.ttl, exa:integerAddition nomme exa:zero comme math:identityElement et exa:identity comme axiome satisfait. Sa classification plus forte de groupe conserve ce cadre de monoïde."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an associative carrier operation has an identified element that acts as identity on both sides."
+msgstr "Utiliser lorsqu’une opération associative sur un support possède un élément identifié qui est neutre des deux côtés."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying only a left or right identity, confusing the identity element with an operation, or asserting inverses solely from math:Monoid."
+msgstr "Ne pas fournir seulement un neutre à gauche ou à droite, confondre l’élément neutre avec une opération ou affirmer des inverses à partir de math:Monoid seul."
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the semigroup carrier, operation and associativity law, identify the carrier element with math:identityElement, and link the two-sided identity axiom through math:satisfiesAxiom. Keep the element distinct in role from any inverse-operation resource."
+msgstr "Conserver le support, l’opération et la loi d’associativité du demi-groupe, identifier l’élément du support par math:identityElement et relier l’axiome de neutre bilatère par math:satisfiesAxiom. Distinguer le rôle de cet élément de celui de toute ressource d’opération d’inversion."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group"
+msgstr "Groupe"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Monoid in which every element has a two-sided inverse (∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e), the inverse reached through math:inverseOperation. A subclass of math:Monoid — the central structure of symmetry, of which a math:AutomorphismGroup and a math:WeylGroup are instances. A math:AbelianGroup is a group whose operation additionally commutes."
+msgstr "Un math:Monoid dans lequel chaque élément possède un inverse bilatère (∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e), l’inverse étant atteint par math:inverseOperation. Sous-classe de math:Monoid — la structure centrale de la symétrie, dont math:AutomorphismGroup et math:WeylGroup sont des instances. Un math:AbelianGroup est un groupe dont l’opération commute en outre."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A group retains associativity and a two-sided identity and supplies a two-sided inverse for every carrier element. Commutativity is additional, not a condition of every group; the inverse-operation resource is not an individual inverse value or a generic inverse-function declaration."
+msgstr "Un groupe conserve l’associativité et un neutre bilatère, et fournit un inverse bilatère pour chaque élément du support. La commutativité est supplémentaire, pas une condition de tout groupe ; la ressource d’opération d’inversion n’est ni une valeur inverse individuelle ni une déclaration générique de fonction inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition uses exa:plus, exa:zero and exa:negation and names associativity, identity and inverse laws in algebra-structures.ttl. Its commutativity law additionally supports math:AbelianGroup."
+msgstr "exa:integerAddition utilise exa:plus, exa:zero et exa:negation et nomme les lois d’associativité, de neutre et d’inverse dans algebra-structures.ttl. Sa loi de commutativité étaye en outre math:AbelianGroup."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when every element of an associative structure with identity has a two-sided inverse under the selected group operation."
+msgstr "Utiliser lorsque chaque élément d’une structure associative avec neutre possède un inverse bilatère pour l’opération de groupe choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring commutativity for all groups, confusing the unary inverse map with its output element, or inferring law proofs from a symmetry label."
+msgstr "Ne pas exiger la commutativité pour tous les groupes, confondre l’application unaire d’inversion avec son élément de sortie ou déduire des preuves de lois d’un libellé de symétrie."
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide the inherited monoid frame, name the unary math:Operation through math:inverseOperation, and retain the inverse axiom through math:satisfiesAxiom alongside associativity and identity. Preserve formula and proof evidence rather than treating these links as an evaluator."
+msgstr "Fournir le cadre de monoïde hérité, nommer la math:Operation unaire par math:inverseOperation et conserver l’axiome d’inverse par math:satisfiesAxiom avec l’associativité et le neutre. Préserver formule et preuves plutôt que traiter ces liens comme un évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specialization adds commutativity to all group laws: exchanging operands preserves the result, in addition to associativity, identity and inverses. The additive part of a ring is abelian; that does not make its multiplication commutative."
+msgstr "Cette spécialisation ajoute la commutativité à toutes les lois de groupe : échanger les opérandes préserve le résultat, en plus de l’associativité, du neutre et des inverses. La partie additive d’un anneau est abélienne ; cela ne rend pas sa multiplication commutative."
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition is a math:AbelianGroup with exa:commutativity among its math:satisfiesAxiom values in algebra-structures.ttl, alongside the associativity, identity and inverse axioms."
+msgstr "exa:integerAddition est un math:AbelianGroup avec exa:commutativity parmi ses valeurs math:satisfiesAxiom dans algebra-structures.ttl, aux côtés des axiomes d’associativité, de neutre et d’inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected group operation is justified as commutative as well as satisfying the inherited group conditions."
+msgstr "Utiliser lorsque l’opération de groupe choisie est justifiée comme commutative en plus de satisfaire les conditions de groupe héritées."
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping inherited group roles, confusing commutativity with associativity, or transferring additive commutativity to a ring’s multiplication without justification."
+msgstr "Ne pas omettre les rôles de groupe hérités, confondre commutativité et associativité ou transférer la commutativité additive à la multiplication d’un anneau sans justification."
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the carrier, group operation, identity and inverse frame, and name the commutativity axiom through math:satisfiesAxiom with the other group laws. Retain the law’s actual formula and evidence for the selected operation."
+msgstr "Conserver le cadre du support, de l’opération de groupe, du neutre et de l’inverse, puis nommer l’axiome de commutativité par math:satisfiesAxiom avec les autres lois de groupe. Préserver la formule réelle et les preuves de la loi pour l’opération choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ring"
+msgstr "Anneau"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
+msgstr "Un ensemble muni de deux opérations — un groupe additif abélien et une multiplication associative qui se distribue sur l’addition (∀a,b,c: a·(b+c) = a·b + a·c) — portées par deux math:structureOperation avec l’axiome de distributivité par math:satisfiesAxiom. Il nomme aussi cette loi par math:satisfiesDistributivity, qui affine math:satisfiesAxiom (la distributivité est l’un des axiomes de l’anneau, et le raisonneur entraîne la propriété générale) ; la validation lit les triplets affirmés, donc un anneau bien formé affirme les deux. La distributivité fait d’une structure à deux opérations un anneau plutôt que deux groupes sans lien ; un anneau déclaré sans elle est mal formé (math:NonDistributiveRing). Sous-classe de math:AlgebraicStructure ; un math:CommutativeRing est un anneau dont la multiplication commute."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A ring coordinates additive and multiplicative operation roles on one carrier: addition forms an abelian group, multiplication is associative, and distributivity relates them. Two operation roles do not introduce resource-inequality rules, and additive commutativity does not establish multiplicative commutativity."
+msgstr "Un anneau coordonne des rôles d’opération additive et multiplicative sur un même support : l’addition forme un groupe abélien, la multiplication est associative et la distributivité les relie. Deux rôles d’opération n’introduisent pas de règles d’inégalité des ressources, et la commutativité additive n’établit pas celle de la multiplication."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing names exa:plus and exa:times and links exa:leftDistributivity through both math:satisfiesAxiom and math:satisfiesDistributivity in algebra-structures.ttl."
+msgstr "exa:integerRing nomme exa:plus et exa:times et relie exa:leftDistributivity à la fois par math:satisfiesAxiom et math:satisfiesDistributivity dans algebra-structures.ttl."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when addition and multiplication on a carrier have the stated ring laws, including the distributive connection between them."
+msgstr "Utiliser lorsque l’addition et la multiplication sur un support possèdent les lois d’anneau énoncées, y compris le lien distributif entre elles."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling two unrelated operations a ring, assuming multiplicative inverses for every element, or relying only on an entailed general axiom edge for a consumer that reads asserted triples."
+msgstr "Ne pas appeler anneau deux opérations sans lien, présumer des inverses multiplicatifs pour chaque élément ou se fier au seul lien général d’axiome entraîné pour un consommateur qui lit les triplets affirmés."
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the carrier and the two math:structureOperation values, retain their additive and multiplicative meanings in the existing definitions and laws, and link the distributivity axiom through both math:satisfiesDistributivity and math:satisfiesAxiom when asserted-triple consumers require both."
+msgstr "Nommer le support et les deux valeurs math:structureOperation, conserver leurs sens additif et multiplicatif dans les définitions et lois existantes, et relier l’axiome de distributivité à la fois par math:satisfiesDistributivity et math:satisfiesAxiom lorsque les consommateurs de triplets affirmés exigent les deux."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Commutative Ring"
+msgstr "Anneau commutatif"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Ring whose multiplication commutes (∀a,b: a·b = b·a). A subclass of math:Ring; a math:Field is a commutative ring whose non-zero elements form a group under multiplication, and a math:PolynomialRing is a commutative ring of polynomials."
+msgstr "Un math:Ring dont la multiplication commute (∀a,b: a·b = b·a). Sous-classe de math:Ring ; un math:Field est un anneau commutatif dont les éléments non nuls forment un groupe pour la multiplication, et un math:PolynomialRing est un anneau commutatif de polynômes."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The additional commutativity condition applies to multiplication; the ring already has an abelian additive group. This specialization retains both operations and distributivity and does not by itself supply multiplicative inverses for all nonzero elements."
+msgstr "La condition supplémentaire de commutativité porte sur la multiplication ; l’anneau possède déjà un groupe additif abélien. Cette spécialisation conserve les deux opérations et la distributivité, et ne fournit pas à elle seule des inverses multiplicatifs pour tous les éléments non nuls."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing is typed math:CommutativeRing in algebra-structures.ttl. Its integer multiplication commutes, but the integer 2 has no multiplicative inverse within its integer carrier."
+msgstr "exa:integerRing est typé math:CommutativeRing dans algebra-structures.ttl. Sa multiplication entière commute, mais l’entier 2 n’a pas d’inverse multiplicatif dans son support entier."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the full ring frame is retained and multiplication is justified as commutative."
+msgstr "Utiliser lorsque le cadre complet d’anneau est conservé et que la commutativité de la multiplication est justifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid justifying this class only by additive commutativity, omitting distributivity, or promoting the structure to a field without the nonzero inverse condition."
+msgstr "Ne pas justifier cette classe par la seule commutativité additive, omettre la distributivité ou promouvoir la structure en corps sans la condition d’inverse pour les éléments non nuls."
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the ring’s carrier, two operations and distributivity links, and associate the commutativity law with the multiplicative role through the existing mathematical definitions and math:satisfiesAxiom record. Do not invent operation-position predicates."
+msgstr "Conserver le support de l’anneau, ses deux opérations et ses liens de distributivité, puis associer la loi de commutativité au rôle multiplicatif par les définitions mathématiques existantes et le relevé math:satisfiesAxiom. Ne pas inventer de prédicats de position d’opération."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Field"
+msgstr "Corps"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:CommutativeRing whose non-zero elements form an abelian group under multiplication — every non-zero element has a multiplicative inverse. A subclass of math:CommutativeRing; ℚ, ℝ, ℂ and the finite fields are fields, the ground over which a math:VectorSpace and Shamir secret sharing are defined."
+msgstr "Un math:CommutativeRing dont les éléments non nuls forment un groupe abélien pour la multiplication — chaque élément non nul possède un inverse multiplicatif. Sous-classe de math:CommutativeRing ; ℚ, ℝ, ℂ et les corps finis sont des corps, les bases sur lesquelles sont définis math:VectorSpace et le partage de secret de Shamir."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A field retains the commutative-ring laws and restricts the multiplicative inverse requirement to nonzero elements. Its full carrier still includes zero for addition; it is the nonzero multiplicative part that forms a group."
+msgstr "Un corps conserve les lois d’anneau commutatif et restreint l’exigence d’inverse multiplicatif aux éléments non nuls. Son support complet comprend toujours zéro pour l’addition ; c’est la partie multiplicative non nulle qui forme un groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over ℚ, the nonzero element 2 has multiplicative inverse 1/2. This distinguishes a field from the integer-ring example in algebra-structures.ttl, where 1/2 is outside exa:integerSet."
+msgstr "Sur ℚ, l’élément non nul 2 a pour inverse multiplicatif 1/2. Cela distingue un corps de l’exemple d’anneau entier dans algebra-structures.ttl, où 1/2 est extérieur à exa:integerSet."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a commutative ring’s nonzero elements have the multiplicative group structure required of a field."
+msgstr "Utiliser lorsque les éléments non nuls d’un anneau commutatif possèdent la structure de groupe multiplicatif requise d’un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an inverse of zero, treating every commutative ring as a field, or confusing additive negation with multiplicative inversion."
+msgstr "Ne pas exiger un inverse de zéro, traiter tout anneau commutatif comme un corps ou confondre l’opposé additif avec l’inversion multiplicative."
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the commutative-ring carrier, operation roles and laws, and state the multiplicative identity and inverse law over the nonzero elements with the existing axiom/formula vocabulary. Keep zero in the full additive carrier and retain evidence for the field claim."
+msgstr "Conserver le support, les rôles d’opération et les lois d’anneau commutatif, puis énoncer le neutre multiplicatif et la loi d’inverse sur les éléments non nuls avec le vocabulaire existant d’axiomes et de formules. Garder zéro dans le support additif complet et conserver les preuves de l’affirmation de corps."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "underlying set"
+msgstr "ensemble sous-jacent"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed."
+msgstr "Nomme l’ensemble support d’une structure algébrique — les éléments sur lesquels agissent les opérations. Domaine math:AlgebraicStructure, portée math:Set (énoncés en prose). Tout math:AlgebraicStructure en déclare un ; une structure sans support est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link names the carrier set, not the structure’s operation or the structure itself. Different structures may share the same carrier while selecting different operations or laws; the link alone does not enumerate or evaluate its members."
+msgstr "Ce lien nomme l’ensemble support, et non l’opération de la structure ou la structure elle-même. Des structures différentes peuvent partager le même support tout en choisissant des opérations ou lois différentes ; le lien seul n’énumère ni n’évalue ses membres."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both exa:integerAddition and exa:integerRing point through math:underlyingSet to exa:integerSet in algebra-structures.ttl, while retaining their separate structure frames."
+msgstr "exa:integerAddition et exa:integerRing pointent tous deux par math:underlyingSet vers exa:integerSet dans algebra-structures.ttl, tout en conservant leurs cadres de structure séparés."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the elements supporting an algebraic structure must be identified as a math:Set."
+msgstr "Utiliser lorsque les éléments qui portent une structure algébrique doivent être identifiés comme un math:Set."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing to an operation, substituting a datatype label for the carrier resource, or merging structures solely because their math:underlyingSet values match."
+msgstr "Ne pas pointer vers une opération, substituer un libellé de type de données à la ressource support ou fusionner des structures au seul motif que leurs valeurs math:underlyingSet coïncident."
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the structure to its carrier math:Set with math:underlyingSet and keep its operation and law links on the structure. Reuse an existing carrier when it denotes the same set, without discarding the surrounding structure identity."
+msgstr "Relier la structure à son math:Set support par math:underlyingSet et garder ses liens d’opération et de loi sur la structure. Réutiliser un support existant lorsqu’il dénote le même ensemble, sans perdre l’identité de la structure qui l’entoure."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structure operation"
+msgstr "opération de structure"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names a binary (or n-ary) operation of an algebraic structure — the group operation, or a ring's addition and multiplication. Domain math:AlgebraicStructure, range math:Operation (stated in prose). A ring carries two such operations; a structure with none is ill-formed."
+msgstr "Nomme une opération binaire (ou n-aire) d’une structure algébrique — l’opération de groupe, ou l’addition et la multiplication d’un anneau. Domaine math:AlgebraicStructure, portée math:Operation (énoncés en prose). Un anneau porte deux telles opérations ; une structure sans opération est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names an operation resource in a structure’s frame; it does not provide operand positions, an evaluated result or a law proof. A magma selects one closed binary operation, while a ring carries additive and multiplicative roles without new resource-inequality requirements."
+msgstr "Cette propriété nomme une ressource opération dans le cadre d’une structure ; elle ne fournit ni positions d’opérandes, ni résultat évalué, ni preuve de loi. Un magma choisit une opération binaire interne, tandis qu’un anneau porte des rôles additif et multiplicatif sans nouvelles exigences d’inégalité des ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:plus through math:structureOperation; exa:integerRing names both exa:plus and exa:times in algebra-structures.ttl. The shared plus resource does not make the structures identical."
+msgstr "exa:integerAddition nomme exa:plus par math:structureOperation ; exa:integerRing nomme exa:plus et exa:times dans algebra-structures.ttl. La ressource plus partagée ne rend pas les structures identiques."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structure must identify the math:Operation resources that participate in its algebraic laws."
+msgstr "Utiliser lorsqu’une structure doit identifier les ressources math:Operation qui participent à ses lois algébriques."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing an element or result value here, treating this link as an executable function call, or inventing ordered operation slots to distinguish ring addition and multiplication."
+msgstr "Ne pas placer ici un élément ou une valeur résultat, traiter ce lien comme un appel de fonction exécutable ou inventer des emplacements d’opération ordonnés pour distinguer addition et multiplication d’un anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the structure to each required math:Operation, and preserve the chosen operation roles through their existing definitions and the actual axiom formulas. Keep the carrier on math:underlyingSet and any identity element or inverse map in its corresponding field."
+msgstr "Relier la structure à chaque math:Operation requise et préserver les rôles d’opération choisis par leurs définitions existantes et les formules réelles des axiomes. Garder le support dans math:underlyingSet et tout élément neutre ou application d’inversion dans son champ correspondant."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identity element"
+msgstr "élément neutre"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the two-sided identity of a monoid operation (the e with a·e = e·a = a). Domain math:Monoid or a richer structure, range an element of the math:underlyingSet (stated in prose). A math:Group inherits it from math:Monoid."
+msgstr "Nomme le neutre bilatère d’une opération de monoïde (le e tel que a·e = e·a = a). Domaine math:Monoid ou une structure plus riche, portée un élément de math:underlyingSet (énoncés en prose). Un math:Group en hérite de math:Monoid."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a carrier element acting as identity on both sides of the selected operation. It records the element role rather than a function call or inverse-map role; a carrier of functions may use its identity function. Its role depends on the operation being described."
+msgstr "La valeur est un élément du support qui est neutre des deux côtés pour l’opération choisie. Elle consigne le rôle d’élément plutôt qu’un rôle d’appel de fonction ou d’application d’inversion ; un support de fonctions peut utiliser sa fonction identité. Son rôle dépend de l’opération décrite."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition points to exa:zero with math:identityElement in algebra-structures.ttl, while exa:plus is the operation and exa:negation is the inverse operation."
+msgstr "exa:integerAddition pointe vers exa:zero par math:identityElement dans algebra-structures.ttl, tandis que exa:plus est l’opération et exa:negation l’opération d’inversion."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the monoid or richer structure has an identified carrier element satisfying the two-sided identity law for its operation."
+msgstr "Utiliser lorsque le monoïde ou une structure plus riche possède un élément du support identifié qui satisfait la loi de neutre bilatère pour son opération."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a function call or inverse-operation role for the required carrier element, accepting only a one-sided neutral element, or silently reusing an additive identity as a multiplicative identity."
+msgstr "Ne pas substituer un rôle d’appel de fonction ou d’opération d’inversion à l’élément du support requis, accepter seulement un neutre unilatère ou réutiliser implicitement un neutre additif comme neutre multiplicatif."
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:identityElement to the element resource and retain the relevant carrier, operation and identity axiom. Make the operation’s meaning explicit with the existing definitions and formulas, without adding role-position predicates or treating the link itself as a proof."
+msgstr "Faire pointer math:identityElement vers la ressource élément et conserver le support, l’opération et l’axiome de neutre pertinents. Expliciter le sens de l’opération avec les définitions et formules existantes, sans ajouter de prédicats de position de rôle ni traiter le lien lui-même comme une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse operation"
+msgstr "opération d’inversion"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the unary inverse map of a group (a ↦ a⁻¹ with a·a⁻¹ = e). Domain math:Group, range math:Operation (stated in prose). The existence of inverses is what distinguishes a math:Group from a math:Monoid."
+msgstr "Nomme l’application unaire d’inversion d’un groupe (a ↦ a⁻¹ avec a·a⁻¹ = e). Domaine math:Group, portée math:Operation (énoncés en prose). L’existence d’inverses distingue un math:Group d’un math:Monoid."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field names the unary math:Operation assigning each group element its inverse under the chosen group operation. It does not name one inverse element or assert a math:inverseFunction link between bijective functions; the group law requires both multiplication orders to yield the identity."
+msgstr "Ce champ nomme la math:Operation unaire qui attribue à chaque élément du groupe son inverse pour l’opération de groupe choisie. Il ne nomme pas un élément inverse unique et n’affirme pas un lien math:inverseFunction entre fonctions bijectives ; la loi de groupe exige que les deux ordres de multiplication donnent le neutre."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition uses exa:negation as math:inverseOperation in algebra-structures.ttl: an integer n is sent to −n under addition, while exa:zero remains the identity element."
+msgstr "exa:integerAddition utilise exa:negation comme math:inverseOperation dans algebra-structures.ttl : un entier n est envoyé sur −n pour l’addition, tandis que exa:zero reste l’élément neutre."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a group frame needs to identify the unary operation realizing its two-sided inverse role."
+msgstr "Utiliser lorsqu’un cadre de groupe doit identifier l’opération unaire qui réalise son rôle d’inverse bilatère."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a single member value as the map, confusing additive negation with reciprocal multiplication, or inferring that every monoid has inverses."
+msgstr "Ne pas employer une valeur membre unique comme application, confondre l’opposé additif avec l’inverse multiplicatif ou déduire que tout monoïde possède des inverses."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Connect the group to the inverse math:Operation through math:inverseOperation, retaining its main operation, identity element and inverse law through the existing frame and math:satisfiesAxiom. Preserve the law’s formula and evidence; the edge alone does not compute inverses."
+msgstr "Relier le groupe à la math:Operation d’inversion par math:inverseOperation, en conservant son opération principale, son élément neutre et sa loi d’inverse par le cadre existant et math:satisfiesAxiom. Préserver la formule et les preuves de la loi ; le lien seul ne calcule pas les inverses."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfies axiom"
+msgstr "satisfait l’axiome"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource, such as an algebraic structure or a group action, to a math:Axiom it is declared to obey — associativity, commutativity, distributivity or an action law, for example. The axiom denotes a logic: formula the logic: reasoner owns: math: declares satisfaction of the law, logic: reasons over it."
+msgstr "Relie une ressource mathématique, telle qu’une structure algébrique ou une action de groupe, à un math:Axiom qu’elle est déclarée satisfaire — associativité, commutativité, distributivité ou loi d’action, par exemple. L’axiome dénote une formule logic: dont le raisonneur logic: est responsable : math: déclare la satisfaction de la loi, logic: raisonne sur elle."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A satisfaction link declares a law for its subject without supplying that law’s formula or proof. Existing subjects include algebraic structures and group actions; these examples do not define a closed global domain or reclassify actions as algebraic structures."
+msgstr "Un lien de satisfaction déclare une loi pour son sujet sans fournir la formule ou la preuve de cette loi. Les sujets existants comprennent structures algébriques et actions de groupe ; ces exemples ne définissent pas de domaine global fermé et ne reclassent pas les actions en structures algébriques."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:associativity in algebra-structures.ttl; exa:e8WeylAction names exa:groupActionLaw in e8-symmetry.ttl. Their referenced laws are realized as logic:Formula trees rather than being proved by the links alone."
+msgstr "exa:integerAddition nomme exa:associativity dans algebra-structures.ttl ; exa:e8WeylAction nomme exa:groupActionLaw dans e8-symmetry.ttl. Les lois référencées sont réalisées en arbres logic:Formula plutôt que prouvées par les seuls liens."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing mathematical resource must name an explicit math:Axiom it is declared to satisfy, retaining the law’s actual realization and evidence."
+msgstr "Utiliser lorsqu’une ressource mathématique existante doit nommer un math:Axiom explicite qu’elle est déclarée satisfaire, en conservant la réalisation réelle de la loi et ses preuves."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a named axiom as an automatic proof, a class label as a realized formula, or the carrier and operation frame as universal execution support."
+msgstr "Ne pas traiter un axiome nommé comme une preuve automatique, un libellé de classe comme une formule réalisée ou le cadre de support et d’opération comme une capacité d’exécution universelle."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:satisfiesAxiom to the law resource and retain its structured logic:Formula where realized and the supporting evidence. The ONNX ParameterSpace carrier, operation and named-axiom record is descriptive framing; that record alone supplies neither a formula tree nor a proof."
+msgstr "Faire pointer math:satisfiesAxiom vers la ressource loi et conserver sa logic:Formula structurée lorsqu’elle est réalisée ainsi que les preuves qui l’étayent. Le relevé de support, d’opération et d’axiome nommé du ParameterSpace ONNX est un cadre descriptif ; ce relevé seul ne fournit ni arbre de formule ni preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfies distributivity"
+msgstr "satisfait la distributivité"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
+msgstr "Nomme l’axiome de distributivité satisfait par un math:Ring — la multiplication se distribue sur l’addition (a·(b+c) = a·b + a·c), loi qui fait d’une structure à deux opérations un anneau plutôt que deux groupes sans lien. Domaine math:Ring, portée un math:Axiom dénotant une formule logic: (énoncés en prose). Raffinement de math:satisfiesAxiom : un anneau doit nommer spécifiquement une loi de distributivité, pas seulement un axiome quelconque. Un anneau sans distributivité est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This refinement selects the distributivity axiom relating ring multiplication and addition. It entails the general math:satisfiesAxiom edge through the existing hierarchy, but an asserted-triple consumer does not gain that edge merely by reading the specific assertion."
+msgstr "Ce raffinement sélectionne l’axiome de distributivité qui relie multiplication et addition d’un anneau. Il entraîne le lien général math:satisfiesAxiom par la hiérarchie existante, mais un consommateur de triplets affirmés n’obtient pas ce lien en lisant seulement l’affirmation spécifique."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing points to exa:leftDistributivity through both math:satisfiesDistributivity and math:satisfiesAxiom in algebra-structures.ttl; algebra-axioms.ttl realizes that same law as a logic:Formula tree."
+msgstr "exa:integerRing pointe vers exa:leftDistributivity à la fois par math:satisfiesDistributivity et math:satisfiesAxiom dans algebra-structures.ttl ; algebra-axioms.ttl réalise cette même loi sous forme d’arbre logic:Formula."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a ring must explicitly identify the distributivity law that connects its additive and multiplicative operations."
+msgstr "Utiliser lorsqu’un anneau doit identifier explicitement la loi de distributivité qui relie ses opérations additive et multiplicative."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an unrelated associativity or commutativity axiom, omitting the general axiom assertion required by a direct consumer, or treating this edge as proof that the law has executed."
+msgstr "Ne pas substituer un axiome d’associativité ou de commutativité sans rapport, omettre l’affirmation générale d’axiome requise par un consommateur direct ou traiter ce lien comme une preuve d’exécution de la loi."
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."
+msgstr "Relier l’anneau au math:Axiom de distributivité par math:satisfiesDistributivity et affirmer aussi math:satisfiesAxiom lorsque le chemin consommateur lit les triplets affirmés. Préserver les deux rôles d’opération, la formule réelle de la loi et ses preuves, ainsi que la distinction entre affirmation et conséquence logique."

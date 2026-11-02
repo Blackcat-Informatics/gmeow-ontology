@@ -7164,3 +7164,407 @@ msgstr "不要将其与 math:codomain（函数目标集合）混淆，也不要�
 msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, honestly widening to ℂ where a real root or logarithm requires it."
 msgstr "在 math:ArithmeticOperation 上将其设为 math:NumberSystem；每个运算恰好一个，当实数根或对数需要时如实拓宽至 ℂ。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The structure resource records a carrier together with selected operations and laws. Sharing a carrier does not identify two structures, and a descriptive frame or class label alone establishes neither evaluated operations nor a proof of the laws."
+msgstr "结构资源记录载体及所选运算和定律。共享载体不会使两个结构成为同一结构，单凭描述框架或类标签既不能确立已求值运算，也不能证明定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-structures.ttl, exa:integerAddition and exa:integerRing share exa:integerSet and exa:plus; the ring also names exa:times and distributivity. The set alone does not encode either full structure."
+msgstr "在 algebra-structures.ttl 中，exa:integerAddition 和 exa:integerRing 共享 exa:integerSet 与 exa:plus；环还指定 exa:times 和分配律。仅有集合不能编码任一完整结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical object must retain its carrier, operations and stated laws as a structure rather than a bare set."
+msgstr "当数学对象需要作为结构保留载体、运算和既定定律，而非仅作为集合时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the structure by its carrier, deriving operation behavior from a label, or treating a named axiom as a discharged proof."
+msgstr "不要用载体替代结构，不要根据标签推导运算行为，也不要将命名公理视为已完成的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose the justified structure class, name math:underlyingSet and the required math:structureOperation values, and retain math:satisfiesAxiom links to the actual laws. Supply identity and inverse roles where applicable, keeping structured formulas and evidence separate from the descriptive frame."
+msgstr "选择有依据的结构类，指定 math:underlyingSet 和所需 math:structureOperation 值，并保留指向实际定律的 math:satisfiesAxiom 链接。在适用处提供单位元和逆运算角色，将结构化公式及证据与描述框架区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Magma"
+msgstr "原群"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set with a single closed binary math:structureOperation and no further axioms: the weakest algebraic structure, a subclass of math:AlgebraicStructure. A math:Semigroup is a magma whose operation is associative."
+msgstr "带有单个封闭二元 math:structureOperation 且不要求额外公理的集合：最弱的代数结构，是 math:AlgebraicStructure 的子类。math:Semigroup 是运算满足结合律的原群。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A magma requires a closed binary operation without requiring associativity, identity or inverses at this level. Stronger structures remain magmas through the hierarchy; this classification does not assert that stronger laws are false."
+msgstr "原群要求封闭二元运算，在此层级不要求结合律、单位元或逆元。更强结构通过层级仍属于原群；此分类并不声称更强定律为假。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|http://www.w3.org/2004/02/skos/core#example"
+msgid "The operation exa:plus on exa:integerSet in algebra-structures.ttl supplies the magma operation inherited by exa:integerAddition, even though that example is classified more strongly as math:AbelianGroup."
+msgstr "algebra-structures.ttl 中 exa:integerSet 上的 exa:plus 提供 exa:integerAddition 继承的原群运算，即使该示例还被归入更强的 math:AbelianGroup。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier with one closed binary operation is the level of algebraic structure being described."
+msgstr "当描述的代数结构层级为具有一个封闭二元运算的载体时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring associativity or commutativity from closure, omitting the operation, or rejecting a group merely because it also satisfies stronger laws."
+msgstr "不要由封闭性推断结合律或交换律，不要省略运算，也不要仅因群满足更强定律而将其排除。"
+
+msgctxt "https://blackcatinformatics.ca/math/Magma|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the carrier through math:underlyingSet and the closed binary operation through math:structureOperation, retaining the inherited structure frame. Record any stronger justified laws explicitly rather than interpreting math:Magma as their negation."
+msgstr "通过 math:underlyingSet 标识载体，通过 math:structureOperation 标识封闭二元运算，并保留继承的结构框架。显式记录有依据的更强定律，不要将 math:Magma 解读为对这些定律的否定。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Semigroup"
+msgstr "半群"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Magma whose binary operation is associative — it satisfies the associativity axiom (∀a,b,c: (a·b)·c = a·(b·c)) through math:satisfiesAxiom. A subclass of math:Magma; a math:Monoid is a semigroup with an identity element."
+msgstr "二元运算满足结合律的 math:Magma，通过 math:satisfiesAxiom 满足结合律公理（∀a,b,c: (a·b)·c = a·(b·c)）。它是 math:Magma 的子类；math:Monoid 是具有单位元的半群。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associativity makes grouping irrelevant for the selected binary operation; it does not exchange operand order. Identity and inverses are not required at the semigroup level, but their presence in a stronger structure does not exclude semigroup membership."
+msgstr "结合律使所选二元运算的分组方式无关紧要，并不交换操作数顺序。半群层级不要求单位元和逆元，但更强结构具有它们并不排除半群成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:associativity through math:satisfiesAxiom in algebra-structures.ttl. Its math:AbelianGroup classification includes the semigroup level without reducing associativity to commutativity."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 通过 math:satisfiesAxiom 指定 exa:associativity。其 math:AbelianGroup 分类包含半群层级，而不将结合律等同于交换律。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the carrier’s closed binary operation has a stated associative law."
+msgstr "当载体的封闭二元运算具有已陈述的结合律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating associative as commutative, assuming an identity from this class alone, or requiring the absence of inverses."
+msgstr "不要将结合性视为交换性，不要仅凭此类假定单位元，也不要要求逆元不存在。"
+
+msgctxt "https://blackcatinformatics.ca/math/Semigroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the magma carrier and operation, link the associativity axiom with math:satisfiesAxiom, and preserve its structured formula and supporting evidence. Add monoid or group classification only when their additional conditions are justified."
+msgstr "保留原群载体及运算，通过 math:satisfiesAxiom 关联结合律公理，并保留其结构化公式及支持证据。只有在额外条件有依据时，才添加幺半群或群分类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Monoid"
+msgstr "幺半群"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Semigroup with a two-sided identity element (∀a: a·e = e·a = a), named through math:identityElement. A subclass of math:Semigroup; a math:Group is a monoid in which every element has an inverse."
+msgstr "具有双侧单位元（∀a: a·e = e·a = a）的 math:Semigroup，通过 math:identityElement 指定单位元。它是 math:Semigroup 的子类；math:Group 是每个元素均有逆元的幺半群。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A monoid adds a two-sided identity element to an associative operation. The identity occupies the carrier-element role; for a carrier of transformations it may itself be the identity function. Inverses are not required at this level, and groups still inherit monoid membership."
+msgstr "幺半群在结合运算上增加双侧单位元。单位元承担载体元素角色；若载体由变换组成，它本身可以是恒等函数。此层级不要求逆元，群仍继承幺半群成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-structures.ttl, exa:integerAddition names exa:zero as math:identityElement and exa:identity as a satisfied axiom. Its stronger group classification preserves this monoid frame."
+msgstr "在 algebra-structures.ttl 中，exa:integerAddition 将 exa:zero 指定为 math:identityElement，将 exa:identity 指定为所满足的公理。其更强的群分类保留此幺半群框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an associative carrier operation has an identified element that acts as identity on both sides."
+msgstr "当载体上的结合运算具有已标识的双侧单位元时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying only a left or right identity, confusing the identity element with an operation, or asserting inverses solely from math:Monoid."
+msgstr "不要仅提供左或右单位元，不要将单位元与运算混淆，也不要仅凭 math:Monoid 声明逆元。"
+
+msgctxt "https://blackcatinformatics.ca/math/Monoid|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the semigroup carrier, operation and associativity law, identify the carrier element with math:identityElement, and link the two-sided identity axiom through math:satisfiesAxiom. Keep the element distinct in role from any inverse-operation resource."
+msgstr "保留半群载体、运算及结合律，通过 math:identityElement 标识载体元素，通过 math:satisfiesAxiom 关联双侧单位元公理。将该元素角色与任何逆运算资源的角色区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group"
+msgstr "群"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Monoid in which every element has a two-sided inverse (∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e), the inverse reached through math:inverseOperation. A subclass of math:Monoid — the central structure of symmetry, of which a math:AutomorphismGroup and a math:WeylGroup are instances. A math:AbelianGroup is a group whose operation additionally commutes."
+msgstr "每个元素均具有双侧逆元（∀a ∃a⁻¹: a·a⁻¹ = a⁻¹·a = e）的 math:Monoid，通过 math:inverseOperation 到达逆运算。它是 math:Monoid 的子类，是对称性的核心结构，math:AutomorphismGroup 和 math:WeylGroup 为其实例。math:AbelianGroup 是运算还满足交换律的群。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A group retains associativity and a two-sided identity and supplies a two-sided inverse for every carrier element. Commutativity is additional, not a condition of every group; the inverse-operation resource is not an individual inverse value or a generic inverse-function declaration."
+msgstr "群保留结合律和双侧单位元，并为每个载体元素提供双侧逆元。交换律是额外条件，并非所有群的条件；逆运算资源既不是单个逆元值，也不是通用逆函数声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition uses exa:plus, exa:zero and exa:negation and names associativity, identity and inverse laws in algebra-structures.ttl. Its commutativity law additionally supports math:AbelianGroup."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 使用 exa:plus、exa:zero 和 exa:negation，并指定结合律、单位元律和逆元律。其交换律额外支持 math:AbelianGroup。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when every element of an associative structure with identity has a two-sided inverse under the selected group operation."
+msgstr "当具有单位元的结合结构中每个元素在所选群运算下均有双侧逆元时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring commutativity for all groups, confusing the unary inverse map with its output element, or inferring law proofs from a symmetry label."
+msgstr "不要要求所有群都满足交换律，不要将一元逆映射与其输出元素混淆，也不要根据对称性标签推断定律证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Group|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide the inherited monoid frame, name the unary math:Operation through math:inverseOperation, and retain the inverse axiom through math:satisfiesAxiom alongside associativity and identity. Preserve formula and proof evidence rather than treating these links as an evaluator."
+msgstr "提供继承的幺半群框架，通过 math:inverseOperation 指定一元 math:Operation，并通过 math:satisfiesAxiom 保留逆元公理以及结合律和单位元律。保留公式及证明证据，不要将这些链接当作求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specialization adds commutativity to all group laws: exchanging operands preserves the result, in addition to associativity, identity and inverses. The additive part of a ring is abelian; that does not make its multiplication commutative."
+msgstr "此特化在全部群定律之外增加交换律：除结合律、单位元和逆元外，交换操作数保持结果不变。环的加法部分是阿贝尔群，但这不会使其乘法满足交换律。"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition is a math:AbelianGroup with exa:commutativity among its math:satisfiesAxiom values in algebra-structures.ttl, alongside the associativity, identity and inverse axioms."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 是 math:AbelianGroup，其 math:satisfiesAxiom 值包含 exa:commutativity 以及结合律、单位元和逆元公理。"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected group operation is justified as commutative as well as satisfying the inherited group conditions."
+msgstr "当所选群运算除满足继承的群条件外，还有依据表明满足交换律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping inherited group roles, confusing commutativity with associativity, or transferring additive commutativity to a ring’s multiplication without justification."
+msgstr "不要丢弃继承的群角色，不要混淆交换律与结合律，也不要无依据地将加法交换性转移到环的乘法。"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the carrier, group operation, identity and inverse frame, and name the commutativity axiom through math:satisfiesAxiom with the other group laws. Retain the law’s actual formula and evidence for the selected operation."
+msgstr "保留载体、群运算、单位元和逆运算框架，通过 math:satisfiesAxiom 指定交换律公理及其他群定律。保留针对所选运算的实际定律公式及证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ring"
+msgstr "环"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
+msgstr "具有两个运算的集合：加法构成阿贝尔群，乘法满足结合律并对加法满足分配律（∀a,b,c: a·(b+c) = a·b + a·c）。两个运算以两个 math:structureOperation 承载，分配律公理通过 math:satisfiesAxiom 指定。它还通过 math:satisfiesDistributivity 指定该定律，后者细化 math:satisfiesAxiom（分配律是环的公理之一，推理器蕴含一般属性）；验证门读取已断言三元组，因此合式的环同时断言二者。分配律使双运算结构成为环，而非两个无关的群；未声明分配律的环不合式（math:NonDistributiveRing）。它是 math:AlgebraicStructure 的子类；math:CommutativeRing 是乘法满足交换律的环。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A ring coordinates additive and multiplicative operation roles on one carrier: addition forms an abelian group, multiplication is associative, and distributivity relates them. Two operation roles do not introduce resource-inequality rules, and additive commutativity does not establish multiplicative commutativity."
+msgstr "环在同一载体上协调加法和乘法运算角色：加法构成阿贝尔群，乘法满足结合律，分配律关联二者。两个运算角色不引入资源不等规则，加法交换性也不确立乘法交换性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing names exa:plus and exa:times and links exa:leftDistributivity through both math:satisfiesAxiom and math:satisfiesDistributivity in algebra-structures.ttl."
+msgstr "algebra-structures.ttl 中 exa:integerRing 指定 exa:plus 和 exa:times，并通过 math:satisfiesAxiom 与 math:satisfiesDistributivity 同时关联 exa:leftDistributivity。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when addition and multiplication on a carrier have the stated ring laws, including the distributive connection between them."
+msgstr "当载体上的加法和乘法具有既定环定律，包括二者之间的分配关系时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling two unrelated operations a ring, assuming multiplicative inverses for every element, or relying only on an entailed general axiom edge for a consumer that reads asserted triples."
+msgstr "不要将两个无关运算称为环，不要假定每个元素都有乘法逆元，也不要对读取已断言三元组的使用方仅依赖蕴含的一般公理边。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the carrier and the two math:structureOperation values, retain their additive and multiplicative meanings in the existing definitions and laws, and link the distributivity axiom through both math:satisfiesDistributivity and math:satisfiesAxiom when asserted-triple consumers require both."
+msgstr "指定载体及两个 math:structureOperation 值，在已有定义和定律中保留其加法及乘法含义；当已断言三元组使用方要求二者时，通过 math:satisfiesDistributivity 与 math:satisfiesAxiom 同时关联分配律公理。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Commutative Ring"
+msgstr "交换环"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Ring whose multiplication commutes (∀a,b: a·b = b·a). A subclass of math:Ring; a math:Field is a commutative ring whose non-zero elements form a group under multiplication, and a math:PolynomialRing is a commutative ring of polynomials."
+msgstr "乘法满足交换律（∀a,b: a·b = b·a）的 math:Ring。它是 math:Ring 的子类；math:Field 是非零元素在乘法下构成群的交换环，math:PolynomialRing 是多项式的交换环。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The additional commutativity condition applies to multiplication; the ring already has an abelian additive group. This specialization retains both operations and distributivity and does not by itself supply multiplicative inverses for all nonzero elements."
+msgstr "额外交换律条件作用于乘法；环已具有阿贝尔加法群。此特化保留两个运算和分配律，本身不提供所有非零元素的乘法逆元。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing is typed math:CommutativeRing in algebra-structures.ttl. Its integer multiplication commutes, but the integer 2 has no multiplicative inverse within its integer carrier."
+msgstr "algebra-structures.ttl 将 exa:integerRing 定为 math:CommutativeRing。其整数乘法满足交换律，但整数 2 在整数载体中没有乘法逆元。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the full ring frame is retained and multiplication is justified as commutative."
+msgstr "当保留完整环框架且乘法交换性有依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid justifying this class only by additive commutativity, omitting distributivity, or promoting the structure to a field without the nonzero inverse condition."
+msgstr "不要仅以加法交换性支持此类，不要省略分配律，也不要在缺少非零元素逆元条件时将结构提升为域。"
+
+msgctxt "https://blackcatinformatics.ca/math/CommutativeRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the ring’s carrier, two operations and distributivity links, and associate the commutativity law with the multiplicative role through the existing mathematical definitions and math:satisfiesAxiom record. Do not invent operation-position predicates."
+msgstr "保留环载体、两个运算及分配律链接，通过已有数学定义和 math:satisfiesAxiom 记录将交换律关联到乘法角色。不要臆造运算位置谓词。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Field"
+msgstr "域"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:CommutativeRing whose non-zero elements form an abelian group under multiplication — every non-zero element has a multiplicative inverse. A subclass of math:CommutativeRing; ℚ, ℝ, ℂ and the finite fields are fields, the ground over which a math:VectorSpace and Shamir secret sharing are defined."
+msgstr "非零元素在乘法下构成阿贝尔群的 math:CommutativeRing，即每个非零元素均有乘法逆元。它是 math:CommutativeRing 的子类；ℚ、ℝ、ℂ 及有限域都是域，是定义 math:VectorSpace 和 Shamir 秘密共享的基础。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A field retains the commutative-ring laws and restricts the multiplicative inverse requirement to nonzero elements. Its full carrier still includes zero for addition; it is the nonzero multiplicative part that forms a group."
+msgstr "域保留交换环定律，并将乘法逆元要求限定于非零元素。完整载体仍包含加法所需的零；构成群的是非零乘法部分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over ℚ, the nonzero element 2 has multiplicative inverse 1/2. This distinguishes a field from the integer-ring example in algebra-structures.ttl, where 1/2 is outside exa:integerSet."
+msgstr "在 ℚ 上，非零元素 2 的乘法逆元为 1/2。这将域与 algebra-structures.ttl 中的整数环示例区分开来，后者的 exa:integerSet 不包含 1/2。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a commutative ring’s nonzero elements have the multiplicative group structure required of a field."
+msgstr "当交换环的非零元素具有域所需的乘法群结构时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an inverse of zero, treating every commutative ring as a field, or confusing additive negation with multiplicative inversion."
+msgstr "不要要求零具有逆元，不要将每个交换环都视为域，也不要将加法取负与乘法求逆混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/Field|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the commutative-ring carrier, operation roles and laws, and state the multiplicative identity and inverse law over the nonzero elements with the existing axiom/formula vocabulary. Keep zero in the full additive carrier and retain evidence for the field claim."
+msgstr "保留交换环载体、运算角色和定律，使用已有公理及公式词汇在非零元素上陈述乘法单位元和逆元律。在完整加法载体中保留零，并保留支持域声明的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "underlying set"
+msgstr "底集"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed."
+msgstr "指定代数结构的载体集合，即运算作用的元素。定义域为 math:AlgebraicStructure，值域为 math:Set，以文字说明。每个 math:AlgebraicStructure 都声明一个；没有载体的结构不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link names the carrier set, not the structure’s operation or the structure itself. Different structures may share the same carrier while selecting different operations or laws; the link alone does not enumerate or evaluate its members."
+msgstr "此链接指定载体集合，而非结构运算或结构本身。不同结构可以共享同一载体，同时选择不同运算或定律；单凭该链接不会枚举成员或对其求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both exa:integerAddition and exa:integerRing point through math:underlyingSet to exa:integerSet in algebra-structures.ttl, while retaining their separate structure frames."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 与 exa:integerRing 都通过 math:underlyingSet 指向 exa:integerSet，同时保留各自的结构框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the elements supporting an algebraic structure must be identified as a math:Set."
+msgstr "当需要将支撑代数结构的元素标识为 math:Set 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing to an operation, substituting a datatype label for the carrier resource, or merging structures solely because their math:underlyingSet values match."
+msgstr "不要指向运算，不要用数据类型标签替代载体资源，也不要仅因 math:underlyingSet 值相同而合并结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/underlyingSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the structure to its carrier math:Set with math:underlyingSet and keep its operation and law links on the structure. Reuse an existing carrier when it denotes the same set, without discarding the surrounding structure identity."
+msgstr "通过 math:underlyingSet 将结构关联到其载体 math:Set，并将运算及定律链接保留在结构上。已有载体表示同一集合时应复用，同时保留外围结构的身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structure operation"
+msgstr "结构运算"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names a binary (or n-ary) operation of an algebraic structure — the group operation, or a ring's addition and multiplication. Domain math:AlgebraicStructure, range math:Operation (stated in prose). A ring carries two such operations; a structure with none is ill-formed."
+msgstr "指定代数结构的二元（或多元）运算，例如群运算，或环的加法和乘法。定义域为 math:AlgebraicStructure，值域为 math:Operation，以文字说明。环承载两个此类运算；没有运算的结构不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names an operation resource in a structure’s frame; it does not provide operand positions, an evaluated result or a law proof. A magma selects one closed binary operation, while a ring carries additive and multiplicative roles without new resource-inequality requirements."
+msgstr "此属性在结构框架中指定运算资源，不提供操作数位置、已求值结果或定律证明。原群选择一个封闭二元运算，环承载加法和乘法角色，而不新增资源不等要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:plus through math:structureOperation; exa:integerRing names both exa:plus and exa:times in algebra-structures.ttl. The shared plus resource does not make the structures identical."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 通过 math:structureOperation 指定 exa:plus，exa:integerRing 同时指定 exa:plus 与 exa:times。共享 plus 资源不会使结构相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structure must identify the math:Operation resources that participate in its algebraic laws."
+msgstr "当结构需要标识参与其代数定律的 math:Operation 资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing an element or result value here, treating this link as an executable function call, or inventing ordered operation slots to distinguish ring addition and multiplication."
+msgstr "不要在此放置元素或结果值，不要将此链接当作可执行函数调用，也不要为区分环加法和乘法而臆造有序运算槽位。"
+
+msgctxt "https://blackcatinformatics.ca/math/structureOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the structure to each required math:Operation, and preserve the chosen operation roles through their existing definitions and the actual axiom formulas. Keep the carrier on math:underlyingSet and any identity element or inverse map in its corresponding field."
+msgstr "将结构关联到每个所需 math:Operation，通过已有定义及实际公理公式保留所选运算角色。将载体放在 math:underlyingSet 中，并将单位元或逆映射保留在对应字段中。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identity element"
+msgstr "单位元"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the two-sided identity of a monoid operation (the e with a·e = e·a = a). Domain math:Monoid or a richer structure, range an element of the math:underlyingSet (stated in prose). A math:Group inherits it from math:Monoid."
+msgstr "指定幺半群运算的双侧单位元（满足 a·e = e·a = a 的 e）。定义域为 math:Monoid 或更丰富的结构，值域为 math:underlyingSet 的元素，以文字说明。math:Group 从 math:Monoid 继承它。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a carrier element acting as identity on both sides of the selected operation. It records the element role rather than a function call or inverse-map role; a carrier of functions may use its identity function. Its role depends on the operation being described."
+msgstr "该值是对所选运算在两侧均起单位作用的载体元素。它记录元素角色，而非函数调用或逆映射角色；函数载体可以使用其恒等函数。其角色取决于所描述运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition points to exa:zero with math:identityElement in algebra-structures.ttl, while exa:plus is the operation and exa:negation is the inverse operation."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 通过 math:identityElement 指向 exa:zero，而 exa:plus 是运算，exa:negation 是逆运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the monoid or richer structure has an identified carrier element satisfying the two-sided identity law for its operation."
+msgstr "当幺半群或更丰富结构具有已标识的载体元素，且其对该运算满足双侧单位元律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a function call or inverse-operation role for the required carrier element, accepting only a one-sided neutral element, or silently reusing an additive identity as a multiplicative identity."
+msgstr "不要用函数调用或逆运算角色替代所需载体元素，不要仅接受单侧单位元，也不要默默将加法单位元复用为乘法单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/identityElement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:identityElement to the element resource and retain the relevant carrier, operation and identity axiom. Make the operation’s meaning explicit with the existing definitions and formulas, without adding role-position predicates or treating the link itself as a proof."
+msgstr "将 math:identityElement 指向元素资源，并保留相关载体、运算及单位元公理。使用已有定义和公式明确运算含义，不添加角色位置谓词，也不将链接本身当作证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse operation"
+msgstr "逆运算"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the unary inverse map of a group (a ↦ a⁻¹ with a·a⁻¹ = e). Domain math:Group, range math:Operation (stated in prose). The existence of inverses is what distinguishes a math:Group from a math:Monoid."
+msgstr "指定群的一元逆映射（a ↦ a⁻¹，其中 a·a⁻¹ = e）。定义域为 math:Group，值域为 math:Operation，以文字说明。逆元的存在将 math:Group 与 math:Monoid 区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field names the unary math:Operation assigning each group element its inverse under the chosen group operation. It does not name one inverse element or assert a math:inverseFunction link between bijective functions; the group law requires both multiplication orders to yield the identity."
+msgstr "此字段指定一元 math:Operation，为每个群元素赋予其在所选群运算下的逆元。它不指定某个逆元元素，也不声明双射函数之间的 math:inverseFunction 链接；群定律要求两个相乘顺序都产生单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition uses exa:negation as math:inverseOperation in algebra-structures.ttl: an integer n is sent to −n under addition, while exa:zero remains the identity element."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 使用 exa:negation 作为 math:inverseOperation：在加法下整数 n 映到 −n，而 exa:zero 仍是单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a group frame needs to identify the unary operation realizing its two-sided inverse role."
+msgstr "当群框架需要标识实现双侧逆元角色的一元运算时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a single member value as the map, confusing additive negation with reciprocal multiplication, or inferring that every monoid has inverses."
+msgstr "不要用单个成员值充当映射，不要将加法取负与乘法取倒数混淆，也不要推断每个幺半群都具有逆元。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Connect the group to the inverse math:Operation through math:inverseOperation, retaining its main operation, identity element and inverse law through the existing frame and math:satisfiesAxiom. Preserve the law’s formula and evidence; the edge alone does not compute inverses."
+msgstr "通过 math:inverseOperation 将群关联到逆 math:Operation，借助已有框架及 math:satisfiesAxiom 保留主运算、单位元和逆元律。保留定律公式及证据；单凭此边不会计算逆元。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfies axiom"
+msgstr "满足公理"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource, such as an algebraic structure or a group action, to a math:Axiom it is declared to obey — associativity, commutativity, distributivity or an action law, for example. The axiom denotes a logic: formula the logic: reasoner owns: math: declares satisfaction of the law, logic: reasons over it."
+msgstr "将数学资源（例如代数结构或群作用）关联到其声明遵循的 math:Axiom，如结合律、交换律、分配律或作用律。公理表示由 logic: 推理器负责的 logic: 公式：math: 声明满足定律，logic: 对其进行推理。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A satisfaction link declares a law for its subject without supplying that law’s formula or proof. Existing subjects include algebraic structures and group actions; these examples do not define a closed global domain or reclassify actions as algebraic structures."
+msgstr "满足关系链接为其主语声明定律，但不提供该定律的公式或证明。已有主语包括代数结构和群作用；这些示例不定义封闭的全局定义域，也不将作用重新分类为代数结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerAddition names exa:associativity in algebra-structures.ttl; exa:e8WeylAction names exa:groupActionLaw in e8-symmetry.ttl. Their referenced laws are realized as logic:Formula trees rather than being proved by the links alone."
+msgstr "algebra-structures.ttl 中 exa:integerAddition 指定 exa:associativity，e8-symmetry.ttl 中 exa:e8WeylAction 指定 exa:groupActionLaw。所引用定律由 logic:Formula 树实现，并非仅凭链接得到证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing mathematical resource must name an explicit math:Axiom it is declared to satisfy, retaining the law’s actual realization and evidence."
+msgstr "当已有数学资源需要指定其声明满足的显式 math:Axiom，并保留实际定律实现及证据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a named axiom as an automatic proof, a class label as a realized formula, or the carrier and operation frame as universal execution support."
+msgstr "不要将命名公理视为自动证明，不要将类标签视为已实现公式，也不要将载体和运算框架视为通用执行能力。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesAxiom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:satisfiesAxiom to the law resource and retain its structured logic:Formula where realized and the supporting evidence. The ONNX ParameterSpace carrier, operation and named-axiom record is descriptive framing; that record alone supplies neither a formula tree nor a proof."
+msgstr "将 math:satisfiesAxiom 指向定律资源，在已有实现处保留结构化 logic:Formula 及支持证据。ONNX ParameterSpace 的载体、运算和命名公理记录是描述框架；该记录本身既不提供公式树，也不提供证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfies distributivity"
+msgstr "满足分配律"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
+msgstr "指定 math:Ring 满足的分配律公理：乘法对加法满足分配律（a·(b+c) = a·b + a·c），该定律使双运算结构成为环而非两个无关的群。定义域为 math:Ring，值域为表示 logic: 公式的 math:Axiom，以文字说明。它是 math:satisfiesAxiom 的细化：环必须专门指定分配律，而非仅指定任意公理。没有分配律的环不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This refinement selects the distributivity axiom relating ring multiplication and addition. It entails the general math:satisfiesAxiom edge through the existing hierarchy, but an asserted-triple consumer does not gain that edge merely by reading the specific assertion."
+msgstr "此细化选择关联环乘法和加法的分配律公理。它通过已有层级蕴含一般 math:satisfiesAxiom 边，但读取已断言三元组的使用方不会仅凭读取特定断言就获得该边。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:integerRing points to exa:leftDistributivity through both math:satisfiesDistributivity and math:satisfiesAxiom in algebra-structures.ttl; algebra-axioms.ttl realizes that same law as a logic:Formula tree."
+msgstr "algebra-structures.ttl 中 exa:integerRing 通过 math:satisfiesDistributivity 和 math:satisfiesAxiom 同时指向 exa:leftDistributivity；algebra-axioms.ttl 将同一定律实现为 logic:Formula 树。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a ring must explicitly identify the distributivity law that connects its additive and multiplicative operations."
+msgstr "当环需要显式标识关联加法和乘法运算的分配律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an unrelated associativity or commutativity axiom, omitting the general axiom assertion required by a direct consumer, or treating this edge as proof that the law has executed."
+msgstr "不要替换成无关的结合律或交换律公理，不要省略直接使用方要求的一般公理断言，也不要将此边视为定律已执行的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."
+msgstr "通过 math:satisfiesDistributivity 将环关联到分配律 math:Axiom，并在使用路径读取已断言三元组时同时断言 math:satisfiesAxiom。保留两个运算角色、实际定律公式及证据，以及断言与蕴含之间的区别。"
