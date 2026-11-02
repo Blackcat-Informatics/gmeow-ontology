@@ -314,7 +314,7 @@ ASK {
     math:Automorphism      rdfs:subClassOf math:Isomorphism .
     math:AutomorphismGroup rdfs:subClassOf math:Group .
 }""" ;
-    gmeow:saRationale "The structure-preserving maps MUST form the declared hierarchy, and crucially math:AutomorphismGroup MUST be a subclass of math:Group: a symmetry group IS an automorphism group, the identity that lets E8's Weyl action, det, and a homomorphic-encryption scheme be the same kind of object." .
+    gmeow:saRationale "The structure-preserving maps MUST form the declared hierarchy, and math:AutomorphismGroup MUST remain a subclass of math:Group collecting all automorphisms of its declared structure. E8's Weyl action, det, and a homomorphic-encryption scheme share map-and-law machinery without making every Weyl reflection group a full automorphism group." .
 
 # --- 11. The homomorphism failure classes subclass MathConformanceFailure (MUST) ---
 ex:saHomomorphismFailures a gmeow:StructuralAssertion ;
@@ -328,17 +328,30 @@ ASK {
 }""" ;
     gmeow:saRationale "Both homomorphism hard-rule failures MUST be subclasses of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
-# --- 12. The Weyl group IS an automorphism group IS a group (MUST) ---
+# --- 12. Weyl groups inherit Group and require their own typed root anchor (MUST) ---
 ex:saWeylGroupIsSymmetry a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK {
-    math:WeylGroup rdfs:subClassOf math:AutomorphismGroup .
+    math:WeylGroup rdfs:subClassOf math:Group ;
+        rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty math:hasRootSystem ;
+            owl:minQualifiedCardinality 1 ; owl:onClass math:RootSystem ] ,
+        [ a owl:Restriction ; owl:onProperty math:hasRootSystem ;
+            owl:allValuesFrom math:RootSystem ] ;
+        gmeow:enforcesFailureClass math:IncompleteLieStructure .
+    [ a logic:ClosureEntry ; logic:onClass math:WeylGroup ;
+        logic:closureKey "https://blackcatinformatics.ca/math/hasRootSystem" ;
+        logic:closureValue logic:ClosedWorldClosure ] .
     math:AutomorphismGroup rdfs:subClassOf math:Group .
+    FILTER NOT EXISTS { math:WeylGroup rdfs:subClassOf math:AutomorphismGroup }
 }""" ;
-    gmeow:saRationale "A root system's symmetry group is its Weyl group, which MUST be a math:AutomorphismGroup and hence a math:Group — the identity that makes E8's symmetry expressible with the same machinery as det and homomorphic encryption." .
+    gmeow:saRationale "A Weyl reflection group MUST inherit math:Group, require a typed math:RootSystem through math:hasRootSystem with explicit closed-world closure, and retain math:IncompleteLieStructure as the failure owner. A full math:AutomorphismGroup also inherits math:Group, but the universal WeylGroup-to-AutomorphismGroup edge MUST be absent: equality holds for E8 and is not generic." .
 
 # --- 12b. The unification failure classes subclass MathConformanceFailure (MUST) ---
 ex:saUnificationFailures a gmeow:StructuralAssertion ;

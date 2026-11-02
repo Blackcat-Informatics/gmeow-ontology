@@ -248,12 +248,12 @@ ex:ecHomomorphismLawString a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape math:Homomorphism-shape ;
     gmeow:conformanceRationale "The counter-example gives math:preservationLaw an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:PreservationLawShape), so validation MUST emit shacl.NodeKindConstraintComponent. This cell asserts the shared SHACL component CODE, not gmeow:expectedFailureClass isolation: the fixture legitimately trips more than one gate, so a class pin would assert an isolation it does not have. The 'no other finding' reading of the code assertion is therefore not claimed here." .
 
-# === Rule 11/12: a Lie group / root system declares its root-system data ==== #
+# === Rule 11/12: Lie and Weyl groups / root systems declare their root data = #
 
 ex:ecLieStructureComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/lie-structure-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:LieGroup declaring math:hasRootSystem, whose math:RootSystem declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank, and whose math:WeylGroup carries its math:AlgebraicStructure frame and is anchored through math:automorphismGroupOf, satisfies math:LieStructureShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings (a rank-2 A₂ system, not the E8 fingerprint, so the E8 value gate stays inert)." .
+    gmeow:conformanceRationale "A math:LieGroup declaring math:hasRootSystem, whose math:RootSystem declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank, and whose math:WeylGroup carries its math:AlgebraicStructure frame and typed math:hasRootSystem anchor, satisfies math:LieStructureShape, math:RootSystemShape, the required Weyl root path, and math:AlgebraicStructureShape. This A₂ reflection group has order 6 and is not asserted to be the full root-system automorphism group of order 12; the E8 fingerprint and value gate are absent." .
 
 ex:ecLieMissingRootSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/lie-group-missing-root-system.ttl" ;
@@ -285,12 +285,12 @@ ex:ecAutomorphismGroupUnanchored a gmeow:ExampleConformance ;
 ex:ecE8WeylCanonical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/e8-weyl-canonical.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600 — the true order of W(E8) — satisfies math:E8WeylOrderShape (and math:RootSystemShape, math:AutomorphismGroupShape, math:AlgebraicStructureShape) and validates with no findings." .
+    gmeow:conformanceRationale "A math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600 — the true order of W(E8) — has a typed math:hasRootSystem anchor and explicit math:AutomorphismGroup typing with math:automorphismGroupOf for this E8 equality. It satisfies math:E8WeylOrderShape, math:RootSystemShape, the required Weyl root path, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings." .
 
 ex:ecE8WeylProduced a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/e8-weyl-produced.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The e8Symmetry flagship's worked example — the exact output of math::producers::e8_weyl_order — a math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600. It satisfies math:E8WeylOrderShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings." .
+    gmeow:conformanceRationale "The e8Symmetry flagship's worked example — the exact output of math::producers::e8_weyl_order — has a math:RootSystem with the E8 fingerprint (240 roots, rank 8) and a math:weylGroup declaring math:groupOrder 696729600. The group has a typed math:hasRootSystem anchor and explicit math:AutomorphismGroup typing with math:automorphismGroupOf for this E8 equality. It satisfies math:E8WeylOrderShape, math:RootSystemShape, the required Weyl root path, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings." .
 
 ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
@@ -299,7 +299,7 @@ ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape math:E8WeylOrderConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example carries the E8 fingerprint (240 roots, rank 8) but declares a math:weylGroup of math:groupOrder 696729599 instead of 696729600 (the SPARQL constraint of math:E8WeylOrderShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:WrongE8WeylOrder). The root system and Weyl group are otherwise complete, isolating the wrong-value violation — the flagship invariant is checked by value." .
+    gmeow:conformanceRationale "The counter-example carries the E8 fingerprint (240 roots, rank 8) but declares a math:weylGroup of math:groupOrder 696729599 instead of 696729600 (the SPARQL constraint of math:E8WeylOrderShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:WrongE8WeylOrder). The root system and Weyl group are otherwise complete, including the typed math:hasRootSystem anchor and explicit full-automorphism-group typing with math:automorphismGroupOf, isolating the wrong-value violation — the flagship invariant is checked by value." .
 
 # === Rule 13: a homomorphic-encryption scheme declares op + hardness + noise = #
 

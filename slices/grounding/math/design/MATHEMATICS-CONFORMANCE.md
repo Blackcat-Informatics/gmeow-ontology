@@ -123,15 +123,22 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | A ring declares the distributivity law tying its two operations together | SHACL Core | `math:NonDistributiveRing` |
 | A homomorphism declares its preserved operation and preservation law | SHACL Core | `math:UnderspecifiedHomomorphism` |
 | A preservation law denotes a `logic:` formula, not a string | SHACL-SPARQL (`math:PreservationLawNodeKindConstraint`, a path node-kind rule projected as a SPARQL-AF constraint) | `math:StringOnlyPreservationLaw` |
-| A Lie group declares its root system | SHACL Core | `math:IncompleteLieStructure` |
+| A Lie group declares its root system; a Weyl reflection group declares its required typed root-system anchor | SHACL Core | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | SHACL Core | `math:IncompleteLieStructure` |
-| An automorphism group is anchored to the structure it is the symmetry of | SHACL Core | `math:UnanchoredAutomorphismGroup` |
+| A full automorphism group is anchored to the structure whose complete automorphisms it collects | SHACL Core | `math:UnanchoredAutomorphismGroup` |
 | A homomorphic-encryption scheme declares its homomorphic operation, hardness assumption, and noise model | SHACL Core | `math:UnderspecifiedEncryptionScheme` |
 | The E8 root-system invariants (240 roots, rank 8, Weyl order 696,729,600) are the pinned answer | competency query | a mistyped invariant fails the exact-match competency gate |
 | A root system claiming the E8 fingerprint (240 roots, rank 8) declares the true Weyl order 696,729,600 | SHACL-SPARQL | `math:WrongE8WeylOrder` |
 | A `math:CliffordAlgebra` declares its scalar field, signature, basis, grading, exact dimension, pseudoscalar square, involution, basis blade, carrier, product, and axioms | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordAlgebra` |
 | A `math:CliffordExtension` names its base algebra, extended algebra, and extension generator | SHACL Core derived from OWL restrictions | `math:IncompleteCliffordExtension` |
 | A `math:CliffordModuleDecomposition` names both summands and carries a true exact split/join witness | SHACL Core derived from OWL restrictions + native producer test | `math:IncompleteCliffordExtension` |
+
+The Weyl root anchor is authored as canonical `logic:subClassOf` restrictions on
+`math:hasRootSystem`: a minimum of one typed `math:RootSystem` and an `allValuesFrom` restriction,
+with an anonymous `logic:ClosureEntry` selecting `logic:ClosedWorldClosure` for that required path.
+It has no maximum root cardinality and preserves the inherited group frame. A Weyl group is not
+universally a full `math:AutomorphismGroup`; E8 explicitly carries both types and both anchors.
+The full automorphism-group restriction, closure policy and failure remain independent.
 
 Every algebra axiom and preservation law is authored as a real `logic:Formula` first-order AST (atoms
 over `logic:relation` predications, the logical connectives, and quantifiers) — `math:` expresses the law and `logic:` owns
