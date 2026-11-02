@@ -1327,6 +1327,7 @@ fn path_shape_max_depth_above_cap_is_skipped_with_diagnostic() {
 
 // ── Quantifier binder hard-fails: a malformed/vacuous binder must NOT silently narrow ──
 
+/// Typed binder names preserve exact binding; malformed carriers refuse the owning quantifier.
 #[test]
 fn quantifier_with_malformed_bound_var_is_malformed_not_silently_narrowed() {
     // A ∀ node whose binder carrier is missing its logic:termVariable must surface a
@@ -1364,6 +1365,55 @@ fn quantifier_with_malformed_bound_var_is_malformed_not_silently_narrowed() {
                 .contains("https://example.org/test/qv1"),
         "the message must name both owning formula and malformed carrier: {malformed:?}"
     );
+    for datatype in ["string", "token"] {
+        let (program, diagnostics) = parse(&format!(
+            r#"ex:f1 a logic:Formula ; logic:forall ex:body1 ; logic:quantifiedVariable ex:qv1 .
+            ex:qv1 logic:termIndex 0 ; logic:termVariable "?X:中"^^xsd:{datatype} .
+            ex:body1 a logic:Formula ; logic:relation ex:p ; logic:argument [
+                logic:termIndex 0 ; logic:termVariable "?X:中" ] ."#
+        ));
+        assert!(diagnostics.is_empty(), "{datatype}: {diagnostics:?}");
+        let Formula::Forall { vars, body } = &program.formulas[0] else {
+            panic!("expected quantifier");
+        };
+        assert_eq!(vars, &["?X:中"]);
+        assert_eq!(
+            **body,
+            Formula::atom(
+                Term::Iri("https://example.org/test/p".to_owned()),
+                vec![Term::Var("?X:中".to_owned())]
+            )
+            .unwrap()
+        );
+    }
+
+    for field in [
+        r#"logic:termVariable "x"@en"#,
+        r#"logic:termVariable "x"^^xsd:anyURI"#,
+        r#"logic:termVariable " x"^^xsd:token"#,
+        r#"logic:termVariable "x", "x"^^xsd:token"#,
+        r#"logic:termSequenceMarker "x"^^xsd:token"#,
+    ] {
+        let (program, diagnostics) = parse(&format!(
+            "ex:f1 a logic:Formula ; logic:forall ex:body1 ; logic:quantifiedVariable ex:qv1 . ex:qv1 logic:termIndex 0 ; {field} . ex:body1 a logic:Formula ; logic:relation ex:p ; logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] ."
+        ));
+        assert!(program.formulas.is_empty(), "{field}");
+        let malformed: Vec<_> = diagnostics
+            .iter()
+            .filter(|d| d.code == "MALFORMED_FORMULA")
+            .collect();
+        assert_eq!(malformed.len(), 1, "{field}: {diagnostics:?}");
+        assert_eq!(
+            malformed[0].subject.as_deref(),
+            Some("https://example.org/test/f1")
+        );
+        assert!(
+            malformed[0]
+                .message
+                .contains("https://example.org/test/qv1"),
+            "{field}: {malformed:?}"
+        );
+    }
 }
 
 #[test]
@@ -1450,6 +1500,7 @@ fn formula_constructor_is_exclusive_and_cardinalities_are_strict() {
     }
 }
 
+/// Term carriers retain one complete native name and kind with unambiguous positional structure.
 #[test]
 fn term_carrier_values_and_indices_are_total_and_unambiguous() {
     let cases = [
@@ -1487,6 +1538,62 @@ fn term_carrier_values_and_indices_are_total_and_unambiguous() {
 
     for (ttl, expected_detail) in cases {
         assert_malformed_formula_error(ttl, expected_detail);
+    }
+    for field in ["termVariable", "termSequenceMarker"] {
+        for (value, name) in [
+            (r#""x""#, "x"),
+            (r#""x"^^xsd:string"#, "x"),
+            (r#""x"^^xsd:token"#, "x"),
+            (r#""?X:中""#, "?X:中"),
+            (r#"" x ""#, " x "),
+            (r#""X", "X""#, "X"),
+        ] {
+            let (program, diagnostics) = parse(&format!(
+                "ex:f a logic:Formula ; logic:relation ex:p ; logic:argument [ logic:termIndex 0 ; logic:{field} {value} ] ."
+            ));
+            assert!(diagnostics.is_empty(), "{field} {value}: {diagnostics:?}");
+            let expected = if field == "termVariable" {
+                Term::Var(name.to_owned())
+            } else {
+                Term::SequenceMarker(name.to_owned())
+            };
+            assert_eq!(
+                program.formulas,
+                vec![
+                    Formula::atom(
+                        Term::Iri("https://example.org/test/p".to_owned()),
+                        vec![expected]
+                    )
+                    .unwrap()
+                ]
+            );
+        }
+        for value in [
+            "ex:x",
+            "_:x",
+            "<<( ex:s ex:p ex:o )>>",
+            r#""x"@en"#,
+            r#""x"@en--ltr"#,
+            r#""x"^^xsd:anyURI"#,
+            r#"" x"^^xsd:token"#,
+            r#""x\uFFFF""#,
+            r#""""#,
+            r#"" ""#,
+            r#"""^^xsd:token"#,
+            r#""x", "y""#,
+            r#""x", "x"^^xsd:token"#,
+        ] {
+            let (program, diagnostics) = parse(&format!(
+                "ex:f a logic:Formula ; logic:relation ex:p ; logic:argument ex:carrier . ex:carrier logic:termIndex 0 ; logic:{field} {value} ."
+            ));
+            assert!(program.formulas.is_empty(), "{field} {value}");
+            assert!(
+                diagnostics.iter().any(|d| d.code == "MALFORMED_FORMULA"
+                    && d.subject.as_deref() == Some("https://example.org/test/f")
+                    && d.message.contains("https://example.org/test/carrier")),
+                "{field} {value}: {diagnostics:?}"
+            );
+        }
     }
 }
 

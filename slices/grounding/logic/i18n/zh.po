@@ -9835,16 +9835,16 @@ msgid "Regex syntax and flags remain target-dialect-sensitive projection residue
 msgstr "正则表达式的语法与标志仍是对目标方言敏感的投影残留物。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarker|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the five mutually exclusive term-value properties."
-msgstr "在参数词项载体上携带一个序列标记词项值（所撰写的标记名称）：该参数是一个绑定词项序列而非单个词项的 logic:SequenceMarker。五个互斥的词项值属性之一。"
+msgid "Carries the exact authored name of a sequence marker on an argument term-carrier, binding a sequence of terms rather than a single term. Requires one distinct complete untagged, native-valid xsd:string or xsd:token literal. Identical repetitions are harmless; distinct RDF terms remain ambiguous even with identical lexical text. Empty or whitespace-only names are refused. Names undergo no trimming, case folding or sigil removal. One of the five mutually exclusive term-value properties; this kind is distinct from a single-term variable and cannot serve as a quantified-variable binder. Canonical emission writes the semantic name as a simple literal without retaining the source string/token datatype."
+msgstr "在参数项载体上承载序列标记的原样创作名称，绑定项序列而非单个项。要求一个不同的完整、无语言标签且符合原生校验的 xsd:string 或 xsd:token 字面量。相同重复无影响；不同 RDF 项即使词法文本相同仍有歧义。拒绝空名称或仅含空白的名称。名称不裁剪空白、不转换大小写，也不移除符号前缀。这是五个互斥的项值属性之一；此类型有别于单项变量，不能充当量词的绑定变量。规范输出将语义名称写为简单字面量，不保留源 string 或 token 数据类型。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarker|http://www.w3.org/2004/02/skos/core#example"
 msgid "A variadic carrier can use logic:termSequenceMarker 'rest' to bind the remaining argument sequence."
 msgstr "一个可变参数载体可以使用 logic:termSequenceMarker 'rest' 来绑定其余的参数序列。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariable|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Carries a variable term value (the authored variable name, without a sigil) on a term-carrier: a single-term variable, bound by an enclosing quantifier or free. One of the four mutually exclusive term-value properties. It is not an IRI constant or a variadic sequence marker."
-msgstr "在词项载体上携带一个变量词项值（所撰写的变量名，不含标记符号）：一个单词项变量，由外围量词绑定或为自由变量。四个互斥的词项值属性之一。它不是 IRI 常量，也不是可变元序列标记。"
+msgid "Carries the exact authored name of a single-term variable, bound by an enclosing quantifier or free. Requires one distinct complete untagged, native-valid xsd:string or xsd:token literal. Identical repetitions are harmless; distinct RDF terms remain ambiguous even with identical lexical text. Empty or whitespace-only names are refused. Names undergo no trimming, case folding or sigil removal. One of the five mutually exclusive term-value properties; a variable is not an IRI constant or a sequence marker. Canonical emission writes the semantic name as a simple literal without retaining the source string/token datatype."
+msgstr "承载单项变量的原样创作名称，该变量可由外层量词绑定或为自由变量。要求一个不同的完整、无语言标签且符合原生校验的 xsd:string 或 xsd:token 字面量。相同重复无影响；不同 RDF 项即使词法文本相同仍有歧义。拒绝空名称或仅含空白的名称。名称不裁剪空白、不转换大小写，也不移除符号前缀。这是五个互斥的项值属性之一；变量不是 IRI 常量或序列标记。规范输出将语义名称写为简单字面量，不保留源 string 或 token 数据类型。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariable|http://www.w3.org/2004/02/skos/core#example"
 msgid "A carrier with logic:termVariable 'person' represents the authored variable name without a question-mark sigil."

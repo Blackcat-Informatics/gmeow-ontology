@@ -16899,10 +16899,10 @@ logic:termIndex
 logic:termVariable
     a logic:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term variable"@x-gmeow-english ;
-    skos:definition "Carries a variable term value (the authored variable name, without a sigil) on a term-carrier: a single-term variable, bound by an enclosing quantifier or free. One of the four mutually exclusive term-value properties. It is not an IRI constant or a variadic sequence marker."@x-gmeow-english ;
+    skos:definition "Carries the exact authored name of a single-term variable, bound by an enclosing quantifier or free. Requires one distinct complete untagged, native-valid xsd:string or xsd:token literal. Identical repetitions are harmless; distinct RDF terms remain ambiguous even with identical lexical text. Empty or whitespace-only names are refused. Names undergo no trimming, case folding or sigil removal. One of the five mutually exclusive term-value properties; a variable is not an IRI constant or a sequence marker. Canonical emission writes the semantic name as a simple literal without retaining the source string/token datatype."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termLiteral
@@ -16926,10 +16926,10 @@ logic:termLiteralDatatype
 logic:termSequenceMarker
     a logic:DatatypeProperty ;
     rdfs:domain logic:TermCarrier ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term sequence marker"@x-gmeow-english ;
-    skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the five mutually exclusive term-value properties."@x-gmeow-english ;
+    skos:definition "Carries the exact authored name of a sequence marker on an argument term-carrier, binding a sequence of terms rather than a single term. Requires one distinct complete untagged, native-valid xsd:string or xsd:token literal. Identical repetitions are harmless; distinct RDF terms remain ambiguous even with identical lexical text. Empty or whitespace-only names are refused. Names undergo no trimming, case folding or sigil removal. One of the five mutually exclusive term-value properties; this kind is distinct from a single-term variable and cannot serve as a quantified-variable binder. Canonical emission writes the semantic name as a simple literal without retaining the source string/token datatype."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termApplication
