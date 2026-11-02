@@ -97,6 +97,15 @@ fn typed_declarations_own_syntax_and_reuse_original_formula_body() {
         compiled.presentation_formulas().values().next().unwrap()
     ));
     roundtrips(program);
+    let token_source = SOURCE.replace(
+        "logic:presentationModality \"none\"",
+        "logic:presentationModality \"none\"^^<http://www.w3.org/2001/XMLSchema#token>",
+    );
+    let token = compile(&token_source);
+    assert!(token.diagnostics().is_empty(), "{:?}", token.diagnostics());
+    assert_eq!(token.program().presentations, program.presentations);
+    assert_eq!(token.program().canonical_key(), program.canonical_key());
+    roundtrips(token.program());
 }
 
 #[test]
@@ -161,6 +170,29 @@ fn malformed_selected_declarations_remain_explicit_refusals_at_every_exact_bound
     let decoded: LogicProgram =
         serde_json::from_slice(&serde_json::to_vec(program).unwrap()).unwrap();
     assert_eq!(decoded.presentations, program.presentations);
+    for selected in [
+        "logic:presentationModality ex:none",
+        "logic:presentationModality \"none\"^^<http://www.w3.org/2001/XMLSchema#normalizedString>",
+        "logic:presentationModality \"none\"@en",
+        "logic:presentationModality \"none\"@en--ltr",
+        "logic:presentationModality \" none\"^^<http://www.w3.org/2001/XMLSchema#token>",
+        "logic:presentationModality \"none \"",
+        "logic:presentationModality \"NONE\"^^<http://www.w3.org/2001/XMLSchema#token>",
+        "logic:presentationModality \"unknown\"",
+        "logic:presentationModality \"none\", \"none\"^^<http://www.w3.org/2001/XMLSchema#token>",
+        "logic:presentationWorld ex:world",
+    ] {
+        let malformed = compile(&SOURCE.replace("logic:presentationModality \"none\"", selected));
+        assert!(
+            matches!(
+                malformed.program().presentations,
+                PresentationProgramIr::Refused { .. }
+            ),
+            "{selected}: {:?}",
+            malformed.program().presentations
+        );
+        assert!(project_canonical_rdf12_dataset(malformed.program()).is_err());
+    }
 }
 
 #[test]

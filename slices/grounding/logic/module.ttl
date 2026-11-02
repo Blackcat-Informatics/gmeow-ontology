@@ -7837,10 +7837,10 @@ logic:hasPresentationMerge
 logic:presentationModality
     a logic:DatatypeProperty ;
     logic:domain logic:PresentationContext ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "presentation Modality"@x-gmeow-english ;
-    skos:definition "The mandatory explicit canonical modality string: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. An unrecognized selector is rejected."@x-gmeow-english .
+    skos:definition "The mandatory explicit canonical modality code, supplied as an untagged xsd:string or xsd:token: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. The code must match exactly; whitespace variants and unrecognized selectors are rejected."@x-gmeow-english .
 
 logic:individualSymbolRole
     a logic:DatatypeProperty ;

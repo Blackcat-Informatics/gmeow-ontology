@@ -664,7 +664,7 @@ arbitrary native named graphs and RDF 1.2 metadata, retained in its source owner
 | `PresentationMerge` | `mergeLeft` and `mergeRight`, naming the two embedding maps |
 | `PresentationMap` | `mapSource`, `mapTarget`, and one `generatorBinding` per source generator, with `bindingSource` and `bindingTarget` |
 | `FinitePresentation` | `presentationContract`, plus explicit `presentationContext`, `presentationSymbol` and `presentationSentence` memberships; any membership set may be empty |
-| `PresentationContext` | Named `presentationWorld` and explicit string `presentationModality`; named standpoint, time, path and module coordinates use their corresponding `presentation*` properties when specified |
+| `PresentationContext` | Named `presentationWorld` and exact untagged `xsd:string` or `xsd:token` code for `presentationModality`; named standpoint, time, path and module coordinates use their corresponding `presentation*` properties when specified |
 | `PresentationSymbol` | `symbolContext`, native resource `symbolName` values, and its complete roles: true individual/variadic selectors or fixed relation/function arities |
 | `PresentationSentence` | `presentationFormula`, `sentenceContext`, `sentenceSign`, `sentenceKind`, `sentenceEvidence`, and total `sentenceBinding` records with `bindingName` and `bindingSymbol` |
 | `PresentationEvidence` | Native `evidenceOrigin`, explicit co-holding `preservationKind` values, and every `unsupportedConstruct` on its existing string-literal surface |

@@ -24174,3 +24174,11 @@ msgstr "admission d’un condensat d’octets fourni"
 msgctxt "https://blackcatinformatics.ca/logic/GroundingSourceDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
 msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."
+
+msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "presentation Modality"
+msgstr "modalité de présentation"
+
+msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mandatory explicit canonical modality code, supplied as an untagged xsd:string or xsd:token: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. The code must match exactly; whitespace variants and unrecognized selectors are rejected."
+msgstr "Le code canonique explicite et obligatoire de modalité, fourni sous forme de xsd:string ou de xsd:token sans étiquette de langue ni direction : none, alethic, epistemic, doxastic, telic, deontic, representational ou counterfactual. Le code doit correspondre exactement ; les variantes avec des espaces et les sélecteurs non reconnus sont rejetés."
