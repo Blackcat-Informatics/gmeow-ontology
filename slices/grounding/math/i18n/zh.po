@@ -4358,25 +4358,25 @@ msgid "quantity value"
 msgstr "数量值"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The sole canonical numeric-value property for a math:Quantity and the existing mathematical value carriers math:ApproximateValue and math:Cardinality. Range a numeric literal (stated in prose). On a measured quantity it is meaningful with the quantity's math:hasDimension and applicable gmeow:unit/reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."
-msgstr "math:Quantity 及已有数学值载体 math:ApproximateValue、math:Cardinality 所用的唯一规范数值属性。值域为数值字面量（以文字说明）。在测量量上，其含义取决于该量的 math:hasDimension 及适用的 gmeow:unit 单位或参考框架。math:MathematicalConstant 绝不直接承载此属性；其小数值属于独立的 math:ApproximateValue。"
+msgid "The canonical numeric-value property used by mathematical carriers, including math:Quantity, math:ApproximateValue and math:Cardinality, and by math:FiniteSet for its exact count. Range a numeric literal (stated in prose). On a finite set the exact count accompanies math:hasCardinality math:cardinalityFinite. On a measured quantity it is meaningful with the quantity’s math:hasDimension and applicable gmeow:unit or reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."
+msgstr "数学载体所用的规范数值属性，例如 math:Quantity、math:ApproximateValue、math:Cardinality，以及用于承载精确元素个数的 math:FiniteSet。值域为数值字面量（以文字说明）。在有限集上，精确元素个数与 math:hasCardinality math:cardinalityFinite 一同记录。在测量量上，其含义取决于该量的 math:hasDimension 及适用的 gmeow:unit 单位或参考框架。math:MathematicalConstant 绝不直接承载此属性；其小数值属于独立的 math:ApproximateValue。"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The numeric literal belongs to a math:Quantity, math:ApproximateValue or math:Cardinality carrier. A measured quantity also needs its dimension and applicable unit or reference frame; a literal by itself supplies none of that context."
-msgstr "数值字面量属于 math:Quantity、math:ApproximateValue 或 math:Cardinality 载体。测量量还需要其量纲及适用单位或参考框架；单独的字面量并未提供这些上下文。"
+msgid "Existing uses include numeric literals on math:Quantity, math:ApproximateValue and math:Cardinality, and exact counts directly on math:FiniteSet. This list describes existing authoring without declaring an exhaustive domain. A measured quantity also needs its dimension and applicable unit or reference frame; a literal by itself supplies none of that context."
+msgstr "现有用法包括在 math:Quantity、math:ApproximateValue、math:Cardinality 上承载数值字面量，以及直接在 math:FiniteSet 上承载精确元素个数。此列表描述现有编写方式，并未声明穷尽的定义域。测量量还需要其量纲及适用单位或参考框架；单独的字面量并未提供这些上下文。"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|http://www.w3.org/2004/02/skos/core#example"
 msgid "A math:ApproximateValue for π can hold math:quantityValue as the xsd:double literal 3.14159 while separately naming math:pi, its datatype and its absolute error bound."
 msgstr "π 的 math:ApproximateValue 可以用 xsd:double 字面量 3.14159 承载 math:quantityValue，同时另行指定 math:pi、数据类型及绝对误差界。"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use for the concrete numeric literal on an existing quantity, approximation or cardinality carrier, keeping the carrier’s interpretation explicit."
-msgstr "用于已有的数量、近似值或基数载体上的具体数值字面量，并保持载体解释明确。"
+msgid "Use for concrete numeric values on established carriers, including an exact count directly on math:FiniteSet alongside math:hasCardinality math:cardinalityFinite, while keeping each carrier’s interpretation explicit."
+msgstr "用于既有载体上的具体数值，包括与 math:hasCardinality math:cardinalityFinite 一同直接记录在 math:FiniteSet 上的精确元素个数，并保持各载体的解释明确。"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid adding this property to a bare math:Number or named mathematical constant, storing a display string instead of a numeric literal, or using it to replace the exact numerator/denominator slots of math:RationalValue."
 msgstr "不要向普通 math:Number 或命名数学常数添加此属性，不要用显示字符串替代数值字面量，也不要用它替代 math:RationalValue 的精确分子及分母槽位。"
 
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Attach the typed numeric literal to the appropriate existing carrier. For math:Quantity retain math:hasDimension and the applicable unit or frame; for math:ApproximateValue also retain math:approximates, math:numericDatatype and math:approximationError."
-msgstr "将带数据类型的数值字面量附加到适当的已有载体。对于 math:Quantity，保留 math:hasDimension 及适用单位或框架；对于 math:ApproximateValue，还应保留 math:approximates、math:numericDatatype 及 math:approximationError。"
+msgid "Attach the typed numeric literal to the appropriate existing carrier. For math:FiniteSet retain math:hasCardinality math:cardinalityFinite and carry its exact non-negative integer count directly. For math:Quantity retain math:hasDimension and the applicable unit or frame; for math:ApproximateValue also retain math:approximates, math:numericDatatype and math:approximationError."
+msgstr "将带数据类型的数值字面量附加到适当的已有载体。对于 math:FiniteSet，保留 math:hasCardinality math:cardinalityFinite，并直接承载其精确的非负整数元素个数。对于 math:Quantity，保留 math:hasDimension 及适用单位或框架；对于 math:ApproximateValue，还应保留 math:approximates、math:numericDatatype 及 math:approximationError。"
