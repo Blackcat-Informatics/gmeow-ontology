@@ -33,8 +33,8 @@ msgid "Preserve the source's 32 lowercase hexadecimal digits and this datatype I
 msgstr "保留来源的 32 个小写十六进制数字及此数据类型 IRI。另行保留确切输入字节的身份；确实由来源提供的域标签字节仍属于输入的一部分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "RFC 1321 is an informational RFC from April 1992, not an Internet standard. This declaration installs no parser, computes no hash and verifies no artifact. Native RDF transport can retain the literal opaquely. Compare supplied literals by RDF sameTerm; no value-space equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
-msgstr "RFC 1321 是 1992 年 4 月发布的信息类 RFC，并非互联网标准。此声明不安装解析器、不计算哈希，也不验证制品。原生 RDF 传输可以不解释其值而保留该字面量。使用 RDF sameTerm 比较提供的字面量；不声明其与 xsd:string、xsd:hexBinary 或其他算法数据类型的值空间相等。"
+msgid "RFC 1321 is an informational RFC from April 1992, not an Internet standard. The native reasoner interprets exactly 32 lowercase hexadecimal digits without language or direction as an MD5 value with 16 ordered bytes. Values are equal exactly when their bytes agree within this algorithm; they are distinct from xsd:string, xsd:hexBinary and other algorithm values. Invalid literals remain uninterpreted and unsupported facets remain undecided. Admission computes no hash, verifies no artifact and makes no cryptographic security claim."
+msgstr "RFC 1321 是 1992 年 4 月发布的信息类 RFC，并非互联网标准。原生推理器将不带语言或方向的恰好 32 个小写十六进制数字解释为具有 16 个有序字节的 MD5 值。同一算法内的值当且仅当字节一致时相等；它们与 xsd:string、xsd:hexBinary 及其他算法的值不同。无效字面量保持未解释状态，不支持的分面保持未判定状态。接纳不计算哈希、不验证制品，也不作密码安全性声明。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#example"
 msgid "A source-supplied MD5 digest retains its own algorithm identity beside separately supplied digests of the same artifact, without asserting that any digest was checked."

@@ -215,33 +215,30 @@ fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
     // Infinite, not unknown: any finite count of distinct anyURI values exists.
     assert_eq!(extent::named(ANY_URI).admits(1_000_000), Some(true));
 
-    for digest_iri in [
-        gmeow_logic_compile::literal_datatypes::SHA256_DIGEST,
-        gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
+    for (datatype, width) in [
+        (gmeow_logic_compile::literal_datatypes::SHA256_DIGEST, 64),
+        (
+            gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
+            64,
+        ),
+        (gmeow_logic_compile::literal_datatypes::MD5_DIGEST, 32),
     ] {
-        edge(&mut rel, "urn:digest", "urn:range", digest_iri);
-        let digest = literal(&"0".repeat(64), digest_iri);
-        let digest_plan = DatatypeCache::default()
-            .prepare(
-                &rel,
-                &iri(digest_iri),
-                &mut ListCache::default(),
-                &mut values,
-            )
+        edge(&mut rel, "urn:digest", "urn:range", datatype);
+        let digest = literal(&"0".repeat(width), datatype);
+        let plan = DatatypeCache::default()
+            .prepare(&rel, &iri(datatype), &mut ListCache::default(), &mut values)
             .unwrap();
-        assert_eq!(digest_plan.contains(&digest, &mut values), Some(true));
+        assert_eq!(plan.contains(&digest, &mut values), Some(true));
         assert_eq!(
-            digest_plan.contains(&literal("0", INTEGER), &mut values),
+            plan.contains(&literal("0", INTEGER), &mut values),
             Some(false)
         );
+        assert_eq!(plan.contains(&literal("0", datatype), &mut values), None);
+        // All three finite capacities exceed u128; no count is an exact saturation.
+        assert_eq!(extent::named(datatype).admits(u128::MAX), Some(true));
+        assert_eq!(extent::named(datatype).exact_count(), None);
         assert_eq!(
-            digest_plan.contains(&literal("0", digest_iri), &mut values),
-            None
-        );
-        assert_eq!(extent::named(digest_iri).admits(u128::MAX), Some(true));
-        assert_eq!(extent::named(digest_iri).exact_count(), None);
-        assert_eq!(
-            extent::analyze(&[Node::Named(digest_iri.into()), Node::Complement(0)], 1)
+            extent::analyze(&[Node::Named(datatype.into()), Node::Complement(0)], 1)
                 .admits(u128::MAX),
             Some(true)
         );

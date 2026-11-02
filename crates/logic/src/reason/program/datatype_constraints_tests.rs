@@ -112,23 +112,30 @@ fn datatype_property_literal_domain_and_local_universals_are_actual_clash_produc
     assert!(is_done(&run(&program(Vec::new()), &source(facts))));
     let sha = gmeow_logic_compile::literal_datatypes::SHA256_DIGEST;
     let blake3 = gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST;
-    for digest in [sha, blake3] {
-        let other = if digest == sha { blake3 } else { sha };
-        for (datatype, expected) in [(digest, false), (other, true), (STRING, true)] {
-            let mut facts = base();
-            facts.extend([
-                fact(P, RANGE, digest),
-                fact(RECORD, ALL, digest),
-                fact(RECORD, SOME, digest),
-                literal(SUBJECT, P, &"0".repeat(64), datatype),
-            ]);
-            let result = run(&program(Vec::new()), &source(facts));
-            assert_eq!(is_done(&result), expected);
-            assert_eq!(
-                result.native_status,
-                crate::reason::refute::NativeClosureStatus::Completed
-            );
-        }
+    let md5 = gmeow_logic_compile::literal_datatypes::MD5_DIGEST;
+    for (digest, datatype, width, expected) in [
+        (sha, sha, 64, false),
+        (sha, blake3, 64, true),
+        (sha, STRING, 64, true),
+        (blake3, blake3, 64, false),
+        (blake3, sha, 64, true),
+        (blake3, STRING, 64, true),
+        (md5, md5, 32, false),
+        (md5, STRING, 32, true),
+    ] {
+        let mut facts = base();
+        facts.extend([
+            fact(P, RANGE, digest),
+            fact(RECORD, ALL, digest),
+            fact(RECORD, SOME, digest),
+            literal(SUBJECT, P, &"0".repeat(width), datatype),
+        ]);
+        let result = run(&program(Vec::new()), &source(facts));
+        assert_eq!(is_done(&result), expected);
+        assert_eq!(
+            result.native_status,
+            crate::reason::refute::NativeClosureStatus::Completed
+        );
     }
 }
 

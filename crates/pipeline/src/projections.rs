@@ -66,7 +66,7 @@ impl DigestAlgorithm {
         match self {
             Self::Blake3 => gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
             Self::Sha256 => gmeow_logic_compile::literal_datatypes::SHA256_DIGEST,
-            Self::Md5 => "https://blackcatinformatics.ca/gmeow/md5Digest",
+            Self::Md5 => gmeow_logic_compile::literal_datatypes::MD5_DIGEST,
         }
     }
 
@@ -126,12 +126,13 @@ impl DigestAlgorithm {
                 gmeow_logic_compile::literal_datatypes::Sha256Digest::from_canonical_hex(lexical)
                     .is_some()
             }
-            Self::Md5 => {
-                lexical.len() == width
-                    && lexical
-                        .bytes()
-                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-            }
+            Self::Md5 => gmeow_logic_compile::literal_datatypes::Md5Digest::from_parts(
+                lexical,
+                self.datatype(),
+                None,
+                None,
+            )
+            .is_some(),
         };
         if !valid {
             return Err(digest_error(format!(
@@ -170,7 +171,7 @@ pub(crate) fn admit_content_digest(
     let algorithm = match datatype.as_str() {
         "https://blackcatinformatics.ca/gmeow/blake3_256Digest" => DigestAlgorithm::Blake3,
         "https://blackcatinformatics.ca/gmeow/sha256Digest" => DigestAlgorithm::Sha256,
-        "https://blackcatinformatics.ca/gmeow/md5Digest" => DigestAlgorithm::Md5,
+        gmeow_logic_compile::literal_datatypes::MD5_DIGEST => DigestAlgorithm::Md5,
         _ => {
             return Err(digest_error(format!(
                 "unsupported contentDigest datatype <{datatype}>"

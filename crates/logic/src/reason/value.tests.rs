@@ -196,56 +196,48 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
 
     // Algorithm identity survives native value interpretation and every boundary
     // rejects malformed lexicals instead of repairing or cross-typing them.
-    let hex = crate::obligations::candidate_source_hash("native SHA-256 value");
-    for algorithm in [SHA256_DIGEST, BLAKE3_256_DIGEST] {
-        let digest = TermValue::typed_literal(&hex, algorithm);
-        let digest_value = values.literal(&digest);
-        assert_eq!(digest_value.named_datatype(algorithm), Some(true));
+    let sha_hex = crate::obligations::candidate_source_hash("native SHA-256 value");
+    let md5_hex = "d41d8cd98f00b204e9800998ecf8427e";
+    for (datatype, hex) in [
+        (SHA256_DIGEST, sha_hex.as_str()),
+        (BLAKE3_256_DIGEST, sha_hex.as_str()),
+        (MD5_DIGEST, md5_hex),
+    ] {
+        let digest = TermValue::typed_literal(hex, datatype);
+        let interpreted = values.literal(&digest);
+        assert_eq!(interpreted.named_datatype(datatype), Some(true));
         assert_eq!(
-            digest_value.named_datatype("http://www.w3.org/2000/01/rdf-schema#Literal"),
+            interpreted.named_datatype("http://www.w3.org/2000/01/rdf-schema#Literal"),
             Some(true)
         );
-        assert_eq!(
-            digest_value.same_value(&values.literal(&digest)),
-            Some(true)
-        );
+        assert_eq!(interpreted.same_value(&values.literal(&digest)), Some(true));
         assert_eq!(
             values.same_value(
                 &digest,
-                &TermValue::typed_literal("f".repeat(64), algorithm)
+                &TermValue::typed_literal("f".repeat(hex.len()), datatype)
             ),
             Some(false)
         );
-        for datatype in [XSD_STRING, "http://www.w3.org/2001/XMLSchema#hexBinary"] {
-            let other = TermValue::typed_literal(&hex, datatype);
+        for other_datatype in [XSD_STRING, "http://www.w3.org/2001/XMLSchema#hexBinary"] {
+            let other = TermValue::typed_literal(hex, other_datatype);
             assert_eq!(values.same_value(&digest, &other), Some(false));
-            assert_eq!(digest_value.named_datatype(datatype), Some(false));
-            assert_eq!(
-                values.literal(&other).named_datatype(algorithm),
-                Some(false)
-            );
+            assert_eq!(interpreted.named_datatype(other_datatype), Some(false));
+            assert_eq!(values.literal(&other).named_datatype(datatype), Some(false));
         }
-        let foreign = TermValue::typed_literal(&hex, "urn:foreign");
+        let foreign = TermValue::typed_literal(hex, "urn:foreign");
         assert_eq!(values.same_value(&digest, &foreign), None);
-        assert_eq!(digest_value.named_datatype("urn:foreign"), None);
-        let other_algorithm = if algorithm == SHA256_DIGEST {
-            BLAKE3_256_DIGEST
-        } else {
-            SHA256_DIGEST
-        };
-        let other = TermValue::typed_literal(&hex, other_algorithm);
-        assert_eq!(values.same_value(&digest, &other), Some(false));
-        assert_eq!(digest_value.named_datatype(other_algorithm), Some(false));
-        assert_eq!(digest_value.facet_length(), None);
-        assert_eq!(digest_value.facet_order(&digest_value), None);
+        assert_eq!(interpreted.named_datatype("urn:foreign"), None);
+        assert_eq!(interpreted.facet_length(), None);
+        assert_eq!(interpreted.facet_order(&interpreted), None);
         for lexical in [
             hex.to_uppercase(),
-            "0".repeat(63),
-            "g".repeat(64),
+            "0".repeat(hex.len() - 1),
+            "0".repeat(hex.len() + 1),
+            "g".repeat(hex.len()),
             format!(" {hex}"),
         ] {
-            let invalid = TermValue::typed_literal(lexical, algorithm);
-            assert_eq!(values.literal(&invalid).named_datatype(algorithm), None);
+            let invalid = TermValue::typed_literal(lexical, datatype);
+            assert_eq!(values.literal(&invalid).named_datatype(datatype), None);
             assert_eq!(values.same_value(&digest, &invalid), None);
         }
         for (language, direction) in [
@@ -253,14 +245,33 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
             (None, Some(purrdf::RdfTextDirection::Ltr)),
         ] {
             let invalid = TermValue::Literal {
-                lexical_form: hex.clone(),
-                datatype: algorithm.to_owned(),
+                lexical_form: hex.to_owned(),
+                datatype: datatype.to_owned(),
                 language,
                 direction,
             };
-            assert_eq!(values.literal(&invalid).named_datatype(algorithm), None);
+            assert_eq!(values.literal(&invalid).named_datatype(datatype), None);
         }
     }
+    let sha = TermValue::typed_literal(&sha_hex, SHA256_DIGEST);
+    let blake3 = TermValue::typed_literal(&sha_hex, BLAKE3_256_DIGEST);
+    let md5 = TermValue::typed_literal(md5_hex, MD5_DIGEST);
+    assert_eq!(values.same_value(&sha, &blake3), Some(false));
+    assert_eq!(values.same_value(&blake3, &sha), Some(false));
+    assert_eq!(
+        values.literal(&sha).named_datatype(BLAKE3_256_DIGEST),
+        Some(false)
+    );
+    assert_eq!(
+        values.literal(&blake3).named_datatype(SHA256_DIGEST),
+        Some(false)
+    );
+    assert_eq!(values.same_value(&sha, &md5), Some(false));
+    assert_eq!(values.literal(&sha).named_datatype(MD5_DIGEST), Some(false));
+    assert_eq!(
+        values.literal(&md5).named_datatype(SHA256_DIGEST),
+        Some(false)
+    );
 }
 
 /// A rejected decimal never acquires a value through another datatype grammar.
