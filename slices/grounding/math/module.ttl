@@ -12036,7 +12036,6 @@ math:Homomorphism rdfs:subClassOf
     gmeow:enforcesFailureClass math:UnderspecifiedHomomorphism .
 
 math:WeylGroup logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty math:hasRootSystem ; logic:minQualifiedCardinality 1 ; logic:onClass math:RootSystem ] ,
     [ a logic:Restriction ; logic:onProperty math:hasRootSystem ; logic:allValuesFrom math:RootSystem ] ;
     gmeow:enforcesFailureClass math:IncompleteLieStructure .
 

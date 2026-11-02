@@ -341,8 +341,6 @@ ASK {
     math:WeylGroup rdfs:subClassOf math:Group ;
         rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty math:hasRootSystem ;
-            owl:minQualifiedCardinality 1 ; owl:onClass math:RootSystem ] ,
-        [ a owl:Restriction ; owl:onProperty math:hasRootSystem ;
             owl:allValuesFrom math:RootSystem ] ;
         gmeow:enforcesFailureClass math:IncompleteLieStructure .
     [ a logic:ClosureEntry ; logic:onClass math:WeylGroup ;
@@ -350,6 +348,11 @@ ASK {
         logic:closureValue logic:ClosedWorldClosure ] .
     math:AutomorphismGroup rdfs:subClassOf math:Group .
     FILTER NOT EXISTS { math:WeylGroup rdfs:subClassOf math:AutomorphismGroup }
+    FILTER NOT EXISTS {
+        math:WeylGroup rdfs:subClassOf [
+            owl:onProperty math:hasRootSystem ;
+            owl:minQualifiedCardinality ?minimum ]
+    }
 }""" ;
     gmeow:saRationale "A Weyl reflection group MUST inherit math:Group, require a typed math:RootSystem through math:hasRootSystem with explicit closed-world closure, and retain math:IncompleteLieStructure as the failure owner. A full math:AutomorphismGroup also inherits math:Group, but the universal WeylGroup-to-AutomorphismGroup edge MUST be absent: equality holds for E8 and is not generic." .
 
