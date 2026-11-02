@@ -5254,56 +5254,56 @@ msgid "codomain"
 msgstr "陪域"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."
-msgstr "函数或关系的目标集合，即输出所落入的集合。定义域为 math:Relation，值域为 math:Set（以文字说明）。每个 math:Function 都声明一个陪域；缺少陪域的函数不合规范。陪域为声明的目标，其角色不同于实际取得的 math:image。"
+msgid "Existing uses include the declared target set of a function or relation and the target algebraic structure of a math:Homomorphism. Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct in role from the math:image actually attained. These documented carriers do not impose a global RDF domain or range restriction or retype structure-valued targets as sets."
+msgstr "已有用法包括函数或关系的已声明目标集合，以及 math:Homomorphism 的目标代数结构。每个 math:Function 都声明一个陪域；缺少陪域的函数不合式。陪域是已声明目标，其角色不同于实际取得的 math:image。这些已记录的承载用法不施加全局 RDF 定义域或值域限制，也不将结构值目标重定型为集合。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."
-msgstr "陪域是声明的目标集合，math:image 记录实际取得的集合。函数为满射时，不同角色可以指向同一资源；并不要求资源互异。"
+msgid "The codomain records a declared target set for a function or relation, or a target algebraic structure for an existing homomorphism. math:image records the attained set or substructure. The roles may name the same resource for a surjective map; neither a resource-inequality requirement nor a proof of preservation or surjectivity follows from the links."
+msgstr "陪域为函数或关系记录已声明目标集合，或为已有同态记录目标代数结构。math:image 记录实际取得的集合或子结构。对于满射，不同角色可以指定同一资源；链接不会引出资源不等要求，也不会证明保持性或满射性。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#example"
 msgid "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."
 msgstr "对于源集合和声明目标均为 ℝ 的 x ↦ x²，math:codomain 指定所有实数，尽管负实数不在其像中。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to retain the intended target set against which output membership and surjectivity are judged."
-msgstr "用于保留预期目标集合，以此判断输出归属及满射性。"
+msgid "Use to retain the intended target set or algebraic structure against which attained outputs and surjectivity are interpreted, without replacing the target by observed results."
+msgstr "用于保留预期目标集合或代数结构，以此解释实际输出及满射性，而不用已观察结果替代目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."
 msgstr "不要用已观察输出替换声明的陪域，不要将其当作单个结果，也不要通过默默更改此目标强行使满射性成立。"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."
-msgstr "使 math:codomain 从函数或关系指向声明的目标 math:Set。若意图使用受限目标，应显式给出该框架，并针对该框架下的映射论证相关 math:isSurjective 声明。"
+msgid "For a function or relation, point math:codomain to its declared target set; for an existing homomorphism, retain its target algebraic structure and that structure’s own carrier. State a restricted target explicitly. For a math:Function, justify any associated math:isSurjective declaration for that frame; a target link alone proves neither preservation nor surjectivity and does not type a structure as math:Set."
+msgstr "对于函数或关系，将 math:codomain 指向已声明目标集合；对于已有同态，保留其目标代数结构及该结构自身载体。显式声明受限目标。对于 math:Function，应论证与该框架相关的任何 math:isSurjective 声明；单凭目标链接既不证明保持性或满射性，也不将结构定型为 math:Set。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "image"
 msgstr "像"
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."
-msgstr "函数实际取得的值的集合，即陪域中构成映射值域的子集。定义域为 math:Function，值域为 math:Set（以文字说明）。函数为满射，当且仅当其像等于陪域。"
+msgid "Existing uses include the full attained set of a function or relation and the attained algebraic substructure of a math:Homomorphism. The image is contained in the declared codomain, and a function is surjective exactly when its image equals that codomain. These documented uses do not impose a closed global domain or range or retype an algebraic image as math:Set; an image link alone does not compute the image or prove preservation or surjectivity."
+msgstr "已有用法包括函数或关系实际取得的完整集合，以及 math:Homomorphism 实际取得的代数子结构。像包含于已声明陪域，函数为满射当且仅当其像等于该陪域。这些已记录用法不施加封闭的全局定义域或值域，也不将代数像重定型为 math:Set；单凭像链接既不计算像，也不证明保持性或满射性。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."
-msgstr "像是已声明函数实际取得的完整集合，而不只是有限的输出样本。它包含于陪域，也可以与陪域是同一集合；这一相等关系是满射性的数学判据。"
+msgid "The image is the full attained set or algebraic substructure for the declared map, not a finite sample. exa:detHom names exa:RstarMult as both image and codomain in algebra-homomorphisms.ttl. Such role coincidence is allowed; the links alone do not establish the mathematical equality or prove surjectivity."
+msgstr "像是已声明映射实际取得的完整集合或代数子结构，而非有限样本。algebra-homomorphisms.ttl 中 exa:detHom 同时将 exa:RstarMult 指定为像和陪域。允许这种角色重合；单凭链接不能确立数学相等关系或证明满射性。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#example"
 msgid "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."
 msgstr "ℝ 上、陪域为 ℝ 的平方函数的像为 {y ∈ ℝ | y ≥ 0}。整数取负函数的像为 ℤ，与其声明陪域相同。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."
-msgstr "当函数实际取得的完整输出集合已有数学刻画，并需要有标识的集合资源时使用。"
+msgid "Use when the complete attained set or algebraic substructure of an existing map is justified and needs an identified resource distinct in role from its declared target."
+msgstr "当已有映射实际取得的完整集合或代数子结构有依据，且需要有标识的资源以承担区别于已声明目标的角色时使用。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."
 msgstr "不要在此列出单个输出字面量，不要将测试样本与完整的像混淆，也不要假定 math:image 会根据函数标签或映射框架自动计算。"
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."
-msgstr "通过 math:image 将 math:Function 连接到有依据的实际取得 math:Set，并保留 math:codomain 作为声明目标。若枚举无法描述该像，应使用现有集合和公式词汇以内涵方式表示。"
+msgid "Link the function or relation to its justified attained set, or the existing homomorphism to its justified attained algebraic substructure, through math:image. Keep math:codomain as the declared target and retain the image’s actual carrier, operations or defining formula where applicable. Do not retype structures as math:Set, compute an image from the edge, or infer preservation or surjectivity without supporting evidence."
+msgstr "通过 math:image 将函数或关系关联到有依据的实际取得集合，或将已有同态关联到有依据的实际取得代数子结构。保留 math:codomain 作为已声明目标，并在适用处保留像的实际载体、运算或定义公式。不要将结构重定型为 math:Set，不要从该边计算像，也不要在缺少支持证据时推断保持性或满射性。"
 
 msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "is injective"
@@ -7816,3 +7816,387 @@ msgstr "将作用承载对象（例如 math:GroupAction 或 math:Group）关联�
 msgctxt "https://blackcatinformatics.ca/math/IncompleteLieStructure|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a math:LieGroup does not declare its math:hasRootSystem, a math:WeylGroup lacks its required typed math:hasRootSystem anchor, or a math:RootSystem does not declare its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. The root-system data makes the Lie and reflection-group structure explicit; a missing required anchor or root-system field is ill-formed without making every Weyl group a full automorphism group."
 msgstr "当 math:LieGroup 未声明 math:hasRootSystem，math:WeylGroup 缺少所需带类型的 math:hasRootSystem 锚点，或 math:RootSystem 未声明 math:cartanMatrix、math:weylGroup 和 math:rootSystemRank 时引发的失败。根系数据明确李结构及反射群结构；缺少所需锚点或根系字段是不合式情形，但不因此将每个外尔群视为完整自同构群。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Morphism"
+msgstr "态射"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism, math:Functor, and math:NaturalTransformation. Deliberately not a subclass of math:Function — a morphism's math:sourceObject and math:targetObject may be structures, categories, or functors rather than bare sets. What it preserves is declared through math:preservesStructure; composition is stated through math:composesWith."
+msgstr "数学对象之间保持结构的映射，是 math:Homomorphism、math:Functor 和 math:NaturalTransformation 的对象层父类。特意不作为 math:Function 的子类：态射的 math:sourceObject 和 math:targetObject 可以是结构、范畴或函子，而非仅集合。通过 math:preservesStructure 声明其保持内容，通过 math:composesWith 陈述复合。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A morphism carries source-object and target-object roles that can be structures or categorical objects. Its hierarchy does not make it a math:Function, and those roles do not automatically bridge to the structure-valued math:domain and math:codomain used by algebraic homomorphisms."
+msgstr "态射承载源对象和目标对象角色，可指向结构或范畴对象。其层级不会使其成为 math:Function，这些角色也不会自动桥接到代数同态所用的结构值 math:domain 和 math:codomain。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom in algebra-homomorphisms.ttl is a group homomorphism and hence a morphism; its math:domain and math:codomain name group structures. Those existing fields do not automatically populate math:sourceObject or math:targetObject."
+msgstr "algebra-homomorphisms.ttl 中 exa:detHom 是群同态，因此也是态射；其 math:domain 和 math:codomain 指定群结构。这些已有字段不会自动填充 math:sourceObject 或 math:targetObject。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between mathematical objects must carry explicit structural preservation beyond a bare input/output rule."
+msgstr "当数学对象间的映射需要承载超出简单输入输出规则的显式结构保持信息时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring Function membership, inventing an automatic endpoint bridge, or treating a declared preservation link as a proof or evaluator."
+msgstr "不要推断 Function 成员资格，不要臆造自动端点桥接，也不要将已声明保持链接当作证明或求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the map’s appropriate source and target roles using the existing vocabulary for its specialization, and retain the declared preservation features and actual laws. Keep generic math:sourceObject/math:targetObject distinct from algebraic math:domain/math:codomain unless an explicit supported mapping is present."
+msgstr "使用特化所对应的已有词汇标识映射的适当源和目标角色，并保留已声明保持特征及实际定律。除非存在显式且受支持的映射，否则应区分通用 math:sourceObject/math:targetObject 与代数 math:domain/math:codomain。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homomorphism"
+msgstr "同态"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving map between algebraic structures of the same kind: it names, through math:preservedOperation, the operation it carries and, through math:preservationLaw, the logic: formula stating that carrying (φ(a·b) = φ(a)·φ(b)). A subclass of math:Morphism; its math:domain and math:codomain are math:AlgebraicStructure. math:kernel and math:image are first-class. A homomorphism asserted without a preserved operation and law is ill-formed."
+msgstr "同类代数结构间保持结构的映射：通过 math:preservedOperation 指定所传递运算，通过 math:preservationLaw 指定陈述该传递的 logic: 公式（φ(a·b) = φ(a)·φ(b)）。它是 math:Morphism 的子类；其 math:domain 和 math:codomain 为 math:AlgebraicStructure。math:kernel 和 math:image 是一等对象。未声明保持运算及定律的同态不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An algebraic homomorphism relates structures, not just their carrier sets. It inherits math:Morphism without math:Function inheritance; its preserved operation and law frame declares a claim whose formula realization and supporting evidence remain separate."
+msgstr "代数同态关联结构，而非仅其载体集合。它继承 math:Morphism 而不继承 math:Function；保持运算和定律框架声明一种主张，其公式实现及支持证据仍须区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom maps exa:GL2R to exa:RstarMult and names exa:matrixMultiplication plus exa:detProductLaw in algebra-homomorphisms.ttl. The target is a group structure, with its own carrier and operation."
+msgstr "algebra-homomorphisms.ttl 中 exa:detHom 从 exa:GL2R 映到 exa:RstarMult，并指定 exa:matrixMultiplication 及 exa:detProductLaw。目标是具有自身载体和运算的群结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an algebraic map must identify the operations it preserves and the laws describing that preservation."
+msgstr "当代数映射需要标识其保持的运算及描述该保持的定律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing structure endpoints by bare sets, inferring all algebraic conditions from the minimum frame, or treating a law-resource count as proof of preservation."
+msgstr "不要用纯集合替代结构端点，不要从最小框架推断全部代数条件，也不要将定律资源数量视为保持性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source and target algebraic structures through math:domain and math:codomain, identify the selected operations with math:preservedOperation, and attach actual preservation formulas with math:preservationLaw. Keep kernel, image and any checked result explicit rather than deriving them from the map label."
+msgstr "通过 math:domain 和 math:codomain 保留源及目标代数结构，通过 math:preservedOperation 标识所选运算，通过 math:preservationLaw 附上实际保持公式。明确核、像及任何已检查结果，而非由映射标签推导。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Homomorphism"
+msgstr "群同态"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism between groups: it preserves the single group operation (φ(a·b) = φ(a)·φ(b)), and its math:kernel is a normal subgroup of the domain. A subclass of math:Homomorphism; the determinant map det: GLₙ → ℝ* is one."
+msgstr "群之间的同态，保持单个群运算（φ(a·b) = φ(a)·φ(b)），其 math:kernel 是定义域的正规子群。它是 math:Homomorphism 的子类；行列式映射 det: GLₙ → ℝ* 是一例。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The preservation law relates the source and target group operations. The kernel consists of source elements mapped to the target group identity; that identity need not be numeric zero, and noncommutative groups are allowed."
+msgstr "保持定律关联源群和目标群运算。核由映到目标群单位元的源元素构成；该单位元不必是数值零，且允许非交换群。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "For exa:detHom, exa:SL2R is the kernel because determinant-one matrices map to the multiplicative identity in exa:RstarMult. exa:detProductLaw states determinant-product preservation."
+msgstr "对于 exa:detHom，exa:SL2R 是核，因为行列式为一的矩阵映到 exa:RstarMult 的乘法单位元。exa:detProductLaw 陈述行列式对乘积的保持。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between group structures preserves their selected group operation."
+msgstr "当群结构之间的映射保持其所选群运算时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring commutative groups, mapping the kernel to an assumed numeric zero, or inferring normality and all map properties from a bare label."
+msgstr "不要要求群满足交换律，不要将核映到假定的数值零，也不要从纯标签推断正规性及全部映射性质。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain group-valued math:domain and math:codomain, the preserved operation and its formula, and the justified kernel and image. Link a kernel subgroup with math:normalSubgroupOf where established, keeping the identity and containment evidence attached to the relevant group structures."
+msgstr "保留群值 math:domain 和 math:codomain、保持运算及其公式，以及有依据的核和像。在已确立处通过 math:normalSubgroupOf 关联核子群，并将单位元及包含关系证据保留在相关群结构上。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ring Homomorphism"
+msgstr "环同态"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism between rings: it preserves both addition and multiplication, and its math:kernel is an ideal. Both preservation obligations must be represented, without requiring exactly two law resources or a one-to-one count of operations and laws. A subclass of math:Homomorphism; a selected or partial homomorphic-encryption law does not alone establish all ring-preservation conditions."
+msgstr "环之间的同态，保持加法和乘法，其 math:kernel 为理想。必须表示两种保持义务，但不要求恰好两个定律资源或运算与定律数量一一对应。它是 math:Homomorphism 的子类；所选或部分同态加密定律本身不能确立全部环保持条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both additive and multiplicative preservation are obligations, but the vocabulary does not assign one law resource per operation. Minimum preserved-operation and law links, or a selected partial homomorphic-encryption law, do not establish every ring condition."
+msgstr "加法和乘法保持都是义务，但词汇不为每个运算分配一个定律资源。最少的保持运算及定律链接，或所选部分同态加密定律，不能确立全部环条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:bfvScheme in homomorphic-encryption.ttl names exa:ctMul and exa:heLaw for its selected encrypted computation. That record does not by itself prove both full ring-preservation obligations."
+msgstr "homomorphic-encryption.ttl 中 exa:bfvScheme 为所选加密计算指定 exa:ctMul 和 exa:heLaw。该记录本身不能证明两种完整环保持义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the claimed map between rings has explicit additive and multiplicative preservation conditions."
+msgstr "当所声明环间映射具有显式加法和乘法保持条件时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing exactly two law nodes, equating a partial encrypted operation with a full ring homomorphism, or using the multiplicative identity as the ring-kernel target."
+msgstr "不要强制恰好两个定律节点，不要将部分加密运算等同于完整环同态，也不要用乘法单位元作为环核的目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source and target ring structures, describe preservation of both operation roles through the existing operation and formula vocabulary, and retain the evidence for each claimed condition. Describe the kernel as the ideal mapped to additive zero, without changing law cardinalities or treating selected HE metadata as a universal proof."
+msgstr "保留源及目标环结构，使用已有运算和公式词汇描述两个运算角色的保持，并保留各声明条件的证据。将核描述为映到加法零元的理想，不改变定律基数，也不将所选 HE 元数据视为通用证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Isomorphism"
+msgstr "同构"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bijective homomorphism — a structure-preserving map with a structure-preserving inverse, so its domain and codomain are the same structure up to relabelling. A subclass of math:Homomorphism; two structures are isomorphic exactly when a declared math:Isomorphism relates them."
+msgstr "双射同态，即具有保持结构的逆映射的保持结构映射，因此其定义域与陪域在重新标记意义下是相同结构。它是 math:Homomorphism 的子类；当且仅当已声明的 math:Isomorphism 关联两个结构时，它们同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An isomorphism claims bijectivity and a structure-preserving inverse, not identity of the source and target resources. A declared witness retains that claim but does not itself supply a proof, quotient construction or automatic inverse execution."
+msgstr "同构声明双射性及保持结构的逆映射，而非源和目标资源身份相同。已声明见证保留此主张，但本身不提供证明、商构造或自动逆运算执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:firstIsoWitness declares exa:GL2modSL2 isomorphic to exa:RstarMult in algebra-homomorphisms.ttl. Its exa:detProductLaw is the determinant-product formula, not a formula proving the first isomorphism theorem."
+msgstr "algebra-homomorphisms.ttl 中 exa:firstIsoWitness 声明 exa:GL2modSL2 与 exa:RstarMult 同构。其 exa:detProductLaw 是行列式乘积公式，而非证明第一同构定理的公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicitly identified map is claimed to relate structures bijectively with a structure-preserving inverse."
+msgstr "当显式标识的映射被声明为以双射关联结构且具有保持结构的逆映射时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging isomorphic resources, treating equal dimensions as sufficient evidence, or assuming a declared witness proves all inverse and preservation conditions."
+msgstr "不要合并同构资源，不要将相同维数视为充分证据，也不要假定已声明见证证明全部逆映射及保持条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the map’s structure endpoints, preserved operations and actual law formulas, and preserve the evidence for bijectivity and the preserving inverse. Keep any declared isomorphism witness separate from the theorem or construction it illustrates, without inventing an automatic inverse or embedding."
+msgstr "保留映射的结构端点、保持运算及实际定律公式，并保留双射性及保持结构逆映射的证据。将已声明同构见证与其展示的定理或构造区分，不臆造自动逆映射或嵌入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Automorphism"
+msgstr "自同构"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An isomorphism of a structure with itself — a symmetry. A subclass of math:Isomorphism whose math:domain and math:codomain are the same structure. The automorphisms of a structure form a math:AutomorphismGroup under composition."
+msgstr "结构到其自身的同构，即对称。它是 math:Isomorphism 的子类，其 math:domain 与 math:codomain 为同一结构。结构的自同构在复合下构成 math:AutomorphismGroup。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the individual invertible structure-preserving map from a structure to itself. Source and target may be the identical resource, and the identity function is a valid automorphism under the relevant structure; no resource-inequality rule follows from the two endpoint roles."
+msgstr "这是从结构到自身的单个可逆保持结构映射。源和目标可以是同一资源，恒等函数在相关结构下是有效自同构；两个端点角色不引出资源不等规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "The identity map on exa:GL2R preserves its group operation and is an automorphism of that same group. It may serve as the identity element of the full automorphism group under composition."
+msgstr "exa:GL2R 上的恒等映射保持其群运算，是该同一群的自同构。它可作为完整自同构群在复合下的单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a claimed isomorphism is a symmetry of the same declared structure at both endpoints."
+msgstr "当所声明同构是两个端点处同一已声明结构的对称时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid forcing distinct source and target resources, excluding identity functions, or treating an invertible map as structure-preserving without the relevant laws."
+msgstr "不要强制源和目标资源不同，不要排除恒等函数，也不要在缺少相关定律时将可逆映射视为保持结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same structure in the algebraic source and target roles, retain the preserved operations and actual formulas, and record the preserving inverse and its evidence. Distinguish the map’s role from the group that collects all such maps without imposing disjoint resource kinds."
+msgstr "在代数源和目标角色中保留同一结构，保留保持运算及实际公式，并记录保持结构的逆映射及证据。区分映射角色与收集全部此类映射的群角色，不施加资源种类不相交要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Automorphism Group"
+msgstr "自同构群"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This group collects all automorphisms of its declared structure under composition. Its members can be function-valued, and its identity can be the identity function; those carrier-element roles do not exclude functions. A generic Weyl reflection group is not automatically this full group."
+msgstr "此群在复合下收集其已声明结构的全部自同构。其成员可以是函数，单位元可以是恒等函数；这些载体元素角色不排除函数。一般外尔反射群不会自动成为此完整群。"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl in e8-symmetry.ttl explicitly has both math:WeylGroup and math:AutomorphismGroup types, with math:hasRootSystem and math:automorphismGroupOf anchors. This E8 equality does not apply to every root system."
+msgstr "e8-symmetry.ttl 中 exa:e8Weyl 显式具有 math:WeylGroup 和 math:AutomorphismGroup 类型，并具有 math:hasRootSystem 及 math:automorphismGroupOf 锚点。此 E8 相等关系不适用于每个根系。"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the modeled group is the full automorphism group of an explicitly identified structure."
+msgstr "当建模群为显式标识结构的完整自同构群时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using full-group typing for an arbitrary symmetry subgroup, omitting its structure anchor, or rejecting function-valued members and an identity function because they are carrier elements."
+msgstr "不要为任意对称子群使用完整群类型，不要省略结构锚点，也不要因成员承担载体元素角色就排除函数值成员及恒等函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited group carrier, composition operation, identity and inverse laws, and declare the full group’s structure with math:automorphismGroupOf. Keep any Weyl root anchor separately when that type also applies, and retain evidence for collecting all automorphisms rather than only selected symmetries."
+msgstr "保留继承的群载体、复合运算、单位元律和逆元律，通过 math:automorphismGroupOf 声明完整群的结构。在外尔类型也适用时另行保留根系锚点，并保留收集全部自同构而非仅所选对称的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quotient"
+msgstr "商结构"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The quotient structure G/N of a structure by a substructure that is compatible with its operation (a normal subgroup, or an ideal) — the structure whose elements are the cosets of N. A subclass of math:AlgebraicStructure. The first isomorphism theorem states G/ker φ ≅ image φ. The worked determinant example supplies a declared isomorphism witness; its determinant-product preservation formula is not a quotient construction or a proof of the first isomorphism theorem."
+msgstr "结构对与其运算相容的子结构（正规子群或理想）取商所得的 G/N，其元素为 N 的陪集。它是 math:AlgebraicStructure 的子类。第一同构定理陈述 G/ker φ ≅ image φ。行列式示例提供已声明同构见证；其行列式乘积保持公式既不是商构造，也不是第一同构定理的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A quotient uses a compatible equivalence or coset structure, not a contained copy of its parent. The mathematical first-isomorphism statement G/ker φ ≅ image φ is retained without claiming that a nearby preservation formula constructs the quotient or proves that theorem."
+msgstr "商使用相容等价或陪集结构，而非其原结构内被包含的副本。保留数学上的第一同构陈述 G/ker φ ≅ image φ，但不声称附近的保持公式构造该商或证明该定理。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:GL2modSL2 has exa:cosetSet and exa:cosetMultiplication in algebra-homomorphisms.ttl. exa:firstIsoWitness declares an isomorphism to exa:RstarMult, while exa:detProductLaw remains a determinant-product preservation formula."
+msgstr "algebra-homomorphisms.ttl 中 exa:GL2modSL2 具有 exa:cosetSet 和 exa:cosetMultiplication。exa:firstIsoWitness 声明到 exa:RstarMult 的同构，而 exa:detProductLaw 仍是行列式乘积保持公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structure is formed modulo a compatible normal subgroup, ideal or other justified equivalence for its operations."
+msgstr "当结构按与其运算相容的正规子群、理想或其他有依据的等价关系形成时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting parent containment solely from quotient formation, treating a declared isomorphism witness as a theorem proof, or inventing a quotient-parent predicate or automatic embedding."
+msgstr "不要仅因形成商就声明其包含于原结构，不要将已声明同构见证当作定理证明，也不要臆造商的父对象谓词或自动嵌入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the quotient as its own structure, retain its carrier, induced operations and actual laws, and describe the compatible relation or quotienting substructure with existing mathematical vocabulary. Preserve any isomorphism witness and its actual formula without claiming an unauthored first-isomorphism proof."
+msgstr "将商标识为自身结构，保留其载体、诱导运算及实际定律，使用已有数学词汇描述相容关系或取商所用子结构。保留任何同构见证及其实际公式，不声称存在未编写的第一同构证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preserves structure"
+msgstr "保持结构"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource to a structural feature or law it declares, with existing subjects including math:Morphism and spaces such as math:CompactSpace. Targets include operations, axioms, realized formulas and honest expressiveness-boundary records; these examples do not impose a closed domain or range. math:preservedOperation refines this primitive. A target such as math:compactnessBoundary records SecondOrder/Unsupported residue rather than a formula, executable rule or proof."
+msgstr "将数学资源关联到其声明的结构特征或定律，已有主语包括 math:Morphism 及 math:CompactSpace 等空间。目标包括运算、公理、已实现公式和如实记录的表达能力边界；这些示例不施加封闭定义域或值域。math:preservedOperation 细化此原语。math:compactnessBoundary 等目标记录 SecondOrder/Unsupported 剩余内容，而非公式、可执行规则或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property supports declared structural features across the existing mathematical carriers. A target may be a realized law or an expressiveness-boundary record; the link does not turn an unsupported higher-order property into a first-order formula, checked result or executable capability."
+msgstr "此属性支持在已有数学承载对象上声明结构特征。目标可以是已实现定律或表达能力边界记录；此链接不会将不受支持的高阶性质变成一阶公式、已检查结果或可执行能力。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The compact-space-declared.ttl fixture links its math:CompactSpace to math:compactnessBoundary, recorded as logic:SecondOrder and logic:Unsupported. That target is an honest boundary record, not a compactness formula or proof."
+msgstr "compact-space-declared.ttl 测例将其 math:CompactSpace 关联到记录为 logic:SecondOrder 和 logic:Unsupported 的 math:compactnessBoundary。该目标是如实的边界记录，而非紧性公式或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing mathematical resource must explicitly name a structural feature, realized law or disclosed expressiveness boundary."
+msgstr "当已有数学资源需要显式指定结构特征、已实现定律或已披露表达能力边界时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid restricting every subject to Morphism or every target to an operation or axiom, retyping a space to fit such restrictions, or presenting Unsupported residue as a proved law."
+msgstr "不要将每个主语限制为 Morphism 或将每个目标限制为运算或公理，不要重新定型空间来满足此类限制，也不要将 Unsupported 剩余内容呈现为已证明定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual subject and feature resource, and inspect the target’s realized formula or expressivenessBoundary/preservationKind record before describing its capability. Use math:preservedOperation for the existing operation-specific refinement, without inventing global domain or range axioms or hiding unsupported semantics."
+msgstr "保留实际主语和特征资源，在描述能力前检查目标的已实现公式或 expressivenessBoundary/preservationKind 记录。对已有运算专属细化使用 math:preservedOperation，不臆造全局定义域或值域公理，也不隐藏不受支持的语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preserved operation"
+msgstr "保持运算"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names an operation carried under a declared preservation claim, with existing subjects including math:Homomorphism and math:GroupAction, and operation values such as math:Operation. These examples do not define a closed global domain. A group homomorphism preserves its group operation; a ring homomorphism must preserve addition and multiplication without a fixed one-to-one count of operation and law resources. The order-agnostic refinement of math:preservesStructure. A homomorphism without a preserved operation is ill-formed."
+msgstr "指定已声明保持主张下传递的运算，已有主语包括 math:Homomorphism 和 math:GroupAction，运算值例如 math:Operation。这些示例不定义封闭的全局定义域。群同态保持其群运算；环同态必须保持加法和乘法，但运算与定律资源数量之间没有固定一一对应。它是 math:preservesStructure 不涉及顺序的细化。缺少保持运算的同态不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an operation-role link, used by existing homomorphisms and group actions without forcing the latter into the former’s class hierarchy. It records what is claimed to be carried; it supplies neither operation positions nor an evaluated result or proof."
+msgstr "这是运算角色链接，由已有同态和群作用使用，不强迫后者进入前者类层级。它记录所声明传递的内容，不提供运算位置、已求值结果或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction names exa:rootReflection through math:preservedOperation in e8-symmetry.ttl while remaining a math:GroupAction. exa:detHom separately names exa:matrixMultiplication as a group homomorphism."
+msgstr "e8-symmetry.ttl 中 exa:e8WeylAction 通过 math:preservedOperation 指定 exa:rootReflection，同时仍为 math:GroupAction。exa:detHom 则以群同态身份另行指定 exa:matrixMultiplication。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the operation involved in an existing mathematical preservation claim needs an explicit resource link."
+msgstr "当已有数学保持主张所涉及运算需要显式资源链接时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing Homomorphism membership on every subject, assigning operation order from repeated edges, or counting operation links as proof of every ring-preservation condition."
+msgstr "不要对每个主语施加 Homomorphism 成员资格，不要从重复边分配运算顺序，也不要将运算链接数量当作全部环保持条件的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point to the actual preserved operation resource and retain the relevant endpoints, operation meanings and math:preservationLaw formula. State both ring-operation obligations where claimed without inventing ordered slots or a fixed operation-to-law count, and retain the subject’s existing type."
+msgstr "指向实际保持运算资源，保留相关端点、运算含义及 math:preservationLaw 公式。在声明处陈述两个环运算义务，不臆造有序槽位或固定运算与定律数量比，并保留主语已有类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preservation law"
+msgstr "保持定律"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names a resource denoting a structured logic: formula for a preservation claim, with existing subjects including math:Homomorphism, homomorphic-encryption schemes and math:GroupAction; these subjects do not define a closed global domain. Examples include φ(a·b) = φ(a)·φ(b), action compatibility and Dec(E(a) ⊗ E(b)) = a ⊕ b. The value is never an opaque string: math: declares the law and logic: owns reasoning over its realized formula. A homomorphism without a preservation law is ill-formed; a descriptive link alone establishes neither checked truth nor execution."
+msgstr "为保持主张指定表示结构化 logic: 公式的资源，已有主语包括 math:Homomorphism、同态加密方案和 math:GroupAction；这些主语不定义封闭的全局定义域。示例包括 φ(a·b) = φ(a)·φ(b)、作用相容性及 Dec(E(a) ⊗ E(b)) = a ⊕ b。值不能是不透明字符串：math: 声明定律，logic: 负责对其已实现公式推理。缺少保持定律的同态不合式；单凭描述链接既不能确立已检查真值，也不能确立执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is the law resource with its realized formula, not a statement that the law has been proved or executed. Existing GroupAction use is independent of Homomorphism typing, and an honest unsupported boundary on math:preservesStructure is not thereby a preservation formula."
+msgstr "值是具有已实现公式的定律资源，而非定律已证明或已执行的声明。已有 GroupAction 用法独立于 Homomorphism 类型，math:preservesStructure 上如实记录的不受支持边界也不会因此成为保持公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction points to exa:groupActionLaw in e8-symmetry.ttl, where action compatibility is a logic:Formula tree. exa:detHom points to the separate exa:detProductLaw for determinant-product preservation."
+msgstr "e8-symmetry.ttl 中 exa:e8WeylAction 指向 exa:groupActionLaw，作用相容性在其中为 logic:Formula 树。exa:detHom 则指向另一个 exa:detProductLaw，用于行列式乘积保持。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a preservation claim needs to retain the actual structured law resource and its formula realization."
+msgstr "当保持主张需要保留实际结构化定律资源及其公式实现时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a prose-only string, retyping an action merely to fit a narrowed subject description, or treating a selected HE formula as proof of all ring laws or a quotient theorem."
+msgstr "不要仅提供文字字符串，不要仅为适应过窄主语描述而重定型作用，也不要将所选 HE 公式当作全部环定律或商定理的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the existing subject to its actual law resource, retain the formula tree and operation interpretation, and preserve any separately checked result and evidence. Keep formula realization, truth checking and execution as distinct claims; do not manufacture a law from the link alone."
+msgstr "将已有主语关联到实际定律资源，保留公式树及运算解释，并保留另行检查的任何结果及证据。将公式实现、真值检查和执行作为不同主张；不要仅凭链接臆造定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel"
+msgstr "核"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the kernel of a homomorphism — the substructure of the domain mapped to the identity (for a group homomorphism a normal subgroup, for a ring homomorphism an ideal). Domain math:Homomorphism, range math:AlgebraicStructure (stated in prose). The kernel is a math:substructureOf the domain; the first isomorphism theorem relates it to the math:image through a math:Quotient."
+msgstr "指定同态的核，即定义域中映到单位元素的子结构（群同态时为正规子群，环同态时为理想）。定义域为 math:Homomorphism，值域为 math:AlgebraicStructure，以文字说明。核是定义域的 math:substructureOf；第一同构定理通过 math:Quotient 将其与 math:image 关联。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a group homomorphism the kernel is mapped to the target group identity; for a ring homomorphism it is mapped to additive zero. The kernel is a source substructure with its own frame, not the target identity element or the quotient itself."
+msgstr "群同态的核映到目标群单位元；环同态的核映到加法零元。核是具有自身框架的源子结构，而非目标单位元元素或商本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom names exa:SL2R as math:kernel in algebra-homomorphisms.ttl because its determinant-one matrices map to the multiplicative identity of exa:RstarMult."
+msgstr "algebra-homomorphisms.ttl 中 exa:detHom 将 exa:SL2R 指定为 math:kernel，因为其中行列式为一的矩阵映到 exa:RstarMult 的乘法单位元。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the identity-preimage subgroup or additive-zero-preimage ideal of a homomorphism needs an explicit structure resource."
+msgstr "当同态中单位元原像子群或加法零元原像理想需要显式结构资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the target identity value here, using multiplicative one as every ring-kernel target, or inferring a quotient construction or automatic embedding from the kernel edge."
+msgstr "不要在此放置目标单位元值，不要将乘法单位元用作每个环核的目标，也不要由核边推断商构造或自动嵌入。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the homomorphism to the justified kernel structure, retain its carrier and induced operations, and record its normal-subgroup or ideal relation where established. Keep the identity or additive-zero interpretation explicit, along with any separate image, quotient and isomorphism witness."
+msgstr "从同态指向有依据的核结构，保留其载体及诱导运算，并在已确立处记录正规子群或理想关系。明确单位元或加法零元解释，并保留任何独立的像、商及同构见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "normal subgroup of"
+msgstr "为其正规子群"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf. Not transitive: A ◁ B and B ◁ C do not imply A ◁ C — in A₄ the Klein four-group V₄ ◁ A₄ and a two-element subgroup H ◁ V₄, yet H is not normal in A₄. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."
+msgstr "将正规子群关联到包含它的群（对所有 g 有 gNg⁻¹ = N），即可以用于取商的子群种类。定义域和值域均为 math:Group，以文字说明；它细化 math:substructureOf。不具有传递性：A ◁ B 且 B ◁ C 不推出 A ◁ C；在 A₄ 中，克莱因四元群 V₄ ◁ A₄，某个二元子群 H ◁ V₄，但 H 在 A₄ 中不正规。群同态的 math:kernel 是其定义域的 math:normalSubgroupOf。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Normality is relative to the ambient group and is not transitive. Refining the transitive math:substructureOf relation does not make math:normalSubgroupOf transitive; carrier containment alone is weaker than conjugation invariance."
+msgstr "正规性相对于环境群，且不具有传递性。细化具有传递性的 math:substructureOf 关系不会使 math:normalSubgroupOf 具有传递性；仅载体包含关系弱于共轭不变性。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "In A₄, V₄ is normal and a two-element subgroup H is normal in V₄, but H is not normal in A₄. The two normal-subgroup links cannot be chained into a third normality claim."
+msgstr "在 A₄ 中 V₄ 正规，某个二元子群 H 在 V₄ 中正规，但 H 在 A₄ 中不正规。两个正规子群链接不能串联成第三个正规性声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subgroup’s invariance under conjugation by its declared ambient group is justified."
+msgstr "当子群在其已声明环境群共轭下的不变性有依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving transitive normality, substituting arbitrary containment for conjugation invariance, or assuming every subgroup can define the intended group quotient."
+msgstr "不要推导传递正规性，不要用任意包含关系替代共轭不变性，也不要假定每个子群都能定义所需群商。"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the normal subgroup to its ambient group, retain the subgroup frame and evidence for gNg⁻¹ = N in that ambient group, and describe any quotient separately. Preserve the substructure refinement without adding a transitivity assertion or a new quotient-parent link."
+msgstr "从正规子群指向环境群，保留子群框架及在该环境群中 gNg⁻¹ = N 的证据，并另行描述任何商。保留子结构细化，不添加传递性断言或新的商父对象链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "automorphism group of"
+msgstr "为其自同构群"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This anchor identifies the structure whose entire automorphism group is being claimed. It is stronger than a group acting on a structure or a Weyl group naming a root system; existing targets are examples rather than a closed resource-kind restriction."
+msgstr "此锚点标识所声明完整自同构群对应的结构。它强于群作用于结构或外尔群指定根系；已有目标是示例，而非封闭的资源种类限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl points to exa:e8Roots through math:automorphismGroupOf and also through math:hasRootSystem in e8-symmetry.ttl, with explicit dual group typing for the justified E8 equality."
+msgstr "e8-symmetry.ttl 中 exa:e8Weyl 通过 math:automorphismGroupOf 和 math:hasRootSystem 同时指向 exa:e8Roots，并为有依据的 E8 相等关系显式标注双重群类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a full automorphism-group resource must explicitly identify the structure whose automorphisms it collects."
+msgstr "当完整自同构群资源需要显式标识其收集自同构所对应的结构时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this anchor for an arbitrary acting subgroup, inferring full-group equality from a Weyl root anchor, or replacing the structure by one member automorphism."
+msgstr "不要将此锚点用于任意作用子群，不要从外尔根系锚点推断与完整群相等，也不要用单个成员自同构替代结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the full math:AutomorphismGroup to its actual structure, preserving the inherited group frame and evidence for the full collection of automorphisms. Retain a separate math:hasRootSystem anchor when Weyl typing also applies; neither edge proves the equality or executes the member maps."
+msgstr "将完整 math:AutomorphismGroup 关联到实际结构，保留继承的群框架及收集全部自同构的证据。在外尔类型也适用时保留单独的 math:hasRootSystem 锚点；任一边都不证明相等关系或执行成员映射。"

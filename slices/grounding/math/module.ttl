@@ -1544,24 +1544,24 @@ math:codomain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "codomain"@x-gmeow-english ;
-    skos:scopeNote "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."@x-gmeow-english ;
+    skos:scopeNote "The codomain records a declared target set for a function or relation, or a target algebraic structure for an existing homomorphism. math:image records the attained set or substructure. The roles may name the same resource for a surjective map; neither a resource-inequality requirement nor a proof of preservation or surjectivity follows from the links."@x-gmeow-english ;
     skos:example "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."@x-gmeow-english ;
-    gmeow:useWhen "Use to retain the intended target set against which output membership and surjectivity are judged."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the intended target set or algebraic structure against which attained outputs and surjectivity are interpreted, without replacing the target by observed results."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."@x-gmeow-english ;
-    gmeow:howToUse "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."@x-gmeow-english ;
-    skos:definition "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."@x-gmeow-english ;
+    gmeow:howToUse "For a function or relation, point math:codomain to its declared target set; for an existing homomorphism, retain its target algebraic structure and that structure’s own carrier. State a restricted target explicitly. For a math:Function, justify any associated math:isSurjective declaration for that frame; a target link alone proves neither preservation nor surjectivity and does not type a structure as math:Set."@x-gmeow-english ;
+    skos:definition "Existing uses include the declared target set of a function or relation and the target algebraic structure of a math:Homomorphism. Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct in role from the math:image actually attained. These documented carriers do not impose a global RDF domain or range restriction or retype structure-valued targets as sets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:image
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "image"@x-gmeow-english ;
-    skos:scopeNote "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."@x-gmeow-english ;
+    skos:scopeNote "The image is the full attained set or algebraic substructure for the declared map, not a finite sample. exa:detHom names exa:RstarMult as both image and codomain in algebra-homomorphisms.ttl. Such role coincidence is allowed; the links alone do not establish the mathematical equality or prove surjectivity."@x-gmeow-english ;
     skos:example "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."@x-gmeow-english ;
-    gmeow:useWhen "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."@x-gmeow-english ;
+    gmeow:useWhen "Use when the complete attained set or algebraic substructure of an existing map is justified and needs an identified resource distinct in role from its declared target."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."@x-gmeow-english ;
-    gmeow:howToUse "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."@x-gmeow-english ;
-    skos:definition "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."@x-gmeow-english ;
+    gmeow:howToUse "Link the function or relation to its justified attained set, or the existing homomorphism to its justified attained algebraic substructure, through math:image. Keep math:codomain as the declared target and retain the image’s actual carrier, operations or defining formula where applicable. Do not retype structures as math:Set, compute an image from the edge, or infer preservation or surjectivity without supporting evidence."@x-gmeow-english ;
+    skos:definition "Existing uses include the full attained set of a function or relation and the attained algebraic substructure of a math:Homomorphism. The image is contained in the declared codomain, and a function is surjective exactly when its image equals that codomain. These documented uses do not impose a closed global domain or range or retype an algebraic image as math:Set; an image link alone does not compute the image or prove preservation or surjectivity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Closed-form function properties (body, formal argument, parameters) ----- #
@@ -1727,6 +1727,11 @@ math:Morphism
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Morphism"@x-gmeow-english ;
+    skos:scopeNote "A morphism carries source-object and target-object roles that can be structures or categorical objects. Its hierarchy does not make it a math:Function, and those roles do not automatically bridge to the structure-valued math:domain and math:codomain used by algebraic homomorphisms."@x-gmeow-english ;
+    skos:example "exa:detHom in algebra-homomorphisms.ttl is a group homomorphism and hence a morphism; its math:domain and math:codomain name group structures. Those existing fields do not automatically populate math:sourceObject or math:targetObject."@x-gmeow-english ;
+    gmeow:useWhen "Use when a map between mathematical objects must carry explicit structural preservation beyond a bare input/output rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring Function membership, inventing an automatic endpoint bridge, or treating a declared preservation link as a proof or evaluator."@x-gmeow-english ;
+    gmeow:howToUse "Identify the map’s appropriate source and target roles using the existing vocabulary for its specialization, and retain the declared preservation features and actual laws. Keep generic math:sourceObject/math:targetObject distinct from algebraic math:domain/math:codomain unless an explicit supported mapping is present."@x-gmeow-english ;
     skos:definition "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism, math:Functor, and math:NaturalTransformation. Deliberately not a subclass of math:Function — a morphism's math:sourceObject and math:targetObject may be structures, categories, or functors rather than bare sets. What it preserves is declared through math:preservesStructure; composition is stated through math:composesWith."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2054,7 +2059,12 @@ math:preservesStructure
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "preserves structure"@x-gmeow-english ;
-    skos:definition "Relates a math:Morphism to a structural feature it preserves — the object-layer primitive that math:preservedOperation refines for homomorphisms. Domain math:Morphism, range an operation or axiom (stated in prose). What a map preserves is declared, not assumed."@x-gmeow-english ;
+    skos:scopeNote "The property supports declared structural features across the existing mathematical carriers. A target may be a realized law or an expressiveness-boundary record; the link does not turn an unsupported higher-order property into a first-order formula, checked result or executable capability."@x-gmeow-english ;
+    skos:example "The compact-space-declared.ttl fixture links its math:CompactSpace to math:compactnessBoundary, recorded as logic:SecondOrder and logic:Unsupported. That target is an honest boundary record, not a compactness formula or proof."@x-gmeow-english ;
+    gmeow:useWhen "Use when an existing mathematical resource must explicitly name a structural feature, realized law or disclosed expressiveness boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restricting every subject to Morphism or every target to an operation or axiom, retyping a space to fit such restrictions, or presenting Unsupported residue as a proved law."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual subject and feature resource, and inspect the target’s realized formula or expressivenessBoundary/preservationKind record before describing its capability. Use math:preservedOperation for the existing operation-specific refinement, without inventing global domain or range axioms or hiding unsupported semantics."@x-gmeow-english ;
+    skos:definition "Relates a mathematical resource to a structural feature or law it declares, with existing subjects including math:Morphism and spaces such as math:CompactSpace. Targets include operations, axioms, realized formulas and honest expressiveness-boundary records; these examples do not impose a closed domain or range. math:preservedOperation refines this primitive. A target such as math:compactnessBoundary records SecondOrder/Unsupported residue rather than a formula, executable rule or proof."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Structure conformance failure ----------------------------------------- #
@@ -2089,6 +2099,11 @@ math:Homomorphism
     rdfs:subClassOf math:Morphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Homomorphism"@x-gmeow-english ;
+    skos:scopeNote "An algebraic homomorphism relates structures, not just their carrier sets. It inherits math:Morphism without math:Function inheritance; its preserved operation and law frame declares a claim whose formula realization and supporting evidence remain separate."@x-gmeow-english ;
+    skos:example "exa:detHom maps exa:GL2R to exa:RstarMult and names exa:matrixMultiplication plus exa:detProductLaw in algebra-homomorphisms.ttl. The target is a group structure, with its own carrier and operation."@x-gmeow-english ;
+    gmeow:useWhen "Use when an algebraic map must identify the operations it preserves and the laws describing that preservation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing structure endpoints by bare sets, inferring all algebraic conditions from the minimum frame, or treating a law-resource count as proof of preservation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source and target algebraic structures through math:domain and math:codomain, identify the selected operations with math:preservedOperation, and attach actual preservation formulas with math:preservationLaw. Keep kernel, image and any checked result explicit rather than deriving them from the map label."@x-gmeow-english ;
     skos:definition "A structure-preserving map between algebraic structures of the same kind: it names, through math:preservedOperation, the operation it carries and, through math:preservationLaw, the logic: formula stating that carrying (φ(a·b) = φ(a)·φ(b)). A subclass of math:Morphism; its math:domain and math:codomain are math:AlgebraicStructure. math:kernel and math:image are first-class. A homomorphism asserted without a preserved operation and law is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2097,6 +2112,11 @@ math:GroupHomomorphism
     rdfs:subClassOf math:Homomorphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Group Homomorphism"@x-gmeow-english ;
+    skos:scopeNote "The preservation law relates the source and target group operations. The kernel consists of source elements mapped to the target group identity; that identity need not be numeric zero, and noncommutative groups are allowed."@x-gmeow-english ;
+    skos:example "For exa:detHom, exa:SL2R is the kernel because determinant-one matrices map to the multiplicative identity in exa:RstarMult. exa:detProductLaw states determinant-product preservation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a map between group structures preserves their selected group operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring commutative groups, mapping the kernel to an assumed numeric zero, or inferring normality and all map properties from a bare label."@x-gmeow-english ;
+    gmeow:howToUse "Retain group-valued math:domain and math:codomain, the preserved operation and its formula, and the justified kernel and image. Link a kernel subgroup with math:normalSubgroupOf where established, keeping the identity and containment evidence attached to the relevant group structures."@x-gmeow-english ;
     skos:definition "A homomorphism between groups: it preserves the single group operation (φ(a·b) = φ(a)·φ(b)), and its math:kernel is a normal subgroup of the domain. A subclass of math:Homomorphism; the determinant map det: GLₙ → ℝ* is one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2105,7 +2125,12 @@ math:RingHomomorphism
     rdfs:subClassOf math:Homomorphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ring Homomorphism"@x-gmeow-english ;
-    skos:definition "A homomorphism between rings: it preserves both addition and multiplication, so it carries two preservation laws, and its math:kernel is an ideal. A subclass of math:Homomorphism; a homomorphic-encryption scheme is a (partial or full) ring homomorphism."@x-gmeow-english ;
+    skos:scopeNote "Both additive and multiplicative preservation are obligations, but the vocabulary does not assign one law resource per operation. Minimum preserved-operation and law links, or a selected partial homomorphic-encryption law, do not establish every ring condition."@x-gmeow-english ;
+    skos:example "exa:bfvScheme in homomorphic-encryption.ttl names exa:ctMul and exa:heLaw for its selected encrypted computation. That record does not by itself prove both full ring-preservation obligations."@x-gmeow-english ;
+    gmeow:useWhen "Use when the claimed map between rings has explicit additive and multiplicative preservation conditions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing exactly two law nodes, equating a partial encrypted operation with a full ring homomorphism, or using the multiplicative identity as the ring-kernel target."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source and target ring structures, describe preservation of both operation roles through the existing operation and formula vocabulary, and retain the evidence for each claimed condition. Describe the kernel as the ideal mapped to additive zero, without changing law cardinalities or treating selected HE metadata as a universal proof."@x-gmeow-english ;
+    skos:definition "A homomorphism between rings: it preserves both addition and multiplication, and its math:kernel is an ideal. Both preservation obligations must be represented, without requiring exactly two law resources or a one-to-one count of operations and laws. A subclass of math:Homomorphism; a selected or partial homomorphic-encryption law does not alone establish all ring-preservation conditions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Isomorphism
@@ -2113,6 +2138,11 @@ math:Isomorphism
     rdfs:subClassOf math:Homomorphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Isomorphism"@x-gmeow-english ;
+    skos:scopeNote "An isomorphism claims bijectivity and a structure-preserving inverse, not identity of the source and target resources. A declared witness retains that claim but does not itself supply a proof, quotient construction or automatic inverse execution."@x-gmeow-english ;
+    skos:example "exa:firstIsoWitness declares exa:GL2modSL2 isomorphic to exa:RstarMult in algebra-homomorphisms.ttl. Its exa:detProductLaw is the determinant-product formula, not a formula proving the first isomorphism theorem."@x-gmeow-english ;
+    gmeow:useWhen "Use when an explicitly identified map is claimed to relate structures bijectively with a structure-preserving inverse."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging isomorphic resources, treating equal dimensions as sufficient evidence, or assuming a declared witness proves all inverse and preservation conditions."@x-gmeow-english ;
+    gmeow:howToUse "Retain the map’s structure endpoints, preserved operations and actual law formulas, and preserve the evidence for bijectivity and the preserving inverse. Keep any declared isomorphism witness separate from the theorem or construction it illustrates, without inventing an automatic inverse or embedding."@x-gmeow-english ;
     skos:definition "A bijective homomorphism — a structure-preserving map with a structure-preserving inverse, so its domain and codomain are the same structure up to relabelling. A subclass of math:Homomorphism; two structures are isomorphic exactly when a declared math:Isomorphism relates them."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2121,6 +2151,11 @@ math:Automorphism
     rdfs:subClassOf math:Isomorphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Automorphism"@x-gmeow-english ;
+    skos:scopeNote "This is the individual invertible structure-preserving map from a structure to itself. Source and target may be the identical resource, and the identity function is a valid automorphism under the relevant structure; no resource-inequality rule follows from the two endpoint roles."@x-gmeow-english ;
+    skos:example "The identity map on exa:GL2R preserves its group operation and is an automorphism of that same group. It may serve as the identity element of the full automorphism group under composition."@x-gmeow-english ;
+    gmeow:useWhen "Use when a claimed isomorphism is a symmetry of the same declared structure at both endpoints."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing distinct source and target resources, excluding identity functions, or treating an invertible map as structure-preserving without the relevant laws."@x-gmeow-english ;
+    gmeow:howToUse "Keep the same structure in the algebraic source and target roles, retain the preserved operations and actual formulas, and record the preserving inverse and its evidence. Distinguish the map’s role from the group that collects all such maps without imposing disjoint resource kinds."@x-gmeow-english ;
     skos:definition "An isomorphism of a structure with itself — a symmetry. A subclass of math:Isomorphism whose math:domain and math:codomain are the same structure. The automorphisms of a structure form a math:AutomorphismGroup under composition."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2129,6 +2164,11 @@ math:AutomorphismGroup
     rdfs:subClassOf math:Group ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Automorphism Group"@x-gmeow-english ;
+    skos:scopeNote "This group collects all automorphisms of its declared structure under composition. Its members can be function-valued, and its identity can be the identity function; those carrier-element roles do not exclude functions. A generic Weyl reflection group is not automatically this full group."@x-gmeow-english ;
+    skos:example "exa:e8Weyl in e8-symmetry.ttl explicitly has both math:WeylGroup and math:AutomorphismGroup types, with math:hasRootSystem and math:automorphismGroupOf anchors. This E8 equality does not apply to every root system."@x-gmeow-english ;
+    gmeow:useWhen "Use when the modeled group is the full automorphism group of an explicitly identified structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using full-group typing for an arbitrary symmetry subgroup, omitting its structure anchor, or rejecting function-valued members and an identity function because they are carrier elements."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited group carrier, composition operation, identity and inverse laws, and declare the full group’s structure with math:automorphismGroupOf. Keep any Weyl root anchor separately when that type also applies, and retain evidence for collecting all automorphisms rather than only selected symmetries."@x-gmeow-english ;
     skos:definition "The group of all automorphisms of a structure under composition — the full symmetry group of that structure. A subclass of math:Group. It declares the structure through math:automorphismGroupOf; a free-floating automorphism group is ill-formed (math:UnanchoredAutomorphismGroup). A reflection group is not automatically the full automorphism group of its root system. E8's Weyl group has both roles, so that specific group may carry both math:WeylGroup and math:AutomorphismGroup types while retaining their respective root and full-automorphism anchors."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2137,7 +2177,12 @@ math:Quotient
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Quotient"@x-gmeow-english ;
-    skos:definition "The quotient structure G/N of a structure by a substructure that is compatible with its operation (a normal subgroup, or an ideal) — the structure whose elements are the cosets of N. A subclass of math:AlgebraicStructure. The first isomorphism theorem states G/ker φ ≅ image φ, authored as a logic: formula the reasoner owns."@x-gmeow-english ;
+    skos:scopeNote "A quotient uses a compatible equivalence or coset structure, not a contained copy of its parent. The mathematical first-isomorphism statement G/ker φ ≅ image φ is retained without claiming that a nearby preservation formula constructs the quotient or proves that theorem."@x-gmeow-english ;
+    skos:example "exa:GL2modSL2 has exa:cosetSet and exa:cosetMultiplication in algebra-homomorphisms.ttl. exa:firstIsoWitness declares an isomorphism to exa:RstarMult, while exa:detProductLaw remains a determinant-product preservation formula."@x-gmeow-english ;
+    gmeow:useWhen "Use when a structure is formed modulo a compatible normal subgroup, ideal or other justified equivalence for its operations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting parent containment solely from quotient formation, treating a declared isomorphism witness as a theorem proof, or inventing a quotient-parent predicate or automatic embedding."@x-gmeow-english ;
+    gmeow:howToUse "Identify the quotient as its own structure, retain its carrier, induced operations and actual laws, and describe the compatible relation or quotienting substructure with existing mathematical vocabulary. Preserve any isomorphism witness and its actual formula without claiming an unauthored first-isomorphism proof."@x-gmeow-english ;
+    skos:definition "The quotient structure G/N of a structure by a substructure that is compatible with its operation (a normal subgroup, or an ideal) — the structure whose elements are the cosets of N. A subclass of math:AlgebraicStructure. The first isomorphism theorem states G/ker φ ≅ image φ. The worked determinant example supplies a declared isomorphism witness; its determinant-product preservation formula is not a quotient construction or a proof of the first isomorphism theorem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Homomorphism properties ----------------------------------------------- #
@@ -2147,20 +2192,35 @@ math:preservedOperation
     rdfs:subPropertyOf math:preservesStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "preserved operation"@x-gmeow-english ;
-    skos:definition "Names an operation a homomorphism carries from domain to codomain (φ(a·b) = φ(a)·φ(b)). Domain math:Homomorphism, range math:Operation (stated in prose). A group homomorphism names one; a ring homomorphism names two (addition and multiplication). The order-agnostic refinement of math:preservesStructure. A homomorphism without a preserved operation is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "This is an operation-role link, used by existing homomorphisms and group actions without forcing the latter into the former’s class hierarchy. It records what is claimed to be carried; it supplies neither operation positions nor an evaluated result or proof."@x-gmeow-english ;
+    skos:example "exa:e8WeylAction names exa:rootReflection through math:preservedOperation in e8-symmetry.ttl while remaining a math:GroupAction. exa:detHom separately names exa:matrixMultiplication as a group homomorphism."@x-gmeow-english ;
+    gmeow:useWhen "Use when the operation involved in an existing mathematical preservation claim needs an explicit resource link."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing Homomorphism membership on every subject, assigning operation order from repeated edges, or counting operation links as proof of every ring-preservation condition."@x-gmeow-english ;
+    gmeow:howToUse "Point to the actual preserved operation resource and retain the relevant endpoints, operation meanings and math:preservationLaw formula. State both ring-operation obligations where claimed without inventing ordered slots or a fixed operation-to-law count, and retain the subject’s existing type."@x-gmeow-english ;
+    skos:definition "Names an operation carried under a declared preservation claim, with existing subjects including math:Homomorphism and math:GroupAction, and operation values such as math:Operation. These examples do not define a closed global domain. A group homomorphism preserves its group operation; a ring homomorphism must preserve addition and multiplication without a fixed one-to-one count of operation and law resources. The order-agnostic refinement of math:preservesStructure. A homomorphism without a preserved operation is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:preservationLaw
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "preservation law"@x-gmeow-english ;
-    skos:definition "Names the law a homomorphism (or a homomorphic-encryption scheme) preserves, as a logic: formula — φ(a·b) = φ(a)·φ(b), or Dec(E(a) ⊗ E(b)) = a ⊕ b. Domain math:Homomorphism, range a logic: formula (stated in prose). The value denotes a logic: formula (the denotation seam, a resource), never an opaque string: math: declares the law and logic: owns reasoning over it. A homomorphism without a preservation law is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "The value is the law resource with its realized formula, not a statement that the law has been proved or executed. Existing GroupAction use is independent of Homomorphism typing, and an honest unsupported boundary on math:preservesStructure is not thereby a preservation formula."@x-gmeow-english ;
+    skos:example "exa:e8WeylAction points to exa:groupActionLaw in e8-symmetry.ttl, where action compatibility is a logic:Formula tree. exa:detHom points to the separate exa:detProductLaw for determinant-product preservation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a preservation claim needs to retain the actual structured law resource and its formula realization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a prose-only string, retyping an action merely to fit a narrowed subject description, or treating a selected HE formula as proof of all ring laws or a quotient theorem."@x-gmeow-english ;
+    gmeow:howToUse "Link the existing subject to its actual law resource, retain the formula tree and operation interpretation, and preserve any separately checked result and evidence. Keep formula realization, truth checking and execution as distinct claims; do not manufacture a law from the link alone."@x-gmeow-english ;
+    skos:definition "Names a resource denoting a structured logic: formula for a preservation claim, with existing subjects including math:Homomorphism, homomorphic-encryption schemes and math:GroupAction; these subjects do not define a closed global domain. Examples include φ(a·b) = φ(a)·φ(b), action compatibility and Dec(E(a) ⊗ E(b)) = a ⊕ b. The value is never an opaque string: math: declares the law and logic: owns reasoning over its realized formula. A homomorphism without a preservation law is ill-formed; a descriptive link alone establishes neither checked truth nor execution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:kernel
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "kernel"@x-gmeow-english ;
+    skos:scopeNote "For a group homomorphism the kernel is mapped to the target group identity; for a ring homomorphism it is mapped to additive zero. The kernel is a source substructure with its own frame, not the target identity element or the quotient itself."@x-gmeow-english ;
+    skos:example "exa:detHom names exa:SL2R as math:kernel in algebra-homomorphisms.ttl because its determinant-one matrices map to the multiplicative identity of exa:RstarMult."@x-gmeow-english ;
+    gmeow:useWhen "Use when the identity-preimage subgroup or additive-zero-preimage ideal of a homomorphism needs an explicit structure resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing the target identity value here, using multiplicative one as every ring-kernel target, or inferring a quotient construction or automatic embedding from the kernel edge."@x-gmeow-english ;
+    gmeow:howToUse "Point from the homomorphism to the justified kernel structure, retain its carrier and induced operations, and record its normal-subgroup or ideal relation where established. Keep the identity or additive-zero interpretation explicit, along with any separate image, quotient and isomorphism witness."@x-gmeow-english ;
     skos:definition "Names the kernel of a homomorphism — the substructure of the domain mapped to the identity (for a group homomorphism a normal subgroup, for a ring homomorphism an ideal). Domain math:Homomorphism, range math:AlgebraicStructure (stated in prose). The kernel is a math:substructureOf the domain; the first isomorphism theorem relates it to the math:image through a math:Quotient."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2169,6 +2229,11 @@ math:normalSubgroupOf
     rdfs:subPropertyOf math:substructureOf ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "normal subgroup of"@x-gmeow-english ;
+    skos:scopeNote "Normality is relative to the ambient group and is not transitive. Refining the transitive math:substructureOf relation does not make math:normalSubgroupOf transitive; carrier containment alone is weaker than conjugation invariance."@x-gmeow-english ;
+    skos:example "In A₄, V₄ is normal and a two-element subgroup H is normal in V₄, but H is not normal in A₄. The two normal-subgroup links cannot be chained into a third normality claim."@x-gmeow-english ;
+    gmeow:useWhen "Use when a subgroup’s invariance under conjugation by its declared ambient group is justified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving transitive normality, substituting arbitrary containment for conjugation invariance, or assuming every subgroup can define the intended group quotient."@x-gmeow-english ;
+    gmeow:howToUse "Point from the normal subgroup to its ambient group, retain the subgroup frame and evidence for gNg⁻¹ = N in that ambient group, and describe any quotient separately. Preserve the substructure refinement without adding a transitivity assertion or a new quotient-parent link."@x-gmeow-english ;
     skos:definition "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf. Not transitive: A ◁ B and B ◁ C do not imply A ◁ C — in A₄ the Klein four-group V₄ ◁ A₄ and a two-element subgroup H ◁ V₄, yet H is not normal in A₄. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2292,6 +2357,11 @@ math:automorphismGroupOf
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "automorphism group of"@x-gmeow-english ;
+    skos:scopeNote "This anchor identifies the structure whose entire automorphism group is being claimed. It is stronger than a group acting on a structure or a Weyl group naming a root system; existing targets are examples rather than a closed resource-kind restriction."@x-gmeow-english ;
+    skos:example "exa:e8Weyl points to exa:e8Roots through math:automorphismGroupOf and also through math:hasRootSystem in e8-symmetry.ttl, with explicit dual group typing for the justified E8 equality."@x-gmeow-english ;
+    gmeow:useWhen "Use when a full automorphism-group resource must explicitly identify the structure whose automorphisms it collects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this anchor for an arbitrary acting subgroup, inferring full-group equality from a Weyl root anchor, or replacing the structure by one member automorphism."@x-gmeow-english ;
+    gmeow:howToUse "Link the full math:AutomorphismGroup to its actual structure, preserving the inherited group frame and evidence for the full collection of automorphisms. Retain a separate math:hasRootSystem anchor when Weyl typing also applies; neither edge proves the equality or executes the member maps."@x-gmeow-english ;
     skos:definition "Relates a math:AutomorphismGroup to the structure whose full automorphism group it is. Targets include math:AlgebraicStructure and math:RootSystem, without closing the target vocabulary. W(E8) is the full automorphism group of the E8 root system, but a general math:WeylGroup uses math:hasRootSystem without implying this stronger claim. An automorphism group declared without the structure whose full symmetries it collects is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
