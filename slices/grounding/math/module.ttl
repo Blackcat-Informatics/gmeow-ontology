@@ -16741,7 +16741,7 @@ math:TensorAxisExtentChoiceConstraint a logic:ChoiceGroupConstraint ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:onClass math:TensorAxis ; logic:choicePredicate math:axisExtent, math:symbolicExtent ; logic:choiceMode "at-most-one" ; logic:formalizes math:TensorAxis ; logic:message "A tensor axis cannot have both concrete and symbolic extents." .
 
-# Algorithm-tagged digest datatypes: normative values, not parser installations.
+# Algorithm-tagged digest datatypes and their explicit native admission contracts.
 
 gmeow:blake3_256Digest
     a rdfs:Datatype ;
@@ -16755,7 +16755,7 @@ gmeow:blake3_256Digest
     gmeow:useWhen "Use when a source supplies the default-length plain BLAKE3 digest of specified bytes and the algorithm must remain part of the literal identity."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid keyed_hash, derive_key, other output lengths, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."@x-gmeow-english ;
     gmeow:howToUse "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."@x-gmeow-english ;
-    skos:scopeNote "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."@x-gmeow-english ;
+    skos:scopeNote "The native reasoner interprets exactly 64 lowercase hexadecimal digits without language or direction as a plain BLAKE3-256 value with 32 ordered bytes. Values are equal exactly when their bytes agree within this algorithm; they are distinct from SHA-256, xsd:string and xsd:hexBinary values. Invalid literals remain uninterpreted. Admission neither computes a hash nor verifies artifact bytes."@x-gmeow-english ;
     skos:example "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest declares BLAKE3 hash-mode identity; it does not assert that an artifact was checked."@x-gmeow-english .
 
 gmeow:sha256Digest

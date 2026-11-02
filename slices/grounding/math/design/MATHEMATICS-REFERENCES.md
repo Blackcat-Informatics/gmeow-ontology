@@ -402,15 +402,16 @@ meaning or become an assertion about different bytes.
 
 The canonical citation ledger is `metadata/references.ttl`. These are by-reference
 authorities, not imported algorithm implementations. The native reasoner admits
-SHA-256 through one strict algorithm-specific parser backed by the substrate’s
-canonical hexadecimal decoder. Its values carry the algorithm and 32 ordered
-bytes, distinct from string and generic binary values. The finite value space has
+plain BLAKE3-256 and SHA-256 through strict algorithm-specific admission backed
+by the substrate’s shared canonical hexadecimal decoder. Their values retain the
+algorithm and 32 ordered bytes, so equal bytes under different algorithms remain
+distinct, as do string and generic binary values. Each finite value space has
 2^256 members; capacity reasoning proves every representable `u128` demand without
 claiming an infinite space or an exact `u128` count. Invalid values remain
 uninterpreted, and unsupported facets remain undecided. This interpretation does
-not compute hashes or verify artifact bytes. BLAKE3 and MD5 retain their existing
-projection-boundary admission contracts; no native reasoning interpretation for
-them is claimed here. Existing `contentDigest` property ranges are unchanged.
+not compute hashes or verify artifact bytes. MD5 retains its existing
+projection-boundary admission contract; no native reasoning interpretation for
+it is claimed here. Existing `contentDigest` property ranges are unchanged.
 
 ### MD5 digest identity
 

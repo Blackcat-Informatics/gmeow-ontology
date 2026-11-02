@@ -166,7 +166,7 @@ fn cardinality_accepts_the_complete_native_count_domain() {
     }
 }
 
-/// Native integer and rational interpretations retain exact cross-datatype equality.
+/// Native numbers retain exact equality while digest values retain algorithm identity.
 #[test]
 fn native_literal_membership_and_equality_preserve_large_exact_values() {
     let integer = TermValue::Literal {
@@ -197,54 +197,69 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
     // Algorithm identity survives native value interpretation and every boundary
     // rejects malformed lexicals instead of repairing or cross-typing them.
     let hex = crate::obligations::candidate_source_hash("native SHA-256 value");
-    let digest = TermValue::typed_literal(&hex, SHA256_DIGEST);
-    let sha = values.literal(&digest);
-    assert_eq!(sha.named_datatype(SHA256_DIGEST), Some(true));
-    assert_eq!(
-        sha.named_datatype("http://www.w3.org/2000/01/rdf-schema#Literal"),
-        Some(true)
-    );
-    assert_eq!(sha.same_value(&values.literal(&digest)), Some(true));
-    assert_eq!(
-        values.same_value(
-            &digest,
-            &TermValue::typed_literal("f".repeat(64), SHA256_DIGEST)
-        ),
-        Some(false)
-    );
-    for datatype in [XSD_STRING, "http://www.w3.org/2001/XMLSchema#hexBinary"] {
-        let other = TermValue::typed_literal(&hex, datatype);
-        assert_eq!(values.same_value(&digest, &other), Some(false));
-        assert_eq!(sha.named_datatype(datatype), Some(false));
+    for algorithm in [SHA256_DIGEST, BLAKE3_256_DIGEST] {
+        let digest = TermValue::typed_literal(&hex, algorithm);
+        let digest_value = values.literal(&digest);
+        assert_eq!(digest_value.named_datatype(algorithm), Some(true));
         assert_eq!(
-            values.literal(&other).named_datatype(SHA256_DIGEST),
+            digest_value.named_datatype("http://www.w3.org/2000/01/rdf-schema#Literal"),
+            Some(true)
+        );
+        assert_eq!(
+            digest_value.same_value(&values.literal(&digest)),
+            Some(true)
+        );
+        assert_eq!(
+            values.same_value(
+                &digest,
+                &TermValue::typed_literal("f".repeat(64), algorithm)
+            ),
             Some(false)
         );
-    }
-    assert_eq!(sha.named_datatype("urn:foreign"), None);
-    assert_eq!(sha.facet_length(), None);
-    assert_eq!(sha.facet_order(&sha), None);
-    for lexical in [
-        hex.to_uppercase(),
-        "0".repeat(63),
-        "g".repeat(64),
-        format!(" {hex}"),
-    ] {
-        let invalid = TermValue::typed_literal(lexical, SHA256_DIGEST);
-        assert_eq!(values.literal(&invalid).named_datatype(SHA256_DIGEST), None);
-        assert_eq!(values.same_value(&digest, &invalid), None);
-    }
-    for (language, direction) in [
-        (Some("en".to_owned()), None),
-        (None, Some(purrdf::RdfTextDirection::Ltr)),
-    ] {
-        let invalid = TermValue::Literal {
-            lexical_form: hex.clone(),
-            datatype: SHA256_DIGEST.to_owned(),
-            language,
-            direction,
+        for datatype in [XSD_STRING, "http://www.w3.org/2001/XMLSchema#hexBinary"] {
+            let other = TermValue::typed_literal(&hex, datatype);
+            assert_eq!(values.same_value(&digest, &other), Some(false));
+            assert_eq!(digest_value.named_datatype(datatype), Some(false));
+            assert_eq!(
+                values.literal(&other).named_datatype(algorithm),
+                Some(false)
+            );
+        }
+        let foreign = TermValue::typed_literal(&hex, "urn:foreign");
+        assert_eq!(values.same_value(&digest, &foreign), None);
+        assert_eq!(digest_value.named_datatype("urn:foreign"), None);
+        let other_algorithm = if algorithm == SHA256_DIGEST {
+            BLAKE3_256_DIGEST
+        } else {
+            SHA256_DIGEST
         };
-        assert_eq!(values.literal(&invalid).named_datatype(SHA256_DIGEST), None);
+        let other = TermValue::typed_literal(&hex, other_algorithm);
+        assert_eq!(values.same_value(&digest, &other), Some(false));
+        assert_eq!(digest_value.named_datatype(other_algorithm), Some(false));
+        assert_eq!(digest_value.facet_length(), None);
+        assert_eq!(digest_value.facet_order(&digest_value), None);
+        for lexical in [
+            hex.to_uppercase(),
+            "0".repeat(63),
+            "g".repeat(64),
+            format!(" {hex}"),
+        ] {
+            let invalid = TermValue::typed_literal(lexical, algorithm);
+            assert_eq!(values.literal(&invalid).named_datatype(algorithm), None);
+            assert_eq!(values.same_value(&digest, &invalid), None);
+        }
+        for (language, direction) in [
+            (Some("en".to_owned()), None),
+            (None, Some(purrdf::RdfTextDirection::Ltr)),
+        ] {
+            let invalid = TermValue::Literal {
+                lexical_form: hex.clone(),
+                datatype: algorithm.to_owned(),
+                language,
+                direction,
+            };
+            assert_eq!(values.literal(&invalid).named_datatype(algorithm), None);
+        }
     }
 }
 

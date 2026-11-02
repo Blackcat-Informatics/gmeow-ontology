@@ -155,7 +155,11 @@ fn is_universe(node: &Node) -> bool {
 }
 
 pub(super) fn named(iri: &str) -> ValueSpaceBounds {
-    if iri == gmeow_logic_compile::literal_datatypes::SHA256_DIGEST {
+    if matches!(
+        iri,
+        gmeow_logic_compile::literal_datatypes::SHA256_DIGEST
+            | gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST
+    ) {
         // This finite space has 2^256 values. Its exact count exceeds u128,
         // but every representable cardinality demand is provably satisfiable.
         return ValueSpaceBounds {
