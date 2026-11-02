@@ -5510,19 +5510,19 @@ fn finalize_sugar(
     Ok(constraint)
 }
 
-/// Admit one required mode literal before applying the shared selector normalization.
-fn sugar_mode(
+/// Admit one distinct complete selector literal without changing its lexical text.
+fn sugar_selector_literal(
     store: &RdfDataset,
     node: &Subject,
     pred_local: &str,
 ) -> gmeow_errors::Result<String> {
-    let mut modes = objects(store, node, &nn(&logic_iri(pred_local))).into_iter();
-    let term = modes.next().ok_or_else(|| {
+    let mut values = objects(store, node, &nn(&logic_iri(pred_local))).into_iter();
+    let term = values.next().ok_or_else(|| {
         sugar_err(format!(
             "constraint-sugar record requires logic:{pred_local}"
         ))
     })?;
-    if modes.any(|other| other != term) {
+    if values.any(|other| other != term) {
         return Err(sugar_err(format!(
             "logic:{pred_local} requires exactly one distinct value"
         )));
@@ -5532,19 +5532,19 @@ fn sugar_mode(
         datatype,
         language: None,
         direction: None,
-    }) = &term
+    }) = term
     else {
         return Err(sugar_err(format!(
             "logic:{pred_local} requires an untagged xsd:string or xsd:token literal"
         )));
     };
     // Native xsd:string resolves to None in graphutil::node_of.
-    let lexical = match datatype.as_deref() {
+    match datatype.as_deref() {
         None | Some("http://www.w3.org/2001/XMLSchema#string") => {
-            purrdf::xsd::simple::read_xml_string(lexical_form)
+            purrdf::xsd::simple::read_xml_string(&lexical_form)
         }
         Some("http://www.w3.org/2001/XMLSchema#token") => {
-            purrdf::xsd::simple::read_token(lexical_form)
+            purrdf::xsd::simple::read_token(&lexical_form)
         }
         _ => {
             return Err(sugar_err(format!(
@@ -5553,7 +5553,7 @@ fn sugar_mode(
         }
     }
     .map_err(|reason| sugar_err(format!("logic:{pred_local}: {reason}")))?;
-    Ok(lexical.trim().to_ascii_lowercase())
+    Ok(lexical_form)
 }
 
 /// P1 — choice-group cardinality: a target class + a set of predicates + a mode
@@ -5568,7 +5568,9 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result
             "logic:ChoiceGroupConstraint needs at least two logic:choicePredicate",
         ));
     }
-    let mode = sugar_mode(store, node, "choiceMode")?;
+    let mode = sugar_selector_literal(store, node, "choiceMode")?
+        .trim()
+        .to_ascii_lowercase();
     let ex = |i: usize| f_pred_exists(&preds[i], &format!("v{i}"));
     let consequent = match mode.as_str() {
         "exactly-one" | "exactly-one-of-n" => {
@@ -5776,7 +5778,9 @@ fn read_cross_node(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
     let role_b = value(store, node, &nn(&logic_iri("roleB")))
         .map(|t| term_str(&t))
         .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:roleB"))?;
-    let mode = sugar_mode(store, node, "crossMode")?;
+    let mode = sugar_selector_literal(store, node, "crossMode")?
+        .trim()
+        .to_ascii_lowercase();
     let consequent = match mode.as_str() {
         // Co-occur: role A present iff role B present (each implies the other).
         "co-occur" | "cooccur" => {
@@ -5996,18 +6000,17 @@ fn read_aggregate_constraint(
     node: &Subject,
 ) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
-    let function = value(store, node, &nn(&logic_iri("aggFunction")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| sugar_err("logic:AggregateConstraint requires logic:aggFunction"))?;
+    let function = sugar_selector_literal(store, node, "aggFunction")?;
     let path = value(store, node, &nn(&logic_iri("aggPath")))
         .map(|t| term_str(&t))
         .ok_or_else(|| sugar_err("logic:AggregateConstraint requires logic:aggPath"))?;
-    let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
-        .map(|t| term_str(&t))
-        .and_then(|s| AggregateComparator::from_symbol(&s))
-        .ok_or_else(|| {
-            sugar_err("logic:AggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=")
-        })?;
+    let comparator =
+        AggregateComparator::from_symbol(&sugar_selector_literal(store, node, "aggComparator")?)
+            .ok_or_else(|| {
+                sugar_err(
+                    "logic:AggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=",
+                )
+            })?;
     let distinct = value(store, node, &nn(&logic_iri("aggDistinct")))
         .map(|t| term_str(&t).trim().eq_ignore_ascii_case("true"))
         .unwrap_or(false);
@@ -6106,17 +6109,15 @@ fn read_join_aggregate_constraint(
     node: &Subject,
 ) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
-    let function = value(store, node, &nn(&logic_iri("aggFunction")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| sugar_err("logic:JoinAggregateConstraint requires logic:aggFunction"))?;
-    let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
-        .map(|t| term_str(&t))
-        .and_then(|s| AggregateComparator::from_symbol(&s))
-        .ok_or_else(|| {
-            sugar_err(
-                "logic:JoinAggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=",
-            )
-        })?;
+    let function = sugar_selector_literal(store, node, "aggFunction")?;
+    let comparator = AggregateComparator::from_symbol(&sugar_selector_literal(
+        store,
+        node,
+        "aggComparator",
+    )?)
+    .ok_or_else(|| {
+        sugar_err("logic:JoinAggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=")
+    })?;
     let (threshold_lexical, threshold_datatype) = match value(
         store,
         node,
