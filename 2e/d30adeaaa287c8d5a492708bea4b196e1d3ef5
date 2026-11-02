@@ -1,0 +1,19 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 8d67bd0b3731594b78bec8f0eee822cea39b32bc
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2283
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2283
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 2e787664c5dd0da5dfd148e7ce78c63713bd1d97
+GhpRsq-Head-Ref: paudley/2282-keep-the-weyl-root-anchor-closed-world
+GhpRsq-Head-OID: 8d67bd0b3731594b78bec8f0eee822cea39b32bc
+GhpRsq-Result-Tree: 36f573f653b09a66194af80185aeacb8a1bcf918
+GhpRsq-Result-Commit: 2ed30adeaaa287c8d5a492708bea4b196e1d3ef5
+GhpRsq-Parent-Hashes: 8d67bd0b3731594b78bec8f0eee822cea39b32bc
+GhpRsq-Squash-Notes-SHA256: b50a5d46cbc271738a0b179804c069f8e87ef609c4e8454007bfb578a5cf2528
+GhpRsq-Defect-Class: existential-validation-overreach
+GhpRsq-Stage-Evidence: none
