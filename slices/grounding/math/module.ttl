@@ -689,7 +689,12 @@ math:Complement
     rdfs:subClassOf math:SetOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complement"@x-gmeow-english ;
-    skos:definition "The complement construction: the elements of an ambient space not in S, under a declared notion of complement. A subclass of math:SetOperation that always names its ambient space through math:ambientSpace and which notion of complement it uses through math:complementSemantics (set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel) — a complement is relative to an ambient space under a semantics, so an unqualified complement (missing either) is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "A complement is qualified by both its ambient space and its selected semantics. Operand and ambient are different roles that may refer to the same resource, as in U ∖ U = ∅. Orthogonal, direct-sum and quotient meanings cannot be read as ordinary set subtraction."@x-gmeow-english ;
+    skos:example "The existing residualSubspace example is a math:OrthogonalComplement of an embedded subspace within a complex ambient space, with math:complementSemantics math:orthogonalComplement and a named Hermitian inner product."@x-gmeow-english ;
+    gmeow:useWhen "Use when a complement construction must retain what is complemented, the enclosing mathematical space and the intended notion of complement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an unqualified complement label, substituting the operand for the ambient space, or applying U ∖ S semantics to every subclass of math:Complement."@x-gmeow-english ;
+    gmeow:howToUse "Declare the complement with one math:ambientSpace and one math:complementSemantics individual. Identify the operand through the applicable relation, such as math:setOperationOn or the specialized math:orthogonalComplementOf, and supply any structure required by that selected semantics."@x-gmeow-english ;
+    skos:definition "A complement construction relative to an operand, an ambient space and a declared notion of complement. A subclass of math:SetOperation that names its ambient space through math:ambientSpace and its selected semantics through math:complementSemantics: set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel. These notions do not all mean set subtraction. A complement missing its ambient space or selected semantics is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PowerSet
@@ -734,18 +739,33 @@ math:cardinalityFinite
     a logic:NamedIndividual , math:Cardinality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "finite"@x-gmeow-english ;
-    skos:definition "The cardinality class of any finite set — a set in bijection with some natural number n. The exact count may additionally be carried as a math:quantityValue."@x-gmeow-english .
+    skos:scopeNote "This individual marks finiteness across sets of different exact sizes, including the empty set. It is neither an infinite cardinal nor a shared storage node for their individual counts."@x-gmeow-english ;
+    skos:example "A four-prime set and an empty set can both name math:cardinalityFinite through math:hasCardinality, while carrying their justified math:quantityValue counts 4 and 0 on their own set resources."@x-gmeow-english ;
+    gmeow:useWhen "Use as the cardinality marker when a set is known to be finite, whether or not its exact count is also recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting math:quantityValue 4, 256 or another set-specific count on math:cardinalityFinite, or inferring that all sets pointing to this marker have equal size."@x-gmeow-english ;
+    gmeow:howToUse "Point math:hasCardinality from each finite set to math:cardinalityFinite. Keep any exact non-negative integer math:quantityValue on that set and preserve the shared marker independently of all such counts."@x-gmeow-english ;
+    skos:definition "The shared marker that a set is finite — in bijection with some natural number n. It does not identify one exact cardinality. A finite set names this marker through math:hasCardinality and may carry its own exact count directly as math:quantityValue; that set-specific count does not belong on this shared marker."@x-gmeow-english .
 
 math:alephNull
     a logic:NamedIndividual , math:Cardinality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "ℵ₀"@x-gmeow-english ;
+    skos:scopeNote "ℵ₀ denotes countably infinite size, requiring a bijection with ℕ rather than merely an unbounded sequence of observed members. Equal cardinality does not identify the underlying sets."@x-gmeow-english ;
+    skos:example "The integer and rational systems both have cardinality math:alephNull because each is countably infinite, although ℤ and ℚ are different sets."@x-gmeow-english ;
+    gmeow:useWhen "Use when countable infinitude is mathematically justified for the set whose size is being described."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting ℵ₀ for every infinite set, treating a long finite enumeration as a proof of infinitude, or equating a set with ℕ solely because their cardinalities agree."@x-gmeow-english ;
+    gmeow:howToUse "Use math:alephNull as the object of math:hasCardinality on a set supported as countably infinite. Retain the bijection or other mathematical justification separately, without assigning a finite math:quantityValue count."@x-gmeow-english ;
     skos:definition "The cardinality ℵ₀ of a countably infinite set — a set in bijection with ℕ, such as ℤ or ℚ."@x-gmeow-english .
 
 math:continuum
     a logic:NamedIndividual , math:Cardinality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "𝔠"@x-gmeow-english ;
+    skos:scopeNote "𝔠 is the cardinality of ℝ, equal to 2^ℵ₀ and greater than ℵ₀. This declaration does not identify it with ℵ₁ or assume the continuum hypothesis."@x-gmeow-english ;
+    skos:example "The real-number system can state math:hasCardinality math:continuum; the rational-number system has math:alephNull instead, despite both sets being infinite."@x-gmeow-english ;
+    gmeow:useWhen "Use for a set whose size is established to equal the cardinality of the real line."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring continuum size from infinitude or uncountability alone, asserting 𝔠 = ℵ₁ without an explicit additional assumption, or deriving set equality from equal size."@x-gmeow-english ;
+    gmeow:howToUse "Point math:hasCardinality from the relevant set to math:continuum and retain the mathematical argument establishing that size. Keep any set-theoretic assumptions explicit rather than adding them to the meaning of this individual."@x-gmeow-english ;
     skos:definition "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."@x-gmeow-english .
 
 # --- Finite xsd datatype value spaces (the grounded pigeonhole bounds) --------- #
@@ -1163,6 +1183,11 @@ math:ambientSpace
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "ambient space"@x-gmeow-english ;
+    skos:scopeNote "The direction is from the complement resource to the enclosing mathematical space. The object identifies the universe or structured total space in the ambient role. The operand role may point to that same resource: in an inner-product space V, the orthogonal complement of V within itself is {0}."@x-gmeow-english ;
+    skos:example "For the orthogonal complement of S in V, math:orthogonalComplementOf points to S and math:ambientSpace points to V. The selected inner product is named separately by math:definedByInnerProduct."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever the meaning of a complement depends on the containing set, vector space, topological space or function space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a text label in place of the space resource, reversing the relation, or using the ambient-space link alone to imply orthogonality or a chosen complement semantics."@x-gmeow-english ;
+    gmeow:howToUse "Point math:ambientSpace from the complement to one identified enclosing space and state math:complementSemantics separately. Retain the operand relation and the topology, scalar field or inner product needed to interpret the selected construction."@x-gmeow-english ;
     skos:definition "Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1170,6 +1195,11 @@ math:complementSemantics
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "complement semantics"@x-gmeow-english ;
+    skos:scopeNote "This property selects one notion for a complement resource, separately from its operand and ambient space. The object is a math:ComplementSemantics individual, not the class itself or a string describing a preference."@x-gmeow-english ;
+    skos:example "The residual-subspace complement states math:complementSemantics math:orthogonalComplement; a chosen complex-linear direct complement instead selects math:complexLinearComplement."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the intended meaning of complement explicit when several inequivalent constructions are possible in the same ambient object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid multiple competing semantics on one complement resource, a display word such as complex instead of a semantics individual, or treating the selected semantics as proof that its mathematical preconditions hold."@x-gmeow-english ;
+    gmeow:howToUse "Point math:complementSemantics to exactly one appropriate semantics individual and pair it with math:ambientSpace. Use separate complement resources when comparing different notions for the same operand and ambient space."@x-gmeow-english ;
     skos:definition "Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1177,6 +1207,11 @@ math:ComplementSemantics
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complement Semantics"@x-gmeow-english ;
+    skos:scopeNote "This class groups the declared meanings of complement, while its named individuals select particular meanings. Selecting an individual does not identify a result subspace, supply an ambient object or establish a decomposition theorem."@x-gmeow-english ;
+    skos:example "math:orthogonalComplement and math:quotientComplement are math:ComplementSemantics individuals. They distinguish orthogonal vectors from quotient classes even when both refer to the same subspace inside V."@x-gmeow-english ;
+    gmeow:useWhen "Use as the type of an identified complement notion and as the declared range category of math:complementSemantics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the class IRI itself where a selected semantics individual is needed, or collapsing the five declared notions into one universal subtraction operation."@x-gmeow-english ;
+    gmeow:howToUse "Reuse the appropriate existing semantics individual as the object of math:complementSemantics on each complement. Preserve the class-versus-individual distinction and document the assumptions of that notion with the mathematical construction."@x-gmeow-english ;
     skos:definition "The notion of complement a math:Complement uses: one of math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement, or math:quotientComplement. A complement names exactly one through math:complementSemantics; the same ambient object admits several inequivalent complements, so the semantics must be declared."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1184,30 +1219,55 @@ math:setTheoreticComplement
     a logic:NamedIndividual , math:ComplementSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "set-theoretic (U ∖ S)"@x-gmeow-english ;
+    skos:scopeNote "This semantics means ordinary set subtraction within the named universe U. Changing U can change the complement even when S stays fixed; it does not mean orthogonality or quotienting."@x-gmeow-english ;
+    skos:example "For U = {a, b, c} and S = {a}, the set-theoretic complement is {b, c}. The complement construction selects math:setTheoreticComplement and names U through math:ambientSpace."@x-gmeow-english ;
+    gmeow:useWhen "Use when complement means the elements of an identified universe that are excluded from the operand subset."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting this notion for an orthogonal subspace or a quotient object, or writing an absolute complement without an ambient universe."@x-gmeow-english ;
+    gmeow:howToUse "Set math:complementSemantics math:setTheoreticComplement on the construction, identify S with math:setOperationOn, and name U with math:ambientSpace. Describe the resulting members separately rather than assuming the declaration enumerates them."@x-gmeow-english ;
     skos:definition "The set-theoretic complement Sᶜ = U ∖ S: the elements of the ambient set U not in S. The elementary case; the ambient space is a math:Set."@x-gmeow-english .
 
 math:orthogonalComplement
     a logic:NamedIndividual , math:ComplementSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "orthogonal (S⊥)"@x-gmeow-english ;
+    skos:scopeNote "Orthogonality depends on the declared inner product. For a subspace S, the decomposition V = S ⊕ S⊥ holds in a finite-dimensional inner-product space; in a Hilbert space it requires S to be closed. It is not a universal claim for arbitrary infinite-dimensional spaces."@x-gmeow-english ;
+    skos:example "The worked residualSubspace is a math:OrthogonalComplement with math:orthogonalComplementOf pointing to the embedded subspace, math:ambientSpace to the complex space and math:definedByInnerProduct to the Hermitian inner product."@x-gmeow-english ;
+    gmeow:useWhen "Use when complement is defined by vectors having zero inner product with every vector of the specified subspace."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the orthogonal complement as V ∖ S, omitting the defining inner product, or asserting a direct-sum decomposition in an arbitrary infinite-dimensional space without its needed hypotheses."@x-gmeow-english ;
+    gmeow:howToUse "Use math:OrthogonalComplement for the specialized object, state math:complementSemantics math:orthogonalComplement, and provide math:orthogonalComplementOf, math:ambientSpace and math:definedByInnerProduct. Keep decomposition assumptions explicit instead of deriving them from the semantics tag."@x-gmeow-english ;
     skos:definition "The orthogonal complement S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} in an inner-product space. The ambient space is a math:VectorSpace with an inner product; realized in the linear-algebra charter."@x-gmeow-english .
 
 math:complexLinearComplement
     a logic:NamedIndividual , math:ComplementSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "complex-linear"@x-gmeow-english ;
+    skos:scopeNote "This notion selects a complex-linear subspace W forming a direct sum V = S ⊕ W. Such a complement is generally a choice rather than a canonical result, and it need not be orthogonal for a separately supplied Hermitian inner product."@x-gmeow-english ;
+    skos:example "In ℂ² with S spanned by (1, 0), both the span of (0, 1) and the span of (1, 1) are direct complements of S. The latter is not its orthogonal complement for the standard Hermitian inner product."@x-gmeow-english ;
+    gmeow:useWhen "Use when the intended construction chooses a complex-linear complementary subspace, with the direct-sum claim justified in the declared ambient space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a unique complement from the scalar field ℂ alone, equating any direct complement with the orthogonal one, or presenting the quotient V/S as the chosen subspace W."@x-gmeow-english ;
+    gmeow:howToUse "Select math:complexLinearComplement through math:complementSemantics, identify the operand S and ambient V, and describe the chosen W and the justified direct-sum relationship in the mathematical representation. Preserve the choice instead of claiming the tag computes a canonical subspace."@x-gmeow-english ;
     skos:definition "A complex-linear complement: a subspace W with V = S ⊕ W over ℂ, not canonical without further structure. The 'complex complement' hazard — ambiguous unless the ambient space and this semantics are named."@x-gmeow-english .
 
 math:topologicalComplement
     a logic:NamedIndividual , math:ComplementSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "topological (closed complement)"@x-gmeow-english ;
+    skos:scopeNote "This notion retains the topology of X and the fact that the operand U is open, so X ∖ U is closed. The same underlying set subtraction without that structure does not express this topological claim."@x-gmeow-english ;
+    skos:example "In ℝ with its usual topology, the complement of the open set {x | x > 0} is the closed set {x | x ≤ 0}. The ambient topology explains why the complement is closed; zero belongs because it is not in the open set."@x-gmeow-english ;
+    gmeow:useWhen "Use when the complement must carry the open-versus-closed relationship inside an identified topological space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling the complement of an arbitrary subset closed without an openness premise, omitting the ambient topology, or reading topological complement as orthogonal projection."@x-gmeow-english ;
+    gmeow:howToUse "Set math:complementSemantics math:topologicalComplement, name X with math:ambientSpace and identify the open operand U. Retain the topology and the mathematical justification for the resulting closed set rather than relying on a closed label."@x-gmeow-english ;
     skos:definition "The topological complement: the closed complement X ∖ U of an open set U in a math:TopologicalSpace (a math:ClosedSet). Distinct from the set-theoretic complement in carrying the topology."@x-gmeow-english .
 
 math:quotientComplement
     a logic:NamedIndividual , math:ComplementSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quotient / cokernel"@x-gmeow-english ;
+    skos:scopeNote "The quotient V/S records equivalence classes modulo S, not a selected subspace W inside V. A direct complement may identify with the quotient only through additional justified choices; this semantics does not supply a splitting or a section."@x-gmeow-english ;
+    skos:example "For V = ℂ² and S the span of (1, 0), V/S consists of cosets v + S. Choosing the span of (0, 1) as representatives is extra structure, not part of math:quotientComplement itself."@x-gmeow-english ;
+    gmeow:useWhen "Use when the intended object is a quotient or cokernel relative to a subobject, without claiming a chosen complementary subspace."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating quotient classes with ambient vectors, inferring a canonical direct complement from V/S, or confusing quotienting by S with deleting the elements of S."@x-gmeow-english ;
+    gmeow:howToUse "Select math:quotientComplement on the complement resource, name the total ambient object and the operand subobject, and retain the quotient or cokernel interpretation. Describe any chosen representatives or splitting separately rather than asserting they come from this tag."@x-gmeow-english ;
     skos:definition "A quotient/cokernel complement: the quotient V/S rather than a chosen complementary subspace, canonical where a direct-sum complement is not. The ambient space is the total object; the complement is its cokernel."@x-gmeow-english .
 
 math:hasCardinality

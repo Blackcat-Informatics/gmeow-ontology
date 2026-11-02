@@ -4744,3 +4744,339 @@ msgstr "不要以数值字面量作为此属性的宾语，不要反转集合到
 msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select the appropriate math:Cardinality individual as the object of math:hasCardinality on the set. For an extensional math:FiniteSet use math:cardinalityFinite, and attach any justified exact math:quantityValue count to that set resource rather than to the shared marker."
 msgstr "在集合上选择适当的 math:Cardinality 个体作为 math:hasCardinality 的宾语。对于外延式 math:FiniteSet，使用 math:cardinalityFinite，并将有依据的精确 math:quantityValue 元素个数附加到该集合资源，而不是共享标记上。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finite"
+msgstr "有限"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The shared marker that a set is finite — in bijection with some natural number n. It does not identify one exact cardinality. A finite set names this marker through math:hasCardinality and may carry its own exact count directly as math:quantityValue; that set-specific count does not belong on this shared marker."
+msgstr "表示集合有限的共享标记，即该集合与某个自然数 n 存在双射。它不标识某一个精确基数。有限集通过 math:hasCardinality 指定此标记，并可在自身上直接用 math:quantityValue 承载精确元素个数；某一集合的元素个数不属于此共享标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual marks finiteness across sets of different exact sizes, including the empty set. It is neither an infinite cardinal nor a shared storage node for their individual counts."
+msgstr "此个体标记精确大小各异的集合的有限性，包括空集。它既不是无穷基数，也不是用于共享存储各集合元素个数的节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#example"
+msgid "A four-prime set and an empty set can both name math:cardinalityFinite through math:hasCardinality, while carrying their justified math:quantityValue counts 4 and 0 on their own set resources."
+msgstr "四个素数组成的集合与空集都可以通过 math:hasCardinality 指定 math:cardinalityFinite，并在各自的集合资源上承载有依据的 math:quantityValue 元素个数 4 和 0。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the cardinality marker when a set is known to be finite, whether or not its exact count is also recorded."
+msgstr "当已知集合有限时用作基数标记，无论是否同时记录其精确元素个数。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting math:quantityValue 4, 256 or another set-specific count on math:cardinalityFinite, or inferring that all sets pointing to this marker have equal size."
+msgstr "不要将 math:quantityValue 4、256 或其他属于特定集合的元素个数放在 math:cardinalityFinite 上，也不要推断所有指向此标记的集合大小相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from each finite set to math:cardinalityFinite. Keep any exact non-negative integer math:quantityValue on that set and preserve the shared marker independently of all such counts."
+msgstr "使每个有限集的 math:hasCardinality 指向 math:cardinalityFinite。将精确的非负整数 math:quantityValue 元素个数保留在该集合上，使共享标记独立于所有这些计数。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ℵ₀"
+msgstr "可数无穷基数（ℵ₀）"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cardinality ℵ₀ of a countably infinite set — a set in bijection with ℕ, such as ℤ or ℚ."
+msgstr "可数无穷集合的基数 ℵ₀，即与 ℕ 存在双射的集合的基数，例如 ℤ 或 ℚ。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ℵ₀ denotes countably infinite size, requiring a bijection with ℕ rather than merely an unbounded sequence of observed members. Equal cardinality does not identify the underlying sets."
+msgstr "ℵ₀ 表示可数无穷大小，需要与 ℕ 存在双射，而非仅有不断延长的已观察成员序列。基数相等并不意味着底层集合相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#example"
+msgid "The integer and rational systems both have cardinality math:alephNull because each is countably infinite, although ℤ and ℚ are different sets."
+msgstr "整数系与有理数系的基数均为 math:alephNull，因为两者都是可数无穷集合，尽管 ℤ 与 ℚ 是不同的集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when countable infinitude is mathematically justified for the set whose size is being described."
+msgstr "当所描述集合的可数无穷性有数学依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting ℵ₀ for every infinite set, treating a long finite enumeration as a proof of infinitude, or equating a set with ℕ solely because their cardinalities agree."
+msgstr "不要为所有无穷集合选择 ℵ₀，不要将很长的有限枚举当作无穷性的证明，也不要仅因基数相同就将某个集合等同于 ℕ。"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:alephNull as the object of math:hasCardinality on a set supported as countably infinite. Retain the bijection or other mathematical justification separately, without assigning a finite math:quantityValue count."
+msgstr "在有依据的可数无穷集合上，将 math:alephNull 用作 math:hasCardinality 的宾语。另行保留双射或其他数学依据，不要赋予有限的 math:quantityValue 元素个数。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "𝔠"
+msgstr "连续统基数（𝔠）"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."
+msgstr "连续统基数 𝔠，即 ℝ 的基数，等于 2^ℵ₀。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "𝔠 is the cardinality of ℝ, equal to 2^ℵ₀ and greater than ℵ₀. This declaration does not identify it with ℵ₁ or assume the continuum hypothesis."
+msgstr "𝔠 是 ℝ 的基数，等于 2^ℵ₀ 且大于 ℵ₀。此声明未将它等同于 ℵ₁，也未假定连续统假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real-number system can state math:hasCardinality math:continuum; the rational-number system has math:alephNull instead, despite both sets being infinite."
+msgstr "实数系可以声明 math:hasCardinality math:continuum；有理数系则具有 math:alephNull，尽管两个集合都是无穷集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a set whose size is established to equal the cardinality of the real line."
+msgstr "用于已确定其大小等于实数轴基数的集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring continuum size from infinitude or uncountability alone, asserting 𝔠 = ℵ₁ without an explicit additional assumption, or deriving set equality from equal size."
+msgstr "不要仅凭无穷性或不可数性推断连续统大小，不要在没有显式附加假设时声明 𝔠 = ℵ₁，也不要由大小相同推导集合相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from the relevant set to math:continuum and retain the mathematical argument establishing that size. Keep any set-theoretic assumptions explicit rather than adding them to the meaning of this individual."
+msgstr "使相关集合的 math:hasCardinality 指向 math:continuum，并保留证明该大小的数学论证。任何集合论假设都应显式表达，而不应加入此个体的含义中。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement"
+msgstr "补"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complement construction relative to an operand, an ambient space and a declared notion of complement. A subclass of math:SetOperation that names its ambient space through math:ambientSpace and its selected semantics through math:complementSemantics: set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel. These notions do not all mean set subtraction. A complement missing its ambient space or selected semantics is ill-formed."
+msgstr "相对于运算对象、环境空间及已声明补概念的补构造。它是 math:SetOperation 的子类，通过 math:ambientSpace 指定环境空间，通过 math:complementSemantics 指定所选语义：集合论的 U ∖ S、正交的 S⊥、复线性的、拓扑的或商/余核。这些概念并非都表示集合差。缺少环境空间或所选语义的补不合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complement is qualified by both its ambient space and its selected semantics. Operand and ambient are different roles that may refer to the same resource, as in U ∖ U = ∅. Orthogonal, direct-sum and quotient meanings cannot be read as ordinary set subtraction."
+msgstr "补必须同时由环境空间及所选语义限定。运算对象与环境空间是不同的角色，但可以指向同一资源，例如 U ∖ U = ∅。正交、直和及商的含义不能解读为普通集合差。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing residualSubspace example is a math:OrthogonalComplement of an embedded subspace within a complex ambient space, with math:complementSemantics math:orthogonalComplement and a named Hermitian inner product."
+msgstr "已有的 residualSubspace 示例是复环境空间中某个嵌入子空间的 math:OrthogonalComplement，带有 math:complementSemantics math:orthogonalComplement 及已指定的厄米内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a complement construction must retain what is complemented, the enclosing mathematical space and the intended notion of complement."
+msgstr "当补构造需要保留被取补对象、所在数学空间及预期补概念时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an unqualified complement label, substituting the operand for the ambient space, or applying U ∖ S semantics to every subclass of math:Complement."
+msgstr "不要仅使用未限定的补标签，不要用运算对象替代环境空间，也不要将 U ∖ S 语义应用于 math:Complement 的所有子类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the complement with one math:ambientSpace and one math:complementSemantics individual. Identify the operand through the applicable relation, such as math:setOperationOn or the specialized math:orthogonalComplementOf, and supply any structure required by that selected semantics."
+msgstr "声明补时指定一个 math:ambientSpace 及一个 math:complementSemantics 个体。通过适用关系标识运算对象，例如 math:setOperationOn 或专门的 math:orthogonalComplementOf，并提供所选语义所需的结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ambient space"
+msgstr "环境空间"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named."
+msgstr "指定取 math:Complement 时所相对的环境空间，即 U 中 S 的补里的 U。定义域为 math:Complement，值域为 math:Set、math:VectorSpace、math:TopologicalSpace 或 math:FunctionSpace（以文字说明）；环境空间将集合论情形推广到 math:complementSemantics 所区分的正交、复线性、拓扑及商情形。没有环境空间的补不合规范（math:UnqualifiedComplement）。它推广了原先仅针对集合的补谓词：补相对于环境空间而定义，空间和语义都必须指明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is from the complement resource to the enclosing mathematical space. The object identifies the universe or structured total space in the ambient role. The operand role may point to that same resource: in an inner-product space V, the orthogonal complement of V within itself is {0}."
+msgstr "方向是从补资源指向包围它的数学空间。宾语以环境角色标识全集或带结构的总空间。运算对象角色可以指向同一资源：在内积空间 V 中，V 在其自身内的正交补为 {0}。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the orthogonal complement of S in V, math:orthogonalComplementOf points to S and math:ambientSpace points to V. The selected inner product is named separately by math:definedByInnerProduct."
+msgstr "对于 V 中 S 的正交补，math:orthogonalComplementOf 指向 S，math:ambientSpace 指向 V。所选内积另由 math:definedByInnerProduct 指定。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use whenever the meaning of a complement depends on the containing set, vector space, topological space or function space."
+msgstr "当补的含义取决于所在集合、向量空间、拓扑空间或函数空间时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a text label in place of the space resource, reversing the relation, or using the ambient-space link alone to imply orthogonality or a chosen complement semantics."
+msgstr "不要以文本标签替代空间资源，不要反转关系，也不要仅凭环境空间链接暗示正交性或某种已选补语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:ambientSpace from the complement to one identified enclosing space and state math:complementSemantics separately. Retain the operand relation and the topology, scalar field or inner product needed to interpret the selected construction."
+msgstr "使 math:ambientSpace 从补指向一个有标识的环境空间，并另行声明 math:complementSemantics。保留运算对象关系，以及解释所选构造所需的拓扑、标量域或内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complement semantics"
+msgstr "补语义"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids."
+msgstr "指定 math:Complement 所采用的补概念，其值为 math:ComplementSemantics 个体：集合论的（U ∖ S）、正交的（内积空间中的 S⊥）、复线性的（补子空间）、拓扑的（开集的闭补集）或商/余核。定义域为 math:Complement，值域为 math:ComplementSemantics（以文字说明）。未指明语义的“X 的补”有歧义且不合规范（math:UnqualifiedComplement），正是章程禁止的旗舰相邻“复补”隐患。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property selects one notion for a complement resource, separately from its operand and ambient space. The object is a math:ComplementSemantics individual, not the class itself or a string describing a preference."
+msgstr "此属性为补资源选择一种概念，与运算对象及环境空间分开。宾语是 math:ComplementSemantics 个体，而非该类本身或描述偏好的字符串。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "The residual-subspace complement states math:complementSemantics math:orthogonalComplement; a chosen complex-linear direct complement instead selects math:complexLinearComplement."
+msgstr "残余子空间的补声明 math:complementSemantics math:orthogonalComplement；选定的复线性直补则选择 math:complexLinearComplement。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make the intended meaning of complement explicit when several inequivalent constructions are possible in the same ambient object."
+msgstr "当同一环境对象中可能存在多种不等价构造时，用于明确预期的补含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple competing semantics on one complement resource, a display word such as complex instead of a semantics individual, or treating the selected semantics as proof that its mathematical preconditions hold."
+msgstr "不要在同一补资源上放置多种相互竞争的语义，不要以“复”等显示词替代语义个体，也不要把所选语义视为其数学前提成立的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:complementSemantics to exactly one appropriate semantics individual and pair it with math:ambientSpace. Use separate complement resources when comparing different notions for the same operand and ambient space."
+msgstr "使 math:complementSemantics 指向恰好一个适当的语义个体，并配合 math:ambientSpace。若要比较相同运算对象和环境空间下的不同补概念，应使用不同的补资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Semantics"
+msgstr "补语义"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notion of complement a math:Complement uses: one of math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement, or math:quotientComplement. A complement names exactly one through math:complementSemantics; the same ambient object admits several inequivalent complements, so the semantics must be declared."
+msgstr "math:Complement 所采用的补概念，可为 math:setTheoreticComplement、math:orthogonalComplement、math:complexLinearComplement、math:topologicalComplement 或 math:quotientComplement。补通过 math:complementSemantics 恰好指定一种；同一环境对象可以有多种不等价的补，因此必须声明语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class groups the declared meanings of complement, while its named individuals select particular meanings. Selecting an individual does not identify a result subspace, supply an ambient object or establish a decomposition theorem."
+msgstr "此类汇集已声明的补含义，其命名个体则选择具体含义。选择个体并不会标识结果子空间、提供环境对象或确立分解定理。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:orthogonalComplement and math:quotientComplement are math:ComplementSemantics individuals. They distinguish orthogonal vectors from quotient classes even when both refer to the same subspace inside V."
+msgstr "math:orthogonalComplement 和 math:quotientComplement 是 math:ComplementSemantics 个体。即使两者涉及 V 内同一个子空间，它们仍区分正交向量与商等价类。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the type of an identified complement notion and as the declared range category of math:complementSemantics."
+msgstr "用作有标识补概念的类型，以及 math:complementSemantics 所声明的值域类别。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the class IRI itself where a selected semantics individual is needed, or collapsing the five declared notions into one universal subtraction operation."
+msgstr "不要在需要选定语义个体的位置放置该类自身的 IRI，也不要将五种已声明概念合并为一种通用的差运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the appropriate existing semantics individual as the object of math:complementSemantics on each complement. Preserve the class-versus-individual distinction and document the assumptions of that notion with the mathematical construction."
+msgstr "在每个补上，将适当的已有语义个体复用为 math:complementSemantics 的宾语。保留类与个体的区别，并随数学构造记录该概念所需的假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "set-theoretic (U ∖ S)"
+msgstr "集合论补（U ∖ S）"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set-theoretic complement Sᶜ = U ∖ S: the elements of the ambient set U not in S. The elementary case; the ambient space is a math:Set."
+msgstr "集合论补 Sᶜ = U ∖ S，即环境集合 U 中不属于 S 的元素。这是基本情形，环境空间是 math:Set。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This semantics means ordinary set subtraction within the named universe U. Changing U can change the complement even when S stays fixed; it does not mean orthogonality or quotienting."
+msgstr "此语义表示在已指定全集 U 内进行普通集合差。即使 S 不变，改变 U 也可能改变补集；它并不表示正交或取商。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For U = {a, b, c} and S = {a}, the set-theoretic complement is {b, c}. The complement construction selects math:setTheoreticComplement and names U through math:ambientSpace."
+msgstr "对于 U = {a, b, c} 和 S = {a}，集合论补为 {b, c}。补构造选择 math:setTheoreticComplement，并通过 math:ambientSpace 指定 U。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when complement means the elements of an identified universe that are excluded from the operand subset."
+msgstr "当补表示有标识全集中不属于运算对象子集的元素时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting this notion for an orthogonal subspace or a quotient object, or writing an absolute complement without an ambient universe."
+msgstr "不要为正交子空间或商对象选择此概念，也不要在没有环境全集时书写绝对的补。"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set math:complementSemantics math:setTheoreticComplement on the construction, identify S with math:setOperationOn, and name U with math:ambientSpace. Describe the resulting members separately rather than assuming the declaration enumerates them."
+msgstr "在构造上声明 math:complementSemantics math:setTheoreticComplement，用 math:setOperationOn 标识 S，用 math:ambientSpace 指定 U。结果成员应单独描述，不要假定此声明会枚举它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orthogonal (S⊥)"
+msgstr "正交补（S⊥）"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The orthogonal complement S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} in an inner-product space. The ambient space is a math:VectorSpace with an inner product; realized in the linear-algebra charter."
+msgstr "内积空间中的正交补 S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S}。环境空间是具有内积的 math:VectorSpace，由线性代数章程实现。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Orthogonality depends on the declared inner product. For a subspace S, the decomposition V = S ⊕ S⊥ holds in a finite-dimensional inner-product space; in a Hilbert space it requires S to be closed. It is not a universal claim for arbitrary infinite-dimensional spaces."
+msgstr "正交性取决于已声明的内积。对于子空间 S，分解 V = S ⊕ S⊥ 在有限维内积空间中成立；在希尔伯特空间中，它要求 S 为闭子空间。这不是对任意无限维空间都成立的普遍断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The worked residualSubspace is a math:OrthogonalComplement with math:orthogonalComplementOf pointing to the embedded subspace, math:ambientSpace to the complex space and math:definedByInnerProduct to the Hermitian inner product."
+msgstr "示例中的 residualSubspace 是 math:OrthogonalComplement，其 math:orthogonalComplementOf 指向嵌入子空间，math:ambientSpace 指向复空间，math:definedByInnerProduct 指向厄米内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when complement is defined by vectors having zero inner product with every vector of the specified subspace."
+msgstr "当补由与指定子空间中每个向量的内积均为零的向量定义时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the orthogonal complement as V ∖ S, omitting the defining inner product, or asserting a direct-sum decomposition in an arbitrary infinite-dimensional space without its needed hypotheses."
+msgstr "不要将正交补视为 V ∖ S，不要省略定义它的内积，也不要在缺少必要假设时为任意无限维空间声明直和分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:OrthogonalComplement for the specialized object, state math:complementSemantics math:orthogonalComplement, and provide math:orthogonalComplementOf, math:ambientSpace and math:definedByInnerProduct. Keep decomposition assumptions explicit instead of deriving them from the semantics tag."
+msgstr "对专门对象使用 math:OrthogonalComplement，声明 math:complementSemantics math:orthogonalComplement，并提供 math:orthogonalComplementOf、math:ambientSpace 及 math:definedByInnerProduct。分解假设应显式保留，不应从语义标签推导。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complex-linear"
+msgstr "复线性补"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex-linear complement: a subspace W with V = S ⊕ W over ℂ, not canonical without further structure. The 'complex complement' hazard — ambiguous unless the ambient space and this semantics are named."
+msgstr "复线性补：ℂ 上满足 V = S ⊕ W 的子空间 W，在没有额外结构时并不规范唯一。“复补”这一说法若未指定环境空间及此语义便有歧义。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notion selects a complex-linear subspace W forming a direct sum V = S ⊕ W. Such a complement is generally a choice rather than a canonical result, and it need not be orthogonal for a separately supplied Hermitian inner product."
+msgstr "此概念选择复线性子空间 W，使 V = S ⊕ W 成立。这样的补通常需要选择，而非规范确定的结果；对于另行给出的厄米内积，它不一定正交。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "In ℂ² with S spanned by (1, 0), both the span of (0, 1) and the span of (1, 1) are direct complements of S. The latter is not its orthogonal complement for the standard Hermitian inner product."
+msgstr "在 ℂ² 中，若 S 由 (1, 0) 张成，则 (0, 1) 与 (1, 1) 分别张成的子空间都是 S 的直补。后者不是标准厄米内积下的正交补。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended construction chooses a complex-linear complementary subspace, with the direct-sum claim justified in the declared ambient space."
+msgstr "当预期构造选择复线性补子空间，且直和声明在已指定环境空间中有依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a unique complement from the scalar field ℂ alone, equating any direct complement with the orthogonal one, or presenting the quotient V/S as the chosen subspace W."
+msgstr "不要仅从标量域 ℂ 推断唯一的补，不要将任意直补等同于正交补，也不要将商 V/S 当作选定子空间 W。"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:complexLinearComplement through math:complementSemantics, identify the operand S and ambient V, and describe the chosen W and the justified direct-sum relationship in the mathematical representation. Preserve the choice instead of claiming the tag computes a canonical subspace."
+msgstr "通过 math:complementSemantics 选择 math:complexLinearComplement，标识运算对象 S 和环境空间 V，并在数学表示中描述选定的 W 及有依据的直和关系。应保留该选择，不应声称标签会计算规范子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "topological (closed complement)"
+msgstr "拓扑补（闭补集）"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The topological complement: the closed complement X ∖ U of an open set U in a math:TopologicalSpace (a math:ClosedSet). Distinct from the set-theoretic complement in carrying the topology."
+msgstr "拓扑补：math:TopologicalSpace 中开集 U 的闭补集 X ∖ U，即 math:ClosedSet。它与集合论补的区别在于保留拓扑结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notion retains the topology of X and the fact that the operand U is open, so X ∖ U is closed. The same underlying set subtraction without that structure does not express this topological claim."
+msgstr "此概念保留 X 的拓扑及运算对象 U 为开集这一事实，因此 X ∖ U 为闭集。若没有该结构，相同的底层集合差并未表达此拓扑声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "In ℝ with its usual topology, the complement of the open set {x | x > 0} is the closed set {x | x ≤ 0}. The ambient topology explains why the complement is closed; zero belongs because it is not in the open set."
+msgstr "在赋有通常拓扑的 ℝ 中，开集 {x | x > 0} 的补是闭集 {x | x ≤ 0}。环境拓扑说明该补为何闭合，而零因不属于该开集而属于补集。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complement must carry the open-versus-closed relationship inside an identified topological space."
+msgstr "当补需要保留有标识拓扑空间中的开集与闭集关系时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling the complement of an arbitrary subset closed without an openness premise, omitting the ambient topology, or reading topological complement as orthogonal projection."
+msgstr "不要在没有开集前提时将任意子集的补称为闭集，不要省略环境拓扑，也不要将拓扑补解读为正交投影。"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set math:complementSemantics math:topologicalComplement, name X with math:ambientSpace and identify the open operand U. Retain the topology and the mathematical justification for the resulting closed set rather than relying on a closed label."
+msgstr "声明 math:complementSemantics math:topologicalComplement，用 math:ambientSpace 指定 X，并标识开集运算对象 U。保留拓扑及所得闭集的数学依据，不要仅依靠“闭”标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quotient / cokernel"
+msgstr "商/余核补"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A quotient/cokernel complement: the quotient V/S rather than a chosen complementary subspace, canonical where a direct-sum complement is not. The ambient space is the total object; the complement is its cokernel."
+msgstr "商/余核意义的补：商 V/S，而非选定的补子空间；在直和补不规范唯一的地方，商具有规范性。环境空间为整体对象，补为其余核。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The quotient V/S records equivalence classes modulo S, not a selected subspace W inside V. A direct complement may identify with the quotient only through additional justified choices; this semantics does not supply a splitting or a section."
+msgstr "商 V/S 记录模 S 的等价类，而非 V 内选定的子空间 W。直补只有通过额外且有依据的选择才能与商建立对应；此语义并不提供分裂或截面。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For V = ℂ² and S the span of (1, 0), V/S consists of cosets v + S. Choosing the span of (0, 1) as representatives is extra structure, not part of math:quotientComplement itself."
+msgstr "对于 V = ℂ² 及由 (1, 0) 张成的 S，V/S 由陪集 v + S 构成。选择由 (0, 1) 张成的子空间作为代表是额外结构，并非 math:quotientComplement 本身的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended object is a quotient or cokernel relative to a subobject, without claiming a chosen complementary subspace."
+msgstr "当预期对象是相对于子对象的商或余核，且不声称已经选择补子空间时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating quotient classes with ambient vectors, inferring a canonical direct complement from V/S, or confusing quotienting by S with deleting the elements of S."
+msgstr "不要将商等价类等同于环境向量，不要从 V/S 推断规范的直补，也不要将模 S 取商与删除 S 的元素混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:quotientComplement on the complement resource, name the total ambient object and the operand subobject, and retain the quotient or cokernel interpretation. Describe any chosen representatives or splitting separately rather than asserting they come from this tag."
+msgstr "在补资源上选择 math:quotientComplement，指定总环境对象及运算对象子对象，并保留商或余核解释。所选代表或分裂应另行描述，不应断言它们来自此标签。"
