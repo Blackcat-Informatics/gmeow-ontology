@@ -1,0 +1,19 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 183617709800da5587879ff2ed1a480c5c94c318
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2222
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2222
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 06ddea3c396662522840754162396503de1359b5
+GhpRsq-Head-Ref: paudley/2221-use-native-rdf-list-admission-in-plan
+GhpRsq-Head-OID: 183617709800da5587879ff2ed1a480c5c94c318
+GhpRsq-Result-Tree: d00a9df6bac7c632f73cbf9f8fcf74d5b0da1b42
+GhpRsq-Result-Commit: fc75c035afbcaa0e07f6854129e31e21eb400246
+GhpRsq-Parent-Hashes: 183617709800da5587879ff2ed1a480c5c94c318
+GhpRsq-Squash-Notes-SHA256: d195d2b88904c356ab2cf3a2258d9863342d8abc275aa3e64600c80d2e1f4313
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Evidence: none
