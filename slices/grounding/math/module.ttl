@@ -274,6 +274,11 @@ math:naturalNumbers
     a logic:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "natural numbers (ℕ)"@x-gmeow-english ;
+    skos:scopeNote "This individual names ℕ including zero; it is distinct from math:NaturalNumber, the class of individual natural numbers. Its declared containment in math:integers places it at the inner end of the five-system tower."@x-gmeow-english ;
+    skos:example "An exact object denoting zero can point through math:inNumberSystem to math:naturalNumbers; the system itself points through math:subsystemOf to math:integers."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared system for non-negative counting numbers, or as a function domain whose arguments admit zero and positive whole numbers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ℕ here as positive-only, assigning negative numbers to it, or substituting the class math:NaturalNumber for this system individual."@x-gmeow-english ;
+    gmeow:howToUse "Point the number’s math:inNumberSystem to math:naturalNumbers and retain the existing math:subsystemOf math:integers link on the system. Express a positive-only domain separately rather than changing this individual’s meaning."@x-gmeow-english ;
     skos:definition "The system of natural numbers ℕ — the non-negative counting numbers. The innermost system; math:subsystemOf math:integers."@x-gmeow-english ;
     math:subsystemOf math:integers .
 
@@ -281,6 +286,11 @@ math:integers
     a logic:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "integers (ℤ)"@x-gmeow-english ;
+    skos:scopeNote "This system contains negative whole numbers, zero and positive whole numbers. Its math:formalizes gmeow:gradeOrdinal correspondence does not narrow ℤ to a finite grade vocabulary or make grades identical to all integers."@x-gmeow-english ;
+    skos:example "An object denoting −7 is situated in math:integers, while math:integers math:subsystemOf math:rationalNumbers states that every integer has a rational interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use for a declared whole-number domain that permits signed values, such as an index offset extending below zero."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restricting this system to a machine word width, non-negative counts or a bounded ordinal scale; those restrictions do not define ℤ."@x-gmeow-english ;
+    gmeow:howToUse "Reuse math:integers as the object of math:inNumberSystem, retain its containment in math:rationalNumbers, and keep the existing math:formalizes gmeow:gradeOrdinal correspondence without treating it as a range restriction."@x-gmeow-english ;
     skos:definition "The system of integers ℤ — the whole numbers. math:subsystemOf math:rationalNumbers."@x-gmeow-english ;
     math:subsystemOf math:rationalNumbers .
 
@@ -288,6 +298,11 @@ math:rationalNumbers
     a logic:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "rational numbers (ℚ)"@x-gmeow-english ;
+    skos:scopeNote "This individual denotes the rational system, not an individual ratio or a fraction-storage record. math:RationalNumber classifies the abstract number, while math:RationalValue carries a concrete numerator and nonzero denominator."@x-gmeow-english ;
+    skos:example "The exact number 2/3 belongs to math:rationalNumbers. A concrete math:RationalValue can carry the pair (2, 3), while a rounded decimal evaluation remains a separate math:ApproximateValue."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared domain is exact integer ratios, including integers, and irrational inputs are outside that domain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding √2 or π to this system, or interpreting a finite decimal approximation as evidence that its exact target is rational."@x-gmeow-english ;
+    gmeow:howToUse "Name math:rationalNumbers through math:inNumberSystem on the abstract number. Preserve math:subsystemOf math:realNumbers on the system; put numerator and denominator literals only on the concrete math:RationalValue carrier."@x-gmeow-english ;
     skos:definition "The system of rational numbers ℚ — ratios of integers. math:subsystemOf math:realNumbers."@x-gmeow-english ;
     math:subsystemOf math:realNumbers .
 
@@ -295,6 +310,11 @@ math:realNumbers
     a logic:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "real numbers (ℝ)"@x-gmeow-english ;
+    skos:scopeNote "The real system includes rational and irrational values. Its two declared containing systems, math:complexNumbers and math:ExtendedRealLine, extend it in different ways; that shared subsystem does not identify those larger systems."@x-gmeow-english ;
+    skos:example "math:pi math:inNumberSystem math:realNumbers situates π on the real line. math:realNumbers is separately a subsystem of both math:complexNumbers and math:ExtendedRealLine."@x-gmeow-english ;
+    gmeow:useWhen "Use as a domain for finite real values when both rational and irrational numbers must be admitted, as in real analysis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid including math:PositiveInfinity or math:NegativeInfinity in this system, or inferring that a real-valued function accepts non-real complex arguments."@x-gmeow-english ;
+    gmeow:howToUse "Use math:realNumbers for the appropriate math:inNumberSystem, math:domain or math:codomain statement. Choose math:ExtendedRealLine explicitly when the intended domain also admits signed poles."@x-gmeow-english ;
     skos:definition "The system of real numbers ℝ — the continuous number line. math:subsystemOf math:complexNumbers, and math:subsystemOf math:ExtendedRealLine (the reals are the finite core of the signed extended real line ℝ̄)."@x-gmeow-english ;
     math:subsystemOf math:complexNumbers , math:ExtendedRealLine .
 
@@ -302,6 +322,11 @@ math:complexNumbers
     a logic:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "complex numbers (ℂ)"@x-gmeow-english ;
+    skos:scopeNote "ℂ is the outermost system of the five-system tower and contains ℝ as well as non-real complex values. The separately declared extended-real poles are not elements of ℂ merely because ℝ is a subsystem of both extensions."@x-gmeow-english ;
+    skos:example "The imaginary unit i can be situated in math:complexNumbers, while a real number also has a complex interpretation with zero imaginary part. Neither fact puts math:PositiveInfinity in ℂ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a function or mathematical construction genuinely permits complex arguments, including non-real ones."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this system as a universal container for infinities, undefined results or every numeric datatype value."@x-gmeow-english ;
+    gmeow:howToUse "Reuse math:complexNumbers as the system individual for a complex number or as a function domain or codomain. Preserve the existing incoming containment from math:realNumbers without adding a containment edge from math:ExtendedRealLine."@x-gmeow-english ;
     skos:definition "The system of complex numbers ℂ — the outermost system of the containment tower. The top of the math:subsystemOf order."@x-gmeow-english .
 
 # --- Named exact constants -------------------------------------------------- #
@@ -310,6 +335,11 @@ math:pi
     a logic:NamedIndividual , math:MathematicalConstant , math:TranscendentalNumber ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "π"@x-gmeow-english ;
+    skos:scopeNote "This individual identifies the exact circle constant, not a stored precision or a decimal prefix. Its math:TranscendentalNumber classification and math:isExact true remain valid independently of an approximation’s rounding error."@x-gmeow-english ;
+    skos:example "A numerical evaluation carrying 3.14159 as xsd:double can use math:approximates math:pi and math:approximationError 0.000003; math:pi itself retains no math:quantityValue decimal."@x-gmeow-english ;
+    gmeow:useWhen "Use as the shared exact referent for the circle constant in expressions, proofs and approximation targets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reminting π for each decimal precision or placing an approximation’s literal, datatype or error bound directly on this constant."@x-gmeow-english ;
+    gmeow:howToUse "Reference math:pi from the expression or from math:approximates on a separate math:ApproximateValue. Keep its existing real-system, transcendental and exactness declarations intact."@x-gmeow-english ;
     skos:definition "The constant π: the exact ratio of a circle's circumference to its diameter, a transcendental real number. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 3.14159… is a distinct math:ApproximateValue, never asserted on this individual."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
     math:isExact true .
@@ -318,6 +348,11 @@ math:eulerNumber
     a logic:NamedIndividual , math:MathematicalConstant , math:TranscendentalNumber ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "e"@x-gmeow-english ;
+    skos:scopeNote "This individual denotes the exact base of the natural logarithm. It is distinct from math:eulerMascheroni, from a variable spelled e, and from any finite decimal evaluation of the exponential function."@x-gmeow-english ;
+    skos:example "In an expression for exp(1), the exact constant is math:eulerNumber. A floating-point evaluation near 2.71828 points to it through math:approximates from another object."@x-gmeow-english ;
+    gmeow:useWhen "Use when the natural exponential or logarithm needs the exact constant e as an identified mathematical referent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing the two constants named after Euler, or identifying this individual with a rounded xsd:double result."@x-gmeow-english ;
+    gmeow:howToUse "Reuse math:eulerNumber in the mathematical expression, preserve math:isExact true and math:inNumberSystem math:realNumbers, and describe numerical evaluations on distinct math:ApproximateValue objects."@x-gmeow-english ;
     skos:definition "The constant e: the exact base of the natural logarithm, a transcendental real number. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 2.71828… is a distinct math:ApproximateValue."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
     math:isExact true .
@@ -326,6 +361,11 @@ math:eulerMascheroni
     a logic:NamedIndividual , math:MathematicalConstant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "γ"@x-gmeow-english ;
+    skos:scopeNote "γ has an exact identity and a declared real-number system even though its rationality and algebraic classification are unknown. Uncertainty about those classifications does not make the constant an approximate value."@x-gmeow-english ;
+    skos:example "A numerical object near 0.57721 may math:approximates math:eulerMascheroni with its own error bound; the target remains math:isExact true without an asserted algebraic or transcendental type."@x-gmeow-english ;
+    gmeow:useWhen "Use for the exact limiting constant associated with harmonic sums and the natural logarithm, including as the target of numerical estimates."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting math:RationalNumber, math:AlgebraicNumber or math:TranscendentalNumber for γ merely from its decimal digits or from the known classifications of π and e."@x-gmeow-english ;
+    gmeow:howToUse "Reference math:eulerMascheroni by its existing IRI, retain its real-system and exactness statements, and keep finite evaluations separate. Leave unsupported classifications unasserted rather than recording unknown as math:isExact false."@x-gmeow-english ;
     skos:definition "The Euler–Mascheroni constant γ: the exact limiting difference between the harmonic series and the natural logarithm, a real number whose rationality is unknown. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 0.57721… is a distinct math:ApproximateValue."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
     math:isExact true .
@@ -938,6 +978,11 @@ math:inNumberSystem
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in number system"@x-gmeow-english ;
+    skos:scopeNote "The direction is from a math:Number object to a math:NumberSystem individual. This is the number’s declared system, not an RDF datatype declaration or the containment relation between systems."@x-gmeow-english ;
+    skos:example "math:pi math:inNumberSystem math:realNumbers links a number to its system; reversing that statement would make the real-number system occupy the number position."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an identified mathematical number must declare the system in which it is situated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid literal objects, class IRIs such as math:RealNumber, reversed system-to-number edges, or multiple containing-system values on the same number."@x-gmeow-english ;
+    gmeow:howToUse "Place exactly one justified named system individual in the object position of math:inNumberSystem. Describe containment separately with math:subsystemOf instead of repeating every larger system on the number."@x-gmeow-english ;
     skos:definition "Situates a number in the system it belongs to. Domain math:Number, range math:NumberSystem (stated in prose). Every math:Number declares exactly one — an unsituated number is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -945,6 +990,11 @@ math:subsystemOf
     a logic:ObjectProperty , logic:transitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subsystem of"@x-gmeow-english ;
+    skos:scopeNote "This transitive relation runs from the contained number system to the containing system. Both ends are system individuals; it is distinct from class subsumption and from a number’s math:inNumberSystem link."@x-gmeow-english ;
+    skos:example "math:naturalNumbers math:subsystemOf math:integers and math:integers math:subsystemOf math:rationalNumbers support the transitive containment of ℕ in ℚ without reversing either edge."@x-gmeow-english ;
+    gmeow:useWhen "Use to state mathematical containment between declared number systems and let transitivity connect the adjacent steps."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking a single number to its system with this property, using number-class IRIs as its ends, or inferring containment between two systems solely because both contain ℝ."@x-gmeow-english ;
+    gmeow:howToUse "Author the smaller-system to larger-system edge on the system individuals. Preserve the existing real-to-complex and real-to-extended-real branches as separate declarations rather than composing them sideways."@x-gmeow-english ;
     skos:definition "Orders the number systems by containment: math:naturalNumbers ⊑ math:integers ⊑ math:rationalNumbers ⊑ math:realNumbers ⊑ math:complexNumbers. Domain and range math:NumberSystem (stated in prose). Transitive, so the whole ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower is entailed from the adjacent links."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -952,6 +1002,11 @@ math:isExact
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is exact"@x-gmeow-english ;
+    skos:scopeNote "This boolean statement concerns the math:Number object. Missing information is not false, and uncertainty about rationality or algebraic classification is not numerical inexactness. A math:MathematicalConstant carries true."@x-gmeow-english ;
+    skos:example "math:eulerMascheroni math:isExact true states that γ is exact even though its rationality is unknown; a rounded estimate remains another math:ApproximateValue object."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mathematical description explicitly establishes whether the identified number is exact, including the required true statement on named constants."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a string such as unknown in this boolean slot, converting an absent assertion into false, or changing an exact target to false because its numerical evaluation is rounded."@x-gmeow-english ;
+    gmeow:howToUse "Use an xsd:boolean assertion on the math:Number only when its exactness is established. Retain true on the existing constants, and record approximation literals and error bounds on separate math:ApproximateValue objects instead of overloading the flag."@x-gmeow-english ;
     skos:definition "Declares whether a number is an exact value (true) or the abstract value a math:ApproximateValue approximates. Domain math:Number, range xsd:boolean (stated in prose). A math:MathematicalConstant is always exact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -959,6 +1014,11 @@ math:approximates
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "approximates"@x-gmeow-english ;
+    skos:scopeNote "The subject is the finite approximation and the object is its exact math:Number target. This link preserves the target’s identity across different evaluation precisions; it does not assert equality between the two objects."@x-gmeow-english ;
+    skos:example "Two separate math:ApproximateValue objects evaluated near 3.14 and 3.14159 can both use math:approximates math:pi while retaining their own numeric datatypes and error bounds."@x-gmeow-english ;
+    gmeow:useWhen "Use to connect a numerical evaluation to the exact mathematical number it is intended to approximate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the link from constant to approximation, using a decimal literal as the target, or identifying the approximation node with its exact target."@x-gmeow-english ;
+    gmeow:howToUse "Create the math:ApproximateValue subject separately, point math:approximates to one exact math:Number, and supply math:quantityValue, math:numericDatatype and a numeric math:approximationError on that subject."@x-gmeow-english ;
     skos:definition "Names the exact number that an approximation stands in for. Domain math:ApproximateValue, range math:Number (stated in prose). The approximation and the exact number are distinct objects and are never conflated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -966,6 +1026,11 @@ math:approximationError
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "approximation error"@x-gmeow-english ;
+    skos:scopeNote "The value is a numeric bound on absolute deviation from the exact target. It is expressed on the same numerical scale as the approximation, rather than as relative error, a probability, or a separate error-resource identifier."@x-gmeow-english ;
+    skos:example "For an xsd:double evaluation of π at 3.14159, math:approximationError 0.000003 as an xsd:decimal literal is a conservative absolute bound; it does not mean a probability of 0.000003."@x-gmeow-english ;
+    gmeow:useWhen "Use when a justified upper bound on a finite evaluation’s absolute error must travel with that approximation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a percentage, confidence level, count of displayed digits, negative bound or blank node in place of the numeric absolute bound."@x-gmeow-english ;
+    gmeow:howToUse "Attach a non-negative numeric literal to the math:ApproximateValue after establishing the bound against its math:approximates target. Keep the justification separate; the presence of this property alone does not prove the bound."@x-gmeow-english ;
     skos:definition "The magnitude by which an approximation may deviate from the exact value it approximates — an absolute error bound. Domain math:ApproximateValue, range a numeric literal (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -973,6 +1038,11 @@ math:numericDatatype
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "numeric datatype"@x-gmeow-english ;
+    skos:scopeNote "This object property names a datatype by IRI on the approximation object. It is separate from math:inNumberSystem on the exact number and does not itself carry the numerical literal or certify its error."@x-gmeow-english ;
+    skos:example "An approximation with math:quantityValue encoded as an xsd:double literal also states math:numericDatatype xsd:double; the object is the datatype IRI, not the string double."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared floating-point datatype of a numerical approximation, including the distinction between xsd:float and xsd:double."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a datatype-name string, an xsd:double numeric literal, or math:realNumbers in the object position; these are respectively text, a value and a number system."@x-gmeow-english ;
+    gmeow:howToUse "Set math:numericDatatype on the math:ApproximateValue to the actual datatype IRI of its math:quantityValue literal. Preserve the source precision choice and provide the target and absolute error bound independently."@x-gmeow-english ;
     skos:definition "Names the canonical RDF datatype in which an approximate value's literal is carried — subsuming the IEEE-754 datatypes xsd:double and xsd:float directly rather than re-minting them. Domain math:ApproximateValue, range an rdfs:Datatype (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -980,7 +1050,12 @@ math:quantityValue
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity value"@x-gmeow-english ;
-    skos:definition "The sole canonical numeric-value property for a math:Quantity and the existing mathematical value carriers math:ApproximateValue and math:Cardinality. Range a numeric literal (stated in prose). On a measured quantity it is meaningful with the quantity's math:hasDimension and applicable gmeow:unit/reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
+    skos:scopeNote "Existing uses include numeric literals on math:Quantity, math:ApproximateValue and math:Cardinality, and exact counts directly on math:FiniteSet. This list describes existing authoring without declaring an exhaustive domain. A measured quantity also needs its dimension and applicable unit or reference frame; a literal by itself supplies none of that context."@x-gmeow-english ;
+    skos:example "A math:ApproximateValue for π can hold math:quantityValue as the xsd:double literal 3.14159 while separately naming math:pi, its datatype and its absolute error bound."@x-gmeow-english ;
+    gmeow:useWhen "Use for concrete numeric values on established carriers, including an exact count directly on math:FiniteSet alongside math:hasCardinality math:cardinalityFinite, while keeping each carrier’s interpretation explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding this property to a bare math:Number or named mathematical constant, storing a display string instead of a numeric literal, or using it to replace the exact numerator/denominator slots of math:RationalValue."@x-gmeow-english ;
+    gmeow:howToUse "Attach the typed numeric literal to the appropriate existing carrier. For math:FiniteSet retain math:hasCardinality math:cardinalityFinite and carry its exact non-negative integer count directly. For math:Quantity retain math:hasDimension and the applicable unit or frame; for math:ApproximateValue also retain math:approximates, math:numericDatatype and math:approximationError."@x-gmeow-english ;
+    skos:definition "The canonical numeric-value property used by mathematical carriers, including math:Quantity, math:ApproximateValue and math:Cardinality, and by math:FiniteSet for its exact count. Range a numeric literal (stated in prose). On a finite set the exact count accompanies math:hasCardinality math:cardinalityFinite. On a measured quantity it is meaningful with the quantity’s math:hasDimension and applicable gmeow:unit or reference frame. A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:extendedRealValue
