@@ -3121,8 +3121,8 @@ msgid "Algebra"
 msgstr "Algèbre"
 
 msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."
-msgstr "Un math:Module muni d'une multiplication bilinéaire de ses éléments — une structure d'anneau-et-module sur un anneau de base, telle qu'une math:LieAlgebra ou une algèbre de matrices. Une sous-classe de math:Module ; l'espace vectoriel-avec-multiplication qui porte un crochet de Lie dans le vaisseau amiral E8."
+msgid "A math:Module equipped with a bilinear multiplication of its elements over its base ring. The product need not be associative or have an identity unless the selected laws require them: a math:LieAlgebra uses a Lie bracket satisfying the Jacobi identity, whereas a matrix algebra uses matrix multiplication. A subclass of math:Module; the E8 flagship illustrates the Lie-algebra case."
+msgstr "Un math:Module muni d’une multiplication bilinéaire de ses éléments sur son anneau de base. Le produit n’a pas à être associatif ni à posséder un neutre, sauf si les lois choisies l’exigent : une math:LieAlgebra utilise un crochet de Lie satisfaisant l’identité de Jacobi, tandis qu’une algèbre de matrices utilise la multiplication matricielle. Sous-classe de math:Module ; le cas phare E8 illustre celui de l’algèbre de Lie."
 
 msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Algebraic Number"
@@ -7568,3 +7568,219 @@ msgstr "Ne pas substituer un axiome d’associativité ou de commutativité sans
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."
 msgstr "Relier l’anneau au math:Axiom de distributivité par math:satisfiesDistributivity et affirmer aussi math:satisfiesAxiom lorsque le chemin consommateur lit les triplets affirmés. Préserver les deux rôles d’opération, la formule réelle de la loi et ses preuves, ainsi que la distinction entre affirmation et conséquence logique."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Module"
+msgstr "Module algébrique"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An abelian group with a compatible scalar action of a math:Ring — the generalization of a vector space to scalars from a ring rather than a field. A subclass of math:AlgebraicStructure; a math:VectorSpace is a module over a field."
+msgstr "Un groupe abélien muni d’une action scalaire compatible d’un math:Ring — la généralisation d’un espace vectoriel aux scalaires d’un anneau plutôt que d’un corps. Sous-classe de math:AlgebraicStructure ; un math:VectorSpace est un module sur un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A module combines an abelian additive group with a compatible scalar action by a ring. The scalar ring need not be a field, so general module membership does not require a field-valued math:scalarField assertion or vector-space classification."
+msgstr "Un module combine un groupe additif abélien avec une action scalaire compatible d’un anneau. L’anneau de scalaires n’a pas à être un corps ; l’appartenance générale aux modules ne requiert donc ni affirmation math:scalarField à valeur de corps ni classification comme espace vectoriel."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#example"
+msgid "The additive integers can be a module over ℤ. The exa:integerAddition example in algebra-structures.ttl supplies the additive frame; a module description must also retain the scalar action and its compatibility laws rather than infer them from that group label."
+msgstr "Les entiers additifs peuvent former un module sur ℤ. L’exemple exa:integerAddition dans algebra-structures.ttl fournit le cadre additif ; une description de module doit aussi conserver l’action scalaire et ses lois de compatibilité plutôt que les déduire de ce libellé de groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an additive structure has compatible scalars from a ring, including cases where division by arbitrary nonzero scalars is unavailable."
+msgstr "Utiliser lorsqu’une structure additive possède des scalaires compatibles provenant d’un anneau, y compris lorsque la division par des scalaires non nuls quelconques n’est pas disponible."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every module as a vector space, requiring a field for all modules, or inferring a scalar action from the carrier set alone."
+msgstr "Ne pas traiter tout module comme un espace vectoriel, exiger un corps pour tous les modules ou déduire une action scalaire du seul ensemble support."
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited carrier, operations and axiom links, and describe the scalar ring, action and compatibility laws with the existing mathematical definitions and formulas. Keep ring-based module structure explicit without inventing scalar-position predicates or silently replacing the scalar ring with a field."
+msgstr "Conserver les liens hérités de support, d’opérations et d’axiomes, puis décrire l’anneau de scalaires, l’action et les lois de compatibilité avec les définitions et formules mathématiques existantes. Expliciter la structure de module sur un anneau sans inventer de prédicats de position scalaire ni remplacer implicitement l’anneau de scalaires par un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Vector Space"
+msgstr "Espace vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Module whose scalars form a math:Field: an abelian group of vectors with a scalar action satisfying the vector-space axioms. A subclass of math:Module — the setting of linear algebra, on which a math:GroupRepresentation realizes a group as linear maps."
+msgstr "Un math:Module dont les scalaires forment un math:Field : un groupe abélien de vecteurs avec une action scalaire satisfaisant les axiomes d’espace vectoriel. Sous-classe de math:Module — le cadre de l’algèbre linéaire, sur lequel une math:GroupRepresentation réalise un groupe par des applications linéaires."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A vector space specializes a module by using field scalars. Its additive carrier, scalar action and laws remain part of the structure; a coordinate array, vector label or declared dimension alone does not supply that full frame or prove the laws."
+msgstr "Un espace vectoriel spécialise un module en utilisant des scalaires d’un corps. Son support additif, son action scalaire et ses lois restent constitutifs de la structure ; un tableau de coordonnées, un libellé de vecteur ou une dimension déclarée ne fournit pas à lui seul ce cadre complet et ne prouve pas les lois."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:vsaSpace in external-concept-coverage.ttl names a carrier, vector-addition operation and additive-associativity axiom. These explicit frame links retain structure information without by themselves realizing every vector-space law as a formula."
+msgstr "cov:vsaSpace dans external-concept-coverage.ttl nomme un support, une opération d’addition vectorielle et un axiome d’associativité additive. Ces liens explicites de cadre conservent l’information structurelle sans réaliser à eux seuls chaque loi d’espace vectoriel en formule."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the module’s scalar setting is a field and the claimed vector-space structure is justified."
+msgstr "Utiliser lorsque le cadre scalaire du module est un corps et que la structure d’espace vectoriel affirmée est justifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting a general ring module to this class without field scalars, confusing physical units with linear dimension, or treating imported tensor headers as a proof of vector-space axioms."
+msgstr "Ne pas promouvoir un module sur un anneau général dans cette classe sans scalaires d’un corps, confondre unités physiques et dimension linéaire ou traiter des en-têtes de tenseurs importés comme une preuve des axiomes d’espace vectoriel."
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the inherited module frame and the declared field setting, retain the actual scalar-action laws and supporting evidence, and use math:spaceDimension only for the finite linear dimension being asserted. Separate those claims from any importer’s descriptive carrier and named-axiom metadata."
+msgstr "Conserver le cadre de module hérité et le cadre de corps déclaré, préserver les lois réelles d’action scalaire et les preuves qui les étayent, et utiliser math:spaceDimension seulement pour la dimension linéaire finie affirmée. Distinguer ces affirmations des métadonnées descriptives de support et d’axiome nommé d’un importateur."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The extra product is bilinear relative to the module’s scalar action. Associativity and a multiplicative identity depend on the selected algebraic laws; a Lie bracket is not ordinary associative matrix multiplication merely because both are products."
+msgstr "Le produit supplémentaire est bilinéaire relativement à l’action scalaire du module. L’associativité et un neutre multiplicatif dépendent des lois algébriques choisies ; un crochet de Lie n’est pas une multiplication matricielle associative ordinaire au seul motif que tous deux sont des produits."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:E8LieAlgebra in e8-symmetry.ttl illustrates the Lie-algebra setting, whose bracket obeys the Jacobi identity. Matrix algebras instead use matrix multiplication; neither example licenses transferring one product’s laws to the other."
+msgstr "exa:E8LieAlgebra dans e8-symmetry.ttl illustre le cadre d’algèbre de Lie, dont le crochet obéit à l’identité de Jacobi. Les algèbres de matrices utilisent la multiplication matricielle ; aucun de ces exemples n’autorise le transfert des lois d’un produit à l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a module also has an identified bilinear product with its own stated laws."
+msgstr "Utiliser lorsqu’un module possède aussi un produit bilinéaire identifié avec ses propres lois énoncées."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every algebra is an associative unital ring, replacing a Lie bracket by matrix multiplication, or treating an algebra label as an executable product or a proved law."
+msgstr "Ne pas présumer que toute algèbre est un anneau associatif unitaire, remplacer un crochet de Lie par la multiplication matricielle ou traiter un libellé d’algèbre comme un produit exécutable ou une loi prouvée."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the module carrier, scalar setting and action, identify the bilinear product through existing operation and definition vocabulary, and preserve the specific axioms and realized formulas for that product. State associativity, identity or Lie-bracket laws only where justified, without changing the class hierarchy."
+msgstr "Conserver le support du module, son cadre et son action scalaires, identifier le produit bilinéaire par le vocabulaire existant d’opérations et de définitions, et préserver les axiomes spécifiques et les formules réalisées pour ce produit. Énoncer les lois d’associativité, de neutre ou de crochet de Lie seulement lorsqu’elles sont justifiées, sans changer la hiérarchie des classes."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Polynomial Ring"
+msgstr "Anneau de polynômes"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The commutative ring R[x] of polynomials in one or more indeterminates over a base ring R. A subclass of math:CommutativeRing; the ring a math:Ideal is taken in, and the ring a lattice-based homomorphic-encryption scheme and Shamir secret sharing operate over."
+msgstr "L’anneau commutatif R[x] des polynômes en une ou plusieurs indéterminées sur un anneau de base R. Sous-classe de math:CommutativeRing ; l’anneau dans lequel est pris un math:Ideal, et celui sur lequel opèrent un schéma de chiffrement homomorphe fondé sur les réseaux et le partage de secret de Shamir."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class names the polynomial ring itself, with polynomial addition and multiplication over its declared coefficient setting. A quotient such as R[x]/I is a different construction; its origin in a polynomial ring does not make it that same ring or a contained substructure."
+msgstr "Cette classe nomme l’anneau de polynômes lui-même, avec addition et multiplication polynomiales sur son cadre de coefficients déclaré. Un quotient tel que R[x]/I est une construction différente ; son origine dans un anneau de polynômes n’en fait ni ce même anneau ni une sous-structure contenue."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:shamirPolyRing in shamir-secret-sharing.ttl is the polynomial ring over GF(2⁸), with exa:polyAdd and exa:polyMul. The plaintext and ciphertext rings in homomorphic-encryption.ttl are instead typed as math:Quotient and math:CommutativeRing."
+msgstr "exa:shamirPolyRing dans shamir-secret-sharing.ttl est l’anneau de polynômes sur GF(2⁸), avec exa:polyAdd et exa:polyMul. Les anneaux de textes clairs et chiffrés dans homomorphic-encryption.ttl sont en revanche typés math:Quotient et math:CommutativeRing."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the modeled structure is a polynomial ring over a specified coefficient ring, rather than only an individual polynomial or a quotient."
+msgstr "Utiliser lorsque la structure modélisée est un anneau de polynômes sur un anneau de coefficients spécifié, plutôt qu’un simple polynôme individuel ou un quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a quotient as a polynomial ring solely because its representatives are polynomials, confusing the ring with an evaluation function, or omitting its ring operations and laws."
+msgstr "Ne pas typer un quotient comme anneau de polynômes au seul motif que ses représentants sont des polynômes, confondre l’anneau avec une fonction d’évaluation ou omettre ses opérations et lois d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the polynomial carrier, coefficient setting and indeterminates in the existing mathematical description, name the addition and multiplication operations, and keep the inherited ring and distributivity laws. Describe any quotient separately without inventing a quotient-parent field or a containment assertion."
+msgstr "Conserver le support polynomial, le cadre de coefficients et les indéterminées dans la description mathématique existante, nommer les opérations d’addition et de multiplication et garder les lois héritées d’anneau et de distributivité. Décrire tout quotient séparément sans inventer de champ de parent de quotient ni d’affirmation de contenance."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ideal"
+msgstr "Idéal"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A subset of a math:Ring closed under addition and under multiplication by any ring element — the kernel of a ring homomorphism is an ideal, and quotienting a ring by an ideal yields a math:Quotient ring. A subclass of math:AlgebraicStructure, related to its ambient ring through math:substructureOf; the modulus structure a lattice-based encryption scheme reduces against."
+msgstr "Un sous-ensemble d’un math:Ring fermé pour l’addition et pour la multiplication par tout élément de l’anneau — le noyau d’un homomorphisme d’anneaux est un idéal, et le quotient d’un anneau par un idéal est un anneau math:Quotient. Sous-classe de math:AlgebraicStructure, reliée à son anneau ambiant par math:substructureOf ; la structure de réduction modulaire d’un schéma de chiffrement fondé sur les réseaux."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An ideal is interpreted inside an ambient ring, using its induced addition and multiplication absorption laws. It need not contain the ambient multiplicative identity and is not required to have the same class type as the containing ring."
+msgstr "Un idéal s’interprète dans un anneau ambiant, avec l’addition induite et ses lois d’absorption par multiplication. Il n’a pas à contenir le neutre multiplicatif ambiant et n’est pas tenu d’avoir le même type de classe que l’anneau contenant."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#example"
+msgid "The even integers 2ℤ form an ideal in ℤ: addition stays in 2ℤ and multiplication by any integer stays in 2ℤ, although the ambient identity 1 is not in 2ℤ."
+msgstr "Les entiers pairs 2ℤ forment un idéal de ℤ : l’addition reste dans 2ℤ et la multiplication par tout entier reste dans 2ℤ, bien que le neutre ambiant 1 ne soit pas dans 2ℤ."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a ring subset is described with the ideal closure and absorption laws, including a ring-homomorphism kernel or a modulus ideal for a quotient."
+msgstr "Utiliser lorsqu’un sous-ensemble d’anneau est décrit avec les lois de fermeture et d’absorption d’un idéal, y compris un noyau d’homomorphisme d’anneaux ou un idéal définissant la réduction pour un quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring the ambient unit to belong to every ideal, treating an arbitrary subset as an ideal, or identifying the ideal with the quotient formed from it."
+msgstr "Ne pas exiger que le neutre ambiant appartienne à tout idéal, traiter un sous-ensemble quelconque comme un idéal ou identifier l’idéal au quotient construit à partir de lui."
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the ideal’s carrier and operations explicit, connect it to the ambient ring with math:substructureOf when containment and induced-operation compatibility hold, and retain the closure and absorption laws with their formulas and evidence. Describe any resulting quotient separately."
+msgstr "Expliciter le support et les opérations de l’idéal, le relier à l’anneau ambiant par math:substructureOf lorsque la contenance et la compatibilité des opérations induites sont établies, et conserver les lois de fermeture et d’absorption avec leurs formules et leurs preuves. Décrire séparément tout quotient résultant."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "substructure of"
+msgstr "sous-structure de"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an algebraic structure to an ambient algebraic structure whose carrier contains the source carrier, with compatible operations induced on that contained carrier — a subgroup within a group, or an ideal within a ring. This does not require identical class types or identical operation-resource IRIs. Transitive: a subgroup of a subgroup is a subgroup. A homomorphism kernel can be described this way when containment and operation compatibility hold; forming a quotient from a structure does not by itself make the quotient a contained substructure."
+msgstr "Relie une structure algébrique à une structure algébrique ambiante dont le support contient le support source, avec des opérations compatibles induites sur ce support contenu — un sous-groupe dans un groupe, ou un idéal dans un anneau. Cela ne requiert ni types de classe identiques ni IRI identiques pour les ressources d’opération. Transitive : un sous-groupe d’un sous-groupe est un sous-groupe. Un noyau d’homomorphisme peut être décrit ainsi lorsque la contenance et la compatibilité des opérations sont établies ; former un quotient à partir d’une structure n’en fait pas à lui seul une sous-structure contenue."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link concerns carrier containment with compatible induced operations, not equality of structure labels or operation-resource IRIs. Different class types can participate, such as an ideal and its ambient ring; a quotient construction alone establishes no such containment."
+msgstr "Le lien porte sur la contenance des supports avec des opérations induites compatibles, et non sur l’égalité des libellés de structure ou des IRI de ressources d’opération. Des types de classe différents peuvent y participer, tels qu’un idéal et son anneau ambiant ; une construction de quotient seule n’établit pas cette contenance."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-homomorphisms.ttl, the special linear subgroup exa:SL2R lies within exa:GL2R, while exa:GL2modSL2 has a coset carrier. Forming that quotient does not assert that its cosets are a contained substructure of exa:GL2R."
+msgstr "Dans algebra-homomorphisms.ttl, le sous-groupe spécial linéaire exa:SL2R se trouve dans exa:GL2R, tandis que exa:GL2modSL2 a un support de classes latérales. Former ce quotient n’affirme pas que ses classes latérales sont une sous-structure contenue dans exa:GL2R."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source structure’s carrier is contained in the target carrier and its operations agree with the compatible operations induced there."
+msgstr "Utiliser lorsque le support de la structure source est contenu dans le support cible et que ses opérations s’accordent avec les opérations compatibles qui y sont induites."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring containment from a quotient’s origin, requiring identical structure classes or operation IRIs, or using the link solely for an isomorphic copy without an established containment."
+msgstr "Ne pas déduire la contenance de l’origine d’un quotient, exiger des classes de structure ou IRI d’opération identiques, ou employer le lien pour une simple copie isomorphe sans contenance établie."
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the contained structure to the ambient structure, retain both carriers and the evidence of induced-operation compatibility, and preserve the existing transitive meaning. Keep quotient and isomorphism descriptions separate from a containment claim, using no new parent or operation-position fields."
+msgstr "Faire pointer la structure contenue vers la structure ambiante, conserver les deux supports et les preuves de compatibilité des opérations induites, et préserver le sens transitif existant. Distinguer les descriptions de quotient et d’isomorphisme d’une affirmation de contenance, sans nouveaux champs de parent ou de position d’opération."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "field of scalars"
+msgstr "corps des scalaires"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "Relie un espace, module ou algèbre au corps de scalaires déclaré pour ses opérations."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records an explicitly declared scalar setting; it is distinct from the function class math:ScalarField. Current Clifford examples target math:realNumbers, so its use does not impose a global math:Field target type. General modules still admit ring scalars rather than requiring a field."
+msgstr "Cette relation consigne un cadre scalaire explicitement déclaré ; elle se distingue de la classe de fonctions math:ScalarField. Les exemples actuels de Clifford ciblent math:realNumbers ; son usage n’impose donc pas globalement le type cible math:Field. Les modules généraux admettent toujours des scalaires d’un anneau plutôt que d’exiger un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:cl120 and cov:cl130 in external-concept-coverage.ttl both name math:realNumbers through math:scalarField. That declared scalar setting is separate from their carrier, product and linear dimension."
+msgstr "cov:cl120 et cov:cl130 dans external-concept-coverage.ttl nomment tous deux math:realNumbers par math:scalarField. Ce cadre scalaire déclaré est distinct de leur support, produit et dimension linéaire."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space or algebra description needs to name its explicitly chosen scalar setting through the existing relation."
+msgstr "Utiliser lorsqu’une description d’espace ou d’algèbre doit nommer son cadre scalaire explicitement choisi par la relation existante."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing math:scalarField with math:ScalarField, using a scalar-valued function in place of the intended scalar setting, or requiring every module to use field scalars."
+msgstr "Ne pas confondre math:scalarField avec math:ScalarField, employer une fonction à valeurs scalaires à la place du cadre scalaire voulu ou exiger que tout module utilise des scalaires d’un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the modeled space or algebra to its declared scalar setting, following existing uses such as math:realNumbers, and retain its carrier, operations and scalar-action laws separately. Do not turn this descriptive relation into a universal target-type rule, a mandatory field for ring modules or an automatic evaluator."
+msgstr "Relier l’espace ou l’algèbre modélisé à son cadre scalaire déclaré, en suivant les usages existants tels que math:realNumbers, et conserver séparément son support, ses opérations et ses lois d’action scalaire. Ne pas transformer cette relation descriptive en règle universelle de type cible, en corps obligatoire pour les modules sur anneau ou en évaluateur automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "space dimension"
+msgstr "dimension de l'espace"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "La dimension vectorielle entière non négative d'un espace de coordonnées, espace tangent, support algébrique ou autre objet linéaire ; elle est distincte de la dimension physique math:hasDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a finite nonnegative integer linear dimension for an explicitly linear object. It is separate from physical math:hasDimension and from the local manifold dimension math:manifoldDimension; matching dimensions alone do not identify spaces or establish their algebraic laws."
+msgstr "Il s’agit d’une dimension linéaire entière finie non négative pour un objet explicitement linéaire. Elle est distincte de la dimension physique math:hasDimension et de la dimension locale de variété math:manifoldDimension ; des dimensions égales n’identifient pas à elles seules les espaces et n’établissent pas leurs lois algébriques."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Clifford examples cov:cl120 and cov:cl130 in external-concept-coverage.ttl carry math:spaceDimension values 4096 and 8192 respectively, the carrier dimensions 2^(p+q), rather than the signature entries p and q themselves."
+msgstr "Les exemples de Clifford cov:cl120 et cov:cl130 dans external-concept-coverage.ttl portent respectivement les valeurs math:spaceDimension 4096 et 8192, dimensions des supports 2^(p+q), plutôt que les entrées p et q de signature elles-mêmes."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the finite linear dimension of a coordinate space, tangent space, algebra carrier or other explicitly linear object must be recorded."
+msgstr "Utiliser lorsque la dimension linéaire finie d’un espace de coordonnées, d’un espace tangent, d’un support algébrique ou d’un autre objet explicitement linéaire doit être consignée."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an SI dimension, copying manifoldDimension onto an unrelated object, treating a dimension count as tensor evaluation or law proof, or converting absent importer metadata into an asserted zero-dimensional space."
+msgstr "Ne pas substituer une dimension SI, copier manifoldDimension sur un objet sans rapport, traiter un compte de dimension comme une évaluation de tenseur ou une preuve de loi, ou convertir des métadonnées d’importateur absentes en affirmation d’espace de dimension zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the nonnegative integer on the identified linear object and preserve the meaning of the counted degrees of freedom. The ONNX importer sums initializer element counts from tensor headers for math:ParameterSpace; that shape metadata neither reads computed tensor values nor supplies a formula or proof of the named vector-space axioms."
+msgstr "Déclarer l’entier non négatif sur l’objet linéaire identifié et préserver le sens des degrés de liberté comptés. L’importateur ONNX additionne les nombres d’éléments des initialisateurs à partir des en-têtes de tenseurs pour math:ParameterSpace ; ces métadonnées de forme ne lisent pas de valeurs de tenseurs calculées et ne fournissent ni formule ni preuve des axiomes d’espace vectoriel nommés."
