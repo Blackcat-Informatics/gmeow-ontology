@@ -3,7 +3,7 @@
 #
 # Counter-example for math:RingDistributivityShape: a math:Ring that declares its carrier,
 # both operations, and an axiom, but omits math:satisfiesDistributivity (sh:minCount 1) —
-# two operations with no law tying them together are two unrelated groups, not a ring. It
+# the specific law declaration tying multiplication and addition together is missing. It
 # satisfies math:AlgebraicStructureShape (carrier + operation + an axiom), so validation
 # MUST emit shacl.MinCountConstraintComponent and no other finding (math:NonDistributiveRing).
 # Bound by tests/example-conformance.ttl (ex:ecRingMissingDistributivity).
