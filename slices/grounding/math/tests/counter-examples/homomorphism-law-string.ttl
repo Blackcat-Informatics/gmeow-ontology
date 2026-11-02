@@ -4,7 +4,8 @@
 # Counter-example for math:PreservationLawShape: a math:GroupHomomorphism whose
 # math:preservationLaw is given as an opaque string literal instead of a resource
 # denoting a logic: formula (sh:nodeKind sh:BlankNodeOrIRI), so validation MUST emit
-# shacl.NodeKindConstraintComponent (and no other finding).
+# shacl.NodeKindConstraintComponent. Other gates may also report findings; the conformance
+# cell pins the shared component code without claiming failure-class isolation.
 # Bound by tests/example-conformance.ttl (ex:ecHomomorphismLawString).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
