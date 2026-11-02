@@ -4380,3 +4380,367 @@ msgstr "不要向普通 math:Number 或命名数学常数添加此属性，不�
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the typed numeric literal to the appropriate existing carrier. For math:FiniteSet retain math:hasCardinality math:cardinalityFinite and carry its exact non-negative integer count directly. For math:Quantity retain math:hasDimension and the applicable unit or frame; for math:ApproximateValue also retain math:approximates, math:numericDatatype and math:approximationError."
 msgstr "将带数据类型的数值字面量附加到适当的已有载体。对于 math:FiniteSet，保留 math:hasCardinality math:cardinalityFinite，并直接承载其精确的非负整数元素个数。对于 math:Quantity，保留 math:hasDimension 及适用单位或框架；对于 math:ApproximateValue，还应保留 math:approximates、math:numericDatatype 及 math:approximationError。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set"
+msgstr "集合"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical set: a collection of distinct elements, given either extensionally (its members enumerated through math:hasElement — see math:FiniteSet) or intensionally (a defining condition through math:memberCondition — see math:SetBuilderExpression). A set is extensional or intensional, not silently both without a declared equality. Anchored externally to the OpenMath set1 content dictionary. The object-layer parent the bedrock builds on."
+msgstr "数学集合：由互异元素构成的聚集，可以外延方式给出（通过 math:hasElement 枚举成员，参见 math:FiniteSet），也可以内涵方式给出（通过 math:memberCondition 指定定义条件，参见 math:SetBuilderExpression）。集合采用外延或内涵表示，在没有明确等式声明时，不应默默兼用两者。其外部锚点为 OpenMath set1 内容字典。它是基础层所依托的对象层父类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A set collects distinct mathematical elements without assigning them a sequence order. Extensional enumeration and intensional definition are different descriptions; placing both on one resource requires an explicitly declared equality."
+msgstr "集合汇集互异的数学元素，而不为其指定序列顺序。外延枚举与内涵定义是不同的描述方式；若两者都放在同一资源上，必须显式声明等式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#example"
+msgid "The collection of the identified numbers two, three, five and seven can be a math:FiniteSet with four math:hasElement resource links; its label {2, 3, 5, 7} alone does not enumerate those members."
+msgstr "由有标识的数二、三、五、七构成的聚集可以是 math:FiniteSet，并具有四条指向资源的 math:hasElement 链接；仅有标签 {2, 3, 5, 7} 并未枚举这些成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical collection needs its own identity and a stated extent or defining condition, independently of how it is rendered."
+msgstr "当数学聚集需要独立标识及明确的外延或定义条件，而不依赖显示形式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a list with repeated positions as a set, inferring an empty set from missing triples, or mixing enumeration and a defining condition without the required equality."
+msgstr "不要将具有重复位置的列表当作集合，不要从三元组缺失推断集合为空，也不要在缺少所需等式时混合枚举与定义条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:FiniteSet with math:hasElement for an extensional resource-member enumeration, or math:SetBuilderExpression with math:memberCondition for an intensional definition. Keep the set resource separate from its notation and from operations constructing it."
+msgstr "对于以资源为成员的外延枚举，选择 math:FiniteSet 和 math:hasElement；对于内涵定义，选择 math:SetBuilderExpression 和 math:memberCondition。集合资源应与其记法及构造它的运算分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Finite Set"
+msgstr "有限集"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set given extensionally by enumerating its finitely many elements through math:hasElement. Its cardinality (math:hasCardinality) is a finite math:Cardinality. The extensional counterpart of the intensional math:SetBuilderExpression."
+msgstr "通过 math:hasElement 枚举有限个元素而以外延方式给出的集合。其基数（math:hasCardinality）为有限的 math:Cardinality。它是内涵式 math:SetBuilderExpression 的外延对应形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class is the extensional finite-set description. Members are resources linked by math:hasElement; an exact count can be carried directly on the set with math:quantityValue alongside math:hasCardinality math:cardinalityFinite."
+msgstr "此类以外延方式描述有限集。成员是通过 math:hasElement 连接的资源；精确元素个数可以用 math:quantityValue 直接记录在集合上，并同时记录 math:hasCardinality math:cardinalityFinite。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing four-prime set enumerates the resources for 2, 3, 5 and 7, states math:hasCardinality math:cardinalityFinite, and carries math:quantityValue 4 on the set itself."
+msgstr "已有的四个素数组成的集合枚举表示 2、3、5、7 的资源，声明 math:hasCardinality math:cardinalityFinite，并在集合自身上承载 math:quantityValue 4。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a finite mathematical collection whose members are explicitly enumerated as identified objects."
+msgstr "用于成员被显式枚举为有标识对象的有限数学聚集。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting raw numeric literals in math:hasElement, confusing repeated assertions with extra members, or storing a set-specific exact count on the shared math:cardinalityFinite marker."
+msgstr "不要在 math:hasElement 中放入原始数值字面量，不要将重复断言算作额外成员，也不要将某一集合的精确元素个数存放在共享标记 math:cardinalityFinite 上。"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the collection as math:FiniteSet, enumerate its member resources with math:hasElement, and state math:hasCardinality math:cardinalityFinite. When recording the exact count, attach the non-negative integer math:quantityValue to this set and justify it from distinct members."
+msgstr "将聚集定为 math:FiniteSet，用 math:hasElement 枚举成员资源，并声明 math:hasCardinality math:cardinalityFinite。记录精确元素个数时，将非负整数 math:quantityValue 附加到此集合上，并以互异成员为依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set-Builder Expression"
+msgstr "集合构造表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set given intensionally by a defining condition — the { x | φ(x) } form. Its condition is named through math:memberCondition and denotes a logic: formula, the denotation seam, never an opaque string. The intensional counterpart of the extensional math:FiniteSet."
+msgstr "通过定义条件以内涵方式给出的集合，即 { x | φ(x) } 形式。其条件由 math:memberCondition 指定，并在指称衔接处表示 logic: 公式，而非不透明字符串。它是外延式 math:FiniteSet 的内涵对应形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class defines membership intensionally by a condition, even when the described set happens to be finite. math:memberCondition targets a realized logic:Formula tree; a condition’s label is not the condition’s executable structure."
+msgstr "此类通过条件以内涵方式定义成员资格，即使所描述的集合恰好有限也是如此。math:memberCondition 指向已实现的 logic:Formula 树；条件的标签并非其可执行结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The even-number set {x | x mod 2 = 0} uses math:memberCondition to reference a logic:Formula expressing divisibility by two, rather than storing that displayed condition as a string."
+msgstr "偶数集 {x | x mod 2 = 0} 使用 math:memberCondition 引用表达可被二整除的 logic:Formula，而非把显示的条件存储为字符串。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when membership is specified by a mathematical predicate instead of an explicit enumeration of all members."
+msgstr "当成员资格由数学谓词指定，而非通过逐一枚举所有成员给出时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the formula with opaque prose, pointing only to a label-only formula shell, or treating a few witnessed members as the complete defining condition."
+msgstr "不要以不透明文字替代公式，不要只指向仅有标签的公式空壳，也不要把少量已知成员当作完整定义条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create the math:SetBuilderExpression and link math:memberCondition to the structured logic:Formula that gives its membership predicate and variable scope. Keep illustrative members separate from the defining condition unless an explicit equality justifies combining the two descriptions."
+msgstr "创建 math:SetBuilderExpression，并用 math:memberCondition 连接给出成员谓词及变量作用域的结构化 logic:Formula。示例成员应与定义条件分开，除非显式等式为合并两种描述提供依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Membership"
+msgstr "成员关系"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified membership fact: that a particular element belongs to a particular set (x ∈ S). Reifying membership lets a claim of membership carry its own provenance or justification, distinct from the bare math:hasElement edge on an extensional set."
+msgstr "经过实化的成员关系事实：某个特定元素属于某个特定集合（x ∈ S）。实化使成员关系声明能够承载自身的出处或依据，有别于外延集合上的普通 math:hasElement 边。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class identifies a membership fact as an object that can carry provenance. Its declaration alone supplies no member or set endpoint predicates and does not make an unconnected record a supported membership assertion."
+msgstr "此类将成员关系事实标识为可承载出处的对象。仅有类声明并未提供指定成员或集合端点的谓词，也不会使未连接的记录成为有依据的成员关系断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the claim that the identified number two belongs to a prime set, a math:Membership resource names the claim, while the extensional statement still runs from the set through math:hasElement to the number resource."
+msgstr "对于有标识的数二属于某个素数集的声明，math:Membership 资源命名该声明，而外延断言仍由集合通过 math:hasElement 指向数资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual membership fact needs its own identity for attribution, evidence or justification beyond a bare extensional edge."
+msgstr "当单个成员关系事实需要独立标识，以承载普通外延边之外的归属、证据或依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing endpoint properties on math:Membership, treating its type alone as proof of membership, or confusing x ∈ S with the subset relation A ⊆ S."
+msgstr "不要为 math:Membership 臆造端点属性，不要将其类型本身视为成员资格的证明，也不要将 x ∈ S 与子集关系 A ⊆ S 混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the membership fact a resource identity and type it math:Membership when that record is needed. Preserve the actual set-to-member math:hasElement statement and use native statement metadata for its provenance; the class does not itself encode the two endpoints."
+msgstr "需要该记录时，为成员关系事实赋予资源标识并将其定为 math:Membership。保留实际的集合到成员的 math:hasElement 断言，并用原生断言元数据记录其出处；此类本身并不编码两个端点。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set Operation"
+msgstr "集合运算"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient space through math:ambientSpace and its complement-semantics through math:complementSemantics; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."
+msgstr "从运算对象集合构造集合的运算，包括并、交、差或补。运算对象由 math:setOperationOn 指定。补集构造是专门的子类 math:Complement，它还通过 math:ambientSpace 指定环境空间，通过 math:complementSemantics 指定补的语义；未作限定的补不合规范。math:PowerSet 和 math:CartesianProduct 是各有专属类的构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A math:SetOperation identifies the construction from operand sets, rather than merely the resulting extent. math:setOperationOn names inputs but does not select union, intersection or difference, and does not encode operand order."
+msgstr "math:SetOperation 标识从运算对象集合进行的构造，而不仅是结果外延。math:setOperationOn 指定输入，但不选择并、交或差运算，也不编码运算对象顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A proposed construction A ∪ B can be a math:SetOperation with math:setOperationOn links to A and B; those same operand links alone would not distinguish it from A ∩ B."
+msgstr "拟表达的构造 A ∪ B 可以是 math:SetOperation，并通过 math:setOperationOn 链接 A 和 B；仅有这些运算对象链接并不能将它与 A ∩ B 区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the identity of a set construction and the sets it depends on must remain explicit, separately from a description of its result."
+msgstr "当集合构造的标识及其依赖的集合需要明确保留，并与结果描述分开时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an operator from operand count, treating triple order as argument order, or claiming that this class and operand links alone compute or identify the result set."
+msgstr "不要从运算对象数量推断运算符，不要将三元组顺序视为参数顺序，也不要声称仅凭此类及运算对象链接即可计算或标识结果集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the construction math:SetOperation and name its input sets with math:setOperationOn. Preserve any required operator meaning in the mathematical expression representation; keep the constructed set distinct from the construction record rather than inventing a result slot here."
+msgstr "将构造定为 math:SetOperation，并用 math:setOperationOn 指定输入集合。在数学表达式表示中保留所需的运算符含义；应将构造出的集合与构造记录分开，而不是在此臆造结果槽位。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Power Set"
+msgstr "幂集"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The power set 𝒫(S): the set of all subsets of a base set, named through math:setOperationOn. Itself a set, so a subclass of math:Set. For a finite base of cardinality n its cardinality is 2ⁿ."
+msgstr "幂集 𝒫(S)：某个基集的所有子集构成的集合，基集由 math:setOperationOn 指定。它本身也是集合，因此是 math:Set 的子类。若基集有限且基数为 n，则其幂集的基数为 2ⁿ。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The members of 𝒫(S) are subsets of S, including the empty set and S itself. The math:PowerSet resource is itself a set; its math:setOperationOn link names the base, not one of the power set’s members by that relation alone."
+msgstr "𝒫(S) 的成员是 S 的子集，包括空集及 S 自身。math:PowerSet 资源本身就是集合；其 math:setOperationOn 链接指定基集，单凭该关系并未断言幂集成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "If S has the two distinct resource members a and b, 𝒫(S) has four mathematical members: ∅, {a}, {b} and {a, b}. A math:PowerSet resource points to S through math:setOperationOn."
+msgstr "若 S 有两个互异的资源成员 a 和 b，则 𝒫(S) 有四个数学成员：∅、{a}、{b} 及 {a, b}。math:PowerSet 资源通过 math:setOperationOn 指向 S。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the set of all subsets of an identified base set must be represented as a mathematical object."
+msgstr "当需要将有标识基集的所有子集构成的集合表示为数学对象时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing a selected subset with the full power set, linking to the base through math:hasElement as a substitute for math:setOperationOn, or assuming the declaration generates all subsets."
+msgstr "不要将选定的一个子集与完整幂集混淆，不要用指向基集的 math:hasElement 替代 math:setOperationOn，也不要假定此声明会生成所有子集。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resulting mathematical set math:PowerSet and point math:setOperationOn to its base set. If members are explicitly represented, use set resources for those subsets and justify their membership separately; the base link alone is not an enumeration."
+msgstr "将所得数学集合定为 math:PowerSet，并使 math:setOperationOn 指向其基集。若显式表示成员，应以集合资源表示这些子集，并单独说明成员资格依据；仅有基集链接并不构成枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cartesian Product"
+msgstr "笛卡尔积"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Cartesian product A × B: the set of ordered pairs drawn from operand sets named through math:setOperationOn. Itself a set, so a subclass of math:Set. A math:Relation is a subset of a Cartesian product."
+msgstr "笛卡尔积 A × B：从 math:setOperationOn 所指定的运算对象集合中取元素组成的有序对集合。它本身也是集合，因此是 math:Set 的子类。math:Relation 是笛卡尔积的子集。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A Cartesian product is a set of ordered pairs, but its plain math:setOperationOn edges are unordered operand links. They do not distinguish the first factor from the second or retain repeated-factor multiplicity."
+msgstr "笛卡尔积是有序对的集合，但普通的 math:setOperationOn 边是无序的运算对象链接。它们既不能区分第一因子与第二因子，也不能保留重复因子的重数。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = {a} and B = {b}, A × B contains (a, b), whereas B × A contains (b, a). Both constructions can have the same plain math:setOperationOn links to A and B, so those links alone do not preserve coordinate order."
+msgstr "对于 A = {a} 及 B = {b}，A × B 包含 (a, b)，B × A 则包含 (b, a)。两个构造都可以具有相同的、指向 A 和 B 的普通 math:setOperationOn 链接，因此单凭这些链接无法保留坐标顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the mathematical set of pairs drawn from factor sets, including a product serving as the ambient set for a relation."
+msgstr "用于从因子集合取元素组成的数学有序对集合，包括用作关系所在环境集合的积。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating factor sets as product members, claiming operand triple order defines pair coordinates, or treating A × A as two distinguishable operands after duplicate RDF edges collapse."
+msgstr "不要将因子集合当作积的成员，不要声称运算对象三元组的顺序定义有序对坐标，也不要在重复 RDF 边合并后仍把 A × A 视为两个可区分的运算对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the product resource math:CartesianProduct and name its factor sets with math:setOperationOn. Keep any required factor order and repetition in an explicitly ordered mathematical expression representation; the plain operand links do not provide that structure."
+msgstr "将积资源定为 math:CartesianProduct，并用 math:setOperationOn 指定因子集合。在显式有序的数学表达式表示中保留所需的因子顺序及重复信息；普通运算对象链接并不提供该结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cardinality"
+msgstr "基数"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The size of a set: a finite count, ℵ₀ (countably infinite), 𝔠 (the cardinality of the continuum), or a larger cardinal. A set names its size through math:hasCardinality. The individual math:cardinalityFinite indicates finiteness; math:alephNull and math:continuum name the two distinguished infinite cardinalities."
+msgstr "集合的大小：有限元素个数、ℵ₀（可数无穷）、𝔠（连续统基数）或更大的基数。集合通过 math:hasCardinality 指定其大小。个体 math:cardinalityFinite 表示有限性；math:alephNull 和 math:continuum 表示两个特指的无穷基数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Cardinality describes size, independently of a set’s member ordering or notation. math:cardinalityFinite marks finiteness without fixing one exact count; math:alephNull and math:continuum identify particular infinite cardinalities."
+msgstr "基数描述大小，不依赖集合成员的排列或记法。math:cardinalityFinite 标记有限性，而不固定某个精确元素个数；math:alephNull 和 math:continuum 标识特定的无穷基数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#example"
+msgid "A four-member math:FiniteSet can name math:cardinalityFinite through math:hasCardinality and carry math:quantityValue 4 itself. A countably infinite set instead names math:alephNull."
+msgstr "四成员 math:FiniteSet 可以通过 math:hasCardinality 指定 math:cardinalityFinite，并在自身上承载 math:quantityValue 4。可数无穷集合则指定 math:alephNull。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s finite or infinite size must be represented explicitly rather than inferred from a label or partial enumeration."
+msgstr "当需要显式表示集合的有限或无穷大小，而非从标签或局部枚举推断时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling math:cardinalityFinite an infinite cardinal, storing one set’s exact count on that shared marker, or equating equal cardinality with equality of sets."
+msgstr "不要将 math:cardinalityFinite 称为无穷基数，不要将某个集合的精确元素个数存储在该共享标记上，也不要将等势视为集合相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from the set to the appropriate math:Cardinality individual. For a finite set, use math:cardinalityFinite and retain any exact math:quantityValue count directly on the set; use the distinguished infinite individuals only when their sizes are justified."
+msgstr "使 math:hasCardinality 从集合指向适当的 math:Cardinality 个体。对于有限集，使用 math:cardinalityFinite，并将精确的 math:quantityValue 元素个数直接保留在集合上；仅在大小有依据时使用特指的无穷个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has element"
+msgstr "具有元素"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical extensional membership carrier: relates a set to one of its enumerated members (x ∈ S). Domain math:Set, range any math:MathematicalObject (stated in prose). A math:FiniteSet is given extensionally by its math:hasElement edges."
+msgstr "外延成员关系的规范载体：将集合连接到某个已枚举成员（x ∈ S）。定义域为 math:Set，值域为任意 math:MathematicalObject（以文字说明）。math:FiniteSet 通过其 math:hasElement 边以外延方式给出。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from the set to an enumerated member resource. As a logic:ObjectProperty it does not take a raw numeric or text literal; a member that is itself a set is still an element, not automatically a subset assertion."
+msgstr "此边从集合指向某个已枚举的成员资源。由于它是 logic:ObjectProperty，不能以原始数值或文本字面量为宾语；若成员自身是集合，它仍表示元素，而非自动构成子集断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the identified number two and a finite prime set, assert the set math:hasElement the number resource. The numeric literal 2 is not the object of this membership edge."
+msgstr "对于有标识的数二和某个有限素数集，应断言该集合通过 math:hasElement 指向数资源。数值字面量 2 不是此成员关系边的宾语。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enumerate identified mathematical objects as members of an extensional set."
+msgstr "用于将有标识的数学对象枚举为外延集合的成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, substituting math:subsetOf for element membership, using literal objects, or interpreting duplicate edges as multiple copies of an element."
+msgstr "不要反转此边，不要用 math:subsetOf 替代元素成员关系，不要使用字面量宾语，也不要将重复边解释为同一元素的多个副本。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the set as subject and the member’s mathematical resource as object of math:hasElement. Keep the member’s own value description on that resource and record finite-set counts separately with math:quantityValue on the set."
+msgstr "将集合作为 math:hasElement 的主语，将成员的数学资源作为宾语。成员自身的值描述应保留在该资源上，有限集的元素个数则用集合上的 math:quantityValue 另行记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "member condition"
+msgstr "成员条件"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the defining condition of an intensional set — the φ in { x | φ(x) }. Domain math:Set (in practice a math:SetBuilderExpression), range a logic: formula (stated in prose). The value denotes a logic: formula, the denotation seam, and is never an opaque literal."
+msgstr "指定内涵集合的定义条件，即 { x | φ(x) } 中的 φ。定义域为 math:Set（实际使用中为 math:SetBuilderExpression），值域为 logic: 公式（以文字说明）。该值在指称衔接处表示 logic: 公式，绝非不透明字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link runs from the intensionally described set to a logic:Formula giving its membership predicate. The formula’s realized structure and variable binding matter; neither a text label nor a bare formula type supplies that condition."
+msgstr "此链接从以内涵方式描述的集合指向给出其成员谓词的 logic:Formula。公式的已实现结构及变量绑定至关重要；文本标签或单独的公式类型均未提供该条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "An even-number math:SetBuilderExpression can use math:memberCondition to name a structured logic:Formula for x mod 2 = 0, with the intended variable scope represented in the formula."
+msgstr "表示偶数的 math:SetBuilderExpression 可以使用 math:memberCondition 指定 x mod 2 = 0 的结构化 logic:Formula，并在公式中表示所需的变量作用域。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s membership criterion must be machine-readable as a logical condition rather than stored only as display notation."
+msgstr "当集合的成员判据需要以机器可读逻辑条件给出，而非仅存为显示记法时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an opaque string, a formula node containing only a label, a relation to an example member, or a condition whose free variables have no declared interpretation."
+msgstr "不要使用不透明字符串、仅含标签的公式节点、指向示例成员的关系，或自由变量缺少明确解释的条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Build the condition with the existing logic:Formula AST and connect its root from the set by math:memberCondition. Keep labels and rendered notation as annotations, and do not add extensional member edges to that set without the required equality declaration."
+msgstr "用现有 logic:Formula AST 构建条件，并通过 math:memberCondition 从集合连接其根节点。标签及显示记法应保留为注解；没有所需的等式声明时，不要向该集合添加外延成员边。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subset of"
+msgstr "是……的子集"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a set to a set that contains all of its elements (A ⊆ B). Domain and range math:Set (stated in prose). Transitive: A ⊆ B and B ⊆ C entail A ⊆ C. Reflexivity and antisymmetry hold mathematically but are documented in prose, not asserted as OWL characteristics, to keep the term profile-clean."
+msgstr "将集合连接到包含其全部元素的集合（A ⊆ B）。定义域和值域均为 math:Set（以文字说明）。此关系具有传递性：A ⊆ B 且 B ⊆ C 蕴涵 A ⊆ C。自反性及反对称性在数学上成立，但仅以文字说明，而不声明为 OWL 特征，以保持该词条符合配置。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject set is contained in the object set, with equality allowed. This is set inclusion rather than element membership; the declared transitive characteristic does not by itself assert every reflexive or antisymmetric consequence."
+msgstr "主语集合包含于宾语集合中，允许两者相等。此关系表示集合包含，而非元素成员资格；已声明的传递性本身并未断言所有自反或反对称推论。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "If A = {2, 3} and B = {2, 3, 5}, A math:subsetOf B expresses inclusion. B math:hasElement A would instead assert that the set A is one member of B, a different claim."
+msgstr "若 A = {2, 3}，B = {2, 3, 5}，则 A math:subsetOf B 表达包含关系。B math:hasElement A 则会声明集合 A 是 B 的一个成员，这是不同的声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record that every element of one identified set belongs to another identified set, including a non-strict inclusion."
+msgstr "用于记录某个有标识集合的每个元素都属于另一个有标识集合，包括非严格包含。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this property for x ∈ S, inferring a proper subset from it, or deriving set equality merely from equal counts."
+msgstr "不要用此属性表达 x ∈ S，不要据此推断真子集关系，也不要仅凭元素个数相等推断集合相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:subsetOf from the contained set to the containing set. Preserve intermediate links when recording a transitive chain, and keep element assertions on math:hasElement instead of mixing the two relations."
+msgstr "使 math:subsetOf 从被包含集合指向包含它的集合。记录传递链时保留中间链接，并用 math:hasElement 表达元素断言，不要混用两种关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "set operation on"
+msgstr "集合运算作用于"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."
+msgstr "将集合构造（math:SetOperation、math:PowerSet 或 math:CartesianProduct）连接到用于构建它的运算对象集合。定义域为 math:SetOperation 或其同级类，值域为 math:Set（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is a set construction and the object is an input set. These plain operand links carry no operator selector, positional index, multiplicity or result designation, even when the construction is itself a set."
+msgstr "主语是集合构造，宾语是输入集合。这些普通运算对象链接不承载运算符选择、位置索引、重数或结果指定，即使构造自身也是集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:PowerSet resource uses math:setOperationOn to point to its base S; a math:CartesianProduct resource can point to factor sets A and B through the same property without recording their order."
+msgstr "math:PowerSet 资源用 math:setOperationOn 指向基集 S；math:CartesianProduct 资源可以通过同一属性指向因子集合 A 和 B，而不记录它们的顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which existing sets are operands of a declared set construction."
+msgstr "用于保留某个已声明集合构造以哪些已有集合为运算对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the operand link, pointing to a member or numeric literal instead of a set, or interpreting repeated identical edges as distinct argument positions."
+msgstr "不要反转运算对象链接，不要指向成员或数值字面量来替代集合，也不要将重复的相同边解释为不同参数位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the math:SetOperation, math:PowerSet or math:CartesianProduct resource as subject and each operand math:Set as object. Preserve operator meaning and any needed order in the mathematical expression representation; do not claim those details from the operand links alone."
+msgstr "将 math:SetOperation、math:PowerSet 或 math:CartesianProduct 资源作为主语，将每个运算对象 math:Set 作为宾语。在数学表达式表示中保留运算符含义及所需顺序；不要仅从运算对象链接推断这些细节。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has cardinality"
+msgstr "具有基数"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the size of a set. Domain math:Set, range math:Cardinality (stated in prose). A finite set names math:cardinalityFinite and may additionally carry its exact count as a math:quantityValue."
+msgstr "指定集合的大小。定义域为 math:Set，值域为 math:Cardinality（以文字说明）。有限集指定 math:cardinalityFinite，还可以通过 math:quantityValue 承载其精确元素个数。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from a set to a cardinality individual. math:cardinalityFinite is a shared finiteness marker, while math:alephNull and math:continuum denote particular infinite sizes; an exact finite count can remain directly on the set."
+msgstr "此边从集合指向基数个体。math:cardinalityFinite 是共享的有限性标记，math:alephNull 及 math:continuum 则表示特定无穷大小；有限集合的精确元素个数可以直接保留在集合上。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#example"
+msgid "The four-prime math:FiniteSet states math:hasCardinality math:cardinalityFinite and math:quantityValue 4 on the same set resource. The marker does not acquire math:quantityValue 4."
+msgstr "四个素数组成的 math:FiniteSet 在同一集合资源上声明 math:hasCardinality math:cardinalityFinite 和 math:quantityValue 4。该标记并不会获得 math:quantityValue 4。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical set must name its finite size category or a justified infinite cardinality as an identified object."
+msgstr "当数学集合需要以有标识对象指定其有限大小类别，或有依据的无穷基数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a numeric literal as this object, reversing the set-to-cardinality direction, or inferring the exact size of every finite set from the common math:cardinalityFinite marker."
+msgstr "不要以数值字面量作为此属性的宾语，不要反转集合到基数的方向，也不要从共用的 math:cardinalityFinite 标记推断每个有限集的精确大小。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the appropriate math:Cardinality individual as the object of math:hasCardinality on the set. For an extensional math:FiniteSet use math:cardinalityFinite, and attach any justified exact math:quantityValue count to that set resource rather than to the shared marker."
+msgstr "在集合上选择适当的 math:Cardinality 个体作为 math:hasCardinality 的宾语。对于外延式 math:FiniteSet，使用 math:cardinalityFinite，并将有依据的精确 math:quantityValue 元素个数附加到该集合资源，而不是共享标记上。"

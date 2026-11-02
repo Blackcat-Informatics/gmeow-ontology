@@ -4380,3 +4380,367 @@ msgstr "Ne pas ajouter cette propriété à un simple math:Number ou à une cons
 msgctxt "https://blackcatinformatics.ca/math/quantityValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the typed numeric literal to the appropriate existing carrier. For math:FiniteSet retain math:hasCardinality math:cardinalityFinite and carry its exact non-negative integer count directly. For math:Quantity retain math:hasDimension and the applicable unit or frame; for math:ApproximateValue also retain math:approximates, math:numericDatatype and math:approximationError."
 msgstr "Attacher le littéral numérique typé au porteur existant approprié. Pour math:FiniteSet, conserver math:hasCardinality math:cardinalityFinite et porter directement son effectif entier exact non négatif. Pour math:Quantity, conserver math:hasDimension et l’unité ou le cadre applicable ; pour math:ApproximateValue, conserver aussi math:approximates, math:numericDatatype et math:approximationError."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set"
+msgstr "Ensemble"
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical set: a collection of distinct elements, given either extensionally (its members enumerated through math:hasElement — see math:FiniteSet) or intensionally (a defining condition through math:memberCondition — see math:SetBuilderExpression). A set is extensional or intensional, not silently both without a declared equality. Anchored externally to the OpenMath set1 content dictionary. The object-layer parent the bedrock builds on."
+msgstr "Un ensemble mathématique : une collection d’éléments distincts, donnée soit en extension (ses membres énumérés par math:hasElement — voir math:FiniteSet), soit en compréhension (une condition de définition par math:memberCondition — voir math:SetBuilderExpression). Un ensemble est donné en extension ou en compréhension, sans combiner implicitement les deux sans égalité déclarée. Ancré extérieurement dans le dictionnaire de contenu OpenMath set1. Le parent de la couche objet sur lequel repose le socle."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A set collects distinct mathematical elements without assigning them a sequence order. Extensional enumeration and intensional definition are different descriptions; placing both on one resource requires an explicitly declared equality."
+msgstr "Un ensemble rassemble des éléments mathématiques distincts sans leur attribuer un ordre de séquence. L’énumération en extension et la définition en compréhension sont des descriptions différentes ; les placer toutes deux sur une ressource exige une égalité explicitement déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|http://www.w3.org/2004/02/skos/core#example"
+msgid "The collection of the identified numbers two, three, five and seven can be a math:FiniteSet with four math:hasElement resource links; its label {2, 3, 5, 7} alone does not enumerate those members."
+msgstr "La collection des nombres identifiés deux, trois, cinq et sept peut être un math:FiniteSet portant quatre liens math:hasElement vers des ressources ; son seul libellé {2, 3, 5, 7} n’énumère pas ces membres."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical collection needs its own identity and a stated extent or defining condition, independently of how it is rendered."
+msgstr "Utiliser lorsqu’une collection mathématique nécessite une identité propre et une extension ou une condition de définition déclarée, indépendamment de son rendu."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a list with repeated positions as a set, inferring an empty set from missing triples, or mixing enumeration and a defining condition without the required equality."
+msgstr "Ne pas traiter une liste comportant des positions répétées comme un ensemble, déduire un ensemble vide de triplets manquants ou mêler énumération et condition de définition sans l’égalité requise."
+
+msgctxt "https://blackcatinformatics.ca/math/Set|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:FiniteSet with math:hasElement for an extensional resource-member enumeration, or math:SetBuilderExpression with math:memberCondition for an intensional definition. Keep the set resource separate from its notation and from operations constructing it."
+msgstr "Choisir math:FiniteSet avec math:hasElement pour une énumération en extension de membres ressources, ou math:SetBuilderExpression avec math:memberCondition pour une définition en compréhension. Garder la ressource ensemble distincte de sa notation et des opérations qui la construisent."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Finite Set"
+msgstr "Ensemble fini"
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set given extensionally by enumerating its finitely many elements through math:hasElement. Its cardinality (math:hasCardinality) is a finite math:Cardinality. The extensional counterpart of the intensional math:SetBuilderExpression."
+msgstr "Un ensemble donné en extension par l’énumération de ses éléments en nombre fini au moyen de math:hasElement. Sa cardinalité (math:hasCardinality) est un math:Cardinality fini. Le pendant en extension du math:SetBuilderExpression donné en compréhension."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class is the extensional finite-set description. Members are resources linked by math:hasElement; an exact count can be carried directly on the set with math:quantityValue alongside math:hasCardinality math:cardinalityFinite."
+msgstr "Cette classe décrit un ensemble fini en extension. Les membres sont des ressources reliées par math:hasElement ; l’effectif exact peut être porté directement par l’ensemble avec math:quantityValue, aux côtés de math:hasCardinality math:cardinalityFinite."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing four-prime set enumerates the resources for 2, 3, 5 and 7, states math:hasCardinality math:cardinalityFinite, and carries math:quantityValue 4 on the set itself."
+msgstr "L’ensemble existant des quatre nombres premiers énumère les ressources de 2, 3, 5 et 7, déclare math:hasCardinality math:cardinalityFinite et porte math:quantityValue 4 sur l’ensemble lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a finite mathematical collection whose members are explicitly enumerated as identified objects."
+msgstr "Utiliser pour une collection mathématique finie dont les membres sont explicitement énumérés comme objets identifiés."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting raw numeric literals in math:hasElement, confusing repeated assertions with extra members, or storing a set-specific exact count on the shared math:cardinalityFinite marker."
+msgstr "Ne pas placer de littéraux numériques bruts dans math:hasElement, confondre des assertions répétées avec des membres supplémentaires ou stocker un effectif propre à un ensemble sur le marqueur partagé math:cardinalityFinite."
+
+msgctxt "https://blackcatinformatics.ca/math/FiniteSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the collection as math:FiniteSet, enumerate its member resources with math:hasElement, and state math:hasCardinality math:cardinalityFinite. When recording the exact count, attach the non-negative integer math:quantityValue to this set and justify it from distinct members."
+msgstr "Typer la collection comme math:FiniteSet, énumérer ses ressources membres par math:hasElement et déclarer math:hasCardinality math:cardinalityFinite. Pour consigner l’effectif exact, attacher math:quantityValue sous forme d’entier non négatif à cet ensemble et le justifier par les membres distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set-Builder Expression"
+msgstr "Expression de définition d’ensemble en compréhension"
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set given intensionally by a defining condition — the { x | φ(x) } form. Its condition is named through math:memberCondition and denotes a logic: formula, the denotation seam, never an opaque string. The intensional counterpart of the extensional math:FiniteSet."
+msgstr "Un ensemble donné en compréhension par une condition de définition — la forme { x | φ(x) }. Sa condition est désignée par math:memberCondition et dénote une formule logic:, à l’articulation de dénotation, jamais une chaîne opaque. Le pendant en compréhension du math:FiniteSet donné en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class defines membership intensionally by a condition, even when the described set happens to be finite. math:memberCondition targets a realized logic:Formula tree; a condition’s label is not the condition’s executable structure."
+msgstr "Cette classe définit l’appartenance en compréhension par une condition, même lorsque l’ensemble décrit est fini. math:memberCondition cible un arbre logic:Formula réalisé ; le libellé d’une condition n’est pas sa structure exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The even-number set {x | x mod 2 = 0} uses math:memberCondition to reference a logic:Formula expressing divisibility by two, rather than storing that displayed condition as a string."
+msgstr "L’ensemble des nombres pairs {x | x mod 2 = 0} utilise math:memberCondition pour référencer une logic:Formula exprimant la divisibilité par deux, plutôt que stocker la condition affichée comme chaîne."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when membership is specified by a mathematical predicate instead of an explicit enumeration of all members."
+msgstr "Utiliser lorsque l’appartenance est spécifiée par un prédicat mathématique plutôt que par une énumération explicite de tous les membres."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the formula with opaque prose, pointing only to a label-only formula shell, or treating a few witnessed members as the complete defining condition."
+msgstr "Ne pas remplacer la formule par une prose opaque, pointer uniquement vers une coquille de formule réduite à un libellé ou traiter quelques membres attestés comme la condition de définition complète."
+
+msgctxt "https://blackcatinformatics.ca/math/SetBuilderExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create the math:SetBuilderExpression and link math:memberCondition to the structured logic:Formula that gives its membership predicate and variable scope. Keep illustrative members separate from the defining condition unless an explicit equality justifies combining the two descriptions."
+msgstr "Créer le math:SetBuilderExpression et relier math:memberCondition à la logic:Formula structurée qui donne son prédicat d’appartenance et la portée des variables. Garder les membres illustratifs séparés de la condition de définition, sauf si une égalité explicite justifie la combinaison des deux descriptions."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Membership"
+msgstr "Appartenance"
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified membership fact: that a particular element belongs to a particular set (x ∈ S). Reifying membership lets a claim of membership carry its own provenance or justification, distinct from the bare math:hasElement edge on an extensional set."
+msgstr "Un fait d’appartenance réifié : un élément particulier appartient à un ensemble particulier (x ∈ S). La réification permet à une affirmation d’appartenance de porter sa propre provenance ou justification, distinctement du simple lien math:hasElement sur un ensemble donné en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class identifies a membership fact as an object that can carry provenance. Its declaration alone supplies no member or set endpoint predicates and does not make an unconnected record a supported membership assertion."
+msgstr "Cette classe identifie un fait d’appartenance comme objet pouvant porter une provenance. Sa seule déclaration ne fournit aucun prédicat d’extrémité pour le membre ou l’ensemble et ne fait pas d’un enregistrement non relié une assertion d’appartenance étayée."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the claim that the identified number two belongs to a prime set, a math:Membership resource names the claim, while the extensional statement still runs from the set through math:hasElement to the number resource."
+msgstr "Pour l’affirmation selon laquelle le nombre identifié deux appartient à un ensemble de nombres premiers, une ressource math:Membership nomme l’affirmation, tandis que la déclaration en extension va toujours de l’ensemble vers la ressource nombre par math:hasElement."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual membership fact needs its own identity for attribution, evidence or justification beyond a bare extensional edge."
+msgstr "Utiliser lorsqu’un fait d’appartenance individuel nécessite une identité propre pour l’attribution, les éléments probants ou la justification, au-delà d’un simple lien en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing endpoint properties on math:Membership, treating its type alone as proof of membership, or confusing x ∈ S with the subset relation A ⊆ S."
+msgstr "Ne pas inventer de propriétés d’extrémité sur math:Membership, traiter son seul type comme preuve d’appartenance ou confondre x ∈ S avec la relation d’inclusion A ⊆ S."
+
+msgctxt "https://blackcatinformatics.ca/math/Membership|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the membership fact a resource identity and type it math:Membership when that record is needed. Preserve the actual set-to-member math:hasElement statement and use native statement metadata for its provenance; the class does not itself encode the two endpoints."
+msgstr "Donner une identité de ressource au fait d’appartenance et le typer math:Membership lorsque cet enregistrement est nécessaire. Préserver la déclaration réelle math:hasElement de l’ensemble vers le membre et utiliser les métadonnées natives de déclaration pour sa provenance ; la classe n’encode pas elle-même les deux extrémités."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Set Operation"
+msgstr "Opération ensembliste"
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient space through math:ambientSpace and its complement-semantics through math:complementSemantics; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."
+msgstr "Une opération construisant un ensemble à partir d’ensembles opérandes — union, intersection, différence ou complémentaire. Ses opérandes sont désignés par math:setOperationOn. La construction du complémentaire est la sous-classe distinguée math:Complement, qui désigne aussi son espace ambiant par math:ambientSpace et sa sémantique de complément par math:complementSemantics ; un complément non qualifié est mal formé. math:PowerSet et math:CartesianProduct sont des constructions distinguées possédant leurs propres classes."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A math:SetOperation identifies the construction from operand sets, rather than merely the resulting extent. math:setOperationOn names inputs but does not select union, intersection or difference, and does not encode operand order."
+msgstr "Un math:SetOperation identifie la construction à partir d’ensembles opérandes, plutôt que la seule extension résultante. math:setOperationOn désigne les entrées mais ne sélectionne ni union, ni intersection, ni différence et n’encode pas l’ordre des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A proposed construction A ∪ B can be a math:SetOperation with math:setOperationOn links to A and B; those same operand links alone would not distinguish it from A ∩ B."
+msgstr "Une construction proposée A ∪ B peut être un math:SetOperation portant des liens math:setOperationOn vers A et B ; ces seuls liens d’opérandes ne la distingueraient pas de A ∩ B."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the identity of a set construction and the sets it depends on must remain explicit, separately from a description of its result."
+msgstr "Utiliser lorsque l’identité d’une construction ensembliste et les ensembles dont elle dépend doivent rester explicites, séparément d’une description de son résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an operator from operand count, treating triple order as argument order, or claiming that this class and operand links alone compute or identify the result set."
+msgstr "Ne pas déduire un opérateur du nombre d’opérandes, traiter l’ordre des triplets comme ordre des arguments ou prétendre que cette classe et les seuls liens d’opérandes calculent ou identifient l’ensemble résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/SetOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the construction math:SetOperation and name its input sets with math:setOperationOn. Preserve any required operator meaning in the mathematical expression representation; keep the constructed set distinct from the construction record rather than inventing a result slot here."
+msgstr "Typer la construction math:SetOperation et désigner ses ensembles d’entrée par math:setOperationOn. Préserver le sens requis de l’opérateur dans la représentation de l’expression mathématique ; garder l’ensemble construit distinct de l’enregistrement de construction plutôt qu’inventer ici un emplacement de résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Power Set"
+msgstr "Ensemble des parties"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The power set 𝒫(S): the set of all subsets of a base set, named through math:setOperationOn. Itself a set, so a subclass of math:Set. For a finite base of cardinality n its cardinality is 2ⁿ."
+msgstr "L’ensemble des parties 𝒫(S) : l’ensemble de tous les sous-ensembles d’un ensemble de base, désigné par math:setOperationOn. Il est lui-même un ensemble, donc une sous-classe de math:Set. Pour une base finie de cardinal n, son cardinal est 2ⁿ."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The members of 𝒫(S) are subsets of S, including the empty set and S itself. The math:PowerSet resource is itself a set; its math:setOperationOn link names the base, not one of the power set’s members by that relation alone."
+msgstr "Les membres de 𝒫(S) sont les sous-ensembles de S, y compris l’ensemble vide et S lui-même. La ressource math:PowerSet est elle-même un ensemble ; son lien math:setOperationOn désigne la base, et non un membre de l’ensemble des parties par cette seule relation."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "If S has the two distinct resource members a and b, 𝒫(S) has four mathematical members: ∅, {a}, {b} and {a, b}. A math:PowerSet resource points to S through math:setOperationOn."
+msgstr "Si S possède les deux membres ressources distincts a et b, 𝒫(S) possède quatre membres mathématiques : ∅, {a}, {b} et {a, b}. Une ressource math:PowerSet pointe vers S par math:setOperationOn."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the set of all subsets of an identified base set must be represented as a mathematical object."
+msgstr "Utiliser lorsque l’ensemble de tous les sous-ensembles d’un ensemble de base identifié doit être représenté comme objet mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing a selected subset with the full power set, linking to the base through math:hasElement as a substitute for math:setOperationOn, or assuming the declaration generates all subsets."
+msgstr "Ne pas confondre un sous-ensemble choisi avec l’ensemble des parties complet, remplacer math:setOperationOn par math:hasElement pour relier la base ou supposer que la déclaration génère tous les sous-ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resulting mathematical set math:PowerSet and point math:setOperationOn to its base set. If members are explicitly represented, use set resources for those subsets and justify their membership separately; the base link alone is not an enumeration."
+msgstr "Typer l’ensemble mathématique résultant math:PowerSet et faire pointer math:setOperationOn vers son ensemble de base. Si les membres sont représentés explicitement, employer des ressources ensembles pour ces sous-ensembles et justifier séparément leur appartenance ; le seul lien vers la base n’est pas une énumération."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cartesian Product"
+msgstr "Produit cartésien"
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Cartesian product A × B: the set of ordered pairs drawn from operand sets named through math:setOperationOn. Itself a set, so a subclass of math:Set. A math:Relation is a subset of a Cartesian product."
+msgstr "Le produit cartésien A × B : l’ensemble des couples ordonnés tirés d’ensembles opérandes désignés par math:setOperationOn. Il est lui-même un ensemble, donc une sous-classe de math:Set. Une math:Relation est un sous-ensemble d’un produit cartésien."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A Cartesian product is a set of ordered pairs, but its plain math:setOperationOn edges are unordered operand links. They do not distinguish the first factor from the second or retain repeated-factor multiplicity."
+msgstr "Un produit cartésien est un ensemble de couples ordonnés, mais ses simples liens math:setOperationOn sont des liens d’opérandes non ordonnés. Ils ne distinguent pas le premier facteur du second et ne conservent pas la multiplicité d’un facteur répété."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = {a} and B = {b}, A × B contains (a, b), whereas B × A contains (b, a). Both constructions can have the same plain math:setOperationOn links to A and B, so those links alone do not preserve coordinate order."
+msgstr "Pour A = {a} et B = {b}, A × B contient (a, b), tandis que B × A contient (b, a). Les deux constructions peuvent avoir les mêmes simples liens math:setOperationOn vers A et B ; ces seuls liens ne préservent donc pas l’ordre des coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the mathematical set of pairs drawn from factor sets, including a product serving as the ambient set for a relation."
+msgstr "Utiliser pour l’ensemble mathématique des couples issus des ensembles facteurs, notamment un produit servant d’ensemble ambiant à une relation."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating factor sets as product members, claiming operand triple order defines pair coordinates, or treating A × A as two distinguishable operands after duplicate RDF edges collapse."
+msgstr "Ne pas traiter les ensembles facteurs comme membres du produit, prétendre que l’ordre des triplets d’opérandes définit les coordonnées des couples ou traiter A × A comme deux opérandes distinguables après fusion des liens RDF dupliqués."
+
+msgctxt "https://blackcatinformatics.ca/math/CartesianProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the product resource math:CartesianProduct and name its factor sets with math:setOperationOn. Keep any required factor order and repetition in an explicitly ordered mathematical expression representation; the plain operand links do not provide that structure."
+msgstr "Typer la ressource produit math:CartesianProduct et désigner ses ensembles facteurs par math:setOperationOn. Conserver l’ordre et la répétition requis des facteurs dans une représentation d’expression mathématique explicitement ordonnée ; les simples liens d’opérandes ne fournissent pas cette structure."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cardinality"
+msgstr "Cardinalité"
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The size of a set: a finite count, ℵ₀ (countably infinite), 𝔠 (the cardinality of the continuum), or a larger cardinal. A set names its size through math:hasCardinality. The individual math:cardinalityFinite indicates finiteness; math:alephNull and math:continuum name the two distinguished infinite cardinalities."
+msgstr "La taille d’un ensemble : un effectif fini, ℵ₀ (infini dénombrable), 𝔠 (le cardinal du continu) ou un cardinal plus grand. Un ensemble désigne sa taille par math:hasCardinality. L’individu math:cardinalityFinite indique la finitude ; math:alephNull et math:continuum désignent les deux cardinalités infinies distinguées."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Cardinality describes size, independently of a set’s member ordering or notation. math:cardinalityFinite marks finiteness without fixing one exact count; math:alephNull and math:continuum identify particular infinite cardinalities."
+msgstr "La cardinalité décrit la taille, indépendamment de l’ordre des membres ou de la notation d’un ensemble. math:cardinalityFinite marque la finitude sans fixer un effectif exact unique ; math:alephNull et math:continuum identifient des cardinalités infinies particulières."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|http://www.w3.org/2004/02/skos/core#example"
+msgid "A four-member math:FiniteSet can name math:cardinalityFinite through math:hasCardinality and carry math:quantityValue 4 itself. A countably infinite set instead names math:alephNull."
+msgstr "Un math:FiniteSet de quatre membres peut désigner math:cardinalityFinite par math:hasCardinality et porter lui-même math:quantityValue 4. Un ensemble infini dénombrable désigne plutôt math:alephNull."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s finite or infinite size must be represented explicitly rather than inferred from a label or partial enumeration."
+msgstr "Utiliser lorsque la taille finie ou infinie d’un ensemble doit être représentée explicitement plutôt que déduite d’un libellé ou d’une énumération partielle."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling math:cardinalityFinite an infinite cardinal, storing one set’s exact count on that shared marker, or equating equal cardinality with equality of sets."
+msgstr "Ne pas qualifier math:cardinalityFinite de cardinal infini, stocker l’effectif exact d’un ensemble sur ce marqueur partagé ou assimiler l’égalité des cardinalités à l’égalité des ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/Cardinality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from the set to the appropriate math:Cardinality individual. For a finite set, use math:cardinalityFinite and retain any exact math:quantityValue count directly on the set; use the distinguished infinite individuals only when their sizes are justified."
+msgstr "Faire pointer math:hasCardinality de l’ensemble vers l’individu math:Cardinality approprié. Pour un ensemble fini, utiliser math:cardinalityFinite et conserver tout effectif exact math:quantityValue directement sur l’ensemble ; n’employer les individus infinis distingués que lorsque leurs tailles sont justifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has element"
+msgstr "a pour élément"
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical extensional membership carrier: relates a set to one of its enumerated members (x ∈ S). Domain math:Set, range any math:MathematicalObject (stated in prose). A math:FiniteSet is given extensionally by its math:hasElement edges."
+msgstr "Le porteur canonique d’appartenance en extension : relie un ensemble à l’un de ses membres énumérés (x ∈ S). Domaine math:Set, portée tout math:MathematicalObject (déclarés en prose). Un math:FiniteSet est donné en extension par ses liens math:hasElement."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from the set to an enumerated member resource. As a logic:ObjectProperty it does not take a raw numeric or text literal; a member that is itself a set is still an element, not automatically a subset assertion."
+msgstr "Le lien va de l’ensemble vers une ressource membre énumérée. En tant que logic:ObjectProperty, il ne reçoit pas de littéral numérique ou textuel brut ; un membre qui est lui-même un ensemble reste un élément, sans constituer automatiquement une assertion d’inclusion."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the identified number two and a finite prime set, assert the set math:hasElement the number resource. The numeric literal 2 is not the object of this membership edge."
+msgstr "Pour le nombre identifié deux et un ensemble fini de nombres premiers, affirmer que l’ensemble math:hasElement la ressource nombre. Le littéral numérique 2 n’est pas l’objet de ce lien d’appartenance."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enumerate identified mathematical objects as members of an extensional set."
+msgstr "Utiliser pour énumérer des objets mathématiques identifiés comme membres d’un ensemble donné en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, substituting math:subsetOf for element membership, using literal objects, or interpreting duplicate edges as multiple copies of an element."
+msgstr "Ne pas inverser le lien, substituer math:subsetOf à l’appartenance d’un élément, employer des objets littéraux ou interpréter des liens dupliqués comme plusieurs copies d’un élément."
+
+msgctxt "https://blackcatinformatics.ca/math/hasElement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the set as subject and the member’s mathematical resource as object of math:hasElement. Keep the member’s own value description on that resource and record finite-set counts separately with math:quantityValue on the set."
+msgstr "Employer l’ensemble comme sujet et la ressource mathématique du membre comme objet de math:hasElement. Garder la description de la valeur du membre sur cette ressource et consigner séparément les effectifs finis par math:quantityValue sur l’ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "member condition"
+msgstr "condition d’appartenance"
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the defining condition of an intensional set — the φ in { x | φ(x) }. Domain math:Set (in practice a math:SetBuilderExpression), range a logic: formula (stated in prose). The value denotes a logic: formula, the denotation seam, and is never an opaque literal."
+msgstr "Désigne la condition de définition d’un ensemble donné en compréhension — le φ de { x | φ(x) }. Domaine math:Set (en pratique un math:SetBuilderExpression), portée une formule logic: (déclarés en prose). La valeur dénote une formule logic:, à l’articulation de dénotation, et n’est jamais un littéral opaque."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link runs from the intensionally described set to a logic:Formula giving its membership predicate. The formula’s realized structure and variable binding matter; neither a text label nor a bare formula type supplies that condition."
+msgstr "Ce lien va de l’ensemble décrit en compréhension vers une logic:Formula donnant son prédicat d’appartenance. La structure réalisée de la formule et la liaison des variables importent ; ni un libellé textuel ni un simple type de formule ne fournissent cette condition."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "An even-number math:SetBuilderExpression can use math:memberCondition to name a structured logic:Formula for x mod 2 = 0, with the intended variable scope represented in the formula."
+msgstr "Un math:SetBuilderExpression des nombres pairs peut utiliser math:memberCondition pour désigner une logic:Formula structurée de x mod 2 = 0, avec la portée des variables voulue représentée dans la formule."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s membership criterion must be machine-readable as a logical condition rather than stored only as display notation."
+msgstr "Utiliser lorsque le critère d’appartenance d’un ensemble doit être lisible par machine comme condition logique plutôt que conservé uniquement comme notation d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an opaque string, a formula node containing only a label, a relation to an example member, or a condition whose free variables have no declared interpretation."
+msgstr "Éviter une chaîne opaque, un nœud de formule ne contenant qu’un libellé, une relation vers un membre d’exemple ou une condition dont les variables libres n’ont pas d’interprétation déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/memberCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Build the condition with the existing logic:Formula AST and connect its root from the set by math:memberCondition. Keep labels and rendered notation as annotations, and do not add extensional member edges to that set without the required equality declaration."
+msgstr "Construire la condition avec l’AST logic:Formula existant et relier sa racine depuis l’ensemble par math:memberCondition. Garder les libellés et la notation rendue comme annotations et ne pas ajouter de liens de membres en extension à cet ensemble sans la déclaration d’égalité requise."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subset of"
+msgstr "sous-ensemble de"
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a set to a set that contains all of its elements (A ⊆ B). Domain and range math:Set (stated in prose). Transitive: A ⊆ B and B ⊆ C entail A ⊆ C. Reflexivity and antisymmetry hold mathematically but are documented in prose, not asserted as OWL characteristics, to keep the term profile-clean."
+msgstr "Relie un ensemble à un ensemble qui contient tous ses éléments (A ⊆ B). Domaine et portée math:Set (déclarés en prose). Transitive : A ⊆ B et B ⊆ C impliquent A ⊆ C. La réflexivité et l’antisymétrie valent mathématiquement mais sont documentées en prose, sans être affirmées comme caractéristiques OWL, afin de préserver le profil du terme."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject set is contained in the object set, with equality allowed. This is set inclusion rather than element membership; the declared transitive characteristic does not by itself assert every reflexive or antisymmetric consequence."
+msgstr "L’ensemble sujet est inclus dans l’ensemble objet, avec égalité permise. Il s’agit d’inclusion ensembliste plutôt que d’appartenance d’un élément ; la transitivité déclarée n’affirme pas à elle seule toutes les conséquences réflexives ou antisymétriques."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "If A = {2, 3} and B = {2, 3, 5}, A math:subsetOf B expresses inclusion. B math:hasElement A would instead assert that the set A is one member of B, a different claim."
+msgstr "Si A = {2, 3} et B = {2, 3, 5}, A math:subsetOf B exprime l’inclusion. B math:hasElement A affirmerait plutôt que l’ensemble A est un membre de B, une affirmation différente."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record that every element of one identified set belongs to another identified set, including a non-strict inclusion."
+msgstr "Utiliser pour consigner que tout élément d’un ensemble identifié appartient à un autre ensemble identifié, y compris une inclusion non stricte."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this property for x ∈ S, inferring a proper subset from it, or deriving set equality merely from equal counts."
+msgstr "Ne pas employer cette propriété pour x ∈ S, en déduire une inclusion stricte ou déduire l’égalité des ensembles de la seule égalité des effectifs."
+
+msgctxt "https://blackcatinformatics.ca/math/subsetOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:subsetOf from the contained set to the containing set. Preserve intermediate links when recording a transitive chain, and keep element assertions on math:hasElement instead of mixing the two relations."
+msgstr "Faire pointer math:subsetOf de l’ensemble contenu vers l’ensemble contenant. Préserver les liens intermédiaires lors de l’enregistrement d’une chaîne transitive et garder les assertions d’éléments sur math:hasElement plutôt que mêler les deux relations."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "set operation on"
+msgstr "opération ensembliste sur"
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."
+msgstr "Relie une construction ensembliste (un math:SetOperation, math:PowerSet ou math:CartesianProduct) à un ensemble opérande à partir duquel elle est construite. Domaine math:SetOperation ou ses classes sœurs, portée math:Set (déclarés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is a set construction and the object is an input set. These plain operand links carry no operator selector, positional index, multiplicity or result designation, even when the construction is itself a set."
+msgstr "Le sujet est une construction ensembliste et l’objet un ensemble d’entrée. Ces simples liens d’opérandes ne portent ni sélecteur d’opérateur, ni indice de position, ni multiplicité, ni désignation du résultat, même lorsque la construction est elle-même un ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:PowerSet resource uses math:setOperationOn to point to its base S; a math:CartesianProduct resource can point to factor sets A and B through the same property without recording their order."
+msgstr "Une ressource math:PowerSet utilise math:setOperationOn pour pointer vers sa base S ; une ressource math:CartesianProduct peut pointer vers ses ensembles facteurs A et B par la même propriété sans enregistrer leur ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which existing sets are operands of a declared set construction."
+msgstr "Utiliser pour conserver quels ensembles existants sont les opérandes d’une construction ensembliste déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the operand link, pointing to a member or numeric literal instead of a set, or interpreting repeated identical edges as distinct argument positions."
+msgstr "Ne pas inverser le lien d’opérande, pointer vers un membre ou un littéral numérique au lieu d’un ensemble, ni interpréter des liens identiques répétés comme des positions d’arguments distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/setOperationOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the math:SetOperation, math:PowerSet or math:CartesianProduct resource as subject and each operand math:Set as object. Preserve operator meaning and any needed order in the mathematical expression representation; do not claim those details from the operand links alone."
+msgstr "Employer la ressource math:SetOperation, math:PowerSet ou math:CartesianProduct comme sujet et chaque math:Set opérande comme objet. Préserver le sens de l’opérateur et tout ordre nécessaire dans la représentation de l’expression mathématique ; ne pas déduire ces détails des seuls liens d’opérandes."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has cardinality"
+msgstr "a pour cardinalité"
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the size of a set. Domain math:Set, range math:Cardinality (stated in prose). A finite set names math:cardinalityFinite and may additionally carry its exact count as a math:quantityValue."
+msgstr "Désigne la taille d’un ensemble. Domaine math:Set, portée math:Cardinality (déclarés en prose). Un ensemble fini désigne math:cardinalityFinite et peut en outre porter son effectif exact comme math:quantityValue."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from a set to a cardinality individual. math:cardinalityFinite is a shared finiteness marker, while math:alephNull and math:continuum denote particular infinite sizes; an exact finite count can remain directly on the set."
+msgstr "Le lien va d’un ensemble vers un individu de cardinalité. math:cardinalityFinite est un marqueur partagé de finitude, tandis que math:alephNull et math:continuum désignent des tailles infinies particulières ; un effectif fini exact peut rester directement sur l’ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|http://www.w3.org/2004/02/skos/core#example"
+msgid "The four-prime math:FiniteSet states math:hasCardinality math:cardinalityFinite and math:quantityValue 4 on the same set resource. The marker does not acquire math:quantityValue 4."
+msgstr "Le math:FiniteSet des quatre nombres premiers déclare math:hasCardinality math:cardinalityFinite et math:quantityValue 4 sur la même ressource ensemble. Le marqueur ne reçoit pas math:quantityValue 4."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical set must name its finite size category or a justified infinite cardinality as an identified object."
+msgstr "Utiliser lorsqu’un ensemble mathématique doit désigner sa catégorie de taille finie ou une cardinalité infinie justifiée comme objet identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a numeric literal as this object, reversing the set-to-cardinality direction, or inferring the exact size of every finite set from the common math:cardinalityFinite marker."
+msgstr "Éviter un littéral numérique comme objet, l’inversion de la direction de l’ensemble vers la cardinalité ou la déduction de la taille exacte de chaque ensemble fini à partir du marqueur commun math:cardinalityFinite."
+
+msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the appropriate math:Cardinality individual as the object of math:hasCardinality on the set. For an extensional math:FiniteSet use math:cardinalityFinite, and attach any justified exact math:quantityValue count to that set resource rather than to the shared marker."
+msgstr "Sélectionner l’individu math:Cardinality approprié comme objet de math:hasCardinality sur l’ensemble. Pour un math:FiniteSet donné en extension, utiliser math:cardinalityFinite et attacher tout effectif exact justifié math:quantityValue à cette ressource ensemble plutôt qu’au marqueur partagé."
