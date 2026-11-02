@@ -408,9 +408,9 @@ bytes, distinct from string and generic binary values. The finite value space ha
 2^256 members; capacity reasoning proves every representable `u128` demand without
 claiming an infinite space or an exact `u128` count. Invalid values remain
 uninterpreted, and unsupported facets remain undecided. This interpretation does
-not compute hashes or verify artifact bytes. BLAKE3 and MD5 retain their existing
-projection-boundary admission contracts; no native reasoning interpretation for
-them is claimed here. Existing `contentDigest` property ranges are unchanged.
+not compute hashes or verify artifact bytes. BLAKE3 retains its existing
+projection-boundary admission contract; no native reasoning interpretation for
+it is claimed here. Existing `contentDigest` property ranges are unchanged.
 
 ### MD5 digest identity
 
@@ -429,7 +429,15 @@ messages whose bit length is not a multiple of eight.
 The RFC's status explicitly says it provides information and does not specify
 an Internet standard. Its algorithm definition is the authority here, without
 adopting a security guarantee. The existing RDF 1.2 term-identity reference
-and `math:Sequence` grounding apply without asserting a value-space alias,
-sequence instance, parser or verification operation. Source-supplied MD5
-identity is preserved alongside other algorithms; no digest is dropped or
-relabelled and no `contentDigest` property contract is tightened.
+and `math:Sequence` grounding apply without asserting a value-space alias or
+sequence instance. The native reasoner admits MD5 through the same canonical
+hexadecimal decoder authority, after checking the complete literal's datatype,
+language, direction and exact 32-digit length. Its values retain the algorithm
+and 16 ordered bytes; strings, generic binary values and other algorithm values
+remain distinct. The finite space has 2^128 members, beyond the exact `u128`
+count domain. Capacity reasoning retains a sound lower bound rather than claiming
+an infinite space or a saturated exact count. Invalid literals remain
+uninterpreted, and unsupported facets remain undecided. Admission neither computes
+hashes nor verifies artifact bytes. Source-supplied MD5 identity is preserved
+alongside other algorithms; no digest is dropped or relabelled and no
+`contentDigest` property contract is tightened.

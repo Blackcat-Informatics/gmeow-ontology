@@ -5,7 +5,7 @@
 //! RDF term identity is retained independently of the interpreted value. Parsing
 //! happens at admission to an analysis, never in its pairwise comparison loop.
 
-use gmeow_logic_compile::literal_datatypes::{SHA256_DIGEST, Sha256Digest};
+use gmeow_logic_compile::literal_datatypes::{MD5_DIGEST, Md5Digest, SHA256_DIGEST, Sha256Digest};
 
 use purrdf::xsd::{XsdValue, exact::Rational};
 use purrdf::{RdfTextDirection, TermValue};
@@ -19,6 +19,7 @@ pub(crate) enum LiteralMeaning {
     Rational(Rational),
     Native(XsdValue),
     Sha256(Sha256Digest),
+    Md5(Md5Digest),
     Language {
         text: String,
         language: String,
@@ -48,6 +49,9 @@ impl LiteralValue {
         }
         if datatype == SHA256_DIGEST {
             return Some(matches!(meaning, LiteralMeaning::Sha256(_)));
+        }
+        if datatype == MD5_DIGEST {
+            return Some(matches!(meaning, LiteralMeaning::Md5(_)));
         }
         if matches!(datatype, OWL_REAL | OWL_RATIONAL) {
             return Some(matches!(meaning, LiteralMeaning::Rational(_)));
@@ -84,7 +88,9 @@ impl LiteralValue {
                 }
                 Some(false)
             }
-            LiteralMeaning::Language { .. } | LiteralMeaning::Sha256(_) => Some(false),
+            LiteralMeaning::Language { .. }
+            | LiteralMeaning::Sha256(_)
+            | LiteralMeaning::Md5(_) => Some(false),
             LiteralMeaning::Native(value) => {
                 use purrdf::xsd::range::{DataRange, Known, contains};
                 match contains(&DataRange::Datatype(datatype), value) {
@@ -153,6 +159,7 @@ impl LiteralValue {
         )
     }
 
+    /// Interpret the complete literal while preserving opaque identity on failed admission.
     fn from_parts(
         lexical_form: &str,
         datatype: &str,
@@ -163,6 +170,10 @@ impl LiteralValue {
         let meaning = if datatype == SHA256_DIGEST {
             Sha256Digest::from_parts(lexical_form, datatype, language, direction)
                 .map(LiteralMeaning::Sha256)
+                .unwrap_or_else(opaque)
+        } else if datatype == MD5_DIGEST {
+            Md5Digest::from_parts(lexical_form, datatype, language, direction)
+                .map(LiteralMeaning::Md5)
                 .unwrap_or_else(opaque)
         } else if let Some(language) = language {
             LiteralMeaning::Language {
@@ -195,6 +206,7 @@ impl LiteralValue {
             (LiteralMeaning::Opaque(_), _) | (_, LiteralMeaning::Opaque(_)) => None,
             (LiteralMeaning::Rational(a), LiteralMeaning::Rational(b)) => Some(a == b),
             (LiteralMeaning::Sha256(a), LiteralMeaning::Sha256(b)) => Some(a == b),
+            (LiteralMeaning::Md5(a), LiteralMeaning::Md5(b)) => Some(a == b),
             (
                 LiteralMeaning::Language {
                     text: a,
@@ -241,6 +253,7 @@ impl NativeValues {
             || matches!(
                 datatype,
                 SHA256_DIGEST
+                    | MD5_DIGEST
                     | OWL_REAL
                     | OWL_RATIONAL
                     | "http://www.w3.org/2000/01/rdf-schema#Literal"

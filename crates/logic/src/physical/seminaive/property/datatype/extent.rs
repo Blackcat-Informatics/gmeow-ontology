@@ -154,9 +154,14 @@ fn is_universe(node: &Node) -> bool {
         || matches!(node, Node::Intersection(members) if members.is_empty())
 }
 
+/// Bound native datatype capacity without treating oversized finite spaces as infinite.
 pub(super) fn named(iri: &str) -> ValueSpaceBounds {
-    if iri == gmeow_logic_compile::literal_datatypes::SHA256_DIGEST {
-        // This finite space has 2^256 values. Its exact count exceeds u128,
+    if matches!(
+        iri,
+        gmeow_logic_compile::literal_datatypes::SHA256_DIGEST
+            | gmeow_logic_compile::literal_datatypes::MD5_DIGEST
+    ) {
+        // These finite spaces have 2^256 and 2^128 values. Each exact count exceeds u128,
         // but every representable cardinality demand is provably satisfiable.
         return ValueSpaceBounds {
             lower: u128::MAX,

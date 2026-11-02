@@ -171,6 +171,7 @@ fn datatype_cache_capacity_and_payload_misses_preserve_execution() {
     assert_eq!(plan.contains(&large, &mut values), Some(true));
 }
 
+/// Intrinsic datatype membership and finite capacity require no source constructors.
 #[test]
 fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
     // `xsd:anyURI` is an OWL 2 datatype-map primitive. A data range naming it compiles
@@ -214,24 +215,30 @@ fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
     // Infinite, not unknown: any finite count of distinct anyURI values exists.
     assert_eq!(extent::named(ANY_URI).admits(1_000_000), Some(true));
 
-    let sha_iri = gmeow_logic_compile::literal_datatypes::SHA256_DIGEST;
-    edge(&mut rel, "urn:sha", "urn:range", sha_iri);
-    let digest = literal(&"0".repeat(64), sha_iri);
-    let sha = DatatypeCache::default()
-        .prepare(&rel, &iri(sha_iri), &mut ListCache::default(), &mut values)
-        .unwrap();
-    assert_eq!(sha.contains(&digest, &mut values), Some(true));
-    assert_eq!(
-        sha.contains(&literal("0", INTEGER), &mut values),
-        Some(false)
-    );
-    assert_eq!(sha.contains(&literal("0", sha_iri), &mut values), None);
-    assert_eq!(extent::named(sha_iri).admits(u128::MAX), Some(true));
-    assert_eq!(extent::named(sha_iri).exact_count(), None);
-    assert_eq!(
-        extent::analyze(&[Node::Named(sha_iri.into()), Node::Complement(0)], 1).admits(u128::MAX),
-        Some(true)
-    );
+    for (datatype, width) in [
+        (gmeow_logic_compile::literal_datatypes::SHA256_DIGEST, 64),
+        (gmeow_logic_compile::literal_datatypes::MD5_DIGEST, 32),
+    ] {
+        edge(&mut rel, "urn:digest", "urn:range", datatype);
+        let digest = literal(&"0".repeat(width), datatype);
+        let plan = DatatypeCache::default()
+            .prepare(&rel, &iri(datatype), &mut ListCache::default(), &mut values)
+            .unwrap();
+        assert_eq!(plan.contains(&digest, &mut values), Some(true));
+        assert_eq!(
+            plan.contains(&literal("0", INTEGER), &mut values),
+            Some(false)
+        );
+        assert_eq!(plan.contains(&literal("0", datatype), &mut values), None);
+        // Both finite capacities exceed u128; neither becomes an exact saturated count.
+        assert_eq!(extent::named(datatype).admits(u128::MAX), Some(true));
+        assert_eq!(extent::named(datatype).exact_count(), None);
+        assert_eq!(
+            extent::analyze(&[Node::Named(datatype.into()), Node::Complement(0)], 1)
+                .admits(u128::MAX),
+            Some(true)
+        );
+    }
 }
 
 #[test]
