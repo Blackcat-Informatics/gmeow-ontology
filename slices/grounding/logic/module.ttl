@@ -15954,12 +15954,12 @@ logic:ChoiceGroupConstraint
     logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Choice Group Constraint"@x-gmeow-english ;
-    skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
+    skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', 'at-least-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most / at-least formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
     skos:example "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use a choice group when several members may coexist and at least one, rather than exactly or at most one, is required."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a choice group to count values of one predicate; its modes count the presence of distinct member predicates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Supply one target class, at least two choice predicates, and the exact cardinality mode the compiled XOR or at-most formula must enforce."@x-gmeow-english ;
-    gmeow:useWhen "Use when a closed validation boundary permits exactly one or at most one member of a finite predicate group."@x-gmeow-english .
+    gmeow:howToUse "Supply one target class, at least two choice predicates, and a cardinality mode selecting the compiled exactly-one, at-most-one or at-least-one presence formula."@x-gmeow-english ;
+    gmeow:useWhen "Use when a closed validation boundary requires exactly one, at most one or at least one member predicate of a finite group to be present."@x-gmeow-english .
 
 logic:GuardedImplicationConstraint
     a logic:Class ;
@@ -16202,10 +16202,10 @@ logic:choicePredicate
 
 logic:choiceMode
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "choice mode"@x-gmeow-english ;
-    skos:definition "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', or 'exactly-one-of-N' (an alias of 'exactly-one')."@x-gmeow-english ;
+    skos:definition "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', 'at-least-one', or 'exactly-one-of-N' (an alias of 'exactly-one'). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:trigger
@@ -16267,10 +16267,10 @@ logic:roleB
 
 logic:crossMode
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "cross mode"@x-gmeow-english ;
-    skos:definition "The mode of a logic:CrossNodeConstraint: 'co-occur' (the two roles must be present together) or 'differ' (the two roles must never bind the same value)."@x-gmeow-english ;
+    skos:definition "The mode of a logic:CrossNodeConstraint: 'co-occur' (alias 'cooccur', the two roles must be present together) or 'differ' (alias 'distinct', the two roles must never bind the same value). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:forbiddenPredicate

@@ -5510,6 +5510,52 @@ fn finalize_sugar(
     Ok(constraint)
 }
 
+/// Admit one required mode literal before applying the shared selector normalization.
+fn sugar_mode(
+    store: &RdfDataset,
+    node: &Subject,
+    pred_local: &str,
+) -> gmeow_errors::Result<String> {
+    let mut modes = objects(store, node, &nn(&logic_iri(pred_local))).into_iter();
+    let term = modes.next().ok_or_else(|| {
+        sugar_err(format!(
+            "constraint-sugar record requires logic:{pred_local}"
+        ))
+    })?;
+    if modes.any(|other| other != term) {
+        return Err(sugar_err(format!(
+            "logic:{pred_local} requires exactly one distinct value"
+        )));
+    }
+    let Node::Lit(purrdf::RdfLiteral {
+        lexical_form,
+        datatype,
+        language: None,
+        direction: None,
+    }) = &term
+    else {
+        return Err(sugar_err(format!(
+            "logic:{pred_local} requires an untagged xsd:string or xsd:token literal"
+        )));
+    };
+    // Native xsd:string resolves to None in graphutil::node_of.
+    let lexical = match datatype.as_deref() {
+        None | Some("http://www.w3.org/2001/XMLSchema#string") => {
+            purrdf::xsd::simple::read_xml_string(lexical_form)
+        }
+        Some("http://www.w3.org/2001/XMLSchema#token") => {
+            purrdf::xsd::simple::read_token(lexical_form)
+        }
+        _ => {
+            return Err(sugar_err(format!(
+                "logic:{pred_local} requires an untagged xsd:string or xsd:token literal"
+            )));
+        }
+    }
+    .map_err(|reason| sugar_err(format!("logic:{pred_local}: {reason}")))?;
+    Ok(lexical.trim().to_ascii_lowercase())
+}
+
 /// P1 — choice-group cardinality: a target class + a set of predicates + a mode
 /// (`exactly-one` / `at-most-one` / `at-least-one`; `exactly-one-of-N` is an alias of
 /// `exactly-one`). Expands to the XOR / at-most / at-least formula over `∃`-requiredness of
@@ -5522,9 +5568,7 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result
             "logic:ChoiceGroupConstraint needs at least two logic:choicePredicate",
         ));
     }
-    let mode = value(store, node, &nn(&logic_iri("choiceMode")))
-        .map(|t| term_str(&t).trim().to_ascii_lowercase())
-        .ok_or_else(|| sugar_err("logic:ChoiceGroupConstraint requires logic:choiceMode"))?;
+    let mode = sugar_mode(store, node, "choiceMode")?;
     let ex = |i: usize| f_pred_exists(&preds[i], &format!("v{i}"));
     let consequent = match mode.as_str() {
         "exactly-one" | "exactly-one-of-n" => {
@@ -5732,9 +5776,7 @@ fn read_cross_node(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
     let role_b = value(store, node, &nn(&logic_iri("roleB")))
         .map(|t| term_str(&t))
         .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:roleB"))?;
-    let mode = value(store, node, &nn(&logic_iri("crossMode")))
-        .map(|t| term_str(&t).trim().to_ascii_lowercase())
-        .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:crossMode"))?;
+    let mode = sugar_mode(store, node, "crossMode")?;
     let consequent = match mode.as_str() {
         // Co-occur: role A present iff role B present (each implies the other).
         "co-occur" | "cooccur" => {

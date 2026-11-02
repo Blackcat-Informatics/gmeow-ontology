@@ -5799,8 +5799,8 @@ msgid "The xsd:dateTime a coherence outcome was issued. INJECTED, never sampled 
 msgstr "一致性结果被发出的 xsd:dateTime。它是被注入的,绝不在确定性折叠核心中采样,因此以相同输入与时间戳重新运行是逐字节一致的。单值。定义域为 logic:CoherenceCertificate 或 logic:CoherenceCheckAttestation(以散文给出)。"
 
 msgctxt "https://blackcatinformatics.ca/logic/choiceMode|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', or 'exactly-one-of-N' (an alias of 'exactly-one')."
-msgstr "一个 logic:ChoiceGroupConstraint 的基数模式:'exactly-one'、'at-most-one' 或 'exactly-one-of-N'(即 'exactly-one' 的别名)。"
+msgid "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', 'at-least-one', or 'exactly-one-of-N' (an alias of 'exactly-one'). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."
+msgstr "一个 logic:ChoiceGroupConstraint 的基数模式：'exactly-one'、'at-most-one'、'at-least-one' 或 'exactly-one-of-N'（即 'exactly-one' 的别名）。必须恰好提供一个不带语言标签或方向的 xsd:string 或 xsd:token 字面量。先进行原生数据类型的词法验证，再去除首尾空白并将 ASCII 字母转为小写；token 中不合法的空白会被拒绝，不作折叠。"
 
 msgctxt "https://blackcatinformatics.ca/logic/choicePredicate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A member predicate of a logic:ChoiceGroupConstraint's choice group. Multi-valued (at least two); the ∃-requiredness of each is combined per logic:choiceMode."
@@ -6455,8 +6455,8 @@ msgid "The target relationship is ontically sharp: the alignment either holds or
 msgstr "目标关系在本体上是明锐的：对齐或是成立或是不成立，没有边界情形。一个等价或一个干净的包摄所具有的确定性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/crossMode|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The mode of a logic:CrossNodeConstraint: 'co-occur' (the two roles must be present together) or 'differ' (the two roles must never bind the same value)."
-msgstr "一个 logic:CrossNodeConstraint 的模式：'co-occur'（两个角色必须一同在场）或 'differ'（两个角色绝不可绑定同一值）。"
+msgid "The mode of a logic:CrossNodeConstraint: 'co-occur' (alias 'cooccur', the two roles must be present together) or 'differ' (alias 'distinct', the two roles must never bind the same value). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."
+msgstr "一个 logic:CrossNodeConstraint 的模式：'co-occur'（别名 'cooccur'，两个角色必须一同在场）或 'differ'（别名 'distinct'，两个角色绝不可绑定同一值）。必须恰好提供一个不带语言标签或方向的 xsd:string 或 xsd:token 字面量。先进行原生数据类型的词法验证，再去除首尾空白并将 ASCII 字母转为小写；token 中不合法的空白会被拒绝，不作折叠。"
 
 msgctxt "https://blackcatinformatics.ca/logic/dagCycleWitness|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an `unsupported` DAG-workflow verdict to a disclosed offending edge or cycle member — the back-edge or logic:Iteration that places a plan outside the certified acyclic fragment — MULTI-valued (a graph may carry several cycles). Mirrors the witness-disclosure discipline of logic:forbiddenViolationWitness: the certifier never silently truncates a cyclic plan, it surfaces exactly which edges break acyclicity while the plan stays valid under a non-DAG contract. Domain a reasoning result or coherence outcome carrying the `unsupported` evaluation status, range a flow edge or process node (stated in prose)."
@@ -10263,8 +10263,12 @@ msgid "Choice Group Constraint"
 msgstr "选择组约束"
 
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
-msgstr "选择组基数约束（P1）的紧凑语法糖：包含一个 logic:onClass 目标、一组 logic:choicePredicate 谓词，以及 logic:choiceMode（'exactly-one'、'at-most-one'，或作为 'exactly-one' 别名的 'exactly-one-of-N'）。编译器将其展开为规范的 logic:Constraint，其完整性条件是各谓词存在性要求之上的异或或至多公式。它仅供前端创作使用，不是新的节点类型。"
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', 'at-least-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most / at-least formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "选择组基数约束（P1）的紧凑语法糖：包含一个 logic:onClass 目标、一组 logic:choicePredicate 谓词，以及 logic:choiceMode（'exactly-one'、'at-most-one'、'at-least-one'，或作为 'exactly-one' 别名的 'exactly-one-of-N'）。编译器将其展开为规范的 logic:Constraint，其完整性条件是各谓词存在性要求之上的异或、至多或至少公式。它仅供前端创作使用，不是新的节点类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use a choice group to count values of one predicate; its modes count the presence of distinct member predicates."
+msgstr "不要用选择组来统计单个谓词的值的数量；其模式统计的是不同成员谓词是否存在。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
@@ -24182,3 +24186,11 @@ msgstr "呈现模态"
 msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The mandatory explicit canonical modality code, supplied as an untagged xsd:string or xsd:token: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. The code must match exactly; whitespace variants and unrecognized selectors are rejected."
 msgstr "必须明确提供的规范模态代码，以不带语言或方向标记的 xsd:string 或 xsd:token 给出：none、alethic、epistemic、doxastic、telic、deontic、representational 或 counterfactual。代码必须完全匹配；含空白的变体和无法识别的选择符均被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one target class, at least two choice predicates, and a cardinality mode selecting the compiled exactly-one, at-most-one or at-least-one presence formula."
+msgstr "提供一个目标类、至少两个选择谓词，以及一个选择编译后的 exactly-one、at-most-one 或 at-least-one 存在性公式的基数模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a closed validation boundary requires exactly one, at most one or at least one member predicate of a finite group to be present."
+msgstr "当封闭验证边界要求有限组中恰好一个、至多一个或至少一个成员谓词存在时使用。"
