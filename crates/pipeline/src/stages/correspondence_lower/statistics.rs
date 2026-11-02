@@ -7,17 +7,28 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_frontend::CorrespondenceAnalysis;
-use serde::Serialize;
+use purrdf_lex::json::{self, record::ToJson};
 
-#[derive(Serialize)]
-struct Statistics<'a> {
-    cells_by_set: BTreeMap<&'a str, usize>,
+struct Statistics {
+    cells_by_set: BTreeMap<String, usize>,
     equivalences: usize,
     functions: usize,
     mapping_sets: usize,
     projections: usize,
 }
 
+::purrdf_lex::json_record!(impl ToJson for Statistics {
+    "cells_by_set" => cells_by_set,
+    "equivalences" => equivalences,
+    "functions" => functions,
+    "mapping_sets" => mapping_sets,
+    "projections" => projections,
+});
+
+/// Render complete statistics with stable order, one-space indentation and a final newline.
+///
+/// # Errors
+/// Refuses a mapping set without its required `sssomFile` literal.
 pub(super) fn emit(
     view: &DslView,
     analysis: &CorrespondenceAnalysis,
@@ -31,7 +42,7 @@ pub(super) fn emit(
     };
     let mut cells_by_set = BTreeMap::new();
     for cell in analysis.alignment_cells() {
-        *cells_by_set.entry(cell.sssom_file.as_str()).or_insert(0) += 1;
+        *cells_by_set.entry(cell.sssom_file.clone()).or_insert(0) += 1;
     }
     let mut files = BTreeSet::new();
     for set in view.subjects_of_type(&vocab.mapping_set()) {
@@ -47,16 +58,15 @@ pub(super) fn emit(
         mapping_sets: files.len(),
         projections: analysis.projection_cells().len(),
     };
-    let mut output = Vec::new();
-    let formatter = serde_json::ser::PrettyFormatter::with_indent(b" ");
-    statistics
-        .serialize(&mut serde_json::Serializer::with_formatter(
-            &mut output,
-            formatter,
-        ))
-        .map_err(|why| error(why.to_string()))?;
-    output.push(b'\n');
-    String::from_utf8(output).map_err(|why| error(why.to_string()))
+    let mut output = json::write(
+        &statistics.to_json(),
+        json::Format {
+            indent: Some(" "),
+            ..json::Format::COMPACT
+        },
+    );
+    output.push('\n');
+    Ok(output)
 }
 
 #[path = "statistics.tests.rs"]

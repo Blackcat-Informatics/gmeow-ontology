@@ -40,12 +40,20 @@ fn statistics_preserve_membership_when_correspondences_deduplicate() {
         vec!["agents.sssom.tsv", "people.sssom.tsv"]
     );
     let output = emit(&view, &analysis, &gmeow_ns::gmeow_slice_vocab()).unwrap();
-    let actual: serde_json::Value = serde_json::from_str(&output).unwrap();
+    // Preserve the complete published document, including member order,
+    // one-space indentation and its terminal newline.
     assert_eq!(
-        actual,
-        serde_json::json!({
-            "cells_by_set": { "agents.sssom.tsv": 1, "people.sssom.tsv": 1 },
-            "equivalences": 2, "functions": 0, "mapping_sets": 2, "projections": 0,
-        })
+        output.as_bytes(),
+        br#"{
+ "cells_by_set": {
+  "agents.sssom.tsv": 1,
+  "people.sssom.tsv": 1
+ },
+ "equivalences": 2,
+ "functions": 0,
+ "mapping_sets": 2,
+ "projections": 0
+}
+"#
     );
 }
