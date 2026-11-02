@@ -3660,3 +3660,303 @@ msgstr "原生推理器将不带语言或方向的恰好 64 个小写十六进�
 msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
 msgstr "所提供的 \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest 这样的字面量保留 SHA-256 的身份，即使另一种算法的字面量具有相同的十六进制写法。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number"
+msgstr "数"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
+msgstr "数学中的数：属于一个已声明数系的抽象量。每个 math:Number 都通过 math:inNumberSystem 将自身置于一个 math:NumberSystem 中；未指定数系的数不合规范。它还通过 math:isExact 声明自身是精确值，还是某个 math:ApproximateValue 所近似的抽象对应对象。五个嵌套数系 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 对应其主要子类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
+msgstr "此类描述数学对象，而非 RDF 数值字面量或包含数的集合。已知更具体的数类时，应使用该类；math:inNumberSystem 指向代表数系的个体，而非类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#example"
+msgid "An identified object denoting five can be typed math:NaturalNumber, situated by math:inNumberSystem math:naturalNumbers, and marked math:isExact true; the literal 5 alone does not supply that object description."
+msgstr "一个表示五的有标识对象可以具有 math:NaturalNumber 类型，通过 math:inNumberSystem math:naturalNumbers 指定数系，并标记 math:isExact true；单独的字面量 5 并未提供这种对象描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a number needs an identity, a declared system and an explicit exactness statement in a mathematical graph."
+msgstr "当数学图中的数需要标识、明确的数系及显式的精确性声明时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using math:Number as a datatype for a literal, or adding math:quantityValue to a bare number object as an invented scalar slot."
+msgstr "不要将 math:Number 用作字面量的数据类型，也不要向普通数对象添加 math:quantityValue 来臆造标量值槽位。"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the number with its justified subclass, name its system through math:inNumberSystem, and state math:isExact. Keep any rounded representation on a separate math:ApproximateValue linked by math:approximates."
+msgstr "为数指定有依据的子类，通过 math:inNumberSystem 指定数系，并声明 math:isExact。任何舍入表示都应保存在独立的 math:ApproximateValue 中，由 math:approximates 连接。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Natural Number"
+msgstr "自然数"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A natural number (ℕ): a non-negative counting number. The innermost system of the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — every natural number is an integer, so this is a subclass of math:Integer. Situated in the math:naturalNumbers system."
+msgstr "自然数（ℕ）：非负的计数用数。它位于包含关系链 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 的最内层；每个自然数都是整数，因此此类是 math:Integer 的子类。其所属数系为 math:naturalNumbers。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The natural numbers here include zero. This class denotes individual counting numbers; math:naturalNumbers denotes their system, and math:Cardinality describes the size of a set."
+msgstr "这里的自然数包括零。此类表示单个用于计数的数；math:naturalNumbers 表示其数系，math:Cardinality 则描述集合的大小。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact number zero is a math:NaturalNumber with math:inNumberSystem math:naturalNumbers and math:isExact true, even when it counts an empty collection."
+msgstr "精确的数零是 math:NaturalNumber，具有 math:inNumberSystem math:naturalNumbers 和 math:isExact true，即使它用于计数空集合也是如此。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an abstract non-negative whole number used in counting, including the count zero."
+msgstr "用于抽象的非负整数计数，包括计数结果零。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid excluding zero by adopting a positive-only convention, or typing a negative balance or fractional amount as math:NaturalNumber."
+msgstr "不要采用仅含正整数的约定来排除零，也不要将负余额或分数量定为 math:NaturalNumber。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the object as math:NaturalNumber and situate it in math:naturalNumbers. Let its subclass relationship to math:Integer express the broader classification rather than changing the chosen system."
+msgstr "将对象声明为 math:NaturalNumber，并置于 math:naturalNumbers 中。通过其与 math:Integer 的子类关系表达更宽泛的分类，而不是更改所选数系。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Integer"
+msgstr "整数"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An integer (ℤ): a whole number, positive, negative, or zero. Every integer is a rational number (n = n/1), so this is a subclass of math:RationalNumber. Situated in the math:integers system."
+msgstr "整数（ℤ）：正整数、负整数或零。每个整数都是有理数（n = n/1），因此此类是 math:RationalNumber 的子类。其所属数系为 math:integers。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer membership concerns mathematical value, including negative values and zero. It is distinct from an xsd:integer literal used as a property value or from a machine integer storage width."
+msgstr "整数归属描述数学值，包含负数和零。它不同于作为属性值的 xsd:integer 字面量，也不同于机器整数的存储位宽。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#example"
+msgid "An object denoting minus three is a math:Integer in math:integers; a debit of three currency units would additionally need a quantity model rather than making the integer itself a currency amount."
+msgstr "表示负三的对象是 math:integers 中的 math:Integer；三货币单位的借记还需要数量模型，而不应把整数本身当作货币金额。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical object denotes a whole number and negative values must remain available alongside zero and positive values."
+msgstr "当数学对象表示整数，且需要同时容纳负数、零和正数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a rounded measurement as an exact integer merely because its displayed decimal has no fractional digits."
+msgstr "不要仅因舍入测量值的显示形式没有小数位，就将其视为精确整数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the identified whole-number object as math:Integer, select math:integers with math:inNumberSystem, and declare exactness independently of the literal datatype used elsewhere to encode it."
+msgstr "将有标识的整数对象定为 math:Integer，通过 math:inNumberSystem 选择 math:integers，并独立于其他位置所用的字面量编码数据类型来声明精确性。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rational Number"
+msgstr "有理数"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."
+msgstr "有理数（ℚ）：整数之比 p/q，其中 q ≠ 0。每个有理数都是实数，因此此类是 math:RealNumber 的子类。其所属数系为 math:rationalNumbers。有理数是精确的；其有限或循环小数表示作为近似值，由独立的 math:ApproximateValue 承载。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."
+msgstr "此类表示包含关系链中的抽象有理数。具体的精确数对载体是 math:RationalValue，其 math:numerator 和 math:denominator 为整数字面量；这些槽位并未在 math:RationalNumber 上声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "One third is an exact math:RationalNumber in math:rationalNumbers. Its concrete pair representation uses a math:RationalValue with math:numerator 1 and math:denominator 3; a rounded 0.3333 belongs to a separate approximation."
+msgstr "三分之一是 math:rationalNumbers 中精确的 math:RationalNumber。其具体数对表示使用 math:RationalValue，并带有 math:numerator 1 和 math:denominator 3；舍入值 0.3333 则属于另一个近似对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an exact ratio of integers as a mathematical number, independently of the representation chosen for computation."
+msgstr "用于将精确的整数之比归类为数学中的数，而不依赖计算时选择的表示方式。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a zero denominator, an irrational value such as √2, or conflating the abstract rational with its math:RationalValue carrier or rounded decimal."
+msgstr "不要用于分母为零的情形或 √2 等无理数，也不要将抽象有理数与其 math:RationalValue 载体或舍入小数混为一谈。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the abstract number with math:RationalNumber, math:inNumberSystem math:rationalNumbers and math:isExact true. Use math:RationalValue when an explicit numerator and nonzero denominator must be carried, and math:ApproximateValue for a rounded evaluation."
+msgstr "使用 math:RationalNumber、math:inNumberSystem math:rationalNumbers 及 math:isExact true 描述抽象的数。需要显式承载分子和非零分母时使用 math:RationalValue；舍入计算结果则使用 math:ApproximateValue。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Real Number"
+msgstr "实数"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A real number (ℝ): a point on the continuous number line, rational or irrational. Every real number is a complex number with zero imaginary part, so this is a subclass of math:ComplexNumber. Situated in the math:realNumbers system."
+msgstr "实数（ℝ）：连续数轴上的一个点，可以是有理数或无理数。每个实数都是虚部为零的复数，因此此类是 math:ComplexNumber 的子类。其所属数系为 math:realNumbers。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Real-number classification includes rational and irrational values. Finite decimal output does not settle which kind an exact value is, and the signed infinity poles belong to math:ExtendedRealLine rather than the finite real line."
+msgstr "实数分类包含有理数和无理数。有限的小数输出不能确定精确值属于哪一类；带符号的无穷极点属于 math:ExtendedRealLine，而不是有限实数轴。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive square root √2 is a math:RealNumber in math:realNumbers and also a math:AlgebraicNumber; a displayed 1.4142 is a separate rounded evaluation."
+msgstr "正平方根 √2 是 math:realNumbers 中的 math:RealNumber，同时也是 math:AlgebraicNumber；显示值 1.4142 是另一个舍入计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for exact points on the real line when the rational or irrational distinction is relevant or not yet established."
+msgstr "用于实数轴上的精确点，适用于有理与无理的区别需要表达或尚未确定的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a non-real complex value, math:PositiveInfinity, math:NegativeInfinity or an undefined numeric result in the finite real-number class."
+msgstr "不要将非实复数、math:PositiveInfinity、math:NegativeInfinity 或未定义的数值结果归入有限实数类。"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert math:RealNumber and math:inNumberSystem math:realNumbers on the identified number. Add a justified narrower classification separately, keeping any finite-precision output on math:ApproximateValue."
+msgstr "为有标识的数声明 math:RealNumber 和 math:inNumberSystem math:realNumbers。另行添加有依据的更具体分类，并将有限精度输出保存在 math:ApproximateValue 中。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complex Number"
+msgstr "复数"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex number (ℂ): a value a + bi with real part a and imaginary part b. The outermost system of the containment tower; a subclass of math:Number. Situated in the math:complexNumbers system."
+msgstr "复数（ℂ）：形如 a + bi 的值，其中 a 为实部，b 为虚部。它位于包含关系链的最外层，是 math:Number 的子类。其所属数系为 math:complexNumbers。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complex numbers include all real numbers as well as values with nonzero imaginary part. The notation a + bi explains the value; it does not declare component-storage properties or turn the notation string into a number object."
+msgstr "复数既包括所有实数，也包括虚部非零的值。记法 a + bi 说明其值，但并未声明存储分量的属性，也不会使表示该记法的字符串成为数对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The imaginary unit i is an exact math:ComplexNumber in math:complexNumbers. Its square is −1, while i itself is not a math:RealNumber."
+msgstr "虚数单位 i 是 math:complexNumbers 中精确的 math:ComplexNumber。它的平方为 −1，而 i 本身不是 math:RealNumber。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical domain must admit non-real values, such as roots of x² + 1 or complex analysis."
+msgstr "当数学论域需要容纳非实数值时使用，例如 x² + 1 的根或复分析中的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming that every complex number has a nonzero imaginary part, or using a text such as 2 + 3i as a substitute for an identified mathematical object."
+msgstr "不要假定每个复数的虚部都非零，也不要用 2 + 3i 这样的文本替代有标识的数学对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Situate the number with math:inNumberSystem math:complexNumbers and state math:isExact. Use an expression object when the construction a + bi must be represented, rather than inventing real-part or imaginary-part predicates on this class."
+msgstr "通过 math:inNumberSystem math:complexNumbers 指定数系，并声明 math:isExact。需要表示 a + bi 的构造时，应使用表达式对象，而不是在此类上臆造实部或虚部谓词。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Algebraicity crosses the nested number systems: rational numbers, irrational real roots such as √2, and non-real roots such as i can all be algebraic. It is not an extra rung between ℚ and ℝ."
+msgstr "代数性横贯嵌套数系：有理数、√2 等无理实根以及 i 等非实根都可以是代数数。它并非 ℚ 与 ℝ 之间新增的一层。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive root √2 of x² − 2 is both math:AlgebraicNumber and math:RealNumber; i, a root of x² + 1, is algebraic but not real."
+msgstr "x² − 2 的正根 √2 同时是 math:AlgebraicNumber 和 math:RealNumber；x² + 1 的根 i 是代数数，但不是实数。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when membership in the roots of nonzero rational-coefficient polynomials is established for the exact number."
+msgstr "当已确定该精确数是某个非零有理系数多项式的根时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying a constant as algebraic merely because it has a name, a decimal expansion or a numerical polynomial fit; γ has no established algebraic or transcendental classification."
+msgstr "不要仅因常数有名称、小数展开或数值多项式拟合就将其归为代数数；γ 的代数或超越分类尚未确定。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Add math:AlgebraicNumber alongside the justified tower class and keep math:inNumberSystem directed to the existing system individual. Record the polynomial characterization through the expression and logic vocabulary when it must be machine-readable."
+msgstr "在有依据的数系层级类之外添加 math:AlgebraicNumber，并使 math:inNumberSystem 继续指向已有的数系个体。若多项式刻画需要机器可读，应使用表达式和逻辑词汇记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transcendental Number"
+msgstr "超越数"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A transcendental number: a complex number that is not algebraic — not a root of any non-zero polynomial with rational coefficients (for example π and e). A subclass of math:ComplexNumber. Named transcendental constants such as π and e are exact math:MathematicalConstant individuals, never decimal literals."
+msgstr "超越数：不是代数数的复数，即不是任何非零有理系数多项式的根，例如 π 和 e。它是 math:ComplexNumber 的子类。π、e 等有名称的超越常数是精确的 math:MathematicalConstant 个体，而非小数字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Transcendence is a property of the exact complex number, not of its written digits. Irrationality alone is insufficient: √2 is irrational and algebraic."
+msgstr "超越性是精确复数的性质，而不是其书写数字的性质。仅有无理性并不充分：√2 是无理数，也是代数数。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:pi and math:eulerNumber are exact math:TranscendentalNumber individuals. A stored decimal approximation of either is a math:ApproximateValue, not another transcendental constant."
+msgstr "math:pi 和 math:eulerNumber 是精确的 math:TranscendentalNumber 个体。存储的任一常数的小数近似值都是 math:ApproximateValue，而非另一个超越常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an exact number whose failure to satisfy every nonzero polynomial over the rationals is established."
+msgstr "当已经确定一个精确数不满足任何非零有理系数多项式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring transcendence from a nonrepeating-looking decimal prefix or from unknown rationality; do not assign this class to math:eulerMascheroni on that basis."
+msgstr "不要从看似不循环的小数前缀或有理性未知推断超越性，也不要据此将 math:eulerMascheroni 归入此类。"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert math:TranscendentalNumber only with mathematical justification, retain the applicable number system, and reuse math:pi or math:eulerNumber for the existing named constants instead of minting decimal identities."
+msgstr "仅在有数学依据时声明 math:TranscendentalNumber，保留适用的数系，并复用已有命名常数 math:pi 或 math:eulerNumber，而不是根据小数另建标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Constant"
+msgstr "数学常数"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named mathematical constant: an exact number with a canonical identity, such as π, e, or the Euler–Mascheroni constant γ. A subclass of math:Number whose instances are exact individuals (math:isExact true) anchored to an external authority — a Wikidata QID and, where applicable, an OEIS or DLMF locator, recorded as a math: alignment. A constant is never given as a decimal literal; its decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
+msgstr "有名称的数学常数：具有规范标识的精确数，例如 π、e 或欧拉–马歇罗尼常数 γ。它是 math:Number 的子类，其实例是精确个体（math:isExact true），并以外部权威来源为锚点；Wikidata QID 以及适用的 OEIS 或 DLMF 定位标识记录为 math: 对齐。常数绝不以小数字面量给出；其小数展开属于通过 math:approximates 指向它的独立 math:ApproximateValue。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A named constant retains its exact identity even when its classification is incomplete. The known exactness of math:eulerMascheroni does not establish whether γ is rational, algebraic or transcendental."
+msgstr "即使分类尚不完整，命名常数也保有其精确标识。已知 math:eulerMascheroni 是精确的，并不能确定 γ 是有理数、代数数还是超越数。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#example"
+msgid "Reuse math:eulerMascheroni for γ with its declared math:isExact true and math:inNumberSystem math:realNumbers. Put a numerical estimate such as 0.57721 on a separate math:ApproximateValue."
+msgstr "对于 γ，应复用 math:eulerMascheroni 及其已声明的 math:isExact true 和 math:inNumberSystem math:realNumbers。0.57721 这样的数值估计应保存在独立的 math:ApproximateValue 中。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a named mathematical number needs a stable identity and external reference alignment independent of the precision of any evaluation."
+msgstr "当有名称的数学数需要稳定标识及外部参考对齐，且这些不应依赖任何计算结果的精度时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching math:quantityValue directly to a math:MathematicalConstant, replacing its identity with a decimal string, or deriving its algebraic status from its name."
+msgstr "不要直接向 math:MathematicalConstant 添加 math:quantityValue，不要以小数字符串替换其标识，也不要从名称推断其代数性质。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the existing constant individual when available, retain math:isExact true and its number system, and keep authority links in the owning alignment surface. Connect each finite numerical evaluation through math:approximates from a distinct approximation object."
+msgstr "已有常数个体时应复用它，保留 math:isExact true 及其数系，并将权威来源链接保存在所属的对齐层。每个有限数值计算结果都应由独立近似对象通过 math:approximates 指向该常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approximate Value"
+msgstr "近似值"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite approximation of an exact number: a value that names, through math:approximates, the exact math:Number it stands in for and, through math:approximationError, how far it may deviate. It carries the concrete numeric literal (math:quantityValue) in a declared floating-point datatype (math:numericDatatype, subsuming xsd:double / xsd:float). An approximate value and the exact number it approximates are distinct objects and are never conflated — this is the object that holds the decimal so the exact number need not."
+msgstr "精确数的有限近似：通过 math:approximates 指明所代表的精确 math:Number，并通过 math:approximationError 指明可能的偏差。它以声明的浮点数据类型（math:numericDatatype，直接采用 xsd:double / xsd:float）承载具体数值字面量（math:quantityValue）。近似值及其所近似的精确数是两个不同的对象，绝不混同；由此对象承载小数，精确数本身无需承载。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The approximation object carries the numerical representation; math:approximates identifies its exact target. math:approximationError is a numeric absolute error bound, not a relative percentage, confidence level or link to an error node."
+msgstr "近似对象承载数值表示，math:approximates 标识其精确目标。math:approximationError 是数值形式的绝对误差界，而非相对百分比、置信水平或指向误差节点的链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "An approximation of math:pi may carry math:quantityValue 3.14159 in xsd:double, math:numericDatatype xsd:double, math:approximates math:pi and math:approximationError 0.000003 as an xsd:decimal absolute bound."
+msgstr "math:pi 的一个近似对象可以用 xsd:double 承载 math:quantityValue 3.14159，并带有 math:numericDatatype xsd:double、math:approximates math:pi，以及作为 xsd:decimal 绝对误差界的 math:approximationError 0.000003。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a finite-precision evaluation whose exact target and justified absolute error bound must remain inspectable."
+msgstr "用于需要保留可检查的精确目标及有依据的绝对误差界的有限精度计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this object as the exact constant itself, omitting the target or error bound, or treating a floating-point datatype as proof that an error bound is valid."
+msgstr "不要将此对象当作精确常数本身，不要省略目标或误差界，也不要将浮点数据类型视为误差界有效的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create a separate math:ApproximateValue, link math:approximates to the exact math:Number, declare math:numericDatatype, and supply the matching typed math:quantityValue and a justified numeric math:approximationError."
+msgstr "创建独立的 math:ApproximateValue，通过 math:approximates 连接精确的 math:Number，声明 math:numericDatatype，并提供类型相符的 math:quantityValue 及有依据的数值 math:approximationError。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number System"
+msgstr "数系"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
+msgstr "数系：一个数所属的论域，即 ℕ、ℤ、ℚ、ℝ 或 ℂ。它是 math:Set 的子类；数系就是由其数构成的集合，因此可作为函数的 math:domain 或 math:codomain（复平面 ℂ 是伽马函数的定义域）。其实例包括五个命名数系 math:naturalNumbers、math:integers、math:rationalNumbers、math:realNumbers 和 math:complexNumbers，通过 math:subsystemOf 排列为包含关系链 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ；还包括带符号扩展实数轴 math:ExtendedRealLine，它以同样的机制向 ℝ 添加 math:PositiveInfinity 和 math:NegativeInfinity 两个极点（math:realNumbers 是其子数系）。math:Number 通过 math:inNumberSystem 指向其中一个数系。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."
+msgstr "数系是用作数的论域的集合个体。应区分数对象的类 math:NaturalNumber 与数系个体 math:naturalNumbers；math:subsystemOf 连接的是数系，而不是单个数。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:naturalNumbers is a math:NumberSystem and math:subsystemOf math:integers. An exact natural-number object points to math:naturalNumbers through math:inNumberSystem, not to the class math:NaturalNumber."
+msgstr "math:naturalNumbers 是 math:NumberSystem，并且具有 math:subsystemOf math:integers。精确的自然数对象通过 math:inNumberSystem 指向 math:naturalNumbers，而非类 math:NaturalNumber。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the set that situates a number or supplies a function domain or codomain, with containment between systems represented explicitly."
+msgstr "用于标识一个数所属的集合，或作为函数定义域、陪域的集合，并显式表示数系之间的包含关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a numeric datatype such as xsd:double as a math:NumberSystem, or replacing a system individual with a number-class IRI in math:inNumberSystem."
+msgstr "不要将 xsd:double 等数值数据类型视为 math:NumberSystem，也不要在 math:inNumberSystem 中用数类的 IRI 替代数系个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the named system individuals for math:inNumberSystem and use math:subsystemOf for containment. Select the declared system without listing every containing system as another value on the same number."
+msgstr "为 math:inNumberSystem 复用命名数系个体，并用 math:subsystemOf 表示包含关系。选择所声明的数系，不要将每个包含它的数系都列为同一个数的额外属性值。"

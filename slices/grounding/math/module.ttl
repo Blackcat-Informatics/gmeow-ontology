@@ -132,6 +132,11 @@ math:Number
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number"@x-gmeow-english ;
     skos:definition "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."@x-gmeow-english ;
+    skos:scopeNote "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."@x-gmeow-english ;
+    skos:example "An identified object denoting five can be typed math:NaturalNumber, situated by math:inNumberSystem math:naturalNumbers, and marked math:isExact true; the literal 5 alone does not supply that object description."@x-gmeow-english ;
+    gmeow:useWhen "Use when a number needs an identity, a declared system and an explicit exactness statement in a mathematical graph."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using math:Number as a datatype for a literal, or adding math:quantityValue to a bare number object as an invented scalar slot."@x-gmeow-english ;
+    gmeow:howToUse "Type the number with its justified subclass, name its system through math:inNumberSystem, and state math:isExact. Keep any rounded representation on a separate math:ApproximateValue linked by math:approximates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:NaturalNumber
@@ -140,6 +145,11 @@ math:NaturalNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Natural Number"@x-gmeow-english ;
     skos:definition "A natural number (ℕ): a non-negative counting number. The innermost system of the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — every natural number is an integer, so this is a subclass of math:Integer. Situated in the math:naturalNumbers system."@x-gmeow-english ;
+    skos:scopeNote "The natural numbers here include zero. This class denotes individual counting numbers; math:naturalNumbers denotes their system, and math:Cardinality describes the size of a set."@x-gmeow-english ;
+    skos:example "The exact number zero is a math:NaturalNumber with math:inNumberSystem math:naturalNumbers and math:isExact true, even when it counts an empty collection."@x-gmeow-english ;
+    gmeow:useWhen "Use for an abstract non-negative whole number used in counting, including the count zero."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid excluding zero by adopting a positive-only convention, or typing a negative balance or fractional amount as math:NaturalNumber."@x-gmeow-english ;
+    gmeow:howToUse "Declare the object as math:NaturalNumber and situate it in math:naturalNumbers. Let its subclass relationship to math:Integer express the broader classification rather than changing the chosen system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Integer
@@ -148,6 +158,11 @@ math:Integer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Integer"@x-gmeow-english ;
     skos:definition "An integer (ℤ): a whole number, positive, negative, or zero. Every integer is a rational number (n = n/1), so this is a subclass of math:RationalNumber. Situated in the math:integers system."@x-gmeow-english ;
+    skos:scopeNote "Integer membership concerns mathematical value, including negative values and zero. It is distinct from an xsd:integer literal used as a property value or from a machine integer storage width."@x-gmeow-english ;
+    skos:example "An object denoting minus three is a math:Integer in math:integers; a debit of three currency units would additionally need a quantity model rather than making the integer itself a currency amount."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical object denotes a whole number and negative values must remain available alongside zero and positive values."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a rounded measurement as an exact integer merely because its displayed decimal has no fractional digits."@x-gmeow-english ;
+    gmeow:howToUse "Type the identified whole-number object as math:Integer, select math:integers with math:inNumberSystem, and declare exactness independently of the literal datatype used elsewhere to encode it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:RationalNumber
@@ -156,6 +171,11 @@ math:RationalNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rational Number"@x-gmeow-english ;
     skos:definition "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."@x-gmeow-english ;
+    skos:scopeNote "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."@x-gmeow-english ;
+    skos:example "One third is an exact math:RationalNumber in math:rationalNumbers. Its concrete pair representation uses a math:RationalValue with math:numerator 1 and math:denominator 3; a rounded 0.3333 belongs to a separate approximation."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify an exact ratio of integers as a mathematical number, independently of the representation chosen for computation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a zero denominator, an irrational value such as √2, or conflating the abstract rational with its math:RationalValue carrier or rounded decimal."@x-gmeow-english ;
+    gmeow:howToUse "Describe the abstract number with math:RationalNumber, math:inNumberSystem math:rationalNumbers and math:isExact true. Use math:RationalValue when an explicit numerator and nonzero denominator must be carried, and math:ApproximateValue for a rounded evaluation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:RealNumber
@@ -164,6 +184,11 @@ math:RealNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Real Number"@x-gmeow-english ;
     skos:definition "A real number (ℝ): a point on the continuous number line, rational or irrational. Every real number is a complex number with zero imaginary part, so this is a subclass of math:ComplexNumber. Situated in the math:realNumbers system."@x-gmeow-english ;
+    skos:scopeNote "Real-number classification includes rational and irrational values. Finite decimal output does not settle which kind an exact value is, and the signed infinity poles belong to math:ExtendedRealLine rather than the finite real line."@x-gmeow-english ;
+    skos:example "The positive square root √2 is a math:RealNumber in math:realNumbers and also a math:AlgebraicNumber; a displayed 1.4142 is a separate rounded evaluation."@x-gmeow-english ;
+    gmeow:useWhen "Use for exact points on the real line when the rational or irrational distinction is relevant or not yet established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing a non-real complex value, math:PositiveInfinity, math:NegativeInfinity or an undefined numeric result in the finite real-number class."@x-gmeow-english ;
+    gmeow:howToUse "Assert math:RealNumber and math:inNumberSystem math:realNumbers on the identified number. Add a justified narrower classification separately, keeping any finite-precision output on math:ApproximateValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ComplexNumber
@@ -172,6 +197,11 @@ math:ComplexNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complex Number"@x-gmeow-english ;
     skos:definition "A complex number (ℂ): a value a + bi with real part a and imaginary part b. The outermost system of the containment tower; a subclass of math:Number. Situated in the math:complexNumbers system."@x-gmeow-english ;
+    skos:scopeNote "Complex numbers include all real numbers as well as values with nonzero imaginary part. The notation a + bi explains the value; it does not declare component-storage properties or turn the notation string into a number object."@x-gmeow-english ;
+    skos:example "The imaginary unit i is an exact math:ComplexNumber in math:complexNumbers. Its square is −1, while i itself is not a math:RealNumber."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mathematical domain must admit non-real values, such as roots of x² + 1 or complex analysis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming that every complex number has a nonzero imaginary part, or using a text such as 2 + 3i as a substitute for an identified mathematical object."@x-gmeow-english ;
+    gmeow:howToUse "Situate the number with math:inNumberSystem math:complexNumbers and state math:isExact. Use an expression object when the construction a + bi must be represented, rather than inventing real-part or imaginary-part predicates on this class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:AlgebraicNumber
@@ -180,6 +210,11 @@ math:AlgebraicNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Algebraic Number"@x-gmeow-english ;
     skos:definition "An algebraic number: a complex number that is a root of a non-zero polynomial with rational coefficients (for example √2 or the golden ratio). A subclass of math:ComplexNumber, cross-cutting the ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower — the algebraic numbers are closed under the field operations but are not one of the nested systems. Its complement within ℂ is the transcendental numbers."@x-gmeow-english ;
+    skos:scopeNote "Algebraicity crosses the nested number systems: rational numbers, irrational real roots such as √2, and non-real roots such as i can all be algebraic. It is not an extra rung between ℚ and ℝ."@x-gmeow-english ;
+    skos:example "The positive root √2 of x² − 2 is both math:AlgebraicNumber and math:RealNumber; i, a root of x² + 1, is algebraic but not real."@x-gmeow-english ;
+    gmeow:useWhen "Use when membership in the roots of nonzero rational-coefficient polynomials is established for the exact number."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid classifying a constant as algebraic merely because it has a name, a decimal expansion or a numerical polynomial fit; γ has no established algebraic or transcendental classification."@x-gmeow-english ;
+    gmeow:howToUse "Add math:AlgebraicNumber alongside the justified tower class and keep math:inNumberSystem directed to the existing system individual. Record the polynomial characterization through the expression and logic vocabulary when it must be machine-readable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:TranscendentalNumber
@@ -188,6 +223,11 @@ math:TranscendentalNumber
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Transcendental Number"@x-gmeow-english ;
     skos:definition "A transcendental number: a complex number that is not algebraic — not a root of any non-zero polynomial with rational coefficients (for example π and e). A subclass of math:ComplexNumber. Named transcendental constants such as π and e are exact math:MathematicalConstant individuals, never decimal literals."@x-gmeow-english ;
+    skos:scopeNote "Transcendence is a property of the exact complex number, not of its written digits. Irrationality alone is insufficient: √2 is irrational and algebraic."@x-gmeow-english ;
+    skos:example "math:pi and math:eulerNumber are exact math:TranscendentalNumber individuals. A stored decimal approximation of either is a math:ApproximateValue, not another transcendental constant."@x-gmeow-english ;
+    gmeow:useWhen "Use for an exact number whose failure to satisfy every nonzero polynomial over the rationals is established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring transcendence from a nonrepeating-looking decimal prefix or from unknown rationality; do not assign this class to math:eulerMascheroni on that basis."@x-gmeow-english ;
+    gmeow:howToUse "Assert math:TranscendentalNumber only with mathematical justification, retain the applicable number system, and reuse math:pi or math:eulerNumber for the existing named constants instead of minting decimal identities."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MathematicalConstant
@@ -196,6 +236,11 @@ math:MathematicalConstant
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Constant"@x-gmeow-english ;
     skos:definition "A named mathematical constant: an exact number with a canonical identity, such as π, e, or the Euler–Mascheroni constant γ. A subclass of math:Number whose instances are exact individuals (math:isExact true) anchored to an external authority — a Wikidata QID and, where applicable, an OEIS or DLMF locator, recorded as a math: alignment. A constant is never given as a decimal literal; its decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
+    skos:scopeNote "A named constant retains its exact identity even when its classification is incomplete. The known exactness of math:eulerMascheroni does not establish whether γ is rational, algebraic or transcendental."@x-gmeow-english ;
+    skos:example "Reuse math:eulerMascheroni for γ with its declared math:isExact true and math:inNumberSystem math:realNumbers. Put a numerical estimate such as 0.57721 on a separate math:ApproximateValue."@x-gmeow-english ;
+    gmeow:useWhen "Use when a named mathematical number needs a stable identity and external reference alignment independent of the precision of any evaluation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching math:quantityValue directly to a math:MathematicalConstant, replacing its identity with a decimal string, or deriving its algebraic status from its name."@x-gmeow-english ;
+    gmeow:howToUse "Reuse the existing constant individual when available, retain math:isExact true and its number system, and keep authority links in the owning alignment surface. Connect each finite numerical evaluation through math:approximates from a distinct approximation object."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ApproximateValue
@@ -203,6 +248,11 @@ math:ApproximateValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Approximate Value"@x-gmeow-english ;
     skos:definition "A finite approximation of an exact number: a value that names, through math:approximates, the exact math:Number it stands in for and, through math:approximationError, how far it may deviate. It carries the concrete numeric literal (math:quantityValue) in a declared floating-point datatype (math:numericDatatype, subsuming xsd:double / xsd:float). An approximate value and the exact number it approximates are distinct objects and are never conflated — this is the object that holds the decimal so the exact number need not."@x-gmeow-english ;
+    skos:scopeNote "The approximation object carries the numerical representation; math:approximates identifies its exact target. math:approximationError is a numeric absolute error bound, not a relative percentage, confidence level or link to an error node."@x-gmeow-english ;
+    skos:example "An approximation of math:pi may carry math:quantityValue 3.14159 in xsd:double, math:numericDatatype xsd:double, math:approximates math:pi and math:approximationError 0.000003 as an xsd:decimal absolute bound."@x-gmeow-english ;
+    gmeow:useWhen "Use for a finite-precision evaluation whose exact target and justified absolute error bound must remain inspectable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this object as the exact constant itself, omitting the target or error bound, or treating a floating-point datatype as proof that an error bound is valid."@x-gmeow-english ;
+    gmeow:howToUse "Create a separate math:ApproximateValue, link math:approximates to the exact math:Number, declare math:numericDatatype, and supply the matching typed math:quantityValue and a justified numeric math:approximationError."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:NumberSystem
@@ -211,6 +261,11 @@ math:NumberSystem
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
     skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
+    skos:scopeNote "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."@x-gmeow-english ;
+    skos:example "math:naturalNumbers is a math:NumberSystem and math:subsystemOf math:integers. An exact natural-number object points to math:naturalNumbers through math:inNumberSystem, not to the class math:NaturalNumber."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the set that situates a number or supplies a function domain or codomain, with containment between systems represented explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a numeric datatype such as xsd:double as a math:NumberSystem, or replacing a system individual with a number-class IRI in math:inNumberSystem."@x-gmeow-english ;
+    gmeow:howToUse "Reuse the named system individuals for math:inNumberSystem and use math:subsystemOf for containment. Select the declared system without listing every containing system as another value on the same number."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Number-system individuals (the containment tower) ---------------------- #

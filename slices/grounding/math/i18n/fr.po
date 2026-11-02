@@ -3660,3 +3660,303 @@ msgstr "Le raisonneur natif interprète exactement 64 chiffres hexadécimaux min
 msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
 msgstr "Un littéral fourni tel que \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest conserve l’identité SHA-256 même si le littéral d’un autre algorithme possède la même écriture hexadécimale."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number"
+msgstr "Nombre"
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
+msgstr "Un nombre mathématique : une quantité abstraite appartenant à un système de nombres déclaré. Chaque math:Number se situe dans un math:NumberSystem par math:inNumberSystem — un nombre sans système est mal formé — et déclare par math:isExact s’il est une valeur exacte ou la contrepartie abstraite qu’un math:ApproximateValue approche. Les cinq systèmes emboîtés ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ correspondent à ses principales sous-classes."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
+msgstr "Cette classe décrit des objets mathématiques, et non des littéraux numériques RDF ni les ensembles qui contiennent des nombres. Choisir une classe de nombres plus précise lorsqu’elle est connue ; math:inNumberSystem désigne un individu représentant un système, et non une classe."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#example"
+msgid "An identified object denoting five can be typed math:NaturalNumber, situated by math:inNumberSystem math:naturalNumbers, and marked math:isExact true; the literal 5 alone does not supply that object description."
+msgstr "Un objet identifié désignant cinq peut être typé math:NaturalNumber, situé par math:inNumberSystem math:naturalNumbers et marqué math:isExact true ; le littéral 5 seul ne fournit pas cette description de l’objet."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a number needs an identity, a declared system and an explicit exactness statement in a mathematical graph."
+msgstr "Utiliser lorsqu’un nombre doit avoir une identité, un système déclaré et une indication explicite de son exactitude dans un graphe mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using math:Number as a datatype for a literal, or adding math:quantityValue to a bare number object as an invented scalar slot."
+msgstr "Ne pas employer math:Number comme type de données d’un littéral, ni ajouter math:quantityValue à un simple objet nombre pour lui inventer un emplacement scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/Number|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the number with its justified subclass, name its system through math:inNumberSystem, and state math:isExact. Keep any rounded representation on a separate math:ApproximateValue linked by math:approximates."
+msgstr "Typer le nombre avec la sous-classe justifiée, désigner son système par math:inNumberSystem et renseigner math:isExact. Conserver toute représentation arrondie dans un math:ApproximateValue distinct, relié par math:approximates."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Natural Number"
+msgstr "Nombre naturel"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A natural number (ℕ): a non-negative counting number. The innermost system of the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — every natural number is an integer, so this is a subclass of math:Integer. Situated in the math:naturalNumbers system."
+msgstr "Un nombre naturel (ℕ) : un nombre de comptage non négatif. Le système le plus intérieur de la tour d’inclusion ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — tout nombre naturel est un entier, cette classe est donc une sous-classe de math:Integer. Situé dans le système math:naturalNumbers."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The natural numbers here include zero. This class denotes individual counting numbers; math:naturalNumbers denotes their system, and math:Cardinality describes the size of a set."
+msgstr "Les nombres naturels comprennent ici zéro. Cette classe désigne les nombres de comptage individuels ; math:naturalNumbers désigne leur système, et math:Cardinality décrit la taille d’un ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact number zero is a math:NaturalNumber with math:inNumberSystem math:naturalNumbers and math:isExact true, even when it counts an empty collection."
+msgstr "Le nombre exact zéro est un math:NaturalNumber avec math:inNumberSystem math:naturalNumbers et math:isExact true, même lorsqu’il dénombre une collection vide."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an abstract non-negative whole number used in counting, including the count zero."
+msgstr "Utiliser pour un nombre entier abstrait non négatif servant au comptage, y compris le compte zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid excluding zero by adopting a positive-only convention, or typing a negative balance or fractional amount as math:NaturalNumber."
+msgstr "Ne pas exclure zéro en adoptant une convention limitée aux entiers strictement positifs, ni typer un solde négatif ou une quantité fractionnaire comme math:NaturalNumber."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the object as math:NaturalNumber and situate it in math:naturalNumbers. Let its subclass relationship to math:Integer express the broader classification rather than changing the chosen system."
+msgstr "Déclarer l’objet comme math:NaturalNumber et le situer dans math:naturalNumbers. Laisser sa relation de sous-classe avec math:Integer exprimer la classification plus large plutôt que changer le système choisi."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Integer"
+msgstr "Entier"
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An integer (ℤ): a whole number, positive, negative, or zero. Every integer is a rational number (n = n/1), so this is a subclass of math:RationalNumber. Situated in the math:integers system."
+msgstr "Un entier (ℤ) : un nombre entier positif, négatif ou nul. Tout entier est rationnel (n = n/1), cette classe est donc une sous-classe de math:RationalNumber. Situé dans le système math:integers."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer membership concerns mathematical value, including negative values and zero. It is distinct from an xsd:integer literal used as a property value or from a machine integer storage width."
+msgstr "L’appartenance aux entiers concerne la valeur mathématique, y compris les valeurs négatives et zéro. Elle se distingue d’un littéral xsd:integer utilisé comme valeur de propriété ou de la largeur de stockage d’un entier machine."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|http://www.w3.org/2004/02/skos/core#example"
+msgid "An object denoting minus three is a math:Integer in math:integers; a debit of three currency units would additionally need a quantity model rather than making the integer itself a currency amount."
+msgstr "Un objet désignant moins trois est un math:Integer dans math:integers ; un débit de trois unités monétaires nécessiterait en outre un modèle de quantité, sans transformer l’entier lui-même en montant monétaire."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical object denotes a whole number and negative values must remain available alongside zero and positive values."
+msgstr "Utiliser lorsqu’un objet mathématique désigne un nombre entier et que les valeurs négatives doivent rester possibles aux côtés de zéro et des valeurs positives."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a rounded measurement as an exact integer merely because its displayed decimal has no fractional digits."
+msgstr "Ne pas traiter une mesure arrondie comme un entier exact au seul motif que sa représentation décimale affichée n’a pas de chiffres après la virgule."
+
+msgctxt "https://blackcatinformatics.ca/math/Integer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the identified whole-number object as math:Integer, select math:integers with math:inNumberSystem, and declare exactness independently of the literal datatype used elsewhere to encode it."
+msgstr "Typer l’objet nombre entier identifié comme math:Integer, sélectionner math:integers par math:inNumberSystem et déclarer l’exactitude indépendamment du type de données littéral utilisé ailleurs pour l’encoder."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rational Number"
+msgstr "Nombre rationnel"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."
+msgstr "Un nombre rationnel (ℚ) : un rapport p/q d’entiers avec q ≠ 0. Tout nombre rationnel est réel, cette classe est donc une sous-classe de math:RealNumber. Situé dans le système math:rationalNumbers. Un nombre rationnel est exact ; sa représentation décimale finie ou périodique est une approximation portée par un math:ApproximateValue distinct."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."
+msgstr "Il s’agit du nombre rationnel abstrait dans la tour d’inclusion. Le porteur concret de la paire exacte est math:RationalValue, dont math:numerator et math:denominator sont des littéraux entiers ; ces emplacements ne sont pas déclarés sur math:RationalNumber."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "One third is an exact math:RationalNumber in math:rationalNumbers. Its concrete pair representation uses a math:RationalValue with math:numerator 1 and math:denominator 3; a rounded 0.3333 belongs to a separate approximation."
+msgstr "Un tiers est un math:RationalNumber exact dans math:rationalNumbers. Sa représentation concrète par une paire utilise un math:RationalValue avec math:numerator 1 et math:denominator 3 ; la valeur arrondie 0.3333 appartient à une approximation distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an exact ratio of integers as a mathematical number, independently of the representation chosen for computation."
+msgstr "Utiliser pour classer un rapport exact d’entiers comme nombre mathématique, indépendamment de la représentation choisie pour le calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a zero denominator, an irrational value such as √2, or conflating the abstract rational with its math:RationalValue carrier or rounded decimal."
+msgstr "Éviter un dénominateur nul, une valeur irrationnelle telle que √2, ou la confusion entre le rationnel abstrait et son porteur math:RationalValue ou son décimal arrondi."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the abstract number with math:RationalNumber, math:inNumberSystem math:rationalNumbers and math:isExact true. Use math:RationalValue when an explicit numerator and nonzero denominator must be carried, and math:ApproximateValue for a rounded evaluation."
+msgstr "Décrire le nombre abstrait par math:RationalNumber, math:inNumberSystem math:rationalNumbers et math:isExact true. Employer math:RationalValue pour porter explicitement un numérateur et un dénominateur non nul, et math:ApproximateValue pour une évaluation arrondie."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Real Number"
+msgstr "Nombre réel"
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A real number (ℝ): a point on the continuous number line, rational or irrational. Every real number is a complex number with zero imaginary part, so this is a subclass of math:ComplexNumber. Situated in the math:realNumbers system."
+msgstr "Un nombre réel (ℝ) : un point de la droite numérique continue, rationnel ou irrationnel. Tout nombre réel est un nombre complexe de partie imaginaire nulle, cette classe est donc une sous-classe de math:ComplexNumber. Situé dans le système math:realNumbers."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Real-number classification includes rational and irrational values. Finite decimal output does not settle which kind an exact value is, and the signed infinity poles belong to math:ExtendedRealLine rather than the finite real line."
+msgstr "La classification des nombres réels comprend les valeurs rationnelles et irrationnelles. Une sortie décimale finie ne détermine pas à laquelle de ces catégories appartient une valeur exacte ; les pôles infinis signés appartiennent à math:ExtendedRealLine plutôt qu’à la droite réelle finie."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive square root √2 is a math:RealNumber in math:realNumbers and also a math:AlgebraicNumber; a displayed 1.4142 is a separate rounded evaluation."
+msgstr "La racine carrée positive √2 est un math:RealNumber dans math:realNumbers et également un math:AlgebraicNumber ; la valeur affichée 1.4142 est une évaluation arrondie distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for exact points on the real line when the rational or irrational distinction is relevant or not yet established."
+msgstr "Utiliser pour des points exacts de la droite réelle lorsque la distinction entre rationnel et irrationnel est pertinente ou n’est pas encore établie."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a non-real complex value, math:PositiveInfinity, math:NegativeInfinity or an undefined numeric result in the finite real-number class."
+msgstr "Ne pas placer une valeur complexe non réelle, math:PositiveInfinity, math:NegativeInfinity ou un résultat numérique indéfini dans la classe des nombres réels finis."
+
+msgctxt "https://blackcatinformatics.ca/math/RealNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert math:RealNumber and math:inNumberSystem math:realNumbers on the identified number. Add a justified narrower classification separately, keeping any finite-precision output on math:ApproximateValue."
+msgstr "Affirmer math:RealNumber et math:inNumberSystem math:realNumbers sur le nombre identifié. Ajouter séparément toute classification plus précise justifiée, en conservant la sortie à précision finie dans math:ApproximateValue."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complex Number"
+msgstr "Nombre complexe"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex number (ℂ): a value a + bi with real part a and imaginary part b. The outermost system of the containment tower; a subclass of math:Number. Situated in the math:complexNumbers system."
+msgstr "Un nombre complexe (ℂ) : une valeur a + bi avec une partie réelle a et une partie imaginaire b. Le système le plus extérieur de la tour d’inclusion ; une sous-classe de math:Number. Situé dans le système math:complexNumbers."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complex numbers include all real numbers as well as values with nonzero imaginary part. The notation a + bi explains the value; it does not declare component-storage properties or turn the notation string into a number object."
+msgstr "Les nombres complexes comprennent tous les nombres réels ainsi que les valeurs de partie imaginaire non nulle. La notation a + bi explique la valeur ; elle ne déclare pas de propriétés de stockage des composantes et ne transforme pas sa chaîne de caractères en objet nombre."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The imaginary unit i is an exact math:ComplexNumber in math:complexNumbers. Its square is −1, while i itself is not a math:RealNumber."
+msgstr "L’unité imaginaire i est un math:ComplexNumber exact dans math:complexNumbers. Son carré vaut −1, tandis que i lui-même n’est pas un math:RealNumber."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical domain must admit non-real values, such as roots of x² + 1 or complex analysis."
+msgstr "Utiliser lorsque le domaine mathématique doit admettre des valeurs non réelles, par exemple les racines de x² + 1 ou en analyse complexe."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming that every complex number has a nonzero imaginary part, or using a text such as 2 + 3i as a substitute for an identified mathematical object."
+msgstr "Ne pas supposer que tout nombre complexe possède une partie imaginaire non nulle, ni substituer un texte tel que 2 + 3i à un objet mathématique identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Situate the number with math:inNumberSystem math:complexNumbers and state math:isExact. Use an expression object when the construction a + bi must be represented, rather than inventing real-part or imaginary-part predicates on this class."
+msgstr "Situer le nombre par math:inNumberSystem math:complexNumbers et renseigner math:isExact. Employer un objet expression si la construction a + bi doit être représentée, plutôt qu’inventer des prédicats de partie réelle ou imaginaire sur cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Algebraicity crosses the nested number systems: rational numbers, irrational real roots such as √2, and non-real roots such as i can all be algebraic. It is not an extra rung between ℚ and ℝ."
+msgstr "Le caractère algébrique traverse les systèmes de nombres emboîtés : les rationnels, des racines réelles irrationnelles telles que √2 et des racines non réelles telles que i peuvent tous être algébriques. Ce n’est pas un échelon supplémentaire entre ℚ et ℝ."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive root √2 of x² − 2 is both math:AlgebraicNumber and math:RealNumber; i, a root of x² + 1, is algebraic but not real."
+msgstr "La racine positive √2 de x² − 2 est à la fois math:AlgebraicNumber et math:RealNumber ; i, racine de x² + 1, est algébrique mais non réel."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when membership in the roots of nonzero rational-coefficient polynomials is established for the exact number."
+msgstr "Utiliser lorsque l’appartenance de ce nombre exact aux racines de polynômes non nuls à coefficients rationnels est établie."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying a constant as algebraic merely because it has a name, a decimal expansion or a numerical polynomial fit; γ has no established algebraic or transcendental classification."
+msgstr "Ne pas classer une constante comme algébrique au seul motif qu’elle a un nom, un développement décimal ou un ajustement polynomial numérique ; aucune classification algébrique ou transcendante de γ n’est établie."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Add math:AlgebraicNumber alongside the justified tower class and keep math:inNumberSystem directed to the existing system individual. Record the polynomial characterization through the expression and logic vocabulary when it must be machine-readable."
+msgstr "Ajouter math:AlgebraicNumber à côté de la classe justifiée dans la tour et conserver math:inNumberSystem vers l’individu représentant le système existant. Consigner la caractérisation polynomiale au moyen du vocabulaire des expressions et de la logique si elle doit être lisible par machine."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transcendental Number"
+msgstr "Nombre transcendant"
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A transcendental number: a complex number that is not algebraic — not a root of any non-zero polynomial with rational coefficients (for example π and e). A subclass of math:ComplexNumber. Named transcendental constants such as π and e are exact math:MathematicalConstant individuals, never decimal literals."
+msgstr "Un nombre transcendant : un nombre complexe qui n’est pas algébrique — qui n’est racine d’aucun polynôme non nul à coefficients rationnels (par exemple π et e). Une sous-classe de math:ComplexNumber. Les constantes transcendantes nommées, telles que π et e, sont des individus math:MathematicalConstant exacts, jamais des littéraux décimaux."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Transcendence is a property of the exact complex number, not of its written digits. Irrationality alone is insufficient: √2 is irrational and algebraic."
+msgstr "La transcendance est une propriété du nombre complexe exact, et non de ses chiffres écrits. L’irrationalité seule ne suffit pas : √2 est irrationnel et algébrique."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:pi and math:eulerNumber are exact math:TranscendentalNumber individuals. A stored decimal approximation of either is a math:ApproximateValue, not another transcendental constant."
+msgstr "math:pi et math:eulerNumber sont des individus math:TranscendentalNumber exacts. Une approximation décimale enregistrée de l’un ou de l’autre est un math:ApproximateValue, et non une autre constante transcendante."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an exact number whose failure to satisfy every nonzero polynomial over the rationals is established."
+msgstr "Utiliser pour un nombre exact dont il est établi qu’il ne satisfait aucun polynôme non nul sur les rationnels."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring transcendence from a nonrepeating-looking decimal prefix or from unknown rationality; do not assign this class to math:eulerMascheroni on that basis."
+msgstr "Ne pas déduire la transcendance d’un préfixe décimal qui paraît non périodique ou d’une rationalité inconnue ; ne pas attribuer cette classe à math:eulerMascheroni sur cette base."
+
+msgctxt "https://blackcatinformatics.ca/math/TranscendentalNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert math:TranscendentalNumber only with mathematical justification, retain the applicable number system, and reuse math:pi or math:eulerNumber for the existing named constants instead of minting decimal identities."
+msgstr "N’affirmer math:TranscendentalNumber qu’avec une justification mathématique, conserver le système de nombres approprié et réutiliser math:pi ou math:eulerNumber pour les constantes nommées existantes plutôt que créer des identités décimales."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Constant"
+msgstr "Constante mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named mathematical constant: an exact number with a canonical identity, such as π, e, or the Euler–Mascheroni constant γ. A subclass of math:Number whose instances are exact individuals (math:isExact true) anchored to an external authority — a Wikidata QID and, where applicable, an OEIS or DLMF locator, recorded as a math: alignment. A constant is never given as a decimal literal; its decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
+msgstr "Une constante mathématique nommée : un nombre exact doté d’une identité canonique, tel que π, e ou la constante d’Euler–Mascheroni γ. Une sous-classe de math:Number dont les instances sont des individus exacts (math:isExact true) ancrés dans une autorité externe — un QID Wikidata et, le cas échéant, un identifiant OEIS ou DLMF, consigné comme alignement math:. Une constante n’est jamais donnée comme littéral décimal ; son développement décimal appartient à un math:ApproximateValue distinct qui math:approximates cette constante."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A named constant retains its exact identity even when its classification is incomplete. The known exactness of math:eulerMascheroni does not establish whether γ is rational, algebraic or transcendental."
+msgstr "Une constante nommée conserve son identité exacte même lorsque sa classification est incomplète. L’exactitude connue de math:eulerMascheroni ne détermine pas si γ est rationnel, algébrique ou transcendant."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|http://www.w3.org/2004/02/skos/core#example"
+msgid "Reuse math:eulerMascheroni for γ with its declared math:isExact true and math:inNumberSystem math:realNumbers. Put a numerical estimate such as 0.57721 on a separate math:ApproximateValue."
+msgstr "Réutiliser math:eulerMascheroni pour γ avec ses déclarations math:isExact true et math:inNumberSystem math:realNumbers. Placer une estimation numérique telle que 0.57721 dans un math:ApproximateValue distinct."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a named mathematical number needs a stable identity and external reference alignment independent of the precision of any evaluation."
+msgstr "Utiliser lorsqu’un nombre mathématique nommé doit avoir une identité stable et un alignement vers des références externes, indépendamment de la précision de toute évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching math:quantityValue directly to a math:MathematicalConstant, replacing its identity with a decimal string, or deriving its algebraic status from its name."
+msgstr "Ne pas attacher math:quantityValue directement à un math:MathematicalConstant, remplacer son identité par une chaîne décimale ou déduire son statut algébrique de son nom."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConstant|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the existing constant individual when available, retain math:isExact true and its number system, and keep authority links in the owning alignment surface. Connect each finite numerical evaluation through math:approximates from a distinct approximation object."
+msgstr "Réutiliser l’individu existant de la constante lorsqu’il est disponible, conserver math:isExact true et son système, et garder les liens d’autorité dans la surface d’alignement qui les possède. Relier chaque évaluation numérique finie par math:approximates depuis un objet d’approximation distinct."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approximate Value"
+msgstr "Valeur approchée"
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite approximation of an exact number: a value that names, through math:approximates, the exact math:Number it stands in for and, through math:approximationError, how far it may deviate. It carries the concrete numeric literal (math:quantityValue) in a declared floating-point datatype (math:numericDatatype, subsuming xsd:double / xsd:float). An approximate value and the exact number it approximates are distinct objects and are never conflated — this is the object that holds the decimal so the exact number need not."
+msgstr "Une approximation finie d’un nombre exact : une valeur qui désigne par math:approximates le math:Number exact qu’elle représente et par math:approximationError l’écart possible. Elle porte le littéral numérique concret (math:quantityValue) dans un type flottant déclaré (math:numericDatatype, reprenant directement xsd:double / xsd:float). Une valeur approchée et le nombre exact qu’elle approche sont des objets distincts, jamais confondus — cet objet porte le décimal pour que le nombre exact n’ait pas à le faire."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The approximation object carries the numerical representation; math:approximates identifies its exact target. math:approximationError is a numeric absolute error bound, not a relative percentage, confidence level or link to an error node."
+msgstr "L’objet d’approximation porte la représentation numérique ; math:approximates identifie sa cible exacte. math:approximationError est une borne numérique de l’erreur absolue, et non un pourcentage relatif, un niveau de confiance ou un lien vers un nœud d’erreur."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "An approximation of math:pi may carry math:quantityValue 3.14159 in xsd:double, math:numericDatatype xsd:double, math:approximates math:pi and math:approximationError 0.000003 as an xsd:decimal absolute bound."
+msgstr "Une approximation de math:pi peut porter math:quantityValue 3.14159 en xsd:double, math:numericDatatype xsd:double, math:approximates math:pi et math:approximationError 0.000003 comme borne absolue de type xsd:decimal."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a finite-precision evaluation whose exact target and justified absolute error bound must remain inspectable."
+msgstr "Utiliser pour une évaluation à précision finie dont la cible exacte et la borne justifiée de l’erreur absolue doivent rester consultables."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this object as the exact constant itself, omitting the target or error bound, or treating a floating-point datatype as proof that an error bound is valid."
+msgstr "Ne pas employer cet objet comme la constante exacte elle-même, omettre la cible ou la borne d’erreur, ni considérer le type flottant comme une preuve de validité de cette borne."
+
+msgctxt "https://blackcatinformatics.ca/math/ApproximateValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create a separate math:ApproximateValue, link math:approximates to the exact math:Number, declare math:numericDatatype, and supply the matching typed math:quantityValue and a justified numeric math:approximationError."
+msgstr "Créer un math:ApproximateValue distinct, relier math:approximates au math:Number exact, déclarer math:numericDatatype et fournir math:quantityValue avec le type correspondant ainsi qu’un math:approximationError numérique justifié."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Number System"
+msgstr "Système de nombres"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
+msgstr "Un système de nombres : le domaine dans lequel se situe un nombre — ℕ, ℤ, ℚ, ℝ ou ℂ. Une sous-classe de math:Set — un système de nombres est l’ensemble de ses nombres et peut donc servir de math:domain ou de math:codomain d’une fonction (le plan complexe ℂ est le domaine de la fonction gamma). Ses instances sont les cinq systèmes nommés math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers et math:complexNumbers, ordonnés par math:subsystemOf en la tour d’inclusion ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, ainsi que la droite réelle achevée signée math:ExtendedRealLine, qui adjoint à ℝ les deux pôles math:PositiveInfinity et math:NegativeInfinity selon le même mécanisme (math:realNumbers en est un sous-système). Un math:Number pointe vers l’un d’eux par math:inNumberSystem."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."
+msgstr "Un système de nombres est un individu ensemble utilisé comme domaine de nombres. Distinguer math:NaturalNumber, la classe d’objets nombres, de math:naturalNumbers, l’individu représentant le système ; math:subsystemOf relie les systèmes plutôt que les nombres individuels."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:naturalNumbers is a math:NumberSystem and math:subsystemOf math:integers. An exact natural-number object points to math:naturalNumbers through math:inNumberSystem, not to the class math:NaturalNumber."
+msgstr "math:naturalNumbers est un math:NumberSystem et math:subsystemOf math:integers. Un objet nombre naturel exact pointe vers math:naturalNumbers par math:inNumberSystem, et non vers la classe math:NaturalNumber."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the set that situates a number or supplies a function domain or codomain, with containment between systems represented explicitly."
+msgstr "Utiliser pour identifier l’ensemble qui situe un nombre ou fournit le domaine ou le codomaine d’une fonction, en représentant explicitement les inclusions entre systèmes."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a numeric datatype such as xsd:double as a math:NumberSystem, or replacing a system individual with a number-class IRI in math:inNumberSystem."
+msgstr "Ne pas traiter un type de données numérique tel que xsd:double comme un math:NumberSystem, ni remplacer un individu représentant un système par l’IRI d’une classe de nombres dans math:inNumberSystem."
+
+msgctxt "https://blackcatinformatics.ca/math/NumberSystem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the named system individuals for math:inNumberSystem and use math:subsystemOf for containment. Select the declared system without listing every containing system as another value on the same number."
+msgstr "Réutiliser les individus représentant les systèmes nommés pour math:inNumberSystem et employer math:subsystemOf pour l’inclusion. Sélectionner le système déclaré sans énumérer tous les systèmes qui le contiennent comme autant d’autres valeurs sur le même nombre."
