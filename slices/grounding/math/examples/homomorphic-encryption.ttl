@@ -22,17 +22,19 @@
 
 # --- The plaintext and ciphertext rings (well-formed structures) ----------- #
 
-exa:plaintextRing a math:PolynomialRing ;
+exa:plaintextRing a math:Quotient , math:CommutativeRing ;
     rdfs:label "the plaintext ring R_t = ℤ_t[x]/(xⁿ+1)"@x-gmeow-english ;
     math:underlyingSet exa:plaintextSet ;
     math:structureOperation exa:ptAdd , exa:ptMul ;
-    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity ;
+    math:satisfiesDistributivity exa:leftDistributivity .
 
-exa:ciphertextRing a math:PolynomialRing ;
+exa:ciphertextRing a math:Quotient , math:CommutativeRing ;
     rdfs:label "the ciphertext ring R_q = ℤ_q[x]/(xⁿ+1)"@x-gmeow-english ;
     math:underlyingSet exa:ciphertextSet ;
     math:structureOperation exa:ctAdd , exa:ctMul ;
-    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity .
+    math:satisfiesAxiom exa:associativity , exa:commutativity , exa:leftDistributivity ;
+    math:satisfiesDistributivity exa:leftDistributivity .
 
 exa:plaintextSet a math:Set ; rdfs:label "plaintext polynomials"@x-gmeow-english .
 exa:ciphertextSet a math:Set ; rdfs:label "ciphertext polynomials"@x-gmeow-english .
