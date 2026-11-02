@@ -6100,3 +6100,311 @@ msgstr "不要以类型名称字符串作为宾语，不要用此边替代结构
 msgctxt "https://blackcatinformatics.ca/math/expressionType|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point math:expressionType from the structured expression to the applicable math:ExpressionType and preserve its theory or context. State denotation and actual logic lowering separately; a type-denoting expression needs an explicit math:compilesToLogicType claim when that lowering is authored."
 msgstr "使 math:expressionType 从结构化表达式指向适用的 math:ExpressionType，并保留其理论或上下文。指称及实际逻辑降级应另行声明；当编写类型降级时，指称类型的表达式需要显式的 math:compilesToLogicType 声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Binding Expression"
+msgstr "绑定表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A binder: the expression node that binds a variable over a body. Application-shaped — it names its binder operator through math:operator (a math:Operation individual such as the differentiation, integration, summation, or limit binder), its body through indexed math:argumentSlot cells, and the math:VariableDeclaration it introduces through math:boundVariable. It binds math:VariableOccurrence use sites through math:bindsOccurrence, never glyphs, so nested and shadowed binders are checkable. The single binding form d/dx, ∂, ∫, ∑, and lim all specialize: a math:Derivative, a math:Limit, a math:Series, and a math:Integral are binding expressions, so no per-operator binder machinery is minted. A binder without a bound variable and a body is ill-formed (math:MalformedBindingExpression)."
+msgstr "绑定器：在主体上绑定变量的表达式节点。它具有类似应用的形态，通过 math:operator 指定绑定运算符（例如微分、积分、求和或极限绑定器的 math:Operation 个体），通过索引 math:argumentSlot 单元指定主体，并通过 math:boundVariable 指定所引入的 math:VariableDeclaration。它用 math:bindsOccurrence 绑定 math:VariableOccurrence 使用处，而非字形，因此可检查嵌套绑定及遮蔽。d/dx、∂、∫、∑ 和 lim 都特化于同一绑定形式；math:Derivative、math:Limit、math:Series 和 math:Integral 均为绑定表达式，无须为各运算符另造绑定机制。缺少绑定变量或主体的绑定器不合规范（math:MalformedBindingExpression）。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A binder introduces one declaration under one binder operator and has one or more indexed body operands. It is a sibling of math:ApplicationExpression, not its subclass; lexical binding follows the body AST and explicit declaration identities."
+msgstr "绑定器以一个绑定运算符引入一个声明，并具有一个或多个索引主体运算对象。它与 math:ApplicationExpression 同级，而非其子类；词法绑定遵循主体 AST 及显式声明标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A binder with one body slot lowers that expression as its bare body. With body slots 0 and 1, the native lowerer applies the binder operator to both lowered operands and uses that application as the body."
+msgstr "只有一个主体槽位的绑定器将该表达式直接作为降级后的主体。具有主体槽位 0 和 1 时，原生降级器将绑定运算符应用于两个降级后的运算对象，并以该应用作为主体。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an expression introduces a variable identity over a structured body, as in a quantifier, integral, derivative or summation."
+msgstr "当表达式需要在结构化主体中引入变量标识时使用，例如量词、积分、导数或求和。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a single-slot-only rule, multiple binder operators or bound declarations, or expecting scope metadata and repeated glyphs to replace the lexical body structure."
+msgstr "不要强加只能有一个槽位的规则，不要使用多个绑定运算符或绑定声明，也不要期望作用域元数据及重复字形替代词法主体结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one math:operator, one math:boundVariable declaration and a nonempty contiguous zero-based family of typed argument slots. Resolve body occurrences explicitly to their declarations; retain any math:bindsOccurrence metadata without treating it as a substitute for AST nesting."
+msgstr "提供一个 math:operator、一个 math:boundVariable 声明，以及非空、连续且从零开始索引的带类型参数槽位族。显式将主体出现项解析到其声明；保留 math:bindsOccurrence 元数据，但不要用它替代 AST 嵌套。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Expression"
+msgstr "变量表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A variable used inside an expression: an expression node standing for one math:VariableOccurrence (math:variableOccurrence). Its occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration; there is no implicit free variable. This is the leaf of the AST where a bound or free variable enters a formula."
+msgstr "表达式中使用的变量：表示一个 math:VariableOccurrence（math:variableOccurrence）的表达式节点。其出现项要么由 math:BindingExpression 绑定，要么解析到 math:FreeVariableDeclaration；不存在隐式自由变量。这是绑定变量或自由变量进入公式的 AST 叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This leaf represents a variable use through an occurrence resource, then an explicit declaration. The expression, occurrence and declaration have different roles; labels do not establish any of the required links."
+msgstr "此叶节点通过出现项资源及显式声明表示变量使用。表达式、出现项及声明具有不同角色；标签不能建立任何所需链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A leaf for x points through math:variableOccurrence to its use site, which points through math:declaredVariable to the intended declaration, whether bound in the current AST or explicitly free."
+msgstr "x 的叶节点通过 math:variableOccurrence 指向其使用处，使用处再通过 math:declaredVariable 指向目标声明；该声明或由当前 AST 绑定，或被显式声明为自由变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the structured expression leaf where a bound or explicitly declared free variable enters a mathematical formula."
+msgstr "用于绑定变量或显式声明的自由变量进入数学公式的结构化表达式叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing directly to a declaration instead of an occurrence, leaving the use unresolved, or treating a variable-name string as the complete expression leaf."
+msgstr "不要直接指向声明来替代出现项，不要使使用处未解析，也不要将变量名称字符串当作完整表达式叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the leaf math:VariableExpression and link one occurrence with math:variableOccurrence. Give that occurrence one math:declaredVariable target and preserve its actual lexical placement; when no enclosing binder supplies that declaration, an explicit math:FreeVariableDeclaration is required by native lowering."
+msgstr "将叶节点定为 math:VariableExpression，并通过 math:variableOccurrence 连接一个出现项。为该出现项提供一个 math:declaredVariable 目标，保留其实际词法位置；若没有外围绑定器提供该声明，原生降级要求显式 math:FreeVariableDeclaration。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Declaration"
+msgstr "变量声明"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identity of a variable within a scope — the binding site's referent. Introduced by a math:BindingExpression through math:boundVariable, or standing alone as a math:FreeVariableDeclaration carrying a declared type/domain context. Every math:VariableOccurrence points at exactly one declaration through math:declaredVariable, so α-equivalence (same structure up to renaming of declarations) is a graph isomorphism over declarations rather than a string comparison. Two binders that reuse the glyph i introduce two distinct declarations."
+msgstr "变量在作用域内的标识，即绑定处的指称对象。它可由 math:BindingExpression 通过 math:boundVariable 引入，也可作为带有已声明类型及论域上下文的 math:FreeVariableDeclaration 独立存在。每个 math:VariableOccurrence 都通过 math:declaredVariable 恰好指向一个声明，因此 α 等价（结构相同，仅声明重命名不同）是声明上的图同构，而非字符串比较。重复使用字形 i 的两个绑定器引入两个不同声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A declaration supplies variable identity rather than a displayed name. Native bound lookup compares the explicit declaration against the enclosing binder stack; bound α-renaming can preserve structure, while free declaration identity remains part of a free term."
+msgstr "声明提供变量标识，而非显示名称。原生绑定查找将显式声明与外围绑定器栈比较；绑定变量的 α 重命名可以保持结构，而自由声明标识仍是自由项的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two nested binders may both display i but introduce different math:VariableDeclaration resources. A use beneath the inner binder can still name the outer declaration explicitly."
+msgstr "两个嵌套绑定器可以都显示 i，但引入不同的 math:VariableDeclaration 资源。内层绑定器下的使用处仍可显式指定外层声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a variable needs an explicit scoped identity shared by its intended occurrences."
+msgstr "当变量需要由目标出现项共享的显式作用域标识时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging declarations because their labels match, renaming free identities as if they were bound α-variants, or using declaration metadata alone to place an occurrence inside a binder."
+msgstr "不要因标签相同就合并声明，不要将自由标识当作绑定的 α 变体重命名，也不要仅凭声明元数据将出现项置于绑定器内。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Let a binder introduce its declaration through math:boundVariable and let use sites name it through math:declaredVariable. For standalone free declarations, use the explicit free marker and domain context; selected native bound-sort lowering instead reads a supplied math:domain on the bound declaration."
+msgstr "让绑定器通过 math:boundVariable 引入声明，让使用处通过 math:declaredVariable 指定它。对于独立自由声明，使用显式自由标记及论域上下文；所选原生绑定论域类型降级则读取绑定声明上提供的 math:domain。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Free Variable Declaration"
+msgstr "自由变量声明"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A variable declaration not introduced by a binder: a free variable, standing alone with a declared type and domain context. The explicit marker that a variable occurrence is free — there is no implicit free variable, so an occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration with its type/domain declared."
+msgstr "不由绑定器引入的变量声明，即带有已声明类型及论域上下文的独立自由变量。它是变量出现项为自由出现的显式标记；不存在隐式自由变量，因此出现项要么由 math:BindingExpression 绑定，要么解析到具有已声明类型及论域的 math:FreeVariableDeclaration。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class explicitly identifies an unbound declaration. A missing binder is not enough: native variable lowering requires the referenced declaration to carry this free marker when it is absent from the enclosing binder stack, and retains its resource identity."
+msgstr "此类显式标识未绑定声明。仅缺少绑定器并不充分：当被引用声明不在外围绑定器栈中时，原生变量降级要求该声明具有此自由标记，并保留其资源标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "A free parameter a has a math:FreeVariableDeclaration with its declared math:variableDomain. An occurrence points to that declaration even inside a body that binds a different declaration with the same displayed name."
+msgstr "自由参数 a 具有 math:FreeVariableDeclaration 及已声明的 math:variableDomain。即使某主体绑定了另一个显示名称相同的声明，出现项仍指向该自由声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an intentionally free variable whose declaration and mathematical domain context must remain explicit."
+msgstr "用于声明及数学论域上下文需要保持显式的有意自由变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid implicit freedom from an unmatched glyph, marking a dangling occurrence itself instead of its declaration, or assuming free declaration identities disappear under bound-variable α-renaming."
+msgstr "不要因字形没有匹配就假定自由性，不要标记悬空出现项本身来替代其声明，也不要假定自由声明标识会在绑定变量 α 重命名中消失。"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the standalone declaration math:FreeVariableDeclaration, supply its normative math:variableDomain set context and resolve occurrences to it through math:declaredVariable. Preserve its identity; consumer admission and validation of domain context remain distinct from the native bound-sort math:domain path."
+msgstr "将独立声明定为 math:FreeVariableDeclaration，提供规范要求的 math:variableDomain 集合上下文，并通过 math:declaredVariable 将出现项解析到它。保留其标识；消费者准入及论域上下文验证不同于原生绑定论域类型的 math:domain 路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Occurrence"
+msgstr "变量出现项"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A use site of a variable within an expression scope: it names the math:VariableDeclaration it refers to through math:declaredVariable and the scope it occurs in through math:occursInScope. A binder binds occurrences (math:bindsOccurrence), not glyphs, so an occurrence in the body of two nested binders that reuse a glyph resolves to exactly one of the two declarations. An occurrence that resolves to no declaration and is not marked free is ill-formed (math:UnscopedVariableOccurrence)."
+msgstr "表达式作用域内变量的一个使用处：通过 math:declaredVariable 指定所引用的 math:VariableDeclaration，并通过 math:occursInScope 指定所在作用域。绑定器绑定出现项（math:bindsOccurrence），而非字形，因此同处两个复用字形的嵌套绑定器主体中的出现项恰好解析到其中一个声明。不解析到任何声明且未标记为自由的出现项不合规范（math:UnscopedVariableOccurrence）。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An occurrence is a use site with one explicit declaration target. Its lexical environment comes from AST traversal; scope and binding metadata describe that use but cannot override declaration-identity lookup."
+msgstr "出现项是具有一个显式声明目标的使用处。其词法环境来自 AST 遍历；作用域及绑定元数据描述该使用，但不能覆盖按声明标识进行的查找。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Under two binders labelled i, one occurrence can explicitly reference the outer declaration while another references the inner. Their equal displayed glyph does not merge those targets."
+msgstr "在两个均标为 i 的绑定器下，一个出现项可以显式引用外层声明，另一个引用内层声明。相同显示字形不会合并这些目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual variable use needs explicit resolution and scope or provenance metadata apart from the declaration’s shared identity."
+msgstr "当单个变量使用需要显式解析，以及独立于声明共享标识的作用域或出处元数据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving by the nearest matching label, using only math:occursInScope to assert binding, or treating an out-of-stack declaration as implicitly free."
+msgstr "不要按最近的同名标签解析，不要仅用 math:occursInScope 声明绑定，也不要将栈外声明当作隐式自由变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the math:VariableOccurrence one math:declaredVariable edge, connect its expression leaf through math:variableOccurrence and retain accurate scope metadata. Check the explicit declaration against enclosing binders or the free-declaration marker rather than reconstructing binding from glyphs."
+msgstr "为 math:VariableOccurrence 提供一条 math:declaredVariable 边，通过 math:variableOccurrence 连接表达式叶节点，并保留准确作用域元数据。应根据外围绑定器或自由声明标记检查显式声明，而不是从字形重建绑定。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bound variable"
+msgstr "绑定变量"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:BindingExpression to the math:VariableDeclaration it introduces and binds — the variable of differentiation, integration, summation, or the limit. Domain math:BindingExpression, range math:VariableDeclaration (stated in prose). Every binder names exactly one bound variable's declaration; a binder without one is ill-formed (math:MalformedBindingExpression). This is the edge through which a binder introduces its variable's scoped identity, over which its bound math:VariableOccurrence use sites resolve."
+msgstr "将 math:BindingExpression 连接到其引入并绑定的 math:VariableDeclaration，即微分、积分、求和或极限中的变量。定义域为 math:BindingExpression，值域为 math:VariableDeclaration（以文字说明）。每个绑定器恰好指定一个绑定变量声明；缺少该声明的绑定器不合规范（math:MalformedBindingExpression）。此边引入变量的作用域标识，其绑定的 math:VariableOccurrence 使用处解析到该标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is binder-to-declaration, introducing one bound variable identity over the indexed body operands. It does not point to a glyph, an occurrence or the body expression itself."
+msgstr "方向是绑定器到声明，在索引主体运算对象中引入一个绑定变量标识。它不指向字形、出现项或主体表达式本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "An outer summation and an inner summation both displaying i name their own declaration resources with math:boundVariable. A body occurrence selects one through its explicit math:declaredVariable target."
+msgstr "外层求和和内层求和即使都显示 i，也分别通过 math:boundVariable 指定各自声明资源。主体出现项通过显式 math:declaredVariable 目标选择其中一个。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a binding expression introduces the declaration against which body occurrences are resolved lexically."
+msgstr "当绑定表达式引入用于词法解析主体出现项的声明时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple declaration targets on one binder, an occurrence as object, or rebinding a use merely because its label matches the introduced variable."
+msgstr "不要在同一绑定器上使用多个声明目标，不要以出现项作宾语，也不要仅因标签与引入变量相同就重新绑定某个使用处。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:boundVariable from the binder to its single math:VariableDeclaration and retain the body’s explicit occurrence-to-declaration edges. For selected native bound-sort lowering, preserve a supplied math:domain on that declaration without replacing it with math:variableDomain."
+msgstr "使 math:boundVariable 从绑定器指向其单个 math:VariableDeclaration，并保留主体中显式的出现项到声明的边。对于所选原生绑定论域类型降级，保留该声明上提供的 math:domain，不以 math:variableDomain 替换。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "binds occurrence"
+msgstr "绑定出现项"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:BindingExpression to a math:VariableOccurrence it binds — a use site of its bound variable within its body. Domain math:BindingExpression, range math:VariableOccurrence (stated in prose). A binder binds occurrences, not glyphs, so under nesting and shadowing each occurrence resolves to exactly one binder."
+msgstr "将 math:BindingExpression 连接到它所绑定的 math:VariableOccurrence，即主体内其绑定变量的使用处。定义域为 math:BindingExpression，值域为 math:VariableOccurrence（以文字说明）。绑定器绑定出现项，而非字形，因此在嵌套和遮蔽下，每个出现项恰好解析到一个绑定器。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This binder-to-occurrence relation records a binding claim about a use site. It is metadata alongside the lexical AST and explicit declaration reference; the native lookup does not use it to create or override an enclosing binder environment."
+msgstr "此绑定器到出现项的关系记录关于使用处的绑定声明。它是伴随词法 AST 及显式声明引用的元数据；原生查找不会用它建立或覆盖外围绑定器环境。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "An outer binder can record math:bindsOccurrence for a use nested under an inner same-glyph binder when that use’s math:declaredVariable explicitly names the outer declaration."
+msgstr "当某使用处的 math:declaredVariable 显式指定外层声明时，外层绑定器可为该使用处记录 math:bindsOccurrence，即使它嵌套在同字形的内层绑定器下。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to document which occurrence a binder binds, with the declaration identity and actual body placement preserved."
+msgstr "用于记录绑定器绑定哪个出现项，同时保留声明标识及实际主体位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking to a declaration instead of a use site, assigning binding by glyph matching, or expecting this metadata edge to repair an occurrence whose declaration is outside the lexical stack."
+msgstr "不要连接声明来替代使用处，不要按字形匹配分配绑定，也不要期望此元数据边修复声明位于词法栈外的出现项。"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the binder to the intended math:VariableOccurrence only with a consistent explicit math:declaredVariable target and lexical body path. Keep math:boundVariable and the indexed body structure; do not treat math:bindsOccurrence alone as a lexical binding mechanism."
+msgstr "将绑定器连接到目标 math:VariableOccurrence 时，应保留一致的显式 math:declaredVariable 目标及主体中的词法路径。保留 math:boundVariable 和索引主体结构；不要将 math:bindsOccurrence 单独当作词法绑定机制。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "declared variable"
+msgstr "所声明的变量"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."
+msgstr "将 math:VariableOccurrence 连接到其引用的 math:VariableDeclaration，即赋予出现项标识的绑定处或自由声明。定义域为 math:VariableOccurrence，值域为 math:VariableDeclaration（以文字说明）。每个出现项恰好解析到一个声明；不解析到任何声明且未标记为自由的出现项不合规范（math:UnscopedVariableOccurrence）。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence explicitly selects a declaration resource. Native lowering looks for that identity in the enclosing binder stack, including outer frames beneath an inner same-glyph declaration; an unmatched declaration must be explicitly free."
+msgstr "出现项显式选择声明资源。原生降级在外围绑定器栈中查找该标识，包括同字形内层声明之下的外层栈帧；没有匹配的声明必须被显式标为自由声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "In nested sums both labelled i, a use’s math:declaredVariable can target the outer declaration. The nearer inner declaration does not capture it merely by sharing that label."
+msgstr "在两个均标为 i 的嵌套求和中，使用处的 math:declaredVariable 可以指向外层声明。更近的内层声明不会仅因标签相同就捕获它。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the single declaration that gives a particular variable occurrence its intended identity."
+msgstr "用于声明赋予某个变量出现项预期标识的唯一声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple targets, a variable-name literal, a glyph-driven nearest-declaration rule, or treating an unresolved declaration as implicitly free."
+msgstr "不要使用多个目标或变量名称字面量，不要采用按字形寻找最近声明的规则，也不要将未解析声明当作隐式自由变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:declaredVariable from the occurrence to exactly one math:VariableDeclaration. Preserve the AST path that makes a bound target enclosing. For an intentionally free variable, reference an explicit math:FreeVariableDeclaration with its context; an out-of-stack bound declaration must fail rather than be relabelled free."
+msgstr "使 math:declaredVariable 从出现项指向恰好一个 math:VariableDeclaration。保留使绑定目标位于外围的 AST 路径。对于有意自由的变量，引用带上下文的显式 math:FreeVariableDeclaration；栈外绑定声明必须失败，而非被重新标为自由声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "variable domain"
+msgstr "变量论域"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared type/domain context of a math:FreeVariableDeclaration — the math:Set (a number system or another set) the free variable ranges over. Domain math:FreeVariableDeclaration, range math:Set (stated in prose). Every math:FreeVariableDeclaration names exactly one; a free variable standing alone with no declared domain is untyped (math:UntypedFreeVariable)."
+msgstr "math:FreeVariableDeclaration 已声明的类型及论域上下文，即自由变量所遍历的 math:Set（某个数系或其他集合）。定义域为 math:FreeVariableDeclaration，值域为 math:Set（以文字说明）。每个 math:FreeVariableDeclaration 恰好指定一个；缺少声明论域的独立自由变量未定型（math:UntypedFreeVariable）。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the normative set-valued context of a free declaration. It is not the selected native bound-sort input: that path reads math:domain on a bound declaration, and consumers may validate declaration context differently."
+msgstr "这是自由声明的规范集合值上下文，而不是所选原生绑定论域类型的输入；该路径读取绑定声明上的 math:domain，不同消费者可对声明上下文采用不同验证要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "A free declaration for a real parameter can state math:variableDomain math:realNumbers. This contextual statement does not replace math:domain when a selected native binder needs an explicitly declared bound sort."
+msgstr "实参数的自由声明可以声明 math:variableDomain math:realNumbers。当所选原生绑定器需要显式声明的绑定论域类型时，该上下文声明不能替代 math:domain。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the declared set over which an explicitly free variable ranges."
+msgstr "用于保留显式自由变量所遍历的声明集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a domain-name string, an occurrence as the property’s subject, or claiming this free-declaration field automatically supplies native binder sort lowering."
+msgstr "不要使用论域名称字符串，不要将出现项作为此属性的主语，也不要声称此自由声明字段会自动提供原生绑定论域类型降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:variableDomain from the math:FreeVariableDeclaration to its declared math:Set, retaining the vocabulary’s exactly-one context requirement. Keep that authored context distinct from the selected bound math:domain path and do not promise every consumer enforces both identically."
+msgstr "使 math:variableDomain 从 math:FreeVariableDeclaration 指向其声明的 math:Set，并保留词汇所要求的恰好一个上下文。将该编写上下文与所选绑定 math:domain 路径区分，不要承诺所有消费者都以相同方式强制检查两者。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occurs in scope"
+msgstr "所在作用域"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope metadata describes the use site; lexical binding follows the occurrence’s explicit math:declaredVariable identity in the AST’s enclosing binder stack, not glyph matching. An occurrence beneath a same-glyph inner binder may still reference an enclosing outer declaration."
+msgstr "将 math:VariableOccurrence 连接到其所在的 math:MathematicalExpression 作用域，即主体包含该使用处的绑定表达式或子表达式。定义域为 math:VariableOccurrence，值域为 math:MathematicalExpression（以文字说明）。作用域元数据描述使用处；词法绑定遵循出现项的显式 math:declaredVariable 标识及 AST 外围绑定器栈，而非字形匹配。同字形内层绑定器下的出现项仍可引用外围的外层声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This edge describes the expression scope containing a use site. It does not choose a declaration by glyph or create an enclosing binder; actual bound resolution follows explicit declaration identity along the lexical AST stack."
+msgstr "此边描述包含使用处的表达式作用域。它不按字形选择声明，也不建立外围绑定器；实际绑定解析沿词法 AST 栈遵循显式声明标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "An occurrence inside an inner binder displaying i may record that inner expression as its scope while math:declaredVariable explicitly points to the outer i declaration. The metadata does not force capture by the inner declaration."
+msgstr "显示 i 的内层绑定器内的出现项，可以将该内层表达式记录为所在作用域，同时让 math:declaredVariable 显式指向外层 i 声明。元数据不会强制它被内层声明捕获。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain accurate scope metadata for a variable occurrence without replacing its explicit declaration reference."
+msgstr "用于保留变量出现项的准确作用域元数据，而不替代其显式声明引用。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the nearest same-glyph declaration, using scope metadata alone as proof of binding, or moving an occurrence lexically by changing only this edge."
+msgstr "不要推断最近的同字形声明，不要仅凭作用域元数据证明绑定，也不要仅更改此边就认为已在词法上移动出现项。"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:occursInScope from the occurrence to the expression scope that actually contains it and preserve math:declaredVariable separately. Validate any bound target against the enclosing binder stack, permitting explicit outer references beneath inner binders rather than re-resolving labels."
+msgstr "使 math:occursInScope 从出现项指向实际包含它的表达式作用域，并另行保留 math:declaredVariable。应根据外围绑定器栈验证绑定目标，允许内层绑定器下显式引用外层声明，不要重新按标签解析。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "variable occurrence"
+msgstr "变量出现项"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableExpression leaf to the math:VariableOccurrence it stands for. Domain math:VariableExpression, range math:VariableOccurrence (stated in prose)."
+msgstr "将 math:VariableExpression 叶节点连接到它所表示的 math:VariableOccurrence。定义域为 math:VariableExpression，值域为 math:VariableOccurrence（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is from the expression leaf to its use-site occurrence. Declaration resolution is the next math:declaredVariable edge, so this link neither names the declaration directly nor establishes lexical binding by itself."
+msgstr "方向是从表达式叶节点到其使用处出现项。声明解析由下一条 math:declaredVariable 边给出，因此此链接既不直接指定声明，也不单独建立词法绑定。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:VariableExpression for a nested use of i points through math:variableOccurrence to that use site, then through math:declaredVariable to the selected outer or inner declaration."
+msgstr "嵌套使用 i 的 math:VariableExpression 通过 math:variableOccurrence 指向该使用处，再通过 math:declaredVariable 指向选定的外层或内层声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the expression-leaf-to-occurrence step separately from the occurrence’s declaration and scope metadata."
+msgstr "用于将表达式叶节点到出现项这一步与出现项的声明及作用域元数据分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a declaration or glyph literal as object, multiple occurrence targets on the leaf, or treating this link as an implicit free-variable marker."
+msgstr "不要以声明或字形字面量作宾语，不要在叶节点上使用多个出现项目标，也不要将此链接视为隐式自由变量标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the math:VariableExpression exactly one math:variableOccurrence target and give that occurrence one explicit math:declaredVariable. Keep the body AST placement and any scope metadata coherent; a free target must be an explicit math:FreeVariableDeclaration."
+msgstr "为 math:VariableExpression 提供恰好一个 math:variableOccurrence 目标，并为该出现项提供一个显式 math:declaredVariable。保持主体 AST 位置及作用域元数据一致；自由目标必须是显式 math:FreeVariableDeclaration。"

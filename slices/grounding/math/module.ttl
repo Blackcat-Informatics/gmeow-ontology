@@ -3152,6 +3152,11 @@ math:BindingExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Binding Expression"@x-gmeow-english ;
+    skos:scopeNote "A binder introduces one declaration under one binder operator and has one or more indexed body operands. It is a sibling of math:ApplicationExpression, not its subclass; lexical binding follows the body AST and explicit declaration identities."@x-gmeow-english ;
+    skos:example "A binder with one body slot lowers that expression as its bare body. With body slots 0 and 1, the native lowerer applies the binder operator to both lowered operands and uses that application as the body."@x-gmeow-english ;
+    gmeow:useWhen "Use when an expression introduces a variable identity over a structured body, as in a quantifier, integral, derivative or summation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a single-slot-only rule, multiple binder operators or bound declarations, or expecting scope metadata and repeated glyphs to replace the lexical body structure."@x-gmeow-english ;
+    gmeow:howToUse "Supply one math:operator, one math:boundVariable declaration and a nonempty contiguous zero-based family of typed argument slots. Resolve body occurrences explicitly to their declarations; retain any math:bindsOccurrence metadata without treating it as a substitute for AST nesting."@x-gmeow-english ;
     skos:definition "A binder: the expression node that binds a variable over a body. Application-shaped — it names its binder operator through math:operator (a math:Operation individual such as the differentiation, integration, summation, or limit binder), its body through indexed math:argumentSlot cells, and the math:VariableDeclaration it introduces through math:boundVariable. It binds math:VariableOccurrence use sites through math:bindsOccurrence, never glyphs, so nested and shadowed binders are checkable. The single binding form d/dx, ∂, ∫, ∑, and lim all specialize: a math:Derivative, a math:Limit, a math:Series, and a math:Integral are binding expressions, so no per-operator binder machinery is minted. A binder without a bound variable and a body is ill-formed (math:MalformedBindingExpression)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3160,6 +3165,11 @@ math:VariableExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Variable Expression"@x-gmeow-english ;
+    skos:scopeNote "This leaf represents a variable use through an occurrence resource, then an explicit declaration. The expression, occurrence and declaration have different roles; labels do not establish any of the required links."@x-gmeow-english ;
+    skos:example "A leaf for x points through math:variableOccurrence to its use site, which points through math:declaredVariable to the intended declaration, whether bound in the current AST or explicitly free."@x-gmeow-english ;
+    gmeow:useWhen "Use for the structured expression leaf where a bound or explicitly declared free variable enters a mathematical formula."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing directly to a declaration instead of an occurrence, leaving the use unresolved, or treating a variable-name string as the complete expression leaf."@x-gmeow-english ;
+    gmeow:howToUse "Type the leaf math:VariableExpression and link one occurrence with math:variableOccurrence. Give that occurrence one math:declaredVariable target and preserve its actual lexical placement; when no enclosing binder supplies that declaration, an explicit math:FreeVariableDeclaration is required by native lowering."@x-gmeow-english ;
     skos:definition "A variable used inside an expression: an expression node standing for one math:VariableOccurrence (math:variableOccurrence). Its occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration; there is no implicit free variable. This is the leaf of the AST where a bound or free variable enters a formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3167,6 +3177,11 @@ math:VariableDeclaration
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Variable Declaration"@x-gmeow-english ;
+    skos:scopeNote "A declaration supplies variable identity rather than a displayed name. Native bound lookup compares the explicit declaration against the enclosing binder stack; bound α-renaming can preserve structure, while free declaration identity remains part of a free term."@x-gmeow-english ;
+    skos:example "Two nested binders may both display i but introduce different math:VariableDeclaration resources. A use beneath the inner binder can still name the outer declaration explicitly."@x-gmeow-english ;
+    gmeow:useWhen "Use when a variable needs an explicit scoped identity shared by its intended occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging declarations because their labels match, renaming free identities as if they were bound α-variants, or using declaration metadata alone to place an occurrence inside a binder."@x-gmeow-english ;
+    gmeow:howToUse "Let a binder introduce its declaration through math:boundVariable and let use sites name it through math:declaredVariable. For standalone free declarations, use the explicit free marker and domain context; selected native bound-sort lowering instead reads a supplied math:domain on the bound declaration."@x-gmeow-english ;
     skos:definition "The identity of a variable within a scope — the binding site's referent. Introduced by a math:BindingExpression through math:boundVariable, or standing alone as a math:FreeVariableDeclaration carrying a declared type/domain context. Every math:VariableOccurrence points at exactly one declaration through math:declaredVariable, so α-equivalence (same structure up to renaming of declarations) is a graph isomorphism over declarations rather than a string comparison. Two binders that reuse the glyph i introduce two distinct declarations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3175,6 +3190,11 @@ math:FreeVariableDeclaration
     rdfs:subClassOf math:VariableDeclaration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Free Variable Declaration"@x-gmeow-english ;
+    skos:scopeNote "This class explicitly identifies an unbound declaration. A missing binder is not enough: native variable lowering requires the referenced declaration to carry this free marker when it is absent from the enclosing binder stack, and retains its resource identity."@x-gmeow-english ;
+    skos:example "A free parameter a has a math:FreeVariableDeclaration with its declared math:variableDomain. An occurrence points to that declaration even inside a body that binds a different declaration with the same displayed name."@x-gmeow-english ;
+    gmeow:useWhen "Use for an intentionally free variable whose declaration and mathematical domain context must remain explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid implicit freedom from an unmatched glyph, marking a dangling occurrence itself instead of its declaration, or assuming free declaration identities disappear under bound-variable α-renaming."@x-gmeow-english ;
+    gmeow:howToUse "Type the standalone declaration math:FreeVariableDeclaration, supply its normative math:variableDomain set context and resolve occurrences to it through math:declaredVariable. Preserve its identity; consumer admission and validation of domain context remain distinct from the native bound-sort math:domain path."@x-gmeow-english ;
     skos:definition "A variable declaration not introduced by a binder: a free variable, standing alone with a declared type and domain context. The explicit marker that a variable occurrence is free — there is no implicit free variable, so an occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration with its type/domain declared."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3182,6 +3202,11 @@ math:VariableOccurrence
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Variable Occurrence"@x-gmeow-english ;
+    skos:scopeNote "An occurrence is a use site with one explicit declaration target. Its lexical environment comes from AST traversal; scope and binding metadata describe that use but cannot override declaration-identity lookup."@x-gmeow-english ;
+    skos:example "Under two binders labelled i, one occurrence can explicitly reference the outer declaration while another references the inner. Their equal displayed glyph does not merge those targets."@x-gmeow-english ;
+    gmeow:useWhen "Use when an individual variable use needs explicit resolution and scope or provenance metadata apart from the declaration’s shared identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving by the nearest matching label, using only math:occursInScope to assert binding, or treating an out-of-stack declaration as implicitly free."@x-gmeow-english ;
+    gmeow:howToUse "Give the math:VariableOccurrence one math:declaredVariable edge, connect its expression leaf through math:variableOccurrence and retain accurate scope metadata. Check the explicit declaration against enclosing binders or the free-declaration marker rather than reconstructing binding from glyphs."@x-gmeow-english ;
     skos:definition "A use site of a variable within an expression scope: it names the math:VariableDeclaration it refers to through math:declaredVariable and the scope it occurs in through math:occursInScope. A binder binds occurrences (math:bindsOccurrence), not glyphs, so an occurrence in the body of two nested binders that reuse a glyph resolves to exactly one of the two declarations. An occurrence that resolves to no declaration and is not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3675,6 +3700,11 @@ math:boundVariable
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "bound variable"@x-gmeow-english ;
+    skos:scopeNote "The direction is binder-to-declaration, introducing one bound variable identity over the indexed body operands. It does not point to a glyph, an occurrence or the body expression itself."@x-gmeow-english ;
+    skos:example "An outer summation and an inner summation both displaying i name their own declaration resources with math:boundVariable. A body occurrence selects one through its explicit math:declaredVariable target."@x-gmeow-english ;
+    gmeow:useWhen "Use when a binding expression introduces the declaration against which body occurrences are resolved lexically."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid multiple declaration targets on one binder, an occurrence as object, or rebinding a use merely because its label matches the introduced variable."@x-gmeow-english ;
+    gmeow:howToUse "Point math:boundVariable from the binder to its single math:VariableDeclaration and retain the body’s explicit occurrence-to-declaration edges. For selected native bound-sort lowering, preserve a supplied math:domain on that declaration without replacing it with math:variableDomain."@x-gmeow-english ;
     skos:definition "Relates a math:BindingExpression to the math:VariableDeclaration it introduces and binds — the variable of differentiation, integration, summation, or the limit. Domain math:BindingExpression, range math:VariableDeclaration (stated in prose). Every binder names exactly one bound variable's declaration; a binder without one is ill-formed (math:MalformedBindingExpression). This is the edge through which a binder introduces its variable's scoped identity, over which its bound math:VariableOccurrence use sites resolve."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3682,6 +3712,11 @@ math:bindsOccurrence
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "binds occurrence"@x-gmeow-english ;
+    skos:scopeNote "This binder-to-occurrence relation records a binding claim about a use site. It is metadata alongside the lexical AST and explicit declaration reference; the native lookup does not use it to create or override an enclosing binder environment."@x-gmeow-english ;
+    skos:example "An outer binder can record math:bindsOccurrence for a use nested under an inner same-glyph binder when that use’s math:declaredVariable explicitly names the outer declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use to document which occurrence a binder binds, with the declaration identity and actual body placement preserved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking to a declaration instead of a use site, assigning binding by glyph matching, or expecting this metadata edge to repair an occurrence whose declaration is outside the lexical stack."@x-gmeow-english ;
+    gmeow:howToUse "Link the binder to the intended math:VariableOccurrence only with a consistent explicit math:declaredVariable target and lexical body path. Keep math:boundVariable and the indexed body structure; do not treat math:bindsOccurrence alone as a lexical binding mechanism."@x-gmeow-english ;
     skos:definition "Relates a math:BindingExpression to a math:VariableOccurrence it binds — a use site of its bound variable within its body. Domain math:BindingExpression, range math:VariableOccurrence (stated in prose). A binder binds occurrences, not glyphs, so under nesting and shadowing each occurrence resolves to exactly one binder."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3689,6 +3724,11 @@ math:declaredVariable
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "declared variable"@x-gmeow-english ;
+    skos:scopeNote "The occurrence explicitly selects a declaration resource. Native lowering looks for that identity in the enclosing binder stack, including outer frames beneath an inner same-glyph declaration; an unmatched declaration must be explicitly free."@x-gmeow-english ;
+    skos:example "In nested sums both labelled i, a use’s math:declaredVariable can target the outer declaration. The nearer inner declaration does not capture it merely by sharing that label."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the single declaration that gives a particular variable occurrence its intended identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid multiple targets, a variable-name literal, a glyph-driven nearest-declaration rule, or treating an unresolved declaration as implicitly free."@x-gmeow-english ;
+    gmeow:howToUse "Point math:declaredVariable from the occurrence to exactly one math:VariableDeclaration. Preserve the AST path that makes a bound target enclosing. For an intentionally free variable, reference an explicit math:FreeVariableDeclaration with its context; an out-of-stack bound declaration must fail rather than be relabelled free."@x-gmeow-english ;
     skos:definition "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3696,6 +3736,11 @@ math:variableDomain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "variable domain"@x-gmeow-english ;
+    skos:scopeNote "This is the normative set-valued context of a free declaration. It is not the selected native bound-sort input: that path reads math:domain on a bound declaration, and consumers may validate declaration context differently."@x-gmeow-english ;
+    skos:example "A free declaration for a real parameter can state math:variableDomain math:realNumbers. This contextual statement does not replace math:domain when a selected native binder needs an explicitly declared bound sort."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared set over which an explicitly free variable ranges."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a domain-name string, an occurrence as the property’s subject, or claiming this free-declaration field automatically supplies native binder sort lowering."@x-gmeow-english ;
+    gmeow:howToUse "Point math:variableDomain from the math:FreeVariableDeclaration to its declared math:Set, retaining the vocabulary’s exactly-one context requirement. Keep that authored context distinct from the selected bound math:domain path and do not promise every consumer enforces both identically."@x-gmeow-english ;
     skos:definition "The declared type/domain context of a math:FreeVariableDeclaration — the math:Set (a number system or another set) the free variable ranges over. Domain math:FreeVariableDeclaration, range math:Set (stated in prose). Every math:FreeVariableDeclaration names exactly one; a free variable standing alone with no declared domain is untyped (math:UntypedFreeVariable)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3703,13 +3748,23 @@ math:occursInScope
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "occurs in scope"@x-gmeow-english ;
-    skos:definition "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope is what makes shadowing resolvable: an occurrence in the innermost scope binds to the innermost declaration of its glyph."@x-gmeow-english ;
+    skos:scopeNote "This edge describes the expression scope containing a use site. It does not choose a declaration by glyph or create an enclosing binder; actual bound resolution follows explicit declaration identity along the lexical AST stack."@x-gmeow-english ;
+    skos:example "An occurrence inside an inner binder displaying i may record that inner expression as its scope while math:declaredVariable explicitly points to the outer i declaration. The metadata does not force capture by the inner declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain accurate scope metadata for a variable occurrence without replacing its explicit declaration reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the nearest same-glyph declaration, using scope metadata alone as proof of binding, or moving an occurrence lexically by changing only this edge."@x-gmeow-english ;
+    gmeow:howToUse "Point math:occursInScope from the occurrence to the expression scope that actually contains it and preserve math:declaredVariable separately. Validate any bound target against the enclosing binder stack, permitting explicit outer references beneath inner binders rather than re-resolving labels."@x-gmeow-english ;
+    skos:definition "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope metadata describes the use site; lexical binding follows the occurrence’s explicit math:declaredVariable identity in the AST’s enclosing binder stack, not glyph matching. An occurrence beneath a same-glyph inner binder may still reference an enclosing outer declaration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:variableOccurrence
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "variable occurrence"@x-gmeow-english ;
+    skos:scopeNote "The direction is from the expression leaf to its use-site occurrence. Declaration resolution is the next math:declaredVariable edge, so this link neither names the declaration directly nor establishes lexical binding by itself."@x-gmeow-english ;
+    skos:example "A math:VariableExpression for a nested use of i points through math:variableOccurrence to that use site, then through math:declaredVariable to the selected outer or inner declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the expression-leaf-to-occurrence step separately from the occurrence’s declaration and scope metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a declaration or glyph literal as object, multiple occurrence targets on the leaf, or treating this link as an implicit free-variable marker."@x-gmeow-english ;
+    gmeow:howToUse "Give the math:VariableExpression exactly one math:variableOccurrence target and give that occurrence one explicit math:declaredVariable. Keep the body AST placement and any scope metadata coherent; a free target must be an explicit math:FreeVariableDeclaration."@x-gmeow-english ;
     skos:definition "Relates a math:VariableExpression leaf to the math:VariableOccurrence it stands for. Domain math:VariableExpression, range math:VariableOccurrence (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

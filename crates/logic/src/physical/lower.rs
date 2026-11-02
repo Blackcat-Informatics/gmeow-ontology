@@ -871,7 +871,9 @@ fn reachable_expression_nodes(graph: &MathGraph, start: &str) -> BTreeSet<String
 ///   zero-based, contiguous, and duplicate-free — a violated slot sequence is a HARD FAIL).
 /// - `math:BindingExpression` → `Binder`; its `math:boundVariable` declaration's declared
 ///   `math:domain` becomes the binder's sort child (defaulting to the untyped individual
-///   sort — the declared type is NEVER dropped), and its body is the single indexed slot.
+///   sort — the declared type is NEVER dropped). It has one or more `math:slotIndex`-ordered
+///   body operands: one lowers as the bare body; several lower as the binder operator
+///   applied to those operands, and that application becomes the body.
 /// - `math:VariableExpression` → `Bound` if its occurrence's `math:declaredVariable`
 ///   resolves to an enclosing binder, else `Free` iff the declaration is a
 ///   `math:FreeVariableDeclaration` (an occurrence bound to nothing is a HARD FAIL).
