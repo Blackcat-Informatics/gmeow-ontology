@@ -112,8 +112,7 @@ exa:GL2modSL2 a math:Quotient ;
     rdfs:label "GL₂(ℝ) / SL₂(ℝ) — the quotient by the determinant kernel"@x-gmeow-english ;
     math:underlyingSet exa:cosetSet ;
     math:structureOperation exa:cosetMultiplication ;
-    math:satisfiesAxiom exa:associativity ;
-    math:substructureOf exa:GL2R .
+    math:satisfiesAxiom exa:associativity .
 
 exa:cosetSet a math:Set ; rdfs:label "the cosets GL₂/SL₂"@x-gmeow-english .
 exa:cosetMultiplication a math:Operation ; rdfs:label "coset multiplication"@x-gmeow-english .
