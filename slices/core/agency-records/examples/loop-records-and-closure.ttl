@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/loop-records-and-closure/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Illustrative source records only; no scheduler, closure, test or update is executed.
+ex:pursuer a gmeow:Agent ;
+    rdfs:label "Source-identified intention bearer"@en .
+
+ex:writerA a gmeow:Agent ;
+    rdfs:label "First declaring writer"@en .
+
+ex:writerB a gmeow:Agent ;
+    rdfs:label "Second declaring writer"@en .
+
+ex:recorder a gmeow:SoftwareAgent ;
+    rdfs:label "Source record importer"@en .
+
+ex:closer a gmeow:Agent ;
+    rdfs:label "Source-identified closing agent"@en .
+
+ex:earlierSource a gmeow:InformationObject ;
+    rdfs:label "Earlier pursuit report"@en ;
+    gmeow:wasAttributedTo ex:writerA .
+
+ex:laterSource a gmeow:InformationObject ;
+    rdfs:label "Later closure report source"@en ;
+    gmeow:wasAttributedTo ex:writerA .
+
+ex:otherSource a gmeow:InformationObject ;
+    rdfs:label "Competing source report without a named closer"@en ;
+    gmeow:wasAttributedTo ex:writerB .
+
+ex:taskArtifact a gmeow:InformationObject ;
+    rdfs:label "Supplied archive task specification"@en ;
+    gmeow:planText "Keep the archive inventory discrepancy under review."@en .
+
+ex:goal a gmeow:Goal ;
+    rdfs:label "Archive discrepancy clarified"@en .
+
+# Only this supplied Intention binding identifies its bearer.
+# Neither declaring writer nor recorder supplies the pursuer by implication.
+ex:resolveDiscrepancy a gmeow:Intention ;
+    gmeow:intentBearer ex:pursuer ;
+    gmeow:intentionGoal ex:goal .
+
+ex:pursuit a gmeow:OpenLoop ;
+    rdfs:label "Archive discrepancy pursuit record"@en ;
+    gmeow:description "Keep the archive discrepancy in view across episodes."@en ;
+    gmeow:loopTaskDocument ex:taskArtifact ;
+    gmeow:loopServesIntention ex:resolveDiscrepancy .
+
+# The class alone supplies no open state or pursuing agent for this record.
+ex:unclassifiedRecord a gmeow:OpenLoop ;
+    rdfs:label "Pursuit record with no supplied state"@en .
+
+ex:openAssessment
+    rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:earlierSource ;
+    gmeow:validFrom "2026-11-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:doneAssessment
+    rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopDone )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:laterSource ;
+    gmeow:validFrom "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:letGoAssessment
+    rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopLetGo )>> ;
+    gmeow:accordingTo ex:writerB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:otherSource ;
+    gmeow:validFrom "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:evidenceArtifact a gmeow:InformationObject ;
+    rdfs:label "Retained inventory comparison sheet"@en .
+
+# The referenced occurrence remains an Event, not an InformationObject.
+# Its quoted classification is retained through the separate information reifier.
+ex:mentionedOccurrence a gmeow:Event ;
+    rdfs:label "Occurrence mentioned by the source"@en .
+
+ex:evidenceRecord a gmeow:InformationObject ;
+    rdf:reifies <<( ex:mentionedOccurrence gmeow:eventType gmeow:eventTypeAttemptFinish )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:evidenceArtifact .
+
+# Actual closer, recorder, declaring frame, cited basis and report source stay separate.
+ex:identifiedClosure a gmeow:LoopClosure ;
+    gmeow:closureLoop ex:pursuit ;
+    gmeow:closedBy ex:closer ;
+    gmeow:closureEvidence ex:evidenceArtifact, ex:evidenceRecord ;
+    gmeow:statedRationale "The source records the discrepancy pursuit as done."@en ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasDerivedFrom ex:laterSource .
+
+# An evidence basis names no Agent. No closedBy identity is fabricated here.
+ex:unidentifiedClosure a gmeow:LoopClosure ;
+    gmeow:closureLoop ex:pursuit ;
+    gmeow:closureEvidence ex:evidenceArtifact ;
+    gmeow:statedRationale "The source records letting go but identifies no actual closing Agent."@en ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB ;
+    gmeow:wasDerivedFrom ex:otherSource .
+
+# All reports remain retained. No report rewrites state, selects a current winner,
+# satisfies the goal or abandons the supplied Intention.
