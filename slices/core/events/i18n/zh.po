@@ -374,8 +374,8 @@ msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary 
 msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the declared handling places interruption points between identified plan steps."
-msgstr "当声明的处理方式将中断点置于已标识的计划步骤之间时使用。"
+msgid "Use when the declared handling restricts interruption points to boundaries between identified plan steps."
+msgstr "当声明的处理方式将中断点限定在已标识的计划步骤之间的边界时使用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."
@@ -402,8 +402,8 @@ msgid "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
 msgstr "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."
-msgstr "当声明的处理方式不将中断限于句子边界或计划步骤边界时使用。"
+msgid "Use when the declared handling places no boundary restriction on interruption during performance."
+msgstr "当声明的处理方式在事件进行期间不对中断位置施加任何边界限制时使用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."

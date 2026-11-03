@@ -374,8 +374,8 @@ msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary 
 msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the declared handling places interruption points between identified plan steps."
-msgstr "Utiliser lorsque la gestion déclarée situe les points d’interruption entre des étapes de plan identifiées."
+msgid "Use when the declared handling restricts interruption points to boundaries between identified plan steps."
+msgstr "Utiliser lorsque la gestion déclarée réserve les points d’interruption aux limites entre des étapes de plan identifiées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."
@@ -402,8 +402,8 @@ msgid "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
 msgstr "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."
-msgstr "Utiliser lorsque la gestion déclarée ne limite pas les interruptions aux limites de phrases ou aux limites entre étapes de plan."
+msgid "Use when the declared handling places no boundary restriction on interruption during performance."
+msgstr "Utiliser lorsque la gestion déclarée n’impose aucune restriction sur les points d’interruption pendant le déroulement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."
