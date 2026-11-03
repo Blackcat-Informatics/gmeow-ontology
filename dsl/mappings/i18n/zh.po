@@ -159,3 +159,131 @@ msgstr "不要削弱此断言以允许同一模板原子具有两个对应关系
 msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:howToUse"
 msgid "Retain this canonical assertion with the target-choice constraint; the generated validation surface enforces both selector functionality and exclusive target mode."
 msgstr "将此规范断言与目标选择约束一并保留；生成的验证表面同时强制选择器的函数性及目标模式的互斥性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path member item"
+msgstr "路径成员项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named correspondence-path member cell to its selected predicate IRI or nested path constructor. The cell carries one member of a sequence or alternative; the item is the path body, not the next cell."
+msgstr "将对应路径的具名成员单元关联到其选定的谓词 IRI 或嵌套路径构造器。该单元承载序列或备选路径的一个成员；此项是路径体，而非下一单元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its domain and range are resources: the subject has the member-cell role, while the object may be a predicate or a composite path. A property-only range would incorrectly classify nested constructors as properties. This named-cell encoding is distinct from an RDF list."
+msgstr "其定义域和范围均为资源：主语承担成员单元角色，宾语可以是谓词或复合路径。若将范围限于属性，会把嵌套构造器错误归类为属性。此具名单元编码与 RDF 列表不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a declared correspondence path, ex:cell gmeow:pathItem ex:inverse can select ex:inverse a gmeow:InversePath with gmeow:pathStep ex:edge, rather than selecting a forward predicate directly."
+msgstr "在已声明的对应路径中，ex:cell gmeow:pathItem ex:inverse 可选取具有 gmeow:pathStep ex:edge 的 ex:inverse a gmeow:InversePath，而非直接选取正向谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the member body in the named-cell encoding of a correspondence sequence or alternative path."
+msgstr "用于对应序列路径或备选路径的具名单元编码中的成员体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for cell succession, replace rdf:first in a selected RDF-list profile, or require every item to be an rdf:Property. A vocabulary declaration does not validate or execute the selected path."
+msgstr "不要将其用于单元后继关系，不要替换已选 RDF 列表配置中的 rdf:first，也不要要求每个项都是 rdf:Property。词汇声明不验证或执行所选路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give each selected correspondence member cell exactly one IRI-valued item. Use gmeow:pathNext for its successor. The correspondence reader checks constructor shape and resource bounds; this property asserts no global functional characteristic or equality of different items."
+msgstr "为每个已选对应成员单元提供恰好一个 IRI 值的项。使用 gmeow:pathNext 指明其后继。对应读取器检查构造器结构及资源界限；此属性不声明全局函数性，也不声明不同项相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next path member"
+msgstr "下一路径成员"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named correspondence-path member cell to its immediate successor cell in the selected sequence or alternative chain. It orders member cells rather than selecting a predicate or computing transitive reachability."
+msgstr "将对应路径的具名成员单元关联到所选序列或备选链中的直接后继单元。它对成员单元排序，而非选取谓词或计算传递可达性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its domain and range are resources playing the member-cell role. In the selected correspondence profile a terminal cell has no next edge; rdf:nil is not this profile’s terminator. This edge is distinct from rdf:rest in an RDF-list profile."
+msgstr "其定义域和范围均为承担成员单元角色的资源。在所选对应配置中，末单元没有后继边；rdf:nil 不是此配置的终止符。此边与 RDF 列表配置中的 rdf:rest 不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a selected correspondence chain, ex:first gmeow:pathNext ex:last places ex:last immediately after ex:first; each cell separately names its body through gmeow:pathItem."
+msgstr "在所选对应链中，ex:first gmeow:pathNext ex:last 将 ex:last 置于 ex:first 之后，作为直接后继；各单元分别通过 gmeow:pathItem 指明其成员体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain immediate member order in a named-cell correspondence path."
+msgstr "用于保留具名单元对应路径中成员的直接次序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use as the traversed property, infer transitive closure, substitute it for rdf:rest, or treat a malformed present tail as an absent tail."
+msgstr "不要将其用作被遍历属性，不要推断传递闭包，不要以其替换 rdf:rest，也不要将已存在但格式错误的后继视为缺失后继。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply at most one IRI-valued successor per selected correspondence cell and omit the edge on the last cell. The reader rejects cycles and malformed tails within its resource bounds; no global functional or transitive characteristic is asserted."
+msgstr "为每个已选对应单元提供至多一个 IRI 值的后继，并在末单元省略该边。读取器在其资源界限内拒绝循环及格式错误的后继；此处不声明全局函数性或传递性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path steps"
+msgstr "路径步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a SeqPath to the head of its ordered path members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each member selects a predicate IRI or nested path."
+msgstr "将 SeqPath 关联到所选编码下有序路径成员的头：映射投影路径使用 RDF 列表，对应路径使用具名 pathItem/pathNext 成员链。各成员选取谓词 IRI 或嵌套路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two profiles have distinct member and tail encodings. RDF-list members use rdf:first/rdf:rest; correspondence members use gmeow:pathItem/gmeow:pathNext. Selecting one profile supplies no conversion or equivalence to the other."
+msgstr "两种配置的成员及后继编码不同。RDF 列表成员使用 rdf:first/rdf:rest；对应成员使用 gmeow:pathItem/gmeow:pathNext。选取一种配置不提供到另一配置的转换或等价关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the correspondence profile, ex:path a gmeow:SeqPath with gmeow:pathSteps ex:first can name ex:first gmeow:pathItem ex:p and gmeow:pathNext ex:last, with ex:last gmeow:pathItem ex:q, selecting p followed by q."
+msgstr "在对应配置中，具有 gmeow:pathSteps ex:first 的 ex:path a gmeow:SeqPath 可指明 ex:first gmeow:pathItem ex:p 及 gmeow:pathNext ex:last，并指明 ex:last gmeow:pathItem ex:q，从而选取先 p 后 q 的路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the ordered member head of a sequence path in its explicitly selected mapping or correspondence profile."
+msgstr "用于在明确选定的映射或对应配置中标识序列路径的有序成员头。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mix RDF-list and named-cell encodings, treat the head as the traversed predicate, or use gmeow:pathStep as a replacement for sequence membership."
+msgstr "不要混用 RDF 列表与具名单元编码，不要将头视为被遍历谓词，也不要用 gmeow:pathStep 替代序列成员结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the consuming profile and supply one value identifying the head of its complete nonempty member structure. Preserve member order. Head requiredness alone does not validate the chain or list, and a declaration supplies no execution result."
+msgstr "选取使用方配置，提供一个成员头值及其完整非空成员结构。保留成员次序。仅要求头存在并不能验证链或列表，声明也不提供执行结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path alternatives"
+msgstr "路径备选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an AltPath to the head of its ordered alternative members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each alternative selects a predicate IRI or nested path."
+msgstr "将 AltPath 关联到所选编码下有序备选成员的头：映射投影路径使用 RDF 列表，对应路径使用具名 pathItem/pathNext 成员链。各备选项选取谓词 IRI 或嵌套路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An alternative member can itself be composite. RDF-list and named-cell profiles retain separate member and tail encodings; neither is an alias or an automatic conversion for the other. Member order does not select a single winning alternative."
+msgstr "备选成员本身可以是复合路径。RDF 列表与具名单元配置保留不同的成员及后继编码；二者互不构成别名或自动转换。成员次序不选出唯一优胜备选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a selected mapping projection profile, a gmeow:AltPath with gmeow:pathAlts (ex:p ex:q) declares the alternatives p and q in an RDF list. This does not declare a named-cell correspondence chain."
+msgstr "在所选映射投影配置中，具有 gmeow:pathAlts (ex:p ex:q) 的 gmeow:AltPath 在 RDF 列表中声明备选项 p 和 q。这并不声明具名单元对应链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the alternative-member head of an alternative path while preserving the selected representation."
+msgstr "用于标识备选路径的备选成员头，同时保留所选表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat alternatives as a sequence, infer a preferred branch from list order, or pass one encoding to a reader that requires the other."
+msgstr "不要将备选项视为序列，不要从列表次序推断优先分支，也不要将一种编码传给要求另一种编码的读取器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the consuming profile and supply one value identifying the head of its complete nonempty alternative structure. Use the corresponding member and successor predicates consistently. Head requiredness alone does not prove structural validity, branch execution or a law of equivalence."
+msgstr "选取使用方配置，提供一个成员头值及其完整非空备选结构。一致使用该配置的成员及后继谓词。仅要求头存在并不能证明结构有效性、分支执行或等价定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AltPathAltsRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:AltPath must carry exactly one gmeow:pathAlts value identifying the head of its ordered members."
+msgstr "闭世界必需性约束：gmeow:AltPath 必须具有恰好一个 gmeow:pathAlts 值，以标识其有序成员的头。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AltPathAltsRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "AltPath must have exactly one gmeow:pathAlts value for the head of its ordered members"
+msgstr "AltPath 必须具有恰好一个 gmeow:pathAlts 值，以指明其有序成员的头"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SeqPathStepsRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:SeqPath must carry exactly one gmeow:pathSteps value identifying the head of its ordered members."
+msgstr "闭世界必需性约束：gmeow:SeqPath 必须具有恰好一个 gmeow:pathSteps 值，以标识其有序成员的头。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SeqPathStepsRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "SeqPath must have exactly one gmeow:pathSteps value for the head of its ordered members"
+msgstr "SeqPath 必须具有恰好一个 gmeow:pathSteps 值，以指明其有序成员的头"
