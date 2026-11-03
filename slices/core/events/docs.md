@@ -200,3 +200,55 @@ never imports (Principle 5).
 Depends on `kernel`, `documents`, `observations`, `places`, `provenance`, and
 `temporal`. Consumed by participation and life events across slices, the calendar
 slice, the lifecycle slice's creation/destruction hooks, and provenance activities.
+
+## Declared execution requirements
+
+`requiresLocation` records where a selected occurrence must be performed under
+a stated requirement. It ranges over `Location`, including geographic `Place`
+and `VirtualLocation`. It identifies neither the performer nor the actual
+presence of every participant. Use `eventLocation` for an occurrence's actual
+location; no axiom connects a required location to an actual one.
+
+Select the claim context before interpreting a set of requirements. Every
+required location in that context is a requirement to meet: repeated locations
+are conjunctive. Keep alternative contexts and conflicting declarations
+separate, with source and `accordingTo` metadata on their exact RDF 1.2
+statements. Location containment alone does not establish satisfaction. Missing
+location metadata remains unspecified.
+
+`interruptibility` records declared handling during an occurrence's performance.
+Its open `Interruptibility` vocabulary has four seed values:
+
+| Value | Declared handling |
+| --- | --- |
+| `interruptibilityNone` | No interruption point during performance. |
+| `interruptibilityAtSentenceBoundary` | Between completed sentences of the occurrence's text activity. |
+| `interruptibilityAtStepBoundary` | Between identified plan steps. |
+| `interruptibilityAtAnyPoint` | No restriction to particular interruption boundaries. |
+
+The sentence value needs the relevant text activity; the step value needs the
+plan identifying the steps. Neither detects a boundary or certifies that a
+sentence or step finished. The values establish no permission, cancellation
+authority, checkpoint, capability, safety judgment or successful resumption.
+In particular, no interruption point during performance says nothing about who
+may cancel an occurrence.
+
+Both properties are nonfunctional. Supplied-value restrictions type their
+objects without requiring a value, closing the value vocabulary or selecting a
+winner. Missing interruptibility remains unspecified. Multiple declarations
+retain their sources and contexts; the vocabulary neither chooses one nor
+combines them into a policy.
+
+These requirements apply to generic occurrences, including meetings, readings
+and procedures. Calendar-owned `Task` inherits them through `Event`; an RDF
+document describing a task remains distinct from that occurrence. These
+declarations do not turn an event into an `ActionSchema`, change `taskStatus`
+or compute `ActionableFrontier` eligibility. A downstream consumer must evaluate
+its selected requirements against its explicit state and context; no location
+matching, scheduler execution or permission is supplied by these declarations
+(Principles 9, 11 and 17).
+
+The ordinary [execution-requirements scene](examples/execution-requirements.ttl)
+illustrates conjunctive geographic requirements, a separate virtual context,
+all four interruption values and Task inheritance. Its scoped declarations
+report no executed scheduler or event.

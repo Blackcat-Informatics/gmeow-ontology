@@ -1745,3 +1745,97 @@ gmeow:recurrenceRuleTextFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:recurrenceRuleText and nothing else. It is not a definition of gmeow:recurrenceRuleText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:recurrenceRuleTextFunctionality logic:characterizes gmeow:recurrenceRuleText ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:requiresLocation
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Location ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "requires location"@x-gmeow-english ;
+    skos:definition "A declared requirement that an occurrence be performed at a specified location in the selected context."@x-gmeow-english ;
+    skos:scopeNote "Requirements in one selected context are conjunctive. Alternative contexts and conflicting claims remain separate. This edge identifies neither a performer nor actual participant presence and implies no eventLocation or satisfaction through location containment."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:requiresLocation ex:library ."@x-gmeow-english ;
+    gmeow:useWhen "Use to state where a planned occurrence must be performed, including a geographic or virtual location."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recording an actual event location, identifying the performer or claiming that a scheduler checked this requirement."@x-gmeow-english ;
+    gmeow:howToUse "Link the Event to each required Location and retain the selected context and source on the exact RDF 1.2 declaration."@x-gmeow-english .
+
+gmeow:Interruptibility
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Interruptibility"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for declared interruption handling during the performance of an occurrence."@x-gmeow-english ;
+    skos:scopeNote "The four seed values describe no interruption point, sentence boundaries, plan step boundaries or any point. They establish no permission, cancellation authority, boundary detection, checkpoint, capability or successful resumption."@x-gmeow-english ;
+    skos:example "gmeow:interruptibilityAtStepBoundary a gmeow:Interruptibility ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a declared interruption handling mode without creating event subclasses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the seeds as an exhaustive list, an actual interruption status or evidence of resumability."@x-gmeow-english ;
+    gmeow:howToUse "Select an individual with interruptibility; mint a labelled additional individual when a distinct declared handling mode is needed."@x-gmeow-english .
+
+gmeow:interruptibility
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Interruptibility ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "interruptibility"@x-gmeow-english ;
+    skos:definition "The interruption handling mode declared for an occurrence during its performance in the selected context."@x-gmeow-english ;
+    skos:scopeNote "Missing metadata is unspecified. Multiple declarations remain attributable claims without a default, a selected winner or an automatically combined policy. No interruption, permission or successful resumption is inferred."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source’s declared interruption handling for an Event, including a Task occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this declaration as an actual task status, a cancellation authorization or a computed eligibility verdict."@x-gmeow-english ;
+    gmeow:howToUse "Link the Event to the stated Interruptibility value and preserve context and source on each exact RDF 1.2 declaration."@x-gmeow-english .
+
+gmeow:interruptibilityNone
+    a gmeow:Interruptibility ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "no interruption point"@x-gmeow-english ;
+    skos:definition "A declared handling mode that provides no interruption point during the performance of an occurrence."@x-gmeow-english ;
+    skos:scopeNote "This declaration concerns interruption during performance. It says nothing about cancellation authority, physical impossibility of interruption or what happens after an interruption."@x-gmeow-english ;
+    skos:example "ex:procedure gmeow:interruptibility gmeow:interruptibilityNone ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected source declares no interruption point during performance."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this value from missing metadata or using it to deny cancellation authority."@x-gmeow-english ;
+    gmeow:howToUse "Set interruptibility to gmeow:interruptibilityNone on the Event declaration and retain its source and context."@x-gmeow-english .
+
+gmeow:interruptibilityAtSentenceBoundary
+    a gmeow:Interruptibility ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "interruption between sentences"@x-gmeow-english ;
+    skos:definition "A declared handling mode that places interruption points between completed sentences in the occurrence’s text activity."@x-gmeow-english ;
+    skos:scopeNote "The relevant boundary belongs to the occurrence’s text activity. This value neither detects sentence boundaries nor establishes permission, a checkpoint or successful resumption."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared handling places interruption points only between completed sentences of the text activity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this value for arbitrary token breaks, plan step boundaries or evidence that a sentence has finished."@x-gmeow-english ;
+    gmeow:howToUse "Set interruptibility to gmeow:interruptibilityAtSentenceBoundary and retain the declared text activity, source and context."@x-gmeow-english .
+
+gmeow:interruptibilityAtStepBoundary
+    a gmeow:Interruptibility ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "interruption between plan steps"@x-gmeow-english ;
+    skos:definition "A declared handling mode that places interruption points between identified plan steps of the occurrence."@x-gmeow-english ;
+    skos:scopeNote "Step identity comes from the stated plan. This value does not identify or complete a step, detect a boundary, create a checkpoint or establish permission or successful resumption."@x-gmeow-english ;
+    skos:example "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared handling places interruption points between identified plan steps."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."@x-gmeow-english ;
+    gmeow:howToUse "Set interruptibility to gmeow:interruptibilityAtStepBoundary and retain the plan identifying the relevant steps with the source and context."@x-gmeow-english .
+
+gmeow:interruptibilityAtAnyPoint
+    a gmeow:Interruptibility ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "interruption at any point"@x-gmeow-english ;
+    skos:definition "A declared handling mode that places no boundary restriction on interruption during the performance of an occurrence."@x-gmeow-english ;
+    skos:scopeNote "Any point describes the declared handling granularity. It is not a permission, cancellation authority, safety judgment, checkpoint, capability or guarantee of successful resumption."@x-gmeow-english ;
+    skos:example "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."@x-gmeow-english ;
+    gmeow:howToUse "Set interruptibility to gmeow:interruptibilityAtAnyPoint and retain the declaration’s source and context."@x-gmeow-english .
+
+# Supplied values are typed without requiring a declaration or choosing a winner.
+gmeow:Event logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:requiresLocation ; logic:allValuesFrom gmeow:Location ],
+    [ a logic:Restriction ; logic:onProperty gmeow:interruptibility ; logic:allValuesFrom gmeow:Interruptibility ] .
