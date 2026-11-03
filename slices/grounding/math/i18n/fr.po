@@ -2231,8 +2231,8 @@ msgid "Quadratic Form"
 msgstr "Forme quadratique"
 
 msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
-msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
-msgstr "Une fonction scalaire homogène de degré deux sur un espace vectoriel, avec sa forme bilinéaire associée lorsque la caractéristique le permet. Ce n’est pas sa forme bilinéaire associée."
+msgid "A scalar-valued function Q on a vector space over a field satisfying Q(a v) = a² Q(v), whose unscaled polar form b_Q(u,v) = Q(u+v) − Q(u) − Q(v) is required to be bilinear in every characteristic. When the scalar characteristic is not two, the associated symmetric bilinear form is B = b_Q/2 and Q(v) = B(v,v); in characteristic two, b_Q generally does not determine Q. The quadratic form is not its associated bilinear form."
+msgstr "Une fonction Q à valeurs scalaires sur un espace vectoriel sur un corps, satisfaisant Q(a v) = a² Q(v), dont la forme polaire non normalisée b_Q(u,v) = Q(u+v) − Q(u) − Q(v) doit être bilinéaire en toute caractéristique. Lorsque la caractéristique du corps scalaire est différente de deux, la forme bilinéaire symétrique associée est B = b_Q/2 et Q(v) = B(v,v) ; en caractéristique deux, b_Q ne détermine généralement pas Q. La forme quadratique n’est pas sa forme bilinéaire associée."
 
 msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
 msgid "Graded Algebra"
@@ -9776,3 +9776,59 @@ msgstr "Ne pas inverser la relation ni interpréter le rôle d’opérande comme
 msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point math:orthogonalComplementOf from the math:OrthogonalComplement to the intended math:Subspace. Retain math:ambientSpace, math:complementSemantics math:orthogonalComplement and math:definedByInnerProduct on the complement, with any basis computation or mathematical justification supplied separately."
 msgstr "Diriger math:orthogonalComplementOf du math:OrthogonalComplement vers le math:Subspace voulu. Conserver math:ambientSpace, math:complementSemantics math:orthogonalComplement et math:definedByInnerProduct sur le complément, et fournir séparément tout calcul de base ou toute justification mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quadratic Space"
+msgstr "Espace quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "Un espace vectoriel muni d'une forme quadratique déclarée, avec son corps scalaire et ses propriétés de dégénérescence. Ce n’est pas un espace vectoriel nu dépourvu de cette forme."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A quadratic space retains both its vector-space structure and a specified quadratic form over a named scalar field. Degenerate forms are allowed. The space, its form and any Clifford algebra constructed from them are distinct mathematical roles; sharing a signature does not identify them."
+msgstr "Un espace quadratique conserve à la fois sa structure d’espace vectoriel et une forme quadratique précisée sur un corps scalaire nommé. Les formes dégénérées sont admises. L’espace, sa forme et toute algèbre de Clifford construite à partir d’eux sont des rôles mathématiques distincts ; le partage d’une signature ne les identifie pas."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: on the real plane, Q(x,y) = x² − y² is nondegenerate but Q(1,1) = 0. The nonzero isotropic vector (1,1) therefore does not make this quadratic space degenerate; this is a mathematical illustration, not an authored instance or runtime result."
+msgstr "Cas mathématique illustratif : sur le plan réel, Q(x,y) = x² − y² est non dégénérée mais Q(1,1) = 0. Le vecteur isotrope non nul (1,1) ne rend donc pas cet espace quadratique dégénéré ; c’est une illustration mathématique, pas une instance définie ni un résultat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a vector space must be described together with the quadratic form that governs its quadratic geometry or a Clifford construction. Keep the scalar field explicit rather than assuming that every quadratic space is real or positive-definite."
+msgstr "À utiliser lorsqu’un espace vectoriel doit être décrit avec la forme quadratique qui gouverne sa géométrie quadratique ou une construction de Clifford. Expliciter le corps scalaire plutôt que de supposer que tout espace quadratique est réel ou défini positif."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring nondegeneracy from supplied sign counts or degeneracy merely from a nonzero isotropic vector. For finite-dimensional real forms, the positive/negative pair omits nullity; in characteristic two, state the degeneracy convention instead of silently equating it with a condition on the polar radical."
+msgstr "Ne pas déduire la non-dégénérescence des nombres de signes fournis ni la dégénérescence de la seule présence d’un vecteur isotrope non nul. Pour les formes réelles de dimension finie, la paire des nombres positifs/négatifs omet la nullité ; en caractéristique deux, préciser la convention de dégénérescence plutôt que de l’identifier tacitement à une condition sur le radical polaire."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:QuadraticSpace with its inherited vector-space structure, name its form through math:hasQuadraticForm and its scalar setting through math:scalarField, and state degeneracy information separately. These declarations do not compute the form, prove its laws or impose a new specialized form-cardinality gate."
+msgstr "Décrire le math:QuadraticSpace avec sa structure d’espace vectoriel héritée, nommer sa forme par math:hasQuadraticForm et son cadre scalaire par math:scalarField, puis indiquer séparément les informations de dégénérescence. Ces déclarations ne calculent pas la forme, ne prouvent pas ses lois et n’imposent pas de nouveau contrôle spécialisé de cardinalité de forme."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quadratic Form"
+msgstr "Forme quadratique"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar-valued function Q on a vector space over a field satisfying Q(a v) = a² Q(v), whose unscaled polar form b_Q(u,v) = Q(u+v) − Q(u) − Q(v) is required to be bilinear in every characteristic. When the scalar characteristic is not two, the associated symmetric bilinear form is B = b_Q/2 and Q(v) = B(v,v); in characteristic two, b_Q generally does not determine Q. The quadratic form is not its associated bilinear form."
+msgstr "Une fonction Q à valeurs scalaires sur un espace vectoriel sur un corps, satisfaisant Q(a v) = a² Q(v), dont la forme polaire non normalisée b_Q(u,v) = Q(u+v) − Q(u) − Q(v) doit être bilinéaire en toute caractéristique. Lorsque la caractéristique du corps scalaire est différente de deux, la forme bilinéaire symétrique associée est B = b_Q/2 et Q(v) = B(v,v) ; en caractéristique deux, b_Q ne détermine généralement pas Q. La forme quadratique n’est pas sa forme bilinéaire associée."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a complex quadratic form, its polar form is complex bilinear and Q(a v) = a² Q(v). A Hermitian norm-square instead scales by |a|² and is not a complex quadratic form in this sense. The real symmetric-form interpretation of positive/negative inertia does not transfer to arbitrary complex bilinear quadratic forms."
+msgstr "Pour une forme quadratique complexe, la forme polaire est bilinéaire complexe et Q(a v) = a² Q(v). Le carré d’une norme hermitienne varie au contraire selon |a|² et n’est pas une forme quadratique complexe en ce sens. L’interprétation des indices d’inertie positifs/négatifs des formes symétriques réelles ne se transpose pas aux formes quadratiques bilinéaires complexes quelconques."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: over the two-element field, Q(x) = x² has zero polar form b_Q, just as the zero quadratic form does, yet Q(1) = 1. Thus the polar form alone cannot generally recover a quadratic form in characteristic two."
+msgstr "Cas mathématique illustratif : sur le corps à deux éléments, Q(x) = x² a une forme polaire b_Q nulle, tout comme la forme quadratique nulle, mais Q(1) = 1. La forme polaire seule ne permet donc généralement pas de retrouver une forme quadratique en caractéristique deux."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the scalar-valued quadratic function itself, keeping its carrier and scalar field distinct from the function and from any associated bilinear form. Require both degree-two homogeneity and polar bilinearity when interpreting the declaration."
+msgstr "À utiliser pour la fonction quadratique à valeurs scalaires elle-même, en distinguant son support et son corps scalaire de la fonction et de toute forme bilinéaire associée. Exiger à la fois l’homogénéité de degré deux et la bilinéarité polaire lors de l’interprétation de la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the unscaled polar b_Q with the half-polar B = b_Q/2, or dividing by two in characteristic two. A declared function, matrix or signature does not by itself prove quadraticity, evaluate the function or establish nondegeneracy."
+msgstr "Ne pas identifier la forme polaire non normalisée b_Q à la demi-forme polaire B = b_Q/2, ni diviser par deux en caractéristique deux. Une fonction, une matrice ou une signature déclarée ne prouve pas à elle seule le caractère quadratique, n’évalue pas la fonction et n’établit pas la non-dégénérescence."
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function obligations and name the domain carrier and scalar-value codomain through math:domain and math:codomain. State the polarization normalization and any evaluation evidence separately; the inspected real rational Gram evaluator and diagonal Cl(p,q) kernel do not establish a general arbitrary-field evaluator."
+msgstr "Conserver les obligations héritées de math:Function et nommer le support du domaine et le codomaine des valeurs scalaires par math:domain et math:codomain. Préciser séparément la normalisation de polarisation et tout élément probant d’évaluation ; l’évaluateur inspecté de matrices de Gram réelles rationnelles et le noyau diagonal Cl(p,q) n’établissent pas un évaluateur général sur un corps quelconque."
