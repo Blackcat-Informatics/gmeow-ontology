@@ -564,14 +564,27 @@ ex:minkowski
 
 ex:inertialChart
     a math:Chart ;
-    math:chartDomain ex:minkowski ;
+    math:chartDomain ex:inertialRegion ;
     math:coordinateMap ex:inertialCoordinateFn ;
-    math:targetCoordinateSpace ex:R4 .
+    math:targetCoordinateSpace ex:realFourSpace .
+
+ex:inertialRegion a math:OpenSet .
+
+ex:inertialCoordinateFn a math:CoordinateMap ;
+    math:domain ex:inertialRegion ;
+    math:codomain ex:realFourSpace .
+
+ex:realFourSpace a math:Set ;
+    math:spaceDimension 4 .
 ```
 
-The manifold declares dimension and structure kind; the chart names its coordinate map and target;
-the Lorentzian metric is a tensor field — all math-side, ready for a physics slice to build spacetime
-frames on top.
+This excerpt records the existing declaration frame: a manifold with dimension and structure kind,
+an open chart domain, a coordinate map with its domain and codomain, and a target coordinate space
+with matching dimension. The complete [authored example](../examples/analysis-and-geometry.ttl)
+includes the metric tensor, signature and other records omitted here. These declarations do not
+by themselves prove a homeomorphism, atlas coverage or transition regularity. A chart may cover
+a whole manifold when that domain is open in the manifold’s own topology; this excerpt uses the
+separately named open region.
 
 ## Worked scenes — a signed radial field on a compactified Lorentzian 2-plane
 
