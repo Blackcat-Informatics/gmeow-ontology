@@ -79,3 +79,34 @@ and realized integrity laws are authored in `module.ttl`. OWL/RDFS, SHACL and Sh
 remain generated views, with no second constraint surface (Principles 4 and 17).
 The manifest declares only core dependencies. Existing large grounding and
 standpoint owners remain unchanged.
+
+## Row occurrences and source coordinates
+
+QuerySolutionRow and solutionRow preserve answer-local occurrences independently
+of equal bindings. solutionReason has the open logic:Thing resource boundary:
+positive evidence and derivations must not be forced into QueryLoss, a closed
+justification-ground union or an Observation. A linked limitation retains its
+own role; it does not become a proof that the row holds. solutionFrame references
+a supplied frame without deriving a named frame from an actual boolean or
+inventing a realized composition. Existing frame laws and answer axes remain
+unchanged.
+
+Content identity is supplied by the source, not implemented by the ontology.
+Native rdf:reifies can retain the exact concerned triple on the same QueryLoss;
+lossConcerns remains required and quotation does not assert the triple. The
+not-evaluated loss cause concerns unperformed dependent work and assigns no
+answer status.
+
+Direct lossVault and lossWatermark express a supplied single-vault commit
+coordinate. They do not pair independent value sets. More than one independent
+position needs actual source-scoped occurrences or statement reification, not
+invented scopes, a new global frontier or a fork of a shared loss identity.
+The source's current constructors meet the single-vault boundary; its public
+type alone is not a proof of it. No default zero, global functionality or new
+cardinality law is introduced.
+
+Loss vantage and observation time use local properties rather than inheriting
+Observation domains. Structured detail reuses record-metadata's existing
+StructuredValue and facet model, including its distinction between omission,
+null and empty containers. The generic structureName tag belongs to that owner;
+the existing dependency supplies it without a parallel field/value vocabulary.

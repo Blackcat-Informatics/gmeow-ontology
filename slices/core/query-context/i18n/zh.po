@@ -86,8 +86,8 @@ msgid "Query Loss Cause"
 msgstr "查询损失原因"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."
-msgstr "用于查询输入不可用或退化原因的开放值词汇。五个初始原因区别于信息状态、求值状态及完备性值。"
+msgid "An open value vocabulary for causes of unavailable or degraded query input. Its seeded causes remain distinct from information-state, evaluation-status and completeness values."
+msgstr "用于查询输入不可用或退化原因的开放值词汇。初始原因区别于信息状态、求值状态及完备性值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a reported query-input loss."
@@ -1393,3 +1393,283 @@ msgstr "对全称量化的有序外延记录对按两个方向解读：共享解
 msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
 msgstr "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Solution Row"
+msgstr "查询解行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence of a solution row in an attributed query answer. Equal bindings do not identify row occurrences or equate the answers, evidence or frames they carry."
+msgstr "归属于特定来源的查询回答中的一个解行出现项。相同绑定不确定行出现项的身份，也不使其回答、证据或框架相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a row occurrence with its supplied reasons and frame."
+msgstr "用于保留行出现项及其提供的理由和框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying rows solely by equal bindings or treating a row record as proof of its result."
+msgstr "避免仅凭相同绑定认同行，或将行记录视为其结果的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence from its answer with solutionRow; retain solutionReason and solutionFrame when supplied."
+msgstr "通过 solutionRow 从回答连接该出现项；提供了 solutionReason 和 solutionFrame 时予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence identity is separate from binding equality; no binding schema, status default or execution is implied."
+msgstr "出现项身份与绑定相等性分开；不隐含绑定模式、默认状态或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied row occurrence: ex:row1 a gmeow:QuerySolutionRow ."
+msgstr "提供的行出现项：ex:row1 a gmeow:QuerySolutionRow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "input work not evaluated"
+msgstr "输入工作未求值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported query-input loss because work on which the answer depends has not been performed. This cause assigns no information state, evaluation status or completeness status."
+msgstr "因回答所依赖的工作尚未执行而报告的查询输入损失。此原因不赋予信息状态、求值状态或完备性状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports dependent input work as not yet performed."
+msgstr "用于来源报告所依赖的输入工作尚未执行的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a result status, permission to skip work or a replacement result from this cause."
+msgstr "避免从此原因推导结果状态、跳过工作的许可或替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossNotEvaluated through lossCause and retain the original lossConcerns resource."
+msgstr "通过 lossCause 连接 lossNotEvaluated，并保留原始 lossConcerns 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The cause remains independent of logic:InfoNotEvaluated and all answer status axes."
+msgstr "此原因独立于 logic:InfoNotEvaluated 及回答的所有状态轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported cause: ex:loss gmeow:lossCause gmeow:lossNotEvaluated ."
+msgstr "报告的原因：ex:loss gmeow:lossCause gmeow:lossNotEvaluated ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution row"
+msgstr "解行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an attributed query answer to one of its solution-row occurrences, retaining occurrence identity independently of equal bindings."
+msgstr "将归属于特定来源的查询回答连接到其一个解行出现项，独立于绑定相等性保留出现项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor supplied solution rows to their answer."
+msgstr "用于将提供的解行归入其回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing repeated equal-binding rows or inferring that listed rows exhaust the answer."
+msgstr "避免合并重复的相同绑定行，或推断列出的行穷尽回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied row occurrence separately and retain its own reasons and frame."
+msgstr "分别连接每个提供的行出现项，并保留各自的理由和框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional membership records no row order, binding schema or completeness claim."
+msgstr "此非函数式成员关系不记录行顺序、绑定模式或完备性声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two occurrences in one answer: ex:answer gmeow:solutionRow ex:row1, ex:row2 ."
+msgstr "同一回答中的两个出现项：ex:answer gmeow:solutionRow ex:row1, ex:row2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution reason"
+msgstr "解的理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied evidential ground or explanation by which a solution row is reported to hold in its recorded frame. Positive support and derivation resources are admissible; a referenced QueryLoss remains a reported limitation, not positive support or proof of the row."
+msgstr "提供的证据依据或解释，用以说明解行据报告为何在其记录的框架中成立。允许正面支持和推导资源；引用的 QueryLoss 仍是报告的限制，不是该行的正面支持或证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each supplied reason in a row’s evidential account."
+msgstr "用于保留行的证据说明中提供的每个理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing every reason as QueryLoss or inferring truth, valid proof or completeness from this link."
+msgstr "避免将所有理由定型为 QueryLoss，或从此连接推断真值、有效证明或完备性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original reason resource, preserving supplied content-identified IRIs and distinguishing positive grounds from limitations."
+msgstr "连接原始理由资源，保留提供的内容标识 IRI，并区分正面依据与限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and open to resource-valued reasons; no proof calculus, loss classification or identity algorithm is imposed."
+msgstr "非函数式，允许资源值理由；不强加证明演算、损失分类或身份算法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "A positive ground remains distinct from a limitation: ex:row1 gmeow:solutionReason ex:support, ex:loss ."
+msgstr "正面依据与限制保持区分：ex:row1 gmeow:solutionReason ex:support, ex:loss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution frame"
+msgstr "解的框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied frame resource in which a solution row is reported to hold. A named standpoint, scenario or actual-frame descriptor keeps its own identity and semantics."
+msgstr "提供的框架资源，解行据报告在该框架中成立。命名立场、情景或现实框架描述符保留各自的身份和语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the frame explicitly supplied for a row."
+msgstr "用于保留为行明确提供的框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a frame from an actual boolean, missing metadata or a composition request."
+msgstr "避免从 actual 布尔值、缺失元数据或组合请求中虚构框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the supplied frame resource without converting it into a Standpoint, Scenario or realized composition."
+msgstr "引用提供的框架资源，不将其转换为 Standpoint、Scenario 或已实现组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No actual-frame default, frame algebra, compatibility result or global truth follows from this relation."
+msgstr "此关系不导出默认现实框架、框架代数、相容性结果或全局真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied frame: ex:row1 gmeow:solutionFrame ex:frame ."
+msgstr "提供的框架：ex:row1 gmeow:solutionFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss vault"
+msgstr "损失的库"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified source vault to which a QueryLoss pertains. Naming the vault supplies no access authority, coverage claim or global source frontier."
+msgstr "QueryLoss 所涉及的已标识来源库。命名该库不提供访问授权、覆盖声明或全局来源前沿。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source vault explicitly associated with a loss."
+msgstr "用于保留与损失明确关联的来源库。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pairing independent sets of vaults and watermarks by a Cartesian product."
+msgstr "避免通过笛卡尔积将独立的库集合与水位集合配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supplied vault identities; a direct lossWatermark describes a supplied coordinate for a single-vault loss."
+msgstr "保留提供的库身份；直接的 lossWatermark 描述单库损失所提供的坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple independent vault positions require actual source-scoped occurrences or statement reification; do not invent scopes or fork a shared loss identity."
+msgstr "多个独立库位置需要来源实际提供的范围内出现项或语句重述；不得虚构范围或拆分共享损失身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied source vault: ex:loss gmeow:lossVault ex:vault ."
+msgstr "提供的来源库：ex:loss gmeow:lossVault ex:vault ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss detail"
+msgstr "损失详情"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied structured detail of a QueryLoss, represented as queryable native RDF values, maps, sequences or explicit null rather than opaque JSON text."
+msgstr "QueryLoss 所提供的结构化详情，以可查询的原生 RDF 值、映射、序列或显式空值表示，而非不透明的 JSON 文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain typed fields and nested values in a loss report."
+msgstr "用于保留损失报告中的类型化字段和嵌套值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stringifying native values or treating an omitted detail as null or an empty map."
+msgstr "避免将原生值字符串化，或将省略的详情视为空值或空映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse StructuredValue and its branches; retain field occurrences with hasFacet, exact facetLabel and the appropriate payload relation."
+msgstr "复用 StructuredValue 及其分支；通过 hasFacet、精确的 facetLabel 和相应载荷关系保留字段出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve source order when supplied, repeated keys, native datatypes and structureName tags; this relation neither executes nor authenticates the detail."
+msgstr "保留提供的来源顺序、重复键、原生数据类型和 structureName 标签；此关系不执行也不认证详情。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied detail: ex:loss gmeow:lossDetail ex:detail ."
+msgstr "提供的详情：ex:loss gmeow:lossDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss vantage"
+msgstr "损失的观察视角"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied entity, agent or standpoint from which a QueryLoss report is held. This attribution does not turn the loss information object into an Observation."
+msgstr "持有 QueryLoss 报告的已提供实体、主体或立场。此归属不将损失信息对象转为 Observation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied vantage for a loss report."
+msgstr "用于保留为损失报告明确提供的观察视角。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a privileged vantage, observer identity or access permission from the report."
+msgstr "避免从报告推断优先视角、观察者身份或访问许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied vantage without bridging through the Observation-domain property vantage."
+msgstr "引用每个提供的视角，不通过定义域为 Observation 的 vantage 属性桥接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional attribution permits coexisting vantages and supplies no missing source identity or proof."
+msgstr "非函数式归属允许多个视角共存，不提供缺失的来源身份或证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied vantage: ex:loss gmeow:lossVantage ex:reader ."
+msgstr "提供的观察视角：ex:loss gmeow:lossVantage ex:reader ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss watermark"
+msgstr "损失水位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied nonnegative commit sequence reflected when a QueryLoss was observed for its single identified vault. It is a source coordinate, not an observation time or completeness certificate."
+msgstr "针对单个已标识库观察 QueryLoss 时所反映的已提供非负提交序号。它是来源坐标，不是观察时间或完备性证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied commit coordinate for a single-vault loss."
+msgstr "用于保留为单库损失明确提供的提交坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing zero for an absent position or treating a watermark as a global frontier."
+msgstr "避免为缺失位置虚构零，或将水位视为全局前沿。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:integer with the lossVault coordinate; separate independent positions only using actual source-scoped occurrences or reification."
+msgstr "将提供的 xsd:integer 与 lossVault 坐标一起保留；仅使用来源实际提供的范围内出现项或重述分隔独立位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Direct vault and watermark values express one supplied vault-position coordinate. Missing remains unknown; no pairing, hash computation or source-scope invention is performed."
+msgstr "直接的库值和水位值表达一个已提供的库位置坐标。缺失仍为未知；不执行配对、哈希计算或来源范围虚构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied commit position: ex:loss gmeow:lossWatermark \"42\"^^xsd:integer ."
+msgstr "提供的提交位置：ex:loss gmeow:lossWatermark \"42\"^^xsd:integer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss observed at"
+msgstr "损失观察时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied time at which a QueryLoss was observed, retained on the loss information object without making it an Observation."
+msgstr "观察 QueryLoss 的已提供时间，保留在损失信息对象上而不使其成为 Observation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied observation time for a loss."
+msgstr "用于保留为损失明确提供的观察时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fact valid time, source assertion time, execution time or a commit watermark."
+msgstr "避免以事实有效时间、来源断言时间、执行时间或提交水位替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied xsd:dateTime; do not bridge through the Observation-domain property observedAt."
+msgstr "保留提供的 xsd:dateTime；不通过定义域为 Observation 的 observedAt 属性桥接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No current-time default, temporal ordering of facts or source authentication follows from this timestamp."
+msgstr "此时间戳不导出当前时间默认值、事实的时间顺序或来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
+msgstr "提供的时间：ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."

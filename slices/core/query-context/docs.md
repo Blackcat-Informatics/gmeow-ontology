@@ -20,13 +20,14 @@ The query resource need not have an invented query-language class.
 when the source names it. The constraint can be an ordinary query-condition
 resource; it need not be a grounding integrity-rule node.
 
-The cause vocabulary is open and supplies five initial distinctions:
+The cause vocabulary is open and supplies these distinctions:
 
 - `lossValueMissing`: an input value was missing.
 - `lossVaultLocked`: a relevant protected source was locked to this context.
 - `lossCoverageEnds`: available coverage ended before the requested scope.
 - `lossFamilyCouldNot`: a participating retrieval family could not evaluate.
 - `lossPrecisionCoarser`: available precision was coarser than requested.
+- `lossNotEvaluated`: work on which the answer depends has not been performed.
 
 These are reports of query-input limitations, not projection-loss codes.
 `logic:projectionLoss` describes a different loss surface and is not reused.
@@ -52,8 +53,9 @@ The local answer fields reuse the existing grounding value vocabularies directly
 | `queryEvaluationStatus` | What computation was completed or could be performed | `logic:EvaluationStatus` |
 | `queryCompletenessStatus` | Completeness relative to declared scope or fragment | `logic:CompletenessStatus` |
 
-Undetermined and not-evaluated remain information states. They are not completeness
-values. A supported answer with incomplete coverage remains provisional; a
+On the information axis, undetermined and not-evaluated remain information states,
+not completeness values. Separately, lossNotEvaluated reports unperformed dependent
+input work without assigning any result-axis value. A supported answer with incomplete coverage remains provisional; a
 conclusive neither verdict differs from a verdict never reached. No field is
 inferred from another or from reader acknowledgement.
 
@@ -138,3 +140,125 @@ Unindexed statements likewise remain unspecified, not universal.
 The [archive scene](examples/archive-query.ttl) retains acknowledged losses and a
 small explicitly scoped composition model. The [design rationale](design/QUERY-CONTEXT.md)
 states the canonical laws and the limits of their interpretation.
+
+## Row reasons and scoped loss observations
+
+A QuerySolutionRow identifies an occurrence in an attributed QueryAnswer, linked
+by solutionRow. Equal bindings do not merge occurrences or their evidence.
+solutionReason names the supplied grounds or explanations by which the row is
+reported to hold in its solutionFrame. Positive support, derivations and other
+resource-valued reasons are admissible. A referenced QueryLoss remains a
+limitation in that account; its presence does not make it positive support.
+Neither relation certifies truth, a valid proof or completeness.
+
+Keep the source's content-identified reason IRI as the original reason resource.
+Rows and ledgers can then reference the same QueryLoss without per-row copies.
+The ontology does not compute the identifier, prescribe its preimage or verify
+that it identifies its content. Acknowledgement still preserves the loss and
+does not repair it or grant permission to omit required work.
+
+A loss can also be the native rdf:reifies resource of the exact triple term it
+concerns. Keep lossConcerns and lossCause; resource-level and whole-answer
+losses do not acquire invented triples. Reifying a triple does not assert it.
+lossNotEvaluated reports dependent work not performed and assigns no value to
+the independent information, evaluation or completeness axes.
+
+lossVault and lossWatermark retain an explicitly supplied single-vault commit
+coordinate. The direct watermark is the nonnegative xsd:integer position for
+that one identified vault, not a global frontier or completeness certificate.
+Do not pair independent sets of vaults and watermarks. Multiple independent
+positions require source-supplied scoped occurrences or statement reification;
+neither invent scopes nor split a content-identified loss merely to fit the
+representation. Missing positions remain unknown, without a default zero.
+
+lossVantage and lossObservedAt retain the supplied vantage and observation
+instant on the information object. They do not specialize the Observation-domain
+properties vantage and observedAt. The observation instant is distinct from
+fact valid time, source assertion time, execution time and commit position.
+Several attributed accounts may coexist; no observer or current time is guessed.
+
+lossDetail reuses record-metadata's StructuredValue branches and labelled fields.
+Preserve exact keys, repeated field occurrences, native datatypes, supplied order
+and nesting. A StructuredMap can retain its producer-supplied record-type tag
+through structureName. An omitted detail, explicit null and an empty map remain
+different; none is replaced by opaque JSON text.
+
+The graph below is a fictional supplied account. Both rows have the same complete
+single binding, illustrated by ex:item, yet remain distinct occurrences. Their
+positive ground and shared content-identified loss have different roles. The
+reason IRI, frame, vault position, type tags, vantage and time are fictional
+inputs, not computed identifiers or defaults. The ex:item predicate illustrates
+the supplied binding only; it introduces no GMEOW binding schema.
+
+```turtle
+@prefix ex: <https://example.org/query/> .
+@prefix reason: <urn:example:reason:> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:answer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:query ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:solutionRow ex:row1, ex:row2 .
+ex:ledger a gmeow:QueryLossLedger ;
+    gmeow:ledgerLoss reason:content-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef .
+
+ex:row1 a gmeow:QuerySolutionRow ;
+    ex:item ex:item1 ;
+    gmeow:solutionReason ex:positiveGround,
+        reason:content-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef ;
+    gmeow:solutionFrame ex:frame .
+ex:row2 a gmeow:QuerySolutionRow ;
+    ex:item ex:item1 ;
+    gmeow:solutionReason ex:positiveGround,
+        reason:content-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef ;
+    gmeow:solutionFrame ex:frame .
+ex:positiveGround a gmeow:InformationObject .
+ex:frame a gmeow:Standpoint .
+ex:reader a gmeow:Agent .
+
+reason:content-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    a gmeow:QueryLoss ;
+    rdf:reifies <<( ex:input ex:needs ex:embedding )>> ;
+    gmeow:lossConcerns ex:input ;
+    gmeow:lossCause gmeow:lossNotEvaluated ;
+    gmeow:lossVault ex:vault ;
+    gmeow:lossWatermark "42"^^xsd:integer ;
+    gmeow:lossVantage ex:reader ;
+    gmeow:lossObservedAt "2026-11-03T12:00:00Z"^^xsd:dateTime ;
+    gmeow:lossDetail ex:detail .
+
+ex:detail a gmeow:StructuredMap ;
+    gmeow:structureName "PendingInput" ;
+    gmeow:hasFacet ex:scopeField, ex:countsField .
+ex:scopeField a gmeow:LabelledFacet ;
+    gmeow:facetLabel "vault" ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:facetStructuredValue ex:vaultValue .
+ex:vaultValue a gmeow:StructuredValue ;
+    gmeow:structuredTerm ex:vault .
+ex:countsField a gmeow:LabelledFacet ;
+    gmeow:facetLabel "counts" ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:facetStructuredValue ex:counts .
+ex:counts a gmeow:StructuredMap ;
+    gmeow:structureName "PendingCounts"^^xsd:token ;
+    gmeow:hasFacet ex:waitingField .
+ex:waitingField a gmeow:LabelledFacet ;
+    gmeow:facetLabel "waiting" ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:facetValue "3"^^xsd:integer .
+```
+
+This graph documents vocabulary use, not current consumer output. The
+Katamari writer emits typed loss detail and joins loss identities to row reason
+IDs, while row evidence still travels through a typed API and exposes an actual
+boolean rather than named row-frame RDF. Its current watermarked loss
+constructors each supply one vault; its public Loss type does not enforce that
+invariant. The writer currently places concerned triple terms directly in
+lossConcerns rather than emitting this resource-plus-reifier pattern;
+conformance of that representation has not been established here. Whole-answer
+losses with no emitted lossConcerns remain a gap against the existing required
+field. These differences neither weaken the vocabulary contract nor establish
+consumer adoption of this graph.

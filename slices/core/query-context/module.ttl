@@ -49,7 +49,7 @@ gmeow:QueryLossCause
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Query Loss Cause"@x-gmeow-english ;
-    skos:definition "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."@x-gmeow-english ;
+    skos:definition "An open value vocabulary for causes of unavailable or degraded query input. Its seeded causes remain distinct from information-state, evaluation-status and completeness values."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a reported query-input loss."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid closing the vocabulary or deriving a verdict solely from a cause."@x-gmeow-english ;
     gmeow:howToUse "Reference a seeded cause through lossCause or add a reviewed source-specific individual."@x-gmeow-english ;
@@ -976,3 +976,132 @@ gmeow:TruthUnionRightMembershipLaw
                 [ a logic:Formula ; logic:relation gmeow:interpretationMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ],
                 [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation gmeow:extentMember ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:QuerySolutionRow
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Solution Row"@x-gmeow-english ;
+    skos:definition "An occurrence of a solution row in an attributed query answer. Equal bindings do not identify row occurrences or equate the answers, evidence or frames they carry."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a row occurrence with its supplied reasons and frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying rows solely by equal bindings or treating a row record as proof of its result."@x-gmeow-english ;
+    gmeow:howToUse "Link the occurrence from its answer with solutionRow; retain solutionReason and solutionFrame when supplied."@x-gmeow-english ;
+    skos:scopeNote "Occurrence identity is separate from binding equality; no binding schema, status default or execution is implied."@x-gmeow-english ;
+    skos:example "A supplied row occurrence: ex:row1 a gmeow:QuerySolutionRow ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:lossNotEvaluated
+    a gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "input work not evaluated"@x-gmeow-english ;
+    skos:definition "A reported query-input loss because work on which the answer depends has not been performed. This cause assigns no information state, evaluation status or completeness status."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports dependent input work as not yet performed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a result status, permission to skip work or a replacement result from this cause."@x-gmeow-english ;
+    gmeow:howToUse "Attach lossNotEvaluated through lossCause and retain the original lossConcerns resource."@x-gmeow-english ;
+    skos:scopeNote "The cause remains independent of logic:InfoNotEvaluated and all answer status axes."@x-gmeow-english ;
+    skos:example "A reported cause: ex:loss gmeow:lossCause gmeow:lossNotEvaluated ."@x-gmeow-english .
+
+gmeow:solutionRow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "solution row"@x-gmeow-english ;
+    skos:definition "Links an attributed query answer to one of its solution-row occurrences, retaining occurrence identity independently of equal bindings."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor supplied solution rows to their answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing repeated equal-binding rows or inferring that listed rows exhaust the answer."@x-gmeow-english ;
+    gmeow:howToUse "Link each supplied row occurrence separately and retain its own reasons and frame."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional membership records no row order, binding schema or completeness claim."@x-gmeow-english ;
+    skos:example "Two occurrences in one answer: ex:answer gmeow:solutionRow ex:row1, ex:row2 ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAnswer ; logic:range gmeow:QuerySolutionRow .
+
+gmeow:solutionReason
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "solution reason"@x-gmeow-english ;
+    skos:definition "A supplied evidential ground or explanation by which a solution row is reported to hold in its recorded frame. Positive support and derivation resources are admissible; a referenced QueryLoss remains a reported limitation, not positive support or proof of the row."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each supplied reason in a row’s evidential account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing every reason as QueryLoss or inferring truth, valid proof or completeness from this link."@x-gmeow-english ;
+    gmeow:howToUse "Link the original reason resource, preserving supplied content-identified IRIs and distinguishing positive grounds from limitations."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and open to resource-valued reasons; no proof calculus, loss classification or identity algorithm is imposed."@x-gmeow-english ;
+    skos:example "A positive ground remains distinct from a limitation: ex:row1 gmeow:solutionReason ex:support, ex:loss ."@x-gmeow-english ;
+    logic:domain gmeow:QuerySolutionRow ; logic:range logic:Thing .
+
+gmeow:solutionFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "solution frame"@x-gmeow-english ;
+    skos:definition "The supplied frame resource in which a solution row is reported to hold. A named standpoint, scenario or actual-frame descriptor keeps its own identity and semantics."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the frame explicitly supplied for a row."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a frame from an actual boolean, missing metadata or a composition request."@x-gmeow-english ;
+    gmeow:howToUse "Reference the supplied frame resource without converting it into a Standpoint, Scenario or realized composition."@x-gmeow-english ;
+    skos:scopeNote "No actual-frame default, frame algebra, compatibility result or global truth follows from this relation."@x-gmeow-english ;
+    skos:example "A supplied frame: ex:row1 gmeow:solutionFrame ex:frame ."@x-gmeow-english ;
+    logic:domain gmeow:QuerySolutionRow ; logic:range logic:Thing .
+
+gmeow:lossVault
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss vault"@x-gmeow-english ;
+    skos:definition "An identified source vault to which a QueryLoss pertains. Naming the vault supplies no access authority, coverage claim or global source frontier."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source vault explicitly associated with a loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing independent sets of vaults and watermarks by a Cartesian product."@x-gmeow-english ;
+    gmeow:howToUse "Preserve supplied vault identities; a direct lossWatermark describes a supplied coordinate for a single-vault loss."@x-gmeow-english ;
+    skos:scopeNote "Multiple independent vault positions require actual source-scoped occurrences or statement reification; do not invent scopes or fork a shared loss identity."@x-gmeow-english ;
+    skos:example "A supplied source vault: ex:loss gmeow:lossVault ex:vault ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ; logic:range logic:Thing .
+
+gmeow:lossDetail
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss detail"@x-gmeow-english ;
+    skos:definition "The supplied structured detail of a QueryLoss, represented as queryable native RDF values, maps, sequences or explicit null rather than opaque JSON text."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain typed fields and nested values in a loss report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stringifying native values or treating an omitted detail as null or an empty map."@x-gmeow-english ;
+    gmeow:howToUse "Reuse StructuredValue and its branches; retain field occurrences with hasFacet, exact facetLabel and the appropriate payload relation."@x-gmeow-english ;
+    skos:scopeNote "Preserve source order when supplied, repeated keys, native datatypes and structureName tags; this relation neither executes nor authenticates the detail."@x-gmeow-english ;
+    skos:example "A supplied detail: ex:loss gmeow:lossDetail ex:detail ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ; logic:range gmeow:StructuredValue .
+
+gmeow:lossVantage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss vantage"@x-gmeow-english ;
+    skos:definition "The supplied entity, agent or standpoint from which a QueryLoss report is held. This attribution does not turn the loss information object into an Observation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly supplied vantage for a loss report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a privileged vantage, observer identity or access permission from the report."@x-gmeow-english ;
+    gmeow:howToUse "Reference each supplied vantage without bridging through the Observation-domain property vantage."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional attribution permits coexisting vantages and supplies no missing source identity or proof."@x-gmeow-english ;
+    skos:example "A supplied vantage: ex:loss gmeow:lossVantage ex:reader ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ; logic:range gmeow:Entity .
+
+gmeow:lossWatermark
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss watermark"@x-gmeow-english ;
+    skos:definition "The supplied nonnegative commit sequence reflected when a QueryLoss was observed for its single identified vault. It is a source coordinate, not an observation time or completeness certificate."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly supplied commit coordinate for a single-vault loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing zero for an absent position or treating a watermark as a global frontier."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:integer with the lossVault coordinate; separate independent positions only using actual source-scoped occurrences or reification."@x-gmeow-english ;
+    skos:scopeNote "Direct vault and watermark values express one supplied vault-position coordinate. Missing remains unknown; no pairing, hash computation or source-scope invention is performed."@x-gmeow-english ;
+    skos:example "A supplied commit position: ex:loss gmeow:lossWatermark \"42\"^^xsd:integer ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ; logic:range xsd:integer .
+
+gmeow:lossObservedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loss observed at"@x-gmeow-english ;
+    skos:definition "The supplied time at which a QueryLoss was observed, retained on the loss information object without making it an Observation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly supplied observation time for a loss."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting fact valid time, source assertion time, execution time or a commit watermark."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied xsd:dateTime; do not bridge through the Observation-domain property observedAt."@x-gmeow-english ;
+    skos:scopeNote "No current-time default, temporal ordering of facts or source authentication follows from this timestamp."@x-gmeow-english ;
+    skos:example "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:QueryLoss ; logic:range xsd:dateTime .

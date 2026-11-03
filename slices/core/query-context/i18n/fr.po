@@ -86,8 +86,8 @@ msgid "Query Loss Cause"
 msgstr "Cause de perte de requête"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."
-msgstr "Vocabulaire ouvert des causes d’entrée indisponible ou dégradée. Ses cinq causes initiales restent distinctes des valeurs d’information, d’évaluation et de complétude."
+msgid "An open value vocabulary for causes of unavailable or degraded query input. Its seeded causes remain distinct from information-state, evaluation-status and completeness values."
+msgstr "Vocabulaire ouvert des causes d’entrée indisponible ou dégradée. Ses causes initiales restent distinctes des valeurs d’information, d’évaluation et de complétude."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a reported query-input loss."
@@ -1393,3 +1393,283 @@ msgstr "Lire les paires d’extensions universellement ordonnées dans les deux 
 msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
 msgstr "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Solution Row"
+msgstr "Ligne de solution de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence of a solution row in an attributed query answer. Equal bindings do not identify row occurrences or equate the answers, evidence or frames they carry."
+msgstr "Une occurrence de ligne de solution dans une réponse de requête attribuée. Des liaisons égales ne déterminent pas l’identité des occurrences et ne rendent pas identiques leurs réponses, éléments probants ou cadres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a row occurrence with its supplied reasons and frame."
+msgstr "Utiliser pour conserver une occurrence de ligne avec ses raisons et son cadre fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying rows solely by equal bindings or treating a row record as proof of its result."
+msgstr "Éviter d’identifier les lignes par leurs seules liaisons égales ou de traiter un enregistrement de ligne comme preuve de son résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence from its answer with solutionRow; retain solutionReason and solutionFrame when supplied."
+msgstr "Relier l’occurrence depuis sa réponse par solutionRow ; conserver solutionReason et solutionFrame lorsqu’ils sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence identity is separate from binding equality; no binding schema, status default or execution is implied."
+msgstr "L’identité d’occurrence est distincte de l’égalité des liaisons ; aucun schéma de liaison, état par défaut ou calcul n’est impliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySolutionRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied row occurrence: ex:row1 a gmeow:QuerySolutionRow ."
+msgstr "Une occurrence de ligne fournie : ex:row1 a gmeow:QuerySolutionRow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "input work not evaluated"
+msgstr "travail sur les entrées non évalué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported query-input loss because work on which the answer depends has not been performed. This cause assigns no information state, evaluation status or completeness status."
+msgstr "Une perte d’entrée de requête rapportée parce qu’un travail dont dépend la réponse n’a pas été effectué. Cette cause n’attribue aucun état d’information, état d’évaluation ou état de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports dependent input work as not yet performed."
+msgstr "Utiliser lorsque la source rapporte qu’un travail sur les entrées dont dépend la réponse n’a pas encore été effectué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a result status, permission to skip work or a replacement result from this cause."
+msgstr "Éviter de déduire de cette cause un état de résultat, une permission d’omettre le travail ou un résultat de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossNotEvaluated through lossCause and retain the original lossConcerns resource."
+msgstr "Relier lossNotEvaluated par lossCause et conserver la ressource lossConcerns d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The cause remains independent of logic:InfoNotEvaluated and all answer status axes."
+msgstr "Cette cause reste indépendante de logic:InfoNotEvaluated et de tous les axes d’état de la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossNotEvaluated|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported cause: ex:loss gmeow:lossCause gmeow:lossNotEvaluated ."
+msgstr "Une cause rapportée : ex:loss gmeow:lossCause gmeow:lossNotEvaluated ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution row"
+msgstr "ligne de solution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an attributed query answer to one of its solution-row occurrences, retaining occurrence identity independently of equal bindings."
+msgstr "Relie une réponse de requête attribuée à une de ses occurrences de ligne de solution, en conservant l’identité d’occurrence indépendamment de l’égalité des liaisons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor supplied solution rows to their answer."
+msgstr "Utiliser pour rattacher les lignes de solution fournies à leur réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing repeated equal-binding rows or inferring that listed rows exhaust the answer."
+msgstr "Éviter de fusionner les lignes répétées de liaisons égales ou de déduire que les lignes listées épuisent la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied row occurrence separately and retain its own reasons and frame."
+msgstr "Relier séparément chaque occurrence de ligne fournie et conserver ses propres raisons et son cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional membership records no row order, binding schema or completeness claim."
+msgstr "Cette appartenance non fonctionnelle n’enregistre ni ordre des lignes, ni schéma de liaison, ni affirmation de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two occurrences in one answer: ex:answer gmeow:solutionRow ex:row1, ex:row2 ."
+msgstr "Deux occurrences dans une réponse : ex:answer gmeow:solutionRow ex:row1, ex:row2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution reason"
+msgstr "raison de la solution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied evidential ground or explanation by which a solution row is reported to hold in its recorded frame. Positive support and derivation resources are admissible; a referenced QueryLoss remains a reported limitation, not positive support or proof of the row."
+msgstr "Un fondement probant ou une explication fourni par lequel une ligne de solution est rapportée comme valant dans son cadre enregistré. Les ressources de soutien positif et de dérivation sont admises ; une QueryLoss référencée reste une limite rapportée, et non un soutien positif ou une preuve de la ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each supplied reason in a row’s evidential account."
+msgstr "Utiliser pour conserver chaque raison fournie dans le compte rendu probant d’une ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing every reason as QueryLoss or inferring truth, valid proof or completeness from this link."
+msgstr "Éviter de typer toute raison comme QueryLoss ou de déduire de ce lien vérité, preuve valide ou complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original reason resource, preserving supplied content-identified IRIs and distinguishing positive grounds from limitations."
+msgstr "Relier la ressource de raison d’origine, en préservant les IRI fournies identifiées par leur contenu et en distinguant les fondements positifs des limites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and open to resource-valued reasons; no proof calculus, loss classification or identity algorithm is imposed."
+msgstr "Non fonctionnelle et ouverte aux raisons ayant une ressource pour valeur ; aucun calcul de preuve, classement des pertes ou algorithme d’identité n’est imposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "A positive ground remains distinct from a limitation: ex:row1 gmeow:solutionReason ex:support, ex:loss ."
+msgstr "Un fondement positif reste distinct d’une limite : ex:row1 gmeow:solutionReason ex:support, ex:loss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution frame"
+msgstr "cadre de la solution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied frame resource in which a solution row is reported to hold. A named standpoint, scenario or actual-frame descriptor keeps its own identity and semantics."
+msgstr "La ressource de cadre fournie dans laquelle une ligne de solution est rapportée comme valant. Un point de vue nommé, un scénario ou un descripteur de cadre des faits réels conserve son identité et sa sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the frame explicitly supplied for a row."
+msgstr "Utiliser pour conserver le cadre explicitement fourni pour une ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a frame from an actual boolean, missing metadata or a composition request."
+msgstr "Éviter d’inventer un cadre à partir d’un booléen actual, de métadonnées absentes ou d’une demande de composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the supplied frame resource without converting it into a Standpoint, Scenario or realized composition."
+msgstr "Référencer la ressource de cadre fournie sans la convertir en Standpoint, Scenario ou composition réalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No actual-frame default, frame algebra, compatibility result or global truth follows from this relation."
+msgstr "Cette relation n’entraîne aucun cadre des faits réels par défaut, aucune algèbre de cadres, aucun résultat de compatibilité ni aucune vérité globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/solutionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied frame: ex:row1 gmeow:solutionFrame ex:frame ."
+msgstr "Un cadre fourni : ex:row1 gmeow:solutionFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss vault"
+msgstr "coffre de la perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified source vault to which a QueryLoss pertains. Naming the vault supplies no access authority, coverage claim or global source frontier."
+msgstr "Un coffre source identifié auquel se rapporte une QueryLoss. Nommer le coffre ne fournit aucune autorisation d’accès, affirmation de couverture ou frontière globale des sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source vault explicitly associated with a loss."
+msgstr "Utiliser pour conserver le coffre source explicitement associé à une perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pairing independent sets of vaults and watermarks by a Cartesian product."
+msgstr "Éviter d’apparier des ensembles indépendants de coffres et de repères de progression par produit cartésien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supplied vault identities; a direct lossWatermark describes a supplied coordinate for a single-vault loss."
+msgstr "Préserver les identités de coffre fournies ; un lossWatermark direct décrit une coordonnée fournie pour une perte concernant un seul coffre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple independent vault positions require actual source-scoped occurrences or statement reification; do not invent scopes or fork a shared loss identity."
+msgstr "Plusieurs positions indépendantes de coffres exigent des occurrences réellement délimitées par la source ou une réification d’énoncé ; ne pas inventer de portées ni dédoubler l’identité d’une perte partagée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied source vault: ex:loss gmeow:lossVault ex:vault ."
+msgstr "Un coffre source fourni : ex:loss gmeow:lossVault ex:vault ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss detail"
+msgstr "détail de la perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied structured detail of a QueryLoss, represented as queryable native RDF values, maps, sequences or explicit null rather than opaque JSON text."
+msgstr "Le détail structuré fourni d’une QueryLoss, représenté par des valeurs RDF natives interrogeables, des objets structurés, des séquences ou un null explicite plutôt que par un texte JSON opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain typed fields and nested values in a loss report."
+msgstr "Utiliser pour conserver les champs typés et les valeurs imbriquées d’un rapport de perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stringifying native values or treating an omitted detail as null or an empty map."
+msgstr "Éviter de convertir les valeurs natives en chaînes ou de traiter un détail omis comme null ou comme un objet structuré vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse StructuredValue and its branches; retain field occurrences with hasFacet, exact facetLabel and the appropriate payload relation."
+msgstr "Réutiliser StructuredValue et ses branches ; conserver les occurrences de champ avec hasFacet, le facetLabel exact et la relation de contenu appropriée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve source order when supplied, repeated keys, native datatypes and structureName tags; this relation neither executes nor authenticates the detail."
+msgstr "Préserver l’ordre fourni par la source, les clés répétées, les types de données natifs et les étiquettes structureName ; cette relation n’exécute ni n’authentifie le détail."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied detail: ex:loss gmeow:lossDetail ex:detail ."
+msgstr "Un détail fourni : ex:loss gmeow:lossDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss vantage"
+msgstr "point de vue de la perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied entity, agent or standpoint from which a QueryLoss report is held. This attribution does not turn the loss information object into an Observation."
+msgstr "L’entité, l’agent ou le point de vue fourni depuis lequel un rapport QueryLoss est tenu. Cette attribution ne transforme pas l’objet informationnel de perte en Observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied vantage for a loss report."
+msgstr "Utiliser pour conserver un point de vue explicitement fourni pour un rapport de perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a privileged vantage, observer identity or access permission from the report."
+msgstr "Éviter de déduire du rapport un point de vue privilégié, l’identité d’un observateur ou une permission d’accès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied vantage without bridging through the Observation-domain property vantage."
+msgstr "Référencer chaque point de vue fourni sans passer par la propriété vantage dont le domaine est Observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional attribution permits coexisting vantages and supplies no missing source identity or proof."
+msgstr "Cette attribution non fonctionnelle permet la coexistence de points de vue et ne fournit aucune identité de source absente ni preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVantage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied vantage: ex:loss gmeow:lossVantage ex:reader ."
+msgstr "Un point de vue fourni : ex:loss gmeow:lossVantage ex:reader ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss watermark"
+msgstr "repère de progression de la perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied nonnegative commit sequence reflected when a QueryLoss was observed for its single identified vault. It is a source coordinate, not an observation time or completeness certificate."
+msgstr "Le numéro de séquence de commit non négatif fourni, reflété lors de l’observation d’une QueryLoss pour son unique coffre identifié. C’est une coordonnée de source, non un instant d’observation ou un certificat de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied commit coordinate for a single-vault loss."
+msgstr "Utiliser pour conserver une coordonnée de commit explicitement fournie pour une perte concernant un seul coffre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing zero for an absent position or treating a watermark as a global frontier."
+msgstr "Éviter d’inventer zéro pour une position absente ou de traiter un repère de progression comme une frontière globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:integer with the lossVault coordinate; separate independent positions only using actual source-scoped occurrences or reification."
+msgstr "Conserver le xsd:integer fourni avec la coordonnée lossVault ; séparer les positions indépendantes uniquement à l’aide d’occurrences réellement délimitées par la source ou de réification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Direct vault and watermark values express one supplied vault-position coordinate. Missing remains unknown; no pairing, hash computation or source-scope invention is performed."
+msgstr "Les valeurs directes de coffre et de repère de progression expriment une seule coordonnée coffre-position fournie. L’absence reste inconnue ; aucun appariement, calcul de hachage ou invention de portée de source n’est effectué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossWatermark|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied commit position: ex:loss gmeow:lossWatermark \"42\"^^xsd:integer ."
+msgstr "Une position de commit fournie : ex:loss gmeow:lossWatermark \"42\"^^xsd:integer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss observed at"
+msgstr "perte observée à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied time at which a QueryLoss was observed, retained on the loss information object without making it an Observation."
+msgstr "L’instant fourni auquel une QueryLoss a été observée, conservé sur l’objet informationnel de perte sans en faire une Observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied observation time for a loss."
+msgstr "Utiliser pour conserver un instant d’observation explicitement fourni pour une perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fact valid time, source assertion time, execution time or a commit watermark."
+msgstr "Éviter de substituer le temps de validité du fait, l’instant d’assertion de la source, le temps d’exécution ou un repère de progression de commit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied xsd:dateTime; do not bridge through the Observation-domain property observedAt."
+msgstr "Préserver le xsd:dateTime fourni ; ne pas passer par la propriété observedAt dont le domaine est Observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No current-time default, temporal ordering of facts or source authentication follows from this timestamp."
+msgstr "Cet horodatage n’entraîne ni valeur par défaut de l’instant présent, ni ordre temporel des faits, ni authentification de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
+msgstr "Un instant fourni : ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."

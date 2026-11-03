@@ -1034,3 +1034,16 @@ gmeow:LabelledFacet logic:subClassOf
 
 gmeow:StructuredMap logic:disjointWith gmeow:StructuredSequence , gmeow:StructuredNull .
 gmeow:StructuredSequence logic:disjointWith gmeow:StructuredNull .
+
+gmeow:structureName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "structure name"@x-gmeow-english ;
+    skos:definition "The exact producer-supplied record-type tag of a StructuredMap occurrence, retained as its supplied xsd:string or xsd:token literal. The tag is data, not an inferred RDF class or schema identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a producer supplies a named record structure independently of its field labels."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a schema IRI, normalizing the tag or using it for a scalar variant."@x-gmeow-english ;
+    gmeow:howToUse "Attach the source literal to the StructuredMap occurrence; preserve its lexical form and supplied datatype without inferring token typing."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional source tags supply no missing name, class membership, schema validation or executable parser."@x-gmeow-english ;
+    skos:example "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."@x-gmeow-english ;
+    logic:domain gmeow:StructuredMap ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
