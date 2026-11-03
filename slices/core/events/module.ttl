@@ -1819,7 +1819,7 @@ gmeow:interruptibilityAtStepBoundary
     skos:definition "A declared handling mode that places interruption points between identified plan steps of the occurrence."@x-gmeow-english ;
     skos:scopeNote "Step identity comes from the stated plan. This value does not identify or complete a step, detect a boundary, create a checkpoint or establish permission or successful resumption."@x-gmeow-english ;
     skos:example "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the declared handling places interruption points between identified plan steps."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared handling restricts interruption points to boundaries between identified plan steps."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."@x-gmeow-english ;
     gmeow:howToUse "Set interruptibility to gmeow:interruptibilityAtStepBoundary and retain the plan identifying the relevant steps with the source and context."@x-gmeow-english .
 
@@ -1831,7 +1831,7 @@ gmeow:interruptibilityAtAnyPoint
     skos:definition "A declared handling mode that places no boundary restriction on interruption during the performance of an occurrence."@x-gmeow-english ;
     skos:scopeNote "Any point describes the declared handling granularity. It is not a permission, cancellation authority, safety judgment, checkpoint, capability or guarantee of successful resumption."@x-gmeow-english ;
     skos:example "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use when the declared handling places no boundary restriction on interruption during performance."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."@x-gmeow-english ;
     gmeow:howToUse "Set interruptibility to gmeow:interruptibilityAtAnyPoint and retain the declaration’s source and context."@x-gmeow-english .
 
