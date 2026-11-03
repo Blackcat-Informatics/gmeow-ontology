@@ -279,3 +279,43 @@ properties, closed enumerations, exclusivity or state/closure/intention rules.
 No existing integrity formula is changed, and no hand-authored projection or
 runtime state protocol is introduced. This is an authored source contract;
 generated behavior and runtime acceptance remain unverified.
+
+## Reference identity and attention-slot reuse
+
+LoopReference specializes InformationObject, separately from the OpenLoop
+pursuit record and task-specification artifact it may name. Its two target
+relations are independent, nonfunctional and supplied-only. Class-local
+restrictions type supplied targets without requiring either relation. No law
+copies loopTaskDocument, equates two targets or chooses a latest revision.
+
+slotCurrentLoop is a named InformationObject role descriptor. The recall-context
+owner already defines slotRole with that range and an open set of role
+resources. The descriptor introduces no mutable property or new slot class.
+An actual AttentionSlot retains its bearer, role and history Path; immutable
+SlotPositions retain their owning slot and existing IRI pointer. The pointer
+targets the LoopReference record, not the OpenLoop or its task artifact.
+
+The existing slotState reification obligation supplies typed SlotAssignmentClaim
+records for actual assertions. Explicit source supersession relates those
+assignment records without deleting them or computing a global winner.
+Same-slot and bearer-history verification and target resolution remain the
+existing consumer contract. No stronger generic StateAssignmentClaim laws,
+replacement protocol, resolver, global ordering or permission check is added.
+
+The actual scene and protocol references justify the single recall-context
+dependency. Current manifest inspection found no return path from recall-context
+to agency-records; this change therefore adds no cycle through that edge. This
+is a scoped dependency observation, not certification of the whole existing
+graph. The state-records dependency is not needed and is not added.
+
+The existing agency-to-notes dependency supports notebookLoop as a domain-owned
+association from NotebookEntry to OpenLoop. This direction avoids a reverse
+notes-to-agency edge. The association adds no shared-writer requirement,
+content/state copy or inferred Intention. Slot bearer, declaring frame,
+recording attribution and actual pursuer retain separate source identities;
+no inequality requirement prevents a supplied Agent from filling several roles.
+
+All new property axioms and supplied-value restrictions use canonical logic:.
+No existing slot obligation, integrity formula or required field is changed.
+The ordinary scene illustrates the source contract; it does not establish
+runtime history validation, resolution or generated-surface acceptance.

@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/loop-reference-and-attention/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Illustrative retained source records, not an executed scheduler or history check.
+ex:slotHolder a gmeow:Agent ;
+    rdfs:label "Source-identified attention-slot bearer"@en .
+
+ex:declaringWriter a gmeow:Agent ;
+    rdfs:label "Declaring source writer"@en .
+
+ex:recorder a gmeow:SoftwareAgent ;
+    rdfs:label "Source importer"@en .
+
+ex:pursuer a gmeow:Agent ;
+    rdfs:label "Independently supplied intention bearer"@en .
+
+ex:earlierSource a gmeow:InformationObject ;
+    rdfs:label "Earlier attention selection source"@en ;
+    gmeow:wasAttributedTo ex:declaringWriter .
+
+ex:laterSource a gmeow:InformationObject ;
+    rdfs:label "Later attention selection source"@en ;
+    gmeow:wasAttributedTo ex:declaringWriter .
+
+ex:earlierTaskArtifact a gmeow:InformationObject ;
+    rdfs:label "Task artifact named by the earlier reference"@en .
+
+ex:laterTaskArtifact a gmeow:InformationObject ;
+    rdfs:label "Task artifact named by the later reference"@en .
+
+ex:goal a gmeow:Goal ;
+    rdfs:label "Archive discrepancy clarified"@en .
+
+# This actual supplied binding identifies the pursuer, independently of the slot.
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:pursuer ;
+    gmeow:intentionGoal ex:goal .
+
+ex:pursuit a gmeow:OpenLoop ;
+    rdfs:label "Archive discrepancy pursuit record"@en ;
+    gmeow:loopTaskDocument ex:laterTaskArtifact ;
+    gmeow:loopServesIntention ex:intention .
+
+# References retain the supplied task targets without copying loopTaskDocument.
+ex:earlierReference a gmeow:LoopReference ;
+    gmeow:referencedLoop ex:pursuit ;
+    gmeow:referencedTaskDocument ex:earlierTaskArtifact .
+
+ex:laterReference a gmeow:LoopReference ;
+    gmeow:referencedLoop ex:pursuit ;
+    gmeow:referencedTaskDocument ex:laterTaskArtifact .
+
+ex:history a logic:Path .
+
+# The role descriptor is not this slot, its position or either referenced loop.
+ex:attentionSlot a gmeow:AttentionSlot ;
+    gmeow:slotBearer ex:slotHolder ;
+    gmeow:slotRole gmeow:slotCurrentLoop ;
+    gmeow:slotHistory ex:history ;
+    gmeow:slotState ex:earlierPosition, ex:laterPosition .
+
+# Each existing IRI pointer targets the actual LoopReference information record.
+ex:earlierPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:attentionSlot ;
+    gmeow:slotPointer ex:earlierReference .
+
+ex:laterPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:attentionSlot ;
+    gmeow:slotPointer ex:laterReference ;
+    logic:temporallySucceeds ex:earlierPosition .
+
+# Every actual slotState assertion retains its required typed native reifier.
+ex:earlierAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:attentionSlot gmeow:slotState ex:earlierPosition )>> ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:earlierSource .
+
+ex:laterAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:attentionSlot gmeow:slotState ex:laterPosition )>> ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:laterSource ;
+    gmeow:supersedes ex:earlierAssignment .
+
+# Supplied order and supersession retain history; no global current winner is computed.
+# Same-slot/bearer validation and actual IRI resolution are not reported as executed.
+ex:entry a gmeow:NotebookEntry ;
+    gmeow:noteAuthor ex:declaringWriter ;
+    gmeow:noteContent "Compare the task artifacts before choosing the next inquiry."@en ;
+    gmeow:notebookEntryKind gmeow:notebookNextStep ;
+    gmeow:notebookLoop ex:pursuit .

@@ -443,3 +443,55 @@ all three states, task-artifact and Intention links, historical and competing
 claims, separate reporting roles and a closure report with an unknown actual
 actor. It reports no executed scheduler, closure, test, state update or
 successful goal.
+
+## Loop references and current-loop attention
+
+A `LoopReference` is an independently identified information record. Its
+`referencedLoop` names a source-supplied `OpenLoop`; `referencedTaskDocument`
+names a supplied task-specification `InformationObject`. The reference is
+neither target. Both links are nonfunctional and constrain supplied values
+only: this vocabulary does not enforce a complete-reference record.
+
+Keep the original target identities. A task-artifact link is not copied from
+`loopTaskDocument`, selected by a latest-revision policy or forced equal to
+another target. Missing targets remain unspecified. Naming an IRI establishes
+neither resolution nor availability.
+
+`slotCurrentLoop` is an `InformationObject` role descriptor used through the
+existing `slotRole` relation. It is not a mutable property, slot, history
+position, pointer or loop record. Follow the existing protocol:
+
+1. The actual `AttentionSlot` has its source-supplied Agent `slotBearer`,
+   `slotRole slotCurrentLoop` and history `Path` through `slotHistory`.
+2. `slotState` names a `SlotPosition` belonging to that slot through
+   `positionInSlot`. The position's existing IRI `slotPointer` targets the
+   actual `LoopReference` record, which retains the supplied target links.
+3. Each actual `slotState` assertion has its typed `SlotAssignmentClaim`
+   native RDF 1.2 reifier. Source-supplied `supersedes` relates actual assignment
+   claims, retaining earlier records and competing views.
+
+These are the existing attention-slot requirements, not a new state protocol.
+The role descriptor creates no assignment or current winner. Same-slot and
+bearer-history checks and target resolution remain consumer obligations; the
+descriptor proves none of them. Supersession supplies no global total order,
+and no timestamp selects a current loop. The stronger generic
+`StateAssignmentClaim` profile is not selected here.
+
+Slot bearer, declaring writer, recorder and actual pursuer remain separate
+roles, with identity overlap allowed when supplied by the source. A slot bearer
+or recording attribution supplies no missing pursuer identity, authentication
+or permission. The loop's own source-supported Intention link retains its
+separate bearer and goal (Principles 9 and 11).
+
+`notebookLoop` associates a `NotebookEntry` with an existing `OpenLoop` through a
+nonfunctional supplied-value link. It copies neither state nor content, infers
+no Intention or pursuer and imposes no common writer. Preserve the entry's
+existing content, kind, state claims and attribution. Matching words, a shared
+author or a current-slot claim cannot supply an unstated association.
+
+The ordinary [loop-reference scene](examples/loop-reference-and-attention.ttl)
+uses actual reference records as slot-pointer targets, retains distinct source
+task artifacts and notebook content, and supplies the existing slot and
+position fields, typed assignment reifiers and explicit supersession. It
+reports no executed history check, resolver, state update or scheduler
+(Principle 17).
