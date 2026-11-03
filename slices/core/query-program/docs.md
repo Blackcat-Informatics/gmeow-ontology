@@ -673,3 +673,136 @@ provider execution, passage-selection exhaustiveness, current consumer adoption
 or a floating-point sorting implementation. The separate content-tier and
 activation order policy, accepted-reason folding and verdict-choice semantics
 remain governed by their own contracts.
+
+## Explicit query-order definitions
+
+QueryOrderPolicy defines a complete comparison prescription under the selected
+unique-predicate and source-standard-direction contract. Its orderCriterion
+occurrences retain precedence through entryOrdinal, key kind through
+orderCriterionKind and explicit typed boolean direction through orderDescending.
+Every policy includes fused score and a final source subject tie. Content tier
+and snapshot activation are included explicitly when selected.
+
+The admitted directions are ascending content tier, descending fused score,
+descending activation and ascending source subject tie. A missing direction is
+invalid rather than inferred from key kind. Positions and key kinds are unique
+within the policy, and each criterion occurrence belongs to one policy only.
+Positions need not be contiguous. These integers describe control precedence;
+they are not measured quantities or linear-map ranks.
+
+A content-tier criterion retains QueryPredicateTierBinding declarations, each
+with an actual predicate IRI and one xsd:unsignedInt tierBindingOrdinal. Smaller
+declared labels precede larger ones. A candidate uses the minimum label among
+the predicates on its matched literal statements; a candidate without a declared
+match follows every declared tier. The declaration never filters such a
+candidate or examines every predicate on the subject as a substitute for
+matching evidence. An explicitly empty mapping collection gives a constant
+undeclared key.
+
+Within one content-tier criterion, a predicate selects one binding resource.
+Bindings may be shared across policy definitions, and different predicates may
+have equal tier labels. This selected contract rejects duplicate predicate
+declarations rather than silently applying a native last-wins vector rule.
+It does not claim to qualify every input accepted by a broader native API.
+
+The complete fictional graph below describes three policies. The requested
+sequence places score before activation; the examined native sequence places
+activation before score. Each uses separate owned criterion occurrences while
+sharing the reusable predicate-tier declarations. The minimal definition omits
+both leading keys and retains score plus terminal tie, with a permitted gap in
+its precedence positions. All booleans are explicitly typed data.
+
+```turtle
+@prefix ex: <https://example.org/query-order/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:scoreFirst a gmeow:QueryOrderPolicy ;
+    gmeow:orderCriterion ex:sfTier, ex:sfScore, ex:sfActivation, ex:sfTie .
+ex:sfTier a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderContentTier ;
+    gmeow:orderDescending "false"^^xsd:boolean ;
+    gmeow:contentTierBinding ex:labelTier, ex:bodyTier .
+ex:sfScore a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderFusedScore ;
+    gmeow:orderDescending "true"^^xsd:boolean .
+ex:sfActivation a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderActivation ;
+    gmeow:orderDescending "true"^^xsd:boolean .
+ex:sfTie a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderSubjectTie ;
+    gmeow:orderDescending "false"^^xsd:boolean .
+
+ex:activationFirst a gmeow:QueryOrderPolicy ;
+    gmeow:orderCriterion ex:afTier, ex:afActivation, ex:afScore, ex:afTie .
+ex:afTier a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderContentTier ;
+    gmeow:orderDescending "false"^^xsd:boolean ;
+    gmeow:contentTierBinding ex:labelTier, ex:bodyTier .
+ex:afActivation a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderActivation ;
+    gmeow:orderDescending "true"^^xsd:boolean .
+ex:afScore a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderFusedScore ;
+    gmeow:orderDescending "true"^^xsd:boolean .
+ex:afTie a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderSubjectTie ;
+    gmeow:orderDescending "false"^^xsd:boolean .
+
+ex:minimal a gmeow:QueryOrderPolicy ;
+    gmeow:orderCriterion ex:minimalScore, ex:minimalTie .
+ex:minimalScore a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderFusedScore ;
+    gmeow:orderDescending "true"^^xsd:boolean .
+ex:minimalTie a gmeow:QueryOrderCriterion ;
+    gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger ;
+    gmeow:orderCriterionKind gmeow:orderSubjectTie ;
+    gmeow:orderDescending "false"^^xsd:boolean .
+
+ex:labelTier a gmeow:QueryPredicateTierBinding ;
+    gmeow:tierBindingPredicate ex:label ;
+    gmeow:tierBindingOrdinal "0"^^xsd:unsignedInt .
+ex:bodyTier a gmeow:QueryPredicateTierBinding ;
+    gmeow:tierBindingPredicate ex:body ;
+    gmeow:tierBindingOrdinal "2"^^xsd:unsignedInt .
+
+ex:node a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst, ex:minimal .
+```
+
+queryOrderPolicy is an optional nonfunctional description association. The
+three definitions do not select an executed policy for the node or alter an
+existing fusion operator's arithmetic, source ranks or tie contract. In
+particular, the ability to describe score-before-activation does not establish
+that the examined activation-first native comparator accepts or applies that
+sequence. Neither policy is an automatic canonical default.
+
+No candidate key values, activation snapshots, output order or native policy
+digest are supplied by these graphs. The source subject-tie kind does not
+synthesize tie bytes or substitute canonical RDF tuple order. A native identity
+recipe that encodes only predicate tiers and an activation flag cannot identify
+a novel criterion sequence without a separate explicit source contract.
+
+An applied ordering account must separately retain the actually selected
+policy, original and output candidates, actual key evidence and losses. Measured
+score and activation fields require appropriate math:Quantity carriers with
+their supplied datatype, dimension, actual reference frame and source profile.
+Activation additionally requires its actual vault and snapshot context; a
+missing first snapshot differs from a measured zero. A control-tier label or
+criterion position does not acquire those measurement obligations merely by
+being an integer.
+
+These definitions assert no source authentication, score calibration, truth,
+provider execution, consumer adoption or change to accepted-reason or choice
+semantics. They preserve an explicit prescription for later evidence to name.

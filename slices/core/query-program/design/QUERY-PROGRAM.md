@@ -332,3 +332,89 @@ or reclassified as a source unscored outcome. The stage retains the actual
 source branches and reported evidence without claiming provider execution or
 consumer adoption. Content-tier/activation order, accepted-reason folding,
 verdict-choice semantics and weighted-fusion behavior are separate contracts.
+
+## Complete query-order policy definitions
+
+QueryOrderPolicy is an InformationObject selecting a complete unique-predicate
+and source-standard-direction definition contract. QueryOrderCriterion is an
+owned sequence occurrence, while QueryPredicateTierBinding is a reusable
+predicate-to-control-tier declaration. The prescription stays distinct from
+an applied order, mathematical quantity, rubric judgment and provider execution
+(Principles 4, 7, 9, 11, 12, 17 and 19).
+
+The policy's orderCriterion collection has unique entryOrdinal positions and
+unique orderCriterionKind values. The admitted kind set contains orderContentTier,
+orderFusedScore, orderActivation and orderSubjectTie. Each occurrence requires
+one kind, one nonnegative position and one explicitly supplied boolean
+orderDescending. Five required class/property coordinate pairs use
+allValuesFrom, ClosureEntry and qualified maximum one: three on criteria and
+predicate/tier coordinates on bindings. Collection paths retain range
+restrictions without maximum or closure. No unqualified cardinality, global
+functionality or source-count requirement is introduced.
+
+QueryOrderCriterionOwnerLaw requires an existing typed policy owner and equal
+owner identities for every pair of links to a criterion occurrence. Its single
+outer universal binds occurrence and owner-pair variables. A typed-occurrence
+guard implies a conjunction containing a fresh joined owner existential and
+a guarded two-owner-link equality implication. There is no positive nested
+universal. Bindings remain shareable and acquire no inverse-owner restriction.
+
+QueryOrderCriterionPositionLaw compares positively bound integer ordinals with
+logic:termEqual and requires equal occurrence identities when positions match.
+QueryOrderCriterionKindLaw requires equal occurrence identities for the same
+selected kind within one policy. Neither rule compares across policies or
+requires contiguous positions.
+
+QueryOrderRequiredKeysLaw supplies two separate existence obligations: a typed
+and linked fused-score occurrence and a typed and linked source-subject-tie
+occurrence. Distinct fresh existential names prevent accidental correlation in
+projection. Kind uniqueness makes each required key single within the policy.
+QueryOrderTerminalTieLaw requires every other criterion position to precede the
+tie position through logic:termLess. Both occurrence identities and positions
+are positively bound before their intrinsic comparisons.
+
+QueryOrderDirectionLaw binds a criterion's stored kind and stored typed boolean
+direction. Its two guarded implications require false for content tier or
+subject tie and true for fused score or activation. Boolean literal arguments
+carry the actual xsd:boolean datatype. This validates the explicit direction;
+it does not derive a missing value. Reverse directions are outside this selected
+contract even if some broader comparator could support them.
+
+Content-tier selection means the minimum declared label among matched-literal
+predicates, with undeclared candidates after every declared tier. It is an order,
+never a filter. QueryOrderTierBindingScopeLaw allows bindings only on that key
+kind; an empty mapping collection gives a constant undeclared key. The mapping
+is not a rule over all predicates on a subject, and a policy definition supplies
+no evidence that a candidate matched a particular literal.
+
+QueryOrderTierPredicateLaw applies unary logic:termIsIri to a positively bound
+predicate coordinate. QueryOrderTierUniquenessLaw requires equal selected
+binding identities for the same predicate within one content-tier criterion.
+Each binding requires one xsd:unsignedInt control-tier label. Equal labels for
+different predicates are legal. The selected profile rejects duplicate predicate
+records instead of adopting a native last-wins mapping vector, and it makes no
+claim to cover every broader native policy input or identity encoding.
+
+All nine laws are ordinary Constraint/Formula trees with formalizes, messages,
+indexed arguments and distinct fresh existential binders. Only termEqual,
+termLess and termIsIri are needed as intrinsics. Every variable operand is
+bound through positive stored edges before comparison. No new parser, generic
+sort engine, reflected numeric relation or hand-authored validation shape is
+introduced; generated validation is the projection of these canonical laws.
+
+queryOrderPolicy optionally associates supplied definitions with an existing
+QueryProgramNode. It is nonfunctional descriptive evidence, without an executed
+selection, default policy or modification to the node's existing operator
+contract. A score-before-activation definition and an activation-before-score
+definition remain separate prescriptions with separate occurrence resources.
+Shared mappings do not merge their policy identities. No native policy digest
+is invented from either graph.
+
+The definition layer carries no measured key magnitude, snapshot or output
+sequence. Its tier labels and precedence indices are control coordinates,
+not math:Quantity or the linear-map math:Rank. A later applied account must
+retain selected policy identity, actual candidate key evidence, source snapshots
+and vault scope, quantitative datatype/dimension/frame/profile context, original
+and output occurrences and loss identities. Existing fusion arithmetic,
+source-ranked lists, rerank outcomes, accepted-reason folding and choice
+contracts remain independently owned.
