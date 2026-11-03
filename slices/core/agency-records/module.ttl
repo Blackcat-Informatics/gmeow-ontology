@@ -3028,3 +3028,46 @@ gmeow:LoopReference logic:subClassOf
 
 gmeow:NotebookEntry logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:notebookLoop ; logic:allValuesFrom gmeow:OpenLoop ] .
+
+gmeow:Guidance
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Guidance Offer Note"@x-gmeow-english ;
+    skos:definition "A note retaining a source’s offered guidance as content, separately from a command or executed action."@x-gmeow-english ;
+    skos:scopeNote "This classification establishes no command, permission, Intention, adoption or execution. The note author, recorder, declaring frame and slot bearer do not by themselves identify a proposer or pursuer."@x-gmeow-english ;
+    skos:example "ex:offer a gmeow:Guidance ; gmeow:noteContent \"Consider reviewing the archive discrepancy.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source keeps an offer of guidance as a note rather than an execution or authority verdict."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the offer as a Norm, an executable plan, a computed preference winner or proof that anyone acted on it."@x-gmeow-english ;
+    gmeow:howToUse "Retain wording with noteContent and supplied reasons with statedRationale; keep source derivation, recording attribution and declaring frame separate."@x-gmeow-english .
+
+gmeow:guidanceLoop
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Guidance ;
+    logic:range gmeow:OpenLoop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "guidance loop association"@x-gmeow-english ;
+    skos:definition "A source-supplied association of an offered guidance note with a durable pursuit record."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and supplied-only. The association copies no loop state or content and identifies no Intention, proposer or pursuer by implication."@x-gmeow-english ;
+    skos:example "ex:offer gmeow:guidanceLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly relates the offered guidance to an existing loop record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving the association from shared wording, note authorship, a slot selection or a recording Agent."@x-gmeow-english ;
+    gmeow:howToUse "Link the Guidance note to each supplied OpenLoop and preserve the exact association’s source and context."@x-gmeow-english .
+
+gmeow:slotCurrentGuidance
+    a gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "current-guidance attention-slot role"@x-gmeow-english ;
+    skos:definition "A named role descriptor for an attention slot whose positions point to actual Guidance offer notes."@x-gmeow-english ;
+    skos:scopeNote "The descriptor is not a mutable property, slot, position, pointer or offer note. It creates no assignment, current winner, resolver, authentication or permission."@x-gmeow-english ;
+    skos:example "ex:slot gmeow:slotRole gmeow:slotCurrentGuidance ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the role of a source-identified attention slot retaining current-guidance selections."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the role itself as an offer, a chosen action or a replacement for the existing slot-assignment protocol."@x-gmeow-english ;
+    gmeow:howToUse "Use through slotRole; follow slotState to its SlotPosition and slotPointer to the actual Guidance note, retaining typed SlotAssignmentClaim reifiers."@x-gmeow-english .
+
+# Supplied loop links are typed without requiring a target or choosing a winner.
+gmeow:Guidance logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:guidanceLoop ; logic:allValuesFrom gmeow:OpenLoop ] .
