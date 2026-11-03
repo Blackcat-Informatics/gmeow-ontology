@@ -2231,8 +2231,8 @@ msgid "Quadratic Form"
 msgstr "二次形式"
 
 msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|skos:definition"
-msgid "A homogeneous degree-two scalar-valued function on a vector space, with its associated bilinear form determined when the scalar characteristic permits. It is not its associated bilinear form."
-msgstr "向量空间上的二次齐次标量值函数；当标量特征允许时确定其伴随双线性形式。 它不是其伴随双线性形式。"
+msgid "A scalar-valued function Q on a vector space over a field satisfying Q(a v) = a² Q(v), whose unscaled polar form b_Q(u,v) = Q(u+v) − Q(u) − Q(v) is required to be bilinear in every characteristic. When the scalar characteristic is not two, the associated symmetric bilinear form is B = b_Q/2 and Q(v) = B(v,v); in characteristic two, b_Q generally does not determine Q. The quadratic form is not its associated bilinear form."
+msgstr "域上向量空间的标量值函数 Q，满足 Q(a v) = a² Q(v)，且其未归一化极化形式 b_Q(u,v) = Q(u+v) − Q(u) − Q(v) 在任何特征下都必须为双线性。当标量域的特征不为二时，伴随的对称双线性形式为 B = b_Q/2，且 Q(v) = B(v,v)；在特征二时，b_Q 通常不能确定 Q。二次形式不是其伴随双线性形式。"
 
 msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|rdfs:label"
 msgid "Graded Algebra"
@@ -9776,3 +9776,59 @@ msgstr "不要反转此关系，也不要将操作数角色理解为要求 S 与
 msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point math:orthogonalComplementOf from the math:OrthogonalComplement to the intended math:Subspace. Retain math:ambientSpace, math:complementSemantics math:orthogonalComplement and math:definedByInnerProduct on the complement, with any basis computation or mathematical justification supplied separately."
 msgstr "以 math:orthogonalComplementOf 从 math:OrthogonalComplement 指向所需的 math:Subspace。在补对象上保留 math:ambientSpace、math:complementSemantics math:orthogonalComplement 和 math:definedByInnerProduct，并另行提供基计算或数学论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quadratic Space"
+msgstr "二次空间"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector space equipped with a declared quadratic form, including its scalar field and degeneracy properties. It is not a bare vector space without that form."
+msgstr "配备已声明二次形式并包括标量域与退化性质的向量空间。 它不是缺少该形式的裸向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A quadratic space retains both its vector-space structure and a specified quadratic form over a named scalar field. Degenerate forms are allowed. The space, its form and any Clifford algebra constructed from them are distinct mathematical roles; sharing a signature does not identify them."
+msgstr "二次空间保留其向量空间结构，以及在指明的标量域上指定的二次形式。允许形式退化。空间、其形式及由它们构造的 Clifford 代数是不同的数学角色；共享惯性指数对不会使它们等同。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: on the real plane, Q(x,y) = x² − y² is nondegenerate but Q(1,1) = 0. The nonzero isotropic vector (1,1) therefore does not make this quadratic space degenerate; this is a mathematical illustration, not an authored instance or runtime result."
+msgstr "数学示例：在实平面上，Q(x,y) = x² − y² 非退化，但 Q(1,1) = 0。因此，非零各向同性向量 (1,1) 不会使该二次空间退化；这是数学说明，而非已编写的实例或运行结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a vector space must be described together with the quadratic form that governs its quadratic geometry or a Clifford construction. Keep the scalar field explicit rather than assuming that every quadratic space is real or positive-definite."
+msgstr "在需要一并描述向量空间及支配其二次几何或 Clifford 构造的二次形式时使用。须明确标量域，不要假定每个二次空间都是实的或正定的。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring nondegeneracy from supplied sign counts or degeneracy merely from a nonzero isotropic vector. For finite-dimensional real forms, the positive/negative pair omits nullity; in characteristic two, state the degeneracy convention instead of silently equating it with a condition on the polar radical."
+msgstr "不要从已提供的符号计数推断非退化性，也不要仅由非零各向同性向量推断退化。对于有限维实形式，正负计数对省略零度；在特征二时，须说明退化的约定，不要暗中将其等同于极化形式的根空间上的某个条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:QuadraticSpace with its inherited vector-space structure, name its form through math:hasQuadraticForm and its scalar setting through math:scalarField, and state degeneracy information separately. These declarations do not compute the form, prove its laws or impose a new specialized form-cardinality gate."
+msgstr "描述 math:QuadraticSpace 及其继承的向量空间结构，通过 math:hasQuadraticForm 指明其形式，通过 math:scalarField 指明标量背景，并另行说明退化信息。这些声明不计算形式，不证明其定律，也不施加新的专门形式基数校验。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quadratic Form"
+msgstr "二次形式"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar-valued function Q on a vector space over a field satisfying Q(a v) = a² Q(v), whose unscaled polar form b_Q(u,v) = Q(u+v) − Q(u) − Q(v) is required to be bilinear in every characteristic. When the scalar characteristic is not two, the associated symmetric bilinear form is B = b_Q/2 and Q(v) = B(v,v); in characteristic two, b_Q generally does not determine Q. The quadratic form is not its associated bilinear form."
+msgstr "域上向量空间的标量值函数 Q，满足 Q(a v) = a² Q(v)，且其未归一化极化形式 b_Q(u,v) = Q(u+v) − Q(u) − Q(v) 在任何特征下都必须为双线性。当标量域的特征不为二时，伴随的对称双线性形式为 B = b_Q/2，且 Q(v) = B(v,v)；在特征二时，b_Q 通常不能确定 Q。二次形式不是其伴随双线性形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a complex quadratic form, its polar form is complex bilinear and Q(a v) = a² Q(v). A Hermitian norm-square instead scales by |a|² and is not a complex quadratic form in this sense. The real symmetric-form interpretation of positive/negative inertia does not transfer to arbitrary complex bilinear quadratic forms."
+msgstr "对于复二次形式，其极化形式是复双线性的，且 Q(a v) = a² Q(v)。厄米范数的平方则按 |a|² 缩放，并非此意义下的复二次形式。实对称形式中正负惯性指数的解释不能直接移用于任意复双线性二次形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: over the two-element field, Q(x) = x² has zero polar form b_Q, just as the zero quadratic form does, yet Q(1) = 1. Thus the polar form alone cannot generally recover a quadratic form in characteristic two."
+msgstr "数学示例：在二元域上，Q(x) = x² 与零二次形式一样具有零极化形式 b_Q，但 Q(1) = 1。因此，在特征二时，极化形式本身通常不能恢复二次形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the scalar-valued quadratic function itself, keeping its carrier and scalar field distinct from the function and from any associated bilinear form. Require both degree-two homogeneity and polar bilinearity when interpreting the declaration."
+msgstr "用于标量值二次函数本身，须区分其载体、标量域、函数以及任何伴随双线性形式。解释声明时，须同时要求二次齐次性和极化形式的双线性。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the unscaled polar b_Q with the half-polar B = b_Q/2, or dividing by two in characteristic two. A declared function, matrix or signature does not by itself prove quadraticity, evaluate the function or establish nondegeneracy."
+msgstr "不要将未归一化极化形式 b_Q 等同于半极化形式 B = b_Q/2，也不要在特征二时除以二。已声明的函数、矩阵或惯性指数对本身不会证明二次性、求取函数值或确立非退化性。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function obligations and name the domain carrier and scalar-value codomain through math:domain and math:codomain. State the polarization normalization and any evaluation evidence separately; the inspected real rational Gram evaluator and diagonal Cl(p,q) kernel do not establish a general arbitrary-field evaluator."
+msgstr "保留继承自 math:Function 的义务，并通过 math:domain 和 math:codomain 指明定义域载体及标量值陪域。另行说明极化归一化方式和求值依据；已检查的实有理数 Gram 求值器和对角 Cl(p,q) 内核不能确立适用于任意域的通用求值器。"
