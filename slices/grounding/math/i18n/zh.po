@@ -10168,3 +10168,31 @@ msgstr "不要要求每个外代数输入的平方都为零，不要将外积等
 msgctxt "https://blackcatinformatics.ca/math/ExteriorProduct|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the math:ExteriorProduct with its generating-vector and scalar conventions, retaining any supplied operation links and separate law evidence. Distinguish its mathematical Q = 0 agreement from the current real diagonal kernel's normalized execution support; no new constructor or validation rule follows."
 msgstr "按生成向量及标量约定描述 math:ExteriorProduct，并保留提供的运算链接和独立定律依据。须区分 Q = 0 时的数学一致性与当前实对角内核支持的归一化执行；由此不会产生新的构造器或验证规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grade Projection"
+msgstr "次数投影"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The operation selecting the homogeneous component of a multivector at a declared grade. It is not coordinate selection or extraction of one basis coefficient."
+msgstr "选取多向量在已声明次数上的齐次分量之运算。 它不是坐标选择或单一基系数提取。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A grade projection selects the entire homogeneous component at the declared grade, retaining all matching basis terms and their exact coefficients in the chosen decomposition. The native method uses generator-mask population count as integer blade degree; it is not a check that multiplication respects a grading law."
+msgstr "次数投影选取已声明次数上的整个齐次分量，保留所选分解中所有匹配的基项及其精确系数。原生方法以生成元掩码的置位数作为基刃整数次数；它不检查乘法是否遵守分次律。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), the grade-two homogeneous component of the mixed-grade multivector 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ is 3e₁e₂."
+msgstr "在 Cl(3,0) 中，混合次数多向量 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ 的二次齐次分量为 3e₁e₂。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a multivector's homogeneous decomposition and requested grade are identified and the corresponding component is needed as a multivector. The grade-zero unit blade is distinct from the zero multivector, and a scalar component retains its coefficient on that unit blade."
+msgstr "当已标识多向量的齐次分解及所需次数，并需要以多向量形式取得相应分量时使用。零次单位刃不同于零多向量，标量分量保留其在该单位刃上的系数。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating grade projection as extraction of one coordinate or scalar coefficient, a proof that its input is homogeneous or that multiplication respects a grading law, or a default that replaces an omitted grade with zero. A requested component may contain several basis terms; an operation label does not compute them."
+msgstr "不要将次数投影视为提取单个坐标或标量系数、输入齐次或乘法遵守分次律的证明，也不要将其当作把省略次数替换为零的默认规则。所需分量可含多个基项；运算标签不会计算这些项。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeProjection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:GradeProjection in its multivector, grade and algebra context without inventing dedicated slots or a cardinality gate. The native real diagonal rational method rejects grades above the generator count and returns the zero multivector for a valid absent grade; preserve that bounded behavior and separate calculation evidence from the declaration."
+msgstr "按多向量、次数和代数背景描述 math:GradeProjection，不要臆造专用槽位或基数校验。原生实对角有理数方法拒绝高于生成元数的次数，并对有效但不存在项的次数返回零多向量；须保留该有界行为，并将计算依据与声明分开。"
