@@ -2319,8 +2319,8 @@ msgid "Left Contraction"
 msgstr "Contraction à gauche"
 
 msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
-msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
-msgstr "Le produit abaissant le degré qui sélectionne la composante de différence des degrés d'un produit de Clifford. Ce n’est pas un produit intérieur symétrique : l’ordre des opérandes et la convention de contraction comptent."
+msgid "A generally nonsymmetric product selecting a grade-difference component for homogeneous Clifford inputs under a declared contraction convention. The convention fixes operand order, signs and scalar cases; the product extends bilinearly to mixed-grade inputs."
+msgstr "Un produit généralement non symétrique qui sélectionne une composante de différence des degrés pour des arguments homogènes de Clifford selon une convention de contraction déclarée. La convention fixe l’ordre des opérandes, les signes et les cas scalaires ; le produit s’étend bilinéairement aux arguments de degrés mélangés."
 
 msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
 msgid "Grade Projection"
@@ -10308,3 +10308,31 @@ msgstr "Ne pas en déduire une conjugaison complexe des coefficients, une adjonc
 msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the Clifford algebra, decomposition and composition action. The native sparse method applies the combined degree sign with checked rational arithmetic and no algebra parameter. It preserves the scalar unit and zero separately, performs no signature validation and establishes no broader coefficient-field or basis execution."
 msgstr "Identifier l’algèbre de Clifford, la décomposition et l’action composée. La méthode native creuse applique le signe combiné du degré par arithmétique rationnelle contrôlée, sans paramètre d’algèbre. Elle préserve séparément l’unité scalaire et zéro, ne valide aucune signature et n’établit aucune exécution sur un corps de coefficients ou une base plus généraux."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Left Contraction"
+msgstr "Contraction à gauche"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A generally nonsymmetric product selecting a grade-difference component for homogeneous Clifford inputs under a declared contraction convention. The convention fixes operand order, signs and scalar cases; the product extends bilinearly to mixed-grade inputs."
+msgstr "Un produit généralement non symétrique qui sélectionne une composante de différence des degrés pour des arguments homogènes de Clifford selon une convention de contraction déclarée. La convention fixe l’ordre des opérandes, les signes et les cas scalaires ; le produit s’étend bilinéairement aux arguments de degrés mélangés."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For homogeneous inputs A_r and B_s, the native convention selects the degree s-r component of the original product A_r B_s when r <= s, and gives zero when r > s. It applies no reversion to the left operand. Mixed-grade contraction sums this action over homogeneous pairs; scalar-left contraction need not lower degree strictly."
+msgstr "Pour des arguments homogènes A_r et B_s, la convention native sélectionne la composante de degré s-r du produit initial A_r B_s lorsque r <= s, et donne zéro lorsque r > s. Elle n’applique aucune réversion à l’opérande gauche. La contraction de degrés mélangés somme cette action sur les paires homogènes ; avec un opérande gauche scalaire, elle n’abaisse pas nécessairement le degré strictement."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), selecting the degree-one component of (e₁e₂)(e₁e₂e₃) gives (e₁e₂) ⌟ (e₁e₂e₃) = -e₃. A convention that first reverses the left blade gives +e₃ instead."
+msgstr "Dans Cl(3,0), sélectionner la composante de degré un de (e₁e₂)(e₁e₂e₃) donne (e₁e₂) ⌟ (e₁e₂e₃) = -e₃. Une convention qui inverse d’abord l’ordre des générateurs de la lame gauche donne +e₃ à la place."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the contraction convention, ordered operands and homogeneous decomposition are identified. Under the native convention, 1 ⌟ B = B and B ⌟ 1 is the scalar component of B; contraction with a zero operand gives zero when both operands are valid for the declared algebra. The scalar unit is distinct from the zero multivector."
+msgstr "À utiliser lorsque la convention de contraction, les opérandes ordonnés et la décomposition homogène sont identifiés. Selon la convention native, 1 ⌟ B = B et B ⌟ 1 est la composante scalaire de B ; la contraction avec un opérande nul donne zéro lorsque les deux opérandes sont valides pour l’algèbre déclarée. L’unité scalaire est distincte du multivecteur nul."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming symmetry, a reverse-left convention, one grade difference for an entire mixed-grade input, or strict degree reduction with scalar-left input. Vector metric pairings and scalar cases may be symmetric. Invalid input is an error, not an absent component or a zero contraction."
+msgstr "Ne pas supposer la symétrie, une convention appliquant d’abord la réversion à gauche, une seule différence de degrés pour un argument entier de degrés mélangés, ni une réduction stricte du degré avec un opérande gauche scalaire. Les appariements métriques de vecteurs et les cas scalaires peuvent être symétriques. Un argument invalide est une erreur, pas une composante absente ni une contraction nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."
+msgstr "Déclarer la convention sans inventer d’emplacements d’arguments ni de règles de cardinalité. Les méthodes natives de l’algèbre valident les masques des opérandes par rapport à l’algèbre déclarée avant le filtrage par degré, puis utilisent des produits de coefficients rationnels et une accumulation contrôlés. Leur profil réel diagonal orthonormal admet au plus soixante-quatre générateurs et n’établit aucune exécution générique en caractéristique deux, sur les complexes, avec une forme dégénérée ou dans une base non orthogonale."
