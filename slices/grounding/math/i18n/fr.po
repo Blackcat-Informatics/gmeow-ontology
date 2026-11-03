@@ -2584,7 +2584,7 @@ msgstr "a pour lame de base"
 
 msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|skos:definition"
 msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
-msgstr "Relie une algèbre de Clifford à une lame homogène induite par sa base ordonnée."
+msgstr "Relie une algèbre de Clifford à l’une des lames de base homogènes induites par sa base ordonnée de générateurs."
 
 msgctxt "https://blackcatinformatics.ca/math/hasAnticommutationWitness|rdfs:label"
 msgid "has anticommutation witness"
@@ -9916,3 +9916,87 @@ msgstr "Ne pas inverser la relation, substituer un degré numérique de lame à 
 msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Write the algebra or module as subject and its math:Grading as object of math:hasGrading. For math:CliffordAlgebra retain the existing single typed grading declaration and its other frame requirements; describe component and law evidence separately from the link."
 msgstr "Écrire l’algèbre ou le module comme sujet et sa math:Grading comme objet de math:hasGrading. Pour math:CliffordAlgebra, conserver l’unique déclaration de graduation typée existante et les autres exigences de son cadre ; décrire les éléments probants de composantes et de lois séparément du lien."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Basis Blade"
+msgstr "Lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."
+msgstr "Un élément de base homogène formé comme produit extérieur ordonné de générateurs de base distincts. Dans une présentation de Clifford avec une base de générateurs orthogonaux, le produit géométrique ordonné correspondant réalise cette lame homogène ; un produit brut de générateurs distincts non orthogonaux n’est pas nécessairement homogène. Le produit vide est la lame scalaire de degré zéro. Ce n’est ni un multivecteur arbitraire ni une somme de lames."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A basis blade is one homogeneous element associated with a subset of the fixed ordered generator basis. The empty subset gives the scalar unit blade of grade zero. For n generators there are 2^n basis blades in the algebra, including that unit, rather than only the n grade-one generators."
+msgstr "Une lame de base est un élément homogène associé à un sous-ensemble de la base ordonnée de générateurs fixée. Le sous-ensemble vide donne la lame unité scalaire de degré zéro. Pour n générateurs, l’algèbre possède 2^n lames de base, y compris cette unité, et non seulement les n générateurs de degré un."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:e13 is a math:BasisBlade with math:bladeGrade 1 and math:generatorIndex 13, linked from cov:cl130. Its generator position is thirteen while its blade grade is one; the record does not enumerate the other basis blades."
+msgstr "Dans external-concept-coverage.ttl, cov:e13 est une math:BasisBlade avec math:bladeGrade 1 et math:generatorIndex 13, reliée depuis cov:cl130. Sa position de générateur est treize tandis que son degré de lame est un ; la ressource n’énumère pas les autres lames de base."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified element of the basis induced by a chosen ordered generator basis, including the scalar unit blade. Keep its algebra and basis convention explicit so the same grade is not mistaken for the same basis element."
+msgstr "À utiliser pour un élément identifié de la base induite par une base ordonnée de générateurs choisie, y compris la lame unité scalaire. Expliciter son algèbre et sa convention de base afin qu’un même degré ne soit pas confondu avec un même élément de base."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary homogeneous multivector as a single basis blade or assuming that distinct nonorthogonal generators have a homogeneous geometric product. The wedge definition and its orthogonal-generator Clifford realization do not establish a generic nonorthogonal constructor."
+msgstr "Ne pas traiter un multivecteur homogène quelconque comme une unique lame de base ni supposer que des générateurs distincts non orthogonaux ont un produit géométrique homogène. La définition par produit extérieur et sa réalisation de Clifford avec des générateurs orthogonaux n’établissent pas un constructeur générique non orthogonal."
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:BasisBlade in its ordered-basis context, relate it to the algebra with math:hasBasisBlade and record its integer degree with math:bladeGrade. Preserve any coefficient, orientation, product convention and calculation evidence separately; the grade-zero unit is not the zero multivector."
+msgstr "Décrire la math:BasisBlade dans son contexte de base ordonnée, la relier à l’algèbre avec math:hasBasisBlade et consigner son degré entier avec math:bladeGrade. Préserver séparément tout coefficient, orientation, convention de produit et élément probant de calcul ; l’unité de degré zéro n’est pas le multivecteur nul."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has basis blade"
+msgstr "a pour lame de base"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "Relie une algèbre de Clifford à l’une des lames de base homogènes induites par sa base ordonnée de générateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation points from a Clifford algebra to one of its basis blades. The existing math:CliffordAlgebra frame requires at least one typed math:BasisBlade value and restricts all values to that class; it does not require exactly one value or a complete enumeration of the algebra basis."
+msgstr "Cette relation va d’une algèbre de Clifford vers l’une de ses lames de base. Le cadre existant de math:CliffordAlgebra requiert au moins une valeur typée math:BasisBlade et restreint toutes les valeurs à cette classe ; il n’exige ni exactement une valeur ni une énumération complète de la base de l’algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:cl120 names cov:e1 and cov:cl130 names cov:e13 through math:hasBasisBlade. These selected generator records do not enumerate their respective 4096-element and 8192-element algebra bases."
+msgstr "Dans external-concept-coverage.ttl, cov:cl120 nomme cov:e1 et cov:cl130 nomme cov:e13 par math:hasBasisBlade. Ces ressources de générateurs sélectionnés n’énumèrent pas les bases de leurs algèbres, respectivement à 4096 et à 8192 éléments."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when particular basis blades must be named in the context of their Clifford algebra. Preserve the ordered generator basis and its product convention rather than treating the link as a basis-independent identity."
+msgstr "À utiliser lorsque des lames de base particulières doivent être nommées dans le contexte de leur algèbre de Clifford. Préserver la base ordonnée de générateurs et sa convention de produit plutôt que de traiter le lien comme une identité indépendante de la base."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting a numeric grade or a math:Basis resource for a blade, or inferring all 2^n blades from a few generator links. The producer's n grade-one generator records do not by themselves prove a full basis enumeration or a geometric-product law."
+msgstr "Ne pas inverser la relation, substituer un degré numérique ou une ressource math:Basis à une lame, ni déduire les 2^n lames de quelques liens de générateurs. Les n ressources de générateurs de degré un du producteur ne prouvent pas à elles seules une énumération complète de la base ni une loi de produit géométrique."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the algebra as subject and the intended math:BasisBlade as object of math:hasBasisBlade. Keep each blade's math:bladeGrade and basis context explicit; retain the existing class-local minimum and typing requirements without adding a global cardinality or completeness rule."
+msgstr "Écrire l’algèbre comme sujet et la math:BasisBlade voulue comme objet de math:hasBasisBlade. Expliciter le math:bladeGrade et le contexte de base de chaque lame ; conserver les exigences existantes de minimum et de typage locales à la classe sans ajouter de règle globale de cardinalité ou de complétude."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blade grade"
+msgstr "degré de la lame"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "Le degré entier non négatif d'une lame de base homogène."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a basis blade formed from k distinct generators, the integer grade is k; the empty unit blade has grade zero. In the inspected native representation this is the number of set bits in the generator-subset mask, not the mask's numeric value or a generator's position."
+msgstr "Pour une lame de base formée de k générateurs distincts, le degré entier est k ; la lame unité vide a le degré zéro. Dans la représentation native inspectée, c’est le nombre de bits à un du masque du sous-ensemble de générateurs, pas la valeur numérique du masque ni la position d’un générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#example"
+msgid "The external-concept-coverage.ttl records cov:e1 and cov:e13 both carry math:bladeGrade 1, while their math:generatorIndex values are 1 and 13. The native generator API uses zero-based indices and the producer records one-based RDF positions; neither position convention changes the blade grade."
+msgstr "Les ressources cov:e1 et cov:e13 de external-concept-coverage.ttl portent toutes deux math:bladeGrade 1, alors que leurs valeurs math:generatorIndex sont 1 et 13. L’API native de générateurs utilise des indices commençant à zéro et le producteur consigne des positions RDF commençant à un ; aucune de ces conventions de position ne change le degré de la lame."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the homogeneous integer degree of an identified basis blade. Keep it distinct from a coefficient, algebra dimension and even/odd parity, and do not assign one blade grade to an arbitrary mixed-grade multivector."
+msgstr "À utiliser pour indiquer le degré entier homogène d’une lame de base identifiée. Le distinguer d’un coefficient, de la dimension de l’algèbre et de la parité paire/impaire, et ne pas attribuer un unique degré de lame à un multivecteur quelconque de degrés mélangés."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this value as a grade projection, a check of homogeneity or proof that a product preserves integer degree. No dedicated bladeGrade cardinality gate is asserted here, and an omitted grade must not be silently replaced with zero."
+msgstr "Ne pas traiter cette valeur comme une projection sur un degré, un contrôle d’homogénéité ou une preuve qu’un produit préserve le degré entier. Aucun contrôle dédié de cardinalité de bladeGrade n’est affirmé ici, et un degré omis ne doit pas être tacitement remplacé par zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer through math:bladeGrade to the intended math:BasisBlade, retaining its algebra and ordered-basis interpretation. Keep any component extraction, product computation or verification evidence separate from this declaration."
+msgstr "Joindre l’entier non négatif fourni par math:bladeGrade à la math:BasisBlade voulue, en conservant son interprétation dans l’algèbre et la base ordonnée. Séparer de cette déclaration toute extraction de composante, tout calcul de produit et tout élément probant de vérification."
