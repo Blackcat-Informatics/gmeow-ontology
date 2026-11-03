@@ -2272,7 +2272,7 @@ msgstr "基刃"
 
 msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
 msgid "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."
-msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的直接乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
+msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的未经限定的乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
 msgid "Clifford Anticommutation Witness"
@@ -9923,7 +9923,7 @@ msgstr "基刃"
 
 msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."
-msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的直接乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
+msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的未经限定的乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
 
 msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A basis blade is one homogeneous element associated with a subset of the fixed ordered generator basis. The empty subset gives the scalar unit blade of grade zero. For n generators there are 2^n basis blades in the algebra, including that unit, rather than only the n grade-one generators."
