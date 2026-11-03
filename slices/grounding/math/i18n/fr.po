@@ -8884,3 +8884,167 @@ msgstr "Ne pas substituer nombre de racines, dimension de Lie, données d’entr
 msgctxt "https://blackcatinformatics.ca/math/rootSystemRank|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "State the actual nonnegative rank on the math:RootSystem, preserving the existing typed declaration and its failure ownership. Keep independently supplied base, matrix, diagram, count and order evidence in their own roles; derive no equality, generic group-order rule or classification proof from this value alone."
 msgstr "Déclarer le rang non négatif réel sur le math:RootSystem, en préservant la déclaration typée existante et sa responsabilité d’échec. Garder les preuves fournies indépendamment de base, de matrice, de diagramme, de nombre et d’ordre dans leurs rôles propres ; ne déduire aucune égalité, règle générale d’ordre de groupe ou preuve de classification de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lattice"
+msgstr "Réseau euclidien"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A discrete subgroup of a real vector space that spans it — a regular grid of points closed under addition. The E8 lattice is the densest lattice packing in 8 dimensions; lattices are also the hardness substrate of lattice-based homomorphic encryption. (The order-theoretic lattice is a distinct notion, named elsewhere.)"
+msgstr "Un sous-groupe discret d’un espace vectoriel réel qui l’engendre — une grille régulière de points fermée pour l’addition. Le réseau E8 est l’empilement en réseau le plus dense en dimension 8 ; les réseaux sont aussi le substrat de difficulté du chiffrement homomorphe fondé sur les réseaux. (Le treillis de la théorie de l’ordre est une notion distincte, nommée ailleurs.)"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the discrete additive Euclidean lattice, not the order-theoretic lattice meaning. A basis need not be orthogonal. Naming a lattice or a hardness-assumption referent alone does not supply coordinates, a basis, a Gram matrix, covolume, density evidence or a security proof."
+msgstr "Il s’agit du réseau euclidien additif discret, et non du sens de treillis de la théorie de l’ordre. Une base n’a pas à être orthogonale. Le seul fait de nommer un réseau ou un référent d’hypothèse de difficulté ne fournit ni coordonnées, ni base, ni matrice de Gram, ni covolume, ni preuve de densité ni preuve de sécurité."
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Lattice in e8-symmetry.ttl has only a math:Lattice type and a label. It has no authored basis, coordinates or root-system edge; the separate math:Lattice math:formalizes gmeow:tuningSystemJustIntonation annotation is not an identity between resources."
+msgstr "exa:e8Lattice dans e8-symmetry.ttl ne porte qu’un type math:Lattice et un libellé. Il n’a ni base écrite, ni coordonnées, ni lien de système de racines ; l’annotation distincte math:Lattice math:formalizes gmeow:tuningSystemJustIntonation n’est pas une identité entre ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical referent is a discrete additive lattice spanning its real vector space."
+msgstr "Utiliser lorsque le référent mathématique est un réseau additif discret engendrant son espace vectoriel réel."
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an orthogonal basis, reading an E8 lattice/root bridge from a shared name, or treating math:learningWithErrors and math:ringLearningWithErrors as instantiated lattice data or proofs of cryptographic security."
+msgstr "Ne pas exiger une base orthogonale, lire un lien entre réseau et racines E8 dans un nom partagé ou traiter math:learningWithErrors et math:ringLearningWithErrors comme des données de réseau instanciées ou des preuves de sécurité cryptographique."
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the lattice and retain any actually supplied additive, basis or geometric description using existing vocabulary. Keep type-and-label-only records at that evidenced level, preserve math:formalizes as a one-way annotation, and add no invented root bridge, coordinates, density calculation or security claim."
+msgstr "Identifier le réseau et conserver toute description additive, de base ou géométrique réellement fournie avec le vocabulaire existant. Garder les relevés limités au type et au libellé à ce niveau attesté, préserver math:formalizes comme annotation à sens unique et n’ajouter aucun lien inventé vers des racines, aucune coordonnée, aucun calcul de densité ni aucune affirmation de sécurité."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Representation"
+msgstr "Représentation de groupe"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism from a group into the general linear group of a math:VectorSpace — a realization of the abstract group as linear transformations. It names the group it is a math:representationOf. E8's 248-dimensional adjoint representation acts on its own Lie algebra."
+msgstr "Un homomorphisme d’un groupe vers le groupe général linéaire d’un math:VectorSpace — une réalisation du groupe abstrait par des transformations linéaires. Il nomme le groupe dont il est une math:representationOf. La représentation adjointe d’E8 de dimension 248 agit sur sa propre algèbre de Lie."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A representation has the mathematical interpretation of a homomorphism into linear automorphisms, but current GroupRepresentation source declares no formal Homomorphism superclass or frame. Representations can be nonfaithful; math:FaithfulRepresentation is the separate existing specialization for a trivial kernel."
+msgstr "Une représentation s’interprète mathématiquement comme un homomorphisme vers des automorphismes linéaires, mais la source actuelle GroupRepresentation ne déclare ni superclasse ni cadre formels Homomorphism. Les représentations peuvent être non fidèles ; math:FaithfulRepresentation est la spécialisation existante distincte pour un noyau trivial."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Adjoint in e8-symmetry.ttl has a math:GroupRepresentation type, a 248-dimensional label and math:representationOf exa:E8LieGroup. The record supplies no target vector-space resource, representation matrices or constructed action."
+msgstr "exa:e8Adjoint dans e8-symmetry.ttl porte un type math:GroupRepresentation, un libellé de dimension 248 et math:representationOf exa:E8LieGroup. Le relevé ne fournit ni ressource d’espace vectoriel cible, ni matrices de représentation, ni action construite."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical group’s realization by linear maps needs an identified representation descriptor."
+msgstr "Utiliser lorsque la réalisation d’un groupe mathématique par des applications linéaires nécessite un descripteur de représentation identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring injectivity, importing a Homomorphism frame from the conceptual description, inventing target-map slots, or treating the label as an evaluated representation or proof."
+msgstr "Ne pas déduire l’injectivité, importer un cadre Homomorphism de la description conceptuelle, inventer des emplacements d’application cible ou traiter le libellé comme une représentation évaluée ou une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the descriptor to its actual represented group with math:representationOf, retaining the mathematical linear-map interpretation and any genuine carrier, matrix or law data separately where supplied. Preserve existing types, allow nonfaithful representations, and claim faithfulness or execution only with independent evidence."
+msgstr "Relier le descripteur à son groupe réel représenté par math:representationOf, en conservant l’interprétation mathématique d’applications linéaires et toute donnée réelle de support, de matrice ou de loi séparément lorsqu’elle est fournie. Préserver les types existants, admettre les représentations non fidèles et n’affirmer fidélité ou exécution qu’avec des preuves indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Action"
+msgstr "Action de groupe"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."
+msgstr "Une action d’un math:Group sur un ensemble — une application attribuant à chaque élément du groupe une transformation de l’ensemble, compatible avec l’opération de groupe ((g·h)·x = g·(h·x), e·x = x). Une action doit identifier son groupe agissant et la cible sur laquelle elle agit par math:actsOn, et sa loi d’action doit dénoter une formule logic: ; le relevé d’action E8 existant fournit des liens de cible et de loi mais aucun lien explicite vers la ressource identifiant son groupe agissant. Une action de groupe est le mécanisme de la symétrie : le groupe de Weyl d’un système de racines agit sur les racines."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."
+msgstr "Une action de groupe requiert un groupe agissant identifié, une cible, la compatibilité avec la composition de groupe et l’action identité. Le descripteur E8 actuel ne possède pas le lien explicite d’acteur : sa cible et sa loi n’identifient pas ce groupe de façon unique, et cette omission reste une incomplétude plutôt qu’une dispense accordée par le contexte."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."
+msgstr "exa:e8WeylAction nomme exa:e8Roots, exa:rootReflection et exa:groupActionLaw dans e8-symmetry.ttl. Cette loi réalise une syntaxe Formula de compatibilité avec un petit témoin, tandis que le relevé d’action reste dépourvu de lien explicite de groupe agissant."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."
+msgstr "Utiliser lorsqu’une action mathématique doit être décrite en explicitant ses obligations de groupe agissant, de cible et de loi d’action."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a unique actor from the target, a law label, a nearby Weyl link or E8’s specific full-group equality, or treating a compatibility witness as proof of every identity, completeness and E8-root-action claim."
+msgstr "Ne pas déduire un acteur unique de la cible, d’un libellé de loi, d’un lien de Weyl voisin ou de l’égalité spécifique d’E8 avec le groupe complet, ni traiter un témoin de compatibilité comme une preuve de toutes les affirmations d’identité, de complétude et d’action sur les racines E8."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."
+msgstr "Conserver la cible réelle, l’opération préservée et la loi réalisée, et maintenir explicite l’exigence d’identification du groupe agissant là où son lien manque. N’ajouter ni prédicat d’acteur inventé ni affirmation de complétude. Le témoin exa:gaWr/exa:eqRel de la formule de compatibilité est un élément probant de portée limitée ; conserver séparément les autres obligations de l’action."
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acts on"
+msgstr "agit sur"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property records the acted-on target for existing action carriers, including GroupAction and Group uses. Set, AlgebraicStructure and RootSystem targets are examples, not a closed global range; the edge alone neither identifies an action descriptor’s acting group nor proves a full automorphism-group claim."
+msgstr "Cette propriété consigne la cible sur laquelle agissent les porteurs d’action existants, y compris les usages GroupAction et Group. Les cibles Set, AlgebraicStructure et RootSystem sont des exemples, et non une portée globale fermée ; le lien seul n’identifie pas le groupe agissant d’un descripteur d’action et ne prouve pas une affirmation de groupe complet d’automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."
+msgstr "exa:e8Weyl et exa:e8WeylAction pointent tous deux par math:actsOn vers exa:e8Roots dans e8-symmetry.ttl. La cible commune ne fournit pas le lien d’acteur manquant du descripteur d’action et ne rend pas identiques les deux rôles sources."
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."
+msgstr "Utiliser lorsque l’objet mathématique sur lequel agit un groupe ou descripteur d’action existant nécessite un lien cible explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing a global subject or target kind, inferring an inverse edge or unique acting group, or reading executable transport, identity of resources or full-group equality from the target alone."
+msgstr "Ne pas imposer un type global de sujet ou de cible, déduire un lien inverse ou un groupe agissant unique, ou lire un transport exécutable, une identité de ressources ou une égalité avec le groupe complet dans la seule cible."
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."
+msgstr "Relier le porteur réel à la cible sur laquelle il agit et préserver séparément les informations de loi, d’opération et d’identification de l’acteur lorsqu’elles sont présentes. Garder visible l’exigence non satisfaite d’identification de l’acteur, préserver la définition ouverte et n’ajouter aucune exclusion de type de ressource, lien inverse inféré ou exécution automatique d’action."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "representation of"
+msgstr "représentation de"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GroupRepresentation to the mathematical group it represents as linear maps. The existing E8 target is a math:LieGroup; this group role does not assert a math:Group type or impose a closed global domain or range. E8's adjoint representation is a math:representationOf E8."
+msgstr "Relie une math:GroupRepresentation au groupe mathématique qu’elle représente par des applications linéaires. La cible E8 existante est un math:LieGroup ; ce rôle de groupe n’affirme pas un type math:Group et n’impose pas de domaine ou de portée globaux fermés. La représentation adjointe d’E8 est une math:representationOf E8."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target fills the mathematical represented-group role. The current E8 target’s LieGroup type is retained without asserting Group membership; the descriptive link does not construct a vector-space carrier, representation matrices or an action."
+msgstr "La cible remplit le rôle de groupe mathématique représenté. Le type LieGroup de la cible E8 actuelle est conservé sans affirmer l’appartenance à Group ; le lien descriptif ne construit ni support d’espace vectoriel, ni matrices de représentation, ni action."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Adjoint has math:representationOf exa:E8LieGroup in e8-symmetry.ttl. Its type and 248-dimensional label do not add a target vector-space resource or establish a faithful representation."
+msgstr "exa:e8Adjoint porte math:representationOf exa:E8LieGroup dans e8-symmetry.ttl. Son type et son libellé de dimension 248 n’ajoutent pas de ressource d’espace vectoriel cible et n’établissent pas une représentation fidèle."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a representation descriptor must name the mathematical group whose linear-map realization it describes."
+msgstr "Utiliser lorsqu’un descripteur de représentation doit nommer le groupe mathématique dont il décrit la réalisation par des applications linéaires."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid retyping an existing LieGroup target as Group merely to fit prose, imposing a global range restriction, inferring a reverse link, or reading injectivity or execution from this edge."
+msgstr "Ne pas retyper une cible LieGroup existante en Group pour satisfaire la prose, imposer une restriction globale de portée, déduire un lien inverse ou lire injectivité ou exécution dans ce lien."
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the existing math:GroupRepresentation descriptor to its actual represented group, preserving the target’s current type and any separately supplied linear or law descriptions. Keep mathematical role, formal class membership, faithfulness evidence and evaluated representation data distinct, with no invented map slots or hierarchy changes."
+msgstr "Faire pointer le descripteur math:GroupRepresentation existant vers son groupe réel représenté, en conservant le type actuel de la cible et toute description linéaire ou de loi fournie séparément. Distinguer rôle mathématique, appartenance formelle à une classe, preuves de fidélité et données de représentation évaluées, sans inventer d’emplacements d’application ni de changements hiérarchiques."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "group order"
+msgstr "ordre du groupe"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The order (number of elements) of a finite math:Group — a validatable invariant. Domain math:Group, range a positive integer (stated in prose). E8's math:WeylGroup has order 696,729,600."
+msgstr "L’ordre (nombre d’éléments) d’un math:Group fini — un invariant validable. Domaine math:Group, portée un entier positif (énoncés en prose). Le math:WeylGroup d’E8 est d’ordre 696,729,600."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Group order is the positive integer cardinality of a finite group, not the order of one element, root rank, root count or Lie dimension. The prose datatype does not itself establish a global validator or require every group, Lie group or lattice to carry a finite order."
+msgstr "L’ordre de groupe est la cardinalité entière positive d’un groupe fini, et non l’ordre d’un élément, le rang des racines, le nombre de racines ou la dimension de Lie. Le type de données en prose n’établit pas à lui seul de validateur global et n’exige pas que tout groupe, groupe de Lie ou réseau porte un ordre fini."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl in e8-symmetry.ttl has math:groupOrder 696729600 as an RDF integer literal. That value belongs to the finite Weyl group, not exa:E8LieGroup or exa:e8Lattice, and differs from root rank 8, root count 240 and Lie dimension 248."
+msgstr "exa:e8Weyl dans e8-symmetry.ttl porte math:groupOrder 696729600 comme littéral entier RDF. Cette valeur appartient au groupe de Weyl fini, et non à exa:E8LieGroup ou exa:e8Lattice, et diffère du rang des racines 8, du nombre de racines 240 et de la dimension de Lie 248."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the known positive integral size of a finite mathematical group must be recorded."
+msgstr "Utiliser lorsque la taille entière positive connue d’un groupe mathématique fini doit être consignée."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning a finite Weyl order to the infinite E8 Lie group or lattice, confusing group order with element order, or treating a label or group link as a calculation or new presence-check capability."
+msgstr "Ne pas attribuer un ordre de Weyl fini au groupe de Lie E8 infini ou au réseau, confondre ordre de groupe et ordre d’élément, ou traiter un libellé ou lien de groupe comme un calcul ou une nouvelle capacité de contrôle de présence."
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the positive integral order on the appropriate finite group, preserving its actual RDF integer literal and the normative E8 value under the applicable canonical conditions. Keep evidence or computation separate from the declaration; a recorded value alone does not establish any validation result or imply a generic presence, cardinality or range axiom."
+msgstr "Consigner l’ordre entier positif sur le groupe fini approprié, en préservant son littéral entier RDF réel et la valeur E8 normative selon les conditions canoniques applicables. Distinguer les éléments probants ou le calcul de la déclaration ; une valeur consignée seule n’établit aucun résultat de validation et n’implique aucun axiome générique de présence, de cardinalité ou de portée."
