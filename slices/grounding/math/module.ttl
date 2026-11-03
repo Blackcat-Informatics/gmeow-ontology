@@ -10868,7 +10868,7 @@ math:LeftContraction
     a logic:Class ; logic:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Left Contraction"@x-gmeow-english ;
-    skos:definition "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."@x-gmeow-english ;
+    skos:definition "A generally nonsymmetric product selecting a grade-difference component for homogeneous Clifford inputs under a declared contraction convention. The convention fixes operand order, signs and scalar cases; the product extends bilinearly to mixed-grade inputs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:GradeProjection
@@ -17966,3 +17966,10 @@ math:CliffordConjugation
     gmeow:useWhen "Use when both parity action and generator-order reversal are intended. The composition is defined by those actions even when its map coincides with another named operation in a particular algebra."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring complex coefficient conjugation, matrix adjunction, multivector inversion or a global inequality between the three canonical maps. A self-inverse operation does not make every input an invertible multivector."@x-gmeow-english ;
     gmeow:howToUse "Identify the Clifford algebra, decomposition and composition action. The native sparse method applies the combined degree sign with checked rational arithmetic and no algebra parameter. It preserves the scalar unit and zero separately, performs no signature validation and establishes no broader coefficient-field or basis execution."@x-gmeow-english .
+
+math:LeftContraction
+    skos:scopeNote "For homogeneous inputs A_r and B_s, the native convention selects the degree s-r component of the original product A_r B_s when r <= s, and gives zero when r > s. It applies no reversion to the left operand. Mixed-grade contraction sums this action over homogeneous pairs; scalar-left contraction need not lower degree strictly."@x-gmeow-english ;
+    skos:example "In Cl(3,0), selecting the degree-one component of (e₁e₂)(e₁e₂e₃) gives (e₁e₂) ⌟ (e₁e₂e₃) = -e₃. A convention that first reverses the left blade gives +e₃ instead."@x-gmeow-english ;
+    gmeow:useWhen "Use when the contraction convention, ordered operands and homogeneous decomposition are identified. Under the native convention, 1 ⌟ B = B and B ⌟ 1 is the scalar component of B; contraction with a zero operand gives zero when both operands are valid for the declared algebra. The scalar unit is distinct from the zero multivector."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming symmetry, a reverse-left convention, one grade difference for an entire mixed-grade input, or strict degree reduction with scalar-left input. Vector metric pairings and scalar cases may be symmetric. Invalid input is an error, not an absent component or a zero contraction."@x-gmeow-english ;
+    gmeow:howToUse "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."@x-gmeow-english .

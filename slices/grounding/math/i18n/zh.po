@@ -2319,8 +2319,8 @@ msgid "Left Contraction"
 msgstr "左缩并"
 
 msgctxt "https://blackcatinformatics.ca/math/LeftContraction|skos:definition"
-msgid "The grade-lowering product selecting the grade-difference component of a Clifford product under a declared contraction convention. It is not a symmetric inner product: operand order and the contraction convention matter."
-msgstr "在已声明约定下选取 Clifford 乘积次数差分量的降次乘积。 它不是对称内积：操作数顺序与缩并约定都会影响结果。"
+msgid "A generally nonsymmetric product selecting a grade-difference component for homogeneous Clifford inputs under a declared contraction convention. The convention fixes operand order, signs and scalar cases; the product extends bilinearly to mixed-grade inputs."
+msgstr "在已声明的缩并约定下，对齐次 Clifford 输入选取次数差分量的通常非对称乘积。约定确定操作数次序、符号及标量情形；该乘积双线性延拓到混合次数输入。"
 
 msgctxt "https://blackcatinformatics.ca/math/GradeProjection|rdfs:label"
 msgid "Grade Projection"
@@ -10308,3 +10308,31 @@ msgstr "不要据此推断系数复共轭、矩阵伴随、多向量求逆，或
 msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the Clifford algebra, decomposition and composition action. The native sparse method applies the combined degree sign with checked rational arithmetic and no algebra parameter. It preserves the scalar unit and zero separately, performs no signature validation and establishes no broader coefficient-field or basis execution."
 msgstr "标识 Clifford 代数、分解及复合作用。原生稀疏方法以受检有理数算术应用合并的次数符号，不接收代数参数。它分别保持标量单位元与零，不校验度量惯性指数对，也不能证明支持更广的系数域或基下的执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Left Contraction"
+msgstr "左缩并"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A generally nonsymmetric product selecting a grade-difference component for homogeneous Clifford inputs under a declared contraction convention. The convention fixes operand order, signs and scalar cases; the product extends bilinearly to mixed-grade inputs."
+msgstr "在已声明的缩并约定下，对齐次 Clifford 输入选取次数差分量的通常非对称乘积。约定确定操作数次序、符号及标量情形；该乘积双线性延拓到混合次数输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For homogeneous inputs A_r and B_s, the native convention selects the degree s-r component of the original product A_r B_s when r <= s, and gives zero when r > s. It applies no reversion to the left operand. Mixed-grade contraction sums this action over homogeneous pairs; scalar-left contraction need not lower degree strictly."
+msgstr "对齐次输入 A_r 和 B_s，原生约定在 r <= s 时选取原乘积 A_r B_s 的 s-r 次分量，在 r > s 时给出零。它不对左操作数应用逆序。混合次数缩并对各齐次分量对的上述作用求和；左操作数为标量时不一定严格降次。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), selecting the degree-one component of (e₁e₂)(e₁e₂e₃) gives (e₁e₂) ⌟ (e₁e₂e₃) = -e₃. A convention that first reverses the left blade gives +e₃ instead."
+msgstr "在 Cl(3,0) 中，选取 (e₁e₂)(e₁e₂e₃) 的一次分量得到 (e₁e₂) ⌟ (e₁e₂e₃) = -e₃。先对左刃应用逆序的约定则给出 +e₃。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the contraction convention, ordered operands and homogeneous decomposition are identified. Under the native convention, 1 ⌟ B = B and B ⌟ 1 is the scalar component of B; contraction with a zero operand gives zero when both operands are valid for the declared algebra. The scalar unit is distinct from the zero multivector."
+msgstr "当已标识缩并约定、有序操作数及齐次分解时使用。按原生约定，1 ⌟ B = B，B ⌟ 1 是 B 的标量分量；当两个操作数均为所声明代数的有效输入时，有零操作数的缩并给出零。标量单位元不同于零多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming symmetry, a reverse-left convention, one grade difference for an entire mixed-grade input, or strict degree reduction with scalar-left input. Vector metric pairings and scalar cases may be symmetric. Invalid input is an error, not an absent component or a zero contraction."
+msgstr "不要假定对称性、先对左操作数应用逆序的约定、对整个混合次数输入只取一个次数差，或左操作数为标量时严格降次。向量度量配对及标量情形可以对称。无效输入是错误，不是缺失分量或零缩并。"
+
+msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."
+msgstr "声明约定时不要臆造参数槽位或基数规则。原生代数方法在次数筛选前依据已声明的代数校验操作数掩码，然后使用受检有理系数乘法及累加。实数域上的对角正交归一配置至多允许六十四个生成元，不能证明支持一般的特征二、复数、退化形式或非正交基下的执行。"
