@@ -453,3 +453,183 @@ gmeow:purposeAsWritten
 
 # Explicit property-range validation; no required path on unrelated records.
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/purposeAsWritten" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:NotebookEntry
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Note ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Notebook Entry"@x-gmeow-english ;
+    skos:definition "A working note whose notebook function and writer assessment can be recorded separately from its content."@x-gmeow-english ;
+    skos:scopeNote "An entry is content, not an assertion act, a scheduler episode or a runnable step. Recording it does not assert the truth of its content."@x-gmeow-english ;
+    skos:example "ex:idea a gmeow:NotebookEntry ; gmeow:noteContent \"Consider a second explanation.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a working note with an explicitly recorded notebook kind or writer assessment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a belief, an intention or an executable plan from an entry."@x-gmeow-english ;
+    gmeow:howToUse "Reuse noteContent and noteAuthor; record kind and state separately, with the writer frame on each exact state claim."@x-gmeow-english .
+
+gmeow:NotebookEntryKind
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Notebook Entry Kind"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the working-note function of a notebook entry."@x-gmeow-english ;
+    skos:scopeNote "Kind is independent of writer assessment. The four seeds impose no allowed kind and state matrix."@x-gmeow-english ;
+    skos:example "gmeow:notebookHypothesis a gmeow:NotebookEntryKind ."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish conjectures, inquiry branches, material in process and proposed next actions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing the vocabulary, inferring a state or creating a notebook subclass for each kind."@x-gmeow-english ;
+    gmeow:howToUse "Choose an individual through notebookEntryKind; add a labelled individual for another working-note function."@x-gmeow-english .
+
+gmeow:notebookEntryKind
+    a logic:ObjectProperty ;
+    logic:domain gmeow:NotebookEntry ;
+    logic:range gmeow:NotebookEntryKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "notebook entry kind"@x-gmeow-english ;
+    skos:definition "The working-note function recorded for a notebook entry."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and independent of state. Missing kind is unspecified; multiple attributed classifications coexist."@x-gmeow-english ;
+    skos:example "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly classifies the function of a working note."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a state, truth verdict or executable capability from a kind."@x-gmeow-english ;
+    gmeow:howToUse "Link the NotebookEntry to its stated NotebookEntryKind and retain attribution and context."@x-gmeow-english .
+
+gmeow:notebookHypothesis
+    a gmeow:NotebookEntryKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook hypothesis"@x-gmeow-english ;
+    skos:definition "The working-note function of recording a conjecture."@x-gmeow-english ;
+    skos:scopeNote "A conjecture entry establishes no truth, mental belief or test execution."@x-gmeow-english ;
+    skos:example "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the note serves to record a conjecture for consideration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this classification as a verified proposition or an inferred belief."@x-gmeow-english ;
+    gmeow:howToUse "Set notebookEntryKind to gmeow:notebookHypothesis and retain the conjecture as note content."@x-gmeow-english .
+
+gmeow:notebookBranch
+    a gmeow:NotebookEntryKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook inquiry branch"@x-gmeow-english ;
+    skos:definition "The working-note function of recording an alternative line of inquiry."@x-gmeow-english ;
+    skos:scopeNote "A line of inquiry is not automatically a software branch or an admitted executable path."@x-gmeow-english ;
+    skos:example "ex:route gmeow:notebookEntryKind gmeow:notebookBranch ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the note records an alternative route of inquiry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring software branch identity, execution order or branch state from this kind."@x-gmeow-english ;
+    gmeow:howToUse "Set notebookEntryKind to gmeow:notebookBranch and retain the line of inquiry in the note."@x-gmeow-english .
+
+gmeow:notebookDataInProcess
+    a gmeow:NotebookEntryKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook material in process"@x-gmeow-english ;
+    skos:definition "The working-note function of recording material being worked on."@x-gmeow-english ;
+    skos:scopeNote "This kind describes the note’s function, not a runtime processing status or proof that computation occurred."@x-gmeow-english ;
+    skos:example "ex:material gmeow:notebookEntryKind gmeow:notebookDataInProcess ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the note holds material the writer is working through."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this kind as a running job status, completion receipt or admission verdict."@x-gmeow-english ;
+    gmeow:howToUse "Set notebookEntryKind to gmeow:notebookDataInProcess and retain the material and its source."@x-gmeow-english .
+
+gmeow:notebookNextStep
+    a gmeow:NotebookEntryKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook proposed next action"@x-gmeow-english ;
+    skos:definition "The working-note function of recording a proposed next action."@x-gmeow-english ;
+    skos:scopeNote "A next-action note is not an Intention, a command, an admitted PlanStep or an executable plan."@x-gmeow-english ;
+    skos:example "ex:next gmeow:notebookEntryKind gmeow:notebookNextStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the note proposes what could be done next."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring commitment, authorization, scheduling or execution from the proposal."@x-gmeow-english ;
+    gmeow:howToUse "Set notebookEntryKind to gmeow:notebookNextStep and keep the proposed action as note content."@x-gmeow-english .
+
+gmeow:NotebookEntryState
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Notebook Entry State"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for a writer’s declared assessment of a notebook entry."@x-gmeow-english ;
+    skos:scopeNote "States classify notebook work, not truth or mental belief. They imply no kind, allowed kind and state matrix or automatic transition."@x-gmeow-english ;
+    skos:example "gmeow:hypothesisHeld a gmeow:NotebookEntryState ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a writer’s explicit notebook assessment, separately from entry content and kind."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the seeds as exhaustive, selecting a global winner or inferring a default state."@x-gmeow-english ;
+    gmeow:howToUse "Select a value through notebookEntryState and scope the exact state assertion accordingTo its writer."@x-gmeow-english .
+
+gmeow:notebookEntryState
+    a logic:ObjectProperty ;
+    logic:domain gmeow:NotebookEntry ;
+    logic:range gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "notebook entry state"@x-gmeow-english ;
+    skos:definition "A notebook assessment declared by the writer serving as the frame of the exact state assertion."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. Missing metadata is unspecified; conflicting and historical claims coexist without a default, winner or latest-timestamp selection. Writer framing supplies no authentication or write permission."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the selected writer’s declared notebook assessment without replacing other writers’ claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using authorship or recording attribution alone as the writer frame or permission evidence."@x-gmeow-english ;
+    gmeow:howToUse "Reify the exact entry and state tuple; use accordingTo for the writer, wasAttributedTo for the recording Agent and wasDerivedFrom for the source artifact."@x-gmeow-english .
+
+gmeow:hypothesisUnderTest
+    a gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "hypothesis under examination"@x-gmeow-english ;
+    skos:definition "A writer’s declared notebook assessment of a hypothesis as under examination."@x-gmeow-english ;
+    skos:scopeNote "The classification establishes no test execution, test result, truth or mental belief."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisUnderTest )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the writer explicitly marks a notebook hypothesis as under examination."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that a test ran or treating an absent state as under examination."@x-gmeow-english ;
+    gmeow:howToUse "Record hypothesisUnderTest through notebookEntryState with the exact claim scoped accordingTo its writer."@x-gmeow-english .
+
+gmeow:hypothesisHeld
+    a gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "hypothesis retained for notebook work"@x-gmeow-english ;
+    skos:definition "A writer’s declared notebook assessment retaining a hypothesis as a working candidate."@x-gmeow-english ;
+    skos:scopeNote "Retaining a working candidate establishes neither truth nor a mental belief held by the writer."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the writer explicitly retains a hypothesis as a working candidate in the notebook."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating retained notebook work with verified truth, endorsement or doxastic belief."@x-gmeow-english ;
+    gmeow:howToUse "Record hypothesisHeld through notebookEntryState with the exact claim scoped accordingTo its writer."@x-gmeow-english .
+
+gmeow:hypothesisDropped
+    a gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "hypothesis set aside in the notebook"@x-gmeow-english ;
+    skos:definition "A writer’s declared notebook assessment setting a hypothesis aside from working consideration."@x-gmeow-english ;
+    skos:scopeNote "Setting the hypothesis aside establishes neither falsity nor deletion of its content or history."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisDropped )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the writer explicitly sets a notebook hypothesis aside."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring refutation, deleting the entry or suppressing it automatically from this state."@x-gmeow-english ;
+    gmeow:howToUse "Record hypothesisDropped through notebookEntryState while retaining the entry and previous attributed claims."@x-gmeow-english .
+
+gmeow:branchOpen
+    a gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook inquiry branch open"@x-gmeow-english ;
+    skos:definition "A writer’s declared notebook assessment that a line of inquiry remains open."@x-gmeow-english ;
+    skos:scopeNote "An open inquiry classification establishes no executable path, scheduled work or actual pursuit."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchOpen )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the writer explicitly keeps a line of inquiry open in the notebook."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this state from branch kind alone or treating it as execution readiness."@x-gmeow-english ;
+    gmeow:howToUse "Record branchOpen through notebookEntryState with the exact claim scoped accordingTo its writer."@x-gmeow-english .
+
+gmeow:branchClosed
+    a gmeow:NotebookEntryState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "notebook inquiry branch closed"@x-gmeow-english ;
+    skos:definition "A writer’s declared notebook assessment closing a line of inquiry in the notebook."@x-gmeow-english ;
+    skos:scopeNote "Closing a notebook branch establishes no goal completion, successful execution or deletion of the recorded work."@x-gmeow-english ;
+    skos:example "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchClosed )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the writer explicitly closes a notebook line of inquiry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating branch closure as a completed task, a satisfied goal or authority to discard history."@x-gmeow-english ;
+    gmeow:howToUse "Record branchClosed through notebookEntryState while retaining the entry and previous attributed claims."@x-gmeow-english .
+
+# Supplied kinds and states are typed without requiring values or choosing a winner.
+gmeow:NotebookEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:notebookEntryKind ; logic:allValuesFrom gmeow:NotebookEntryKind ],
+    [ a logic:Restriction ; logic:onProperty gmeow:notebookEntryState ; logic:allValuesFrom gmeow:NotebookEntryState ] .

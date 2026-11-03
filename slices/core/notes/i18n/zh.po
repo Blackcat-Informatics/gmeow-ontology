@@ -118,3 +118,395 @@ msgstr "ex:note gmeow:purposeAsWritten \"以后再仔细思考\"@zh ."
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/notes|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Core notes and annotation records over shared evidence, naming and tagging foundations. Logical and kernel dependencies support this domain-independent vocabulary. This manifest declares slice identity, tier, dependencies and consumer."
 msgstr "基于共享证据、命名和标签基础的核心笔记与注释记录词汇。逻辑与内核依赖支持这一独立于领域的词汇。本清单声明切片身份、层级、依赖项和使用方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notebook Entry"
+msgstr "笔记本条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A working note whose notebook function and writer assessment can be recorded separately from its content."
+msgstr "一种工作笔记，其笔记本功能及评估撰写者所作的评估可与内容分开记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An entry is content, not an assertion act, a scheduler episode or a runnable step. Recording it does not assert the truth of its content."
+msgstr "条目是内容，不是断言行为、调度片段或可运行步骤。记录条目并不断言其内容为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:idea a gmeow:NotebookEntry ; gmeow:noteContent \"Consider a second explanation.\"@en ."
+msgstr "ex:idea a gmeow:NotebookEntry ; gmeow:noteContent \"考虑另一种解释。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a working note with an explicitly recorded notebook kind or writer assessment."
+msgstr "用于明确记录了笔记本种类或评估撰写者所作评估的工作笔记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a belief, an intention or an executable plan from an entry."
+msgstr "避免从条目推断信念、意图或可执行计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse noteContent and noteAuthor; record kind and state separately, with the writer frame on each exact state claim."
+msgstr "复用 noteContent 和 noteAuthor；分别记录种类和状态，并在每条确切的状态断言上记录该评估撰写者的框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notebook Entry Kind"
+msgstr "笔记本条目种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the working-note function of a notebook entry."
+msgstr "一个开放的值词汇表，用于描述笔记本条目的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Kind is independent of writer assessment. The four seeds impose no allowed kind and state matrix."
+msgstr "种类独立于作者评估。四个初始值不规定种类与状态的允许组合矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:notebookHypothesis a gmeow:NotebookEntryKind ."
+msgstr "gmeow:notebookHypothesis a gmeow:NotebookEntryKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish conjectures, inquiry branches, material in process and proposed next actions."
+msgstr "用于区分猜想、探究分支、处理中的材料和提议的下一步行动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the vocabulary, inferring a state or creating a notebook subclass for each kind."
+msgstr "避免封闭词汇表、推断状态或为每种种类创建条目子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose an individual through notebookEntryKind; add a labelled individual for another working-note function."
+msgstr "通过 notebookEntryKind 选择个体；需要其他工作笔记功能时，添加带标签的个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook entry kind"
+msgstr "笔记本条目种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working-note function recorded for a notebook entry."
+msgstr "为笔记本条目记录的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and independent of state. Missing kind is unspecified; multiple attributed classifications coexist."
+msgstr "非函数性关系，独立于状态。缺失种类表示未指定；多个有归属的分类可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."
+msgstr "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly classifies the function of a working note."
+msgstr "当来源明确对工作笔记的功能分类时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a state, truth verdict or executable capability from a kind."
+msgstr "避免从种类推导状态、真值判定或可执行能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the NotebookEntry to its stated NotebookEntryKind and retain attribution and context."
+msgstr "将 NotebookEntry 关联到其声明的 NotebookEntryKind，并保留归属和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook hypothesis"
+msgstr "笔记本假设"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working-note function of recording a conjecture."
+msgstr "记录猜想的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A conjecture entry establishes no truth, mental belief or test execution."
+msgstr "猜想条目不确立真实性、心理信念或测试执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."
+msgstr "ex:idea gmeow:notebookEntryKind gmeow:notebookHypothesis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the note serves to record a conjecture for consideration."
+msgstr "当笔记用于记录供考虑的猜想时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this classification as a verified proposition or an inferred belief."
+msgstr "避免将此分类视为已验证的命题或推断出的信念。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookHypothesis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set notebookEntryKind to gmeow:notebookHypothesis and retain the conjecture as note content."
+msgstr "将 notebookEntryKind 设为 gmeow:notebookHypothesis，并将猜想保留为笔记内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook inquiry branch"
+msgstr "笔记本探究分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working-note function of recording an alternative line of inquiry."
+msgstr "记录另一条探究路线的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A line of inquiry is not automatically a software branch or an admitted executable path."
+msgstr "探究路线不会自动成为软件分支或已获准的可执行路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:route gmeow:notebookEntryKind gmeow:notebookBranch ."
+msgstr "ex:route gmeow:notebookEntryKind gmeow:notebookBranch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the note records an alternative route of inquiry."
+msgstr "当笔记记录另一条探究路线时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring software branch identity, execution order or branch state from this kind."
+msgstr "避免从此种类推断软件分支身份、执行顺序或分支状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookBranch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set notebookEntryKind to gmeow:notebookBranch and retain the line of inquiry in the note."
+msgstr "将 notebookEntryKind 设为 gmeow:notebookBranch，并在笔记中保留探究路线。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook material in process"
+msgstr "笔记本处理中材料"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working-note function of recording material being worked on."
+msgstr "记录正在处理的材料的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This kind describes the note’s function, not a runtime processing status or proof that computation occurred."
+msgstr "此种类描述笔记的功能，不表示运行时处理状态，也不证明计算已发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:material gmeow:notebookEntryKind gmeow:notebookDataInProcess ."
+msgstr "ex:material gmeow:notebookEntryKind gmeow:notebookDataInProcess ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the note holds material the writer is working through."
+msgstr "当笔记保存作者正在梳理的材料时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this kind as a running job status, completion receipt or admission verdict."
+msgstr "避免将此种类用作运行中的作业状态、完成回执或准入判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookDataInProcess|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set notebookEntryKind to gmeow:notebookDataInProcess and retain the material and its source."
+msgstr "将 notebookEntryKind 设为 gmeow:notebookDataInProcess，并保留材料及其来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook proposed next action"
+msgstr "笔记本提议的下一步行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The working-note function of recording a proposed next action."
+msgstr "记录提议的下一步行动的工作笔记功能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A next-action note is not an Intention, a command, an admitted PlanStep or an executable plan."
+msgstr "下一步行动笔记不是 Intention、命令、已获准的 PlanStep 或可执行计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:next gmeow:notebookEntryKind gmeow:notebookNextStep ."
+msgstr "ex:next gmeow:notebookEntryKind gmeow:notebookNextStep ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the note proposes what could be done next."
+msgstr "当笔记提议接下来可以做什么时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring commitment, authorization, scheduling or execution from the proposal."
+msgstr "避免从该提议推断承诺、授权、调度或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookNextStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set notebookEntryKind to gmeow:notebookNextStep and keep the proposed action as note content."
+msgstr "将 notebookEntryKind 设为 gmeow:notebookNextStep，并将提议的行动保留为笔记内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notebook Entry State"
+msgstr "笔记本条目状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for a writer’s declared assessment of a notebook entry."
+msgstr "一个开放的值词汇表，用于描述评估撰写者对笔记本条目声明的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "States classify notebook work, not truth or mental belief. They imply no kind, allowed kind and state matrix or automatic transition."
+msgstr "状态对笔记本工作分类，不表示真值或心理信念。它们不蕴含种类、种类与状态的允许组合矩阵或自动转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hypothesisHeld a gmeow:NotebookEntryState ."
+msgstr "gmeow:hypothesisHeld a gmeow:NotebookEntryState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a writer’s explicit notebook assessment, separately from entry content and kind."
+msgstr "用于记录作者在笔记本中的明确评估，与条目内容和种类分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the seeds as exhaustive, selecting a global winner or inferring a default state."
+msgstr "避免将初始值视为穷尽列表、选择全局优先状态或推断默认状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookEntryState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select a value through notebookEntryState and scope the exact state assertion accordingTo its writer."
+msgstr "通过 notebookEntryState 选择值，并使用 accordingTo 将确切的状态断言置于其作者的框架中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook entry state"
+msgstr "笔记本条目状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A notebook assessment declared by the writer serving as the frame of the exact state assertion."
+msgstr "由评估撰写者声明的笔记本评估；该撰写者充当确切状态断言的框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Missing metadata is unspecified; conflicting and historical claims coexist without a default, winner or latest-timestamp selection. Writer framing supplies no authentication or write permission."
+msgstr "非函数性关系。缺失元数据表示未指定；冲突断言与历史断言可以共存，不产生默认值、优先选择或按最新时间戳选择。作者框架不提供身份认证或写入权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the selected writer’s declared notebook assessment without replacing other writers’ claims."
+msgstr "用于保留所选作者声明的笔记本评估，而不替换其他作者的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using authorship or recording attribution alone as the writer frame or permission evidence."
+msgstr "避免仅凭作者身份或记录归属确定作者框架，或将其作为权限证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookEntryState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact entry and state tuple; use accordingTo for the writer, wasAttributedTo for the recording Agent and wasDerivedFrom for the source artifact."
+msgstr "创建一个 RDF 1.2 rdf:reifies 重述节点来保留确切的条目与状态元组；使用 accordingTo 指明评估撰写者，wasAttributedTo 指明执行记录的 Agent，wasDerivedFrom 指明来源制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hypothesis under examination"
+msgstr "审查中的假设"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A writer’s declared notebook assessment of a hypothesis as under examination."
+msgstr "作者在笔记本中声明某个假设正接受审查的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The classification establishes no test execution, test result, truth or mental belief."
+msgstr "此分类不确立测试执行、测试结果、真实性或心理信念。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisUnderTest )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisUnderTest )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the writer explicitly marks a notebook hypothesis as under examination."
+msgstr "当作者明确将笔记本假设标记为正在审查时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that a test ran or treating an absent state as under examination."
+msgstr "避免推断测试已运行，或将缺失状态视为正在审查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisUnderTest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record hypothesisUnderTest through notebookEntryState with the exact claim scoped accordingTo its writer."
+msgstr "通过 notebookEntryState 记录 hypothesisUnderTest，并使用 accordingTo 将确切断言置于其作者的框架中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hypothesis retained for notebook work"
+msgstr "笔记本工作中保留的假设"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A writer’s declared notebook assessment retaining a hypothesis as a working candidate."
+msgstr "作者在笔记本中声明将某个假设保留为工作候选项的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retaining a working candidate establishes neither truth nor a mental belief held by the writer."
+msgstr "保留工作候选项既不确立真实性，也不确立作者持有心理信念。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the writer explicitly retains a hypothesis as a working candidate in the notebook."
+msgstr "当作者明确在笔记本中将假设保留为工作候选项时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating retained notebook work with verified truth, endorsement or doxastic belief."
+msgstr "避免将笔记本中保留的工作等同于已验证的真实性、认可或信念。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisHeld|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record hypothesisHeld through notebookEntryState with the exact claim scoped accordingTo its writer."
+msgstr "通过 notebookEntryState 记录 hypothesisHeld，并使用 accordingTo 将确切断言置于其作者的框架中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hypothesis set aside in the notebook"
+msgstr "笔记本中搁置的假设"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A writer’s declared notebook assessment setting a hypothesis aside from working consideration."
+msgstr "作者在笔记本中声明将某个假设暂置于工作考虑范围之外的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Setting the hypothesis aside establishes neither falsity nor deletion of its content or history."
+msgstr "搁置假设既不确立其为假，也不删除其内容或历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisDropped )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisDropped )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the writer explicitly sets a notebook hypothesis aside."
+msgstr "当作者明确搁置笔记本假设时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring refutation, deleting the entry or suppressing it automatically from this state."
+msgstr "避免从此状态推断反驳、删除条目或自动隐藏条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisDropped|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record hypothesisDropped through notebookEntryState while retaining the entry and previous attributed claims."
+msgstr "通过 notebookEntryState 记录 hypothesisDropped，同时保留条目和此前有归属的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook inquiry branch open"
+msgstr "笔记本探究分支开放"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A writer’s declared notebook assessment that a line of inquiry remains open."
+msgstr "作者在笔记本中声明某条探究路线仍开放的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open inquiry classification establishes no executable path, scheduled work or actual pursuit."
+msgstr "开放探究分类不确立可执行路径、已调度工作或实际开展的探究。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchOpen )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchOpen )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the writer explicitly keeps a line of inquiry open in the notebook."
+msgstr "当作者明确在笔记本中保留开放的探究路线时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this state from branch kind alone or treating it as execution readiness."
+msgstr "避免仅从分支种类推导此状态，或将其视为已准备好执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchOpen|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record branchOpen through notebookEntryState with the exact claim scoped accordingTo its writer."
+msgstr "通过 notebookEntryState 记录 branchOpen，并使用 accordingTo 将确切断言置于其作者的框架中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook inquiry branch closed"
+msgstr "笔记本探究分支关闭"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A writer’s declared notebook assessment closing a line of inquiry in the notebook."
+msgstr "作者在笔记本中声明关闭某条探究路线的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Closing a notebook branch establishes no goal completion, successful execution or deletion of the recorded work."
+msgstr "关闭笔记本分支不确立目标完成、成功执行或已记录工作的删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchClosed )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:state rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchClosed )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the writer explicitly closes a notebook line of inquiry."
+msgstr "当作者明确关闭笔记本中的探究路线时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating branch closure as a completed task, a satisfied goal or authority to discard history."
+msgstr "避免将分支关闭视为任务完成、目标已满足或丢弃历史的权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record branchClosed through notebookEntryState while retaining the entry and previous attributed claims."
+msgstr "通过 notebookEntryState 记录 branchClosed，同时保留条目和此前有归属的断言。"

@@ -179,3 +179,61 @@ language and RDF 1.2 direction. Untagged text remains a string; no language,
 `Tag` or `AnnotationMotivation` is invented. A resolved motivation or purpose
 can be recorded independently when justified. Several attributed wordings may
 coexist; none is preferred.
+
+## Working notebook kinds and writer assessments
+
+A `NotebookEntry` is a working `Note`. Its content, notebook function and
+writer assessment are distinct. Existing `noteContent`, `noteAuthor`, annotation
+and provenance machinery remains applicable; an entry is neither an assertion
+act nor an executable step.
+
+`notebookEntryKind` uses the open `NotebookEntryKind` vocabulary:
+
+| Kind | Working-note function |
+| --- | --- |
+| `notebookHypothesis` | Recording a conjecture. |
+| `notebookBranch` | Recording an alternative line of inquiry. |
+| `notebookDataInProcess` | Holding material being worked on. |
+| `notebookNextStep` | Recording a proposed next action. |
+
+An inquiry branch has no automatic software-branch identity or executable path.
+Material in process supplies no runtime status. A next-action note creates no
+`Intention`, command, admitted `PlanStep` or executable plan.
+
+`notebookEntryState` uses the independent, open `NotebookEntryState` vocabulary:
+
+| State | Writer's declared notebook assessment |
+| --- | --- |
+| `hypothesisUnderTest` | A hypothesis is under examination. |
+| `hypothesisHeld` | A hypothesis is retained as a working candidate. |
+| `hypothesisDropped` | A hypothesis is set aside from working consideration. |
+| `branchOpen` | A line of inquiry remains open. |
+| `branchClosed` | A line of inquiry is closed in the notebook. |
+
+These are notebook assessments: under examination proves no test execution;
+retaining a hypothesis proves no truth or mental belief; setting it aside
+proves no falsity and deletes nothing. Closing a branch establishes no goal
+completion. Neither kind nor state implies the other, and no allowed kind and
+state matrix or automatic transition is imposed.
+
+Scope each exact state assertion with `accordingTo` the actual writer Agent,
+intentionally serving as the claim's frame. Keep the entry's `noteAuthor`
+separate from `wasAttributedTo` the recording Agent and `wasDerivedFrom` the
+source artifact on the state reifier. A recorder can preserve another writer's
+assessment. Authorship and recording attribution alone supply neither the
+writer frame nor authentication or write permission (Principles 9 and 11).
+
+Both properties are nonfunctional and constrain only supplied values. Missing
+metadata remains unspecified. Conflicting and historical state claims retain
+their exact tuples, writer frames and provenance; no default, global winner or
+latest-timestamp selection is inferred. Existing native RDF 1.2 `rdf:reifies`
+can retain an entry's exact triple content without asserting that proposition.
+Aboutness remains a separate subject-matter relation. No additional statement
+field, state-assignment wrapper or permission protocol is introduced
+(Principles 4 and 17).
+
+The ordinary [notebook scene](examples/notebook-kind-state.ttl) records all four
+kinds and five states, including competing writer assessments and retained
+dated reports. Its recorder, writers and source artifacts remain distinct.
+The quoted content is unasserted, and the scene reports no executed tests,
+scheduler, state update or goal completion.

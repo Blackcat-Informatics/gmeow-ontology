@@ -1,0 +1,102 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/notebook-kind-state/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Illustrative retained notebook reports; no test, scheduler or update is executed.
+ex:writerA a gmeow:Agent ;
+    rdfs:label "First notebook writer"@en .
+
+ex:writerB a gmeow:Agent ;
+    rdfs:label "Second notebook writer"@en .
+
+ex:recorder a gmeow:SoftwareAgent ;
+    rdfs:label "Notebook export recorder"@en .
+
+ex:earlierExport a gmeow:InformationObject ;
+    rdfs:label "Earlier first-writer notebook export"@en ;
+    gmeow:wasAttributedTo ex:writerA .
+
+ex:laterExport a gmeow:InformationObject ;
+    rdfs:label "Later first-writer notebook export"@en ;
+    gmeow:wasAttributedTo ex:writerA .
+
+ex:otherExport a gmeow:InformationObject ;
+    rdfs:label "Second-writer notebook export"@en ;
+    gmeow:wasAttributedTo ex:writerB .
+
+ex:inventory a gmeow:InformationObject ;
+    rdfs:label "Archive inventory"@en .
+
+# Entry authorship is separate from each state claim's writer frame and recorder.
+# The exact content triple is retained without asserting its description as fact.
+ex:idea a gmeow:NotebookEntry ;
+    rdfs:label "Possible inventory discrepancy"@en ;
+    gmeow:noteAuthor ex:writerA, ex:writerB ;
+    gmeow:noteContent "Consider whether the inventory includes borrowed volumes."@en ;
+    gmeow:notebookEntryKind gmeow:notebookHypothesis ;
+    rdf:reifies <<( ex:inventory gmeow:description "The inventory includes borrowed volumes."@en )>> .
+
+ex:route a gmeow:NotebookEntry ;
+    rdfs:label "Alternative inquiry route"@en ;
+    gmeow:noteAuthor ex:writerA ;
+    gmeow:noteContent "Compare the return slips instead of recounting the shelves."@en ;
+    gmeow:notebookEntryKind gmeow:notebookBranch .
+
+ex:material a gmeow:NotebookEntry ;
+    rdfs:label "Inventory material being worked on"@en ;
+    gmeow:noteAuthor ex:writerA ;
+    gmeow:noteContent "The supplied return-slip extracts are being organized in these notes."@en ;
+    gmeow:notebookEntryKind gmeow:notebookDataInProcess .
+
+ex:next a gmeow:NotebookEntry ;
+    rdfs:label "Proposed next action"@en ;
+    gmeow:noteAuthor ex:writerB ;
+    gmeow:noteContent "Ask the archivist which inventory revision was supplied."@en ;
+    gmeow:notebookEntryKind gmeow:notebookNextStep .
+
+# Each accordingTo value is intentionally the actual writer Agent as frame.
+# wasAttributedTo names the recorder; neither relation authenticates permission.
+ex:underExamination
+    rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisUnderTest )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:earlierExport ;
+    gmeow:validFrom "2026-11-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:retainedCandidate
+    rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisHeld )>> ;
+    gmeow:accordingTo ex:writerB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:otherExport ;
+    gmeow:validFrom "2026-11-01T12:00:00Z"^^xsd:dateTime .
+
+ex:setAside
+    rdf:reifies <<( ex:idea gmeow:notebookEntryState gmeow:hypothesisDropped )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:laterExport ;
+    gmeow:validFrom "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:openInquiry
+    rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchOpen )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:earlierExport ;
+    gmeow:validFrom "2026-11-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+ex:closedInquiry
+    rdf:reifies <<( ex:route gmeow:notebookEntryState gmeow:branchClosed )>> ;
+    gmeow:accordingTo ex:writerA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:laterExport ;
+    gmeow:validFrom "2026-11-02T09:00:00Z"^^xsd:dateTime .
+
+# All reports remain retained. Dates select no winner and infer no state transition.
+# The material and next-action entries have no supplied state; none is defaulted.
