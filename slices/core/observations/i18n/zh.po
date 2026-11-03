@@ -1008,3 +1008,171 @@ msgstr "currency-realm 契约"
 msgctxt "urn:gmeow:finance:constraint:currency-realm|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Requires the declared currency-realm relation for each guarded financial input; the complete frame profile remains owned by places."
 msgstr "要求每个受约束的金融输入满足已声明的 currency-realm 关系；完整参考系配置由 places 所有者定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Policy Finding Kind"
+msgstr "策略发现种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of individual-valued kinds for the results of PolicyFinding observations. A kind classifies what the named policy process reports about the judged claim or write attempt; it is not the claim, policy process or admission action."
+msgstr "一种开放的个体值种类词汇，用于 PolicyFinding 观察的结果。种类分类具名策略进程对被评判声明或写入尝试所报告的发现；它不是声明、策略进程或接纳动作本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Use the existing nonfunctional observationResult relation. Several attributed findings and consumer-defined kind IRIs may coexist; the five supplied individuals do not close the vocabulary, select a winner or imply a result from absence."
+msgstr "使用现有不具函数性的 observationResult 关系。多个注明归属的发现及使用方定义的种类 IRI 可以共存；所提供的五个个体不会封闭该词汇，不会选出优胜结果，也不会由缺失推断结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record an attributed kind: ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:writeAttempt ; gmeow:observationResult ex:consumerKind . ex:consumerKind a gmeow:PolicyFindingKind ."
+msgstr "记录注明归属的种类：ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:writeAttempt ; gmeow:observationResult ex:consumerKind . ex:consumerKind a gmeow:PolicyFindingKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit, queryable policy result kinds while retaining the versioned policy as vantage and the exact judged claim or attempt as observedFeature."
+msgstr "用于明确且可查询的策略结果种类，同时将带版本的策略保留为 vantage，并将被评判的确切声明或尝试保留为 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a kind as unattributed truth, cryptographic proof, a trust grant, a native constraint result or mandatory rejection. Do not turn unknown or unchecked evidence into a failed check."
+msgstr "不要将种类视为无归属的事实、密码学证明、信任授予、原生约束结果或强制拒绝。不要将未知或未经检查的证据转变为检查失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a supplied or consumer-owned kind individual through observationResult on PolicyFinding. Preserve the policy’s evaluated evidence, selected context and actual outcome separately. The consumer chooses whether to record, flag or refuse the write; the vocabulary executes no check or admission decision."
+msgstr "通过 PolicyFinding 上的 observationResult 引用所提供或使用方拥有的种类个体。分别保留策略已评估的证据、所选上下文及实际结果。使用方决定记录、标记或拒绝写入；该词汇不执行检查或接纳决策。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature verification failed finding"
+msgstr "签名验证失败发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that an actual verification attempt for the relevant signature returned failure under its declared verification context. This finding is distinct from an absent, unchecked or undetermined verification result."
+msgstr "所选策略报告：针对相关签名的实际验证尝试，在其已声明验证上下文中返回失败。该发现不同于验证结果缺失、未经检查或未确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It is the policy’s attributed classification of the supplied verification outcome, not a cryptographic proof produced by this individual. Signature validity, signer identity, key authorization and trust remain separate questions."
+msgstr "这是策略对所提供验证结果所作的注明归属分类，而非此个体产生的密码学证明。签名有效性、签署者身份、密钥授权及信任仍是不同问题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingSignatureVerificationFailed ."
+msgstr "记录所报告的种类：ex:finding gmeow:observationResult gmeow:policyFindingSignatureVerificationFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has an actual failed verification outcome for the exact signature and signed content it evaluated."
+msgstr "当具名策略针对其评估的确切签名及已签署内容，具有实际验证失败结果时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a missing signature, an unperformed check, unavailable verification capability, unknown result or an otherwise valid key lacking a grant. Do not infer malicious intent or mandatory rejection."
+msgstr "不要用于签名缺失、未执行检查、验证能力不可用、结果未知，或本身有效但未获授权的密钥。不要推断恶意意图或强制拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach this individual through observationResult on the PolicyFinding and retain the actual verifier outcome, checked signature/content identity and policy vantage as evidence. This link runs no verifier and does not replace a signature’s own verification status."
+msgstr "通过 PolicyFinding 上的 observationResult 关联此个体，并将实际验证器结果、所检查签名及内容身份、策略 vantage 保留为证据。此链接不运行验证器，也不替代签名自身的验证状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "object not shown by signed act finding"
+msgstr "对象未由已签署行为展示的发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that its completed check found no relevant signed act showing the exact submitted object within the declared evidence scope and showing criterion. It reports that bounded admission finding, not the absence of every possible act."
+msgstr "所选策略报告：其已完成检查在已声明证据范围及展示判据内，未发现展示所提交确切对象的相关已签署行为。它报告这一有界接纳发现，而非宣称不存在任何可能的行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The policy supplies what counts as showing an object and which act evidence was evaluated. The kind supplies neither a new act/object relation nor a global closed-world assumption, signature proof or identity merge."
+msgstr "策略提供何为展示对象的判据，以及已评估哪些行为证据。该种类不提供新的行为与对象关系、全局闭世界假设、签名证明或身份合并。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingObjectNotShown ."
+msgstr "记录所报告的种类：ex:finding gmeow:observationResult gmeow:policyFindingObjectNotShown ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit negative finding from the named policy’s evaluated signed-act evidence under its selected showing criterion."
+msgstr "用于具名策略依据所选展示判据，对已签署行为证据进行评估后得出的明确否定发现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer this finding merely because no act edge was supplied to the ontology. An unperformed or undetermined evidence assessment is not this result, and the result does not prove that the object is false or nonexistent."
+msgstr "不要仅因未向本体提供行为边就推断此发现。未执行或未确定的证据评估不构成此结果；该结果也不证明对象为假或不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the kind through observationResult and retain the exact submitted object, evaluated act evidence, showing criterion and policy context in the finding’s supporting evidence. Preserve missing or disputed inputs without inventing acts or resolution."
+msgstr "通过 observationResult 记录该种类，并在发现的支持证据中保留确切提交对象、已评估行为证据、展示判据及策略上下文。保留缺失或有争议的输入，不臆造行为或解析结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act vault mismatch finding"
+msgstr "行为保险库不匹配发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that the submitted act names a vault whose evaluated identity differs from the intended admission vault under the declared identity context. The finding records an actual mismatch, not an absent or unresolved vault identity."
+msgstr "所选策略报告：在已声明身份上下文中，所提交行为指定的保险库之已评估身份不同于预期接纳保险库。该发现记录实际不匹配，而非保险库身份缺失或未解析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vault identity and the intended admission target belong to the selected policy’s supplied context. Different identifier spellings alone do not prove distinct vaults; this kind declares no new vault type, authority or cross-store identity law."
+msgstr "保险库身份及预期接纳目标属于所选策略提供的上下文。仅有不同标识符写法不能证明保险库不同；此种类不声明新的保险库类型、权威或跨存储身份定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingActVaultMismatch ."
+msgstr "记录所报告的种类：ex:finding gmeow:observationResult gmeow:policyFindingActVaultMismatch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy actually determines that the act names another vault than the selected admission target."
+msgstr "当具名策略实际确定行为指定的保险库不同于所选接纳目标时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a missing target, unresolved alias or unchecked vault field. Do not infer signature failure, key revocation or malicious intent from the mismatch."
+msgstr "不要用于目标缺失、别名未解析或保险库字段未经检查。不要由不匹配推断签名失败、密钥撤销或恶意意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through observationResult and preserve the act’s named vault, intended admission vault, evaluated identity comparison and policy vantage separately. The vocabulary performs no comparison or admission routing."
+msgstr "通过 observationResult 引用此个体，并分别保留行为指定的保险库、预期接纳保险库、已评估身份比较及策略 vantage。该词汇不执行比较或接纳路由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required key grant not established finding"
+msgstr "未确立所需密钥授权的发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that its completed authorization check did not establish the grant required for the supplied key and attempted operation within the declared evidence and authority context. This is a policy-scoped lack-of-grant finding, not a global claim that no grant exists."
+msgstr "所选策略报告：其已完成授权检查，在已声明证据及权威上下文内，未确立所提供密钥及所尝试操作需要的授权。这是限于策略范围的未获授权发现，而非宣称全局不存在授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required grant, operation scope and applicable authority are supplied by the selected policy. Cryptographic validity or a boundToKey assertion alone does not confer that grant. No global negation, revocation or trust judgment is inferred."
+msgstr "所需授权、操作范围及适用权威由所选策略提供。密码学有效性或 boundToKey 断言本身不会授予该授权。不推断全局否定、撤销或信任判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingKeyNotGranted ."
+msgstr "记录所报告的种类：ex:finding gmeow:observationResult gmeow:policyFindingKeyNotGranted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has completed its applicable grant check and reports that the required key authorization was not established for this attempt."
+msgstr "当具名策略已完成适用授权检查，并报告该次尝试所需的密钥授权未获确立时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not derive this kind from a missing grant triple alone, an unperformed lookup or an undetermined authorization check. Do not confuse it with an invalid signature or infer that every use of the key is forbidden."
+msgstr "不要仅由授权三元组缺失、未执行查询或授权检查未确定就推导此种类。不要将其与无效签名混淆，也不要推断该密钥的所有使用均被禁止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the kind through observationResult and retain the actual checked key, requested operation, grant criterion, authority context and policy evidence. A recorded refusal or flag remains distinct from a grant, revocation or cryptographic verification event."
+msgstr "通过 observationResult 关联该种类，并保留实际检查的密钥、所请求操作、授权判据、权威上下文及策略证据。已记录的拒绝或标记仍不同于授权授予、撤销或密码学验证事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value outside declared form finding"
+msgstr "值不符合已声明形式的发现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that the actual submitted value failed its explicitly declared form requirement in a completed check. The requirement and evaluated value remain policy evidence rather than a new universal value constraint."
+msgstr "所选策略报告：实际提交的值在已完成检查中，未满足其明确声明的形式要求。该要求及已评估值仍是策略证据，而非新的普遍值约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected policy states what form is required and what was checked. This kind does not itself declare a datatype, grammar, shape, parser or formal language object, and does not certify a native constraint violation."
+msgstr "所选策略说明所需形式及检查内容。此种类本身不声明数据类型、语法、验证形状、解析器或形式语言对象，也不认证原生约束违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingValueOutsideDeclaredForm ."
+msgstr "记录所报告的种类：ex:finding gmeow:observationResult gmeow:policyFindingValueOutsideDeclaredForm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has an actual failed form check for the exact value and declared requirement under evaluation."
+msgstr "当具名策略针对确切值及正在评估的已声明要求，具有实际形式检查失败结果时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for an absent requirement, an unavailable checker, an unchecked value or an unknown result. Do not normalize or replace the submitted value, assert a stronger ontology constraint or infer rejection from the kind alone."
+msgstr "不要用于要求缺失、检查器不可用、值未经检查或结果未知。不要规范化或替换提交值，不要声明更强的本体约束，也不要仅由种类推断拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."
+msgstr "通过 observationResult 引用此个体，并保留确切提交值、已声明形式要求、已完成检查结果及策略 vantage。若提供真实原生验证结果，应另行保留；该种类不执行验证。"

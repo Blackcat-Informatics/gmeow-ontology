@@ -1545,3 +1545,76 @@ gmeow:MonetaryAmount logic:subClassOf
 <urn:gmeow:finance:constraint:currency-realm:g1> a logic:Formula ; logic:relation gmeow:currency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] .
 <urn:gmeow:finance:constraint:currency-realm:t0> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] .
 <urn:gmeow:finance:constraint:currency-realm:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+
+gmeow:PolicyFindingKind
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "Policy Finding Kind"@x-gmeow-english ;
+    skos:definition "An open vocabulary of individual-valued kinds for the results of PolicyFinding observations. A kind classifies what the named policy process reports about the judged claim or write attempt; it is not the claim, policy process or admission action."@x-gmeow-english ;
+    skos:scopeNote "Use the existing nonfunctional observationResult relation. Several attributed findings and consumer-defined kind IRIs may coexist; the five supplied individuals do not close the vocabulary, select a winner or imply a result from absence."@x-gmeow-english ;
+    skos:example "Record an attributed kind: ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:writeAttempt ; gmeow:observationResult ex:consumerKind . ex:consumerKind a gmeow:PolicyFindingKind ."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit, queryable policy result kinds while retaining the versioned policy as vantage and the exact judged claim or attempt as observedFeature."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat a kind as unattributed truth, cryptographic proof, a trust grant, a native constraint result or mandatory rejection. Do not turn unknown or unchecked evidence into a failed check."@x-gmeow-english ;
+    gmeow:howToUse "Reference a supplied or consumer-owned kind individual through observationResult on PolicyFinding. Preserve the policy’s evaluated evidence, selected context and actual outcome separately. The consumer chooses whether to record, flag or refuse the write; the vocabulary executes no check or admission decision."@x-gmeow-english .
+
+gmeow:policyFindingSignatureVerificationFailed
+    a logic:NamedIndividual, gmeow:PolicyFindingKind ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "signature verification failed finding"@x-gmeow-english ;
+    skos:definition "The selected policy reports that an actual verification attempt for the relevant signature returned failure under its declared verification context. This finding is distinct from an absent, unchecked or undetermined verification result."@x-gmeow-english ;
+    skos:scopeNote "It is the policy’s attributed classification of the supplied verification outcome, not a cryptographic proof produced by this individual. Signature validity, signer identity, key authorization and trust remain separate questions."@x-gmeow-english ;
+    skos:example "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingSignatureVerificationFailed ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the named policy has an actual failed verification outcome for the exact signature and signed content it evaluated."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a missing signature, an unperformed check, unavailable verification capability, unknown result or an otherwise valid key lacking a grant. Do not infer malicious intent or mandatory rejection."@x-gmeow-english ;
+    gmeow:howToUse "Attach this individual through observationResult on the PolicyFinding and retain the actual verifier outcome, checked signature/content identity and policy vantage as evidence. This link runs no verifier and does not replace a signature’s own verification status."@x-gmeow-english .
+
+gmeow:policyFindingObjectNotShown
+    a logic:NamedIndividual, gmeow:PolicyFindingKind ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "object not shown by signed act finding"@x-gmeow-english ;
+    skos:definition "The selected policy reports that its completed check found no relevant signed act showing the exact submitted object within the declared evidence scope and showing criterion. It reports that bounded admission finding, not the absence of every possible act."@x-gmeow-english ;
+    skos:scopeNote "The policy supplies what counts as showing an object and which act evidence was evaluated. The kind supplies neither a new act/object relation nor a global closed-world assumption, signature proof or identity merge."@x-gmeow-english ;
+    skos:example "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingObjectNotShown ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit negative finding from the named policy’s evaluated signed-act evidence under its selected showing criterion."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer this finding merely because no act edge was supplied to the ontology. An unperformed or undetermined evidence assessment is not this result, and the result does not prove that the object is false or nonexistent."@x-gmeow-english ;
+    gmeow:howToUse "Record the kind through observationResult and retain the exact submitted object, evaluated act evidence, showing criterion and policy context in the finding’s supporting evidence. Preserve missing or disputed inputs without inventing acts or resolution."@x-gmeow-english .
+
+gmeow:policyFindingActVaultMismatch
+    a logic:NamedIndividual, gmeow:PolicyFindingKind ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "act vault mismatch finding"@x-gmeow-english ;
+    skos:definition "The selected policy reports that the submitted act names a vault whose evaluated identity differs from the intended admission vault under the declared identity context. The finding records an actual mismatch, not an absent or unresolved vault identity."@x-gmeow-english ;
+    skos:scopeNote "Vault identity and the intended admission target belong to the selected policy’s supplied context. Different identifier spellings alone do not prove distinct vaults; this kind declares no new vault type, authority or cross-store identity law."@x-gmeow-english ;
+    skos:example "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingActVaultMismatch ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the named policy actually determines that the act names another vault than the selected admission target."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a missing target, unresolved alias or unchecked vault field. Do not infer signature failure, key revocation or malicious intent from the mismatch."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through observationResult and preserve the act’s named vault, intended admission vault, evaluated identity comparison and policy vantage separately. The vocabulary performs no comparison or admission routing."@x-gmeow-english .
+
+gmeow:policyFindingKeyNotGranted
+    a logic:NamedIndividual, gmeow:PolicyFindingKind ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "required key grant not established finding"@x-gmeow-english ;
+    skos:definition "The selected policy reports that its completed authorization check did not establish the grant required for the supplied key and attempted operation within the declared evidence and authority context. This is a policy-scoped lack-of-grant finding, not a global claim that no grant exists."@x-gmeow-english ;
+    skos:scopeNote "The required grant, operation scope and applicable authority are supplied by the selected policy. Cryptographic validity or a boundToKey assertion alone does not confer that grant. No global negation, revocation or trust judgment is inferred."@x-gmeow-english ;
+    skos:example "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingKeyNotGranted ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the named policy has completed its applicable grant check and reports that the required key authorization was not established for this attempt."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not derive this kind from a missing grant triple alone, an unperformed lookup or an undetermined authorization check. Do not confuse it with an invalid signature or infer that every use of the key is forbidden."@x-gmeow-english ;
+    gmeow:howToUse "Attach the kind through observationResult and retain the actual checked key, requested operation, grant criterion, authority context and policy evidence. A recorded refusal or flag remains distinct from a grant, revocation or cryptographic verification event."@x-gmeow-english .
+
+gmeow:policyFindingValueOutsideDeclaredForm
+    a logic:NamedIndividual, gmeow:PolicyFindingKind ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "value outside declared form finding"@x-gmeow-english ;
+    skos:definition "The selected policy reports that the actual submitted value failed its explicitly declared form requirement in a completed check. The requirement and evaluated value remain policy evidence rather than a new universal value constraint."@x-gmeow-english ;
+    skos:scopeNote "The selected policy states what form is required and what was checked. This kind does not itself declare a datatype, grammar, shape, parser or formal language object, and does not certify a native constraint violation."@x-gmeow-english ;
+    skos:example "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingValueOutsideDeclaredForm ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the named policy has an actual failed form check for the exact value and declared requirement under evaluation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for an absent requirement, an unavailable checker, an unchecked value or an unknown result. Do not normalize or replace the submitted value, assert a stronger ontology constraint or infer rejection from the kind alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."@x-gmeow-english .
