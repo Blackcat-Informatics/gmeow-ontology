@@ -195,6 +195,7 @@ ex:residualSubspace
     a math:OrthogonalComplement ;
     math:orthogonalComplementOf ex:embeddedSubspace ;
     math:ambientSpace ex:complexSpace4096 ;
+    math:complementSemantics math:orthogonalComplement ;
     math:definedByInnerProduct ex:hermitianInnerProduct .
 
 ex:residualPCA
