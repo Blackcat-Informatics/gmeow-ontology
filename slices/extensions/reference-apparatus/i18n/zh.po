@@ -892,3 +892,31 @@ msgstr "保留原始 GMEOW 说明文字及其结构主体；披露描述视图�
 msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#example"
 msgid "A structural caption remains documentary: ex:figure gmeow:caption \"A bridge plan.\"@en ."
 msgstr "结构说明文字保持文档性质：ex:figure gmeow:caption \"A bridge plan.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed label"
+msgstr "印刷标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's printed label for a division or content block, retained as supplied text with its language and direction. It records wording such as Chapter 3 or Figure 8.3 without turning that wording into a structural index or resolved identifier."
+msgstr "来源为划分或内容块给出的印刷标签，作为所提供的文本连同其语言及方向一并保留。它记录 Chapter 3 或 Figure 8.3 等措辞，不将其转化为结构索引或已解析标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ContentBlock inherits ContentSegment, so the same property applies to divisions and blocks. Plain strings, language strings and directional language strings retain their complete RDF literal identity. The relation is nonfunctional; distinct source labels may coexist without a preferred label."
+msgstr "ContentBlock 继承 ContentSegment，因此同一属性适用于划分及内容块。普通字符串、语言字符串及带方向的语言字符串保留其完整 RDF 字面值身份。该关系不具函数性；不同来源标签可以共存，不设首选标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+msgstr "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual printed label attached to an identified source division or block independently of its segmentType, segmentIndex, title or caption."
+msgstr "用于保留附于已标识来源划分或内容块的实际印刷标签，并将其与 segmentType、segmentIndex、标题及图注分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing the label into a position, normalizing its spelling, discarding language or direction, or treating equal wording as identity. Keep the existing formalLabel role for formal apparatus; this property neither replaces nor changes it."
+msgstr "不要将标签解析为位置，不要规范化其写法，不要丢弃语言或方向，也不要将相同措辞视为同一身份。保留 formalLabel 用于形式材料的现有角色；此属性既不替代也不改变它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach each supplied literal to its actual ContentSegment or ContentBlock. Preserve exact lexical form, language and direction, with source and interpreting-frame metadata on the exact assertion when supplied. No label, numbering convention, hierarchy or preferred value is fabricated."
+msgstr "将每个所提供的字面值附于其实际 ContentSegment 或 ContentBlock。保留确切词法形式、语言及方向；若提供了来源及解释框架元数据，应将其附于确切断言。不得臆造标签、编号约定、层级或首选值。"

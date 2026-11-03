@@ -892,3 +892,31 @@ msgstr "Conserver la légende GMEOW originale et son sujet structurel ; déclare
 msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#example"
 msgid "A structural caption remains documentary: ex:figure gmeow:caption \"A bridge plan.\"@en ."
 msgstr "Une légende structurelle reste documentaire : ex:figure gmeow:caption \"A bridge plan.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed label"
+msgstr "libellé imprimé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's printed label for a division or content block, retained as supplied text with its language and direction. It records wording such as Chapter 3 or Figure 8.3 without turning that wording into a structural index or resolved identifier."
+msgstr "Le libellé imprimé de la source pour une division ou un bloc de contenu, conservé comme texte fourni avec sa langue et sa direction. Il consigne une formulation telle que Chapter 3 ou Figure 8.3 sans en faire un indice structurel ni un identifiant résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ContentBlock inherits ContentSegment, so the same property applies to divisions and blocks. Plain strings, language strings and directional language strings retain their complete RDF literal identity. The relation is nonfunctional; distinct source labels may coexist without a preferred label."
+msgstr "ContentBlock hérite de ContentSegment ; la même propriété s’applique donc aux divisions et aux blocs. Les chaînes simples, les chaînes avec langue et les chaînes avec langue et direction conservent leur identité complète de littéral RDF. La relation est non fonctionnelle ; des libellés de sources distincts peuvent coexister sans libellé préféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+msgstr "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual printed label attached to an identified source division or block independently of its segmentType, segmentIndex, title or caption."
+msgstr "À utiliser pour préserver le libellé effectivement imprimé attaché à une division ou à un bloc source identifié, indépendamment de son segmentType, de son segmentIndex, de son titre ou de sa légende."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing the label into a position, normalizing its spelling, discarding language or direction, or treating equal wording as identity. Keep the existing formalLabel role for formal apparatus; this property neither replaces nor changes it."
+msgstr "Éviter d’analyser le libellé pour en tirer une position, d’en normaliser la graphie, de supprimer la langue ou la direction, ou de traiter une formulation identique comme une identité. Conserver le rôle existant de formalLabel pour l’appareil formel ; cette propriété ne le remplace ni ne le modifie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach each supplied literal to its actual ContentSegment or ContentBlock. Preserve exact lexical form, language and direction, with source and interpreting-frame metadata on the exact assertion when supplied. No label, numbering convention, hierarchy or preferred value is fabricated."
+msgstr "Attacher chaque littéral fourni à son ContentSegment ou ContentBlock effectif. Préserver la forme lexicale exacte, la langue et la direction, avec les métadonnées de source et de cadre d’interprétation sur l’assertion exacte lorsqu’elles sont fournies. Ne fabriquer ni libellé, ni convention de numérotation, ni hiérarchie, ni valeur préférée."

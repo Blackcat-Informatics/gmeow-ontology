@@ -573,3 +573,17 @@ gmeow:OccurrenceSurfaceTextAgreementConstraint
                         logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
                             logic:argument [ logic:termIndex 0 ; logic:termVariable "otherText" ],
                                 [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ] ] ] .
+
+gmeow:indexTarget
+    a logic:ObjectProperty ;
+    logic:domain gmeow:IndexEntry ;
+    logic:range gmeow:ContentBlock ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolved index target"@x-gmeow-english ;
+    skos:definition "Relates an IndexEntry to a ContentBlock explicitly resolved as a target of its recorded locator wording. The original locator remains separate source evidence, including when resolution is absent or ambiguous."@x-gmeow-english ;
+    skos:scopeNote "The relation is nonfunctional and retains coexisting attributed resolutions. It does not pair each locator literal with a particular target, require a target to be present, equate the entry and target source revisions, or calculate page coordinates. Each resource keeps its own source identity."@x-gmeow-english ;
+    skos:example "An IndexEntry ex:entry can retain gmeow:indexLocator \"42\" and an attributed gmeow:indexTarget ex:block. The block retains its own gmeow:navigationSource ex:targetRevision; the link is supplied resolution, not a page-coordinate calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source or interpretation supplies an actual target block for an index entry while the printed page, range or other locator wording must remain intact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing indexLocator text, confusing a target block with an indexConcept, inferring a unique resolution or shared revision, or treating the link as a resolver result verified by the vocabulary. Unresolved and competing readings remain explicit."@x-gmeow-english ;
+    gmeow:howToUse "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."@x-gmeow-english .
