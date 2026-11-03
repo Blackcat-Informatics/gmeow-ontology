@@ -3059,3 +3059,227 @@ msgstr "Le témoin de classe est un élément fourni par la source, pas une inst
 msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A selected-class obligation: gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."
 msgstr "Une obligation de classe sélectionnée : gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Authority"
+msgstr "Autorité de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied information record identifying a reranker’s score context through opaque source identity bytes, provider score-kind wording, declared mathematical dimension and actual reference frame. It retains the source declaration without authenticating it or identifying a provider agent or model."
+msgstr "Enregistrement informationnel fourni identifiant le contexte de score d’un outil de reclassement par des octets opaques d’identité source, la formulation du fournisseur sur le type de score, une dimension mathématique déclarée et un repère de référence effectif. Il conserve la déclaration source sans l’authentifier ni identifier un agent fournisseur ou un modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the identity and context supplied for reported rerank scores."
+msgstr "Utiliser pour conserver l’identité et le contexte fournis pour des scores de reclassement rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as a model, execution occurrence, probability calibration or proof that a provider served a request."
+msgstr "Éviter de traiter cet enregistrement comme un modèle, une occurrence d’exécution, un étalonnage probabiliste ou une preuve qu’un fournisseur a traité une requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one rerankAuthorityIdentity, rerankScoreKind, rerankScoreDimension and hasReferenceFrame; keep the record separate from its frame and quantitative scores."
+msgstr "Fournir une valeur pour chacun de rerankAuthorityIdentity, rerankScoreKind, rerankScoreDimension et hasReferenceFrame ; garder cet enregistrement distinct de son repère et de ses scores quantitatifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct authority records may retain the same opaque identity bytes. Equal identity, kind, dimension or frame does not merge those records or certify their source."
+msgstr "Des enregistrements d’autorité distincts peuvent conserver les mêmes octets d’identité opaques. Une identité, un type, une dimension ou un repère égaux ne fusionnent pas ces enregistrements et ne certifient pas leur source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied authority record: ex:authority a gmeow:QueryRerankAuthority ; gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ; gmeow:rerankScoreKind \"relevance-logit\" ; gmeow:rerankScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ."
+msgstr "Un enregistrement d’autorité fourni : ex:authority a gmeow:QueryRerankAuthority ; gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ; gmeow:rerankScoreKind \"relevance-logit\" ; gmeow:rerankScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Score"
+msgstr "Score de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied finite IEEE 754 single precision rerank score carried as a math:Quantity. Its one xsd:float magnitude, declared dimension and actual reference frame accompany one source authority, without claiming an exact real target or an approximation error."
+msgstr "Score de reclassement fini fourni en simple précision IEEE 754, porté comme math:Quantity. Son unique valeur numérique xsd:float, sa dimension déclarée et son repère de référence effectif accompagnent une autorité source, sans affirmer un nombre réel exact comme cible ni une erreur d’approximation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a reported finite single precision score with its source authority and quantitative context."
+msgstr "Utiliser pour conserver un score fini rapporté en simple précision avec son autorité source et son contexte quantitatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the score as a probability, confidence, exact decimal, model artifact or approximation of an identified exact number merely because its datatype is floating point."
+msgstr "Éviter de traiter ce score comme une probabilité, une confiance, un décimal exact, un artefact de modèle ou une approximation d’un nombre exact identifié au seul motif que son type de données est à virgule flottante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one math:quantityValue typed xsd:float, one math:hasDimension, one hasReferenceFrame and one rerankScoreAuthority; match dimension and frame to the authority."
+msgstr "Fournir une valeur math:quantityValue de type xsd:float, une dimension par math:hasDimension, un repère par hasReferenceFrame et une autorité par rerankScoreAuthority ; faire correspondre la dimension et le repère à ceux de l’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finite negative values and zero are allowed. This explicit carrier profile rejects missing context, nonfinite values and other numeric datatypes without replacing or reclassifying the source score."
+msgstr "Les valeurs négatives finies et zéro sont permis. Ce profil explicite de support rejette le contexte absent, les valeurs non finies et les autres types de données numériques sans remplacer ni reclasser le score source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied negative score: ex:score a gmeow:QueryRerankScore ; math:quantityValue \"-1.25\"^^xsd:float ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ; gmeow:rerankScoreAuthority ex:authority ."
+msgstr "Un score négatif fourni : ex:score a gmeow:QueryRerankScore ; math:quantityValue \"-1.25\"^^xsd:float ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ; gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score authority"
+msgstr "autorité du score de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied QueryRerankAuthority declaring the identity and context of one reported rerank score. The score retains its own quantitative dimension and frame, which agree with that declaration."
+msgstr "La QueryRerankAuthority fournie déclarant l’identité et le contexte d’un score de reclassement rapporté. Le score conserve sa propre dimension quantitative et son propre repère, conformes à cette déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make a retained quantitative score’s source context explicit."
+msgstr "Utiliser pour rendre explicite le contexte source d’un score quantitatif conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a provider agent, model identity, execution or unique inverse owner from this association."
+msgstr "Éviter de déduire de cette association un agent fournisseur, une identité de modèle, une exécution ou un propriétaire inverse unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the score to one supplied authority record and retain the original opaque identity bytes and provider wording on that record."
+msgstr "Relier le score à un enregistrement d’autorité fourni et conserver sur celui-ci les octets d’identité opaques originaux ainsi que la formulation du fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one authority is required per score in this profile. Several scores may reference one authority, and shared values do not identify distinct authority records."
+msgstr "Ce profil exige exactement une autorité par score. Plusieurs scores peuvent référencer une autorité, et des valeurs partagées ne rendent pas identiques des enregistrements d’autorité distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied context association: ex:score gmeow:rerankScoreAuthority ex:authority ."
+msgstr "Une association de contexte fournie : ex:score gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank authority identity"
+msgstr "identité de l’autorité de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque identity bytes supplied by the source for a rerank authority, preserved as an xsd:hexBinary literal through lang:literalValue. The bytes retain the source identity rather than a fabricated semantic IRI."
+msgstr "Les octets d’identité opaques fournis par la source pour une autorité de reclassement, préservés comme littéral xsd:hexBinary par lang:literalValue. Ces octets conservent l’identité source plutôt qu’un IRI sémantique fabriqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports a native byte identity for the scoring authority."
+msgstr "Utiliser lorsque la source rapporte une identité native en octets pour l’autorité de calcul des scores."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a hash algorithm, fixed byte length, model identity, source authentication or IRI from the bytes."
+msgstr "Éviter d’inventer à partir de ces octets un algorithme de hachage, une longueur fixe en octets, une identité de modèle, une authentification source ou un IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual byte sequence in one xsd:hexBinary literal on the authority record; preserve its meaning under the source’s identity contract."
+msgstr "Conserver la séquence effective d’octets dans un littéral xsd:hexBinary sur l’enregistrement d’autorité ; préserver sa signification selon le contrat d’identité de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This required single coordinate imposes no global identity key or inverse uniqueness. Different records may carry the same bytes, and lexical hex spelling is not an additional identity claim."
+msgstr "Cette coordonnée unique obligatoire n’impose aucune clé d’identité globale ni unicité inverse. Des enregistrements différents peuvent porter les mêmes octets, et la graphie hexadécimale n’est pas une assertion d’identité supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque source bytes: ex:authority gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ."
+msgstr "Des octets sources opaques : ex:authority gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score kind"
+msgstr "type de score de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider’s supplied wording for what a rerank score represents, retained unchanged as an xsd:string literal on its authority record. The wording is context evidence rather than a calibrated mathematical interpretation."
+msgstr "La formulation fournie par le fournisseur pour ce qu’un score de reclassement représente, conservée sans changement comme littéral xsd:string sur son enregistrement d’autorité. Cette formulation est un élément de contexte plutôt qu’une interprétation mathématique étalonnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve provider score-kind wording beside the quantitative score context."
+msgstr "Utiliser pour préserver la formulation du fournisseur sur le type de score aux côtés du contexte quantitatif du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring probability, log-odds, confidence, calibration, dimension or rescaling rules from a word or the observed numeric range alone."
+msgstr "Éviter de déduire une probabilité, des log-cotes, une confiance, un étalonnage, une dimension ou des règles de changement d’échelle d’un seul mot ou du seul intervalle numérique observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied wording into one xsd:string literal and retain the authority’s separately declared dimension and reference frame."
+msgstr "Copier la formulation fournie dans un littéral xsd:string et conserver la dimension et le repère de référence déclarés séparément par l’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is open provider wording, not an enumerated ontology class or a natural-language grammar. No automatic default or normalization is defined."
+msgstr "La valeur est une formulation ouverte du fournisseur, pas une classe d’ontologie énumérée ni une grammaire de langue naturelle. Aucun défaut automatique ni aucune normalisation n’est défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Supplied provider wording: ex:authority gmeow:rerankScoreKind \"relevance-logit\" ."
+msgstr "Une formulation fournie par le fournisseur : ex:authority gmeow:rerankScoreKind \"relevance-logit\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score dimension"
+msgstr "dimension du score de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical Dimension explicitly declared by a source authority for its reported rerank scores. It describes the expected dimension of those quantities without making the information record itself a Quantity."
+msgstr "La Dimension mathématique explicitement déclarée par une autorité source pour ses scores de reclassement rapportés. Elle décrit la dimension attendue de ces grandeurs sans faire de l’enregistrement informationnel lui-même une Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source-declared dimension against which a score’s own math:hasDimension is checked."
+msgstr "Utiliser pour conserver la dimension déclarée par la source par rapport à laquelle la math:hasDimension propre du score est vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every score is dimensionless, inferring dimension from score-kind wording or confusing mathematical dimension with tensor shape or reference-frame axis count."
+msgstr "Éviter de supposer que chaque score est sans dimension, de déduire la dimension de la formulation du type de score ou de confondre dimension mathématique, forme de tenseur et nombre d’axes du repère de référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the authority to one supplied math:Dimension resource and retain that same dimension on each associated score through math:hasDimension."
+msgstr "Relier l’autorité à une ressource math:Dimension fournie et conserver cette même dimension sur chaque score associé par math:hasDimension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal dimensions do not establish score comparability across authorities or replace their actual reference frames. Missing dimension is an invalid selected profile, not permission to insert a default."
+msgstr "Des dimensions égales n’établissent pas la comparabilité des scores entre autorités et ne remplacent pas leurs repères de référence effectifs. Une dimension absente rend le profil sélectionné invalide ; elle ne permet pas d’insérer une valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly supplied dimension: ex:authority gmeow:rerankScoreDimension math:dimensionless ."
+msgstr "Une dimension explicitement fournie : ex:authority gmeow:rerankScoreDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank finite score law"
+msgstr "loi de finitude des scores de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every retained QueryRerankScore magnitude is a well-formed finite numeric literal. Required xsd:float datatype, magnitude presence and single value are separate canonical restrictions on the selected carrier."
+msgstr "Chaque valeur numérique de QueryRerankScore conservée est un littéral numérique fini bien formé. Le type de données xsd:float requis, la présence de la valeur numérique et son unicité sont des restrictions canoniques distinctes sur le support sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject NaN, floating infinities and malformed numeric magnitudes in this finite reported score profile."
+msgstr "Utiliser pour rejeter NaN, les infinis flottants et les valeurs numériques mal formées dans ce profil de scores finis rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a rejected value, dropping its candidate, reclassifying it as unscored or treating a missing magnitude as zero."
+msgstr "Éviter de remplacer une valeur rejetée, de supprimer son candidat, de le reclasser comme dépourvu de score ou de traiter une valeur numérique absente comme zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each score’s math:quantityValue and require the unary intrinsic logic:termIsFiniteNumeric for that value."
+msgstr "Lier la math:quantityValue de chaque score et exiger le prédicat intrinsèque unaire logic:termIsFiniteNumeric pour cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law validates declared magnitude admission only. It neither invokes a provider nor certifies arbitrary provider interfaces, score rendering, calibration or usefulness."
+msgstr "Cette loi valide uniquement l’admissibilité de la valeur numérique déclarée. Elle n’appelle aucun fournisseur et ne certifie ni des interfaces arbitraires de fournisseurs, ni le rendu des scores, ni leur étalonnage, ni leur utilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A finite-value obligation: gmeow:QueryRerankFiniteScoreLaw logic:formalizes gmeow:QueryRerankScore ."
+msgstr "Une obligation de valeur finie : gmeow:QueryRerankFiniteScoreLaw logic:formalizes gmeow:QueryRerankScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank score context law"
+msgstr "loi du contexte des scores de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each QueryRerankScore has the same mathematical dimension and actual reference frame as its linked source authority declares. The score, authority and frame retain distinct identities."
+msgstr "Chaque QueryRerankScore a la même dimension mathématique et le même repère de référence effectif que ceux déclarés par son autorité source liée. Le score, l’autorité et le repère conservent des identités distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a score whose dimension or frame disagrees with its authority record."
+msgstr "Utiliser pour rejeter un score dont la dimension ou le repère diffère de son enregistrement d’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating matching context as authentication, calibration, cross-provider comparability or a reason to merge authority records."
+msgstr "Éviter de traiter un contexte concordant comme une authentification, un étalonnage, une comparabilité entre fournisseurs ou une raison de fusionner des enregistrements d’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the score, authority, both dimension resources and both frame resources; compare each corresponding pair through logic:termEqual."
+msgstr "Lier le score, l’autorité, les deux ressources de dimension et les deux ressources de repère ; comparer chaque paire correspondante par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required coordinate restrictions handle missing values separately. Agreement is over actual dimension and ReferenceFrame resources, never replacement text or a hidden frame default."
+msgstr "Les restrictions sur les coordonnées obligatoires traitent séparément les valeurs absentes. La concordance porte sur les ressources effectives de dimension et ReferenceFrame, jamais sur du texte de remplacement ou un repère implicite par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context-agreement obligation: gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
+msgstr "Une obligation de concordance de contexte : gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."

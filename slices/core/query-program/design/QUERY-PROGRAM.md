@@ -170,3 +170,67 @@ merit order. Existing class-local score evidence remains source evidence; the
 absence of a union score does not mean zero. Original loss identities and their
 attribution remain intact. The description does not alter reciprocal-rank
 arithmetic, order policy, accepted-reason folding or verdict-choice semantics.
+
+## Finite rerank score and source authority context
+
+QueryRerankScore is an abstract quantitative carrier under math:Quantity.
+QueryRerankAuthority is a distinct InformationObject. The former retains a
+reported magnitude; the latter retains opaque source identity, provider wording
+and declared score context. This division gives math sole magnitude and
+dimension ownership without treating source authority as a provider agent,
+model, execution, observation or fitted artifact (Principles 4, 11, 12, 17
+and 19).
+
+The score class explicitly selects a finite IEEE 754 single precision carrier.
+Its four required single coordinates are math:quantityValue with xsd:float,
+math:hasDimension with math:Dimension, hasReferenceFrame with ReferenceFrame and
+rerankScoreAuthority with QueryRerankAuthority. Authority also has four required
+single coordinates: rerankAuthorityIdentity with xsd:hexBinary, rerankScoreKind
+with xsd:string, rerankScoreDimension with math:Dimension and hasReferenceFrame
+with ReferenceFrame. Each class/property pair has allValuesFrom, an explicit
+ClosureEntry and qualified maximum one. There is no unqualified cardinality,
+global functionality, inverse ownership or authority identity-key rule.
+
+rerankAuthorityIdentity and rerankScoreKind specialize lang:literalValue while
+retaining their domain roles and complete typed literals. Opaque identity bytes
+impose no universal length, hash algorithm or authentication scheme. Several
+source records may retain equal bytes without becoming the same record. The
+open score-kind wording supplies no inferred probability, logit transform,
+calibration, dimension or rescaling rule.
+
+The actual hasReferenceFrame spine applies directly to both authority and
+quantity. No duplicate frame relation or frame class is introduced. A selected
+frame retains the places owner's required realm, kind, axis count, axes,
+determinacy default and host declaration. Its dimensionCount describes its axis
+structure; it is not math:hasDimension. Mathematical dimension and actual frame
+remain distinct coordinates. Source-declared context is mandatory, without a
+silent dimensionless or frame default.
+
+QueryRerankFiniteScoreLaw binds every typed score's math:quantityValue and
+requires the canonical unary logic:termIsFiniteNumeric intrinsic. The xsd:float
+restriction separately fixes datatype, and the closure and qualified bound fix
+presence and one value. No comparison with infinity, self-equality trick,
+exact-decimal coercion or provider invocation is part of this law.
+
+QueryRerankScoreContextLaw positively binds score, linked authority, both
+dimension resources and both frame resources. Its consequent conjoins
+logic:termEqual for the dimension pair and logic:termEqual for the frame pair.
+Required coordinate restrictions handle absence separately. Both laws are real
+Constraint/Formula trees with indexed quantified variables and argument
+carriers; generated validation is their projection. They use no special native
+marker selection or second authored shape surface.
+
+The selected contract rejects nonfinite values, missing context and datatype
+disagreement. It never replaces a rejected magnitude, drops a candidate or
+reclassifies an existing source score as unscored. Generic provider interfaces
+may be broader than this finite profile; no universal finiteness claim is made.
+xsd:float retains reported numeric precision without asserting lexical, byte or
+bit identity, an exact real target or a justified approximation error.
+
+The manifest directly declares lang and places dependencies for the reused
+literal and frame spines; math is already direct. No extension dependency or
+record-metadata carrier is needed. This value-context contract introduces no
+rerank operation, result membership, ordering, outcome or loss semantics and
+does not establish consumer adoption. A complete rerank stage must separately
+retain the original union and all scored and unscored candidates with its
+source positions, passages, causes and losses.
