@@ -2639,3 +2639,227 @@ msgstr "Module GMEOW de programme de requête"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-program|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Governed query stores and memory retrieval adapters describing their program graphs and source-reported outcomes."
 msgstr "Magasins de requêtes gouvernés et adaptateurs de rappel décrivant leurs graphes et résultats rapportés par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Weight Fit"
+msgstr "Ajustement des poids de fusion de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported evidence record of fitted retrieval-class weights against one exact judged-content resource. It retains a nonempty collection of supplied class-weight quantities without claiming that fitting was executed or verified here."
+msgstr "Enregistrement de preuves rapporté par une source, portant sur des poids de classes de recherche ajustés par rapport à une ressource précise de contenu évalué. Il conserve une collection non vide de grandeurs de poids de classes fournies sans affirmer que l’ajustement a été exécuté ou vérifié ici."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the judged evidence and measured class weights supplied with a query-program description."
+msgstr "Utiliser pour conserver les éléments évalués et les poids de classes mesurés fournis avec une description de programme de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a declared fit as held-out validation, a fitted-model artifact, an Observation or permission to change an existing fusion operator."
+msgstr "Éviter de traiter un ajustement déclaré comme une validation sur des données exclues de l’ajustement, un artefact de modèle ajusté, une Observation ou une permission de modifier un opérateur de fusion existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain weightFitJudgedSet and every supplied fittedClassWeight quantity; keep fit identity and any source attribution separate from equal numeric values."
+msgstr "Conserver weightFitJudgedSet et chaque grandeur fittedClassWeight fournie ; garder l’identité de l’ajustement et toute attribution source distinctes de valeurs numériques égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each fit has one judged-set identity. Distinct fits remain distinct even when they reference the same class-weight quantity or report equal values."
+msgstr "Chaque ajustement possède une identité d’ensemble évalué. Des ajustements distincts restent distincts même s’ils référencent la même grandeur de poids de classe ou rapportent des valeurs égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionWeightFit|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied fit record: ex:fit a gmeow:QueryFusionWeightFit ; gmeow:weightFitJudgedSet ex:judgedContent ."
+msgstr "Un enregistrement d’ajustement fourni : ex:fit a gmeow:QueryFusionWeightFit ; gmeow:weightFitJudgedSet ex:judgedContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Class Weight"
+msgstr "Poids de classe de fusion de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied positive dimensionless quantitative value for one identified retrieval class in fusion-fit evidence. Its magnitude is carried by exact decimal math:quantityValue, not by a parallel weight-value property."
+msgstr "Valeur quantitative positive sans dimension fournie pour une classe de recherche identifiée dans des preuves d’ajustement de fusion. Sa valeur numérique est portée par math:quantityValue en décimal exact, et non par une propriété parallèle de valeur de poids."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a measured class coefficient whose value, dimension and class identity must remain explicit."
+msgstr "Utiliser pour un coefficient de classe mesuré dont la valeur, la dimension et l’identité de classe doivent rester explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the weight as a probability, confidence, an InformationObject or evidence that a query operator applied weighted arithmetic."
+msgstr "Éviter de traiter le poids comme une probabilité, une confiance, un InformationObject ou une preuve qu’un opérateur de requête a appliqué une arithmétique pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one weightForClass resource, one positive xsd:decimal math:quantityValue and math:hasDimension math:dimensionless."
+msgstr "Conserver une ressource weightForClass, une math:quantityValue positive de type xsd:decimal et math:hasDimension math:dimensionless."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The quantity has no unique fit owner. Sharing a supplied carrier across evidence records does not equate those fits or identify their judged sets."
+msgstr "La grandeur n’appartient pas exclusivement à un ajustement unique. Partager un support fourni entre des enregistrements de preuves ne rend pas ces ajustements égaux et n’identifie pas leurs ensembles évalués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionClassWeight|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied quantitative carrier: ex:weight a gmeow:QueryFusionClassWeight ; math:hasDimension math:dimensionless ; math:quantityValue \"2.25\"^^xsd:decimal ."
+msgstr "Un support quantitatif fourni : ex:weight a gmeow:QueryFusionClassWeight ; math:hasDimension math:dimensionless ; math:quantityValue \"2.25\"^^xsd:decimal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion weight fit evidence"
+msgstr "preuves d’ajustement des poids de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Associates a query-program node description with supplied fusion class-weight fit evidence. The association alone does not state that the node used those weights or alter its arithmetic."
+msgstr "Associe une description de nœud de programme de requête à des preuves fournies d’ajustement des poids de classes de fusion. Cette association seule n’affirme pas que le nœud a utilisé ces poids et ne modifie pas son arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain one or more source-reported fit records alongside a node description."
+msgstr "Utiliser pour conserver un ou plusieurs enregistrements d’ajustement rapportés par des sources auprès d’une description de nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this edge as weighted execution, a default fit or a single-fit restriction on a multi-source operation."
+msgstr "Éviter d’interpréter cette arête comme une exécution pondérée, un ajustement par défaut ou une restriction à un seul ajustement sur une opération multisource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each original fit resource when supplied; preserve its judged-set and class-weight evidence independently of the node’s operator contract."
+msgstr "Référencer chaque ressource originale d’ajustement lorsqu’elle est fournie ; préserver ses preuves d’ensemble évalué et de poids de classes indépendamment du contrat de l’opérateur du nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: multiple fits may coexist, including evidence from different source vaults. No missing fit, observation time or authorization is inferred."
+msgstr "Facultative et non fonctionnelle : plusieurs ajustements peuvent coexister, y compris des preuves issues de coffres sources différents. Aucun ajustement absent, instant d’observation absent ou autorisation absente n’est déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightFit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied fit records: ex:node gmeow:fusionWeightFit ex:fitA, ex:fitB ."
+msgstr "Deux enregistrements d’ajustement fournis : ex:node gmeow:fusionWeightFit ex:fitA, ex:fitB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fitted class weight"
+msgstr "poids de classe ajusté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One supplied class-weight quantity retained by a QueryFusionWeightFit. The fit preserves a nonempty collection and selects at most one quantity identity for each class."
+msgstr "Une grandeur de poids de classe fournie conservée par un QueryFusionWeightFit. L’ajustement préserve une collection non vide et sélectionne au plus une identité de grandeur par classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the quantitative results of a source-reported class-weight fit."
+msgstr "Utiliser pour exposer les résultats quantitatifs d’un ajustement des poids de classes rapporté par une source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing unmeasured or unavailable fitting with fabricated unit weights or omitting a supplied class result."
+msgstr "Éviter de remplacer un ajustement non mesuré ou indisponible par des poids unitaires fabriqués ou d’omettre un résultat de classe fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied QueryFusionClassWeight and retain its original class identity, decimal magnitude and dimensionless dimension."
+msgstr "Relier chaque QueryFusionClassWeight fourni et conserver son identité de classe originale, sa valeur numérique décimale et sa dimension adimensionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No inverse ownership restriction is imposed; a shared quantity reference neither merges fit records nor proves equal fitting evidence."
+msgstr "Aucune restriction inverse d’appartenance n’est imposée ; une référence de grandeur partagée ne fusionne pas les enregistrements d’ajustement et ne prouve pas l’égalité des preuves d’ajustement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fittedClassWeight|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two retained class quantities: ex:fit gmeow:fittedClassWeight ex:lexicalWeight, ex:spaceWeight ."
+msgstr "Deux grandeurs de classes conservées : ex:fit gmeow:fittedClassWeight ex:lexicalWeight, ex:spaceWeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weight for retrieval class"
+msgstr "poids pour une classe de recherche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied retrieval-class resource to which a class-weight quantity applies. It identifies a retrieval family or space without asserting that the resource is an RDF class."
+msgstr "La ressource exacte de classe de recherche fournie à laquelle s’applique une grandeur de poids de classe. Elle identifie une famille ou un espace de recherche sans affirmer que la ressource est une classe RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the class identity of a measured coefficient separate from its numeric value."
+msgstr "Utiliser pour garder l’identité de classe d’un coefficient mesuré distincte de sa valeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a class identity from a display label or coercing a retrieval class into an ontology Class."
+msgstr "Éviter de déduire une identité de classe d’une étiquette d’affichage ou de transformer de force une classe de recherche en Class d’ontologie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one source-identified class resource on the quantity; retain distinct family or space identities even when their weights are equal."
+msgstr "Référencer sur la grandeur une ressource de classe identifiée par la source ; conserver les identités distinctes de familles ou d’espaces même lorsque leurs poids sont égaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class coordinate is required and single-valued on this quantity carrier. It is not a global preference between classes or standpoints."
+msgstr "La coordonnée de classe est obligatoire et possède une seule valeur sur ce support de grandeur. Ce n’est pas une préférence globale entre classes ou points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightForClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied class coordinate: ex:weight gmeow:weightForClass ex:retrievalClass ."
+msgstr "Une coordonnée de classe fournie : ex:weight gmeow:weightForClass ex:retrievalClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weight fit judged set"
+msgstr "ensemble évalué de l’ajustement des poids"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied judged-content information object against which a QueryFusionWeightFit was fitted. The relation retains the source evidence identity rather than its label or storage path."
+msgstr "L’objet informationnel exact de contenu évalué fourni par rapport auquel un QueryFusionWeightFit a été ajusté. Cette relation conserve l’identité des preuves sources plutôt que leur étiquette ou leur chemin de stockage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the judged evidence from which the retained class weights were measured."
+msgstr "Utiliser pour identifier les éléments évalués à partir desquels les poids de classes conservés ont été mesurés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a judged-set identity, substituting a file path or treating in-sample fitting as held-out generalization."
+msgstr "Éviter d’inventer une identité d’ensemble évalué, de lui substituer un chemin de fichier ou de traiter un ajustement sur l’échantillon comme une généralisation à des données exclues de l’ajustement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original judged-content resource and retain its own source attribution when supplied; keep it independent of the fit and quantity identities."
+msgstr "Relier la ressource originale de contenu évalué et conserver sa propre attribution source lorsqu’elle est fournie ; la garder indépendante des identités de l’ajustement et des grandeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One judged-set resource is required per fit. This edge authenticates neither its contents nor the fitting method and supplies no missing measurement."
+msgstr "Une ressource d’ensemble évalué est requise par ajustement. Cette arête n’authentifie ni son contenu ni la méthode d’ajustement et ne fournit aucune mesure absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied evidence identity: ex:fit gmeow:weightFitJudgedSet ex:judgedContent ."
+msgstr "Une identité de preuves fournie : ex:fit gmeow:weightFitJudgedSet ex:judgedContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion class weight positive law"
+msgstr "loi de positivité des poids de classes de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every retained QueryFusionClassWeight magnitude is greater than exact decimal zero. The quantity’s required decimal datatype and dimension remain separate canonical obligations."
+msgstr "Chaque valeur numérique de QueryFusionClassWeight conservée est supérieure au zéro décimal exact. Le type de données décimal et la dimension requis pour la grandeur restent des obligations canoniques distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject zero or negative supplied class-weight magnitudes."
+msgstr "Utiliser pour rejeter les valeurs numériques nulles ou négatives de poids de classes fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a missing magnitude as zero, treating positivity as probability normalization or interpreting a value as applied fusion arithmetic."
+msgstr "Éviter d’accepter une valeur numérique absente comme zéro, de traiter la positivité comme une normalisation de probabilité ou d’interpréter une valeur comme une arithmétique de fusion appliquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the quantity’s supplied math:quantityValue and compare it with exact decimal zero through logic:termGreater."
+msgstr "Lier la math:quantityValue fournie de la grandeur et la comparer au zéro décimal exact par logic:termGreater."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law checks the declared numeric value; it neither fits a weight nor certifies its evidence or usefulness."
+msgstr "Cette loi vérifie la valeur numérique déclarée ; elle n’ajuste aucun poids et ne certifie ni ses preuves ni son utilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionClassWeightPositiveLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A magnitude obligation: gmeow:FusionClassWeightPositiveLaw logic:formalizes gmeow:QueryFusionClassWeight ."
+msgstr "Une obligation de valeur numérique : gmeow:FusionClassWeightPositiveLaw logic:formalizes gmeow:QueryFusionClassWeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion fit class weight uniqueness law"
+msgstr "loi d’unicité des poids de classes d’un ajustement de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one QueryFusionWeightFit, two retained quantities naming the same retrieval class must be the same selected quantity resource. Different classes may retain equal magnitudes."
+msgstr "Dans un même QueryFusionWeightFit, deux grandeurs conservées nommant la même classe de recherche doivent être la même ressource de grandeur sélectionnée. Des classes différentes peuvent conserver des valeurs numériques égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent competing quantity identities for one class inside a fit record."
+msgstr "Utiliser pour empêcher des identités de grandeurs concurrentes pour une même classe dans un enregistrement d’ajustement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating distinct fits from equal class values or imposing a unique fit owner on a quantity."
+msgstr "Éviter d’identifier des ajustements distincts à partir de valeurs de classes égales ou d’imposer qu’une grandeur appartienne exclusivement à un ajustement unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare each pair of retained class-weight quantities sharing the same weightForClass resource through logic:termEqual."
+msgstr "Comparer chaque paire de grandeurs de poids de classes conservées partageant la même ressource weightForClass par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law preserves one quantity identity per class within a fit without choosing a preferred class, merging judged sets or manufacturing a measurement."
+msgstr "Cette loi préserve une seule identité de grandeur par classe au sein d’un ajustement sans choisir de classe préférée, fusionner des ensembles évalués ou fabriquer de mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fit-identity obligation: gmeow:FusionFitClassWeightUniquenessLaw logic:formalizes gmeow:fittedClassWeight ."
+msgstr "Une obligation d’identité d’ajustement : gmeow:FusionFitClassWeightUniquenessLaw logic:formalizes gmeow:fittedClassWeight ."

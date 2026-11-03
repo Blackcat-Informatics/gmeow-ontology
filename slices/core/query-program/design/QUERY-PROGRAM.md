@@ -87,3 +87,41 @@ transaction-program NodeKind values remain individuals, distinct from classes.
 An effective enactment principal is recorded authority context. Its presence does
 not establish a permission check, identify a tool provider or weaken the existing
 Enactment identity contract.
+
+## Fitted class-weight evidence and quantitative ownership
+
+QueryFusionWeightFit is a source-reported information record. It retains exactly
+one judged-content identity and at least one supplied class-weight quantity.
+QueryFusionClassWeight is an abstract quantitative carrier under math:Quantity;
+it is not an InformationObject or a separate model artifact. Mathematical value
+and dimension ownership remain with math:quantityValue and math:hasDimension.
+The class-weight dimension is fixed to math:dimensionless, with one positive
+exact decimal magnitude and one source retrieval-class resource.
+
+Required paths use canonical allValuesFrom restrictions and class-scoped
+ClosureEntry records. Qualified at-most-one restrictions bind the judged-set,
+class, magnitude and dimension coordinates. The dimension value set contains
+only math:dimensionless. These declarations do not infer a missing source
+measurement or replace an unavailable fit with a unit coefficient.
+
+FusionClassWeightPositiveLaw compares each retained magnitude with exact decimal
+zero through logic:termGreater. The declared decimal range supplies its numeric
+datatype. FusionFitClassWeightUniquenessLaw checks that two quantities retained
+by one fit and naming the same class are the same selected quantity resource.
+Both are realized Constraint/Formula trees with explicit quantified variables
+and indexed arguments; generated validation is their projection. No native
+marker metadata or alternate constraint surface is authored.
+
+fusionWeightFit is an optional nonfunctional evidence association on an existing
+QueryProgramNode. Several source fits can coexist. A quantity may be referenced
+by several fit records without identifying those fits or their judged sets.
+There is no inverse ownership rule, global class preference, fitting executor,
+hash verification law or implicit source authentication.
+
+The evidence association changes none of ReciprocalRankFusion's existing
+unweighted contribution, quantization, fold or tie-order laws. Source-reported
+measurements do not select a weighted operator or prove that any node used them.
+No probability interpretation, held-out validity or consumer adoption follows
+from the record. The query-program manifest directly depends on math for its
+quantitative carriers; no language-grammar grounding or lexical numeric property
+is needed for machine decimal magnitudes.

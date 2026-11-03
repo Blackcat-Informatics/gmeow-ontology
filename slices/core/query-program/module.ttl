@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -4507,3 +4508,163 @@ gmeow:QueryIterationDistinctPassConstraint
         ]
     ]
 ] .
+
+gmeow:QueryFusionWeightFit
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Fusion Weight Fit"@x-gmeow-english ;
+    skos:definition "A source-reported evidence record of fitted retrieval-class weights against one exact judged-content resource. It retains a nonempty collection of supplied class-weight quantities without claiming that fitting was executed or verified here."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the judged evidence and measured class weights supplied with a query-program description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a declared fit as held-out validation, a fitted-model artifact, an Observation or permission to change an existing fusion operator."@x-gmeow-english ;
+    gmeow:howToUse "Retain weightFitJudgedSet and every supplied fittedClassWeight quantity; keep fit identity and any source attribution separate from equal numeric values."@x-gmeow-english ;
+    skos:scopeNote "Each fit has one judged-set identity. Distinct fits remain distinct even when they reference the same class-weight quantity or report equal values."@x-gmeow-english ;
+    skos:example "A supplied fit record: ex:fit a gmeow:QueryFusionWeightFit ; gmeow:weightFitJudgedSet ex:judgedContent ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryFusionClassWeight
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Fusion Class Weight"@x-gmeow-english ;
+    skos:definition "A supplied positive dimensionless quantitative value for one identified retrieval class in fusion-fit evidence. Its magnitude is carried by exact decimal math:quantityValue, not by a parallel weight-value property."@x-gmeow-english ;
+    gmeow:useWhen "Use for a measured class coefficient whose value, dimension and class identity must remain explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the weight as a probability, confidence, an InformationObject or evidence that a query operator applied weighted arithmetic."@x-gmeow-english ;
+    gmeow:howToUse "Retain one weightForClass resource, one positive xsd:decimal math:quantityValue and math:hasDimension math:dimensionless."@x-gmeow-english ;
+    skos:scopeNote "The quantity has no unique fit owner. Sharing a supplied carrier across evidence records does not equate those fits or identify their judged sets."@x-gmeow-english ;
+    skos:example "A supplied quantitative carrier: ex:weight a gmeow:QueryFusionClassWeight ; math:hasDimension math:dimensionless ; math:quantityValue \"2.25\"^^xsd:decimal ."@x-gmeow-english ;
+    logic:subClassOf math:Quantity .
+
+gmeow:fusionWeightFit
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion weight fit evidence"@x-gmeow-english ;
+    skos:definition "Associates a query-program node description with supplied fusion class-weight fit evidence. The association alone does not state that the node used those weights or alter its arithmetic."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain one or more source-reported fit records alongside a node description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this edge as weighted execution, a default fit or a single-fit restriction on a multi-source operation."@x-gmeow-english ;
+    gmeow:howToUse "Reference each original fit resource when supplied; preserve its judged-set and class-weight evidence independently of the node’s operator contract."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: multiple fits may coexist, including evidence from different source vaults. No missing fit, observation time or authorization is inferred."@x-gmeow-english ;
+    skos:example "Two supplied fit records: ex:node gmeow:fusionWeightFit ex:fitA, ex:fitB ."@x-gmeow-english ;
+    logic:domain gmeow:QueryProgramNode ; logic:range gmeow:QueryFusionWeightFit .
+
+gmeow:fittedClassWeight
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fitted class weight"@x-gmeow-english ;
+    skos:definition "One supplied class-weight quantity retained by a QueryFusionWeightFit. The fit preserves a nonempty collection and selects at most one quantity identity for each class."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the quantitative results of a source-reported class-weight fit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing unmeasured or unavailable fitting with fabricated unit weights or omitting a supplied class result."@x-gmeow-english ;
+    gmeow:howToUse "Link each supplied QueryFusionClassWeight and retain its original class identity, decimal magnitude and dimensionless dimension."@x-gmeow-english ;
+    skos:scopeNote "No inverse ownership restriction is imposed; a shared quantity reference neither merges fit records nor proves equal fitting evidence."@x-gmeow-english ;
+    skos:example "Two retained class quantities: ex:fit gmeow:fittedClassWeight ex:lexicalWeight, ex:spaceWeight ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionWeightFit ; logic:range gmeow:QueryFusionClassWeight .
+
+gmeow:weightForClass
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "weight for retrieval class"@x-gmeow-english ;
+    skos:definition "The exact supplied retrieval-class resource to which a class-weight quantity applies. It identifies a retrieval family or space without asserting that the resource is an RDF class."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the class identity of a measured coefficient separate from its numeric value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a class identity from a display label or coercing a retrieval class into an ontology Class."@x-gmeow-english ;
+    gmeow:howToUse "Reference one source-identified class resource on the quantity; retain distinct family or space identities even when their weights are equal."@x-gmeow-english ;
+    skos:scopeNote "The class coordinate is required and single-valued on this quantity carrier. It is not a global preference between classes or standpoints."@x-gmeow-english ;
+    skos:example "A supplied class coordinate: ex:weight gmeow:weightForClass ex:retrievalClass ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionClassWeight ; logic:range logic:Thing .
+
+gmeow:weightFitJudgedSet
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "weight fit judged set"@x-gmeow-english ;
+    skos:definition "The exact supplied judged-content information object against which a QueryFusionWeightFit was fitted. The relation retains the source evidence identity rather than its label or storage path."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the judged evidence from which the retained class weights were measured."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a judged-set identity, substituting a file path or treating in-sample fitting as held-out generalization."@x-gmeow-english ;
+    gmeow:howToUse "Link the original judged-content resource and retain its own source attribution when supplied; keep it independent of the fit and quantity identities."@x-gmeow-english ;
+    skos:scopeNote "One judged-set resource is required per fit. This edge authenticates neither its contents nor the fitting method and supplies no missing measurement."@x-gmeow-english ;
+    skos:example "A supplied evidence identity: ex:fit gmeow:weightFitJudgedSet ex:judgedContent ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionWeightFit ; logic:range gmeow:InformationObject .
+
+gmeow:FusionClassWeightPositiveLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion class weight positive law"@x-gmeow-english ;
+    skos:definition "Every retained QueryFusionClassWeight magnitude is greater than exact decimal zero. The quantity’s required decimal datatype and dimension remain separate canonical obligations."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject zero or negative supplied class-weight magnitudes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a missing magnitude as zero, treating positivity as probability normalization or interpreting a value as applied fusion arithmetic."@x-gmeow-english ;
+    gmeow:howToUse "Bind the quantity’s supplied math:quantityValue and compare it with exact decimal zero through logic:termGreater."@x-gmeow-english ;
+    skos:scopeNote "This law checks the declared numeric value; it neither fits a weight nor certifies its evidence or usefulness."@x-gmeow-english ;
+    skos:example "A magnitude obligation: gmeow:FusionClassWeightPositiveLaw logic:formalizes gmeow:QueryFusionClassWeight ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionClassWeight ;
+    logic:message "Every retained QueryFusionClassWeight magnitude is greater than exact decimal zero. The quantity’s required decimal datatype and dimension remain separate canonical obligations." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionClassWeight ] ],
+[ a logic:Formula ;
+logic:relation math:quantityValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termGreater ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:decimal ] ] ] ] .
+
+gmeow:FusionFitClassWeightUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion fit class weight uniqueness law"@x-gmeow-english ;
+    skos:definition "Within one QueryFusionWeightFit, two retained quantities naming the same retrieval class must be the same selected quantity resource. Different classes may retain equal magnitudes."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent competing quantity identities for one class inside a fit record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating distinct fits from equal class values or imposing a unique fit owner on a quantity."@x-gmeow-english ;
+    gmeow:howToUse "Compare each pair of retained class-weight quantities sharing the same weightForClass resource through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "The law preserves one quantity identity per class within a fit without choosing a preferred class, merging judged sets or manufacturing a measurement."@x-gmeow-english ;
+    skos:example "A fit-identity obligation: gmeow:FusionFitClassWeightUniquenessLaw logic:formalizes gmeow:fittedClassWeight ."@x-gmeow-english ;
+    logic:formalizes gmeow:fittedClassWeight ;
+    logic:message "Within one QueryFusionWeightFit, two retained quantities naming the same retrieval class must be the same selected quantity resource. Different classes may retain equal magnitudes." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftWeight" ], [ logic:termIndex 2 ; logic:termVariable "rightWeight" ], [ logic:termIndex 3 ; logic:termVariable "class" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionWeightFit ] ],
+[ a logic:Formula ;
+logic:relation gmeow:fittedClassWeight ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftWeight" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:fittedClassWeight ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rightWeight" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:weightForClass ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftWeight" ], [ logic:termIndex 1 ; logic:termVariable "class" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:weightForClass ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightWeight" ], [ logic:termIndex 1 ; logic:termVariable "class" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftWeight" ], [ logic:termIndex 1 ; logic:termVariable "rightWeight" ] ] ] ] .
+
+gmeow:QueryFusionWeightFit logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fittedClassWeight ; logic:allValuesFrom gmeow:QueryFusionClassWeight ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionWeightFit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/fittedClassWeight" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryFusionWeightFit logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:weightFitJudgedSet ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionWeightFit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/weightFitJudgedSet" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionWeightFit logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:weightFitJudgedSet ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:InformationObject ] .
+
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:weightForClass ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionClassWeight ; logic:closureKey "https://blackcatinformatics.ca/gmeow/weightForClass" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:weightForClass ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionClassWeight ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:decimal ] .
+
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( math:dimensionless ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionClassWeight ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
