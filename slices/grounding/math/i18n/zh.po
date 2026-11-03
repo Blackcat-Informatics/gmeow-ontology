@@ -2272,7 +2272,7 @@ msgstr "基刃"
 
 msgctxt "https://blackcatinformatics.ca/math/BasisBlade|skos:definition"
 msgid "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."
-msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的直接乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
+msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的未经限定的乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordAnticommutationWitness|rdfs:label"
 msgid "Clifford Anticommutation Witness"
@@ -9916,3 +9916,87 @@ msgstr "不要反转此关系，不要用数值基刃次数替代分次资源，
 msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Write the algebra or module as subject and its math:Grading as object of math:hasGrading. For math:CliffordAlgebra retain the existing single typed grading declaration and its other frame requirements; describe component and law evidence separately from the link."
 msgstr "以代数或模为 math:hasGrading 的主语，以其 math:Grading 为宾语。对于 math:CliffordAlgebra，保留现有的单一类型化分次声明及其他框架要求；将分量和定律依据与该链接分开描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Basis Blade"
+msgstr "基刃"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."
+msgstr "由不同基生成元的有序外积形成的齐次基元素。在采用正交生成元基的 Clifford 代数描述中，对应的有序几何积表示该齐次刃；不同但非正交的生成元的未经限定的乘积未必齐次。空乘积为零次标量刃。它不是任意多向量或若干刃的和。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A basis blade is one homogeneous element associated with a subset of the fixed ordered generator basis. The empty subset gives the scalar unit blade of grade zero. For n generators there are 2^n basis blades in the algebra, including that unit, rather than only the n grade-one generators."
+msgstr "基刃是与固定有序生成元基的一个子集对应的齐次基元素。空子集给出零次标量单位刃。对于 n 个生成元，代数有 2^n 个基刃，包括该单位刃，而非仅有 n 个一次生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:e13 is a math:BasisBlade with math:bladeGrade 1 and math:generatorIndex 13, linked from cov:cl130. Its generator position is thirteen while its blade grade is one; the record does not enumerate the other basis blades."
+msgstr "在 external-concept-coverage.ttl 中，cov:e13 是 math:BasisBlade，具有 math:bladeGrade 1 和 math:generatorIndex 13，并由 cov:cl130 链接。其生成元位置为十三，而刃次数为一；该记录不枚举其他基刃。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified element of the basis induced by a chosen ordered generator basis, including the scalar unit blade. Keep its algebra and basis convention explicit so the same grade is not mistaken for the same basis element."
+msgstr "用于标识由所选有序生成元基诱导的基元素，包括标量单位刃。须明确其代数及基约定，不要将次数相同误认为基元素相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary homogeneous multivector as a single basis blade or assuming that distinct nonorthogonal generators have a homogeneous geometric product. The wedge definition and its orthogonal-generator Clifford realization do not establish a generic nonorthogonal constructor."
+msgstr "不要将任意齐次多向量视为单个基刃，也不要假定不同的非正交生成元具有齐次几何积。外积定义及其在正交生成元下的 Clifford 实现并不确立通用的非正交构造器。"
+
+msgctxt "https://blackcatinformatics.ca/math/BasisBlade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:BasisBlade in its ordered-basis context, relate it to the algebra with math:hasBasisBlade and record its integer degree with math:bladeGrade. Preserve any coefficient, orientation, product convention and calculation evidence separately; the grade-zero unit is not the zero multivector."
+msgstr "在有序基背景中描述 math:BasisBlade，用 math:hasBasisBlade 将其与代数关联，并用 math:bladeGrade 记录其整数次数。另行保留系数、取向、乘积约定和计算依据；零次单位刃不是零多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has basis blade"
+msgstr "具有基刃"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."
+msgstr "将 Clifford 代数关联到其有序生成元基所诱导的齐次基刃之一。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation points from a Clifford algebra to one of its basis blades. The existing math:CliffordAlgebra frame requires at least one typed math:BasisBlade value and restricts all values to that class; it does not require exactly one value or a complete enumeration of the algebra basis."
+msgstr "此关系从 Clifford 代数指向其某个基刃。现有 math:CliffordAlgebra 框架要求至少一个类型为 math:BasisBlade 的值，并将所有值限制为该类；它不要求恰好一个值，也不要求完整枚举代数的基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:cl120 names cov:e1 and cov:cl130 names cov:e13 through math:hasBasisBlade. These selected generator records do not enumerate their respective 4096-element and 8192-element algebra bases."
+msgstr "在 external-concept-coverage.ttl 中，cov:cl120 通过 math:hasBasisBlade 指明 cov:e1，cov:cl130 指明 cov:e13。这些所选生成元记录并不枚举各自含 4096 个和 8192 个元素的代数基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when particular basis blades must be named in the context of their Clifford algebra. Preserve the ordered generator basis and its product convention rather than treating the link as a basis-independent identity."
+msgstr "当须在 Clifford 代数背景中指明特定基刃时使用。须保留有序生成元基及其乘积约定，不要将该链接视为不依赖于基的同一性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting a numeric grade or a math:Basis resource for a blade, or inferring all 2^n blades from a few generator links. The producer's n grade-one generator records do not by themselves prove a full basis enumeration or a geometric-product law."
+msgstr "不要反转此关系，不要用数值次数或 math:Basis 资源替代刃，也不要从少量生成元链接推断全部 2^n 个刃。生产器的 n 个一次生成元记录本身不证明完整的基枚举或几何积定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasisBlade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the algebra as subject and the intended math:BasisBlade as object of math:hasBasisBlade. Keep each blade's math:bladeGrade and basis context explicit; retain the existing class-local minimum and typing requirements without adding a global cardinality or completeness rule."
+msgstr "以代数为 math:hasBasisBlade 的主语，以所需 math:BasisBlade 为宾语。须明确每个刃的 math:bladeGrade 及基背景；保留现有的类局部最小基数和类型要求，不添加全局基数或完备性规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blade grade"
+msgstr "刃次数"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The non-negative integer grade of a homogeneous basis blade."
+msgstr "齐次基刃的非负整数次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a basis blade formed from k distinct generators, the integer grade is k; the empty unit blade has grade zero. In the inspected native representation this is the number of set bits in the generator-subset mask, not the mask's numeric value or a generator's position."
+msgstr "由 k 个不同生成元形成的基刃，其整数次数为 k；空的单位刃次数为零。在已检查的原生表示中，这是生成元子集掩码的置位数，而非掩码数值或生成元位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|http://www.w3.org/2004/02/skos/core#example"
+msgid "The external-concept-coverage.ttl records cov:e1 and cov:e13 both carry math:bladeGrade 1, while their math:generatorIndex values are 1 and 13. The native generator API uses zero-based indices and the producer records one-based RDF positions; neither position convention changes the blade grade."
+msgstr "external-concept-coverage.ttl 中的 cov:e1 和 cov:e13 都带有 math:bladeGrade 1，而它们的 math:generatorIndex 值分别为 1 和 13。原生生成元 API 使用从零开始的索引，生产器记录从一开始的 RDF 位置；两种位置约定都不改变刃次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the homogeneous integer degree of an identified basis blade. Keep it distinct from a coefficient, algebra dimension and even/odd parity, and do not assign one blade grade to an arbitrary mixed-grade multivector."
+msgstr "用于说明已标识基刃的齐次整数次数。须区分它与系数、代数维数及偶奇性，不要为任意混合次数的多向量指定单一刃次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this value as a grade projection, a check of homogeneity or proof that a product preserves integer degree. No dedicated bladeGrade cardinality gate is asserted here, and an omitted grade must not be silently replaced with zero."
+msgstr "不要将该值当作次数投影、齐次性检查或乘积保持整数次数的证明。此处不声称存在专门的 bladeGrade 基数校验，且不得将省略的次数暗中替换为零。"
+
+msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer through math:bladeGrade to the intended math:BasisBlade, retaining its algebra and ordered-basis interpretation. Keep any component extraction, product computation or verification evidence separate from this declaration."
+msgstr "通过 math:bladeGrade 将已提供的非负整数关联到所需 math:BasisBlade，并保留其在代数及有序基中的解释。将分量提取、乘积计算或验证依据与此声明分开。"

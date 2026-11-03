@@ -10806,6 +10806,11 @@ math:BasisBlade
     a logic:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Basis Blade"@x-gmeow-english ;
+    skos:scopeNote "A basis blade is one homogeneous element associated with a subset of the fixed ordered generator basis. The empty subset gives the scalar unit blade of grade zero. For n generators there are 2^n basis blades in the algebra, including that unit, rather than only the n grade-one generators."@x-gmeow-english ;
+    skos:example "In external-concept-coverage.ttl, cov:e13 is a math:BasisBlade with math:bladeGrade 1 and math:generatorIndex 13, linked from cov:cl130. Its generator position is thirteen while its blade grade is one; the record does not enumerate the other basis blades."@x-gmeow-english ;
+    gmeow:useWhen "Use for an identified element of the basis induced by a chosen ordered generator basis, including the scalar unit blade. Keep its algebra and basis convention explicit so the same grade is not mistaken for the same basis element."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an arbitrary homogeneous multivector as a single basis blade or assuming that distinct nonorthogonal generators have a homogeneous geometric product. The wedge definition and its orthogonal-generator Clifford realization do not establish a generic nonorthogonal constructor."@x-gmeow-english ;
+    gmeow:howToUse "Describe the math:BasisBlade in its ordered-basis context, relate it to the algebra with math:hasBasisBlade and record its integer degree with math:bladeGrade. Preserve any coefficient, orientation, product convention and calculation evidence separately; the grade-zero unit is not the zero multivector."@x-gmeow-english ;
     skos:definition "A homogeneous basis element formed as an ordered exterior product of distinct basis generators. In a Clifford presentation with an orthogonal generator basis, the corresponding ordered geometric product realizes that homogeneous blade; a raw product of distinct nonorthogonal generators need not be homogeneous. The empty product is the scalar grade-zero blade. It is not an arbitrary multivector or a sum of blades."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -11396,6 +11401,11 @@ math:cliffordInvolution
 math:hasBasisBlade
     a logic:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has basis blade"@x-gmeow-english ;
+    skos:scopeNote "This relation points from a Clifford algebra to one of its basis blades. The existing math:CliffordAlgebra frame requires at least one typed math:BasisBlade value and restricts all values to that class; it does not require exactly one value or a complete enumeration of the algebra basis."@x-gmeow-english ;
+    skos:example "In external-concept-coverage.ttl, cov:cl120 names cov:e1 and cov:cl130 names cov:e13 through math:hasBasisBlade. These selected generator records do not enumerate their respective 4096-element and 8192-element algebra bases."@x-gmeow-english ;
+    gmeow:useWhen "Use when particular basis blades must be named in the context of their Clifford algebra. Preserve the ordered generator basis and its product convention rather than treating the link as a basis-independent identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the relation, substituting a numeric grade or a math:Basis resource for a blade, or inferring all 2^n blades from a few generator links. The producer's n grade-one generator records do not by themselves prove a full basis enumeration or a geometric-product law."@x-gmeow-english ;
+    gmeow:howToUse "Write the algebra as subject and the intended math:BasisBlade as object of math:hasBasisBlade. Keep each blade's math:bladeGrade and basis context explicit; retain the existing class-local minimum and typing requirements without adding a global cardinality or completeness rule."@x-gmeow-english ;
     skos:definition "Relates a Clifford algebra to one of the homogeneous basis blades induced by its ordered generator basis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -11420,6 +11430,11 @@ math:rightGenerator
 math:bladeGrade
     a logic:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "blade grade"@x-gmeow-english ;
+    skos:scopeNote "For a basis blade formed from k distinct generators, the integer grade is k; the empty unit blade has grade zero. In the inspected native representation this is the number of set bits in the generator-subset mask, not the mask's numeric value or a generator's position."@x-gmeow-english ;
+    skos:example "The external-concept-coverage.ttl records cov:e1 and cov:e13 both carry math:bladeGrade 1, while their math:generatorIndex values are 1 and 13. The native generator API uses zero-based indices and the producer records one-based RDF positions; neither position convention changes the blade grade."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the homogeneous integer degree of an identified basis blade. Keep it distinct from a coefficient, algebra dimension and even/odd parity, and do not assign one blade grade to an arbitrary mixed-grade multivector."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this value as a grade projection, a check of homogeneity or proof that a product preserves integer degree. No dedicated bladeGrade cardinality gate is asserted here, and an omitted grade must not be silently replaced with zero."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied nonnegative integer through math:bladeGrade to the intended math:BasisBlade, retaining its algebra and ordered-basis interpretation. Keep any component extraction, product computation or verification evidence separate from this declaration."@x-gmeow-english ;
     skos:definition "The non-negative integer grade of a homogeneous basis blade."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
