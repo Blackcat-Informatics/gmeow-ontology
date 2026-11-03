@@ -397,3 +397,16 @@ gmeow:hasMessageKind
     logic:range gmeow:MessageKind .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasMessageKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:saidOnBehalfBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "said in the speaker’s name by"@x-gmeow-english ;
+    skos:definition "Relates a recorded utterance or its holder-specific record to the agent that actually produced the utterance in the separately attributed speaker’s name. The attributed speaker did not compose this stand-in utterance."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source reports another agent producing words in the attributed speaker’s name, including a stand-in line when that speaker could not be asked."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the speaker attribution with the producer, treating a persona label or tag as the producer’s identity, or inferring authorization, consent, endorsement, delivery or general authorship from this role."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the utterance’s wasAttributedTo speaker link and mark each retained hearing or saying record independently with saidOnBehalfBy. Keep a listener-only record marked. Attribute each assertion to its own source and standpoint; retain and report actual disagreement without silently reconciling it."@x-gmeow-english ;
+    skos:scopeNote "The relation has no domain and does not turn a record or assertion reifier into a Message. Multiple producer claims can coexist, including co-production and source disagreement. An absent link does not establish the speaker’s own composition, and the link does not diagnose why a stand-in was used."@x-gmeow-english ;
+    skos:example "ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn and ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn retain the producer; ex:utterance gmeow:wasAttributedTo ex:speaker retains the attributed speaker."@x-gmeow-english ;
+    logic:range gmeow:Agent .

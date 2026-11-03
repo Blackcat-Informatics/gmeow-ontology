@@ -736,3 +736,31 @@ msgstr "La relation reste non fonctionnelle et indépendante du transport ; les 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
 msgstr "Par exemple : ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "said in the speaker’s name by"
+msgstr "énoncé au nom du locuteur par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a recorded utterance or its holder-specific record to the agent that actually produced the utterance in the separately attributed speaker’s name. The attributed speaker did not compose this stand-in utterance."
+msgstr "Relie un énoncé enregistré ou son enregistrement propre à un détenteur à l’agent qui l’a effectivement produit au nom du locuteur auquel il est attribué séparément. Ce locuteur n’a pas composé cet énoncé de substitution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports another agent producing words in the attributed speaker’s name, including a stand-in line when that speaker could not be asked."
+msgstr "Utiliser lorsqu’une source rapporte qu’un autre agent produit des paroles au nom du locuteur auquel elles sont attribuées, notamment un énoncé de substitution lorsque ce locuteur n’a pas pu être sollicité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the speaker attribution with the producer, treating a persona label or tag as the producer’s identity, or inferring authorization, consent, endorsement, delivery or general authorship from this role."
+msgstr "Éviter de remplacer l’attribution au locuteur par le producteur, de traiter une étiquette de persona ou un tag comme l’identité du producteur, ou de déduire de ce rôle une autorisation, un consentement, une approbation, une livraison ou une qualité générale d’auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the utterance’s wasAttributedTo speaker link and mark each retained hearing or saying record independently with saidOnBehalfBy. Keep a listener-only record marked. Attribute each assertion to its own source and standpoint; retain and report actual disagreement without silently reconciling it."
+msgstr "Conserver le lien wasAttributedTo de l’énoncé vers son locuteur et marquer indépendamment chaque enregistrement conservé d’écoute ou d’énonciation avec saidOnBehalfBy. Garder le marquage d’un enregistrement d’écoute même s’il est seul. Attribuer chaque assertion à sa propre source et à son propre point de vue ; conserver et signaler les désaccords réels sans les résoudre tacitement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation has no domain and does not turn a record or assertion reifier into a Message. Multiple producer claims can coexist, including co-production and source disagreement. An absent link does not establish the speaker’s own composition, and the link does not diagnose why a stand-in was used."
+msgstr "La relation n’a pas de domaine et ne transforme pas un enregistrement ou un réificateur d’assertion en Message. Plusieurs affirmations de producteur peuvent coexister, notamment une coproduction ou un désaccord entre sources. L’absence de lien n’établit pas que le locuteur a lui-même composé l’énoncé, et le lien ne diagnostique pas pourquoi un substitut a été utilisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn and ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn retain the producer; ex:utterance gmeow:wasAttributedTo ex:speaker retains the attributed speaker."
+msgstr "ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn et ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn conservent le producteur ; ex:utterance gmeow:wasAttributedTo ex:speaker conserve le locuteur auquel l’énoncé est attribué."
