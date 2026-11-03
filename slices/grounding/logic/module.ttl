@@ -24707,3 +24707,17 @@ logic:GroundingSourceDigestValueConstraint
         logic:forall [ a logic:Formula ;
             logic:antecedent [ a logic:Formula ; logic:relation logic:groundingSourceDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
             logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .
+
+logic:provenance
+    a logic:ObjectProperty ;
+    logic:domain logic:Thing ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provenance source"@x-gmeow-english ;
+    skos:definition "Relates a rule, statement reifier or other scoped carrier to a declared provenance source resource. The source can be a rule, document, source context or asserting agent; the edge does not by itself determine which source role applies."@x-gmeow-english ;
+    skos:scopeNote "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."@x-gmeow-english ;
+    skos:example "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly supplied origin on the exact rule or statement carrier whose scope it qualifies. Preserve the kind and identity of the actual source without requiring every source to be a firing rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer truth, trust, a firing proof, a premise list or a complete derivation certificate from this edge. Do not restrict all sources to rules, equate distinct sources, or propagate metadata from a record to its outgoing assertions."@x-gmeow-english ;
+    gmeow:howToUse "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."@x-gmeow-english .

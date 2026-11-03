@@ -24194,3 +24194,31 @@ msgstr "提供一个目标类、至少两个选择谓词，以及一个选择编
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a closed validation boundary requires exactly one, at most one or at least one member predicate of a finite group to be present."
 msgstr "当封闭验证边界要求有限组中恰好一个、至多一个或至少一个成员谓词存在时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provenance source"
+msgstr "来源资源"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a rule, statement reifier or other scoped carrier to a declared provenance source resource. The source can be a rule, document, source context or asserting agent; the edge does not by itself determine which source role applies."
+msgstr "将规则、语句具体化节点或其他带作用域的承载资源关联到已声明的来源资源。来源可以是规则、文档、来源上下文或作出断言的施事者；此边本身不确定适用哪一种来源角色。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."
+msgstr "定义域和范围保持为资源，不限于 Rule。不声明全局函数性：不同来源资源不会因此被视为相同。尽管如此，所选编译器作用域仅接纳一个来源坐标；此配置限制并不使该词汇具有全局函数性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."
+msgstr "具体化节点 ex:claim 具有 rdf:reifies <<(ex:a ex:relatedTo ex:b)>> 及 logic:provenance ex:report，将 ex:report 记录为该声明所提供的来源；仅引用语句并不对被引用语句作出断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied origin on the exact rule or statement carrier whose scope it qualifies. Preserve the kind and identity of the actual source without requiring every source to be a firing rule."
+msgstr "用于在其作用域受此来源限定的确切规则或语句承载资源上保留明确提供的来源。保留实际来源的种类及身份，不要求每个来源都是触发推导的规则。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer truth, trust, a firing proof, a premise list or a complete derivation certificate from this edge. Do not restrict all sources to rules, equate distinct sources, or propagate metadata from a record to its outgoing assertions."
+msgstr "不要从此边推断真实性、信任、规则触发证明、前提列表或完整推导证书。不要将所有来源限于规则，不要将不同来源视为相同，也不要将记录上的元数据传播到其向外断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。当前编译器拒绝同一所选作用域上的多个来源坐标；必须显式转换为编译器支持的表示，不得静默选择来源。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
