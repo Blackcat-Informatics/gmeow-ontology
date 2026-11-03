@@ -24194,3 +24194,31 @@ msgstr "Fournissez une classe cible, au moins deux prédicats de choix et un mod
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a closed validation boundary requires exactly one, at most one or at least one member predicate of a finite group to be present."
 msgstr "Utilisez lorsqu'un cadre de validation fermé exige la présence d'exactement un, d'au plus un ou d'au moins un prédicat membre d'un groupe fini."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provenance source"
+msgstr "source de provenance"
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a rule, statement reifier or other scoped carrier to a declared provenance source resource. The source can be a rule, document, source context or asserting agent; the edge does not by itself determine which source role applies."
+msgstr "Relie une règle, un réificateur d’énoncé ou un autre support contextualisé à une ressource déclarée comme source de provenance. La source peut être une règle, un document, un contexte source ou un agent qui affirme ; l’arête ne détermine pas à elle seule quel rôle de source s’applique."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."
+msgstr "Le domaine et le codomaine restent des ressources, sans être limités à Rule. Aucune caractéristique fonctionnelle globale n’est affirmée : des ressources sources différentes ne sont pas pour autant identifiées. Un contexte de compilation sélectionné n’admet néanmoins qu’une coordonnée de provenance ; cette limite de profil ne rend pas le vocabulaire globalement fonctionnel."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."
+msgstr "Un réificateur ex:claim portant rdf:reifies <<(ex:a ex:relatedTo ex:b)>> et logic:provenance ex:report enregistre ex:report comme source fournie pour cette assertion ; la citation seule n’affirme pas l’énoncé cité."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly supplied origin on the exact rule or statement carrier whose scope it qualifies. Preserve the kind and identity of the actual source without requiring every source to be a firing rule."
+msgstr "À utiliser pour conserver une origine explicitement fournie sur la règle ou le support d’énoncé exact dont elle qualifie le contexte. Conserver la nature et l’identité de la source effective sans exiger que chaque source soit une règle déclenchée."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer truth, trust, a firing proof, a premise list or a complete derivation certificate from this edge. Do not restrict all sources to rules, equate distinct sources, or propagate metadata from a record to its outgoing assertions."
+msgstr "Ne pas déduire de cette arête la vérité, la confiance, une preuve de déclenchement, une liste de prémisses ou un certificat complet de dérivation. Ne pas limiter toutes les sources aux règles, identifier des sources distinctes, ni propager les métadonnées d’un enregistrement à ses assertions sortantes."
+
+msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+msgstr "Rattacher la ressource source au réificateur d’énoncé exact ou à la règle contextualisée déclarée. Le compilateur actuel refuse plusieurs coordonnées de provenance dans un même contexte sélectionné ; un abaissement explicite est requis, plutôt qu’un choix silencieux de source. Conserver séparément les éléments probants. Une règle qui se nomme elle-même enregistre sa source déclarée, et non un reçu d’exécution."
