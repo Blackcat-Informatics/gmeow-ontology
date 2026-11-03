@@ -2953,3 +2953,78 @@ gmeow:LoopClosure logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:closureLoop ; logic:allValuesFrom gmeow:OpenLoop ],
     [ a logic:Restriction ; logic:onProperty gmeow:closedBy ; logic:allValuesFrom gmeow:Agent ],
     [ a logic:Restriction ; logic:onProperty gmeow:closureEvidence ; logic:allValuesFrom gmeow:InformationObject ] .
+
+gmeow:LoopReference
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Loop Reference Record"@x-gmeow-english ;
+    skos:definition "An independently identified information record for source-supplied references to a pursuit record or its task-specification artifact."@x-gmeow-english ;
+    skos:scopeNote "The reference is neither the pursuit record nor the task artifact. Its links constrain supplied values only; missing targets are unspecified, not invented or copied."@x-gmeow-english ;
+    skos:example "ex:reference a gmeow:LoopReference ; gmeow:referencedLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source retains a separately identified reference to a loop or task specification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the reference as a loop, a task artifact, an assignment or proof of target availability."@x-gmeow-english ;
+    gmeow:howToUse "Retain the reference identity and each supplied referencedLoop or referencedTaskDocument link, with its source and context."@x-gmeow-english .
+
+gmeow:referencedLoop
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LoopReference ;
+    logic:range gmeow:OpenLoop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "referenced loop"@x-gmeow-english ;
+    skos:definition "A source-supplied pursuit record named by a loop reference record."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and supplied-only. The link copies no loop state and establishes no current selection, target resolution or pursuer identity."@x-gmeow-english ;
+    skos:example "ex:reference gmeow:referencedLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies the OpenLoop named by a reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a loop target or inferring one from a task artifact, writer or recorder."@x-gmeow-english ;
+    gmeow:howToUse "Link the LoopReference to each source-identified OpenLoop and preserve the original target identity."@x-gmeow-english .
+
+gmeow:referencedTaskDocument
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LoopReference ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "referenced task artifact"@x-gmeow-english ;
+    skos:definition "A supplied task-specification information artifact named by a loop reference record."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and supplied-only. The target is not copied from loopTaskDocument, selected by latest revision or forced equal to another target."@x-gmeow-english ;
+    skos:example "ex:reference gmeow:referencedTaskDocument ex:taskArtifact ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly names the task-specification artifact retained by a reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a Task occurrence as the information artifact or manufacturing a missing target."@x-gmeow-english ;
+    gmeow:howToUse "Link the LoopReference to the supplied InformationObject and retain its original identity independently of other task links."@x-gmeow-english .
+
+gmeow:slotCurrentLoop
+    a gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "current-loop attention-slot role"@x-gmeow-english ;
+    skos:definition "A named role descriptor for an attention slot whose positions point to actual loop reference records."@x-gmeow-english ;
+    skos:scopeNote "This InformationObject is a role, not a mutable property, slot, position, pointer or loop record. It creates no assignment, current winner, target resolution, authentication or permission."@x-gmeow-english ;
+    skos:example "ex:slot gmeow:slotRole gmeow:slotCurrentLoop ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the role of a source-identified attention slot for current-loop reference selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this descriptor as the current loop or as a replacement for the existing slot and assignment protocol."@x-gmeow-english ;
+    gmeow:howToUse "Use through slotRole; follow slotState to the SlotPosition and slotPointer to the actual LoopReference, retaining typed SlotAssignmentClaim reifiers."@x-gmeow-english .
+
+gmeow:notebookLoop
+    a logic:ObjectProperty ;
+    logic:domain gmeow:NotebookEntry ;
+    logic:range gmeow:OpenLoop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "notebook loop association"@x-gmeow-english ;
+    skos:definition "A source-supplied association of a notebook entry with a durable pursuit record."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. The link copies no state or content, infers no Intention or pursuer and imposes no common writer."@x-gmeow-english ;
+    skos:example "ex:entry gmeow:notebookLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly associates a notebook entry with an existing loop record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving the association from matching words, a shared author or a current-slot claim."@x-gmeow-english ;
+    gmeow:howToUse "Link the NotebookEntry to the supplied OpenLoop while preserving the entry’s existing content, kind, state claims and attribution."@x-gmeow-english .
+
+# Reference and notebook links constrain supplied values without requiring targets.
+gmeow:LoopReference logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:referencedLoop ; logic:allValuesFrom gmeow:OpenLoop ],
+    [ a logic:Restriction ; logic:onProperty gmeow:referencedTaskDocument ; logic:allValuesFrom gmeow:InformationObject ] .
+
+gmeow:NotebookEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:notebookLoop ; logic:allValuesFrom gmeow:OpenLoop ] .

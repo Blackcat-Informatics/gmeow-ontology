@@ -5686,3 +5686,143 @@ msgstr "避免将实际事件用作信息记录、推断证据支持，或将证
 msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the LoopClosure report to the retained InformationObject; preserve exact rdf:reifies content when citing a reifier and keep the report’s wasDerivedFrom source separate."
 msgstr "将 LoopClosure 报告关联到保留的 InformationObject；引用重述节点时保留确切的 rdf:reifies 内容，并另行保留报告的 wasDerivedFrom 来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loop Reference Record"
+msgstr "事项引用记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An independently identified information record for source-supplied references to a pursuit record or its task-specification artifact."
+msgstr "一种具有独立标识的信息记录，用于保存来源提供的、指向持续事项记录或其任务说明制品的引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reference is neither the pursuit record nor the task artifact. Its links constrain supplied values only; missing targets are unspecified, not invented or copied."
+msgstr "引用既不是持续事项记录，也不是任务制品。其关系仅约束所提供的值；缺失目标表示未指定，不会被虚构或复制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reference a gmeow:LoopReference ; gmeow:referencedLoop ex:pursuit ."
+msgstr "ex:reference a gmeow:LoopReference ; gmeow:referencedLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source retains a separately identified reference to a loop or task specification."
+msgstr "当来源保留指向事项或任务说明的、具有独立标识的引用时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the reference as a loop, a task artifact, an assignment or proof of target availability."
+msgstr "避免将引用视为事项、任务制品、赋值，或目标可用性的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the reference identity and each supplied referencedLoop or referencedTaskDocument link, with its source and context."
+msgstr "保留引用身份及每条所提供的 referencedLoop 或 referencedTaskDocument 关系，并保留其来源和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referenced loop"
+msgstr "引用的事项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied pursuit record named by a loop reference record."
+msgstr "事项引用记录所指明的、由来源提供的持续事项记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and supplied-only. The link copies no loop state and establishes no current selection, target resolution or pursuer identity."
+msgstr "非函数性关系，仅记录所提供的值。此关系不复制事项状态，也不确立当前选择、目标解析或开展事项的智能体身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reference gmeow:referencedLoop ex:pursuit ."
+msgstr "ex:reference gmeow:referencedLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the OpenLoop named by a reference."
+msgstr "当来源明确标识引用所指明的 OpenLoop 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a loop target or inferring one from a task artifact, writer or recorder."
+msgstr "避免虚构 OpenLoop 引用目标，或根据任务制品、声明者或记录者推断该目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the LoopReference to each source-identified OpenLoop and preserve the original target identity."
+msgstr "将 LoopReference 关联到来源标识的每个 OpenLoop，并保留原始目标身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referenced task artifact"
+msgstr "引用的任务制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied task-specification information artifact named by a loop reference record."
+msgstr "事项引用记录所指明的、所提供的任务说明信息制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and supplied-only. The target is not copied from loopTaskDocument, selected by latest revision or forced equal to another target."
+msgstr "非函数性关系，仅记录所提供的值。不从 loopTaskDocument 复制目标，不按最新修订选择目标，也不强制目标与其他目标相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reference gmeow:referencedTaskDocument ex:taskArtifact ."
+msgstr "ex:reference gmeow:referencedTaskDocument ex:taskArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly names the task-specification artifact retained by a reference."
+msgstr "当来源明确指明引用中保留的任务说明制品时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a Task occurrence as the information artifact or manufacturing a missing target."
+msgstr "避免将 Task 事件用作信息制品，或虚构缺失的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referencedTaskDocument|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the LoopReference to the supplied InformationObject and retain its original identity independently of other task links."
+msgstr "将 LoopReference 关联到所提供的 InformationObject，并独立于其他任务关系保留其原始身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "current-loop attention-slot role"
+msgstr "当前事项注意槽角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named role descriptor for an attention slot whose positions point to actual loop reference records."
+msgstr "一种具名角色描述项，用于其位置指向实际事项引用记录的注意槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This InformationObject is a role, not a mutable property, slot, position, pointer or loop record. It creates no assignment, current winner, target resolution, authentication or permission."
+msgstr "此 InformationObject 是角色，不是可变属性、槽、位置、指针或事项记录。它不创建赋值、当前优先选择、目标解析、身份认证或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:slot gmeow:slotRole gmeow:slotCurrentLoop ."
+msgstr "ex:slot gmeow:slotRole gmeow:slotCurrentLoop ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the role of a source-identified attention slot for current-loop reference selection."
+msgstr "用作来源标识的注意槽的角色，以记录当前事项引用选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this descriptor as the current loop or as a replacement for the existing slot and assignment protocol."
+msgstr "避免将此描述项视为当前事项，或用它替代现有的槽与赋值协议。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use through slotRole; follow slotState to the SlotPosition and slotPointer to the actual LoopReference, retaining typed SlotAssignmentClaim reifiers."
+msgstr "通过 slotRole 使用；沿 slotState 到达 SlotPosition，再沿 slotPointer 到达实际 LoopReference，并保留类型为 SlotAssignmentClaim 的重述节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook loop association"
+msgstr "笔记本事项关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied association of a notebook entry with a durable pursuit record."
+msgstr "来源提供的笔记本条目与持久持续事项记录之间的关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. The link copies no state or content, infers no Intention or pursuer and imposes no common writer."
+msgstr "非函数性关系。此关系不复制状态或内容，不推断 Intention 或开展事项的智能体，也不要求共同的声明撰写者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry gmeow:notebookLoop ex:pursuit ."
+msgstr "ex:entry gmeow:notebookLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly associates a notebook entry with an existing loop record."
+msgstr "当来源明确将笔记本条目与现有事项记录相关联时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the association from matching words, a shared author or a current-slot claim."
+msgstr "避免根据措辞相同、共同作者或当前槽断言推导此关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the NotebookEntry to the supplied OpenLoop while preserving the entry’s existing content, kind, state claims and attribution."
+msgstr "将 NotebookEntry 关联到所提供的 OpenLoop，同时保留条目已有的内容、种类、状态断言和归属。"
