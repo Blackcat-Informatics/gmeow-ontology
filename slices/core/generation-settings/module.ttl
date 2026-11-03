@@ -170,7 +170,7 @@ gmeow:modelModeChat
     skos:definition "A requested settings profile for conversational interaction, under the serving layer’s interpretation."@x-gmeow-english ;
     skos:scopeNote "The value records a conversational intent. It specifies no universal numerical settings and does not assert that a reply was generated, delivered or received."@x-gmeow-english ;
     skos:example "Record this request: ex:chatRun gmeow:modelMode gmeow:modelModeChat ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the caller requests conversational interaction rather than another named profile."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests conversational interaction."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using this value to identify a model, assign a message role or claim that a conversation occurred."@x-gmeow-english ;
     gmeow:howToUse "Link the invocation to gmeow:modelModeChat with modelMode and record actual supplied parameters independently."@x-gmeow-english .
 

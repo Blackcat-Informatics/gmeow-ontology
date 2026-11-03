@@ -342,8 +342,8 @@ msgid "Record this request: ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
 msgstr "记录此请求：ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the caller requests conversational interaction rather than another named profile."
-msgstr "当调用方请求对话交互而非其他具名配置时使用。"
+msgid "Use when the caller requests conversational interaction."
+msgstr "当调用方请求对话交互时使用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid using this value to identify a model, assign a message role or claim that a conversation occurred."

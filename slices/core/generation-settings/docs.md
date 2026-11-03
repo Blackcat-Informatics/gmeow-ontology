@@ -66,7 +66,8 @@ creative profile alongside actual parameters and the existing provenance links;
 it makes no replay or fulfillment claim.
 
 The ordinary [requested-profile scene](examples/requested-mode-profiles.ttl)
-illustrates all five additional profiles with separate invocation, model and
-prompt identities. Prompt attribution and source derivation use the existing
-provenance vocabulary. Supplied parameters are recorded separately where shown;
-the scene reports no executed call or generated output.
+describes fictional calls using all five additional profiles with separate
+invocation, model and prompt identities. Prompt attribution and source derivation
+use the existing provenance vocabulary. Supplied parameters are recorded
+separately where shown. The invocations are calls within the fiction; the scene
+reports no real model call or generated output.

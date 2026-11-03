@@ -40,9 +40,10 @@ proof, structured abstract syntax tree, solver execution or reply delivery.
 
 The additional values use the existing ModelMode type and modelMode relation,
 without changing the existing property axioms or dependencies. The ordinary requested-profile scene
-retains distinct invocation, model and prompt identities with existing source
-provenance links. It illustrates requested profiles and separate supplied
-parameters without recording an executed call or its outputs.
+describes fictional invocations with distinct invocation, model and prompt
+identities and existing source provenance links. It illustrates requested profiles
+and separate supplied parameters for calls within the fiction, without reporting
+a real model call or generated output.
 
 All authored axioms remain in `module.ttl`; downstream validation and external
 formal surfaces are projections of this source (Principle 17). The module adds
