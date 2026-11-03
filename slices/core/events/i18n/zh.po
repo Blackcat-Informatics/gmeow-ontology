@@ -216,3 +216,199 @@ msgstr "范围：该记录仅承载关于 gmeow:participationEvent 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:recurrenceRuleText and nothing else. It is not a definition of gmeow:recurrenceRuleText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:recurrenceRuleText 的一项完整性义务，别无其他。它不是 gmeow:recurrenceRuleText 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires location"
+msgstr "要求位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared requirement that an occurrence be performed at a specified location in the selected context."
+msgstr "一项声明的要求，规定某个事件须在所选语境中的指定位置进行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Requirements in one selected context are conjunctive. Alternative contexts and conflicting claims remain separate. This edge identifies neither a performer nor actual participant presence and implies no eventLocation or satisfaction through location containment."
+msgstr "同一所选语境中的各项要求须同时满足。不同备选语境与相互冲突的断言保持分离。此关系既不标识执行者，也不表明参与者实际在场，更不蕴含 eventLocation 或通过位置包含关系满足要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:requiresLocation ex:library ."
+msgstr "ex:reading gmeow:requiresLocation ex:library ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state where a planned occurrence must be performed, including a geographic or virtual location."
+msgstr "用于声明计划中的事件须在何处进行，包括地理位置或虚拟位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid recording an actual event location, identifying the performer or claiming that a scheduler checked this requirement."
+msgstr "避免用它记录事件的实际位置、标识执行者，或声称调度器已检查此要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to each required Location and retain the selected context and source on the exact RDF 1.2 declaration."
+msgstr "将 Event 关联到每个必需的 Location，并在对应的 RDF 1.2 声明上保留所选语境和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Interruptibility"
+msgstr "可中断性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for declared interruption handling during the performance of an occurrence."
+msgstr "一个开放的值词汇表，用于描述事件进行期间所声明的中断处理方式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The four seed values describe no interruption point, sentence boundaries, plan step boundaries or any point. They establish no permission, cancellation authority, boundary detection, checkpoint, capability or successful resumption."
+msgstr "四个初始值分别描述无中断点、句子边界、计划步骤边界或任意位置。它们均不确立许可、取消权限、边界检测、检查点、能力或成功恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:interruptibilityAtStepBoundary a gmeow:Interruptibility ."
+msgstr "gmeow:interruptibilityAtStepBoundary a gmeow:Interruptibility ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a declared interruption handling mode without creating event subclasses."
+msgstr "用于对声明的中断处理模式分类，无须创建事件子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the seeds as an exhaustive list, an actual interruption status or evidence of resumability."
+msgstr "避免将初始值视为穷尽列表、实际中断状态或可恢复性的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select an individual with interruptibility; mint a labelled additional individual when a distinct declared handling mode is needed."
+msgstr "通过 interruptibility 选择个体；需要另一种不同的声明处理模式时，创建带标签的新个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruptibility"
+msgstr "可中断性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The interruption handling mode declared for an occurrence during its performance in the selected context."
+msgstr "在所选语境中为事件进行期间声明的中断处理模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing metadata is unspecified. Multiple declarations remain attributable claims without a default, a selected winner or an automatically combined policy. No interruption, permission or successful resumption is inferred."
+msgstr "缺失元数据表示未指定。多个声明仍是可归属的断言，不产生默认值、优先选择或自动合并的策略，也不据此推断中断、许可或成功恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+msgstr "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source’s declared interruption handling for an Event, including a Task occurrence."
+msgstr "用于保留来源为 Event 声明的中断处理方式，包括 Task 事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this declaration as an actual task status, a cancellation authorization or a computed eligibility verdict."
+msgstr "避免将此声明视为实际任务状态、取消授权或已计算的可执行资格判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to the stated Interruptibility value and preserve context and source on each exact RDF 1.2 declaration."
+msgstr "将 Event 关联到所述 Interruptibility 值，并在每条对应的 RDF 1.2 声明上保留语境和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "no interruption point"
+msgstr "无中断点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that provides no interruption point during the performance of an occurrence."
+msgstr "一种声明的处理模式，在事件进行期间不提供中断点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration concerns interruption during performance. It says nothing about cancellation authority, physical impossibility of interruption or what happens after an interruption."
+msgstr "此声明涉及进行期间的中断，不说明取消权限、中断是否在物理上不可能发生，或中断之后的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityNone ."
+msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityNone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected source declares no interruption point during performance."
+msgstr "当所选来源声明进行期间无中断点时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from missing metadata or using it to deny cancellation authority."
+msgstr "避免从缺失的元数据推断此值，或用它否定取消权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityNone on the Event declaration and retain its source and context."
+msgstr "在 Event 声明中将 interruptibility 设为 gmeow:interruptibilityNone，并保留其来源和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption between sentences"
+msgstr "句间中断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places interruption points between completed sentences in the occurrence’s text activity."
+msgstr "一种声明的处理模式，将中断点置于事件的文本活动中已完成的句子之间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relevant boundary belongs to the occurrence’s text activity. This value neither detects sentence boundaries nor establishes permission, a checkpoint or successful resumption."
+msgstr "相关边界属于该事件的文本活动。此值既不检测句子边界，也不确立许可、检查点或成功恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+msgstr "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling places interruption points only between completed sentences of the text activity."
+msgstr "当声明的处理方式仅在文本活动中已完成的句子之间设置中断点时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value for arbitrary token breaks, plan step boundaries or evidence that a sentence has finished."
+msgstr "避免将此值用于任意词元分界、计划步骤边界，或将其视为句子已完成的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtSentenceBoundary and retain the declared text activity, source and context."
+msgstr "将 interruptibility 设为 gmeow:interruptibilityAtSentenceBoundary，并保留声明的文本活动、来源和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption between plan steps"
+msgstr "计划步骤间中断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places interruption points between identified plan steps of the occurrence."
+msgstr "一种声明的处理模式，将中断点置于该事件已标识的计划步骤之间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Step identity comes from the stated plan. This value does not identify or complete a step, detect a boundary, create a checkpoint or establish permission or successful resumption."
+msgstr "步骤身份由所述计划提供。此值不标识或完成步骤，不检测边界，不创建检查点，也不确立许可或成功恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
+msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling places interruption points between identified plan steps."
+msgstr "当声明的处理方式将中断点置于已标识的计划步骤之间时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."
+msgstr "避免在没有计划语境的情况下将任意时刻或句子边界视为计划步骤边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtStepBoundary and retain the plan identifying the relevant steps with the source and context."
+msgstr "将 interruptibility 设为 gmeow:interruptibilityAtStepBoundary，并保留标识相关步骤的计划、来源和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption at any point"
+msgstr "任意位置中断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places no boundary restriction on interruption during the performance of an occurrence."
+msgstr "一种声明的处理模式，在事件进行期间不对中断位置施加边界限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Any point describes the declared handling granularity. It is not a permission, cancellation authority, safety judgment, checkpoint, capability or guarantee of successful resumption."
+msgstr "任意位置描述的是声明的处理粒度，并非许可、取消权限、安全判断、检查点、能力或成功恢复的保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
+msgstr "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."
+msgstr "当声明的处理方式不将中断限于句子边界或计划步骤边界时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."
+msgstr "避免将不受限的处理粒度视为中断已获授权、安全或可恢复的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtAnyPoint and retain the declaration’s source and context."
+msgstr "将 interruptibility 设为 gmeow:interruptibilityAtAnyPoint，并保留声明的来源和语境。"

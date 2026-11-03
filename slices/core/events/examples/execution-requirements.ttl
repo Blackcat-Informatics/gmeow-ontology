@@ -1,0 +1,95 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/execution-requirements/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Illustrative declarations only: no scheduler or event is reported as executed.
+# Quoted requirements remain scoped, with no assertion of their actual fulfillment.
+ex:writer a gmeow:Agent ;
+    rdfs:label "Requirements recorder"@en .
+
+ex:localContext a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint ;
+    rdfs:label "Local performance context"@en .
+
+ex:remoteContext a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint ;
+    rdfs:label "Remote performance context"@en .
+
+ex:source a gmeow:InformationObject ;
+    rdfs:label "Declared handling and location requirements"@en ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:filingPlan a gmeow:InformationObject ;
+    rdfs:label "Filing plan identifying two steps"@en ;
+    gmeow:description "Step prepare: gather the supplied forms. Step file: place the forms in the archive. Interruption points are declared between these identified steps."@en ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:archiveBuilding a gmeow:Place ;
+    rdfs:label "Archive building"@en .
+
+ex:readingRoom a gmeow:Place ;
+    gmeow:containedInLocation ex:archiveBuilding ;
+    rdfs:label "Archive reading room"@en .
+
+ex:onlineRoom a gmeow:VirtualLocation ;
+    rdfs:label "Online archive room"@en .
+
+# Task inherits the Event properties; the requirement document is a separate node.
+ex:inventory a gmeow:Task ;
+    rdfs:label "Inventory occurrence"@en .
+
+ex:reading a gmeow:Event ;
+    rdfs:label "Reading the supplied archive notes aloud"@en .
+
+ex:filing a gmeow:Event ;
+    rdfs:label "Filing occurrence following the two-step plan"@en .
+
+# Both geographic requirements belong to the local context and are conjunctive.
+# The room's containment supplies no assertion that either requirement is met.
+ex:roomRequirement
+    rdf:reifies <<( ex:inventory gmeow:requiresLocation ex:readingRoom )>> ;
+    gmeow:accordingTo ex:localContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:buildingRequirement
+    rdf:reifies <<( ex:inventory gmeow:requiresLocation ex:archiveBuilding )>> ;
+    gmeow:accordingTo ex:localContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+# The virtual requirement is an alternative context, never a union with the local one.
+ex:virtualRequirement
+    rdf:reifies <<( ex:inventory gmeow:requiresLocation ex:onlineRoom )>> ;
+    gmeow:accordingTo ex:remoteContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+# Different contexts retain different handling declarations for the same Task.
+ex:localHandling
+    rdf:reifies <<( ex:inventory gmeow:interruptibility gmeow:interruptibilityNone )>> ;
+    gmeow:accordingTo ex:localContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:remoteHandling
+    rdf:reifies <<( ex:inventory gmeow:interruptibility gmeow:interruptibilityAtAnyPoint )>> ;
+    gmeow:accordingTo ex:remoteContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:readingHandling
+    rdf:reifies <<( ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary )>> ;
+    gmeow:accordingTo ex:localContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:filingHandling
+    rdf:reifies <<( ex:filing gmeow:interruptibility gmeow:interruptibilityAtStepBoundary )>> ;
+    gmeow:accordingTo ex:localContext ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:filingPlan .

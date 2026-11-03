@@ -216,3 +216,199 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:recurrenceRuleText and nothing else. It is not a definition of gmeow:recurrenceRuleText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:recurrenceRuleText, et rien d'autre. Ce n'est pas une définition de gmeow:recurrenceRuleText (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires location"
+msgstr "requiert un lieu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared requirement that an occurrence be performed at a specified location in the selected context."
+msgstr "Une exigence déclarée selon laquelle une occurrence doit se dérouler dans un lieu indiqué, dans le contexte sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Requirements in one selected context are conjunctive. Alternative contexts and conflicting claims remain separate. This edge identifies neither a performer nor actual participant presence and implies no eventLocation or satisfaction through location containment."
+msgstr "Les exigences d’un même contexte sélectionné sont conjointes. Les contextes alternatifs et les affirmations contradictoires restent séparés. Ce lien n’identifie ni exécutant ni présence effective des participants et n’implique ni eventLocation ni satisfaction par inclusion entre lieux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:requiresLocation ex:library ."
+msgstr "ex:reading gmeow:requiresLocation ex:library ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state where a planned occurrence must be performed, including a geographic or virtual location."
+msgstr "Utiliser pour indiquer où une occurrence prévue doit se dérouler, notamment dans un lieu géographique ou virtuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid recording an actual event location, identifying the performer or claiming that a scheduler checked this requirement."
+msgstr "Éviter de consigner le lieu effectif d’un événement, d’identifier l’exécutant ou d’affirmer qu’un ordonnanceur a vérifié cette exigence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresLocation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to each required Location and retain the selected context and source on the exact RDF 1.2 declaration."
+msgstr "Relier l’Event à chaque Location requise et conserver le contexte sélectionné et la source sur la déclaration RDF 1.2 exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Interruptibility"
+msgstr "Interruptibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for declared interruption handling during the performance of an occurrence."
+msgstr "Un vocabulaire ouvert de valeurs décrivant la gestion déclarée des interruptions pendant le déroulement d’une occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The four seed values describe no interruption point, sentence boundaries, plan step boundaries or any point. They establish no permission, cancellation authority, boundary detection, checkpoint, capability or successful resumption."
+msgstr "Les quatre valeurs initiales décrivent l’absence de point d’interruption, les limites de phrases, les limites entre étapes de plan ou tout point. Elles n’établissent ni permission, ni autorité d’annulation, ni détection des limites, ni point de reprise, ni capacité, ni reprise réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:interruptibilityAtStepBoundary a gmeow:Interruptibility ."
+msgstr "gmeow:interruptibilityAtStepBoundary a gmeow:Interruptibility ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a declared interruption handling mode without creating event subclasses."
+msgstr "Utiliser pour classer un mode déclaré de gestion des interruptions sans créer de sous-classes d’événements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the seeds as an exhaustive list, an actual interruption status or evidence of resumability."
+msgstr "Éviter de traiter les valeurs initiales comme une liste exhaustive, un état d’interruption effectif ou une preuve de possibilité de reprise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Interruptibility|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select an individual with interruptibility; mint a labelled additional individual when a distinct declared handling mode is needed."
+msgstr "Sélectionner un individu avec interruptibility ; créer un individu supplémentaire portant un libellé lorsqu’un mode déclaré distinct est nécessaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruptibility"
+msgstr "interruptibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The interruption handling mode declared for an occurrence during its performance in the selected context."
+msgstr "Le mode de gestion des interruptions déclaré pour une occurrence pendant son déroulement, dans le contexte sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing metadata is unspecified. Multiple declarations remain attributable claims without a default, a selected winner or an automatically combined policy. No interruption, permission or successful resumption is inferred."
+msgstr "L’absence de métadonnées reste non spécifiée. Les déclarations multiples restent des affirmations attribuables, sans valeur par défaut, sans choix privilégié ni combinaison automatique en une politique. Aucune interruption, permission ou reprise réussie n’est inférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+msgstr "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source’s declared interruption handling for an Event, including a Task occurrence."
+msgstr "Utiliser pour conserver la gestion des interruptions déclarée par une source pour un Event, y compris une occurrence de Task."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this declaration as an actual task status, a cancellation authorization or a computed eligibility verdict."
+msgstr "Éviter de traiter cette déclaration comme un état effectif de tâche, une autorisation d’annulation ou un verdict d’admissibilité calculé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibility|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to the stated Interruptibility value and preserve context and source on each exact RDF 1.2 declaration."
+msgstr "Relier l’Event à la valeur d’Interruptibility indiquée et conserver le contexte et la source sur chaque déclaration RDF 1.2 exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "no interruption point"
+msgstr "aucun point d’interruption"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that provides no interruption point during the performance of an occurrence."
+msgstr "Un mode déclaré de gestion qui ne prévoit aucun point d’interruption pendant le déroulement d’une occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration concerns interruption during performance. It says nothing about cancellation authority, physical impossibility of interruption or what happens after an interruption."
+msgstr "Cette déclaration concerne les interruptions pendant le déroulement. Elle ne dit rien de l’autorité d’annulation, de l’impossibilité physique d’une interruption ni de ce qui suit une interruption."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityNone ."
+msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityNone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected source declares no interruption point during performance."
+msgstr "Utiliser lorsque la source sélectionnée ne déclare aucun point d’interruption pendant le déroulement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from missing metadata or using it to deny cancellation authority."
+msgstr "Éviter d’inférer cette valeur à partir de métadonnées absentes ou de l’utiliser pour nier une autorité d’annulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityNone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityNone on the Event declaration and retain its source and context."
+msgstr "Renseigner interruptibility avec gmeow:interruptibilityNone sur la déclaration de l’Event et conserver sa source et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption between sentences"
+msgstr "interruption entre phrases"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places interruption points between completed sentences in the occurrence’s text activity."
+msgstr "Un mode déclaré de gestion qui situe les points d’interruption entre les phrases terminées de l’activité textuelle de l’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relevant boundary belongs to the occurrence’s text activity. This value neither detects sentence boundaries nor establishes permission, a checkpoint or successful resumption."
+msgstr "La limite pertinente appartient à l’activité textuelle de l’occurrence. Cette valeur ne détecte pas les limites de phrases et n’établit ni permission, ni point de reprise, ni reprise réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+msgstr "ex:reading gmeow:interruptibility gmeow:interruptibilityAtSentenceBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling places interruption points only between completed sentences of the text activity."
+msgstr "Utiliser lorsque la gestion déclarée ne prévoit une interruption qu’entre les phrases terminées de l’activité textuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value for arbitrary token breaks, plan step boundaries or evidence that a sentence has finished."
+msgstr "Éviter d’utiliser cette valeur pour des coupures arbitraires entre jetons, des limites entre étapes de plan ou comme preuve qu’une phrase est terminée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtSentenceBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtSentenceBoundary and retain the declared text activity, source and context."
+msgstr "Renseigner interruptibility avec gmeow:interruptibilityAtSentenceBoundary et conserver l’activité textuelle déclarée, la source et le contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption between plan steps"
+msgstr "interruption entre étapes de plan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places interruption points between identified plan steps of the occurrence."
+msgstr "Un mode déclaré de gestion qui situe les points d’interruption entre les étapes de plan identifiées de l’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Step identity comes from the stated plan. This value does not identify or complete a step, detect a boundary, create a checkpoint or establish permission or successful resumption."
+msgstr "L’identité des étapes provient du plan indiqué. Cette valeur n’identifie ni ne termine une étape, ne détecte pas de limite, ne crée pas de point de reprise et n’établit ni permission ni reprise réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
+msgstr "ex:procedure gmeow:interruptibility gmeow:interruptibilityAtStepBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling places interruption points between identified plan steps."
+msgstr "Utiliser lorsque la gestion déclarée situe les points d’interruption entre des étapes de plan identifiées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary time or sentence boundary as a plan step boundary without its plan context."
+msgstr "Éviter de traiter un instant arbitraire ou une limite de phrase comme une limite entre étapes de plan sans le contexte du plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtStepBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtStepBoundary and retain the plan identifying the relevant steps with the source and context."
+msgstr "Renseigner interruptibility avec gmeow:interruptibilityAtStepBoundary et conserver le plan qui identifie les étapes pertinentes, avec la source et le contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interruption at any point"
+msgstr "interruption à tout point"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared handling mode that places no boundary restriction on interruption during the performance of an occurrence."
+msgstr "Un mode déclaré de gestion qui n’impose aucune limite particulière comme point d’interruption pendant le déroulement d’une occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Any point describes the declared handling granularity. It is not a permission, cancellation authority, safety judgment, checkpoint, capability or guarantee of successful resumption."
+msgstr "Tout point décrit la granularité déclarée de gestion. Il ne s’agit ni d’une permission, ni d’une autorité d’annulation, ni d’un jugement de sûreté, ni d’un point de reprise, ni d’une capacité, ni d’une garantie de reprise réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
+msgstr "ex:discussion gmeow:interruptibility gmeow:interruptibilityAtAnyPoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the declared handling does not restrict interruption to sentence or plan step boundaries."
+msgstr "Utiliser lorsque la gestion déclarée ne limite pas les interruptions aux limites de phrases ou aux limites entre étapes de plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating unrestricted handling granularity as evidence that interruption is authorized, safe or resumable."
+msgstr "Éviter de traiter une granularité de gestion sans restriction comme une preuve que l’interruption est autorisée, sûre ou suivie d’une reprise possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set interruptibility to gmeow:interruptibilityAtAnyPoint and retain the declaration’s source and context."
+msgstr "Renseigner interruptibility avec gmeow:interruptibilityAtAnyPoint et conserver la source et le contexte de la déclaration."
