@@ -9048,3 +9048,227 @@ msgstr "不要将有限外尔群阶数赋予无限 E8 李群或格，不要混�
 msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the positive integral order on the appropriate finite group, preserving its actual RDF integer literal and the normative E8 value under the applicable canonical conditions. Keep evidence or computation separate from the declaration; a recorded value alone does not establish any validation result or imply a generic presence, cardinality or range axiom."
 msgstr "在适当有限群上记录正整数阶数，保留实际 RDF 整数字面量及适用规范条件下的 E8 必需值。将证据或计算与声明区分；仅凭已记录值不能确立任何验证结果，也不暗含通用存在性、基数或值域公理。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Topological Space"
+msgstr "拓扑空间"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A topological space (X, τ): a set X together with a topology τ — its collection of open sets, closed under arbitrary union and finite intersection and containing ∅ and X. Given by its open sets (or a basis) through math:hasOpenSet. The object over which continuity, compactness, connectedness, and the separation axioms are defined; a math:MetricSpace and a manifold's underlying space are topological spaces."
+msgstr "拓扑空间 (X, τ)：集合 X 配备拓扑 τ，即对任意并和有限交封闭且包含 ∅ 与 X 的开集族。通过 math:hasOpenSet 给出开集（或基）。它是定义连续性、紧性、连通性和分离公理的对象；math:MetricSpace 和流形的底层空间都是拓扑空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The space includes a chosen topology, not merely a collection of named subsets. Selected math:hasOpenSet links can describe opens or basis elements without establishing a complete topology or proving arbitrary-union and finite-intersection closure."
+msgstr "空间包含所选拓扑，而非仅一组命名子集。所选 math:hasOpenSet 链接可描述开集或基元素，但不能确立完整拓扑或证明对任意并及有限交的封闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:circleSpace in tests/fixtures/analysis-geometry.ttl names exf:arcU and exf:arcV through math:hasOpenSet. Those two supplied open-set records do not enumerate all opens or prove that they form a complete basis."
+msgstr "tests/fixtures/analysis-geometry.ttl 中 exf:circleSpace 通过 math:hasOpenSet 指定 exf:arcU 和 exf:arcV。这两个已提供开集记录不枚举全部开集，也不证明它们构成完整基。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical space must retain its topology as the setting for openness, closedness, continuity or separation claims."
+msgstr "当数学空间需要保留其拓扑作为开、闭、连续性或分离主张的背景时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a complete topology from a few links, silently choosing an ambient topology for a subset, or treating a space label as proof of topology laws."
+msgstr "不要从少量链接推断完整拓扑，不要默默为子集选择环境拓扑，也不要将空间标签视为拓扑定律的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the space and the intended topology in the existing mathematical description, retaining supplied open or basis records with math:hasOpenSet. Keep selected declarations distinct from completeness and law evidence, without inventing a basis marker, ambient-space predicate or automatic closure construction."
+msgstr "在已有数学描述中标识空间及所需拓扑，通过 math:hasOpenSet 保留已提供开集或基记录。区分所选声明、完整性及定律证据，不臆造基标记、环境空间谓词或自动闭包构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Set"
+msgstr "开集"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open set of a math:TopologicalSpace: a member of the space's topology τ. A subclass of math:Set. Continuity is defined by open sets (preimages of open sets are open), and a math:Neighbourhood of a point contains an open set containing the point."
+msgstr "math:TopologicalSpace 的开集，即空间拓扑 τ 的成员。它是 math:Set 的子类。连续性由开集定义（开集的原像为开集），点的 math:Neighbourhood 包含一个含该点的开集。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Openness is relative to the specified topology. A set can be both open and closed, and being used as an open neighbourhood does not automatically change its authored type to math:Neighbourhood or provide missing point/space links."
+msgstr "开性相对于指定拓扑。集合可既开又闭；用作开邻域不会自动将其已编写类型改为 math:Neighbourhood，也不会提供缺少的点/空间链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "hausdorff-space-declared.ttl types ex:nbhdOfP and ex:nbhdOfQ as math:OpenSet and records math:hasElement ex:pointP and ex:pointQ respectively. Their neighbourhood-style names do not supply math:Neighbourhood typing."
+msgstr "hausdorff-space-declared.ttl 将 ex:nbhdOfP 和 ex:nbhdOfQ 定为 math:OpenSet，并分别记录 math:hasElement ex:pointP 和 ex:pointQ。其邻域式名称不提供 math:Neighbourhood 类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subset is described as open in a particular topological space, including a supplied open chart domain or topology basis element."
+msgstr "当子集被描述为特定拓扑空间中的开集时使用，包括已提供开坐标图定义域或拓扑基元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating open and closed as exclusive, reading point membership or an ambient-space relation from a name, or equating selected open-set declarations with a complete topology."
+msgstr "不要将开与闭视为互斥，不要从名称读出点成员关系或环境空间关系，也不要将所选开集声明等同于完整拓扑。"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the subset’s actual open-set declaration and topology context using existing representations. Preserve ex:inertialRegion as the authored math:OpenSet chart domain in analysis-and-geometry.ttl without adding an invented ambient predicate, new neighbourhood typing or a claim that the listed opens exhaust the topology."
+msgstr "使用已有表示保留子集实际开集声明及拓扑背景。将 analysis-and-geometry.ttl 中 ex:inertialRegion 保留为已编写 math:OpenSet 坐标图定义域，不添加臆造环境谓词、新邻域类型，也不声称已列开集穷尽拓扑。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Closed Set"
+msgstr "闭集"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed set of a math:TopologicalSpace: the complement of a math:OpenSet within the space (a math:Complement whose math:complementSemantics is topological). A subclass of math:Set. Closed under finite union and arbitrary intersection, dual to the open sets."
+msgstr "math:TopologicalSpace 的闭集，即空间中某个 math:OpenSet 的补集（math:complementSemantics 为拓扑含义的 math:Complement）。它是 math:Set 的子类。对有限并及任意交封闭，与开集对偶。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Closedness is relative to an ambient topological space: the complement there is open. It is not a synonym for boundedness or finite enumeration, and a clopen set can also be math:OpenSet. The complement meaning does not add a formal Complement superclass or automatically construct a complement resource."
+msgstr "闭性相对于环境拓扑空间：在其中的补集为开集。它不等同于有界性或有限枚举，既开又闭的集合也可为 math:OpenSet。补集含义不会添加形式 Complement 超类或自动构造补集资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: [0, +∞) is closed and unbounded in ℝ with its usual topology, while ∅ and ℝ are both open and closed. These are mathematical illustrations, not authored repository instances."
+msgstr "数学示例：在带通常拓扑的 ℝ 中，[0, +∞) 为无界闭集，而 ∅ 与 ℝ 既开又闭。这些是数学说明，而非仓库中已编写实例。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subset’s complement is open in the specified ambient topology and that closed-set role needs a resource."
+msgstr "当子集的补集在指定环境拓扑中为开集，且该闭集角色需要资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring closedness from boundedness, a finite list or the absence of an open-set label, or excluding the same set from also being open."
+msgstr "不要从有界性、有限列表或缺少开集标签推断闭性，也不要排除同一集合同时为开集。"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the subset and its actual ambient topology in the existing mathematical description. When a separate math:Complement construction is supplied, retain its ambient-space and topological math:complementSemantics context without creating a new subclass, ambient predicate or automatic complement edge."
+msgstr "在已有数学描述中标识子集及实际环境拓扑。当提供独立 math:Complement 构造时，保留其环境空间及拓扑 math:complementSemantics 背景，不创建新子类、环境谓词或自动补集边。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Neighbourhood"
+msgstr "邻域"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A neighbourhood of a point in a math:TopologicalSpace: a set containing an open set that contains the point. A subclass of math:Set. Neighbourhoods are the local structure the separation axioms (math:separationAxiom, e.g. Hausdorff) quantify over."
+msgstr "math:TopologicalSpace 中点的邻域，即包含某个含该点开集的集合。它是 math:Set 的子类。邻域是分离公理（math:separationAxiom，例如 Hausdorff）量化的局部结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A neighbourhood contains an open set containing the relevant point and need not itself be open. Point and topology context matter; a neighbourhood-like name or an OpenSet type alone does not add an authored Neighbourhood classification or a new point/space relation."
+msgstr "邻域包含含相关点的开集，本身不必开。点及拓扑背景至关重要；邻域式名称或仅 OpenSet 类型不会添加已编写 Neighbourhood 分类或新的点/空间关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: in the usual topology of ℝ, [−1, 1] is a neighbourhood of 0 because it contains (−1, 1), an open set containing 0. The closed interval need not itself be open; this is not an authored repository record."
+msgstr "数学示例：在 ℝ 的通常拓扑中，[−1, 1] 是 0 的邻域，因为它包含含 0 的开集 (−1, 1)。闭区间本身不必开；这不是仓库中已编写记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s local role around a specified point is justified by an open subset containing that point."
+msgstr "当集合在指定点周围的局部角色由含该点的开子集支持时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring every neighbourhood to be open, retyping the Hausdorff nbhdOfP/nbhdOfQ open records merely from their names, or assuming an unnamed point or topology."
+msgstr "不要要求每个邻域都开，不要仅凭名称重定型 Hausdorff 的 nbhdOfP/nbhdOfQ 开集记录，也不要假定未指定点或拓扑。"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the point, topology and containing-open-set interpretation in existing mathematical descriptions, without inventing mandatory point or ambient-space slots. Preserve the actual OpenSet types and membership records of the Hausdorff example; describe a Neighbourhood role only with its own justified context."
+msgstr "在已有数学描述中保留点、拓扑及包含开集的解释，不臆造必填点或环境空间槽位。保留 Hausdorff 示例的实际 OpenSet 类型及成员记录；仅以其自身有依据背景描述 Neighbourhood 角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Continuous Map"
+msgstr "连续映射"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."
+msgstr "拓扑空间之间的连续映射，即每个开集的原像均为开集的映射。它是 math:Morphism 的子类（保持空间结构的映射，其 math:sourceObject 与 math:targetObject 为两个拓扑空间），并通过 math:isContinuous 声明连续性；连续性须声明而非假定（未声明连续性是不合式的，math:UndeclaredTopologicalProperty）。其保持结构是拓扑，定义定律为 math:continuityLaw（开集的原像为开集），通过 math:preservesStructure 引用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Continuity concerns preimages of every open set under the specified source and target topologies. This class inherits math:Morphism, not a newly inferred Function/set frame; a boolean or law link alone is not a continuity proof or a calculation of preimages."
+msgstr "连续性涉及在指定源及目标拓扑下每个开集的原像。此类继承 math:Morphism，而非新推断的 Function/集合框架；仅布尔值或定律链接既不是连续性证明，也不是原像计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "continuous-map-declared.ttl gives ex:inclusion math:isContinuous true and math:preservesStructure math:continuityLaw. That fixture supplies no sourceObject/targetObject endpoints or calculated preimages, and the declaration is not a runtime law-satisfaction result."
+msgstr "continuous-map-declared.ttl 为 ex:inclusion 提供 math:isContinuous true 及 math:preservesStructure math:continuityLaw。该测例未提供 sourceObject/targetObject 端点或已计算原像，声明也不是运行时定律满足结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between topological spaces has an explicit continuity claim interpreted by the preimage-of-open-sets criterion."
+msgstr "当拓扑空间间映射具有按开集原像判据解释的显式连续性主张时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring Function inheritance, filling in unauthored endpoints or preimages, or treating math:isContinuous true or a continuityLaw link as proof that every required preimage is open."
+msgstr "不要推断 Function 继承，不要填入未编写端点或原像，也不要将 math:isContinuous true 或 continuityLaw 链接视为每个所需原像均开的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the topological source/target interpretation in math:sourceObject and math:targetObject, preserving only actual authored endpoint data. Keep the explicit boolean declaration and math:preservesStructure law resource separate from the realized formula, supporting evidence and any evaluated result; add no automatic domain/codomain bridge."
+msgstr "在 math:sourceObject 和 math:targetObject 中保留拓扑源/目标解释，仅保留实际已编写端点数据。将显式布尔声明及 math:preservesStructure 定律资源与已实现公式、支持证据及任何已求值结果区分，不添加自动定义域/陪域桥接。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homeomorphism"
+msgstr "同胚"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homeomorphism: a continuous map with a continuous inverse — an isomorphism in the category of topological spaces. A subclass of math:ContinuousMap; two spaces related by a homeomorphism are topologically the same. A chart's coordinate map is a homeomorphism onto its image."
+msgstr "同胚是具有连续逆映射的连续映射，即拓扑空间范畴中的同构。它是 math:ContinuousMap 的子类；由同胚关联的两个空间在拓扑上相同。坐标图的坐标映射是到其像的同胚。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A homeomorphism requires a continuous inverse as well as forward continuity and bijectivity. Topological equivalence does not merge source and target resources, and weaker homotopy equivalence does not suffice. The inherited ContinuousMap role does not create Function inheritance or an automatic chart-type bridge."
+msgstr "同胚除正向连续及双射外，还要求连续逆映射。拓扑等价不会合并源和目标资源，更弱的同伦等价并不足够。继承的 ContinuousMap 角色不创建 Function 继承或自动坐标图类型桥接。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: x ↦ 2x from ℝ to ℝ with the usual topology is a homeomorphism with continuous inverse y ↦ y/2. This is a mathematical illustration, not a repository Homeomorphism instance or an executed inverse construction."
+msgstr "数学示例：在通常拓扑下，从 ℝ 到 ℝ 的 x ↦ 2x 是同胚，其连续逆为 y ↦ y/2。这是数学说明，而非仓库 Homeomorphism 实例或已执行逆映射构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the map is described as a topological isomorphism with justified continuity in both directions."
+msgstr "当映射被描述为两个方向连续性均有依据的拓扑同构时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring homeomorphism from bijectivity plus forward continuity alone, substituting homotopy equivalence, or retyping the authored inertialCoordinateFn merely because a chart’s mathematical coordinate map is a homeomorphism onto its image."
+msgstr "不要仅由双射及正向连续推断同胚，不要以同伦等价替代，也不要仅因坐标图的数学坐标映射是到其像的同胚，就重定型已编写 inertialCoordinateFn。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual map, source and target topologies and continuous inverse through existing mathematical representations, retaining the inherited continuity declaration separately from proof. Preserve ex:inertialCoordinateFn as the authored math:CoordinateMap/Function example without adding Homeomorphism typing, new inverse slots or automatic inverse execution."
+msgstr "通过已有数学表示描述实际映射、源及目标拓扑和连续逆映射，将继承连续性声明与证明区分。将 ex:inertialCoordinateFn 保留为已编写 math:CoordinateMap/Function 示例，不添加 Homeomorphism 类型、新逆映射槽位或自动逆运算执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has open set"
+msgstr "具有开集"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TopologicalSpace to a math:OpenSet of its topology (or a basis element). Domain math:TopologicalSpace, range math:OpenSet (stated in prose). A space is given by its open sets; continuity is defined by them."
+msgstr "将 math:TopologicalSpace 关联到其拓扑中的 math:OpenSet（或基元素）。定义域为 math:TopologicalSpace，值域为 math:OpenSet，以文字说明。空间由其开集给出，连续性由开集定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link names a declared open set or basis element for a space. A selected list need not enumerate the topology, and the relation provides no new basis marker, complete-topology certificate or automatic arbitrary-union/finite-intersection closure."
+msgstr "此链接为空间指定已声明开集或基元素。所选列表不必枚举整个拓扑，该关系也不提供新基标记、完整拓扑证书或对任意并及有限交的自动闭包。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-geometry.ttl fixture records exf:circleSpace math:hasOpenSet exf:arcU and exf:arcV, with each arc typed math:OpenSet. The records say which opens are supplied without claiming that those two arcs exhaust or generate the full topology."
+msgstr "analysis-geometry.ttl 测例记录 exf:circleSpace math:hasOpenSet exf:arcU 和 exf:arcV，每个弧均定为 math:OpenSet。这些记录说明提供了哪些开集，不声称两个弧穷尽或生成完整拓扑。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a topological-space description supplies identified opens or basis elements that must remain linked to that space."
+msgstr "当拓扑空间描述提供已标识开集或基元素，且需保留其到空间的链接时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting every edge as an exhaustive topology declaration, inferring a closed global subject/range restriction from the examples, or deriving point membership and closure results from an open-set name."
+msgstr "不要将每条边解释为穷尽拓扑声明，不要从示例推断封闭全局主语/值域限制，也不要从开集名称推导点成员关系或闭包结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual space to the supplied math:OpenSet resource and retain the intended topology or basis interpretation in existing descriptions. Preserve any separately authored membership and law data, without inventing a completeness flag, basis predicate, ambient-space link or generated closure."
+msgstr "将实际空间关联到已提供 math:OpenSet 资源，在已有描述中保留所需拓扑或基解释。保留另行编写的任何成员及定律数据，不臆造完整性标志、基谓词、环境空间链接或生成闭包。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is continuous"
+msgstr "是否连续"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a map is continuous — the preimage of every open set is open (math:continuityLaw). Domain math:ContinuousMap, range xsd:boolean (stated in prose). The canonical checkable bearer of continuity; continuity is declared here, not assumed from the math:ContinuousMap type (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty)."
+msgstr "声明映射是否连续，即每个开集的原像均为开集（math:continuityLaw）。定义域为 math:ContinuousMap，值域为 xsd:boolean，以文字说明。它是连续性的规范可检查承载字段；连续性在此声明，而非从 math:ContinuousMap 类型假定（未声明连续性是不合式的，math:UndeclaredTopologicalProperty）。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing class-local check requires exactly one boolean declaration with closure and math:UndeclaredTopologicalProperty ownership; it does not require the value true. Either boolean can be recorded, but false is a negative declaration, not proof of continuity, and a present value is not a law-satisfaction result."
+msgstr "已有类局部检查要求具有闭包且归属 math:UndeclaredTopologicalProperty 的恰好一个布尔声明，不要求值为 true。两种布尔值均可记录，但 false 是否定声明而非连续性证明，值存在也不是定律满足结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:inclusion in continuous-map-declared.ttl records math:isContinuous true and names math:continuityLaw through math:preservesStructure. The fixture’s declaration does not compute preimages or prove continuity for an arbitrary declared map."
+msgstr "continuous-map-declared.ttl 中 ex:inclusion 记录 math:isContinuous true，并通过 math:preservesStructure 指定 math:continuityLaw。测例声明不计算原像，也不证明任意已声明映射的连续性。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map’s continuity status must be explicitly declared as a boolean rather than assumed from its type or label."
+msgstr "当映射连续性状态须以布尔值显式声明，而非由类型或标签假定时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting a missing declaration to true, interpreting false as affirmative continuity evidence, or treating boolean completeness as formula verification, inverse construction or execution."
+msgstr "不要将缺少声明默认为 true，不要将 false 解释为肯定连续性的证据，也不要将布尔完整性视为公式验证、逆映射构造或执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the actual xsd:boolean value and preserve the applicable exactly-one declaration requirement without imposing hasValue true. Retain math:continuityLaw as the realized Formula over the reified open-set/preimage signature, keeping that syntax and any supporting evidence separate from the boolean and from claims that the map satisfies the law."
+msgstr "记录实际 xsd:boolean 值，保留适用的恰好一个声明要求，不施加 hasValue true。保留 math:continuityLaw 为在重化开集/原像签名上的已实现 Formula，并将该语法及任何支持证据与布尔值及映射满足定律的主张区分。"

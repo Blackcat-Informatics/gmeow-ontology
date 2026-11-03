@@ -4637,6 +4637,11 @@ math:TopologicalSpace
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Topological Space"@x-gmeow-english ;
+    skos:scopeNote "The space includes a chosen topology, not merely a collection of named subsets. Selected math:hasOpenSet links can describe opens or basis elements without establishing a complete topology or proving arbitrary-union and finite-intersection closure."@x-gmeow-english ;
+    skos:example "exf:circleSpace in tests/fixtures/analysis-geometry.ttl names exf:arcU and exf:arcV through math:hasOpenSet. Those two supplied open-set records do not enumerate all opens or prove that they form a complete basis."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical space must retain its topology as the setting for openness, closedness, continuity or separation claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a complete topology from a few links, silently choosing an ambient topology for a subset, or treating a space label as proof of topology laws."@x-gmeow-english ;
+    gmeow:howToUse "Identify the space and the intended topology in the existing mathematical description, retaining supplied open or basis records with math:hasOpenSet. Keep selected declarations distinct from completeness and law evidence, without inventing a basis marker, ambient-space predicate or automatic closure construction."@x-gmeow-english ;
     skos:definition "A topological space (X, τ): a set X together with a topology τ — its collection of open sets, closed under arbitrary union and finite intersection and containing ∅ and X. Given by its open sets (or a basis) through math:hasOpenSet. The object over which continuity, compactness, connectedness, and the separation axioms are defined; a math:MetricSpace and a manifold's underlying space are topological spaces."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4645,6 +4650,11 @@ math:OpenSet
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Open Set"@x-gmeow-english ;
+    skos:scopeNote "Openness is relative to the specified topology. A set can be both open and closed, and being used as an open neighbourhood does not automatically change its authored type to math:Neighbourhood or provide missing point/space links."@x-gmeow-english ;
+    skos:example "hausdorff-space-declared.ttl types ex:nbhdOfP and ex:nbhdOfQ as math:OpenSet and records math:hasElement ex:pointP and ex:pointQ respectively. Their neighbourhood-style names do not supply math:Neighbourhood typing."@x-gmeow-english ;
+    gmeow:useWhen "Use when a subset is described as open in a particular topological space, including a supplied open chart domain or topology basis element."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating open and closed as exclusive, reading point membership or an ambient-space relation from a name, or equating selected open-set declarations with a complete topology."@x-gmeow-english ;
+    gmeow:howToUse "Retain the subset’s actual open-set declaration and topology context using existing representations. Preserve ex:inertialRegion as the authored math:OpenSet chart domain in analysis-and-geometry.ttl without adding an invented ambient predicate, new neighbourhood typing or a claim that the listed opens exhaust the topology."@x-gmeow-english ;
     skos:definition "An open set of a math:TopologicalSpace: a member of the space's topology τ. A subclass of math:Set. Continuity is defined by open sets (preimages of open sets are open), and a math:Neighbourhood of a point contains an open set containing the point."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4653,6 +4663,11 @@ math:ClosedSet
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Closed Set"@x-gmeow-english ;
+    skos:scopeNote "Closedness is relative to an ambient topological space: the complement there is open. It is not a synonym for boundedness or finite enumeration, and a clopen set can also be math:OpenSet. The complement meaning does not add a formal Complement superclass or automatically construct a complement resource."@x-gmeow-english ;
+    skos:example "Illustrative mathematical case: [0, +∞) is closed and unbounded in ℝ with its usual topology, while ∅ and ℝ are both open and closed. These are mathematical illustrations, not authored repository instances."@x-gmeow-english ;
+    gmeow:useWhen "Use when a subset’s complement is open in the specified ambient topology and that closed-set role needs a resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring closedness from boundedness, a finite list or the absence of an open-set label, or excluding the same set from also being open."@x-gmeow-english ;
+    gmeow:howToUse "Identify the subset and its actual ambient topology in the existing mathematical description. When a separate math:Complement construction is supplied, retain its ambient-space and topological math:complementSemantics context without creating a new subclass, ambient predicate or automatic complement edge."@x-gmeow-english ;
     skos:definition "A closed set of a math:TopologicalSpace: the complement of a math:OpenSet within the space (a math:Complement whose math:complementSemantics is topological). A subclass of math:Set. Closed under finite union and arbitrary intersection, dual to the open sets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4661,6 +4676,11 @@ math:Neighbourhood
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Neighbourhood"@x-gmeow-english ;
+    skos:scopeNote "A neighbourhood contains an open set containing the relevant point and need not itself be open. Point and topology context matter; a neighbourhood-like name or an OpenSet type alone does not add an authored Neighbourhood classification or a new point/space relation."@x-gmeow-english ;
+    skos:example "Illustrative mathematical case: in the usual topology of ℝ, [−1, 1] is a neighbourhood of 0 because it contains (−1, 1), an open set containing 0. The closed interval need not itself be open; this is not an authored repository record."@x-gmeow-english ;
+    gmeow:useWhen "Use when a set’s local role around a specified point is justified by an open subset containing that point."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring every neighbourhood to be open, retyping the Hausdorff nbhdOfP/nbhdOfQ open records merely from their names, or assuming an unnamed point or topology."@x-gmeow-english ;
+    gmeow:howToUse "Retain the point, topology and containing-open-set interpretation in existing mathematical descriptions, without inventing mandatory point or ambient-space slots. Preserve the actual OpenSet types and membership records of the Hausdorff example; describe a Neighbourhood role only with its own justified context."@x-gmeow-english ;
     skos:definition "A neighbourhood of a point in a math:TopologicalSpace: a set containing an open set that contains the point. A subclass of math:Set. Neighbourhoods are the local structure the separation axioms (math:separationAxiom, e.g. Hausdorff) quantify over."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4671,6 +4691,11 @@ math:ContinuousMap
     rdfs:label "Continuous Map"@x-gmeow-english ;
     rdfs:seeAlso math:continuityLaw ;
     math:definingLaw math:continuityLaw ;
+    skos:scopeNote "Continuity concerns preimages of every open set under the specified source and target topologies. This class inherits math:Morphism, not a newly inferred Function/set frame; a boolean or law link alone is not a continuity proof or a calculation of preimages."@x-gmeow-english ;
+    skos:example "continuous-map-declared.ttl gives ex:inclusion math:isContinuous true and math:preservesStructure math:continuityLaw. That fixture supplies no sourceObject/targetObject endpoints or calculated preimages, and the declaration is not a runtime law-satisfaction result."@x-gmeow-english ;
+    gmeow:useWhen "Use when a map between topological spaces has an explicit continuity claim interpreted by the preimage-of-open-sets criterion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring Function inheritance, filling in unauthored endpoints or preimages, or treating math:isContinuous true or a continuityLaw link as proof that every required preimage is open."@x-gmeow-english ;
+    gmeow:howToUse "Retain the topological source/target interpretation in math:sourceObject and math:targetObject, preserving only actual authored endpoint data. Keep the explicit boolean declaration and math:preservesStructure law resource separate from the realized formula, supporting evidence and any evaluated result; add no automatic domain/codomain bridge."@x-gmeow-english ;
     skos:definition "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4679,6 +4704,11 @@ math:Homeomorphism
     rdfs:subClassOf math:ContinuousMap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Homeomorphism"@x-gmeow-english ;
+    skos:scopeNote "A homeomorphism requires a continuous inverse as well as forward continuity and bijectivity. Topological equivalence does not merge source and target resources, and weaker homotopy equivalence does not suffice. The inherited ContinuousMap role does not create Function inheritance or an automatic chart-type bridge."@x-gmeow-english ;
+    skos:example "Illustrative mathematical case: x ↦ 2x from ℝ to ℝ with the usual topology is a homeomorphism with continuous inverse y ↦ y/2. This is a mathematical illustration, not a repository Homeomorphism instance or an executed inverse construction."@x-gmeow-english ;
+    gmeow:useWhen "Use when the map is described as a topological isomorphism with justified continuity in both directions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring homeomorphism from bijectivity plus forward continuity alone, substituting homotopy equivalence, or retyping the authored inertialCoordinateFn merely because a chart’s mathematical coordinate map is a homeomorphism onto its image."@x-gmeow-english ;
+    gmeow:howToUse "Describe the actual map, source and target topologies and continuous inverse through existing mathematical representations, retaining the inherited continuity declaration separately from proof. Preserve ex:inertialCoordinateFn as the authored math:CoordinateMap/Function example without adding Homeomorphism typing, new inverse slots or automatic inverse execution."@x-gmeow-english ;
     skos:definition "A homeomorphism: a continuous map with a continuous inverse — an isomorphism in the category of topological spaces. A subclass of math:ContinuousMap; two spaces related by a homeomorphism are topologically the same. A chart's coordinate map is a homeomorphism onto its image."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4733,6 +4763,11 @@ math:hasOpenSet
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has open set"@x-gmeow-english ;
+    skos:scopeNote "The link names a declared open set or basis element for a space. A selected list need not enumerate the topology, and the relation provides no new basis marker, complete-topology certificate or automatic arbitrary-union/finite-intersection closure."@x-gmeow-english ;
+    skos:example "The analysis-geometry.ttl fixture records exf:circleSpace math:hasOpenSet exf:arcU and exf:arcV, with each arc typed math:OpenSet. The records say which opens are supplied without claiming that those two arcs exhaust or generate the full topology."@x-gmeow-english ;
+    gmeow:useWhen "Use when a topological-space description supplies identified opens or basis elements that must remain linked to that space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting every edge as an exhaustive topology declaration, inferring a closed global subject/range restriction from the examples, or deriving point membership and closure results from an open-set name."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual space to the supplied math:OpenSet resource and retain the intended topology or basis interpretation in existing descriptions. Preserve any separately authored membership and law data, without inventing a completeness flag, basis predicate, ambient-space link or generated closure."@x-gmeow-english ;
     skos:definition "Relates a math:TopologicalSpace to a math:OpenSet of its topology (or a basis element). Domain math:TopologicalSpace, range math:OpenSet (stated in prose). A space is given by its open sets; continuity is defined by them."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -4740,6 +4775,11 @@ math:isContinuous
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is continuous"@x-gmeow-english ;
+    skos:scopeNote "The existing class-local check requires exactly one boolean declaration with closure and math:UndeclaredTopologicalProperty ownership; it does not require the value true. Either boolean can be recorded, but false is a negative declaration, not proof of continuity, and a present value is not a law-satisfaction result."@x-gmeow-english ;
+    skos:example "ex:inclusion in continuous-map-declared.ttl records math:isContinuous true and names math:continuityLaw through math:preservesStructure. The fixture’s declaration does not compute preimages or prove continuity for an arbitrary declared map."@x-gmeow-english ;
+    gmeow:useWhen "Use when a map’s continuity status must be explicitly declared as a boolean rather than assumed from its type or label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting a missing declaration to true, interpreting false as affirmative continuity evidence, or treating boolean completeness as formula verification, inverse construction or execution."@x-gmeow-english ;
+    gmeow:howToUse "Record the actual xsd:boolean value and preserve the applicable exactly-one declaration requirement without imposing hasValue true. Retain math:continuityLaw as the realized Formula over the reified open-set/preimage signature, keeping that syntax and any supporting evidence separate from the boolean and from claims that the map satisfies the law."@x-gmeow-english ;
     skos:definition "Declares whether a map is continuous — the preimage of every open set is open (math:continuityLaw). Domain math:ContinuousMap, range xsd:boolean (stated in prose). The canonical checkable bearer of continuity; continuity is declared here, not assumed from the math:ContinuousMap type (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

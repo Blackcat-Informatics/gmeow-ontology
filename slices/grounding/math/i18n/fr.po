@@ -9048,3 +9048,227 @@ msgstr "Ne pas attribuer un ordre de Weyl fini au groupe de Lie E8 infini ou au 
 msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the positive integral order on the appropriate finite group, preserving its actual RDF integer literal and the normative E8 value under the applicable canonical conditions. Keep evidence or computation separate from the declaration; a recorded value alone does not establish any validation result or imply a generic presence, cardinality or range axiom."
 msgstr "Consigner l’ordre entier positif sur le groupe fini approprié, en préservant son littéral entier RDF réel et la valeur E8 normative selon les conditions canoniques applicables. Distinguer les éléments probants ou le calcul de la déclaration ; une valeur consignée seule n’établit aucun résultat de validation et n’implique aucun axiome générique de présence, de cardinalité ou de portée."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Topological Space"
+msgstr "Espace topologique"
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A topological space (X, τ): a set X together with a topology τ — its collection of open sets, closed under arbitrary union and finite intersection and containing ∅ and X. Given by its open sets (or a basis) through math:hasOpenSet. The object over which continuity, compactness, connectedness, and the separation axioms are defined; a math:MetricSpace and a manifold's underlying space are topological spaces."
+msgstr "Un espace topologique (X, τ) : un ensemble X muni d’une topologie τ — sa collection d’ouverts, fermée pour les unions arbitraires et les intersections finies et contenant ∅ et X. Donné par ses ouverts (ou une base) au moyen de math:hasOpenSet. L’objet sur lequel sont définies continuité, compacité, connexité et axiomes de séparation ; un math:MetricSpace et l’espace sous-jacent d’une variété sont des espaces topologiques."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The space includes a chosen topology, not merely a collection of named subsets. Selected math:hasOpenSet links can describe opens or basis elements without establishing a complete topology or proving arbitrary-union and finite-intersection closure."
+msgstr "L’espace comprend une topologie choisie, et non une simple collection de sous-ensembles nommés. Des liens math:hasOpenSet choisis peuvent décrire des ouverts ou des éléments de base sans établir une topologie complète ni prouver la fermeture pour les unions arbitraires et les intersections finies."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:circleSpace in tests/fixtures/analysis-geometry.ttl names exf:arcU and exf:arcV through math:hasOpenSet. Those two supplied open-set records do not enumerate all opens or prove that they form a complete basis."
+msgstr "exf:circleSpace dans tests/fixtures/analysis-geometry.ttl nomme exf:arcU et exf:arcV par math:hasOpenSet. Ces deux relevés d’ouverts fournis n’énumèrent pas tous les ouverts et ne prouvent pas qu’ils forment une base complète."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical space must retain its topology as the setting for openness, closedness, continuity or separation claims."
+msgstr "Utiliser lorsqu’un espace mathématique doit conserver sa topologie comme cadre d’affirmations de caractère ouvert ou fermé, de continuité ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a complete topology from a few links, silently choosing an ambient topology for a subset, or treating a space label as proof of topology laws."
+msgstr "Ne pas déduire une topologie complète de quelques liens, choisir implicitement une topologie ambiante pour un sous-ensemble ou traiter un libellé d’espace comme une preuve des lois de topologie."
+
+msgctxt "https://blackcatinformatics.ca/math/TopologicalSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the space and the intended topology in the existing mathematical description, retaining supplied open or basis records with math:hasOpenSet. Keep selected declarations distinct from completeness and law evidence, without inventing a basis marker, ambient-space predicate or automatic closure construction."
+msgstr "Identifier l’espace et la topologie voulue dans la description mathématique existante, en conservant les relevés fournis d’ouverts ou de base par math:hasOpenSet. Distinguer déclarations choisies, complétude et preuves de lois, sans inventer de marqueur de base, de prédicat d’espace ambiant ni de construction automatique de fermeture."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Set"
+msgstr "Ouvert"
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open set of a math:TopologicalSpace: a member of the space's topology τ. A subclass of math:Set. Continuity is defined by open sets (preimages of open sets are open), and a math:Neighbourhood of a point contains an open set containing the point."
+msgstr "Un ouvert d’un math:TopologicalSpace : un membre de la topologie τ de l’espace. Sous-classe de math:Set. La continuité est définie par les ouverts (les images réciproques d’ouverts sont ouvertes), et un math:Neighbourhood d’un point contient un ouvert contenant ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Openness is relative to the specified topology. A set can be both open and closed, and being used as an open neighbourhood does not automatically change its authored type to math:Neighbourhood or provide missing point/space links."
+msgstr "Le caractère ouvert est relatif à la topologie spécifiée. Un ensemble peut être à la fois ouvert et fermé, et son usage comme voisinage ouvert ne change pas automatiquement son type écrit en math:Neighbourhood et ne fournit pas les liens de point ou d’espace manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "hausdorff-space-declared.ttl types ex:nbhdOfP and ex:nbhdOfQ as math:OpenSet and records math:hasElement ex:pointP and ex:pointQ respectively. Their neighbourhood-style names do not supply math:Neighbourhood typing."
+msgstr "hausdorff-space-declared.ttl type ex:nbhdOfP et ex:nbhdOfQ comme math:OpenSet et consigne respectivement math:hasElement ex:pointP et ex:pointQ. Leurs noms évoquant des voisinages ne fournissent pas le type math:Neighbourhood."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subset is described as open in a particular topological space, including a supplied open chart domain or topology basis element."
+msgstr "Utiliser lorsqu’un sous-ensemble est décrit comme ouvert dans un espace topologique particulier, y compris un domaine ouvert de carte ou un élément de base topologique fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating open and closed as exclusive, reading point membership or an ambient-space relation from a name, or equating selected open-set declarations with a complete topology."
+msgstr "Ne pas traiter ouvert et fermé comme exclusifs, lire l’appartenance d’un point ou une relation d’espace ambiant dans un nom, ou assimiler des déclarations choisies d’ouverts à une topologie complète."
+
+msgctxt "https://blackcatinformatics.ca/math/OpenSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the subset’s actual open-set declaration and topology context using existing representations. Preserve ex:inertialRegion as the authored math:OpenSet chart domain in analysis-and-geometry.ttl without adding an invented ambient predicate, new neighbourhood typing or a claim that the listed opens exhaust the topology."
+msgstr "Conserver la déclaration réelle d’ouvert du sous-ensemble et son contexte topologique avec les représentations existantes. Préserver ex:inertialRegion comme domaine de carte math:OpenSet écrit dans analysis-and-geometry.ttl sans ajouter de prédicat ambiant inventé, de nouveau type de voisinage ni d’affirmation que les ouverts énumérés épuisent la topologie."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Closed Set"
+msgstr "Fermé"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed set of a math:TopologicalSpace: the complement of a math:OpenSet within the space (a math:Complement whose math:complementSemantics is topological). A subclass of math:Set. Closed under finite union and arbitrary intersection, dual to the open sets."
+msgstr "Un fermé d’un math:TopologicalSpace : le complément d’un math:OpenSet dans l’espace (un math:Complement dont le math:complementSemantics est topologique). Sous-classe de math:Set. Fermé pour les unions finies et les intersections arbitraires, dualement aux ouverts."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Closedness is relative to an ambient topological space: the complement there is open. It is not a synonym for boundedness or finite enumeration, and a clopen set can also be math:OpenSet. The complement meaning does not add a formal Complement superclass or automatically construct a complement resource."
+msgstr "Le caractère fermé est relatif à un espace topologique ambiant : le complément y est ouvert. Ce n’est pas un synonyme de bornitude ou d’énumération finie, et un ensemble ouvert et fermé peut aussi être math:OpenSet. Le sens de complément n’ajoute pas de superclasse formelle Complement et ne construit pas automatiquement de ressource complément."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: [0, +∞) is closed and unbounded in ℝ with its usual topology, while ∅ and ℝ are both open and closed. These are mathematical illustrations, not authored repository instances."
+msgstr "Cas mathématique illustratif : [0, +∞) est fermé et non borné dans ℝ muni de sa topologie usuelle, tandis que ∅ et ℝ sont à la fois ouverts et fermés. Ce sont des illustrations mathématiques, et non des instances écrites dans le dépôt."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subset’s complement is open in the specified ambient topology and that closed-set role needs a resource."
+msgstr "Utiliser lorsque le complément d’un sous-ensemble est ouvert dans la topologie ambiante spécifiée et que ce rôle de fermé nécessite une ressource."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring closedness from boundedness, a finite list or the absence of an open-set label, or excluding the same set from also being open."
+msgstr "Ne pas déduire le caractère fermé de la bornitude, d’une liste finie ou de l’absence d’un libellé d’ouvert, ni exclure que le même ensemble soit aussi ouvert."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the subset and its actual ambient topology in the existing mathematical description. When a separate math:Complement construction is supplied, retain its ambient-space and topological math:complementSemantics context without creating a new subclass, ambient predicate or automatic complement edge."
+msgstr "Identifier le sous-ensemble et sa topologie ambiante réelle dans la description mathématique existante. Lorsqu’une construction math:Complement distincte est fournie, conserver son contexte d’espace ambiant et de math:complementSemantics topologique sans créer de nouvelle sous-classe, prédicat ambiant ou lien automatique de complément."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Neighbourhood"
+msgstr "Voisinage"
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A neighbourhood of a point in a math:TopologicalSpace: a set containing an open set that contains the point. A subclass of math:Set. Neighbourhoods are the local structure the separation axioms (math:separationAxiom, e.g. Hausdorff) quantify over."
+msgstr "Un voisinage d’un point dans un math:TopologicalSpace : un ensemble contenant un ouvert qui contient le point. Sous-classe de math:Set. Les voisinages sont la structure locale sur laquelle quantifient les axiomes de séparation (math:separationAxiom, par exemple Hausdorff)."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A neighbourhood contains an open set containing the relevant point and need not itself be open. Point and topology context matter; a neighbourhood-like name or an OpenSet type alone does not add an authored Neighbourhood classification or a new point/space relation."
+msgstr "Un voisinage contient un ouvert contenant le point concerné et n’a pas à être lui-même ouvert. Les contextes de point et de topologie importent ; un nom évoquant un voisinage ou un type OpenSet seul n’ajoute pas de classification Neighbourhood écrite ni de nouvelle relation de point ou d’espace."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: in the usual topology of ℝ, [−1, 1] is a neighbourhood of 0 because it contains (−1, 1), an open set containing 0. The closed interval need not itself be open; this is not an authored repository record."
+msgstr "Cas mathématique illustratif : dans la topologie usuelle de ℝ, [−1, 1] est un voisinage de 0 car il contient (−1, 1), un ouvert contenant 0. L’intervalle fermé n’a pas à être lui-même ouvert ; il ne s’agit pas d’un relevé écrit dans le dépôt."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a set’s local role around a specified point is justified by an open subset containing that point."
+msgstr "Utiliser lorsque le rôle local d’un ensemble autour d’un point spécifié est justifié par un sous-ensemble ouvert contenant ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring every neighbourhood to be open, retyping the Hausdorff nbhdOfP/nbhdOfQ open records merely from their names, or assuming an unnamed point or topology."
+msgstr "Ne pas exiger que tout voisinage soit ouvert, retyper les relevés ouverts de Hausdorff nbhdOfP/nbhdOfQ à partir de leurs seuls noms ou présumer un point ou une topologie non nommés."
+
+msgctxt "https://blackcatinformatics.ca/math/Neighbourhood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the point, topology and containing-open-set interpretation in existing mathematical descriptions, without inventing mandatory point or ambient-space slots. Preserve the actual OpenSet types and membership records of the Hausdorff example; describe a Neighbourhood role only with its own justified context."
+msgstr "Conserver les interprétations de point, de topologie et d’ouvert contenu dans les descriptions mathématiques existantes, sans inventer d’emplacements obligatoires de point ou d’espace ambiant. Préserver les types OpenSet réels et les relevés d’appartenance de l’exemple de Hausdorff ; ne décrire un rôle Neighbourhood qu’avec son propre contexte justifié."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Continuous Map"
+msgstr "Application continue"
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A continuous map between topological spaces: a map under which the preimage of every open set is open. A subclass of math:Morphism (a structure-preserving map of spaces, its math:sourceObject and math:targetObject the two topological spaces), and it declares its continuity through math:isContinuous — continuity is declared, not assumed (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology, whose defining law is math:continuityLaw (preimages of open sets are open), referenced through math:preservesStructure."
+msgstr "Une application continue entre espaces topologiques : une application pour laquelle l’image réciproque de tout ouvert est ouverte. Sous-classe de math:Morphism (une application de structures d’espaces, ses math:sourceObject et math:targetObject étant les deux espaces topologiques), elle déclare sa continuité par math:isContinuous — la continuité est déclarée, et non supposée (une continuité non déclarée est mal formée, math:UndeclaredTopologicalProperty). La structure préservée est la topologie, dont la loi de définition est math:continuityLaw (les images réciproques d’ouverts sont ouvertes), référencée par math:preservesStructure."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Continuity concerns preimages of every open set under the specified source and target topologies. This class inherits math:Morphism, not a newly inferred Function/set frame; a boolean or law link alone is not a continuity proof or a calculation of preimages."
+msgstr "La continuité concerne les images réciproques de tout ouvert selon les topologies source et cible spécifiées. Cette classe hérite de math:Morphism, et non d’un cadre Function/ensembles nouvellement inféré ; un booléen ou lien de loi seul n’est ni une preuve de continuité ni un calcul d’images réciproques."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "continuous-map-declared.ttl gives ex:inclusion math:isContinuous true and math:preservesStructure math:continuityLaw. That fixture supplies no sourceObject/targetObject endpoints or calculated preimages, and the declaration is not a runtime law-satisfaction result."
+msgstr "continuous-map-declared.ttl donne à ex:inclusion math:isContinuous true et math:preservesStructure math:continuityLaw. Ce fichier ne fournit ni extrémités sourceObject/targetObject ni images réciproques calculées, et la déclaration n’est pas un résultat de satisfaction de loi à l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between topological spaces has an explicit continuity claim interpreted by the preimage-of-open-sets criterion."
+msgstr "Utiliser lorsqu’une application entre espaces topologiques possède une affirmation explicite de continuité interprétée par le critère des images réciproques d’ouverts."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring Function inheritance, filling in unauthored endpoints or preimages, or treating math:isContinuous true or a continuityLaw link as proof that every required preimage is open."
+msgstr "Ne pas déduire un héritage de Function, compléter des extrémités ou images réciproques non écrites, ou traiter math:isContinuous true ou un lien continuityLaw comme une preuve que chaque image réciproque requise est ouverte."
+
+msgctxt "https://blackcatinformatics.ca/math/ContinuousMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the topological source/target interpretation in math:sourceObject and math:targetObject, preserving only actual authored endpoint data. Keep the explicit boolean declaration and math:preservesStructure law resource separate from the realized formula, supporting evidence and any evaluated result; add no automatic domain/codomain bridge."
+msgstr "Conserver l’interprétation topologique source/cible dans math:sourceObject et math:targetObject, en ne préservant que les données d’extrémités réellement écrites. Distinguer la déclaration booléenne explicite et la ressource de loi math:preservesStructure de la formule réalisée, des éléments probants et de tout résultat évalué ; n’ajouter aucune liaison automatique domaine/codomaine."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homeomorphism"
+msgstr "Homéomorphisme"
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homeomorphism: a continuous map with a continuous inverse — an isomorphism in the category of topological spaces. A subclass of math:ContinuousMap; two spaces related by a homeomorphism are topologically the same. A chart's coordinate map is a homeomorphism onto its image."
+msgstr "Un homéomorphisme : une application continue avec un inverse continu — un isomorphisme dans la catégorie des espaces topologiques. Sous-classe de math:ContinuousMap ; deux espaces reliés par un homéomorphisme sont topologiquement les mêmes. L’application de coordonnées d’une carte est un homéomorphisme sur son image."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A homeomorphism requires a continuous inverse as well as forward continuity and bijectivity. Topological equivalence does not merge source and target resources, and weaker homotopy equivalence does not suffice. The inherited ContinuousMap role does not create Function inheritance or an automatic chart-type bridge."
+msgstr "Un homéomorphisme requiert un inverse continu en plus de la continuité directe et de la bijectivité. L’équivalence topologique ne fusionne pas les ressources source et cible, et l’équivalence d’homotopie plus faible ne suffit pas. Le rôle ContinuousMap hérité ne crée ni héritage de Function ni liaison automatique de type de carte."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: x ↦ 2x from ℝ to ℝ with the usual topology is a homeomorphism with continuous inverse y ↦ y/2. This is a mathematical illustration, not a repository Homeomorphism instance or an executed inverse construction."
+msgstr "Cas mathématique illustratif : x ↦ 2x de ℝ vers ℝ avec la topologie usuelle est un homéomorphisme d’inverse continu y ↦ y/2. Il s’agit d’une illustration mathématique, et non d’une instance Homeomorphism du dépôt ou d’une construction d’inverse exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the map is described as a topological isomorphism with justified continuity in both directions."
+msgstr "Utiliser lorsque l’application est décrite comme un isomorphisme topologique dont la continuité dans les deux sens est justifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring homeomorphism from bijectivity plus forward continuity alone, substituting homotopy equivalence, or retyping the authored inertialCoordinateFn merely because a chart’s mathematical coordinate map is a homeomorphism onto its image."
+msgstr "Ne pas déduire un homéomorphisme de la seule bijectivité avec continuité directe, substituer une équivalence d’homotopie ou retyper inertialCoordinateFn tel qu’écrit au seul motif que l’application mathématique de coordonnées d’une carte est un homéomorphisme sur son image."
+
+msgctxt "https://blackcatinformatics.ca/math/Homeomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual map, source and target topologies and continuous inverse through existing mathematical representations, retaining the inherited continuity declaration separately from proof. Preserve ex:inertialCoordinateFn as the authored math:CoordinateMap/Function example without adding Homeomorphism typing, new inverse slots or automatic inverse execution."
+msgstr "Décrire l’application réelle, les topologies source et cible et l’inverse continu par les représentations mathématiques existantes, en distinguant la déclaration de continuité héritée de la preuve. Préserver ex:inertialCoordinateFn comme exemple math:CoordinateMap/Function écrit sans ajouter de type Homeomorphism, de nouveaux emplacements d’inverse ni d’exécution automatique d’inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has open set"
+msgstr "a pour ouvert"
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TopologicalSpace to a math:OpenSet of its topology (or a basis element). Domain math:TopologicalSpace, range math:OpenSet (stated in prose). A space is given by its open sets; continuity is defined by them."
+msgstr "Relie un math:TopologicalSpace à un math:OpenSet de sa topologie (ou un élément de base). Domaine math:TopologicalSpace, portée math:OpenSet (énoncés en prose). Un espace est donné par ses ouverts ; la continuité est définie par eux."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link names a declared open set or basis element for a space. A selected list need not enumerate the topology, and the relation provides no new basis marker, complete-topology certificate or automatic arbitrary-union/finite-intersection closure."
+msgstr "Le lien nomme un ouvert ou élément de base déclaré pour un espace. Une liste choisie n’énumère pas nécessairement la topologie, et la relation ne fournit ni nouveau marqueur de base, ni certificat de topologie complète, ni fermeture automatique pour les unions arbitraires et les intersections finies."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-geometry.ttl fixture records exf:circleSpace math:hasOpenSet exf:arcU and exf:arcV, with each arc typed math:OpenSet. The records say which opens are supplied without claiming that those two arcs exhaust or generate the full topology."
+msgstr "Le fichier analysis-geometry.ttl consigne exf:circleSpace math:hasOpenSet exf:arcU et exf:arcV, chaque arc étant typé math:OpenSet. Les relevés indiquent les ouverts fournis sans affirmer que ces deux arcs épuisent ou engendrent la topologie complète."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a topological-space description supplies identified opens or basis elements that must remain linked to that space."
+msgstr "Utiliser lorsqu’une description d’espace topologique fournit des ouverts ou éléments de base identifiés qui doivent rester liés à cet espace."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting every edge as an exhaustive topology declaration, inferring a closed global subject/range restriction from the examples, or deriving point membership and closure results from an open-set name."
+msgstr "Ne pas interpréter chaque lien comme une déclaration exhaustive de topologie, déduire une restriction globale fermée de sujet ou de portée des exemples, ou déduire l’appartenance d’un point et des résultats de fermeture du nom d’un ouvert."
+
+msgctxt "https://blackcatinformatics.ca/math/hasOpenSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual space to the supplied math:OpenSet resource and retain the intended topology or basis interpretation in existing descriptions. Preserve any separately authored membership and law data, without inventing a completeness flag, basis predicate, ambient-space link or generated closure."
+msgstr "Relier l’espace réel à la ressource math:OpenSet fournie et conserver l’interprétation voulue de topologie ou de base dans les descriptions existantes. Préserver toute donnée d’appartenance et de loi écrite séparément, sans inventer d’indicateur de complétude, de prédicat de base, de lien d’espace ambiant ou de fermeture générée."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is continuous"
+msgstr "est continue"
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a map is continuous — the preimage of every open set is open (math:continuityLaw). Domain math:ContinuousMap, range xsd:boolean (stated in prose). The canonical checkable bearer of continuity; continuity is declared here, not assumed from the math:ContinuousMap type (an undeclared continuity is ill-formed, math:UndeclaredTopologicalProperty)."
+msgstr "Déclare si une application est continue — l’image réciproque de tout ouvert est ouverte (math:continuityLaw). Domaine math:ContinuousMap, portée xsd:boolean (énoncés en prose). Le porteur canonique vérifiable de la continuité ; celle-ci est déclarée ici, et non supposée à partir du type math:ContinuousMap (une continuité non déclarée est mal formée, math:UndeclaredTopologicalProperty)."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing class-local check requires exactly one boolean declaration with closure and math:UndeclaredTopologicalProperty ownership; it does not require the value true. Either boolean can be recorded, but false is a negative declaration, not proof of continuity, and a present value is not a law-satisfaction result."
+msgstr "Le contrôle existant local à la classe requiert exactement une déclaration booléenne avec fermeture et responsabilité math:UndeclaredTopologicalProperty ; il n’exige pas la valeur true. L’un ou l’autre booléen peut être consigné, mais false est une déclaration négative, pas une preuve de continuité, et une valeur présente n’est pas un résultat de satisfaction de loi."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:inclusion in continuous-map-declared.ttl records math:isContinuous true and names math:continuityLaw through math:preservesStructure. The fixture’s declaration does not compute preimages or prove continuity for an arbitrary declared map."
+msgstr "ex:inclusion dans continuous-map-declared.ttl consigne math:isContinuous true et nomme math:continuityLaw par math:preservesStructure. La déclaration du fichier ne calcule pas d’images réciproques et ne prouve pas la continuité pour une application déclarée quelconque."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map’s continuity status must be explicitly declared as a boolean rather than assumed from its type or label."
+msgstr "Utiliser lorsque le statut de continuité d’une application doit être explicitement déclaré comme booléen plutôt que supposé à partir de son type ou libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting a missing declaration to true, interpreting false as affirmative continuity evidence, or treating boolean completeness as formula verification, inverse construction or execution."
+msgstr "Ne pas donner par défaut true à une déclaration manquante, interpréter false comme un élément probant affirmatif de continuité ou traiter la complétude booléenne comme une vérification de formule, une construction d’inverse ou une exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the actual xsd:boolean value and preserve the applicable exactly-one declaration requirement without imposing hasValue true. Retain math:continuityLaw as the realized Formula over the reified open-set/preimage signature, keeping that syntax and any supporting evidence separate from the boolean and from claims that the map satisfies the law."
+msgstr "Consigner la valeur xsd:boolean réelle et préserver l’exigence applicable d’exactement une déclaration sans imposer hasValue true. Conserver math:continuityLaw comme Formula réalisée sur la signature réifiée d’ouverts et d’images réciproques, en distinguant cette syntaxe et tout élément probant du booléen et des affirmations que l’application satisfait la loi."
