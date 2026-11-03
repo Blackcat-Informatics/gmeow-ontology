@@ -9903,7 +9903,7 @@ msgstr "此关系从代数或模指向其声明的分次。现有 math:CliffordA
 
 msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#example"
 msgid "The native Clifford producer emits math:hasGrading links to typed math:Grading records for its real diagonal algebras. These source declarations do not enumerate homogeneous components or realize their multiplication law; the linked record alone is not a computation or proof."
-msgstr "原生 Clifford 生产器为其实对角代数输出指向类型化 math:Grading 记录的 math:hasGrading 链接。这些源码声明不枚举齐次分量，也不实现其乘法律；所链接的记录本身不是计算或证明。"
+msgstr "原生 Clifford 生产器为其在实数域上的对角代数输出指向类型化 math:Grading 记录的 math:hasGrading 链接。这些源码声明不枚举齐次分量，也不实现其乘法律；所链接的记录本身不是计算或证明。"
 
 msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the intended grading must remain an explicit object related to its algebra or module. Retain the declared index convention so consumers can distinguish parity from exterior or blade degree."
@@ -10223,7 +10223,7 @@ msgstr "不要将类标签当作计算、自逆性的证明、非恒等要求，
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the operation and algebra context without inventing argument slots or cardinality rules. The native sparse methods apply checked rational signs from blade-mask degree, take no algebra parameter and perform no signature validation. Their real diagonal orthonormal context establishes no characteristic-two, complex, degenerate-form or nonorthogonal execution."
-msgstr "标识运算及代数背景，不要臆造参数槽位或基数规则。原生稀疏方法按基刃掩码次数以受检有理数算术改变符号，不接收代数参数，也不校验度量惯性指数对。其实对角正交归一背景不能证明支持特征二、复数、退化形式或非正交基下的执行。"
+msgstr "标识运算及代数背景，不要臆造参数槽位或基数规则。原生稀疏方法按基刃掩码次数以受检有理数算术改变符号，不接收代数参数，也不校验度量惯性指数对。其在实数域上的对角正交归一背景不能证明支持特征二、复数、退化形式或非正交基下的执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Clifford Reversion"
@@ -10336,3 +10336,59 @@ msgstr "不要假定对称性、先对左操作数应用逆序的约定、对整
 msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."
 msgstr "声明约定时不要臆造参数槽位或基数规则。原生代数方法在次数筛选前依据已声明的代数校验操作数掩码，然后使用受检有理系数乘法及累加。实数域上的对角正交归一配置至多允许六十四个生成元，不能证明支持一般的特征二、复数、退化形式或非正交基下的执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rotor"
+msgstr "旋量子"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "可逆偶多向量，其夹心作用在已声明约定下实现正交变换。 它不是任意偶多向量：可逆性与夹心作用是其构成条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A rotor must be even and invertible, with a declared sandwich action that preserves the generating vector domain and its quadratic form. These conditions are substantive: evenness alone does not establish a rotor. Any normalization claim requires supplied evidence; the action convention must be explicit."
+msgstr "旋量子必须是偶且可逆的，并具有已声明的夹心作用，该作用保持生成向量域及其二次形式。这些条件具有实质内容：仅为偶多向量不能确立旋量子。任何归一化主张都需要所提供的依据；作用约定必须明确。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In real Cl(2,0), with e₁² = e₂² = 1 and e₁e₂ = -e₂e₁, let R = e₁e₂. Its inverse is -e₁e₂. Under the declared action v ↦ RvR^-1 on the generating vector space, e₁ ↦ -e₁ and e₂ ↦ -e₂, preserving the quadratic form."
+msgstr "在实 Cl(2,0) 中，设 e₁² = e₂² = 1，e₁e₂ = -e₂e₁，令 R = e₁e₂。其逆为 -e₁e₂。按生成向量空间上已声明的作用 v ↦ RvR^-1，有 e₁ ↦ -e₁，e₂ ↦ -e₂，保持二次形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified multivector with actual evenness, invertibility and a vector-domain-preserving orthogonal sandwich action in the declared algebra. Keep its field, quadratic space, basis and action convention explicit."
+msgstr "用于在已声明代数中实际满足偶性、可逆性，并具有保持向量域的正交夹心作用的已标识多向量。须明确其域、二次空间、基及作用约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying every even or every even invertible multivector as a rotor, assuming normalization, or inferring an action proof from a type label. Generic native Clifford multiplication and reversion do not supply a rotor constructor, inverse or verified sandwich action."
+msgstr "不要将每个偶多向量或每个可逆偶多向量都归为旋量子，不要假定归一化，也不要从类型标签推断作用证明。一般的原生 Clifford 乘法及逆序不提供旋量子构造器、逆元或经验证的夹心作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the actual action; RvR^-1 applies only under that declared convention. Writing reversion as ~R, if N = R~R = ~RR is invertible and central, then R^-1 = ~R N^-1. Replacing the inverse by ~R requires N = 1, not merely an invertible central norm. Retain supporting algebra and action evidence without inventing slots or normalization rules."
+msgstr "说明实际作用；RvR^-1 仅在该已声明约定下适用。以 ~R 表示逆序，若 N = R~R = ~RR 可逆且位于中心，则 R^-1 = ~R N^-1。以 ~R 替代逆元要求 N = 1，而不只是范数可逆且位于中心。保留代数及作用的支持依据，不要臆造槽位或归一化规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Spinor"
+msgstr "旋量"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "与二次空间相关的已声明旋表示或旋量模中的元素。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A spinor belongs to an actual declared spin representation or spinor module, with its carrier, scalar field, quadratic-space context and action identified. A realization as a multivector, column or minimal-ideal element is additional structure, not a universal consequence of this class."
+msgstr "旋量属于实际已声明的旋表示或旋量模，并须标识其载体、标量域、二次空间背景及作用。多向量、列向量或极小理想元素的实现属于附加结构，不是该类的普遍推论。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the declared real Cl(2,0) module with carrier R², let e₁ act by diag(1,-1) and e₂ by [[0,1],[1,0]]. These actions square to the identity and anticommute. The column (1,0)^T is a spinor in this module realization, with its induced spin action; this does not impose a column realization on other spinors."
+msgstr "在载体为 R² 的已声明实 Cl(2,0) 模中，令 e₁ 通过 diag(1,-1) 作用，e₂ 通过 [[0,1],[1,0]] 作用。这些作用的平方为恒等且反交换。列向量 (1,0)^T 是此模实现中的旋量，具有诱导的旋作用；这不要求其他旋量也采用列向量实现。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an element of an identified spin representation or spinor module associated with its quadratic space. Retain the actual carrier, field and action rather than identifying the element with the representation or module itself."
+msgstr "用于与其二次空间相关的已标识旋表示或旋量模中的元素。保留实际载体、域及作用，不要将元素等同于表示或模本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating all spinors with multivectors, columns or elements of a chosen minimal ideal, or assuming irreducibility, chirality or faithfulness. Generic native Clifford arithmetic does not construct a spinor module or execute its representation action."
+msgstr "不要将所有旋量等同于多向量、列向量或所选极小理想的元素，也不要假定不可约性、手征性或忠实性。一般的原生 Clifford 算术不构造旋量模，也不执行其表示作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the element in its declared representation or module and preserve any supplied realization and action evidence separately. Claim no carrier, matrix action, irreducibility or chirality beyond that context; introduce no dedicated slots, action laws or execution guarantees from the class label."
+msgstr "在已声明的表示或模中描述该元素，并分别保留所提供的实现及作用依据。不要声称超出该背景的载体、矩阵作用、不可约性或手征性；不要由类标签引入专用槽位、作用律或执行保证。"
