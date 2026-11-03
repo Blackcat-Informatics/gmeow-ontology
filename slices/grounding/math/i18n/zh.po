@@ -10000,3 +10000,87 @@ msgstr "不要将该值当作次数投影、齐次性检查或乘积保持整数
 msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer through math:bladeGrade to the intended math:BasisBlade, retaining its algebra and ordered-basis interpretation. Keep any component extraction, product computation or verification evidence separate from this declaration."
 msgstr "通过 math:bladeGrade 将已提供的非负整数关联到所需 math:BasisBlade，并保留其在代数及有序基中的解释。将分量提取、乘积计算或验证依据与此声明分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generator index"
+msgstr "生成元索引"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "Clifford 生成元在代数已声明有序基中的正整数位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a positive, one-based position in the declared ordered generator basis. It differs from the native generator API's zero-based index, from a blade's integer grade and from a position in the full algebra basis."
+msgstr "这是在已声明有序生成元基中从一开始的正整数位置。它不同于原生生成元 API 从零开始的索引、刃的整数次数及完整代数基中的位置。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:e13 has math:generatorIndex 13 and math:bladeGrade 1. In the native zero-based convention, index 12 denotes that thirteenth generator; this correspondence does not change its grade."
+msgstr "在 external-concept-coverage.ttl 中，cov:e13 具有 math:generatorIndex 13 和 math:bladeGrade 1。按原生从零开始的约定，索引 12 指向该第十三个生成元；此对应关系不改变其次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a declared generator's position must be retained with its algebra's ordered basis convention. State which indexing convention applies when exchanging positions with a native API."
+msgstr "当须按代数的有序基约定保留已声明生成元的位置时使用。与原生 API 交换位置数据时，须说明所用索引约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a zero-based API index into this positive ordinal without conversion, treating it as math:bladeGrade or inferring a square from the index alone. No generic uniqueness, contiguous-enumeration or missing-index gate is established by this property."
+msgstr "不要未经转换就把从零开始的 API 索引复制为此正序号，不要将它视为 math:bladeGrade，也不要仅从索引推断平方。此属性不确立通用的唯一性、连续枚举或索引缺失校验。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:generatorIndex to the intended generator resource as its supplied positive integer position, retaining the algebra and basis order. Preserve math:generatorSquare and any calculation evidence separately; the producer's index-plus-one serialization is source evidence, not a new global indexing validator."
+msgstr "以 math:generatorIndex 将已提供的正整数位置关联到所需生成元资源，并保留代数及基的次序。另行保留 math:generatorSquare 和计算依据；生产器将索引加一后序列化的源码事实不是新的全局索引验证器。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generator square"
+msgstr "生成元平方"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "已声明 Clifford 基生成元在代数惯性指数对约定下的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The scalar is Q(e_i) under the declared Clifford relation e_i² = Q(e_i). The inspected real diagonal orthonormal API returns +1 for the first p generators and −1 for the next q; those normalized values are not a global mathematical value set for this property."
+msgstr "该标量是在已声明 Clifford 关系 e_i² = Q(e_i) 下的 Q(e_i)。已检查的实对角正交归一 API 对前 p 个生成元返回 +1，对后 q 个返回 −1；这些归一化数值并非此属性的全局数学值集。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11e1 declares math:generatorSquare 1 and ex:cl11e2 declares math:generatorSquare -1 for Cl(1,1). The fixture records the normalized split; the declarations alone do not execute a generator-square calculation."
+msgstr "在 clifford-complete.ttl 中，ex:cl11e1 为 Cl(1,1) 声明 math:generatorSquare 1，ex:cl11e2 声明 math:generatorSquare -1。该测试数据记录归一化的正负分布；声明本身不会执行生成元平方计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a generator's exact scalar square with its quadratic-form, basis and product convention. Distinguish the scalar value from the generator resource and from a claimed proof of the Clifford relation."
+msgstr "用于按二次形式、基及乘积约定保留生成元的精确标量平方。须区分标量值、生成元资源及所声称的 Clifford 关系证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every mathematical generator square as ±1 or excluding zero solely because the normalized API has no zero-square generator. Rational multivector coefficients and scaling are supported; the normalized generator API still does not admit arbitrary generator-square data or by itself supply arbitrary-field, degenerate-form or nonorthogonal basis constructors."
+msgstr "不要将每个数学意义上的生成元平方都视为 ±1，也不要仅因归一化 API 没有零平方生成元就排除零。内核支持有理数多向量系数及缩放；归一化生成元 API 仍不接受任意生成元平方数据，也不因此提供任意域、退化形式或非正交基的通用构造器。"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supplied scalar through math:generatorSquare on the declared generator and retain its algebra's signature and normalization. Keep any native calculation or law witness distinct; no dedicated generatorSquare cardinality or generic computation gate is asserted here."
+msgstr "通过 math:generatorSquare 在已声明生成元上记录提供的标量，并保留其代数的惯性指数对和归一化方式。须区分原生计算或定律见证；此处不声称存在专门的 generatorSquare 基数校验或通用计算关卡。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pseudoscalar square"
+msgstr "伪标量平方"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "已声明 Clifford 代数与基约定中最高次伪标量的精确标量平方。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For ordered orthogonal generators and I = e₁…e_n, I² = (−1)^(n(n−1)/2) times the product of their squares. In the normalized real Cl(p,q) convention this becomes (−1)^(q+n(n−1)/2), with n = p + q. Keep those hypotheses explicit rather than applying the formula as a generic nonorthogonal execution rule."
+msgstr "对于有序正交生成元及 I = e₁…e_n，I² = (−1)^(n(n−1)/2) 乘以各生成元平方的乘积。在归一化实 Cl(p,q) 约定下，它成为 (−1)^(q+n(n−1)/2)，其中 n = p + q。须明确这些假设，不要将公式用作通用的非正交执行规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11 declares math:pseudoscalarSquare 1 and ex:cl20 declares math:pseudoscalarSquare -1. The producer source also asserts +1 for Cl(12,0), Cl(6,6), Cl(13,0) and Cl(7,6); these named declarations and source assertions are not an executed proof here."
+msgstr "在 clifford-complete.ttl 中，ex:cl11 声明 math:pseudoscalarSquare 1，ex:cl20 声明 math:pseudoscalarSquare -1。生产器源码还对 Cl(12,0)、Cl(6,6)、Cl(13,0) 和 Cl(7,6) 断言 +1；这些具名声明和源码断言在此并非执行所得的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact scalar square of the declared top-grade pseudoscalar with its algebra and basis convention. Changing only the orientation sends I to −I without changing I², while rescaling I by a scalar c multiplies its square by c²."
+msgstr "用于按代数及基约定保留已声明最高次伪标量的精确标量平方。仅改变取向将 I 变为 −I 而不改变 I²；将 I 按标量 c 缩放则使其平方乘以 c²。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the qualified xsd:integer minimum-one and maximum-one restrictions in the math:CliffordAlgebra frame as a global exactly-one-value rule, an all-values datatype rule or a ±1 value set. Zero is an integer and is not excluded by those restrictions; the native n = 0 unit square +1 does not establish nontrivial zero-form or degenerate execution."
+msgstr "不要将 math:CliffordAlgebra 框架中针对 xsd:integer 的限定最小基数一和最大基数一约束理解为全局恰好一个值规则、所有值的数据类型规则或 ±1 值集。零是整数，并未被这些约束排除；原生 n = 0 时单位元的平方为 +1，并不能确立非平凡零形式或退化形式的执行能力。"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the supplied scalar with math:pseudoscalarSquare on the algebra, retaining the top-blade and basis normalization used to interpret it. Preserve the existing qualified integer frame without strengthening it; keep product calculations, invertibility claims and verification evidence separate from the declaration."
+msgstr "以 math:pseudoscalarSquare 在代数上说明提供的标量，并保留解释它所用的最高次刃及基归一化方式。保留现有的限定整数框架，不加强约束；将乘积计算、可逆性声称及验证依据与该声明分开。"
