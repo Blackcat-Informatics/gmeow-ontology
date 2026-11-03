@@ -10392,3 +10392,31 @@ msgstr "Ne pas identifier tous les spineurs à des multivecteurs, à des colonne
 msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the element in its declared representation or module and preserve any supplied realization and action evidence separately. Claim no carrier, matrix action, irreducibility or chirality beyond that context; introduce no dedicated slots, action laws or execution guarantees from the class label."
 msgstr "Décrire l’élément dans sa représentation ou son module déclaré et conserver séparément toute réalisation fournie et les éléments probants de l’action. N’affirmer aucun support, action matricielle, irréductibilité ou chiralité au-delà de ce contexte ; ne tirer de l’étiquette de classe aucun emplacement dédié, loi d’action ni garantie d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dirac Operator"
+msgstr "Opérateur de Dirac"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "Un opérateur différentiel du premier ordre construit par multiplication de Clifford et connexion compatible sur un fibré de spineurs."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operator acts on sections of a chosen spinor bundle, not merely on a single fiber spinor. Its actual smooth base, metric, Clifford-sign convention, fiber representation, Clifford action, compatible connection and section domain/codomain must be identified. A manifold or quadratic-space declaration alone does not construct a global spinor bundle."
+msgstr "L’opérateur agit sur des sections d’un fibré de spineurs choisi, et non simplement sur un spineur dans une seule fibre. Il faut identifier sa base lisse effective, sa métrique, sa convention de signe de Clifford, sa représentation dans les fibres, son action de Clifford, sa connexion compatible et ses espaces de sections de départ et d’arrivée. Une déclaration de variété ou d’espace quadratique ne construit pas à elle seule un fibré global de spineurs."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "Declare the Euclidean plane R² with metric dx²+dy², the trivial real spinor bundle S = R²×R², Clifford matrices gamma1 = diag(1,-1) and gamma2 = [[0,1],[1,0]] with positive squares, and the flat compatible connection ∇ = d. Then Dψ = gamma1 ∂xψ + gamma2 ∂yψ maps C∞(R²,R²) to itself in this chosen realization."
+msgstr "Déclarer le plan euclidien R² de métrique dx²+dy², le fibré trivial de spineurs réels S = R²×R², les matrices de Clifford gamma1 = diag(1,-1) et gamma2 = [[0,1],[1,0]] de carrés positifs, et la connexion plate compatible ∇ = d. Alors Dψ = gamma1 ∂xψ + gamma2 ∂yψ envoie C∞(R²,R²) dans lui-même dans cette réalisation choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified first-order operator on spinor-bundle sections with supplied geometric and representation context. Retain the chosen bundle, Clifford action and compatible connection, distinguishing a section over the base from its value in one fiber."
+msgstr "À utiliser pour un opérateur du premier ordre identifié sur des sections d’un fibré de spineurs, dont le contexte géométrique et de représentation est fourni. Conserver le fibré choisi, l’action de Clifford et la connexion compatible, en distinguant une section sur la base de sa valeur dans une fibre."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming that every manifold has the chosen spinor bundle, selecting spin or spin-c structure, twisting, boundary conditions, analytic domain, factors of i or signs by default, or asserting a universal D² = Laplace identity. Curvature and convention choices matter; the class label supplies no global construction or execution."
+msgstr "Ne pas supposer que toute variété possède le fibré de spineurs choisi, sélectionner par défaut une structure spin ou spin-c, une tensorisation par un fibré auxiliaire, des conditions aux limites, un domaine analytique, des facteurs i ou des signes, ni affirmer une identité universelle D² = Laplace. La courbure et les conventions importent ; l’étiquette de classe ne fournit aucune construction globale ni exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual operator and its section spaces without inventing dedicated slots or laws. A connectionOn link or discrete transport alone proves neither smoothness nor Clifford compatibility. Generic native Clifford arithmetic supplies no differentiation, spinor-bundle construction or Dirac execution; retain any supporting geometric and calculation evidence separately."
+msgstr "Décrire l’opérateur effectif et ses espaces de sections sans inventer d’emplacements dédiés ni de lois. Un lien connectionOn ou un transport discret ne prouve à lui seul ni la régularité lisse ni la compatibilité de Clifford. L’arithmétique de Clifford native générique ne fournit ni différentiation, ni construction de fibré de spineurs, ni exécution de Dirac ; conserver séparément les éléments probants géométriques et de calcul."

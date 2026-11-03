@@ -10392,3 +10392,31 @@ msgstr "不要将所有旋量等同于多向量、列向量或所选极小理想
 msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the element in its declared representation or module and preserve any supplied realization and action evidence separately. Claim no carrier, matrix action, irreducibility or chirality beyond that context; introduce no dedicated slots, action laws or execution guarantees from the class label."
 msgstr "在已声明的表示或模中描述该元素，并分别保留所提供的实现及作用依据。不要声称超出该背景的载体、矩阵作用、不可约性或手征性；不要由类标签引入专用槽位、作用律或执行保证。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dirac Operator"
+msgstr "Dirac 算子"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A first-order differential operator built from Clifford multiplication and a compatible connection on a spinor bundle."
+msgstr "由 Clifford 乘法及旋量丛上的兼容联络构成的一阶微分算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operator acts on sections of a chosen spinor bundle, not merely on a single fiber spinor. Its actual smooth base, metric, Clifford-sign convention, fiber representation, Clifford action, compatible connection and section domain/codomain must be identified. A manifold or quadratic-space declaration alone does not construct a global spinor bundle."
+msgstr "该算子作用于所选旋量丛的截面，而不只是单根纤维中的旋量。必须标识实际的光滑底空间、度量、Clifford 符号约定、纤维表示、Clifford 作用、兼容联络，以及截面的定义域和陪域。仅声明流形或二次空间不构造全局旋量丛。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "Declare the Euclidean plane R² with metric dx²+dy², the trivial real spinor bundle S = R²×R², Clifford matrices gamma1 = diag(1,-1) and gamma2 = [[0,1],[1,0]] with positive squares, and the flat compatible connection ∇ = d. Then Dψ = gamma1 ∂xψ + gamma2 ∂yψ maps C∞(R²,R²) to itself in this chosen realization."
+msgstr "声明度量为 dx²+dy² 的欧几里得平面 R²、平凡实旋量丛 S = R²×R²、平方为正的 Clifford 矩阵 gamma1 = diag(1,-1) 和 gamma2 = [[0,1],[1,0]]，以及平坦兼容联络 ∇ = d。则在此所选实现中，Dψ = gamma1 ∂xψ + gamma2 ∂yψ 将 C∞(R²,R²) 映到自身。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified first-order operator on spinor-bundle sections with supplied geometric and representation context. Retain the chosen bundle, Clifford action and compatible connection, distinguishing a section over the base from its value in one fiber."
+msgstr "用于作用于旋量丛截面的已标识一阶算子，并须提供几何及表示背景。保留所选丛、Clifford 作用及兼容联络，区分底空间上的截面与其在单根纤维中的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming that every manifold has the chosen spinor bundle, selecting spin or spin-c structure, twisting, boundary conditions, analytic domain, factors of i or signs by default, or asserting a universal D² = Laplace identity. Curvature and convention choices matter; the class label supplies no global construction or execution."
+msgstr "不要假定每个流形都有所选旋量丛，不要默认选取 spin 或 spin-c 结构、扭曲、边界条件、解析定义域、i 因子或符号，也不要断言普遍的 D² = Laplace 恒等式。曲率及约定选择会影响结果；类标签不提供全局构造或执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual operator and its section spaces without inventing dedicated slots or laws. A connectionOn link or discrete transport alone proves neither smoothness nor Clifford compatibility. Generic native Clifford arithmetic supplies no differentiation, spinor-bundle construction or Dirac execution; retain any supporting geometric and calculation evidence separately."
+msgstr "描述实际算子及其截面空间，不要臆造专用槽位或定律。仅有 connectionOn 链接或离散平行移动既不能证明光滑性，也不能证明 Clifford 兼容性。一般的原生 Clifford 算术不提供微分、旋量丛构造或 Dirac 执行；须分别保留几何及计算的支持依据。"
