@@ -2808,7 +2808,7 @@ msgstr "空间维数"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
 msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
-msgstr "坐标空间、切空间、代数载体或其他显式线性对象的非负整数向量空间维数；它不同于物理量纲 math:hasDimension。"
+msgstr "坐标空间、切空间、代数载体或其他显式线性数学对象的非负整数向量空间维数——不同于物理量纲 math:hasDimension（SI 量纲）。坐标图的目标空间和切空间用它描述与流形的维数一致性；Clifford 代数用它表示精确的 2^(p+q) 载体维数。"
 
 msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
 msgid "metric signature"
@@ -7763,7 +7763,7 @@ msgstr "空间维数"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
-msgstr "坐标空间、切空间、代数载体或其他显式线性对象的非负整数向量空间维数；它不同于物理量纲 math:hasDimension。"
+msgstr "坐标空间、切空间、代数载体或其他显式线性数学对象的非负整数向量空间维数——不同于物理量纲 math:hasDimension（SI 量纲）。坐标图的目标空间和切空间用它描述与流形的维数一致性；Clifford 代数用它表示精确的 2^(p+q) 载体维数。"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This is a finite nonnegative integer linear dimension for an explicitly linear object. It is separate from physical math:hasDimension and from the local manifold dimension math:manifoldDimension; matching dimensions alone do not identify spaces or establish their algebraic laws."
