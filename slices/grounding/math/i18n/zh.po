@@ -10335,4 +10335,4 @@ msgstr "不要假定对称性、先对左操作数应用逆序的约定、对整
 
 msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."
-msgstr "声明约定时不要臆造参数槽位或基数规则。原生代数方法在次数筛选前依据已声明的代数校验操作数掩码，然后使用受检有理系数乘法及累加。其实对角正交归一配置至多允许六十四个生成元，不能证明支持一般的特征二、复数、退化形式或非正交基下的执行。"
+msgstr "声明约定时不要臆造参数槽位或基数规则。原生代数方法在次数筛选前依据已声明的代数校验操作数掩码，然后使用受检有理系数乘法及累加。实数域上的对角正交归一配置至多允许六十四个生成元，不能证明支持一般的特征二、复数、退化形式或非正交基下的执行。"
