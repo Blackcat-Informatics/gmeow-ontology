@@ -5485,6 +5485,11 @@ math:TensorField
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Tensor Field"@x-gmeow-english ;
     skos:definition "A tensor field on a manifold: an assignment of a tensor to each point, a section of a tensor bundle over the tangent spaces. Names the manifold it lives on through math:tensorFieldOn. A math:MetricTensor is the distinguished tensor field giving the geometry; vector fields and differential forms are other tensor fields."@x-gmeow-english ;
+    skos:scopeNote "A tensor field assigns tensors over its named manifold and, in the smooth setting, is a smooth section of the appropriate tensor bundle. A typed record and math:tensorFieldOn link identify the field and base; they do not establish its components, smoothness or pointwise values."@x-gmeow-english ;
+    skos:example "In the analysis-and-geometry example, ex:minkowskiMetric is a math:MetricTensor, hence a math:TensorField, with math:tensorFieldOn ex:minkowski. The record names its base but supplies no tensor components or pointwise evaluation."@x-gmeow-english ;
+    gmeow:useWhen "Use for a tensor assignment varying over a manifold, including a metric field. Name the base manifold even when other records also refer to it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a tensor field as one tangent vector, one coordinate array or its base manifold merely because those resources are related. A declared field is not a computed section."@x-gmeow-english ;
+    gmeow:howToUse "Describe the field as math:TensorField or an appropriate subclass and name its manifold with math:tensorFieldOn. Supply any component representation and regularity evidence separately; no generic tensor-field frame gate is asserted here."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MetricTensor
@@ -5493,13 +5498,23 @@ math:MetricTensor
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Metric Tensor"@x-gmeow-english ;
     skos:definition "A metric tensor g: a symmetric bilinear form on each tangent space giving lengths and angles. A subclass of math:TensorField carrying a structured math:metricSignature (p, q) through math:metricSignature — positive-definite (q = 0) for a math:RiemannianManifold, indefinite with one timelike direction (p or q = 1) for a math:LorentzianManifold. The Lorentzian metric is the math object a physics slice needs for spacetime and stays math-side."@x-gmeow-english ;
+    skos:scopeNote "A real metric is symmetric and nondegenerate on each tangent space, with the appropriate smooth dependence on the base point. Its signature records positive and negative counts; those counts do not establish symmetry, nondegeneracy, smoothness or curvature."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowski and ex:minkowskiSignature, whose supplied counts are 3 and 1. This declares a Lorentzian metric under the example's spacelike/timelike interpretation without providing a matrix or evaluator."@x-gmeow-english ;
+    gmeow:useWhen "Use for the geometric tensor field of a Riemannian or Lorentzian manifold. Keep its pointwise bilinear-form role and base manifold explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a metric tensor with a quadratic space, quadratic form or Clifford algebra merely because they share a signature. A dimension-consistent pair does not construct the metric or prove its defining properties."@x-gmeow-english ;
+    gmeow:howToUse "Type the field as math:MetricTensor, name its base through math:tensorFieldOn and attach a math:MetricSignature through math:metricSignature. Describe matrix entries, coordinate dependence and evidence for the metric obligations separately."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MetricSignature
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Metric Signature"@x-gmeow-english ;
-    skos:definition "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."@x-gmeow-english ;
+    skos:definition "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. For a nondegenerate underlying quadratic space, p + q is its dimension; a real Cl(p,q) has p + q generators and its algebra has carrier dimension 2^(p+q). The pair omits the nullity of a degenerate form and does not by itself establish nondegeneracy. The object is shared rather than re-minted for Clifford semantics."@x-gmeow-english ;
+    skos:scopeNote "The ordered pair counts positive and negative eigenvalues; zero eigenvalues are not represented by a third slot. Only for a nondegenerate underlying form does p + q equal its vector-space dimension. A real Clifford algebra Cl(p,q) instead has algebra dimension 2^(p+q)."@x-gmeow-english ;
+    skos:example "In the analysis-and-geometry example, ex:minkowskiSignature records (3, 1) for a four-dimensional Lorentzian manifold. For the same ordered pair, real Cl(3,1) has four generators and algebra carrier dimension sixteen; the shared pair does not identify the metric with that algebra."@x-gmeow-english ;
+    gmeow:useWhen "Use a structured signature when metric, quadratic-form or Clifford consumers need the same ordered positive and negative counts. State the interpretation of the timelike sign for a Lorentzian application."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling p + q the Clifford algebra's carrier dimension, treating omitted nullity as proof of nondegeneracy or assigning timelike meaning to a sign independently of convention."@x-gmeow-english ;
+    gmeow:howToUse "Describe a math:MetricSignature with math:signaturePositive and math:signatureNegative and link its consumer through math:metricSignature. Supply the relevant dimension and structure context separately; the existing supplied-value comparisons do not infer missing counts."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Geometry conformance failures ------------------------------------------ #
@@ -5596,6 +5611,11 @@ math:metricTensor
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "metric tensor"@x-gmeow-english ;
     skos:definition "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."@x-gmeow-english ;
+    skos:scopeNote "The manifold-to-metric link names its geometric tensor field. The field still names its base through math:tensorFieldOn and has the mathematical symmetry, nondegeneracy and smoothness obligations of a real metric."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example states ex:minkowski math:metricTensor ex:minkowskiMetric and gives the reverse base link with math:tensorFieldOn. Neither edge supplies matrix components, curvature or an evaluation procedure."@x-gmeow-english ;
+    gmeow:useWhen "Use when a Riemannian or Lorentzian manifold is described together with its metric field. Preserve the distinction between the manifold and the tensor field giving its geometry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a signature object or Clifford algebra as the metric solely because it has compatible counts. This link does not calculate distances or causal relations."@x-gmeow-english ;
+    gmeow:howToUse "Link the manifold to its math:MetricTensor with math:metricTensor, then name the field's base and signature. Keep supplied-value dimension and sign checks distinct from evidence that the field is a valid metric."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:tensorFieldOn
@@ -5603,6 +5623,11 @@ math:tensorFieldOn
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "tensor field on"@x-gmeow-english ;
     skos:definition "Relates a math:TensorField to the math:Manifold it is a field on. Domain math:TensorField, range math:Manifold (stated in prose). Every tensor field names the manifold it lives over."@x-gmeow-english ;
+    skos:scopeNote "This property names the manifold over which the tensor field is defined. Naming the base is a tensor-field obligation even when an example or fixture omits the link; it does not provide pointwise tensor evaluation."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example states ex:minkowskiMetric math:tensorFieldOn ex:minkowski. The metric-signature-consistent fixture omits this link; that sparse signature example does not waive the field's obligation to name its base."@x-gmeow-english ;
+    gmeow:useWhen "Use to connect a tensor field, including a metric tensor, to its base manifold. It complements a manifold's math:metricTensor link."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a single tangent space, chart coordinate space or signature object as the field's manifold. Do not infer a generic missing-base validation gate from the prose obligation."@x-gmeow-english ;
+    gmeow:howToUse "Write the field as subject and its math:Manifold as object of math:tensorFieldOn. Keep any per-point tensor values and component descriptions separate from this base link."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:tangentSpaceAt
@@ -5624,20 +5649,35 @@ math:metricSignature
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "metric signature"@x-gmeow-english ;
     skos:definition "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."@x-gmeow-english ;
+    skos:scopeNote "The same structured signature can be linked from a metric tensor, quadratic space, quadratic form or Clifford algebra. Sharing it preserves ordered sign counts without identifying these consumers or proving their nondegeneracy."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowskiSignature with math:metricSignature. Its counts (3, 1) describe the metric's declared split, not the sixteen-dimensional carrier of real Cl(3,1)."@x-gmeow-english ;
+    gmeow:useWhen "Use when a consumer must refer to an explicit positive/negative sign pair rather than an opaque signature string. Keep the Lorentzian sign convention explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading this link as a matrix factorization, eigenvalue computation or conversion between a metric and a Clifford algebra. A shared signature is not an identity assertion."@x-gmeow-english ;
+    gmeow:howToUse "Use the consumer as subject and a math:MetricSignature as object of math:metricSignature. Supply both counts and the relevant context; CliffordAlgebra has its own signature requirement, distinct from the selected metric classes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:signaturePositive
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "signature positive"@x-gmeow-english ;
-    skos:definition "The count p of positive eigenvalues (spacelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose)."@x-gmeow-english ;
+    skos:definition "The count p of positive eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."@x-gmeow-english ;
+    skos:scopeNote "The value p counts positive eigenvalues, not basis blades of a Clifford algebra. In Lorentzian geometry the timelike direction may have positive or negative sign, so p = 1 or q = 1 can express the one-direction split under the chosen convention."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example supplies math:signaturePositive 3 with math:signatureNegative 1 for ex:minkowskiSignature and interprets the three positive directions as spacelike. This is the example's convention, not a universal meaning of positive."@x-gmeow-english ;
+    gmeow:useWhen "Use for the positive count in an ordered signature pair. State the underlying real form and the sign interpretation needed by the application."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this count from the word Lorentzian alone or confusing p with 2^(p+q). The positive-first Clifford generator convention fixes generator squares, not a convention-independent spacetime label."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied nonnegative integer to the math:MetricSignature with math:signaturePositive and record q with math:signatureNegative. Existing checks compare supplied values with context; they do not compute eigenvalues or require missing counts generically."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:signatureNegative
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "signature negative"@x-gmeow-english ;
-    skos:definition "The count q of negative eigenvalues (timelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). A Lorentzian signature has exactly one negative (or, dually, exactly one positive) — the timelike direction spacetime is built on."@x-gmeow-english ;
+    skos:definition "The count q of negative eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."@x-gmeow-english ;
+    skos:scopeNote "The value q counts negative eigenvalues. Riemannian signatures have q = 0; a Lorentzian convention may instead put the single timelike direction in the positive block, so q need not equal one in every Lorentzian description."@x-gmeow-english ;
+    skos:example "The analysis-and-geometry example supplies math:signatureNegative 1 with math:signaturePositive 3 for ex:minkowskiSignature. A Lorentzian pair (1, 3) uses the opposite sign convention; neither pair alone supplies metric components."@x-gmeow-english ;
+    gmeow:useWhen "Use for the negative count in the same ordered signature pair as math:signaturePositive. Keep a zero count distinct from omitted information."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating q as an invariant number of timelike directions across both sign conventions, or as the number of Clifford basis blades. Supplied sign counts do not establish the absence of zero eigenvalues."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied nonnegative integer through math:signatureNegative. For a metric's supplied context, distinguish the p + q dimension comparison, the Lorentzian p = 1 or q = 1 condition and the Riemannian q = 0 condition; these are not signature constructors."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Conformal geometry and compactification -------------------------------- #

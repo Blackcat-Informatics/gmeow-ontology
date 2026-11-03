@@ -2799,8 +2799,8 @@ msgid "Metric Signature"
 msgstr "Signature métrique"
 
 msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
-msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
-msgstr "La signature (p, q) partagée d'un espace quadratique réel, tenseur métrique, forme quadratique ou algèbre de Clifford, portée par math:signaturePositive et math:signatureNegative. Elle est structurée ; p + q égale la dimension du support."
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. For a nondegenerate underlying quadratic space, p + q is its dimension; a real Cl(p,q) has p + q generators and its algebra has carrier dimension 2^(p+q). The pair omits the nullity of a degenerate form and does not by itself establish nondegeneracy. The object is shared rather than re-minted for Clifford semantics."
+msgstr "La signature (p, q) d’un espace quadratique réel, d’un tenseur métrique, d’une forme quadratique ou d’une algèbre de Clifford : les nombres portés par math:signaturePositive et math:signatureNegative. Elle est structurée, et non une chaîne opaque — le cas riemannien est (n, 0), le cas lorentzien est (1, n−1) ou (n−1, 1), et Cl(p,q) utilise les mêmes nombres de signes ordonnés. Pour un espace quadratique sous-jacent non dégénéré, p + q est sa dimension ; un Cl(p,q) réel possède p + q générateurs et son algèbre a un support de dimension 2^(p+q). La paire omet la nullité d’une forme dégénérée et n’établit pas à elle seule la non-dégénérescence. L’objet est partagé plutôt que recréé pour la sémantique de Clifford."
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
 msgid "space dimension"
@@ -2816,7 +2816,7 @@ msgstr "signature métrique"
 
 msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
 msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
-msgstr "Relie un tenseur métrique, espace quadratique, forme quadratique ou algèbre de Clifford à sa math:MetricSignature (p, q) structurée et partagée."
+msgstr "Relie un math:MetricTensor, un math:QuadraticSpace, une math:QuadraticForm ou une math:CliffordAlgebra à sa math:MetricSignature (p, q) partagée. Portée math:MetricSignature (indiquée en prose). Elle est structurée, et non une chaîne opaque, de sorte que les consommateurs métriques et de Clifford lisent exactement la même convention de signe."
 
 msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
 msgid "has basis"
@@ -9496,3 +9496,227 @@ msgstr "Ne pas présenter cet échec comme un théorème réfuté, une preuve ma
 msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect the bearer’s actual class and missing declaration, then retain its explicit boolean under the existing class-local rule without forcing true. Preserve the associated realized law or compactness boundary and any separate evidence; completing the declaration does not verify a model, solve compactness or compute a topological invariant."
 msgstr "Examiner la classe réelle du porteur et la déclaration manquante, puis conserver son booléen explicite selon la règle locale existante sans imposer true. Préserver la loi réalisée associée ou la limite de compacité et tout élément probant distinct ; compléter la déclaration ne vérifie pas un modèle, ne résout pas la compacité et ne calcule pas d’invariant topologique."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor Field"
+msgstr "Champ tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tensor field on a manifold: an assignment of a tensor to each point, a section of a tensor bundle over the tangent spaces. Names the manifold it lives on through math:tensorFieldOn. A math:MetricTensor is the distinguished tensor field giving the geometry; vector fields and differential forms are other tensor fields."
+msgstr "Un champ tensoriel sur une variété : l’attribution d’un tenseur à chaque point, une section d’un fibré tensoriel sur les espaces tangents. Il nomme la variété sur laquelle il est défini par math:tensorFieldOn. Un math:MetricTensor est le champ tensoriel distingué qui donne la géométrie ; les champs de vecteurs et les formes différentielles sont d’autres champs tensoriels."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A tensor field assigns tensors over its named manifold and, in the smooth setting, is a smooth section of the appropriate tensor bundle. A typed record and math:tensorFieldOn link identify the field and base; they do not establish its components, smoothness or pointwise values."
+msgstr "Un champ tensoriel attribue des tenseurs sur la variété nommée et, dans le cadre lisse, est une section lisse du fibré tensoriel approprié. Une ressource typée et un lien math:tensorFieldOn identifient le champ et sa base ; ils n’établissent ni ses composantes, ni sa régularité lisse, ni ses valeurs ponctuelles."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the analysis-and-geometry example, ex:minkowskiMetric is a math:MetricTensor, hence a math:TensorField, with math:tensorFieldOn ex:minkowski. The record names its base but supplies no tensor components or pointwise evaluation."
+msgstr "Dans l’exemple analysis-and-geometry, ex:minkowskiMetric est un math:MetricTensor, donc un math:TensorField, avec math:tensorFieldOn ex:minkowski. La ressource nomme sa base mais ne fournit ni composantes tensorielles ni évaluation ponctuelle."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a tensor assignment varying over a manifold, including a metric field. Name the base manifold even when other records also refer to it."
+msgstr "À utiliser pour une attribution de tenseurs variant sur une variété, y compris un champ métrique. Nommer la variété de base même si d’autres ressources y font aussi référence."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a tensor field as one tangent vector, one coordinate array or its base manifold merely because those resources are related. A declared field is not a computed section."
+msgstr "Ne pas traiter un champ tensoriel comme un unique vecteur tangent, un unique tableau de coordonnées ou sa variété de base au seul motif que ces ressources sont liées. Un champ déclaré n’est pas une section calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the field as math:TensorField or an appropriate subclass and name its manifold with math:tensorFieldOn. Supply any component representation and regularity evidence separately; no generic tensor-field frame gate is asserted here."
+msgstr "Décrire le champ comme math:TensorField ou une sous-classe appropriée et nommer sa variété avec math:tensorFieldOn. Fournir séparément toute représentation en composantes et toute justification de régularité ; aucun contrôle générique du cadre d’un champ tensoriel n’est affirmé ici."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Metric Tensor"
+msgstr "Tenseur métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A metric tensor g: a symmetric bilinear form on each tangent space giving lengths and angles. A subclass of math:TensorField carrying a structured math:metricSignature (p, q) through math:metricSignature — positive-definite (q = 0) for a math:RiemannianManifold, indefinite with one timelike direction (p or q = 1) for a math:LorentzianManifold. The Lorentzian metric is the math object a physics slice needs for spacetime and stays math-side."
+msgstr "Un tenseur métrique g : une forme bilinéaire symétrique sur chaque espace tangent donnant les longueurs et les angles. Sous-classe de math:TensorField portant une math:metricSignature (p, q) structurée par math:metricSignature — définie positive (q = 0) pour une math:RiemannianManifold, indéfinie avec une direction temporelle (p ou q = 1) pour une math:LorentzianManifold. La métrique lorentzienne est l’objet mathématique dont une tranche de physique a besoin pour l’espace-temps et reste du côté mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A real metric is symmetric and nondegenerate on each tangent space, with the appropriate smooth dependence on the base point. Its signature records positive and negative counts; those counts do not establish symmetry, nondegeneracy, smoothness or curvature."
+msgstr "Une métrique réelle est symétrique et non dégénérée sur chaque espace tangent, avec une dépendance lisse appropriée au point de base. Sa signature consigne les nombres positifs et négatifs ; ces nombres n’établissent ni symétrie, ni non-dégénérescence, ni régularité lisse, ni courbure."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowski and ex:minkowskiSignature, whose supplied counts are 3 and 1. This declares a Lorentzian metric under the example's spacelike/timelike interpretation without providing a matrix or evaluator."
+msgstr "L’exemple analysis-and-geometry relie ex:minkowskiMetric à ex:minkowski et à ex:minkowskiSignature, dont les nombres fournis sont 3 et 1. Il déclare ainsi une métrique lorentzienne selon l’interprétation spatiale/temporelle de l’exemple, sans fournir de matrice ni d’évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the geometric tensor field of a Riemannian or Lorentzian manifold. Keep its pointwise bilinear-form role and base manifold explicit."
+msgstr "À utiliser pour le champ tensoriel géométrique d’une variété riemannienne ou lorentzienne. Expliciter son rôle de forme bilinéaire ponctuelle et sa variété de base."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a metric tensor with a quadratic space, quadratic form or Clifford algebra merely because they share a signature. A dimension-consistent pair does not construct the metric or prove its defining properties."
+msgstr "Ne pas identifier un tenseur métrique à un espace quadratique, une forme quadratique ou une algèbre de Clifford au seul motif qu’ils partagent une signature. Une paire compatible avec la dimension ne construit pas la métrique et ne prouve pas ses propriétés définitoires."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the field as math:MetricTensor, name its base through math:tensorFieldOn and attach a math:MetricSignature through math:metricSignature. Describe matrix entries, coordinate dependence and evidence for the metric obligations separately."
+msgstr "Typer le champ comme math:MetricTensor, nommer sa base par math:tensorFieldOn et joindre une math:MetricSignature par math:metricSignature. Décrire séparément les entrées matricielles, la dépendance aux coordonnées et les justifications des obligations métriques."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Metric Signature"
+msgstr "Signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. For a nondegenerate underlying quadratic space, p + q is its dimension; a real Cl(p,q) has p + q generators and its algebra has carrier dimension 2^(p+q). The pair omits the nullity of a degenerate form and does not by itself establish nondegeneracy. The object is shared rather than re-minted for Clifford semantics."
+msgstr "La signature (p, q) d’un espace quadratique réel, d’un tenseur métrique, d’une forme quadratique ou d’une algèbre de Clifford : les nombres portés par math:signaturePositive et math:signatureNegative. Elle est structurée, et non une chaîne opaque — le cas riemannien est (n, 0), le cas lorentzien est (1, n−1) ou (n−1, 1), et Cl(p,q) utilise les mêmes nombres de signes ordonnés. Pour un espace quadratique sous-jacent non dégénéré, p + q est sa dimension ; un Cl(p,q) réel possède p + q générateurs et son algèbre a un support de dimension 2^(p+q). La paire omet la nullité d’une forme dégénérée et n’établit pas à elle seule la non-dégénérescence. L’objet est partagé plutôt que recréé pour la sémantique de Clifford."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The ordered pair counts positive and negative eigenvalues; zero eigenvalues are not represented by a third slot. Only for a nondegenerate underlying form does p + q equal its vector-space dimension. A real Clifford algebra Cl(p,q) instead has algebra dimension 2^(p+q)."
+msgstr "La paire ordonnée compte les valeurs propres positives et négatives ; les valeurs propres nulles ne sont pas représentées par une troisième composante. Ce n’est que pour une forme sous-jacente non dégénérée que p + q égale sa dimension vectorielle. Une algèbre de Clifford réelle Cl(p,q) a quant à elle une dimension algébrique de 2^(p+q)."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the analysis-and-geometry example, ex:minkowskiSignature records (3, 1) for a four-dimensional Lorentzian manifold. For the same ordered pair, real Cl(3,1) has four generators and algebra carrier dimension sixteen; the shared pair does not identify the metric with that algebra."
+msgstr "Dans l’exemple analysis-and-geometry, ex:minkowskiSignature consigne (3, 1) pour une variété lorentzienne de dimension quatre. Pour la même paire ordonnée, le Cl(3,1) réel possède quatre générateurs et un support algébrique de dimension seize ; la paire partagée n’identifie pas la métrique à cette algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use a structured signature when metric, quadratic-form or Clifford consumers need the same ordered positive and negative counts. State the interpretation of the timelike sign for a Lorentzian application."
+msgstr "Utiliser une signature structurée lorsque les consommateurs métriques, de formes quadratiques ou de Clifford ont besoin des mêmes nombres ordonnés de valeurs positives et négatives. Préciser l’interprétation du signe temporel pour une application lorentzienne."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling p + q the Clifford algebra's carrier dimension, treating omitted nullity as proof of nondegeneracy or assigning timelike meaning to a sign independently of convention."
+msgstr "Ne pas appeler p + q la dimension du support de l’algèbre de Clifford, prendre l’omission de la nullité pour une preuve de non-dégénérescence ou attribuer un sens temporel à un signe indépendamment de la convention."
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe a math:MetricSignature with math:signaturePositive and math:signatureNegative and link its consumer through math:metricSignature. Supply the relevant dimension and structure context separately; the existing supplied-value comparisons do not infer missing counts."
+msgstr "Décrire une math:MetricSignature avec math:signaturePositive et math:signatureNegative et relier son consommateur par math:metricSignature. Fournir séparément le contexte de dimension et de structure pertinent ; les comparaisons existantes de valeurs fournies ne déduisent pas les nombres manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tensor field on"
+msgstr "champ tensoriel sur"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TensorField to the math:Manifold it is a field on. Domain math:TensorField, range math:Manifold (stated in prose). Every tensor field names the manifold it lives over."
+msgstr "Relie un math:TensorField à la math:Manifold sur laquelle il est défini. Domaine math:TensorField, portée math:Manifold (indiqués en prose). Tout champ tensoriel nomme la variété au-dessus de laquelle il est défini."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names the manifold over which the tensor field is defined. Naming the base is a tensor-field obligation even when an example or fixture omits the link; it does not provide pointwise tensor evaluation."
+msgstr "Cette propriété nomme la variété sur laquelle le champ tensoriel est défini. Nommer la base est une obligation du champ tensoriel même si un exemple ou un jeu de données de test omet le lien ; cela ne fournit pas d’évaluation tensorielle ponctuelle."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example states ex:minkowskiMetric math:tensorFieldOn ex:minkowski. The metric-signature-consistent fixture omits this link; that sparse signature example does not waive the field's obligation to name its base."
+msgstr "L’exemple analysis-and-geometry énonce ex:minkowskiMetric math:tensorFieldOn ex:minkowski. Le jeu de données de test metric-signature-consistent omet ce lien ; cet exemple succinct de signature ne dispense pas le champ de nommer sa base."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a tensor field, including a metric tensor, to its base manifold. It complements a manifold's math:metricTensor link."
+msgstr "À utiliser pour relier un champ tensoriel, y compris un tenseur métrique, à sa variété de base. Cette propriété complète le lien math:metricTensor d’une variété."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a single tangent space, chart coordinate space or signature object as the field's manifold. Do not infer a generic missing-base validation gate from the prose obligation."
+msgstr "Ne pas prendre un unique espace tangent, un espace de coordonnées de carte ou un objet de signature pour la variété du champ. Ne pas déduire de l’obligation en prose l’existence d’un contrôle générique de base manquante."
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the field as subject and its math:Manifold as object of math:tensorFieldOn. Keep any per-point tensor values and component descriptions separate from this base link."
+msgstr "Écrire le champ comme sujet et sa math:Manifold comme objet de math:tensorFieldOn. Séparer de ce lien de base les éventuelles valeurs tensorielles ponctuelles et descriptions de composantes."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric tensor"
+msgstr "tenseur métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."
+msgstr "Relie une math:RiemannianManifold ou une math:LorentzianManifold à son math:MetricTensor. Domaine une math:Manifold, portée math:MetricTensor (indiqués en prose). La métrique donne à la variété ses longueurs, ses angles et — pour une métrique lorentzienne — sa structure causale."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The manifold-to-metric link names its geometric tensor field. The field still names its base through math:tensorFieldOn and has the mathematical symmetry, nondegeneracy and smoothness obligations of a real metric."
+msgstr "Le lien de la variété vers la métrique nomme son champ tensoriel géométrique. Le champ nomme toujours sa base par math:tensorFieldOn et porte les obligations mathématiques de symétrie, de non-dégénérescence et de régularité lisse d’une métrique réelle."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example states ex:minkowski math:metricTensor ex:minkowskiMetric and gives the reverse base link with math:tensorFieldOn. Neither edge supplies matrix components, curvature or an evaluation procedure."
+msgstr "L’exemple analysis-and-geometry énonce ex:minkowski math:metricTensor ex:minkowskiMetric et donne le lien inverse vers la base avec math:tensorFieldOn. Aucun de ces liens ne fournit de composantes matricielles, de courbure ni de procédure d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a Riemannian or Lorentzian manifold is described together with its metric field. Preserve the distinction between the manifold and the tensor field giving its geometry."
+msgstr "À utiliser lorsqu’une variété riemannienne ou lorentzienne est décrite avec son champ métrique. Préserver la distinction entre la variété et le champ tensoriel qui donne sa géométrie."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a signature object or Clifford algebra as the metric solely because it has compatible counts. This link does not calculate distances or causal relations."
+msgstr "Ne pas traiter un objet de signature ou une algèbre de Clifford comme la métrique au seul motif que ses nombres sont compatibles. Ce lien ne calcule ni distances ni relations causales."
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the manifold to its math:MetricTensor with math:metricTensor, then name the field's base and signature. Keep supplied-value dimension and sign checks distinct from evidence that the field is a valid metric."
+msgstr "Relier la variété à son math:MetricTensor avec math:metricTensor, puis nommer la base et la signature du champ. Distinguer les contrôles de dimension et de signe sur les valeurs fournies des justifications établissant que le champ est une métrique valide."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric signature"
+msgstr "signature métrique"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "Relie un math:MetricTensor, un math:QuadraticSpace, une math:QuadraticForm ou une math:CliffordAlgebra à sa math:MetricSignature (p, q) partagée. Portée math:MetricSignature (indiquée en prose). Elle est structurée, et non une chaîne opaque, de sorte que les consommateurs métriques et de Clifford lisent exactement la même convention de signe."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same structured signature can be linked from a metric tensor, quadratic space, quadratic form or Clifford algebra. Sharing it preserves ordered sign counts without identifying these consumers or proving their nondegeneracy."
+msgstr "Une même signature structurée peut être liée depuis un tenseur métrique, un espace quadratique, une forme quadratique ou une algèbre de Clifford. Son partage préserve les nombres ordonnés de signes sans identifier ces consommateurs ni prouver leur non-dégénérescence."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowskiSignature with math:metricSignature. Its counts (3, 1) describe the metric's declared split, not the sixteen-dimensional carrier of real Cl(3,1)."
+msgstr "L’exemple analysis-and-geometry relie ex:minkowskiMetric à ex:minkowskiSignature avec math:metricSignature. Ses nombres (3, 1) décrivent la répartition déclarée de la métrique, pas le support de dimension seize du Cl(3,1) réel."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a consumer must refer to an explicit positive/negative sign pair rather than an opaque signature string. Keep the Lorentzian sign convention explicit."
+msgstr "À utiliser lorsqu’un consommateur doit référencer une paire explicite de nombres positifs/négatifs plutôt qu’une chaîne de signature opaque. Expliciter la convention de signe lorentzienne."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading this link as a matrix factorization, eigenvalue computation or conversion between a metric and a Clifford algebra. A shared signature is not an identity assertion."
+msgstr "Ne pas lire ce lien comme une factorisation matricielle, un calcul de valeurs propres ou une conversion entre métrique et algèbre de Clifford. Une signature partagée n’est pas une assertion d’identité."
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the consumer as subject and a math:MetricSignature as object of math:metricSignature. Supply both counts and the relevant context; CliffordAlgebra has its own signature requirement, distinct from the selected metric classes."
+msgstr "Utiliser le consommateur comme sujet et une math:MetricSignature comme objet de math:metricSignature. Fournir les deux nombres et le contexte pertinent ; CliffordAlgebra a sa propre exigence de signature, distincte de celle des classes métriques sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature positive"
+msgstr "nombre de valeurs propres positives de la signature"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The count p of positive eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."
+msgstr "Le nombre p de valeurs propres positives d’une math:MetricSignature. Domaine math:MetricSignature, portée xsd:nonNegativeInteger (indiqués en prose). Dans une signature lorentzienne, le signe temporel dépend de la convention ; p = 1 ou q = 1 sont tous deux admis."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value p counts positive eigenvalues, not basis blades of a Clifford algebra. In Lorentzian geometry the timelike direction may have positive or negative sign, so p = 1 or q = 1 can express the one-direction split under the chosen convention."
+msgstr "La valeur p compte les valeurs propres positives, pas les lames de base d’une algèbre de Clifford. En géométrie lorentzienne, la direction temporelle peut avoir un signe positif ou négatif ; p = 1 ou q = 1 peut donc exprimer la répartition à une seule direction selon la convention choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example supplies math:signaturePositive 3 with math:signatureNegative 1 for ex:minkowskiSignature and interprets the three positive directions as spacelike. This is the example's convention, not a universal meaning of positive."
+msgstr "L’exemple analysis-and-geometry fournit math:signaturePositive 3 avec math:signatureNegative 1 pour ex:minkowskiSignature et interprète les trois directions positives comme spatiales. C’est la convention de l’exemple, pas un sens universel du signe positif."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the positive count in an ordered signature pair. State the underlying real form and the sign interpretation needed by the application."
+msgstr "À utiliser pour le nombre positif d’une paire de signature ordonnée. Préciser la forme réelle sous-jacente et l’interprétation des signes requise par l’application."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this count from the word Lorentzian alone or confusing p with 2^(p+q). The positive-first Clifford generator convention fixes generator squares, not a convention-independent spacetime label."
+msgstr "Ne pas déduire ce nombre du seul mot lorentzien ni confondre p avec 2^(p+q). La convention des générateurs positifs en premier de Clifford fixe les carrés des générateurs, pas une qualification spatio-temporelle indépendante de la convention."
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:MetricSignature with math:signaturePositive and record q with math:signatureNegative. Existing checks compare supplied values with context; they do not compute eigenvalues or require missing counts generically."
+msgstr "Joindre l’entier non négatif fourni à la math:MetricSignature avec math:signaturePositive et consigner q avec math:signatureNegative. Les contrôles existants comparent les valeurs fournies au contexte ; ils ne calculent pas les valeurs propres et n’exigent pas génériquement les nombres manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature negative"
+msgstr "nombre de valeurs propres négatives de la signature"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The count q of negative eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."
+msgstr "Le nombre q de valeurs propres négatives d’une math:MetricSignature. Domaine math:MetricSignature, portée xsd:nonNegativeInteger (indiqués en prose). Dans une signature lorentzienne, le signe temporel dépend de la convention ; p = 1 ou q = 1 sont tous deux admis."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value q counts negative eigenvalues. Riemannian signatures have q = 0; a Lorentzian convention may instead put the single timelike direction in the positive block, so q need not equal one in every Lorentzian description."
+msgstr "La valeur q compte les valeurs propres négatives. Les signatures riemanniennes ont q = 0 ; une convention lorentzienne peut au contraire placer l’unique direction temporelle dans le bloc positif, donc q n’est pas nécessairement égal à un dans toute description lorentzienne."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example supplies math:signatureNegative 1 with math:signaturePositive 3 for ex:minkowskiSignature. A Lorentzian pair (1, 3) uses the opposite sign convention; neither pair alone supplies metric components."
+msgstr "L’exemple analysis-and-geometry fournit math:signatureNegative 1 avec math:signaturePositive 3 pour ex:minkowskiSignature. Une paire lorentzienne (1, 3) utilise la convention de signe opposée ; aucune des deux paires ne fournit à elle seule de composantes métriques."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the negative count in the same ordered signature pair as math:signaturePositive. Keep a zero count distinct from omitted information."
+msgstr "À utiliser pour le nombre négatif de la même paire de signature ordonnée que math:signaturePositive. Distinguer un nombre nul d’une information omise."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating q as an invariant number of timelike directions across both sign conventions, or as the number of Clifford basis blades. Supplied sign counts do not establish the absence of zero eigenvalues."
+msgstr "Ne pas traiter q comme un nombre invariant de directions temporelles dans les deux conventions de signe, ni comme le nombre de lames de base de Clifford. Les nombres de signes fournis n’établissent pas l’absence de valeurs propres nulles."
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer through math:signatureNegative. For a metric's supplied context, distinguish the p + q dimension comparison, the Lorentzian p = 1 or q = 1 condition and the Riemannian q = 0 condition; these are not signature constructors."
+msgstr "Joindre l’entier non négatif fourni par math:signatureNegative. Pour le contexte fourni d’une métrique, distinguer la comparaison de dimension p + q, la condition lorentzienne p = 1 ou q = 1 et la condition riemannienne q = 0 ; ce ne sont pas des constructeurs de signature."

@@ -2799,8 +2799,8 @@ msgid "Metric Signature"
 msgstr "度量符号差"
 
 msgctxt "https://blackcatinformatics.ca/math/MetricSignature|skos:definition"
-msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. The sum p + q equals the carrier dimension; the object is shared rather than re-minted for Clifford semantics."
-msgstr "实二次空间、度量张量、二次形式或 Clifford 代数共享的签名 (p,q)，由 math:signaturePositive 与 math:signatureNegative 承载。它是结构化对象，且 p+q 等于载体维数。"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. For a nondegenerate underlying quadratic space, p + q is its dimension; a real Cl(p,q) has p + q generators and its algebra has carrier dimension 2^(p+q). The pair omits the nullity of a degenerate form and does not by itself establish nondegeneracy. The object is shared rather than re-minted for Clifford semantics."
+msgstr "实二次空间、度量张量、二次形式或 Clifford 代数的符号差 (p, q)：由 math:signaturePositive 和 math:signatureNegative 携带的计数。它是结构化对象而非不透明字符串；黎曼情形为 (n, 0)，洛伦兹情形为 (1, n−1) 或 (n−1, 1)，Cl(p,q) 使用相同的有序符号计数。对于非退化的底层二次空间，p + q 是其维数；实 Cl(p,q) 有 p + q 个生成元，其代数的载体维数为 2^(p+q)。该数对省略退化形式的零度，本身并不确立非退化性。该对象供共享使用，而不为 Clifford 语义另行创建。"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|rdfs:label"
 msgid "space dimension"
@@ -2816,7 +2816,7 @@ msgstr "度量符号差"
 
 msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
 msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
-msgstr "将度量张量、二次空间、二次形式或 Clifford 代数关联到其结构化且共享的 math:MetricSignature (p,q)。"
+msgstr "将 math:MetricTensor、math:QuadraticSpace、math:QuadraticForm 或 math:CliffordAlgebra 关联到其共享的 math:MetricSignature (p, q)。值域为 math:MetricSignature（以文字说明）。它是结构化对象而非不透明字符串，因此度量和 Clifford 使用方读取完全相同的符号约定。"
 
 msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
 msgid "has basis"
@@ -9496,3 +9496,227 @@ msgstr "不要将此失败报告为已否定定理、证明缺失或紧性求解
 msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect the bearer’s actual class and missing declaration, then retain its explicit boolean under the existing class-local rule without forcing true. Preserve the associated realized law or compactness boundary and any separate evidence; completing the declaration does not verify a model, solve compactness or compute a topological invariant."
 msgstr "检查承载对象实际类及缺少声明，按已有类局部规则保留显式布尔值，不强制 true。保留相关已实现定律或紧性边界及独立证据；补全声明不会验证模型、求解紧性或计算拓扑不变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor Field"
+msgstr "张量场"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tensor field on a manifold: an assignment of a tensor to each point, a section of a tensor bundle over the tangent spaces. Names the manifold it lives on through math:tensorFieldOn. A math:MetricTensor is the distinguished tensor field giving the geometry; vector fields and differential forms are other tensor fields."
+msgstr "流形上的张量场：为每个点指定一个张量，即切空间上的张量丛的截面。通过 math:tensorFieldOn 指明其所在流形。math:MetricTensor 是给出几何的特定张量场；向量场和微分形式是其他张量场。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A tensor field assigns tensors over its named manifold and, in the smooth setting, is a smooth section of the appropriate tensor bundle. A typed record and math:tensorFieldOn link identify the field and base; they do not establish its components, smoothness or pointwise values."
+msgstr "张量场在其指明的流形上指定张量，在光滑情形下是相应张量丛的光滑截面。类型化记录和 math:tensorFieldOn 链接标识场及其底流形；它们不确立其分量、光滑性或逐点取值。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the analysis-and-geometry example, ex:minkowskiMetric is a math:MetricTensor, hence a math:TensorField, with math:tensorFieldOn ex:minkowski. The record names its base but supplies no tensor components or pointwise evaluation."
+msgstr "在 analysis-and-geometry 示例中，ex:minkowskiMetric 是 math:MetricTensor，因而也是 math:TensorField，并带有 math:tensorFieldOn ex:minkowski。该记录指明其底流形，但未提供张量分量或逐点求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a tensor assignment varying over a manifold, including a metric field. Name the base manifold even when other records also refer to it."
+msgstr "用于随流形上的点变化的张量指定，包括度量场。即使其他记录也引用底流形，仍须指明它。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a tensor field as one tangent vector, one coordinate array or its base manifold merely because those resources are related. A declared field is not a computed section."
+msgstr "不要仅因资源之间有关联，就将张量场视为单个切向量、单个坐标数组或其底流形。声明的场不是计算所得的截面。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the field as math:TensorField or an appropriate subclass and name its manifold with math:tensorFieldOn. Supply any component representation and regularity evidence separately; no generic tensor-field frame gate is asserted here."
+msgstr "将场描述为 math:TensorField 或适当子类，并以 math:tensorFieldOn 指明其流形。另行提供分量表示和正则性依据；此处不声称存在通用的张量场框架校验。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Metric Tensor"
+msgstr "度量张量"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A metric tensor g: a symmetric bilinear form on each tangent space giving lengths and angles. A subclass of math:TensorField carrying a structured math:metricSignature (p, q) through math:metricSignature — positive-definite (q = 0) for a math:RiemannianManifold, indefinite with one timelike direction (p or q = 1) for a math:LorentzianManifold. The Lorentzian metric is the math object a physics slice needs for spacetime and stays math-side."
+msgstr "度量张量 g：每个切空间上给出长度和角度的对称双线性形式。它是 math:TensorField 的子类，通过 math:metricSignature 携带结构化的 math:metricSignature (p, q)；对 math:RiemannianManifold 为正定（q = 0），对 math:LorentzianManifold 为具有一个类时方向的不定形式（p 或 q = 1）。洛伦兹度量是物理切片描述时空所需的数学对象，归属数学侧。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A real metric is symmetric and nondegenerate on each tangent space, with the appropriate smooth dependence on the base point. Its signature records positive and negative counts; those counts do not establish symmetry, nondegeneracy, smoothness or curvature."
+msgstr "实度量在每个切空间上对称且非退化，并以适当方式光滑依赖于底点。其符号差记录正负计数；这些计数不确立对称性、非退化性、光滑性或曲率。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowski and ex:minkowskiSignature, whose supplied counts are 3 and 1. This declares a Lorentzian metric under the example's spacelike/timelike interpretation without providing a matrix or evaluator."
+msgstr "analysis-and-geometry 示例将 ex:minkowskiMetric 链接到 ex:minkowski 和 ex:minkowskiSignature，后者提供的计数为 3 和 1。这按示例的类空/类时解释声明一个洛伦兹度量，但未提供矩阵或求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the geometric tensor field of a Riemannian or Lorentzian manifold. Keep its pointwise bilinear-form role and base manifold explicit."
+msgstr "用于黎曼或洛伦兹流形的几何张量场。须明确其逐点双线性形式的作用及其底流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a metric tensor with a quadratic space, quadratic form or Clifford algebra merely because they share a signature. A dimension-consistent pair does not construct the metric or prove its defining properties."
+msgstr "不要仅因共享符号差，就将度量张量等同于二次空间、二次形式或 Clifford 代数。维数一致的数对不会构造度量，也不会证明其定义性质。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricTensor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the field as math:MetricTensor, name its base through math:tensorFieldOn and attach a math:MetricSignature through math:metricSignature. Describe matrix entries, coordinate dependence and evidence for the metric obligations separately."
+msgstr "将场定型为 math:MetricTensor，通过 math:tensorFieldOn 指明其底流形，并通过 math:metricSignature 关联 math:MetricSignature。另行描述矩阵元素、坐标依赖性及满足度量义务的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Metric Signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The signature (p, q) of a real quadratic space, metric tensor, quadratic form, or Clifford algebra: the counts carried by math:signaturePositive and math:signatureNegative. Structured, not an opaque string — Riemannian is (n, 0), Lorentzian is (1, n−1) or (n−1, 1), and Cl(p,q) uses the same ordered sign counts. For a nondegenerate underlying quadratic space, p + q is its dimension; a real Cl(p,q) has p + q generators and its algebra has carrier dimension 2^(p+q). The pair omits the nullity of a degenerate form and does not by itself establish nondegeneracy. The object is shared rather than re-minted for Clifford semantics."
+msgstr "实二次空间、度量张量、二次形式或 Clifford 代数的符号差 (p, q)：由 math:signaturePositive 和 math:signatureNegative 携带的计数。它是结构化对象而非不透明字符串；黎曼情形为 (n, 0)，洛伦兹情形为 (1, n−1) 或 (n−1, 1)，Cl(p,q) 使用相同的有序符号计数。对于非退化的底层二次空间，p + q 是其维数；实 Cl(p,q) 有 p + q 个生成元，其代数的载体维数为 2^(p+q)。该数对省略退化形式的零度，本身并不确立非退化性。该对象供共享使用，而不为 Clifford 语义另行创建。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The ordered pair counts positive and negative eigenvalues; zero eigenvalues are not represented by a third slot. Only for a nondegenerate underlying form does p + q equal its vector-space dimension. A real Clifford algebra Cl(p,q) instead has algebra dimension 2^(p+q)."
+msgstr "该有序数对统计正负特征值；零特征值没有第三个槽位表示。仅当底层形式非退化时，p + q 才等于其向量空间维数。实 Clifford 代数 Cl(p,q) 的代数维数则为 2^(p+q)。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the analysis-and-geometry example, ex:minkowskiSignature records (3, 1) for a four-dimensional Lorentzian manifold. For the same ordered pair, real Cl(3,1) has four generators and algebra carrier dimension sixteen; the shared pair does not identify the metric with that algebra."
+msgstr "在 analysis-and-geometry 示例中，ex:minkowskiSignature 为四维洛伦兹流形记录 (3, 1)。对于同一有序数对，实 Cl(3,1) 有四个生成元，代数载体维数为十六；共享数对不会将度量与该代数等同。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use a structured signature when metric, quadratic-form or Clifford consumers need the same ordered positive and negative counts. State the interpretation of the timelike sign for a Lorentzian application."
+msgstr "当度量、二次形式或 Clifford 使用方需要相同的有序正负计数时，使用结构化符号差。对于洛伦兹应用，须说明类时符号的解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling p + q the Clifford algebra's carrier dimension, treating omitted nullity as proof of nondegeneracy or assigning timelike meaning to a sign independently of convention."
+msgstr "不要将 p + q 称为 Clifford 代数的载体维数，不要将省略零度视为非退化性的证明，也不要脱离约定赋予符号类时含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/MetricSignature|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe a math:MetricSignature with math:signaturePositive and math:signatureNegative and link its consumer through math:metricSignature. Supply the relevant dimension and structure context separately; the existing supplied-value comparisons do not infer missing counts."
+msgstr "用 math:signaturePositive 和 math:signatureNegative 描述 math:MetricSignature，并通过 math:metricSignature 链接其使用方。另行提供相关维数和结构背景；现有的已提供数值比较不会推断缺失计数。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tensor field on"
+msgstr "张量场所在流形"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TensorField to the math:Manifold it is a field on. Domain math:TensorField, range math:Manifold (stated in prose). Every tensor field names the manifold it lives over."
+msgstr "将 math:TensorField 关联到其所在的 math:Manifold。定义域为 math:TensorField，值域为 math:Manifold（以文字说明）。每个张量场都指明其所依附的流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names the manifold over which the tensor field is defined. Naming the base is a tensor-field obligation even when an example or fixture omits the link; it does not provide pointwise tensor evaluation."
+msgstr "此属性指明张量场定义于其上的流形。即使示例或测试数据省略该链接，指明底流形仍是张量场的义务；它不提供逐点张量求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example states ex:minkowskiMetric math:tensorFieldOn ex:minkowski. The metric-signature-consistent fixture omits this link; that sparse signature example does not waive the field's obligation to name its base."
+msgstr "analysis-and-geometry 示例声明 ex:minkowskiMetric math:tensorFieldOn ex:minkowski。metric-signature-consistent 测试数据省略此链接；该简略符号差示例不免除场指明底流形的义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a tensor field, including a metric tensor, to its base manifold. It complements a manifold's math:metricTensor link."
+msgstr "用于将张量场（包括度量张量）连接到其底流形。它与流形的 math:metricTensor 链接相互补充。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a single tangent space, chart coordinate space or signature object as the field's manifold. Do not infer a generic missing-base validation gate from the prose obligation."
+msgstr "不要将单个切空间、坐标图的坐标空间或符号差对象用作场的流形。不要从文字义务推断存在通用的底流形缺失校验。"
+
+msgctxt "https://blackcatinformatics.ca/math/tensorFieldOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the field as subject and its math:Manifold as object of math:tensorFieldOn. Keep any per-point tensor values and component descriptions separate from this base link."
+msgstr "以场为 math:tensorFieldOn 的主语，以其 math:Manifold 为宾语。将逐点张量值和分量描述与此底流形链接分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric tensor"
+msgstr "度量张量"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."
+msgstr "将 math:RiemannianManifold 或 math:LorentzianManifold 关联到其 math:MetricTensor。定义域为 math:Manifold，值域为 math:MetricTensor（以文字说明）。度量赋予流形长度、角度，以及在洛伦兹度量情形下的因果结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The manifold-to-metric link names its geometric tensor field. The field still names its base through math:tensorFieldOn and has the mathematical symmetry, nondegeneracy and smoothness obligations of a real metric."
+msgstr "流形到度量的链接指明其几何张量场。场仍须通过 math:tensorFieldOn 指明其底流形，并承担实度量的对称性、非退化性和光滑性等数学义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example states ex:minkowski math:metricTensor ex:minkowskiMetric and gives the reverse base link with math:tensorFieldOn. Neither edge supplies matrix components, curvature or an evaluation procedure."
+msgstr "analysis-and-geometry 示例声明 ex:minkowski math:metricTensor ex:minkowskiMetric，并用 math:tensorFieldOn 给出反向的底流形链接。两条边都不提供矩阵分量、曲率或求值过程。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a Riemannian or Lorentzian manifold is described together with its metric field. Preserve the distinction between the manifold and the tensor field giving its geometry."
+msgstr "在一并描述黎曼或洛伦兹流形及其度量场时使用。须保持流形与给出其几何的张量场之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a signature object or Clifford algebra as the metric solely because it has compatible counts. This link does not calculate distances or causal relations."
+msgstr "不要仅因计数相容，就将符号差对象或 Clifford 代数当作度量。此链接不会计算距离或因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricTensor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the manifold to its math:MetricTensor with math:metricTensor, then name the field's base and signature. Keep supplied-value dimension and sign checks distinct from evidence that the field is a valid metric."
+msgstr "用 math:metricTensor 将流形链接到其 math:MetricTensor，再指明场的底流形和符号差。须区分已提供数值的维数与符号检查，以及场确为有效度量的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric signature"
+msgstr "度量符号差"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
+msgstr "将 math:MetricTensor、math:QuadraticSpace、math:QuadraticForm 或 math:CliffordAlgebra 关联到其共享的 math:MetricSignature (p, q)。值域为 math:MetricSignature（以文字说明）。它是结构化对象而非不透明字符串，因此度量和 Clifford 使用方读取完全相同的符号约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same structured signature can be linked from a metric tensor, quadratic space, quadratic form or Clifford algebra. Sharing it preserves ordered sign counts without identifying these consumers or proving their nondegeneracy."
+msgstr "度量张量、二次空间、二次形式或 Clifford 代数可以链接到同一个结构化符号差。共享它会保留有序符号计数，但不会等同这些使用方，也不会证明它们的非退化性。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example links ex:minkowskiMetric to ex:minkowskiSignature with math:metricSignature. Its counts (3, 1) describe the metric's declared split, not the sixteen-dimensional carrier of real Cl(3,1)."
+msgstr "analysis-and-geometry 示例用 math:metricSignature 将 ex:minkowskiMetric 链接到 ex:minkowskiSignature。其计数 (3, 1) 描述度量所声明的正负分布，而非实 Cl(3,1) 的十六维载体。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a consumer must refer to an explicit positive/negative sign pair rather than an opaque signature string. Keep the Lorentzian sign convention explicit."
+msgstr "当使用方须引用明确的正负计数对，而非不透明的符号差字符串时使用。须明确洛伦兹符号约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading this link as a matrix factorization, eigenvalue computation or conversion between a metric and a Clifford algebra. A shared signature is not an identity assertion."
+msgstr "不要将此链接理解为矩阵分解、特征值计算或度量与 Clifford 代数之间的转换。共享符号差不是同一性断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/metricSignature|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the consumer as subject and a math:MetricSignature as object of math:metricSignature. Supply both counts and the relevant context; CliffordAlgebra has its own signature requirement, distinct from the selected metric classes."
+msgstr "以使用方为 math:metricSignature 的主语，以 math:MetricSignature 为宾语。提供两个计数及相关背景；CliffordAlgebra 有其自身的符号差要求，与所选度量类的要求不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature positive"
+msgstr "符号差正特征值数"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The count p of positive eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."
+msgstr "math:MetricSignature 的正特征值计数 p。定义域为 math:MetricSignature，值域为 xsd:nonNegativeInteger（以文字说明）。在洛伦兹符号差中，类时符号取决于约定；允许 p = 1 或 q = 1。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value p counts positive eigenvalues, not basis blades of a Clifford algebra. In Lorentzian geometry the timelike direction may have positive or negative sign, so p = 1 or q = 1 can express the one-direction split under the chosen convention."
+msgstr "数值 p 统计正特征值，而非 Clifford 代数的基刃。在洛伦兹几何中，类时方向可取正号或负号，因此 p = 1 或 q = 1 可按所选约定表达单一方向的分布。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example supplies math:signaturePositive 3 with math:signatureNegative 1 for ex:minkowskiSignature and interprets the three positive directions as spacelike. This is the example's convention, not a universal meaning of positive."
+msgstr "analysis-and-geometry 示例为 ex:minkowskiSignature 提供 math:signaturePositive 3 和 math:signatureNegative 1，并将三个正方向解释为类空方向。这是该示例的约定，而非正号的普遍含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the positive count in an ordered signature pair. State the underlying real form and the sign interpretation needed by the application."
+msgstr "用于有序符号差对中的正计数。须说明底层实形式及应用所需的符号解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this count from the word Lorentzian alone or confusing p with 2^(p+q). The positive-first Clifford generator convention fixes generator squares, not a convention-independent spacetime label."
+msgstr "不要仅由“洛伦兹”一词推断该计数，也不要混淆 p 与 2^(p+q)。Clifford 的正生成元优先约定确定生成元的平方，而非不依赖约定的时空标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/signaturePositive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:MetricSignature with math:signaturePositive and record q with math:signatureNegative. Existing checks compare supplied values with context; they do not compute eigenvalues or require missing counts generically."
+msgstr "用 math:signaturePositive 将已提供的非负整数关联到 math:MetricSignature，并用 math:signatureNegative 记录 q。现有检查将已提供数值与背景比较；它们不计算特征值，也不通用地要求补齐缺失计数。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature negative"
+msgstr "符号差负特征值数"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The count q of negative eigenvalues of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). In a Lorentzian signature the timelike sign depends on convention; either p = 1 or q = 1 is permitted."
+msgstr "math:MetricSignature 的负特征值计数 q。定义域为 math:MetricSignature，值域为 xsd:nonNegativeInteger（以文字说明）。在洛伦兹符号差中，类时符号取决于约定；允许 p = 1 或 q = 1。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value q counts negative eigenvalues. Riemannian signatures have q = 0; a Lorentzian convention may instead put the single timelike direction in the positive block, so q need not equal one in every Lorentzian description."
+msgstr "数值 q 统计负特征值。黎曼符号差有 q = 0；洛伦兹约定也可将唯一类时方向置于正块，因此并非每种洛伦兹描述中 q 都必须等于一。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|http://www.w3.org/2004/02/skos/core#example"
+msgid "The analysis-and-geometry example supplies math:signatureNegative 1 with math:signaturePositive 3 for ex:minkowskiSignature. A Lorentzian pair (1, 3) uses the opposite sign convention; neither pair alone supplies metric components."
+msgstr "analysis-and-geometry 示例为 ex:minkowskiSignature 提供 math:signatureNegative 1 和 math:signaturePositive 3。洛伦兹数对 (1, 3) 使用相反的符号约定；两种数对本身都不提供度量分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the negative count in the same ordered signature pair as math:signaturePositive. Keep a zero count distinct from omitted information."
+msgstr "用于与 math:signaturePositive 同属一个有序符号差对的负计数。须区分计数为零与信息省略。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating q as an invariant number of timelike directions across both sign conventions, or as the number of Clifford basis blades. Supplied sign counts do not establish the absence of zero eigenvalues."
+msgstr "不要将 q 视为在两种符号约定下不变的类时方向数，也不要将其视为 Clifford 基刃数。已提供的符号计数不确立零特征值的缺失。"
+
+msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer through math:signatureNegative. For a metric's supplied context, distinguish the p + q dimension comparison, the Lorentzian p = 1 or q = 1 condition and the Riemannian q = 0 condition; these are not signature constructors."
+msgstr "通过 math:signatureNegative 关联已提供的非负整数。对于度量的已提供背景，须区分 p + q 的维数比较、洛伦兹条件 p = 1 或 q = 1，以及黎曼条件 q = 0；这些都不是符号差构造器。"
