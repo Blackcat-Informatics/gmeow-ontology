@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/episode-transition-reports/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Illustrative source reports; no local scheduler, transition or state update runs.
+ex:writerA a gmeow:Agent ;
+    rdfs:label "First declaring writer"@en .
+
+ex:writerB a gmeow:Agent ;
+    rdfs:label "Second declaring writer"@en .
+
+ex:recorder a gmeow:SoftwareAgent ;
+    rdfs:label "Transition report importer"@en .
+
+ex:performer a gmeow:Agent ;
+    rdfs:label "Activity performer explicitly identified by the source"@en .
+
+ex:sourceA a gmeow:InformationObject ;
+    rdfs:label "First transition source artifact"@en ;
+    gmeow:wasAttributedTo ex:writerA .
+
+ex:sourceB a gmeow:InformationObject ;
+    rdfs:label "Second transition source artifact"@en ;
+    gmeow:wasAttributedTo ex:writerB .
+
+# These IRIs name actual episode Activity occurrences, not their source artifacts.
+# Explicit performer relations do not derive from the report's writer or recorder.
+ex:episodeA a gmeow:Activity ;
+    rdfs:label "Source-identified archive review episode"@en ;
+    gmeow:wasAssociatedWith ex:performer .
+
+ex:episodeB a gmeow:Activity ;
+    rdfs:label "Source-identified inventory comparison episode"@en ;
+    gmeow:wasAssociatedWith ex:performer .
+
+ex:episodeC a gmeow:Activity ;
+    rdfs:label "Source-identified correspondence review episode"@en ;
+    gmeow:wasAssociatedWith ex:performer .
+
+ex:inventoryPursuit a gmeow:OpenLoop ;
+    rdfs:label "Inventory discrepancy pursuit record"@en .
+
+ex:correspondencePursuit a gmeow:OpenLoop ;
+    rdfs:label "Archive correspondence pursuit record"@en .
+
+# Report-level source and recorder describe each report independently.
+# They do not propagate to the constituent endpoint and loop assertions.
+ex:reportA a gmeow:EpisodeTransition ;
+    gmeow:episodeLeft ex:episodeA ;
+    gmeow:episodeEntered ex:episodeB ;
+    gmeow:transitionLoop ex:inventoryPursuit ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:sourceA .
+
+ex:reportB a gmeow:EpisodeTransition ;
+    gmeow:episodeLeft ex:episodeA ;
+    gmeow:episodeEntered ex:episodeC ;
+    gmeow:transitionLoop ex:correspondencePursuit ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:sourceB .
+
+# Each exact endpoint or loop assertion retains its own source, recorder and frame.
+
+ex:reportALeft rdf:reifies <<( ex:reportA gmeow:episodeLeft ex:episodeA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:reportAEntered rdf:reifies <<( ex:reportA gmeow:episodeEntered ex:episodeB )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:reportALoop rdf:reifies <<( ex:reportA gmeow:transitionLoop ex:inventoryPursuit )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:reportBLeft rdf:reifies <<( ex:reportB gmeow:episodeLeft ex:episodeA )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:reportBEntered rdf:reifies <<( ex:reportB gmeow:episodeEntered ex:episodeC )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:reportBLoop rdf:reifies <<( ex:reportB gmeow:transitionLoop ex:correspondencePursuit )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+# No timestamp, chronological or causal order, current winner or loop-state change
+# is derived from these reports. No role implies a missing performer or pursuer;
+# source-identified identity overlap between roles remains allowed.
