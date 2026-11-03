@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: de8a885148205300041f180cfad441422add0273
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2319
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2319
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: bffe25829cb98efa9f5d8fce45435e61e3881b79
+GhpRsq-Head-Ref: paudley/2318-correct-french-metric-wording-and
+GhpRsq-Head-OID: de8a885148205300041f180cfad441422add0273
+GhpRsq-Result-Tree: 8f98088b60f5bfc36b9ff55abf10f1dfcc0ee543
+GhpRsq-Result-Commit: 8639799d2210e4946dbf9e3245a2c82607261a3e
+GhpRsq-Parent-Hashes: de8a885148205300041f180cfad441422add0273
+GhpRsq-Squash-Notes-SHA256: a970c5d9a767d0c8e1b383f92d74c8d660f6428d5bf02f9585a495d7fce2cfe8
+GhpRsq-Stage-Evidence: none
