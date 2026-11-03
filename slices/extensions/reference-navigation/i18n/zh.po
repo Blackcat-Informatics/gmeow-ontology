@@ -600,3 +600,31 @@ msgstr "GMEOW 参考资料导航模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Katamari reference-work import and other attributed source consumers retaining unresolved wording, exact local spans and source revision identities without fabricated resolution."
 msgstr "Katamari 参考作品导入及其他保留未解析措辞、确切局部跨度和来源修订身份而不虚构解析的有归属来源使用方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved index target"
+msgstr "已解析索引目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an IndexEntry to a ContentBlock explicitly resolved as a target of its recorded locator wording. The original locator remains separate source evidence, including when resolution is absent or ambiguous."
+msgstr "将 IndexEntry 关联到明确解析为其已记录定位信息之目标的 ContentBlock。原始定位信息仍作为独立来源证据保留，包括解析缺失或有歧义的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional and retains coexisting attributed resolutions. It does not pair each locator literal with a particular target, require a target to be present, equate the entry and target source revisions, or calculate page coordinates. Each resource keeps its own source identity."
+msgstr "该关系不具函数性，并保留可共存且注明归属的解析结果。它不将每个定位信息字面值与特定目标配对，不强制要求目标存在，不将条目及目标的来源修订视为相同，也不计算页面坐标。每个资源保留自己的来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "An IndexEntry ex:entry can retain gmeow:indexLocator \"42\" and an attributed gmeow:indexTarget ex:block. The block retains its own gmeow:navigationSource ex:targetRevision; the link is supplied resolution, not a page-coordinate calculation."
+msgstr "IndexEntry ex:entry 可以保留 gmeow:indexLocator \"42\" 及注明归属的 gmeow:indexTarget ex:block。该块保留自己的 gmeow:navigationSource ex:targetRevision；此链接是所提供的解析，不是页面坐标计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or interpretation supplies an actual target block for an index entry while the printed page, range or other locator wording must remain intact."
+msgstr "当来源或解释为索引条目提供实际目标块，而印刷页码、范围或其他定位措辞必须保持完整时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing indexLocator text, confusing a target block with an indexConcept, inferring a unique resolution or shared revision, or treating the link as a resolver result verified by the vocabulary. Unresolved and competing readings remain explicit."
+msgstr "不要替换 indexLocator 文本，不要混淆目标块与 indexConcept，不要推断唯一解析或共享修订，也不要将链接视为经词汇验证的解析器结果。未解析及相互竞争的解读须保持明确。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."
+msgstr "将条目关联到每个所提供的 ContentBlock，并保留其原始 indexLocator 及 navigationSource。若提供了目标自己的 navigationSource 及修订依据，应予保留；绝不臆造缺失修订。通过每个 indexTarget 断言确切的原生具体化节点记录归属，不要将记录上的元数据传播到其向外断言。"

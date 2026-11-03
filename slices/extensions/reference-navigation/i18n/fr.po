@@ -600,3 +600,31 @@ msgstr "Module GMEOW de navigation de référence"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Katamari reference-work import and other attributed source consumers retaining unresolved wording, exact local spans and source revision identities without fabricated resolution."
 msgstr "Import d’œuvres de référence Katamari et autres consommateurs de sources attribuées conservant les formulations non résolues, les intervalles locaux exacts et les identités de révision source sans résolution fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved index target"
+msgstr "cible d’index résolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an IndexEntry to a ContentBlock explicitly resolved as a target of its recorded locator wording. The original locator remains separate source evidence, including when resolution is absent or ambiguous."
+msgstr "Relie une IndexEntry à un ContentBlock explicitement résolu comme cible de son repère consigné. Le repère original reste un élément probant de source distinct, y compris lorsque la résolution est absente ou ambiguë."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional and retains coexisting attributed resolutions. It does not pair each locator literal with a particular target, require a target to be present, equate the entry and target source revisions, or calculate page coordinates. Each resource keeps its own source identity."
+msgstr "La relation est non fonctionnelle et conserve des résolutions attribuées coexistantes. Elle n’apparie pas chaque littéral de repère à une cible particulière, n’impose pas la présence d’une cible, n’identifie pas les révisions sources de l’entrée et de la cible et ne calcule pas de coordonnées de page. Chaque ressource conserve sa propre identité de source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "An IndexEntry ex:entry can retain gmeow:indexLocator \"42\" and an attributed gmeow:indexTarget ex:block. The block retains its own gmeow:navigationSource ex:targetRevision; the link is supplied resolution, not a page-coordinate calculation."
+msgstr "Une IndexEntry ex:entry peut conserver gmeow:indexLocator \"42\" et une assertion attribuée gmeow:indexTarget ex:block. Le bloc conserve sa propre gmeow:navigationSource ex:targetRevision ; le lien est une résolution fournie, et non un calcul de coordonnées de page."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or interpretation supplies an actual target block for an index entry while the printed page, range or other locator wording must remain intact."
+msgstr "À utiliser lorsqu’une source ou une interprétation fournit un bloc cible effectif pour une entrée d’index, alors que la page imprimée, la plage ou tout autre repère textuel doit rester intact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing indexLocator text, confusing a target block with an indexConcept, inferring a unique resolution or shared revision, or treating the link as a resolver result verified by the vocabulary. Unresolved and competing readings remain explicit."
+msgstr "Éviter de remplacer le texte d’indexLocator, de confondre un bloc cible avec un indexConcept, de déduire une résolution unique ou une révision partagée, ou de traiter le lien comme un résultat de résolveur vérifié par le vocabulaire. Les lectures non résolues et concurrentes restent explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."
+msgstr "Relier l’entrée à chaque ContentBlock fourni et conserver son indexLocator original et sa navigationSource. Préserver la navigationSource propre à la cible et les éléments probants de sa révision lorsqu’ils sont fournis ; ne jamais fabriquer une révision manquante. Attribuer chaque assertion indexTarget par son réificateur natif exact plutôt que propager les métadonnées d’un enregistrement à ses assertions sortantes."
