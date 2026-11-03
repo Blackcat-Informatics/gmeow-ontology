@@ -3059,3 +3059,227 @@ msgstr "类别见证是来源提供的证据，不是创建见证的指令，也
 msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A selected-class obligation: gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."
 msgstr "所选类别义务：gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Authority"
+msgstr "查询重排权威记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied information record identifying a reranker’s score context through opaque source identity bytes, provider score-kind wording, declared mathematical dimension and actual reference frame. It retains the source declaration without authenticating it or identifying a provider agent or model."
+msgstr "所提供的信息记录，通过不透明来源身份字节、提供方的分数种类措辞、声明的数学量纲及实际参照系，标识重排器的评分上下文。它保留来源声明，不认证该声明，也不标识提供方代理或模型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the identity and context supplied for reported rerank scores."
+msgstr "用于保留为已报告重排分数提供的身份及上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as a model, execution occurrence, probability calibration or proof that a provider served a request."
+msgstr "避免将此记录视为模型、一次执行、概率校准，或提供方已处理请求的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one rerankAuthorityIdentity, rerankScoreKind, rerankScoreDimension and hasReferenceFrame; keep the record separate from its frame and quantitative scores."
+msgstr "为 rerankAuthorityIdentity、rerankScoreKind、rerankScoreDimension 及 hasReferenceFrame 各提供一个值；将该记录与其参照系及定量分数分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct authority records may retain the same opaque identity bytes. Equal identity, kind, dimension or frame does not merge those records or certify their source."
+msgstr "不同权威记录可以保留相同的不透明身份字节。相等的身份、种类、量纲或参照系不会合并这些记录，也不认证其来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied authority record: ex:authority a gmeow:QueryRerankAuthority ; gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ; gmeow:rerankScoreKind \"relevance-logit\" ; gmeow:rerankScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ."
+msgstr "所提供的权威记录：ex:authority a gmeow:QueryRerankAuthority ; gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ; gmeow:rerankScoreKind \"relevance-logit\" ; gmeow:rerankScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Score"
+msgstr "查询重排分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied finite IEEE 754 single precision rerank score carried as a math:Quantity. Its one xsd:float magnitude, declared dimension and actual reference frame accompany one source authority, without claiming an exact real target or an approximation error."
+msgstr "以 math:Quantity 承载的所提供有限 IEEE 754 单精度重排分数。其单个 xsd:float 量值、声明量纲及实际参照系随同一个来源权威记录保留，不声称存在精确实数目标或近似误差。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a reported finite single precision score with its source authority and quantitative context."
+msgstr "用于保留已报告的有限单精度分数及其来源权威记录和定量上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the score as a probability, confidence, exact decimal, model artifact or approximation of an identified exact number merely because its datatype is floating point."
+msgstr "避免仅因数据类型为浮点，就将此分数视为概率、置信度、精确十进制数、模型制品或某个已标识精确数的近似。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one math:quantityValue typed xsd:float, one math:hasDimension, one hasReferenceFrame and one rerankScoreAuthority; match dimension and frame to the authority."
+msgstr "提供一个 xsd:float 类型的 math:quantityValue、一个 math:hasDimension、一个 hasReferenceFrame 及一个 rerankScoreAuthority；使量纲和参照系与权威记录一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finite negative values and zero are allowed. This explicit carrier profile rejects missing context, nonfinite values and other numeric datatypes without replacing or reclassifying the source score."
+msgstr "允许有限负值及零。此显式载体配置拒绝上下文缺失、非有限值及其他数值数据类型，不替换来源分数，也不重新对其分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied negative score: ex:score a gmeow:QueryRerankScore ; math:quantityValue \"-1.25\"^^xsd:float ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ; gmeow:rerankScoreAuthority ex:authority ."
+msgstr "所提供的负分数：ex:score a gmeow:QueryRerankScore ; math:quantityValue \"-1.25\"^^xsd:float ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ; gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score authority"
+msgstr "重排分数权威记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied QueryRerankAuthority declaring the identity and context of one reported rerank score. The score retains its own quantitative dimension and frame, which agree with that declaration."
+msgstr "所提供的 QueryRerankAuthority，声明一个已报告重排分数的身份及上下文。分数保留其自身的定量量纲及参照系，两者与该声明一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make a retained quantitative score’s source context explicit."
+msgstr "用于明确保留的定量分数的来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a provider agent, model identity, execution or unique inverse owner from this association."
+msgstr "避免从此关联推断提供方代理、模型身份、执行或唯一逆向所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the score to one supplied authority record and retain the original opaque identity bytes and provider wording on that record."
+msgstr "将分数关联至一个所提供权威记录，并在该记录上保留原始不透明身份字节及提供方措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one authority is required per score in this profile. Several scores may reference one authority, and shared values do not identify distinct authority records."
+msgstr "此配置要求每个分数恰好有一个权威记录。多个分数可以引用同一权威记录，共享值不会使不同权威记录具有同一身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied context association: ex:score gmeow:rerankScoreAuthority ex:authority ."
+msgstr "所提供的上下文关联：ex:score gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank authority identity"
+msgstr "重排权威记录身份"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque identity bytes supplied by the source for a rerank authority, preserved as an xsd:hexBinary literal through lang:literalValue. The bytes retain the source identity rather than a fabricated semantic IRI."
+msgstr "来源为重排权威记录提供的不透明身份字节，通过 lang:literalValue 以 xsd:hexBinary 字面量保留。这些字节保留来源身份，而不是虚构的语义 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports a native byte identity for the scoring authority."
+msgstr "用于来源为评分权威记录报告原生字节身份的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a hash algorithm, fixed byte length, model identity, source authentication or IRI from the bytes."
+msgstr "避免根据这些字节虚构哈希算法、固定字节长度、模型身份、来源认证或 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual byte sequence in one xsd:hexBinary literal on the authority record; preserve its meaning under the source’s identity contract."
+msgstr "在权威记录上用一个 xsd:hexBinary 字面量保留实际字节序列；按来源身份契约保留其含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This required single coordinate imposes no global identity key or inverse uniqueness. Different records may carry the same bytes, and lexical hex spelling is not an additional identity claim."
+msgstr "此必需单坐标不施加全局身份键或逆向唯一性。不同记录可以携带相同字节，十六进制的词法拼写也不是额外的身份断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque source bytes: ex:authority gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ."
+msgstr "不透明来源字节：ex:authority gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score kind"
+msgstr "重排分数种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider’s supplied wording for what a rerank score represents, retained unchanged as an xsd:string literal on its authority record. The wording is context evidence rather than a calibrated mathematical interpretation."
+msgstr "提供方对于重排分数所表示内容的原始措辞，在其权威记录上原样保留为 xsd:string 字面量。该措辞是上下文证据，而不是经过校准的数学解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve provider score-kind wording beside the quantitative score context."
+msgstr "用于在定量分数上下文旁保留提供方的分数种类措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring probability, log-odds, confidence, calibration, dimension or rescaling rules from a word or the observed numeric range alone."
+msgstr "避免仅从某个词或观察到的数值范围推断概率、对数赔率、置信度、校准、量纲或重缩放规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied wording into one xsd:string literal and retain the authority’s separately declared dimension and reference frame."
+msgstr "将所提供措辞复制到一个 xsd:string 字面量中，并保留权威记录单独声明的量纲及参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is open provider wording, not an enumerated ontology class or a natural-language grammar. No automatic default or normalization is defined."
+msgstr "该值是提供方的开放措辞，不是枚举的本体类或自然语言语法。不定义自动默认值或规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Supplied provider wording: ex:authority gmeow:rerankScoreKind \"relevance-logit\" ."
+msgstr "所提供的提供方措辞：ex:authority gmeow:rerankScoreKind \"relevance-logit\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score dimension"
+msgstr "重排分数量纲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical Dimension explicitly declared by a source authority for its reported rerank scores. It describes the expected dimension of those quantities without making the information record itself a Quantity."
+msgstr "来源权威记录为其报告的重排分数显式声明的数学 Dimension。它描述这些量的预期量纲，不使该信息记录本身成为 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source-declared dimension against which a score’s own math:hasDimension is checked."
+msgstr "用于保留来源声明量纲，以据此检查分数自身的 math:hasDimension。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every score is dimensionless, inferring dimension from score-kind wording or confusing mathematical dimension with tensor shape or reference-frame axis count."
+msgstr "避免假定每个分数都无量纲、从分数种类措辞推断量纲，或将数学量纲与张量形状或参照系轴数混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the authority to one supplied math:Dimension resource and retain that same dimension on each associated score through math:hasDimension."
+msgstr "将权威记录关联至一个所提供的 math:Dimension 资源，并通过 math:hasDimension 在每个关联分数上保留同一量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal dimensions do not establish score comparability across authorities or replace their actual reference frames. Missing dimension is an invalid selected profile, not permission to insert a default."
+msgstr "相等量纲不确立不同权威记录之间的分数可比性，也不替代其实际参照系。量纲缺失使所选配置无效，而非允许插入默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly supplied dimension: ex:authority gmeow:rerankScoreDimension math:dimensionless ."
+msgstr "显式提供的量纲：ex:authority gmeow:rerankScoreDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank finite score law"
+msgstr "查询重排有限分数定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every retained QueryRerankScore magnitude is a well-formed finite numeric literal. Required xsd:float datatype, magnitude presence and single value are separate canonical restrictions on the selected carrier."
+msgstr "每个保留的 QueryRerankScore 量值都是格式正确的有限数值字面量。必需的 xsd:float 数据类型、量值存在及单值性是所选载体上的独立规范限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject NaN, floating infinities and malformed numeric magnitudes in this finite reported score profile."
+msgstr "用于在此有限已报告分数配置中拒绝 NaN、浮点无穷及格式错误的数值量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a rejected value, dropping its candidate, reclassifying it as unscored or treating a missing magnitude as zero."
+msgstr "避免替换被拒绝的值、删除其候选项、将其重新分类为无分数，或将缺失量值视为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each score’s math:quantityValue and require the unary intrinsic logic:termIsFiniteNumeric for that value."
+msgstr "绑定每个分数的 math:quantityValue，并要求该值满足一元内建项 logic:termIsFiniteNumeric。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law validates declared magnitude admission only. It neither invokes a provider nor certifies arbitrary provider interfaces, score rendering, calibration or usefulness."
+msgstr "此定律仅验证声明量值的接纳。它不调用提供方，也不认证任意提供方接口、分数呈现、校准或实用性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankFiniteScoreLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A finite-value obligation: gmeow:QueryRerankFiniteScoreLaw logic:formalizes gmeow:QueryRerankScore ."
+msgstr "有限值义务：gmeow:QueryRerankFiniteScoreLaw logic:formalizes gmeow:QueryRerankScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank score context law"
+msgstr "查询重排分数上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each QueryRerankScore has the same mathematical dimension and actual reference frame as its linked source authority declares. The score, authority and frame retain distinct identities."
+msgstr "每个 QueryRerankScore 都具有与其关联来源权威记录所声明的相同数学量纲及实际参照系。分数、权威记录和参照系保留不同身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a score whose dimension or frame disagrees with its authority record."
+msgstr "用于拒绝量纲或参照系与其权威记录不一致的分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating matching context as authentication, calibration, cross-provider comparability or a reason to merge authority records."
+msgstr "避免将上下文一致视为认证、校准、跨提供方可比性或合并权威记录的理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the score, authority, both dimension resources and both frame resources; compare each corresponding pair through logic:termEqual."
+msgstr "绑定分数、权威记录、两个量纲资源及两个参照系资源；通过 logic:termEqual 比较每一对对应资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required coordinate restrictions handle missing values separately. Agreement is over actual dimension and ReferenceFrame resources, never replacement text or a hidden frame default."
+msgstr "必需坐标限制单独处理缺失值。一致性针对实际量纲和 ReferenceFrame 资源，绝不针对替代文本或隐含参照系默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context-agreement obligation: gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
+msgstr "上下文一致义务：gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."

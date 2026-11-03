@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -4816,3 +4817,183 @@ gmeow:QueryCandidateUnion logic:subClassOf
 
 gmeow:RankedQueryList logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:rankedListClass ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryRerankAuthority
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Rerank Authority"@x-gmeow-english ;
+    skos:definition "A supplied information record identifying a reranker’s score context through opaque source identity bytes, provider score-kind wording, declared mathematical dimension and actual reference frame. It retains the source declaration without authenticating it or identifying a provider agent or model."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the identity and context supplied for reported rerank scores."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the record as a model, execution occurrence, probability calibration or proof that a provider served a request."@x-gmeow-english ;
+    gmeow:howToUse "Supply one rerankAuthorityIdentity, rerankScoreKind, rerankScoreDimension and hasReferenceFrame; keep the record separate from its frame and quantitative scores."@x-gmeow-english ;
+    skos:scopeNote "Distinct authority records may retain the same opaque identity bytes. Equal identity, kind, dimension or frame does not merge those records or certify their source."@x-gmeow-english ;
+    skos:example "A supplied authority record: ex:authority a gmeow:QueryRerankAuthority ; gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ; gmeow:rerankScoreKind \"relevance-logit\" ; gmeow:rerankScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryRerankScore
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Rerank Score"@x-gmeow-english ;
+    skos:definition "A supplied finite IEEE 754 single precision rerank score carried as a math:Quantity. Its one xsd:float magnitude, declared dimension and actual reference frame accompany one source authority, without claiming an exact real target or an approximation error."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a reported finite single precision score with its source authority and quantitative context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the score as a probability, confidence, exact decimal, model artifact or approximation of an identified exact number merely because its datatype is floating point."@x-gmeow-english ;
+    gmeow:howToUse "Supply one math:quantityValue typed xsd:float, one math:hasDimension, one hasReferenceFrame and one rerankScoreAuthority; match dimension and frame to the authority."@x-gmeow-english ;
+    skos:scopeNote "Finite negative values and zero are allowed. This explicit carrier profile rejects missing context, nonfinite values and other numeric datatypes without replacing or reclassifying the source score."@x-gmeow-english ;
+    skos:example "A supplied negative score: ex:score a gmeow:QueryRerankScore ; math:quantityValue \"-1.25\"^^xsd:float ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:scoreFrame ; gmeow:rerankScoreAuthority ex:authority ."@x-gmeow-english ;
+    logic:subClassOf math:Quantity .
+
+gmeow:rerankScoreAuthority
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank score authority"@x-gmeow-english ;
+    skos:definition "The supplied QueryRerankAuthority declaring the identity and context of one reported rerank score. The score retains its own quantitative dimension and frame, which agree with that declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a retained quantitative score’s source context explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a provider agent, model identity, execution or unique inverse owner from this association."@x-gmeow-english ;
+    gmeow:howToUse "Link the score to one supplied authority record and retain the original opaque identity bytes and provider wording on that record."@x-gmeow-english ;
+    skos:scopeNote "Exactly one authority is required per score in this profile. Several scores may reference one authority, and shared values do not identify distinct authority records."@x-gmeow-english ;
+    skos:example "A supplied context association: ex:score gmeow:rerankScoreAuthority ex:authority ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankScore ; logic:range gmeow:QueryRerankAuthority .
+
+gmeow:rerankAuthorityIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank authority identity"@x-gmeow-english ;
+    skos:definition "The opaque identity bytes supplied by the source for a rerank authority, preserved as an xsd:hexBinary literal through lang:literalValue. The bytes retain the source identity rather than a fabricated semantic IRI."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports a native byte identity for the scoring authority."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a hash algorithm, fixed byte length, model identity, source authentication or IRI from the bytes."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual byte sequence in one xsd:hexBinary literal on the authority record; preserve its meaning under the source’s identity contract."@x-gmeow-english ;
+    skos:scopeNote "This required single coordinate imposes no global identity key or inverse uniqueness. Different records may carry the same bytes, and lexical hex spelling is not an additional identity claim."@x-gmeow-english ;
+    skos:example "Opaque source bytes: ex:authority gmeow:rerankAuthorityIdentity \"00a1\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAuthority ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:rerankScoreKind
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank score kind"@x-gmeow-english ;
+    skos:definition "The provider’s supplied wording for what a rerank score represents, retained unchanged as an xsd:string literal on its authority record. The wording is context evidence rather than a calibrated mathematical interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve provider score-kind wording beside the quantitative score context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring probability, log-odds, confidence, calibration, dimension or rescaling rules from a word or the observed numeric range alone."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied wording into one xsd:string literal and retain the authority’s separately declared dimension and reference frame."@x-gmeow-english ;
+    skos:scopeNote "The value is open provider wording, not an enumerated ontology class or a natural-language grammar. No automatic default or normalization is defined."@x-gmeow-english ;
+    skos:example "Supplied provider wording: ex:authority gmeow:rerankScoreKind \"relevance-logit\" ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAuthority ; logic:range xsd:string ; logic:subPropertyOf lang:literalValue .
+
+gmeow:rerankScoreDimension
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank score dimension"@x-gmeow-english ;
+    skos:definition "The mathematical Dimension explicitly declared by a source authority for its reported rerank scores. It describes the expected dimension of those quantities without making the information record itself a Quantity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source-declared dimension against which a score’s own math:hasDimension is checked."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming every score is dimensionless, inferring dimension from score-kind wording or confusing mathematical dimension with tensor shape or reference-frame axis count."@x-gmeow-english ;
+    gmeow:howToUse "Link the authority to one supplied math:Dimension resource and retain that same dimension on each associated score through math:hasDimension."@x-gmeow-english ;
+    skos:scopeNote "Equal dimensions do not establish score comparability across authorities or replace their actual reference frames. Missing dimension is an invalid selected profile, not permission to insert a default."@x-gmeow-english ;
+    skos:example "An explicitly supplied dimension: ex:authority gmeow:rerankScoreDimension math:dimensionless ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAuthority ; logic:range math:Dimension .
+
+gmeow:QueryRerankFiniteScoreLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank finite score law"@x-gmeow-english ;
+    skos:definition "Every retained QueryRerankScore magnitude is a well-formed finite numeric literal. Required xsd:float datatype, magnitude presence and single value are separate canonical restrictions on the selected carrier."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject NaN, floating infinities and malformed numeric magnitudes in this finite reported score profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a rejected value, dropping its candidate, reclassifying it as unscored or treating a missing magnitude as zero."@x-gmeow-english ;
+    gmeow:howToUse "Bind each score’s math:quantityValue and require the unary intrinsic logic:termIsFiniteNumeric for that value."@x-gmeow-english ;
+    skos:scopeNote "This law validates declared magnitude admission only. It neither invokes a provider nor certifies arbitrary provider interfaces, score rendering, calibration or usefulness."@x-gmeow-english ;
+    skos:example "A finite-value obligation: gmeow:QueryRerankFiniteScoreLaw logic:formalizes gmeow:QueryRerankScore ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankScore ;
+    logic:message "Every retained QueryRerankScore magnitude is a well-formed finite numeric literal. Required xsd:float datatype, magnitude presence and single value are separate canonical restrictions on the selected carrier." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankScore ] ],
+[ a logic:Formula ;
+logic:relation math:quantityValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termIsFiniteNumeric ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:QueryRerankScoreContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank score context law"@x-gmeow-english ;
+    skos:definition "Each QueryRerankScore has the same mathematical dimension and actual reference frame as its linked source authority declares. The score, authority and frame retain distinct identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a score whose dimension or frame disagrees with its authority record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating matching context as authentication, calibration, cross-provider comparability or a reason to merge authority records."@x-gmeow-english ;
+    gmeow:howToUse "Bind the score, authority, both dimension resources and both frame resources; compare each corresponding pair through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "Required coordinate restrictions handle missing values separately. Agreement is over actual dimension and ReferenceFrame resources, never replacement text or a hidden frame default."@x-gmeow-english ;
+    skos:example "A context-agreement obligation: gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankScore ;
+    logic:message "Each QueryRerankScore has the same mathematical dimension and actual reference frame as its linked source authority declares. The score, authority and frame retain distinct identities." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "authority" ], [ logic:termIndex 2 ; logic:termVariable "dimension" ], [ logic:termIndex 3 ; logic:termVariable "authorityDimension" ], [ logic:termIndex 4 ; logic:termVariable "frame" ], [ logic:termIndex 5 ; logic:termVariable "authorityFrame" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankScore ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScoreAuthority ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "authority" ] ],
+[ a logic:Formula ;
+logic:relation math:hasDimension ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "dimension" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScoreDimension ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "authority" ], [ logic:termIndex 1 ; logic:termVariable "authorityDimension" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:hasReferenceFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:hasReferenceFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "authority" ], [ logic:termIndex 1 ; logic:termVariable "authorityFrame" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "dimension" ], [ logic:termIndex 1 ; logic:termVariable "authorityDimension" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termVariable "authorityFrame" ] ] ] ] ] .
+
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:float ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankScore ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:float ] .
+
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankScore ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
+
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankScore ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreAuthority ; logic:allValuesFrom gmeow:QueryRerankAuthority ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankScore ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankScoreAuthority" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreAuthority ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryRerankAuthority ] .
+
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankAuthorityIdentity ; logic:allValuesFrom xsd:hexBinary ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAuthority ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankAuthorityIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankAuthorityIdentity ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreKind ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAuthority ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankScoreKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreKind ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:string ] .
+
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAuthority ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankScoreDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
+
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAuthority ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .

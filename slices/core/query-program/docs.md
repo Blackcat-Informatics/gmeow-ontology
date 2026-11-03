@@ -330,3 +330,86 @@ The source ranks remain 1, 3 and 4; they are not renumbered into a union-wide
 ranking. The explicit empty list remains one of the selected inputs, with its
 supplied evaluation/completeness report. This description installs no executor,
 certifies no source outcome and claims no consumer adoption of the graph.
+
+## Finite reported rerank scores
+
+QueryRerankScore retains a supplied finite IEEE 754 single precision score as a
+math:Quantity. Its magnitude is one xsd:float math:quantityValue. It also requires
+one math:hasDimension, one actual hasReferenceFrame and one rerankScoreAuthority.
+Finite negative values and zero are legal; this is not a positive-weight or
+probability profile. Selecting this carrier requires every coordinate. A missing
+coordinate, NaN, infinity or a different numeric datatype fails the selected
+profile rather than producing a replacement value or an unscored outcome.
+
+QueryRerankAuthority is the separately identified information record for the
+supplied scoring context. rerankAuthorityIdentity preserves opaque source bytes
+as xsd:hexBinary; rerankScoreKind retains exact provider wording as xsd:string.
+Both specialize lang:literalValue without interpreting their lexical forms as
+quantitative magnitudes. No identity algorithm, universal byte length, model
+identity, authentication promise or fabricated semantic IRI follows from the
+opaque bytes. Distinct authority records can carry the same bytes.
+
+The authority explicitly supplies rerankScoreDimension and hasReferenceFrame.
+Every associated score retains that same dimension through math:hasDimension
+and that same frame through hasReferenceFrame. A bare score-kind word or numeric
+range supplies neither coordinate. The declared frame is an actual
+ReferenceFrame with its own realm, kind, dimension count, axes, determinacy
+default and host requirement. Those frame declarations retain their existing
+owner contracts; no context string substitutes for the frame resource.
+
+This fictional graph supplies a dimensionless scalar context explicitly. Its
+provider wording does not turn either score into a probability or a log-odds
+value. The frame's crisp default describes the declared value frame; it is not
+a claim that relevance is true or that the scores express confidence. Each of
+the two authority records retains the same opaque bytes without a rule merging
+their identities.
+
+```turtle
+@prefix ex: <https://example.org/rerank-score/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:scoreFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis ex:scoreAxis ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:requiresHost false .
+ex:scoreAxis a gmeow:Axis .
+
+ex:authorityA a gmeow:QueryRerankAuthority ;
+    gmeow:rerankAuthorityIdentity "00a1"^^xsd:hexBinary ;
+    gmeow:rerankScoreKind "relevance-logit" ;
+    gmeow:rerankScoreDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame .
+ex:authorityB a gmeow:QueryRerankAuthority ;
+    gmeow:rerankAuthorityIdentity "00a1"^^xsd:hexBinary ;
+    gmeow:rerankScoreKind "relevance-logit" ;
+    gmeow:rerankScoreDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame .
+
+ex:scoreA a gmeow:QueryRerankScore ;
+    math:quantityValue "-1.25"^^xsd:float ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame ;
+    gmeow:rerankScoreAuthority ex:authorityA .
+ex:scoreB a gmeow:QueryRerankScore ;
+    math:quantityValue "0"^^xsd:float ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame ;
+    gmeow:rerankScoreAuthority ex:authorityB .
+```
+
+The score literal retains the reported numeric precision, not a claim about
+source lexical spelling, byte identity or an exact real target. ApproximateValue
+would require an identified approximation target and error account; neither is
+implied by a reported floating-point score. A declared source dimension and frame
+do not prove cross-provider comparability, model quality or calibration.
+
+This selected finite carrier does not certify every provider interface: a
+broader interface may admit values outside it. The record itself claims no
+provider invocation or current consumer adoption. It also supplies no rerank
+node, candidate coverage, scored/unscored result, source order or loss-retention
+contract. Those stage obligations require their own explicit result model.
