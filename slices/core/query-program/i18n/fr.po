@@ -4655,3 +4655,815 @@ msgstr "Des étiquettes de paliers égales sur des prédicats différents resten
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A shared tier for different predicates: ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."
 msgstr "Un palier partagé par des prédicats différents : ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Accepted Reason Fold"
+msgstr "Repli de requête par raisons acceptées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-operation description declaring complete original established and undecided row partitions, an accepted reason selection and the known-reason inventory of a named original evidence workspace. It retains established rows and admits an undecided row exactly when any original reason is selected."
+msgstr "Description d’opération de requête déclarant des partitions originales complètes de lignes établies et indécises, une sélection de raisons acceptées et l’inventaire des raisons connues d’un espace de travail nommé de preuves originales. Elle conserve les lignes établies et admet une ligne indécise exactement lorsqu’une quelconque raison originale est sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a selected accepted-reason fold over retained original row occurrences without re-querying or recomputing their payload."
+msgstr "Utiliser pour décrire un repli sélectionné de raisons acceptées sur des occurrences originales de lignes conservées sans relancer de requête ni recalculer leur contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating acceptance as repaired evidence, complete information, a candidate-union operation or proof that the description executed."
+msgstr "Éviter de traiter l’acceptation comme des preuves réparées, une information complète, une opération d’union de candidats ou une preuve d’exécution de la description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply acceptedFoldInput, acceptedFoldOutput and foldEvidenceWorkspace, declare the complete foldEstablishedRow, foldUndecidedRow, foldAcceptedReason and foldKnownReason collections, and retain inherited node effect and stratum declarations."
+msgstr "Fournir acceptedFoldInput, acceptedFoldOutput et foldEvidenceWorkspace, déclarer les collections complètes foldEstablishedRow, foldUndecidedRow, foldAcceptedReason et foldKnownReason, et conserver les déclarations héritées d’effets et de strate du nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Class membership selects complete supplied collections; no edges means declared empty in that profile. An importer must fail on unavailable or truncated source lists and must not import a terminal-error prefix as a successful complete fold."
+msgstr "L’appartenance à la classe sélectionne des collections fournies complètes ; aucune arête signifie une collection déclarée vide dans ce profil. Un importateur doit échouer sur des listes sources indisponibles ou tronquées et ne doit pas importer un préfixe obtenu avant une erreur terminale comme un repli complet réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonFold|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected fold: ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded ; gmeow:foldEvidenceWorkspace ex:workspace ."
+msgstr "Un repli sélectionné : ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded ; gmeow:foldEvidenceWorkspace ex:workspace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Accepted Reason Answer"
+msgstr "Réponse de requête à raisons acceptées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed selected fold answer retaining its original answer, exactly the declared established rows and undecided rows with accepted overlap, and separate answer-local acceptance annotations. Every such answer has an incoming typed selected fold operation."
+msgstr "Réponse attribuée de repli sélectionné conservant sa réponse originale, exactement les lignes déclarées établies et les lignes indécises ayant un recoupement accepté, ainsi que des annotations d’acceptation distinctes propres à la réponse. Chaque telle réponse possède une opération entrante typée de repli sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied accepted-reason result with original row identities and the exact original query and loss-ledger resource collections."
+msgstr "Utiliser pour conserver un résultat fourni de raisons acceptées avec les identités de lignes originales et les collections exactes des ressources originales de requêtes et de registres de pertes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, aggregate completeness or a unique inverse operation owner from the answer type."
+msgstr "Éviter de déduire une exécution, une complétude agrégée ou un propriétaire inverse unique d’opération à partir du type de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply acceptedFoldOriginal and an incoming acceptedFoldOutput from a typed QueryAcceptedReasonFold; retain solutionRow membership, required query and ledger contexts, and rowAcceptance annotations for admitted undecided rows."
+msgstr "Fournir acceptedFoldOriginal et un acceptedFoldOutput entrant depuis un QueryAcceptedReasonFold typé ; conserver l’appartenance solutionRow, les contextes obligatoires de requêtes et de registres, et les annotations rowAcceptance pour les lignes indécises admises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several operation descriptions may share an answer only when all operation-relative membership and accepted-intersection laws agree. Original row content authentication and successful native iterator completion are importer requirements."
+msgstr "Plusieurs descriptions d’opérations ne peuvent partager une réponse que si toutes les lois d’appartenance et d’intersection acceptée relatives aux opérations concordent. L’authentification du contenu original des lignes et la fin réussie de l’itérateur natif sont des exigences de l’importateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedReasonAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "An attributed fold result: ex:folded a gmeow:QueryAcceptedReasonAnswer ; gmeow:acceptedFoldOriginal ex:original ; gmeow:solutionRow ex:row ."
+msgstr "Un résultat attribué de repli : ex:folded a gmeow:QueryAcceptedReasonAnswer ; gmeow:acceptedFoldOriginal ex:original ; gmeow:solutionRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Ordered Evidence Row"
+msgstr "Ligne de preuves ordonnée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original solution-row occurrence declaring its complete supplied original reason collection, one original sequence position in the unsigned 64-bit value domain and one original evidence resource. The same occurrence can be retained by original and folded answers."
+msgstr "Une occurrence originale de ligne de solution déclarant sa collection complète fournie de raisons originales, une position originale de séquence dans le domaine de valeurs des entiers non signés sur 64 bits et une ressource originale de preuves. La même occurrence peut être conservée par les réponses originales et repliées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an original retained row whose source order and evidence identity must survive accepted-reason folding."
+msgstr "Utiliser pour une ligne originale conservée dont l’ordre source et l’identité des preuves doivent survivre au repli des raisons acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing occurrence identity with equal bindings, assigning a new dense output rank or claiming that an unchanged resource name authenticates unchanged payload."
+msgstr "Éviter de remplacer l’identité d’occurrence par des liaisons égales, d’attribuer un nouveau rang dense de sortie ou d’affirmer qu’un nom de ressource inchangé authentifie un contenu inchangé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply entryOrdinal as xsd:nonNegativeInteger no greater than 18446744073709551615, orderedRowEvidence and the complete supplied solutionReason collection; retain solutionFrame when supplied without overwriting it with acceptance context."
+msgstr "Fournir entryOrdinal comme xsd:nonNegativeInteger inférieur ou égal à 18446744073709551615, orderedRowEvidence et la collection complète fournie solutionReason ; conserver solutionFrame lorsqu’il est fourni sans le remplacer par le contexte d’acceptation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "There is no inverse answer-owner, required-reason or exclusive-frame rule. Empty declared reasons are permitted; unavailable reasons must fail import before asserting this complete profile. Authentic payload, evidence and reason preservation is not proved by graph identity alone."
+msgstr "Aucune règle de propriétaire inverse de réponse, de raisons obligatoires ou de cadre exclusif n’est imposée. Des raisons déclarées vides sont permises ; des raisons indisponibles doivent faire échouer l’importation avant d’affirmer ce profil complet. L’identité du graphe seule ne prouve pas la préservation authentique du contenu, des preuves et des raisons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderedEvidenceRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "An original occurrence: ex:row a gmeow:QueryOrderedEvidenceRow ; gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ; gmeow:orderedRowEvidence ex:evidence ."
+msgstr "Une occurrence originale : ex:row a gmeow:QueryOrderedEvidenceRow ; gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ; gmeow:orderedRowEvidence ex:evidence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Row Acceptance"
+msgstr "Acceptation de ligne de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An answer-local visible acceptance annotation naming one retained original undecided row and exactly its accepted original reasons. The annotation belongs to exactly one folded answer and does not replace the row or its original evidence."
+msgstr "Une annotation visible d’acceptation propre à une réponse nommant une ligne originale indécise conservée et exactement ses raisons originales acceptées. L’annotation appartient à exactement une réponse repliée et ne remplace ni la ligne ni ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep selection-dependent accepted reasons separate from the original full row-reason collection."
+msgstr "Utiliser pour garder les raisons acceptées dépendantes de la sélection distinctes de la collection complète des raisons originales de la ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid annotating an established row, sharing the annotation between answers or treating acceptance as a new truth or completeness verdict."
+msgstr "Éviter d’annoter une ligne établie, de partager l’annotation entre réponses ou de traiter l’acceptation comme un nouveau verdict de vérité ou de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the annotation from its answer through rowAcceptance, supply one acceptanceOriginalRow and retain every acceptanceReason in the original-reason and selected-reason intersection."
+msgstr "Relier l’annotation depuis sa réponse par rowAcceptance, fournir une acceptanceOriginalRow et conserver chaque acceptanceReason de l’intersection des raisons originales et des raisons sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other answers may annotate the same original row with separate occurrences. This resource is not an invented native accepted-row digest or an immutable-content certificate."
+msgstr "D’autres réponses peuvent annoter la même ligne originale avec des occurrences distinctes. Cette ressource n’est ni une empreinte native inventée de ligne acceptée ni un certificat de contenu immuable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptance|http://www.w3.org/2004/02/skos/core#example"
+msgid "A separate annotation: ex:accepted a gmeow:QueryRowAcceptance ; gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:reason ."
+msgstr "Une annotation distincte : ex:accepted a gmeow:QueryRowAcceptance ; gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:reason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold original input"
+msgstr "entrée originale du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original attributed query answer whose complete row collection is partitioned by this selected fold."
+msgstr "La réponse de requête attribuée originale unique dont la collection complète de lignes est partitionnée par ce repli sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the original answer resource rather than a reconstructed row list."
+msgstr "Utiliser pour conserver la ressource de réponse originale plutôt qu’une liste reconstruite de lignes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using mergeAnswerInput, silently omitting original rows or treating input membership as source authentication."
+msgstr "Éviter d’utiliser mergeAnswerInput, d’omettre silencieusement des lignes originales ou de traiter l’appartenance d’entrée comme une authentification source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryAnswer and declare its complete established and undecided partitions on the operation."
+msgstr "Référencer une QueryAnswer et déclarer ses partitions complètes établies et indécises sur l’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The input may have no rows. Its existing queryAnswerFor and queryLossLedger paths remain required nonfunctional collections."
+msgstr "L’entrée peut ne contenir aucune ligne. Ses chemins existants queryAnswerFor et queryLossLedger restent des collections obligatoires non fonctionnelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "An original input: ex:fold gmeow:acceptedFoldInput ex:original ."
+msgstr "Une entrée originale : ex:fold gmeow:acceptedFoldInput ex:original ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold output"
+msgstr "sortie du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one supplied selected fold answer whose retained rows and acceptance annotations agree with this operation’s original partitions and accepted selection."
+msgstr "La réponse fournie unique de repli sélectionné dont les lignes conservées et les annotations d’acceptation concordent avec les partitions originales et la sélection acceptée de cette opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind the declared fold operation to its supplied attributed result."
+msgstr "Utiliser pour lier l’opération déclarée de repli à son résultat attribué fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the edge as proof of execution or imposing one inverse operation owner on the result."
+msgstr "Éviter d’interpréter cette arête comme une preuve d’exécution ou d’imposer au résultat un propriétaire inverse unique d’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryAcceptedReasonAnswer with matching acceptedFoldOriginal and exact declared row and acceptance collections."
+msgstr "Référencer une QueryAcceptedReasonAnswer avec acceptedFoldOriginal concordant et les collections exactes déclarées de lignes et d’acceptations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every typed folded answer requires some incoming typed fold operation. Multiple descriptions can name one output when all their exactness laws agree."
+msgstr "Chaque réponse repliée typée exige une opération entrante typée de repli. Plusieurs descriptions peuvent nommer une sortie lorsque toutes leurs lois d’exactitude concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied result: ex:fold gmeow:acceptedFoldOutput ex:folded ."
+msgstr "Un résultat fourni : ex:fold gmeow:acceptedFoldOutput ex:folded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold retained original answer"
+msgstr "réponse originale conservée du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original QueryAnswer retained by a selected fold answer, agreeing by resource identity with every incoming selected fold operation’s input."
+msgstr "La QueryAnswer originale unique conservée par une réponse de repli sélectionné, concordant par identité de ressource avec l’entrée de chaque opération entrante de repli sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the original rows, evidence and context accessible beside the filtered result."
+msgstr "Utiliser pour garder les lignes, preuves et contexte originaux accessibles aux côtés du résultat filtré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the original with an equal-binding answer or assuming that its resource name proves immutable source content."
+msgstr "Éviter de remplacer l’original par une réponse aux liaisons égales ou de supposer que son nom de ressource prouve un contenu source immuable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one original answer and retain its exact queryAnswerFor and queryLossLedger collections on the folded answer in both directions."
+msgstr "Fournir une réponse originale et conserver ses collections exactes queryAnswerFor et queryLossLedger sur la réponse repliée dans les deux sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Original and folded answers may reference the same row occurrences. This link does not select an aggregate information or completeness status."
+msgstr "Les réponses originales et repliées peuvent référencer les mêmes occurrences de lignes. Ce lien ne sélectionne aucun statut agrégé d’information ou de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal|http://www.w3.org/2004/02/skos/core#example"
+msgid "The retained original: ex:folded gmeow:acceptedFoldOriginal ex:original ."
+msgstr "L’original conservé : ex:folded gmeow:acceptedFoldOriginal ex:original ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold established row"
+msgstr "ligne établie du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original row in this operation’s complete source-established partition. Every such row is retained unconditionally, without a visible acceptance annotation."
+msgstr "Une ligne originale dans la partition complète établie par la source de cette opération. Chaque telle ligne est conservée sans condition, sans annotation visible d’acceptation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the original established partition separately from undecided admission."
+msgstr "Utiliser pour déclarer la partition originale établie séparément de l’admission des lignes indécises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring accepted overlap for established rows or deriving established membership from missing status fields."
+msgstr "Éviter d’exiger un recoupement accepté pour les lignes établies ou de déduire leur appartenance établie de champs de statut absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each original established occurrence and retain it in the output solutionRow collection without rowAcceptance for that row."
+msgstr "Relier chaque occurrence originale établie et la conserver dans la collection de sortie solutionRow sans rowAcceptance pour cette ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The established and undecided partitions are disjoint and together equal the original answer’s declared row collection. An established row may itself have reasons overlapping the accepted set."
+msgstr "Les partitions établies et indécises sont disjointes et forment ensemble exactement la collection déclarée de lignes de la réponse originale. Une ligne établie peut elle-même avoir des raisons recoupant l’ensemble accepté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEstablishedRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unconditional retained row: ex:fold gmeow:foldEstablishedRow ex:establishedRow ."
+msgstr "Une ligne conservée sans condition : ex:fold gmeow:foldEstablishedRow ex:establishedRow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold undecided row"
+msgstr "ligne indécise du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original row in this operation’s complete source-undecided partition, admitted exactly when at least one original solutionReason belongs to the selected accepted set."
+msgstr "Une ligne originale dans la partition complète indécise selon la source de cette opération, admise exactement lorsqu’au moins une solutionReason originale appartient à l’ensemble accepté sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare rows whose visible admission depends on explicit accepted-reason overlap."
+msgstr "Utiliser pour déclarer les lignes dont l’admission visible dépend d’un recoupement explicite de raisons acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring all reasons to be accepted, removing nonaccepted original reasons or treating an absent partition as a status default."
+msgstr "Éviter d’exiger l’acceptation de toutes les raisons, de supprimer les raisons originales non acceptées ou de traiter une partition absente comme un statut par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each original undecided occurrence, retain it only on accepted overlap and supply a separate answer-local annotation containing the exact accepted intersection."
+msgstr "Relier chaque occurrence originale indécise, la conserver uniquement en présence d’un recoupement accepté et fournir une annotation distincte propre à la réponse contenant l’intersection acceptée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A row with no declared reasons has no overlap and cannot be admitted as undecided. Complete source reasons must be available to the importer before this profile is asserted."
+msgstr "Une ligne sans raisons déclarées n’a aucun recoupement et ne peut pas être admise comme indécise. Les raisons sources complètes doivent être disponibles pour l’importateur avant d’affirmer ce profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldUndecidedRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A conditionally admitted row: ex:fold gmeow:foldUndecidedRow ex:undecidedRow ."
+msgstr "Une ligne admise conditionnellement : ex:fold gmeow:foldUndecidedRow ex:undecidedRow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold accepted reason selection"
+msgstr "sélection de raisons acceptées du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reason resource in this operation’s complete explicitly selected acceptance set. Every selected reason belongs to the declared known inventory of the named original evidence workspace."
+msgstr "Une ressource de raison dans l’ensemble complet d’acceptation explicitement sélectionné de cette opération. Chaque raison sélectionnée appartient à l’inventaire connu déclaré de l’espace de travail nommé de preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the supplied accepted reason identities without rewriting original reasons or evidence."
+msgstr "Utiliser pour conserver les identités fournies de raisons acceptées sans réécrire les raisons ou preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating acceptance with an Agent’s loss acknowledgement, positive proof, repaired completeness or the union of reasons on emitted rows."
+msgstr "Éviter d’assimiler l’acceptation à la reconnaissance d’une perte par un Agent, à une preuve positive, à une complétude réparée ou à l’union des raisons des lignes émises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every selected original reason identity and retain the complete foldKnownReason inventory and foldEvidenceWorkspace context."
+msgstr "Relier chaque identité originale sélectionnée de raison et conserver l’inventaire complet foldKnownReason et le contexte foldEvidenceWorkspace."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected set may be explicitly empty or contain a known reason unused by all selected rows. RDF set membership does not certify native sorted unique ID bytes or authenticate source availability."
+msgstr "L’ensemble sélectionné peut être explicitement vide ou contenir une raison connue qu’aucune ligne sélectionnée n’utilise. L’appartenance à un ensemble RDF ne certifie pas des octets natifs d’ID triés et uniques et n’authentifie pas la disponibilité source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldAcceptedReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit accepted member: ex:fold gmeow:foldAcceptedReason ex:reasonA ."
+msgstr "Un membre accepté explicite : ex:fold gmeow:foldAcceptedReason ex:reasonA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold original evidence workspace"
+msgstr "espace de travail original de preuves du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one supplied original source evidence-owner context whose complete reason inventory is declared by this operation’s foldKnownReason collection."
+msgstr "Le contexte original fourni unique de propriété des preuves sources dont l’inventaire complet de raisons est déclaré par la collection foldKnownReason de cette opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to scope known accepted identities to the actual original evidence context."
+msgstr "Utiliser pour délimiter les identités acceptées connues au contexte effectif des preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a resource reference as live memory access, owner liveness, source authentication or an instruction to create missing evidence."
+msgstr "Éviter de traiter une référence de ressource comme un accès mémoire en direct, une garantie de durée de vie du propriétaire, une authentification source ou une instruction de créer des preuves absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one supplied original workspace resource and its complete known-reason inventory without inventing a native ownership or hash recipe."
+msgstr "Conserver une ressource fournie d’espace de travail original et son inventaire complet de raisons connues sans inventer de recette native de propriété ou de hachage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The importer must validate actual selected source owner admission and fail on aborted ownership or unavailable evidence. Graph references alone do not establish those native conditions."
+msgstr "L’importateur doit valider l’admission effective du propriétaire source sélectionné et échouer en cas de propriété interrompue ou de preuves indisponibles. Les références du graphe seules n’établissent pas ces conditions natives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "An original evidence context: ex:fold gmeow:foldEvidenceWorkspace ex:workspace ."
+msgstr "Un contexte original de preuves : ex:fold gmeow:foldEvidenceWorkspace ex:workspace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold workspace known reason"
+msgstr "raison connue de l’espace de travail du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reason resource in the declared complete inventory of the operation’s named original evidence workspace. The inventory can include reasons unused by the selected original rows."
+msgstr "Une ressource de raison dans l’inventaire complet déclaré de l’espace de travail original nommé de preuves de l’opération. Cet inventaire peut inclure des raisons inutilisées par les lignes originales sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the workspace-wide acceptance-admission scope instead of substituting the selected-row reason union."
+msgstr "Utiliser pour conserver la portée d’admission de l’acceptation à l’échelle de l’espace de travail au lieu de lui substituer l’union des raisons des lignes sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid rejecting an accepted reason merely because no selected row uses it or claiming that an invented known edge authenticates native evidence."
+msgstr "Éviter de rejeter une raison acceptée au seul motif qu’aucune ligne sélectionnée ne l’utilise ou d’affirmer qu’une arête connue inventée authentifie les preuves natives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare every known reason supplied by the original workspace and require every foldAcceptedReason to belong to that same operation’s inventory."
+msgstr "Déclarer chaque raison connue fournie par l’espace de travail original et exiger que chaque foldAcceptedReason appartienne à l’inventaire de cette même opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An explicitly empty inventory is permitted only as a complete source declaration. Unavailable or truncated inventories must fail import before asserting this profile."
+msgstr "Un inventaire explicitement vide n’est permis que comme déclaration source complète. Les inventaires indisponibles ou tronqués doivent faire échouer l’importation avant d’affirmer ce profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foldKnownReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "A known unused reason: ex:fold gmeow:foldKnownReason ex:reasonUnused ."
+msgstr "Une raison connue inutilisée : ex:fold gmeow:foldKnownReason ex:reasonUnused ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ordered row original evidence"
+msgstr "preuves originales de la ligne ordonnée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one supplied original evidence resource retained by an ordered row occurrence. Its identity stays separate from the answer-local acceptance annotation."
+msgstr "La ressource fournie unique de preuves originales conservée par une occurrence de ligne ordonnée. Son identité reste distincte de l’annotation d’acceptation propre à la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve access to the row’s original evidence context while accepted reasons remain visibly separate."
+msgstr "Utiliser pour préserver l’accès au contexte original de preuves de la ligne tout en gardant visiblement distinctes les raisons acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid rewriting original evidence as complete, substituting a generic reasoning result or claiming that resource identity validates immutable content."
+msgstr "Éviter de réécrire les preuves originales comme complètes, de substituer un résultat générique de raisonnement ou d’affirmer que l’identité de ressource valide un contenu immuable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual supplied original evidence resource and preserve its authentic payload, information, completeness, reasons and frame through the importer."
+msgstr "Relier la ressource effective fournie de preuves originales et préserver son contenu authentique, son information, sa complétude, ses raisons et son cadre par l’importateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required link and its resource identity are graph obligations. Authentic evidence contents, native owner liveness and preservation across edits require source admission; they are not proved by this association."
+msgstr "Le lien obligatoire et son identité de ressource sont des obligations de graphe. Le contenu authentique des preuves, la validité de durée de vie du propriétaire natif et la préservation à travers les modifications exigent une admission source ; cette association ne les prouve pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderedRowEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Original evidence retained: ex:row gmeow:orderedRowEvidence ex:originalEvidence ."
+msgstr "Les preuves originales conservées : ex:row gmeow:orderedRowEvidence ex:originalEvidence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fold row acceptance annotation"
+msgstr "annotation d’acceptation de ligne du repli"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An answer-local annotation for one retained original undecided row, carrying exactly the selected original reasons that overlap the operation’s accepted set."
+msgstr "Une annotation propre à une réponse pour une ligne originale indécise conservée, portant exactement les raisons originales sélectionnées qui recoupent l’ensemble accepté de l’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose acceptance without replacing the original row or removing its other reasons."
+msgstr "Utiliser pour exposer l’acceptation sans remplacer la ligne originale ni supprimer ses autres raisons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid annotating established rows, sharing annotation occurrences across answers or treating RDF serialization order as source row order."
+msgstr "Éviter d’annoter les lignes établies, de partager des occurrences d’annotations entre réponses ou de traiter l’ordre de sérialisation RDF comme l’ordre source des lignes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one QueryRowAcceptance per admitted undecided row and preserve its acceptanceOriginalRow and nonempty acceptanceReason intersection."
+msgstr "Relier une QueryRowAcceptance par ligne indécise admise et préserver son acceptanceOriginalRow et son intersection non vide acceptanceReason."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An explicitly empty accepted set yields no annotations. Each annotation has one answer owner; the answer itself may have several consistent incoming selected fold descriptions."
+msgstr "Un ensemble accepté explicitement vide ne produit aucune annotation. Chaque annotation a une réponse propriétaire ; la réponse elle-même peut avoir plusieurs descriptions entrantes cohérentes de repli sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rowAcceptance|http://www.w3.org/2004/02/skos/core#example"
+msgid "Visible acceptance retained separately: ex:folded gmeow:rowAcceptance ex:annotation ."
+msgstr "L’acceptation visible conservée séparément : ex:folded gmeow:rowAcceptance ex:annotation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acceptance original row"
+msgstr "ligne originale d’acceptation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original retained undecided row occurrence described by an answer-local acceptance annotation."
+msgstr "L’unique occurrence originale conservée de ligne indécise décrite par une annotation d’acceptation propre à une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the distinction between original row identity and visible acceptance context."
+msgstr "Utiliser pour préserver la distinction entre l’identité de ligne originale et le contexte visible d’acceptation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying a replacement row by equal bindings or using the annotation as a new original evidence record."
+msgstr "Éviter d’identifier une ligne de remplacement par des liaisons égales ou d’utiliser l’annotation comme un nouvel enregistrement original de preuves."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the same original occurrence present in the owning answer’s solutionRow collection and the selected operation’s undecided partition."
+msgstr "Référencer la même occurrence originale présente dans la collection solutionRow de la réponse propriétaire et dans la partition indécise de l’opération sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Within one answer there is one annotation per original row. Other answers may reuse the row through distinct annotations without imposing an inverse row-owner rule."
+msgstr "Dans une même réponse, une seule annotation peut décrire une ligne originale donnée. D’autres réponses peuvent réutiliser la ligne par des annotations distinctes sans imposer de règle de propriétaire inverse de ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "The original occurrence: ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+msgstr "L’occurrence originale : ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "visible accepted original reason"
+msgstr "raison originale acceptée visible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original row reason that also belongs to the selected operation’s accepted set, retained in the exact nonempty intersection exposed by an answer-local acceptance annotation."
+msgstr "Une raison originale de ligne appartenant aussi à l’ensemble accepté de l’opération sélectionnée, conservée dans l’intersection exacte non vide exposée par une annotation d’acceptation propre à une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to show precisely which original reasons were accepted while retaining every original reason on the row."
+msgstr "Utiliser pour montrer précisément quelles raisons originales ont été acceptées tout en conservant chaque raison originale sur la ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a reason absent from either source collection, deleting unaccepted original reasons or interpreting acceptance as repaired truth or completeness."
+msgstr "Éviter d’ajouter une raison absente de l’une des collections sources, de supprimer des raisons originales non acceptées ou d’interpréter l’acceptation comme une vérité ou une complétude réparée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain all and only reason resources linked both by solutionReason from the original row and by foldAcceptedReason from the operation."
+msgstr "Conserver toutes et seulement les ressources de raisons reliées à la fois par solutionReason depuis la ligne originale et par foldAcceptedReason depuis l’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one accepted reason is required per annotation. Graph exactness is relative to declared complete collections; authentic source completeness and unchanged payload remain importer requirements."
+msgstr "Au moins une raison acceptée est exigée par annotation. L’exactitude du graphe est relative aux collections déclarées complètes ; la complétude source authentique et le contenu inchangé restent des exigences de l’importateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "One visible accepted reason: ex:annotation gmeow:acceptanceReason ex:reasonA ."
+msgstr "Une raison acceptée visible : ex:annotation gmeow:acceptanceReason ex:reasonA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold input agreement law"
+msgstr "loi de concordance des entrées du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected fold operation’s output retains exactly its original input answer resource through acceptedFoldOriginal."
+msgstr "La sortie de chaque opération de repli sélectionné conserve exactement sa ressource de réponse d’entrée originale par acceptedFoldOriginal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a result context naming a different original answer."
+msgstr "Utiliser pour rejeter un contexte de résultat nommant une autre réponse originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating originals by equal row bindings or introducing a unique inverse operation owner on an output."
+msgstr "Éviter d’identifier des originaux par des liaisons de lignes égales ou d’introduire un propriétaire inverse unique d’opération sur une sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the operation input and output and require the output’s acceptedFoldOriginal edge to that same input resource."
+msgstr "Lier l’entrée et la sortie de l’opération et exiger l’arête acceptedFoldOriginal de la sortie vers cette même ressource d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required single original coordinate handles conflicting originals. Other laws require a typed operation context for every folded answer."
+msgstr "La coordonnée originale unique obligatoire traite les originaux contradictoires. D’autres lois exigent un contexte d’opération typé pour chaque réponse repliée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldInputAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Matching original context: ex:fold gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:acceptedFoldOriginal ex:original ."
+msgstr "Un contexte original concordant : ex:fold gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:acceptedFoldOriginal ex:original ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold partition law"
+msgstr "loi de partition du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original answer’s declared solution rows are exactly the disjoint established and undecided partitions of a selected fold, and every original member has the ordered-evidence row type."
+msgstr "Les lignes de solution déclarées de la réponse originale sont exactement les partitions disjointes établies et indécises d’un repli sélectionné, et chaque membre original a le type de ligne de preuves ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject missing, extra or doubly partitioned original row occurrences."
+msgstr "Utiliser pour rejeter les occurrences originales de lignes absentes, supplémentaires ou affectées aux deux partitions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving source partitions from absent statuses, dropping an original occurrence or identifying equal-binding rows."
+msgstr "Éviter de déduire les partitions sources de statuts absents, d’éliminer une occurrence originale ou d’identifier des lignes aux liaisons égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require input membership to imply ordered-row type and one partition, each partition to imply input membership, and forbid membership in both partitions."
+msgstr "Exiger que l’appartenance d’entrée implique le type de ligne ordonnée et une partition, que chaque partition implique l’appartenance d’entrée, et interdire l’appartenance aux deux partitions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complete collections may be explicitly empty. The graph checks declared partition membership rather than authentic source availability or payload contents."
+msgstr "Les collections complètes peuvent être explicitement vides. Le graphe vérifie l’appartenance déclarée aux partitions plutôt que la disponibilité source authentique ou le contenu des données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPartitionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct source partitions: ex:fold gmeow:foldEstablishedRow ex:established ; gmeow:foldUndecidedRow ex:undecided ."
+msgstr "Des partitions sources distinctes : ex:fold gmeow:foldEstablishedRow ex:established ; gmeow:foldUndecidedRow ex:undecided ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold original position law"
+msgstr "loi des positions originales du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ordered evidence row position lies in the unsigned 64-bit value domain. Within a selected original answer, equal original sequence positions require the same row occurrence resource."
+msgstr "Chaque position de ligne de preuves ordonnée appartient au domaine de valeurs des entiers non signés sur 64 bits. Dans une réponse originale sélectionnée, des positions originales de séquence égales exigent la même ressource d’occurrence de ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an out-of-range original position or distinct selected original rows competing for one source position."
+msgstr "Utiliser pour rejeter une position originale hors intervalle ou des lignes originales sélectionnées distinctes en concurrence pour une position source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing the canonical entryOrdinal datatype, renumbering filtered output, requiring contiguous positions or claiming RDF membership certifies native iterator emission order."
+msgstr "Éviter de modifier le type de données canonique de entryOrdinal, de renuméroter la sortie filtrée, d’exiger des positions contiguës ou d’affirmer que l’appartenance RDF certifie l’ordre d’émission de l’itérateur natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "On every typed ordered row, compare a bound xsd:nonNegativeInteger position with the exact maximum 18446744073709551615 through logic:termLessEqual; within a selected input use logic:termEqual on bound positions and require equal row resources."
+msgstr "Sur chaque ligne ordonnée typée, comparer une position liée xsd:nonNegativeInteger au maximum exact 18446744073709551615 par logic:termLessEqual ; dans une entrée sélectionnée, utiliser logic:termEqual sur les positions liées et exiger des ressources de lignes égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing nonnegative integer carrier and explicit upper bound retain the original u64 numeric value domain, without a source literal or byte-encoding identity claim. Output order uses retained original positions, possibly with gaps; native ordering and successful completion remain importer requirements."
+msgstr "Le support entier non négatif existant et la borne supérieure explicite conservent le domaine original de valeurs numériques u64, sans assertion d’identité de littéral source ou d’encodage en octets. L’ordre de sortie utilise les positions originales conservées, éventuellement lacunaires ; l’ordre natif et la fin réussie restent des exigences de l’importateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldPositionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retained source positions: ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:later gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ."
+msgstr "Les positions sources conservées : ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:later gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold known reason law"
+msgstr "loi des raisons connues du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected accepted reason belongs to the same operation’s declared complete known-reason inventory for its named original workspace."
+msgstr "Chaque raison acceptée sélectionnée appartient à l’inventaire déclaré complet des raisons connues de la même opération pour son espace de travail original nommé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject accepted identities absent from the declared original evidence scope."
+msgstr "Utiliser pour rejeter les identités acceptées absentes de la portée déclarée des preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing workspace-wide knownness with a requirement that an emitted row use every accepted reason."
+msgstr "Éviter de remplacer la connaissance à l’échelle de l’espace de travail par l’exigence qu’une ligne émise utilise chaque raison acceptée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a foldAcceptedReason member and require foldKnownReason for that same reason on that operation."
+msgstr "Lier un membre foldAcceptedReason et exiger foldKnownReason pour cette même raison sur cette opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Known accepted reasons unused by selected rows remain legal. This graph implication does not authenticate a source inventory or establish native owner liveness."
+msgstr "Les raisons connues acceptées inutilisées par les lignes sélectionnées restent licites. Cette implication de graphe n’authentifie pas un inventaire source et n’établit pas la validité de durée de vie du propriétaire natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldKnownReasonLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A known accepted identity: ex:fold gmeow:foldKnownReason ex:unused ; gmeow:foldAcceptedReason ex:unused ."
+msgstr "Une identité acceptée connue : ex:fold gmeow:foldKnownReason ex:unused ; gmeow:foldAcceptedReason ex:unused ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold established retention law"
+msgstr "loi de conservation des lignes établies du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every original established row is retained by the selected fold output unconditionally on accepted-reason overlap."
+msgstr "Chaque ligne originale établie est conservée par la sortie de repli sélectionné sans condition de recoupement des raisons acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain established occurrences even under an explicitly empty accepted selection."
+msgstr "Utiliser pour conserver les occurrences établies même sous une sélection acceptée explicitement vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filtering established rows by reasons or treating their overlap as a visible acceptance override."
+msgstr "Éviter de filtrer les lignes établies par leurs raisons ou de traiter leur recoupement comme une dérogation visible d’acceptation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a selected operation, its output and an established partition row, then require output solutionRow membership for that exact row resource."
+msgstr "Lier une opération sélectionnée, sa sortie et une ligne de partition établie, puis exiger l’appartenance de sortie solutionRow pour cette ressource exacte de ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An established row receives no acceptance annotation even when its original reasons overlap the accepted set; partition and acceptance laws enforce that distinction."
+msgstr "Une ligne établie ne reçoit aucune annotation d’acceptation même si ses raisons originales recoupent l’ensemble accepté ; les lois de partition et d’acceptation imposent cette distinction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldEstablishedLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Unconditional output membership: ex:fold gmeow:foldEstablishedRow ex:row ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:solutionRow ex:row ."
+msgstr "Une appartenance de sortie sans condition : ex:fold gmeow:foldEstablishedRow ex:row ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:solutionRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold undecided admission law"
+msgstr "loi d’admission des lignes indécises du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original undecided row belongs to the selected output if and only if at least one of its declared original reasons belongs to the accepted selection."
+msgstr "Une ligne originale indécise appartient à la sortie sélectionnée si et seulement si au moins une de ses raisons originales déclarées appartient à la sélection acceptée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve ANY-overlap admission rather than an all-reasons test."
+msgstr "Utiliser pour préserver l’admission par un recoupement quelconque, de type ANY, plutôt qu’une vérification de toutes les raisons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a no-overlap row, requiring every reason to be accepted or deleting original reasons after admission."
+msgstr "Éviter d’accepter une ligne sans recoupement, d’exiger l’acceptation de chaque raison ou de supprimer les raisons originales après admission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a joined original-reason and accepted-set witness for every emitted undecided row, and require emission for every undecided row with such a witness."
+msgstr "Exiger un témoin joint de raison originale et d’ensemble accepté pour chaque ligne indécise émise, et exiger l’émission de chaque ligne indécise possédant un tel témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A fresh existential witness realizes the reverse direction without a positive nested universal. Exactness is relative to the complete declared original reason collection."
+msgstr "Un témoin existentiel nouvellement lié réalise le sens réciproque sans quantification universelle positive imbriquée. L’exactitude est relative à la collection complète déclarée des raisons originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldUndecidedLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One accepted reason suffices: ex:row gmeow:solutionReason ex:a, ex:b . ex:fold gmeow:foldUndecidedRow ex:row ; gmeow:foldAcceptedReason ex:a ."
+msgstr "Une raison acceptée suffit : ex:row gmeow:solutionReason ex:a, ex:b . ex:fold gmeow:foldUndecidedRow ex:row ; gmeow:foldAcceptedReason ex:a ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold exact output law"
+msgstr "loi de sortie exacte du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every declared output solution row is an original established row or an original undecided row with an accepted original-reason overlap."
+msgstr "Chaque ligne de solution déclarée de sortie est une ligne originale établie ou une ligne originale indécise ayant un recoupement de raisons originales acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject fabricated or replacement output row identities."
+msgstr "Utiliser pour rejeter les identités de lignes de sortie fabriquées ou de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this membership law validates arbitrary candidate edges, binding schemas, numeric scores or authenticated payload contents."
+msgstr "Éviter d’affirmer que cette loi d’appartenance valide des arêtes arbitraires de candidats, des schémas de liaisons, des scores numériques ou des contenus authentifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each output row and require established membership or undecided membership with a fresh reason witness joined through original and accepted reason edges."
+msgstr "Lier chaque ligne de sortie et exiger soit l’appartenance établie, soit l’appartenance indécise avec un témoin de raison nouvellement lié, joint par les arêtes de raisons originales et acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law constrains solutionRow identities. Reusing an identity retains access to declared graph content but does not prove that its authentic original content was unchanged."
+msgstr "Cette loi contraint les identités solutionRow. Réutiliser une identité conserve l’accès au contenu déclaré du graphe, mais ne prouve pas que son contenu original authentique était inchangé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldOutputLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An original row retained: ex:original gmeow:solutionRow ex:row . ex:folded gmeow:solutionRow ex:row ."
+msgstr "Une ligne originale conservée : ex:original gmeow:solutionRow ex:row . ex:folded gmeow:solutionRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold acceptance accounting law"
+msgstr "loi de compte rendu d’acceptation du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every emitted original undecided row has an answer-local typed acceptance annotation, and every annotation linked from the output names an emitted original undecided row."
+msgstr "Chaque ligne originale indécise émise a une annotation typée d’acceptation propre à la réponse, et chaque annotation reliée depuis la sortie nomme une ligne originale indécise émise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make every visible undecided admission explicit without annotating established rows."
+msgstr "Utiliser pour rendre explicite chaque admission visible de ligne indécise sans annoter les lignes établies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid missing annotations, extra annotations on excluded rows or an override annotation on an established row."
+msgstr "Éviter les annotations absentes, les annotations supplémentaires sur des lignes exclues ou une annotation de dérogation sur une ligne établie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh typed-and-linked annotation witness for each retained undecided row and require each linked annotation’s original row to be retained and undecided."
+msgstr "Exiger un témoin d’annotation nouvellement lié, typé et relié pour chaque ligne indécise conservée et exiger que la ligne originale de chaque annotation reliée soit conservée et indécise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required annotation coordinates and typed collection ranges prevent missing-row escape. Annotation uniqueness and exact accepted reasons are enforced separately."
+msgstr "Les coordonnées obligatoires d’annotation et les plages typées des collections empêchent de contourner la règle par une ligne absente. L’unicité des annotations et les raisons acceptées exactes sont imposées séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAcceptanceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Visible admitted occurrence: ex:folded gmeow:solutionRow ex:row ; gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+msgstr "Une occurrence admise visible : ex:folded gmeow:solutionRow ex:row ; gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "row acceptance answer owner law"
+msgstr "loi de propriété des annotations d’acceptation de ligne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every acceptance annotation belongs to exactly one typed folded answer. Separate answers use separate annotations even when they retain the same original row."
+msgstr "Chaque annotation d’acceptation appartient à exactement une réponse repliée typée. Des réponses distinctes utilisent des annotations distinctes même si elles conservent la même ligne originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep selection-dependent acceptance context local to its answer."
+msgstr "Utiliser pour garder le contexte d’acceptation dépendant de la sélection propre à sa réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing inverse ownership on original rows or a unique inverse operation owner on folded answers."
+msgstr "Éviter d’imposer une propriété inverse sur les lignes originales ou un propriétaire inverse unique d’opération sur les réponses repliées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh existing typed answer owner, then compare any two rowAcceptance links to the annotation through logic:termEqual."
+msgstr "Exiger un témoin nouvellement lié de réponse propriétaire existante et typée, puis comparer deux liens quelconques rowAcceptance vers l’annotation par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Formula uses one outer universal, a fresh joined owner existential and a guarded owner-pair implication, without a positive nested universal."
+msgstr "La Formula utilise une quantification universelle externe, une quantification existentielle jointe de propriétaire nouvellement liée et une implication gardée sur une paire de propriétaires, sans quantification universelle positive imbriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One annotation owner: ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation a gmeow:QueryRowAcceptance ."
+msgstr "Un propriétaire d’annotation : ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation a gmeow:QueryRowAcceptance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "row acceptance original row uniqueness law"
+msgstr "loi d’unicité des annotations d’acceptation par ligne originale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one folded answer, two acceptance annotations naming the same original row must be the same annotation resource."
+msgstr "Dans une même réponse repliée, deux annotations d’acceptation nommant la même ligne originale doivent être la même ressource d’annotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate visible acceptance occurrences for one row in one answer."
+msgstr "Utiliser pour rejeter les occurrences visibles d’acceptation dupliquées pour une ligne dans une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging annotations across answers or identifying original rows solely by equal bindings."
+msgstr "Éviter de fusionner les annotations entre réponses ou d’identifier les lignes originales uniquement par des liaisons égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two annotations linked from one answer and to the same acceptanceOriginalRow, then require logic:termEqual on annotation identities."
+msgstr "Lier deux annotations reliées depuis une même réponse et vers la même acceptanceOriginalRow, puis exiger logic:termEqual sur les identités d’annotations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other answers may reuse the original row with distinct annotations and different compatible accepted selections."
+msgstr "D’autres réponses peuvent réutiliser la ligne originale avec des annotations distinctes et des sélections acceptées différentes mais compatibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One annotation per original row: ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+msgstr "Une annotation par ligne originale : ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "row acceptance exact reasons law"
+msgstr "loi des raisons exactes de l’acceptation de ligne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An answer-local annotation’s accepted reasons are exactly the intersection of its original row’s declared full reasons and each incoming selected operation’s accepted set."
+msgstr "Les raisons acceptées d’une annotation propre à une réponse sont exactement l’intersection des raisons complètes déclarées de sa ligne originale et de l’ensemble accepté de chaque opération entrante sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain all and only visibly accepted original reason identities."
+msgstr "Utiliser pour conserver toutes et seulement les identités de raisons originales visiblement acceptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping an intersecting reason, adding a reason absent from either collection or rewriting the row’s original reasons as only the accepted subset."
+msgstr "Éviter d’omettre une raison de l’intersection, d’ajouter une raison absente de l’une des collections ou de réécrire les raisons originales de la ligne comme le seul sous-ensemble accepté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require every acceptanceReason in both original and selected collections, and every reason in both collections in acceptanceReason on that same annotation."
+msgstr "Exiger chaque acceptanceReason dans les collections originale et sélectionnée, et chaque raison présente dans les deux collections comme acceptanceReason sur cette même annotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two guarded directions compare complete declared sets. They do not authenticate source completeness or detect source deletions followed by consistent graph edits."
+msgstr "Les deux sens gardés comparent des ensembles déclarés complets. Ils n’authentifient pas la complétude source et ne détectent pas les suppressions sources suivies de modifications cohérentes du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRowAcceptanceReasonsLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Separate complete and accepted reasons: ex:row gmeow:solutionReason ex:a, ex:b . ex:annotation gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:a ."
+msgstr "Les raisons complètes et acceptées séparées : ex:row gmeow:solutionReason ex:a, ex:b . ex:annotation gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:a ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold exact original context law"
+msgstr "loi du contexte original exact du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected output retains exactly the original answer’s queryAnswerFor targets and queryLossLedger resources in both collection directions."
+msgstr "La sortie sélectionnée conserve exactement les cibles queryAnswerFor et les ressources queryLossLedger de la réponse originale dans les deux sens d’appartenance aux collections."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve declared query and original loss-ledger identities even when some original rows are not emitted."
+msgstr "Utiliser pour préserver les identités déclarées de requêtes et de registres de pertes originaux même lorsque certaines lignes originales ne sont pas émises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting one context witness, imposing a single-query or single-ledger maximum, inferring aggregate status or claiming ledger-content immutability is validated."
+msgstr "Éviter de sélectionner un seul témoin de contexte, d’imposer un maximum d’une requête ou d’un registre, de déduire un statut agrégé ou d’affirmer que l’immuabilité du contenu des registres est validée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require original-to-output and output-to-original membership for queryAnswerFor, and both directions independently for queryLossLedger."
+msgstr "Exiger l’appartenance de l’original vers la sortie et de la sortie vers l’original pour queryAnswerFor, et indépendamment les deux sens pour queryLossLedger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These four implications preserve declared resource collections. Authentic original ledger contents and any additional host-supplied aggregate statuses retain their separate source requirements."
+msgstr "Ces quatre implications préservent les collections déclarées de ressources. Les contenus authentiques des registres originaux et les éventuels statuts agrégés supplémentaires fournis par l’hôte conservent leurs exigences sources distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Multiple contexts retained: ex:original gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 . ex:folded gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 ."
+msgstr "Plusieurs contextes conservés : ex:original gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 . ex:folded gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted fold answer operation context law"
+msgstr "loi du contexte d’opération de réponse du repli accepté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed folded answer has an existing typed selected fold operation linked to it through acceptedFoldOutput, so its declared rows and annotations are subject to operation-relative laws."
+msgstr "Chaque réponse repliée typée possède une opération existante typée de repli sélectionné qui lui est reliée par acceptedFoldOutput, de sorte que ses lignes et annotations déclarées sont soumises aux lois relatives à l’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a standalone folded answer that evades accepted-set and partition obligations by lacking an operation context."
+msgstr "Utiliser pour rejeter une réponse repliée autonome qui évite les obligations d’ensemble accepté et de partition en l’absence de contexte d’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring a unique inverse operation owner or fabricating an executed occurrence from an operation description."
+msgstr "Éviter d’exiger un propriétaire inverse unique d’opération ou de fabriquer une occurrence exécutée à partir d’une description d’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh joined existential QueryAcceptedReasonFold witness whose acceptedFoldOutput is this answer."
+msgstr "Exiger un témoin existentiel joint nouvellement lié QueryAcceptedReasonFold dont acceptedFoldOutput est cette réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several descriptions may share the answer only when all their membership and exact accepted-intersection obligations agree. Accepted sets differing only in unused known reasons can remain consistent."
+msgstr "Plusieurs descriptions ne peuvent partager la réponse que si toutes leurs obligations d’appartenance et d’intersection acceptée exacte concordent. Des ensembles acceptés ne différant que par des raisons connues inutilisées peuvent rester cohérents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit operation witness: ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldOutput ex:folded . ex:folded a gmeow:QueryAcceptedReasonAnswer ."
+msgstr "Un témoin explicite d’opération : ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldOutput ex:folded . ex:folded a gmeow:QueryAcceptedReasonAnswer ."

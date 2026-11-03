@@ -806,3 +806,265 @@ being an integer.
 These definitions assert no source authentication, score calibration, truth,
 provider execution, consumer adoption or change to accepted-reason or choice
 semantics. They preserve an explicit prescription for later evidence to name.
+
+## Selected accepted-reason folding
+
+QueryAcceptedReasonFold describes a complete selected fold over an original
+QueryAnswer. It declares the original established and undecided row partitions,
+the accepted reason set and the complete known-reason inventory of a named
+original evidence workspace. Established rows always remain. An undecided row
+remains exactly when **any** original solutionReason is selected. Acceptance
+does not require all its reasons, rewrite its evidence or make it complete.
+
+Every output QueryAcceptedReasonAnswer names its acceptedFoldOriginal and has
+an incoming typed fold operation. Its solutionRow collection contains exactly
+the declared eligible original occurrences. The original queryAnswerFor and
+queryLossLedger collections are retained in both directions, including multiple
+targets. A declined row does not erase a limitation from the original ledger.
+These are resource-collection laws, without a new single-query or single-ledger
+maximum or an aggregate status inference.
+
+QueryOrderedEvidenceRow retains an original row occurrence, its original
+entryOrdinal and its original orderedRowEvidence resource. Output order is
+interpreted by retained original positions; filtering leaves gaps rather than
+assigning new ranks. Original rows may be referenced by original and folded
+answers. Equal bindings do not identify occurrences, and no inverse row-owner
+rule is introduced.
+
+Positions use the existing xsd:nonNegativeInteger carrier and must be no greater
+than 18446744073709551615. The row-focused position law checks that exact bound
+on every typed ordered row, independently of selected-input uniqueness. This
+retains the original unsigned 64-bit numeric value domain without claiming
+source literal-datatype or byte-encoding identity.
+
+QueryRowAcceptance is a separate answer-local annotation for each admitted
+undecided row. Its nonempty acceptanceReason collection is exactly the
+intersection of the row's complete original reasons and the operation's
+accepted set. Established rows receive no annotation even when their reasons
+overlap that set. Each annotation has one answer owner; different answers use
+different annotations for a shared original row.
+
+The complete fictional graph below declares two established and two undecided
+rows at original positions 0, 1, 2 and 4. Accepting a admits the undecided row
+with reasons a and b while retaining both original reasons. The other undecided
+row is omitted. The established row at 4 has reason a but receives no override.
+Known reason z is accepted without occurring on any selected original row:
+workspace-wide knownness is broader than the selected-row reason union.
+
+```turtle
+@prefix ex: <https://example.org/accepted-fold/mixed/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fold a gmeow:QueryAcceptedReasonFold ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:acceptedFoldInput ex:original ;
+    gmeow:acceptedFoldOutput ex:folded ;
+    gmeow:foldEvidenceWorkspace ex:workspace ;
+    gmeow:foldEstablishedRow ex:established0, ex:established4 ;
+    gmeow:foldUndecidedRow ex:undecided1, ex:undecided2 ;
+    gmeow:foldKnownReason ex:a, ex:b, ex:c, ex:z ;
+    gmeow:foldAcceptedReason ex:a, ex:z .
+
+ex:original a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:query1, ex:query2 ;
+    gmeow:queryLossLedger ex:ledger1, ex:ledger2 ;
+    gmeow:solutionRow ex:established0, ex:undecided1,
+        ex:undecided2, ex:established4 .
+ex:folded a gmeow:QueryAcceptedReasonAnswer ;
+    gmeow:acceptedFoldOriginal ex:original ;
+    gmeow:queryAnswerFor ex:query1, ex:query2 ;
+    gmeow:queryLossLedger ex:ledger1, ex:ledger2 ;
+    gmeow:solutionRow ex:established0, ex:undecided1, ex:established4 ;
+    gmeow:rowAcceptance ex:acceptance1 .
+
+ex:established0 a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:evidence0 .
+ex:undecided1 a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:evidence1 ;
+    gmeow:solutionReason ex:a, ex:b ;
+    gmeow:solutionFrame ex:frame .
+ex:undecided2 a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:evidence2 ;
+    gmeow:solutionReason ex:c .
+ex:established4 a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:evidence4 ;
+    gmeow:solutionReason ex:a .
+ex:acceptance1 a gmeow:QueryRowAcceptance ;
+    gmeow:acceptanceOriginalRow ex:undecided1 ;
+    gmeow:acceptanceReason ex:a .
+
+ex:ledger1 a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:loss .
+ex:ledger2 a gmeow:QueryLossLedger .
+ex:loss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:undecided2 ;
+    gmeow:lossCause gmeow:lossValueMissing .
+ex:query1 a logic:Thing .
+ex:query2 a logic:Thing .
+ex:workspace a logic:Thing .
+ex:evidence0 a logic:Thing .
+ex:evidence1 a logic:Thing .
+ex:evidence2 a logic:Thing .
+ex:evidence4 a logic:Thing .
+ex:frame a logic:Thing .
+ex:a a logic:Thing .
+ex:b a logic:Thing .
+ex:c a logic:Thing .
+ex:z a logic:Thing .
+```
+
+Class membership selects complete supplied partitions, known and accepted sets,
+and original row-reason collections. In that declared profile, no membership
+edges means an explicitly empty collection. It does not prove that an importer
+possessed the source list. Unavailable or truncated partitions, accepted lists,
+workspace inventories or original row reasons must fail import before asserting
+the selected profile. No missing capability becomes an empty-source default.
+
+The next complete graph declares an empty accepted selection. The undecided row
+still has a known original reason, but it is not admitted. The established row
+remains. There are no acceptance annotations.
+
+```turtle
+@prefix ex: <https://example.org/accepted-fold/empty-selection/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fold a gmeow:QueryAcceptedReasonFold ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:acceptedFoldInput ex:original ;
+    gmeow:acceptedFoldOutput ex:folded ;
+    gmeow:foldEvidenceWorkspace ex:workspace ;
+    gmeow:foldEstablishedRow ex:established ;
+    gmeow:foldUndecidedRow ex:undecided ;
+    gmeow:foldKnownReason ex:reason .
+ex:original a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger ;
+    gmeow:solutionRow ex:established, ex:undecided .
+ex:folded a gmeow:QueryAcceptedReasonAnswer ;
+    gmeow:acceptedFoldOriginal ex:original ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger ;
+    gmeow:solutionRow ex:established .
+ex:established a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:establishedEvidence .
+ex:undecided a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:undecidedEvidence ;
+    gmeow:solutionReason ex:reason .
+ex:ledger a gmeow:QueryLossLedger .
+ex:query a logic:Thing .
+ex:workspace a logic:Thing .
+ex:establishedEvidence a logic:Thing .
+ex:undecidedEvidence a logic:Thing .
+ex:reason a logic:Thing .
+```
+
+Empty original input is also valid. This complete graph declares empty source
+partitions, accepted selection, known inventory, output rows and annotations.
+Required query, ledger, original-answer, workspace and operation contexts remain.
+
+```turtle
+@prefix ex: <https://example.org/accepted-fold/empty-input/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fold a gmeow:QueryAcceptedReasonFold ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:acceptedFoldInput ex:original ;
+    gmeow:acceptedFoldOutput ex:folded ;
+    gmeow:foldEvidenceWorkspace ex:workspace .
+ex:original a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger .
+ex:folded a gmeow:QueryAcceptedReasonAnswer ;
+    gmeow:acceptedFoldOriginal ex:original ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger .
+ex:ledger a gmeow:QueryLossLedger .
+ex:query a logic:Thing .
+ex:workspace a logic:Thing .
+```
+
+The answer has no unique inverse operation owner. In the next complete graph,
+two selected descriptions share one result. Their accepted sets differ only by
+known unused reason z, so their admitted rows and visible intersections agree.
+Both descriptions satisfy the same operation-relative obligations. If their
+selections changed an emitted row or visible accepted intersection, the shared
+answer would fail the corresponding exactness law.
+
+```turtle
+@prefix ex: <https://example.org/accepted-fold/shared-output/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:fold1 a gmeow:QueryAcceptedReasonFold ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:acceptedFoldInput ex:original ;
+    gmeow:acceptedFoldOutput ex:folded ;
+    gmeow:foldEvidenceWorkspace ex:workspace ;
+    gmeow:foldUndecidedRow ex:row ;
+    gmeow:foldKnownReason ex:a, ex:z ;
+    gmeow:foldAcceptedReason ex:a .
+ex:fold2 a gmeow:QueryAcceptedReasonFold ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:acceptedFoldInput ex:original ;
+    gmeow:acceptedFoldOutput ex:folded ;
+    gmeow:foldEvidenceWorkspace ex:workspace ;
+    gmeow:foldUndecidedRow ex:row ;
+    gmeow:foldKnownReason ex:a, ex:z ;
+    gmeow:foldAcceptedReason ex:a, ex:z .
+ex:original a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger ;
+    gmeow:solutionRow ex:row .
+ex:folded a gmeow:QueryAcceptedReasonAnswer ;
+    gmeow:acceptedFoldOriginal ex:original ;
+    gmeow:queryAnswerFor ex:query ; gmeow:queryLossLedger ex:ledger ;
+    gmeow:solutionRow ex:row ; gmeow:rowAcceptance ex:annotation .
+ex:row a gmeow:QueryOrderedEvidenceRow ;
+    gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger ;
+    gmeow:orderedRowEvidence ex:evidence ; gmeow:solutionReason ex:a .
+ex:annotation a gmeow:QueryRowAcceptance ;
+    gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:a .
+ex:ledger a gmeow:QueryLossLedger .
+ex:query a logic:Thing .
+ex:workspace a logic:Thing .
+ex:evidence a logic:Thing .
+ex:a a logic:Thing .
+ex:z a logic:Thing .
+```
+
+The graph laws reject unknown accepted reasons relative to the declared known
+inventory, missing or overlapping partition membership, duplicate original
+positions, omitted eligible rows, emitted no-overlap undecided rows, replacement
+output row identities, missing or extra annotations, established-row annotations,
+incorrect accepted intersections, shared annotation owners, duplicate annotations
+for one answer/row, added or dropped query/ledger targets, missing required
+position/evidence links and typed folded answers without an operation context.
+
+Those checks concern declared graph structure. Retaining an original resource
+name does not prove its contents were unchanged. Deleting an authentic accepted
+reason and consistently editing the output can leave a graph satisfying the
+laws. Replacing evidence contents under the same name can do likewise. An
+importer must preserve authentic original bindings, ranks, scores, reasons,
+information, completeness and frame, and validate the selected source identity,
+canonical accepted-ID encoding, evidence-owner admission and successful iterator
+completion. A lazy prefix before a terminal source error cannot become a complete
+successful fold. RDF membership does not certify native emission order.
+
+These definitions provide no generic payload schema, arbitrary queryCandidate
+validation, native hash recipe or aggregate status projection. Original row
+evidence remains separate from visible acceptance. Missing aggregate statuses
+stay absent; any additional host-supplied statuses require their own source
+evidence. The vocabulary neither authorizes access nor asserts execution,
+consumer adoption, repaired truth, altered arithmetic or a change to Choice.

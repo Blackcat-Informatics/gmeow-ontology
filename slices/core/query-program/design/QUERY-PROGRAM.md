@@ -418,3 +418,114 @@ and vault scope, quantitative datatype/dimension/frame/profile context, original
 and output occurrences and loss identities. Existing fusion arithmetic,
 source-ranked lists, rerank outcomes, accepted-reason folding and choice
 contracts remain independently owned.
+
+## Complete selected accepted-reason folds
+
+QueryAcceptedReasonFold specializes QueryProgramNode; QueryAcceptedReasonAnswer
+specializes QueryAnswer; QueryOrderedEvidenceRow specializes QuerySolutionRow;
+QueryRowAcceptance is an InformationObject. Operation descriptions, attributed
+answers, original row occurrences and answer-local acceptance annotations remain
+distinct (Principles 4, 7, 9, 11, 12, 17 and 19). The operation does not inherit
+QueryLedgerMerge or use its domain-bearing merge roles, whose exact candidate
+union contract would conflict with excluding unaccepted undecided rows.
+
+The selected operation declares complete original established/undecided
+partitions, accepted reasons and the known inventory of its named original
+workspace. The ordered-row subtype declares the complete supplied original
+solutionReason collection. Within that profile an empty edge collection is a
+declared empty source collection, not an unavailable-input fallback. An importer
+must fail before asserting the profile if any selected collection is unavailable
+or truncated. Additional set wrappers would not authenticate that trust boundary.
+
+Eight required class/property pairs use allValuesFrom and explicit ClosureEntry:
+operation input/output/workspace, answer original, row position/evidence, and
+annotation original row/accepted reasons. Seven have qualified maximum one;
+acceptanceReason is required-many without a maximum. Six further local collection
+ranges cover both partitions, accepted and known sets, answer annotations and
+the folded answer's ordered solution rows. No global functionality, inverse
+row ownership, required original reason or exclusive-frame rule is added.
+
+QueryAcceptedFoldInputAgreementLaw requires the output's single original answer
+to be the same resource as the operation input. QueryAcceptedFoldPartitionLaw
+requires exact input-row partition coverage in both directions, typed original
+rows and disjoint established/undecided membership. Source partitions are supplied
+declarations, not inferred from missing status fields.
+
+QueryAcceptedFoldPositionLaw focuses on every typed QueryOrderedEvidenceRow.
+One outer universal binds this, position, operation, input, other and
+otherPosition. Its consequent contains two guarded implications: a bound
+entryOrdinal must satisfy termLessEqual against the exact typed
+xsd:nonNegativeInteger maximum 18446744073709551615; selected-operation input
+membership, two original row links and two bound equal positions require equal
+row identities. No positive nested universal is introduced. Local allValuesFrom
+and maximum onDataRange retain the existing xsd:nonNegativeInteger carrier.
+The exact upper bound preserves the source u64 numeric value domain without
+a literal-datatype or byte-encoding identity claim.
+
+Selected output order is interpreted from retained original positions, with
+no contiguous-index or renumbering requirement. Native partition order and
+iterator emission order remain source/import requirements. QueryAcceptedFoldKnownReasonLaw
+requires accepted identities in the same operation's declared workspace-known
+inventory. It permits a known accepted reason unused by any selected original row.
+
+QueryAcceptedFoldEstablishedLaw retains every established row unconditionally.
+QueryAcceptedFoldUndecidedLaw realizes both ANY-overlap directions: a bound
+original reason in the selected set requires emission, and every emitted
+undecided row requires a fresh joined overlap witness. QueryAcceptedFoldOutputLaw
+rejects every extra solutionRow identity by requiring established membership or
+undecided membership with another fresh joined overlap witness. No all-reasons
+substitution or generic payload reconstruction is introduced.
+
+QueryAcceptedFoldAcceptanceLaw supplies a fresh typed-and-linked annotation
+witness for each admitted undecided row and requires every output annotation
+to name a retained undecided row. Required annotation coordinates prevent a
+missing-row escape; partition disjointness forbids established-row annotations
+even when their reasons overlap the accepted set.
+
+QueryRowAcceptanceOwnerLaw uses one outer universal for annotation and owner
+pair, a fresh existing typed answer-owner existential and a guarded owner-pair
+termEqual implication. It has no positive nested universal. Original rows remain
+reusable; folded answers receive no inverse operation uniqueness rule.
+QueryRowAcceptanceUniquenessLaw compares annotation identities only within one
+answer for one original row. QueryRowAcceptanceReasonsLaw realizes both exact
+intersection directions against original reasons and each incoming operation's
+accepted selection, preserving the original full reason collection separately.
+
+QueryAcceptedFoldContextLaw uses four guarded implications: original-to-output
+and output-to-original queryAnswerFor, plus both directions for queryLossLedger.
+Those existing required paths are nonfunctional. No single witness, new maximum,
+aggregate status default or immutable ledger-content proof replaces collection
+equality. QueryAcceptedFoldAnswerContextLaw requires a fresh existing typed fold
+operation linked to every folded answer. Multiple descriptions can share an
+answer only when all operation-relative membership and intersection obligations
+agree; sets differing only in unused known reasons can remain consistent.
+
+All thirteen laws are ordinary Constraint/Formula ASTs with formalizes, message,
+indexed arguments and one outer universal. Every existential binder is fresh
+relative to outer and sibling binders. Stored positive joins bind comparison
+operands; only termEqual and termLessEqual intrinsics are needed. Validation
+is derived from these canonical laws rather than authored
+as shapes; no new parser, comparison engine or execution path is introduced.
+
+Graph laws constrain supplied identities, membership, intersections and typed
+coordinates. They do not authenticate immutable source contents, validate arbitrary
+candidate edges or impose a binding/score schema. Reusing the original row and
+evidence resource retains declared identity, but changed payload under the same
+name or source-reason deletion followed by consistent graph edits can evade
+graph-only validation. Authentic complete original payload/evidence preservation
+is an importer obligation and must not be advertised as a blanket deletion gate.
+
+Native source admission additionally checks sorted unique accepted IDs,
+workspace-knownness, evidence owner access and original row order. A terminal
+source error ends the lazy merge; a returned prefix is not a complete successful
+fold and cannot be imported as this selected complete profile. Source identity,
+canonical vector encoding and native accepted-row digests are not synthesized
+from these graph names. The original evidence information, incompleteness and
+frame remain separate from visible acceptance; no aggregate QueryAnswer status
+projection is supplied by that row API. Missing statuses stay absent and any
+additional host-supplied status needs its own source evidence.
+
+The model preserves the declared fold behavior without asserting consumer
+adoption, access authority, execution, repaired completeness, arithmetic changes
+or a redesign of other operators. Applied ordering evidence and binary Choice
+placement retain their independent ownership.
