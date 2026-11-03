@@ -43,11 +43,22 @@ affected constraint and acknowledgement remain on the original resources. No
 rule collapses two losses merely because their descriptions agree, and none
 manufactures an answer-axis value from a loss count.
 
-Verdict choice binds one answer and one axis. Existing answer-axis cardinalities
-come from the query-context owner. Known equality selects the left operand;
-known inequality selects the right. Absence and the selected axis's unknown
-sentinel select the explicit unknown branch. Not-evaluated remains a meaningful
-information value, not an absent field or a completeness value.
+Verdict choice binds one attributed answer and one axis on an outer binary
+logic:Choice knownness gate. Its supported guard selects one owned internal
+QueryVerdictComparison on the left; unsupported knownness selects its explicit
+unknown right target. The comparison's supported matching guard selects its
+matching left target, otherwise its known-nonmatching right target. Existing
+answer-axis cardinalities remain owned by query-context; InfoBoth and
+InfoNotEvaluated remain known comparable information values.
+
+Reported outer and inner evaluations supply their own choiceEvaluationState.
+Both Situation support bits must agree with that same actual answer context,
+and querySelectedBranch retains the resolved target. Inner-only evaluations
+join their unique distinct structural outer owner and require knownness at
+that inner State without fabricating an outer execution. Missing structure or
+State is invalid; absent actual axis evidence follows the explicit unknown
+contract. Declared support does not authenticate source history or establish
+native runnable query bodies, and no native start instruction is introduced.
 
 ## Feedback and measured evidence
 
@@ -529,3 +540,99 @@ The model preserves the declared fold behavior without asserting consumer
 adoption, access authority, execution, repaired completeness, arithmetic changes
 or a redesign of other operators. Applied ordering evidence and binary Choice
 placement retain their independent ownership.
+
+## Binary choice grounding and reported evaluations
+
+QueryVerdictChoice and QueryVerdictComparison both specialize QueryProgramNode
+and logic:Choice. The outer knownness guard selects the owned comparison on
+the left or the explicit unknown query target on the right. The comparison's
+matching guard selects its matching left target or known-nonmatching right
+target. Answer, axis and expected value are bound once on the outer node;
+the internal occurrence borrows that structural context (Principles 4, 7, 9,
+11, 12, 17 and 19).
+
+The two classes have nine required-one coordinates: outer answer, axis,
+expected value, comparison left operand, unknown right operand and knownness
+guard, plus inner matching/nonmatching operands and matching guard. Each uses
+allValuesFrom, a class-scoped ClosureEntry and qualified maximum one. Existing
+node effect/stratum requirements remain. No unqualified cardinality or global
+functionality is added.
+
+QueryVerdictComparisonOwnerLaw requires a typed joined outer owner witness and
+equal identities for typed outer-owner pairs. Its separate non-self implication
+forbids a typed outer owner from being the comparison itself. The existential
+contains only positive stored joins; pair and non-self variables are bound in
+separate universal guarded branches. There is one outer universal and no
+positive nested universal, blanket class disjointness or target distinctness.
+States, Situations and downstream targets acquire no inverse-owner restriction.
+
+choiceEvaluationState is optional on generic QueryNodeExecution, with State
+range and qualified maximum one and no ClosureEntry. QueryChoiceEvaluationStateLaw
+conditionally requires a fresh typed State witness for an outer or inner
+choice execution. Conversely, use of the role requires a fresh executed-node
+witness typed as an outer choice or internal comparison. These witness names
+are distinct. Nonchoice executions without the role retain their existing
+contract and require neither a choice State nor selected branch.
+
+The state/guard laws join the reported execution, executed node, typed State,
+typed outer owner and comparison, bound answer/axis and outer knownness guard.
+The executed node must equal that outer or its comparison. Matching and
+selection additionally join expected value and matching guard; selection joins
+all three supplied query targets. Every comparison variable is bound through
+stored edges before termEqual, and no dynamic predicate is interpreted.
+
+Knownness is expanded as two explicit alternatives: the information axis has an
+actual value other than InfoUndetermined, or the completeness axis has an actual
+value other than CompletenessUnknown. Known equality additionally compares the
+bound actual with expected. Each information/completeness witness has a fresh
+name, distinct across forward/reverse knownness and matching directions.
+InfoBoth and InfoNotEvaluated remain known comparable information values;
+different attributed answers coexist and existing answer-axis maxima remain.
+
+QueryChoiceKnownnessLaw requires knownness support exactly when that actual
+known-value condition holds. It additionally requires knownness support for a
+reported inner execution at the inner execution's own State. The unique outer
+context is structural; no outer execution occurrence is required or fabricated.
+QueryChoiceMatchLaw requires matching support exactly for known equality. It
+applies during outer unknown evaluations too, preventing coincident target
+identities from masking a contradictory binary guard.
+
+QueryChoiceAxisConstraint admits exactly two expected-value alternatives:
+typed InformationState excluding InfoUndetermined on the information axis, or
+typed CompletenessStatus excluding CompletenessUnknown on the completeness
+axis. No unknown expected value, third axis or cross-axis coercion is admitted.
+Knownness applies to the actual value; an absent actual value remains distinct
+from a missing required structural field.
+
+QueryChoiceSelectionLaw retains querySelectedBranch as the resolved target of
+the two-level router. An outer evaluation with unsupported knownness selects
+outer right; supported knownness resolves the comparison's matching or
+nonmatching target according to matching support. A reported inner evaluation
+selects its own left or right target with knownness already required. A fresh
+joined selected-target witness makes reporting conditional but mandatory for
+these evaluations. Existing maximum one rejects conflicting reported targets.
+This does not recursively evaluate arbitrary downstream query programs.
+
+The seven ordinary Constraint/Formula trees use one outer universal, indexed
+arguments, explicit stored joins and distinct existential binders. Equivalences
+are realized by two guarded implications, without Iff or positive nested
+universal nodes. Generic left/right operand scope traverses the internal node
+and its targets through the existing graph membership rule; iteration-body
+scope and all unrelated effect/stratum admission remain unchanged.
+
+State is owned by core/standpoint, declared as a direct dependency. Situation,
+Choice, guardSituation and situationObtains remain logic-owned. guardSituation
+serves conditional goals or binary Choice programs without classifying Choice
+as GoalExpression: a false goal guard prescribes nothing, while a false Choice
+guard selects its right program. situationObtains retains the State-to-Situation
+relationship and nonmutating Path context, with goal evaluation and Choice
+dispatch among its existing consumers. No logic axiom or evaluator change is
+implied by those shared owner descriptions.
+
+The inspected answer and its query/loss provenance remain the same resources.
+Routing neither deletes losses nor derives status from loss count, treats
+acknowledgement as repair or selects a preferred attributed truth. These laws
+check supplied support and structure; they do not authenticate State history,
+run a provider or establish a query-leaf adapter. A reported evaluation State
+is not a native transaction start, and generic Choice's existing recursive
+execution requirements and success/failure/pending semantics remain separate.

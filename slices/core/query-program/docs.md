@@ -88,22 +88,34 @@ is silently synthesized from candidate or ledger membership.
 
 ## Verdict choice
 
-`QueryVerdictChoice` binds `choiceAnswer`, `choiceAxis` and
-`choiceExpectedValue`. The axis is the actual `queryInformationState` or
-`queryCompletenessStatus` predicate. The expected value belongs to that axis's
-existing closed vocabulary. There is no cross-axis coercion.
+`QueryVerdictChoice` is the outer binary `logic:Choice` knownness gate. It binds
+`choiceAnswer`, `choiceAxis` and `choiceExpectedValue` once, with a Situation
+`logic:guardSituation`. Its left operand is one owned `QueryVerdictComparison`;
+its right operand is the explicit unknown query target. The comparison is also
+a binary `logic:Choice`, selecting matching left or known-nonmatching right
+according to its own matching guard.
 
-The left operand is the matching branch; the right operand is the nonmatching
-branch. `choiceUnknownBranch` is explicit and mandatory. An absent value,
-`InfoUndetermined`, or `CompletenessUnknown` selects that unknown branch.
-`InfoNotEvaluated` is an explicit comparable value: an expected not-evaluated
-verdict can select the lexical branch in the ordinary matching case. The unknown
-sentinels themselves are not accepted as expected values.
+The selected axis is the actual `queryInformationState` or
+`queryCompletenessStatus` predicate. Expected values belong to that axis's
+existing closed vocabulary and exclude its unknown sentinel. `InfoBoth` and
+`InfoNotEvaluated` are known comparable information values. An absent actual
+value, `InfoUndetermined` or `CompletenessUnknown` makes knownness unsupported;
+no cross-axis coercion or preferred attributed answer is introduced.
 
-A `QueryNodeExecution` names the choice through `executesQueryNode` and retains
-`querySelectedBranch`. The selected-branch law checks the corresponding case.
-This is a new answer-verdict operator, not a changed meaning of situation-guarded
-`logic:Choice`. Different attributed answers remain different observations.
+A reported outer or inner `QueryNodeExecution` supplies `choiceEvaluationState`.
+At that same State the knownness and matching Situation support must agree in
+both directions with the bound actual answer context. `querySelectedBranch`
+records the resolved matching, known-nonmatching or outer unknown target, not
+the outer's immediate left comparison node. Inner-only reports use their
+unique structural outer context and their own State, with knownness required;
+no outer execution occurrence is fabricated.
+
+Generic nonchoice executions without this selected role retain their existing
+contract. Required structure and State are not unknown-value defaults, and
+coincident route targets do not permit contradictory guard support. The graph
+records declared support without authenticating execution history or making
+query nodes native runnable transactions. Native Choice dispatch continues to
+forward its selected branch's success, failure or pending outcome unchanged.
 
 ## Finite monotone feedback
 
@@ -1068,3 +1080,373 @@ evidence remains separate from visible acceptance. Missing aggregate statuses
 stay absent; any additional host-supplied statuses require their own source
 evidence. The vocabulary neither authorizes access nor asserts execution,
 consumer adoption, repaired truth, altered arithmetic or a change to Choice.
+
+## State-grounded nested verdict choice
+
+QueryVerdictChoice is an outer binary logic:Choice and a QueryProgramNode. Its
+knownness guard selects its owned QueryVerdictComparison on the left when the
+selected answer axis is known; otherwise its right operand is the explicit
+unknown query target. The internal comparison is another binary logic:Choice:
+its matching guard selects its matching left target, and otherwise its
+known-nonmatching right target. Answer, axis and expected value are bound once
+on the outer node. The comparison borrows that unique structural context.
+
+A reported outer or inner QueryNodeExecution supplies choiceEvaluationState.
+Both guards' situationObtains support at that State must agree with the actual
+bound answer context. Knownness holds exactly for a present selected-axis value
+other than its explicit unknown sentinel. Matching holds exactly for a known
+value equal to expected. InfoBoth and InfoNotEvaluated are known comparable
+information values; InfoUndetermined and CompletenessUnknown are the respective
+unknown sentinels. Expected sentinels and cross-axis expected values are invalid.
+Independent attributed answers coexist, and each answer's existing axis remains
+single-valued; no preferred truth claim or cross-axis conversion is introduced.
+
+querySelectedBranch records the resolved query target of this two-level router.
+For an outer evaluation it is the unknown right target, the comparison's matching
+left target or its known-nonmatching right target. It is not the immediate left
+comparison node itself. A separately reported inner execution uses its own State
+and its unique structural outer context, with knownness required at that State.
+It does not require an invented outer execution occurrence. Inner evaluation
+under absent or explicit unknown actual evidence is invalid.
+
+The following complete fictional graph covers missing, explicit unknown,
+known-equal and known-unequal actual values on both admitted axes. It also covers
+InfoBoth, InfoNotEvaluated, an inner-only report and coincident targets. The
+common query and loss ledger remain attached to each inspected answer; guard
+support does not rewrite their provenance or infer a status from the loss.
+Each comparison has its own distinct outer owner. Generic nonchoice execution
+is shown without a choice-state role or selected branch.
+
+```turtle
+@prefix ex: <https://example.org/query-choice/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:matchingTarget a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
+ex:nonmatchingTarget a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
+ex:unknownTarget a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
+ex:sharedTarget a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
+ex:sourceQuery a logic:Thing .
+ex:sourceInput a logic:Thing .
+ex:ledger a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:loss .
+ex:loss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:sourceInput ;
+    gmeow:lossCause gmeow:lossValueMissing .
+
+ex:informationMissingOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:informationMissingAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoSupported ;
+    logic:guardSituation ex:informationMissingKnown ;
+    logic:leftOperand ex:informationMissingComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:informationMissingComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:informationMissingMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:informationMissingAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger .
+ex:informationMissingKnown a logic:Situation .
+ex:informationMissingMatches a logic:Situation .
+ex:informationMissingState a gmeow:State .
+ex:informationMissingExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:informationMissingOuter ;
+    gmeow:choiceEvaluationState ex:informationMissingState ;
+    gmeow:querySelectedBranch ex:unknownTarget .
+
+ex:informationUnknownOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:informationUnknownAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoSupported ;
+    logic:guardSituation ex:informationUnknownKnown ;
+    logic:leftOperand ex:informationUnknownComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:informationUnknownComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:informationUnknownMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:informationUnknownAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoUndetermined .
+ex:informationUnknownKnown a logic:Situation .
+ex:informationUnknownMatches a logic:Situation .
+ex:informationUnknownState a gmeow:State .
+ex:informationUnknownExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:informationUnknownOuter ;
+    gmeow:choiceEvaluationState ex:informationUnknownState ;
+    gmeow:querySelectedBranch ex:unknownTarget .
+
+ex:informationBothEqualOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:informationBothEqualAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoBoth ;
+    logic:guardSituation ex:informationBothEqualKnown ;
+    logic:leftOperand ex:informationBothEqualComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:informationBothEqualComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:informationBothEqualMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:informationBothEqualAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoBoth .
+ex:informationBothEqualKnown a logic:Situation .
+ex:informationBothEqualMatches a logic:Situation .
+ex:informationBothEqualState a gmeow:State ;
+    logic:situationObtains ex:informationBothEqualKnown, ex:informationBothEqualMatches .
+ex:informationBothEqualExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:informationBothEqualOuter ;
+    gmeow:choiceEvaluationState ex:informationBothEqualState ;
+    gmeow:querySelectedBranch ex:matchingTarget .
+
+ex:informationNotEvaluatedDifferentOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:informationNotEvaluatedDifferentAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoSupported ;
+    logic:guardSituation ex:informationNotEvaluatedDifferentKnown ;
+    logic:leftOperand ex:informationNotEvaluatedDifferentComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:informationNotEvaluatedDifferentComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:informationNotEvaluatedDifferentMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:informationNotEvaluatedDifferentAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoNotEvaluated .
+ex:informationNotEvaluatedDifferentKnown a logic:Situation .
+ex:informationNotEvaluatedDifferentMatches a logic:Situation .
+ex:informationNotEvaluatedDifferentState a gmeow:State ;
+    logic:situationObtains ex:informationNotEvaluatedDifferentKnown .
+ex:informationNotEvaluatedDifferentExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:informationNotEvaluatedDifferentOuter ;
+    gmeow:choiceEvaluationState ex:informationNotEvaluatedDifferentState ;
+    gmeow:querySelectedBranch ex:nonmatchingTarget .
+
+ex:completenessMissingOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:completenessMissingAnswer ;
+    gmeow:choiceAxis gmeow:queryCompletenessStatus ;
+    gmeow:choiceExpectedValue logic:CompleteForFragment ;
+    logic:guardSituation ex:completenessMissingKnown ;
+    logic:leftOperand ex:completenessMissingComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:completenessMissingComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:completenessMissingMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:completenessMissingAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger .
+ex:completenessMissingKnown a logic:Situation .
+ex:completenessMissingMatches a logic:Situation .
+ex:completenessMissingState a gmeow:State .
+ex:completenessMissingExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:completenessMissingOuter ;
+    gmeow:choiceEvaluationState ex:completenessMissingState ;
+    gmeow:querySelectedBranch ex:unknownTarget .
+
+ex:completenessUnknownOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:completenessUnknownAnswer ;
+    gmeow:choiceAxis gmeow:queryCompletenessStatus ;
+    gmeow:choiceExpectedValue logic:CompleteForFragment ;
+    logic:guardSituation ex:completenessUnknownKnown ;
+    logic:leftOperand ex:completenessUnknownComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:completenessUnknownComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:completenessUnknownMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:completenessUnknownAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryCompletenessStatus logic:CompletenessUnknown .
+ex:completenessUnknownKnown a logic:Situation .
+ex:completenessUnknownMatches a logic:Situation .
+ex:completenessUnknownState a gmeow:State .
+ex:completenessUnknownExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:completenessUnknownOuter ;
+    gmeow:choiceEvaluationState ex:completenessUnknownState ;
+    gmeow:querySelectedBranch ex:unknownTarget .
+
+ex:completenessEqualOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:completenessEqualAnswer ;
+    gmeow:choiceAxis gmeow:queryCompletenessStatus ;
+    gmeow:choiceExpectedValue logic:Incomplete ;
+    logic:guardSituation ex:completenessEqualKnown ;
+    logic:leftOperand ex:completenessEqualComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:completenessEqualComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:completenessEqualMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:completenessEqualAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryCompletenessStatus logic:Incomplete .
+ex:completenessEqualKnown a logic:Situation .
+ex:completenessEqualMatches a logic:Situation .
+ex:completenessEqualState a gmeow:State ;
+    logic:situationObtains ex:completenessEqualKnown, ex:completenessEqualMatches .
+ex:completenessEqualExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:completenessEqualOuter ;
+    gmeow:choiceEvaluationState ex:completenessEqualState ;
+    gmeow:querySelectedBranch ex:matchingTarget .
+
+ex:completenessDifferentOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:completenessDifferentAnswer ;
+    gmeow:choiceAxis gmeow:queryCompletenessStatus ;
+    gmeow:choiceExpectedValue logic:CompleteForFragment ;
+    logic:guardSituation ex:completenessDifferentKnown ;
+    logic:leftOperand ex:completenessDifferentComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:completenessDifferentComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:completenessDifferentMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:completenessDifferentAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryCompletenessStatus logic:Incomplete .
+ex:completenessDifferentKnown a logic:Situation .
+ex:completenessDifferentMatches a logic:Situation .
+ex:completenessDifferentState a gmeow:State ;
+    logic:situationObtains ex:completenessDifferentKnown .
+ex:completenessDifferentExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:completenessDifferentOuter ;
+    gmeow:choiceEvaluationState ex:completenessDifferentState ;
+    gmeow:querySelectedBranch ex:nonmatchingTarget .
+
+ex:innerOnlyNotEvaluatedOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:innerOnlyNotEvaluatedAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoNotEvaluated ;
+    logic:guardSituation ex:innerOnlyNotEvaluatedKnown ;
+    logic:leftOperand ex:innerOnlyNotEvaluatedComparison ;
+    logic:rightOperand ex:unknownTarget .
+ex:innerOnlyNotEvaluatedComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:innerOnlyNotEvaluatedMatches ;
+    logic:leftOperand ex:matchingTarget ;
+    logic:rightOperand ex:nonmatchingTarget .
+ex:innerOnlyNotEvaluatedAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoNotEvaluated .
+ex:innerOnlyNotEvaluatedKnown a logic:Situation .
+ex:innerOnlyNotEvaluatedMatches a logic:Situation .
+ex:innerOnlyNotEvaluatedState a gmeow:State ;
+    logic:situationObtains ex:innerOnlyNotEvaluatedKnown, ex:innerOnlyNotEvaluatedMatches .
+ex:innerOnlyNotEvaluatedExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:innerOnlyNotEvaluatedComparison ;
+    gmeow:choiceEvaluationState ex:innerOnlyNotEvaluatedState ;
+    gmeow:querySelectedBranch ex:matchingTarget .
+
+ex:coincidentUnknownOuter a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:choiceAnswer ex:coincidentUnknownAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoSupported ;
+    logic:guardSituation ex:coincidentUnknownKnown ;
+    logic:leftOperand ex:coincidentUnknownComparison ;
+    logic:rightOperand ex:sharedTarget .
+ex:coincidentUnknownComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:coincidentUnknownMatches ;
+    logic:leftOperand ex:sharedTarget ;
+    logic:rightOperand ex:sharedTarget .
+ex:coincidentUnknownAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:sourceQuery ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoUndetermined .
+ex:coincidentUnknownKnown a logic:Situation .
+ex:coincidentUnknownMatches a logic:Situation .
+ex:coincidentUnknownState a gmeow:State .
+ex:coincidentUnknownExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:coincidentUnknownOuter ;
+    gmeow:choiceEvaluationState ex:coincidentUnknownState ;
+    gmeow:querySelectedBranch ex:sharedTarget .
+
+ex:genericNode a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful "false"^^xsd:boolean ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
+ex:genericExecution a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:genericNode .
+```
+
+In the coincident-target case, the actual value is unknown and neither guard
+is supported. Adding matching support would be invalid even though the resolved
+query target's identity would stay the same. The independent guard laws validate
+generic Choice semantics rather than trusting the reported target alone.
+
+Each typed comparison requires an existing typed outer owner, and two typed
+outer owners of that comparison must be the same resource. The owner is not the
+comparison itself. This scopes borrowed answer context without imposing
+ownership on downstream targets, States or Situations, or requiring different
+targets for the three routes. When a choice belongs to a QueryProgramGraph, its
+internal comparison and supplied targets must also be graph members, with the
+existing effect and stratum admission obligations.
+
+Missing structural guards, operands, inspected answer, expected value or
+selected evaluation State is invalid. So are an invalid expected sentinel,
+cross-axis expected value, wrong resolved target, contradictory guard support,
+orphan or shared comparison owners, diagonal self-ownership, inner execution
+under unknown evidence and choice-state use on a generic nonchoice execution.
+A generic execution without this selected role requires no State. No missing
+structural capability becomes an unknown-value default.
+
+These constraints grade declared State support, not authentic execution history.
+The reported-state role is not a native transaction start instruction and makes
+no query node automatically runnable. Existing native binary Choice still
+requires two recursively executable operands and dispatches on guard support,
+forwarding the selected branch's success, failure or pending outcome unchanged.
+A branch failure is not a verdict-unknown route or a fallback operation. No
+state-support producer, native query adapter or consumer adoption is asserted.
