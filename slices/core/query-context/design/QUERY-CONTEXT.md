@@ -30,7 +30,8 @@ completeness is a model assumption, not evidence that an arbitrary sample covers
 a larger universe. Partial or exploratory descriptions do not expose a usable
 result merely because their nodes exist.
 
-The model laws use binary operand descriptors to keep the operation explicit.
+The original three composition families use binary operand descriptors to keep
+the operation explicit.
 All operands and results share the same interpretation. Every extent member is
 in that interpretation’s domain. Empty extents are representable, because an
 incompatible conjunction is information worth retaining. In an explicitly complete
@@ -110,3 +111,77 @@ Observation domains. Structured detail reuses record-metadata's existing
 StructuredValue and facet model, including its distinction between omission,
 null and empty containers. The generic structureName tag belongs to that owner;
 the existing dependency supplies it without a parallel field/value vocabulary.
+
+## Complete mixed meets and syntax identity
+
+QueryRestrictionFrame is an information-object syntax carrier. Its explicit atom
+roles select native kinds without coercing targets into Standpoint, Scenario,
+World or an observer class. A generic scenario name does not select assumed,
+counterfactual or imagined syntax. The complete finite inventory is asserted
+through restrictionComponentsComplete; missing descriptions do not name actual.
+actualQueryFrame is the fixed explicitly empty complete syntax. Its extent is
+the full declared interpretation domain, which remains nonempty under the
+existing interpretationMember closure. Empty result extents remain permitted.
+
+QueryFrameMeetExtent specializes QueryFrameExtent rather than FrameComposition.
+Its inherited interpretation, represented frame and admitted members describe
+the result extent directly. meetOperand preserves unordered input extents;
+meetOperandsComplete distinguishes deliberate zero operands from missing input.
+The original binary families keep their left/right obligations, result typing,
+compatibility contracts and universal-truth/scenario distinctions.
+
+The extentFrame global range and QueryFrameExtent allValuesFrom restriction
+admit QueryRestrictionFrame alongside the original Standpoint and Scenario.
+The meet subclass narrows its represented frame to one restriction-syntax
+identity. Selected operand syntax is likewise unique among complete typed
+restriction descriptions; raw frame aliases do not silently choose an atom kind.
+No global one-frame restriction is added to the original extent class.
+
+The twelve intrinsic laws separate structural identity from semantic realization:
+
+| Law | Obligation |
+| --- | --- |
+| RestrictionAtomIriConstraint | Complete profile atom targets are IRIs. |
+| ActualRestrictionInventoryLaw | The fixed actual syntax contains no typed atom. |
+| ActualFrameDomainLaw | Every declared context belongs to its actual extent; the existing extent-domain law gives the opposite inclusion. |
+| MeetOperandInterpretationLaw | Every operand uses the result's interpretation. |
+| MeetOperandSyntaxLaw | Every operand in a complete inventory has complete typed syntax. |
+| MeetOperandSyntaxUniquenessLaw | Each operand selects one complete syntax identity. |
+| MeetRealizationEvidenceLaw | Realization retains a complete interpretation and inventories with a represented syntax frame. |
+| NaryMeetResultMembershipLaw | A realized result member belongs to every operand. |
+| NaryMeetCommonMembershipLaw | A declared context lacking no operand membership belongs to the realized result. |
+| MeetSyntaxAtomForwardLaw | Every operand atom occurs under the same role in the result syntax. |
+| MeetSyntaxAtomReverseLaw | Every result atom has a joined operand/syntax witness under the same role. |
+| MeetUsableFrameLaw | Usable exposure names the same complete syntax frame with realized, complete and nonempty evidence. |
+
+The two membership directions are exact intersection in the declared complete
+interpretation. Zero and singleton behavior follow from the same laws. Syntax
+atom-set union is independent of semantic realization; it removes grouping and
+repetition while preserving explicit kinds. It is neither universal-truth union
+of contexts nor alternative-witness union. An empty incompatible extent retains
+its syntax without a usable-result assertion or vacuous truth promotion.
+
+All laws are realized first-order Formula trees under canonical Constraint
+records. The reverse intersection uses a guarded absence of an operand lacking
+the bound domain member. Syntax membership uses the finite explicit role set
+and a correlated operand/syntax/atom witness. The ordinary validation path is
+canonical Formula to generated SPARQL constraints to native Rust shape
+validation; no marker-enforcement metadata or second constraint surface is
+authored. These obligations validate declared structure rather than generating
+missing source evidence or certifying realization.
+
+The [IRI-key identity protocol](../docs.md#shared-iri-key-frame-identity) fixes
+exact resolved atom IRI bytes, explicit native kind tags, normalization, framed
+BLAKE3 inputs and canonical rendering. Length and count overflow or physical
+admission failure refuses the selected operation. The actual empty sentinel
+preserves native zero-branch identity; nonempty names use the dedicated data
+namespace. No extra vocabulary individuals or annotation fields are added for
+computed identities, and no resolver or deployment is implied.
+
+Shared identity names restriction syntax, not an interpreted extent. Within a
+complete interpretation, existing extent congruence preserves one denotation
+for a named syntax frame while retaining separate extent-record identities.
+Across interpretations, the same syntax may have different admitted contexts.
+The protocol is not a Formula proving a supplied digest, and structural laws
+do not authenticate source inventories, compute hash values or establish
+consumer implementation parity.

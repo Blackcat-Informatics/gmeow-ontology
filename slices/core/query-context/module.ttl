@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -258,7 +259,7 @@ gmeow:QueryFrameExtent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Query Frame Extent"@x-gmeow-english ;
-    skos:definition "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."@x-gmeow-english ;
+    skos:definition "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable frame."@x-gmeow-english ;
     gmeow:useWhen "Use to make component and result membership explicit within a named interpretation."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid combining extents from different interpretations or inventing members for an empty result."@x-gmeow-english ;
     gmeow:howToUse "Bind extentInterpretation, name extentFrame when represented, and retain extentMember values inside that interpretation’s declared domain."@x-gmeow-english ;
@@ -357,13 +358,13 @@ gmeow:extentFrame
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "represented extent frame"@x-gmeow-english ;
-    skos:definition "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."@x-gmeow-english ;
+    skos:definition "A Standpoint, Scenario or QueryRestrictionFrame represented by the recorded extent. Empty incompatible result extents need not name a usable frame."@x-gmeow-english ;
     gmeow:useWhen "Use to retain the explicit represented extent frame binding."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing the target of extentFrame from descriptor existence alone."@x-gmeow-english ;
     gmeow:howToUse "Reference the source-supported extentFrame resource within its declared model and scope."@x-gmeow-english ;
     skos:example "ex:record gmeow:extentFrame ex:target ."@x-gmeow-english ;
     logic:domain gmeow:QueryFrameExtent ;
-    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] .
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario gmeow:QueryRestrictionFrame ) ] .
 
 gmeow:extentMember
     a logic:ObjectProperty ;
@@ -525,7 +526,7 @@ gmeow:QueryFrameInterpretation logic:subClassOf
 
 gmeow:QueryFrameExtent logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:extentInterpretation ; logic:allValuesFrom gmeow:QueryFrameInterpretation ],
-    [ a logic:Restriction ; logic:onProperty gmeow:extentFrame ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:extentFrame ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Standpoint gmeow:Scenario gmeow:QueryRestrictionFrame ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:extentMember ; logic:allValuesFrom logic:World ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryFrameExtent ;
@@ -1105,3 +1106,689 @@ gmeow:lossObservedAt
     skos:scopeNote "No current-time default, temporal ordering of facts or source authentication follows from this timestamp."@x-gmeow-english ;
     skos:example "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
     logic:domain gmeow:QueryLoss ; logic:range xsd:dateTime .
+
+gmeow:QueryRestrictionFrame
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Restriction Frame"@x-gmeow-english ;
+    skos:definition "An information object describing conjunctive query-frame restriction syntax through explicit typed atom roles. Its syntax identity is independent of any interpretation, admitted extent, realization or truth claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied complete or partial restriction description without conflating it with a standpoint, scenario or world."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating missing atoms as actual, assigning an atom kind from generic Scenario typing or reading a syntax name as a usable result."@x-gmeow-english ;
+    gmeow:howToUse "Retain each supplied typed atom and restrictionComponentsComplete assertion; interpret the frame through separate QueryFrameExtent records."@x-gmeow-english ;
+    skos:scopeNote "The IRI-key identity profile requires an explicitly complete finite inventory of absolute resource IRIs. A partial description supplies no canonical frame name."@x-gmeow-english ;
+    skos:example "A supplied syntax description: ex:frame a gmeow:QueryRestrictionFrame ; gmeow:restrictionAssumed ex:scenario ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:actualQueryFrame
+    a gmeow:QueryRestrictionFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "unrestricted actual query frame"@x-gmeow-english ;
+    skos:definition "The unrestricted query-frame syntax with an explicitly complete empty atom inventory. In a complete admitted interpretation its extent is the whole declared domain; it is neither a particular world nor a privileged standpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit identity of conjunctive query-frame restriction composition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this frame from missing descriptions or identifying it with logic:actualWorld, a universal standpoint or globally true propositions."@x-gmeow-english ;
+    gmeow:howToUse "Reference actualQueryFrame explicitly; retain its interpretation-specific extent and apply the same realization and usable-result guards as for other meet results."@x-gmeow-english ;
+    skos:scopeNote "Actual contributes no atom to a conjunction. Its admitted interpretation domain remains nonempty under the existing profile; empty result extents elsewhere remain representable."@x-gmeow-english ;
+    skos:example "An explicit unrestricted frame: ex:extent gmeow:extentFrame gmeow:actualQueryFrame ."@x-gmeow-english ;
+    gmeow:restrictionComponentsComplete true .
+
+gmeow:restrictionStandpoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "standpoint restriction"@x-gmeow-english ;
+    skos:definition "An explicitly supplied standpoint atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 0. The role selects restriction syntax without asserting its contents or assigning a class to its target."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects the standpoint role for a supplied restriction resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a standpoint atom as the observer, as a preferred perspective or as a claim that its contents hold globally."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original resource through restrictionStandpoint; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."@x-gmeow-english ;
+    skos:scopeNote "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."@x-gmeow-english ;
+    skos:example "A supplied typed atom: ex:frame gmeow:restrictionStandpoint ex:restriction ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range logic:Thing .
+
+gmeow:restrictionCounterfactual
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "counterfactual restriction"@x-gmeow-english ;
+    skos:definition "An explicitly supplied counterfactual atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 1. The role selects restriction syntax without asserting its contents or assigning a class to its target."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects the counterfactual role for a supplied restriction resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning counterfactual kind from generic Scenario typing or promoting a counterfactual restriction into unrestricted actual evidence."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original resource through restrictionCounterfactual; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."@x-gmeow-english ;
+    skos:scopeNote "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."@x-gmeow-english ;
+    skos:example "A supplied typed atom: ex:frame gmeow:restrictionCounterfactual ex:restriction ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range logic:Thing .
+
+gmeow:restrictionImagined
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "imagined restriction"@x-gmeow-english ;
+    skos:definition "An explicitly supplied imagined atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 2. The role selects restriction syntax without asserting its contents or assigning a class to its target."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects the imagined role for a supplied restriction resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an imagined restriction as a proved possibility, an actual premise or an identity inferred from a display label."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original resource through restrictionImagined; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."@x-gmeow-english ;
+    skos:scopeNote "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."@x-gmeow-english ;
+    skos:example "A supplied typed atom: ex:frame gmeow:restrictionImagined ex:restriction ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range logic:Thing .
+
+gmeow:restrictionAssumed
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "assumed restriction"@x-gmeow-english ;
+    skos:definition "An explicitly supplied assumed atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 3. The role selects restriction syntax without asserting its contents or assigning a class to its target."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects the assumed role for a supplied restriction resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving the assumed kind from a Scenario label or turning an assumed premise into an actual assertion or a verified proof."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original resource through restrictionAssumed; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."@x-gmeow-english ;
+    skos:scopeNote "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."@x-gmeow-english ;
+    skos:example "A supplied typed atom: ex:frame gmeow:restrictionAssumed ex:restriction ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range logic:Thing .
+
+gmeow:restrictionLicensedFalsehood
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "licensed-falsehood restriction"@x-gmeow-english ;
+    skos:definition "An explicitly supplied licensed-falsehood atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 4. The role selects restriction syntax without asserting its contents or assigning a class to its target."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects the licensed-falsehood role for a supplied restriction resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a declared licensed-falsehood restriction as unrestricted actual evidence or as authority or permission conferred by this syntax."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original resource through restrictionLicensedFalsehood; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."@x-gmeow-english ;
+    skos:scopeNote "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."@x-gmeow-english ;
+    skos:example "A supplied typed atom: ex:frame gmeow:restrictionLicensedFalsehood ex:restriction ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range logic:Thing .
+
+gmeow:restrictionComponentsComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restriction components complete"@x-gmeow-english ;
+    skos:definition "An explicit source assertion that the recorded typed atom inventory of a QueryRestrictionFrame is complete for its declared syntax. A true value selects a complete finite inventory for the IRI-key profile; it does not certify a hash or semantic realization."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a deliberately complete inventory, including an explicitly empty one, from partial or missing descriptions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting this flag from absent atoms or equating inventory completeness with interpretation completeness."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied boolean. Canonical naming requires one explicit true value and the complete profile inputs; missing or conflicting declarations refuse that naming operation."@x-gmeow-english ;
+    skos:scopeNote "The flag is at most single-valued on one syntax description. It neither fetches missing descriptions nor verifies a canonical name or an interpretation."@x-gmeow-english ;
+    skos:example "A supplied inventory assertion: ex:frame gmeow:restrictionComponentsComplete true ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRestrictionFrame ; logic:range xsd:boolean .
+
+gmeow:QueryFrameMeetExtent
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Frame Meet Extent"@x-gmeow-english ;
+    skos:definition "An interpretation-scoped result-extent descriptor for the intersection of an explicitly complete finite set of operand extents. Operand syntax may mix explicit standpoint and scenario restriction roles; their admitted contexts are intersected in one declared interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use for an n-ary mixed restriction meet while retaining the requested syntax separately from semantic realization and usable-frame exposure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inheriting binary left/right requirements, replacing universal-truth union with a meet or treating a descriptor as evidence of a realized nonempty result."@x-gmeow-english ;
+    gmeow:howToUse "Use inherited extentInterpretation, extentFrame and extentMember; retain meetOperand entries and explicit inventory and realization assertions."@x-gmeow-english ;
+    skos:scopeNote "Zero operands yield the unrestricted actual frame over the declared nonempty domain. One operand preserves its extent; an empty result remains incompatible and supplies no usable frame."@x-gmeow-english ;
+    skos:example "A supplied meet extent: ex:meet a gmeow:QueryFrameMeetExtent ; gmeow:meetOperand ex:leftExtent, ex:rightExtent ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryFrameExtent .
+
+gmeow:meetOperand
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "meet operand"@x-gmeow-english ;
+    skos:definition "One supplied operand extent of a QueryFrameMeetExtent. Operands share the result extent’s interpretation and, under an explicit complete inventory, each selects one complete typed restriction-syntax identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain any finite number of supplied operand extents without ordered binary slots."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining interpretations, inventing operand membership or choosing a native kind from a raw scenario alias."@x-gmeow-english ;
+    gmeow:howToUse "Reference operand QueryFrameExtent records with their own interpretation, admitted members and explicitly complete QueryRestrictionFrame descriptions."@x-gmeow-english ;
+    skos:scopeNote "The operand relation is unordered and nonfunctional. Zero operands require an explicit complete inventory; absence alone does not describe the actual frame."@x-gmeow-english ;
+    skos:example "Two supplied operands: ex:meet gmeow:meetOperand ex:standpointExtent, ex:scenarioExtent ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameMeetExtent ; logic:range gmeow:QueryFrameExtent .
+
+gmeow:meetOperandsComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "meet operands complete"@x-gmeow-english ;
+    skos:definition "An explicit source assertion that the recorded meetOperand set is the complete finite operand inventory for this meet extent. It is distinct from syntax-component completeness and interpretation completeness."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly closes the operand inventory, including a deliberate zero-operand meet."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading an absent operand relation or flag as a complete empty inventory."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied boolean and all operand records. Realization requires an explicit true value together with complete operand syntax descriptions."@x-gmeow-english ;
+    skos:scopeNote "The flag is at most single-valued on this extent record and supplies no missing operands, interpretation members or realization."@x-gmeow-english ;
+    skos:example "An explicit operand inventory: ex:meet gmeow:meetOperandsComplete true ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameMeetExtent ; logic:range xsd:boolean .
+
+gmeow:meetRealized
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "meet realized"@x-gmeow-english ;
+    skos:definition "An explicit source assertion that this meet extent realizes its named restriction syntax in a declared complete interpretation with a complete operand inventory. It is not a runtime verification certificate."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a supplied semantic realization claim from a partial request or syntax description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring realization from a canonical syntax name, an existing descriptor or missing result members."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied boolean; a true claim requires the interpretation and complete inventories and is subject to both exact intersection directions."@x-gmeow-english ;
+    skos:scopeNote "The flag is at most single-valued on this extent record. Realization can retain an empty result without exposing a usable frame."@x-gmeow-english ;
+    skos:example "A source realization assertion: ex:meet gmeow:meetRealized true ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameMeetExtent ; logic:range xsd:boolean .
+
+gmeow:meetUsableFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "usable meet frame"@x-gmeow-english ;
+    skos:definition "The explicitly supplied complete restriction-syntax frame represented by a realized nonempty meet extent in its declared complete interpretation. It must be the same frame identified by that extent’s extentFrame."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose a supplied usable result only with complete inventories, realization and a result member."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid exposing an empty, partial or unrealized result, inventing an admitted context or substituting a different frame."@x-gmeow-english ;
+    gmeow:howToUse "Reference the existing complete syntax frame and retain the exact interpretation, realization claim, complete operand inventory and nonempty extent evidence."@x-gmeow-english ;
+    skos:scopeNote "This relation certifies no global semantic existence, proposition truth, privileged observer or native hash computation."@x-gmeow-english ;
+    skos:example "A supplied usable result: ex:meet gmeow:meetUsableFrame ex:combinedFrame ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFrameMeetExtent ; logic:range gmeow:QueryRestrictionFrame .
+
+gmeow:RestrictionAtomIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "restriction atom IRI constraint"@x-gmeow-english ;
+    skos:definition "A complete restriction-syntax inventory uses IRI targets for each explicit atom role in the IRI-key profile."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a non-IRI atom target in a declared complete profile inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing blank nodes, literals or triple terms into resource identifiers."@x-gmeow-english ;
+    gmeow:howToUse "Check each recorded target under the five explicit atom roles with the native RDF term-kind predicate."@x-gmeow-english ;
+    skos:scopeNote "This structural obligation does not resolve relative source syntax, derive component keys or verify a frame name."@x-gmeow-english ;
+    skos:example "A profile obligation: gmeow:RestrictionAtomIriConstraint logic:formalizes gmeow:QueryRestrictionFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRestrictionFrame ;
+    logic:message "A complete restriction-syntax inventory uses IRI targets for each explicit atom role in the IRI-key profile." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ],
+[ a logic:Formula ;
+logic:relation logic:termIn ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "role" ], [ logic:termIndex 1 ; logic:termIri gmeow:restrictionStandpoint ], [ logic:termIndex 2 ; logic:termIri gmeow:restrictionCounterfactual ], [ logic:termIndex 3 ; logic:termIri gmeow:restrictionImagined ], [ logic:termIndex 4 ; logic:termIri gmeow:restrictionAssumed ], [ logic:termIndex 5 ; logic:termIri gmeow:restrictionLicensedFalsehood ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termIsIri ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "atom" ] ] ] ] .
+
+gmeow:ActualRestrictionInventoryLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "actual restriction inventory law"@x-gmeow-english ;
+    skos:definition "The actualQueryFrame syntax has no atom under any of the five explicit restriction roles."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the explicitly empty complete inventory of the unrestricted actual frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law by deleting unknown source descriptions or classifying a partial frame as actual."@x-gmeow-english ;
+    gmeow:howToUse "Check the named actual syntax against any recorded atom-role witness; retain its explicit complete-inventory assertion."@x-gmeow-english ;
+    skos:scopeNote "The law constrains the fixed actual individual; it does not identify other incomplete or empty-looking descriptions with it."@x-gmeow-english ;
+    skos:example "An actual-syntax obligation: gmeow:ActualRestrictionInventoryLaw logic:formalizes gmeow:actualQueryFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:actualQueryFrame ;
+    logic:message "The actualQueryFrame syntax has no atom under any of the five explicit restriction roles." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:actualQueryFrame ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actualRole" ], [ logic:termIndex 1 ; logic:termVariable "actualAtom" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "actualRole" ], [ logic:termIndex 2 ; logic:termVariable "actualAtom" ] ],
+[ a logic:Formula ;
+logic:relation logic:termIn ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "actualRole" ], [ logic:termIndex 1 ; logic:termIri gmeow:restrictionStandpoint ], [ logic:termIndex 2 ; logic:termIri gmeow:restrictionCounterfactual ], [ logic:termIndex 3 ; logic:termIri gmeow:restrictionImagined ], [ logic:termIndex 4 ; logic:termIri gmeow:restrictionAssumed ], [ logic:termIndex 5 ; logic:termIri gmeow:restrictionLicensedFalsehood ] ] ] ] ] ] ] .
+
+gmeow:ActualFrameDomainLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "actual frame domain law"@x-gmeow-english ;
+    skos:definition "An extent representing actualQueryFrame in a complete admitted interpretation contains every member of that interpretation’s declared domain. The existing extent-domain law supplies the opposite inclusion."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain actual as the unrestricted query-frame identity within the declared model."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying this extent with a particular PossibleWorld or weakening the required nonempty interpretation domain."@x-gmeow-english ;
+    gmeow:howToUse "For every declared domain member, require its membership in each actual extent in that complete interpretation."@x-gmeow-english ;
+    skos:scopeNote "The equation is interpretation-relative and asserts no global truth or preferred standpoint. Empty result extents remain allowed for other frames."@x-gmeow-english ;
+    skos:example "An actual-extent obligation: gmeow:ActualFrameDomainLaw logic:formalizes gmeow:actualQueryFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:actualQueryFrame ;
+    logic:message "An extent representing actualQueryFrame in a complete admitted interpretation contains every member of that interpretation’s declared domain. The existing extent-domain law supplies the opposite inclusion." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "world" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:actualQueryFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:MeetOperandInterpretationLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet operand interpretation law"@x-gmeow-english ;
+    skos:definition "Every operand of a QueryFrameMeetExtent uses that meet extent’s same interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject mixed-interpretation operand inventories."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a shared model or importing members from an unrelated interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Compare each supplied operand interpretation with the meet extent’s interpretation; preserve the inherited single-interpretation bound."@x-gmeow-english ;
+    skos:scopeNote "The obligation applies to descriptors as well as realization claims and grants no semantic compatibility."@x-gmeow-english ;
+    skos:example "An operand-scope obligation: gmeow:MeetOperandInterpretationLaw logic:formalizes gmeow:meetOperand ."@x-gmeow-english ;
+    logic:formalizes gmeow:meetOperand ;
+    logic:message "Every operand of a QueryFrameMeetExtent uses that meet extent’s same interpretation." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "operand" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ] ] ] .
+
+gmeow:MeetOperandSyntaxLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet operand syntax law"@x-gmeow-english ;
+    skos:definition "Each operand in a declared complete meet inventory names an explicitly complete QueryRestrictionFrame syntax description."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain typed operand identities before canonical naming or semantic realization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an assumed or counterfactual kind from generic Scenario typing."@x-gmeow-english ;
+    gmeow:howToUse "For every supplied operand, retain a represented syntax frame with explicit QueryRestrictionFrame typing and a true component-inventory assertion."@x-gmeow-english ;
+    skos:scopeNote "The witness is supplied evidence, not an instruction to create a frame or fill absent atom descriptions."@x-gmeow-english ;
+    skos:example "An operand-syntax obligation: gmeow:MeetOperandSyntaxLaw logic:formalizes gmeow:meetOperand ."@x-gmeow-english ;
+    logic:formalizes gmeow:meetOperand ;
+    logic:message "Each operand in a declared complete meet inventory names an explicitly complete QueryRestrictionFrame syntax description." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "operandSyntax" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "operandSyntax" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operandSyntax" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operandSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] ] ] .
+
+gmeow:MeetOperandSyntaxUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet operand syntax uniqueness law"@x-gmeow-english ;
+    skos:definition "An operand in a declared complete meet inventory selects one complete QueryRestrictionFrame syntax identity; two selected complete syntax resources must be equal."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent raw extent aliases from ambiguously selecting the atom inventory used by a meet."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning an atom kind, realization or actual status to a raw Standpoint or Scenario alias."@x-gmeow-english ;
+    gmeow:howToUse "Compare every pair of explicitly typed complete restriction frames named by the operand using bound RDF resource equality."@x-gmeow-english ;
+    skos:scopeNote "The law does not impose a global one-frame limit on old extents or publish sameAs assertions."@x-gmeow-english ;
+    skos:example "A syntax-selection obligation: gmeow:MeetOperandSyntaxUniquenessLaw logic:formalizes gmeow:meetOperand ."@x-gmeow-english ;
+    logic:formalizes gmeow:meetOperand ;
+    logic:message "An operand in a declared complete meet inventory selects one complete QueryRestrictionFrame syntax identity; two selected complete syntax resources must be equal." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ], [ logic:termIndex 2 ; logic:termVariable "leftSyntax" ], [ logic:termIndex 3 ; logic:termVariable "rightSyntax" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "leftSyntax" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSyntax" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "rightSyntax" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSyntax" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSyntax" ], [ logic:termIndex 1 ; logic:termVariable "rightSyntax" ] ] ] ] .
+
+gmeow:MeetRealizationEvidenceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet realization evidence law"@x-gmeow-english ;
+    skos:definition "A meet realization claim retains its complete interpretation, complete operand inventory and explicitly complete represented restriction syntax."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the supplied coordinates on which exact meet membership is interpreted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a realization flag as an engine certificate or creating missing model or syntax evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain one shared interpretation and syntax witness with both completeness assertions and the declared complete operand inventory."@x-gmeow-english ;
+    skos:scopeNote "The interpretation and extent-frame bounds retain one coordinate each; realization may still record an empty incompatible result."@x-gmeow-english ;
+    skos:example "A realization obligation: gmeow:MeetRealizationEvidenceLaw logic:formalizes gmeow:meetRealized ."@x-gmeow-english ;
+    logic:formalizes gmeow:meetRealized ;
+    logic:message "A meet realization claim retains its complete interpretation, complete operand inventory and explicitly complete represented restriction syntax." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetRealized ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "realizationModel" ], [ logic:termIndex 1 ; logic:termVariable "realizationSyntax" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "realizationModel" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "realizationModel" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "realizationSyntax" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "realizationSyntax" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "realizationSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] ] ] .
+
+gmeow:NaryMeetResultMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-ary meet result membership law"@x-gmeow-english ;
+    skos:definition "Every member of a realized meet result belongs to every supplied operand extent in the same complete interpretation and complete operand inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use for the result-to-operands direction of exact n-ary intersection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this subset direction alone as an exact intersection or inventing operand members."@x-gmeow-english ;
+    gmeow:howToUse "Check every result member against each supplied operand under the explicit realization and completeness guards."@x-gmeow-english ;
+    skos:scopeNote "The reverse common-membership law remains required. An empty result supplies no usable frame."@x-gmeow-english ;
+    skos:example "An intersection obligation: gmeow:NaryMeetResultMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFrameMeetExtent ;
+    logic:message "Every member of a realized meet result belongs to every supplied operand extent in the same complete interpretation and complete operand inventory." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "operand" ], [ logic:termIndex 3 ; logic:termVariable "world" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetRealized ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:NaryMeetCommonMembershipLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-ary meet common membership law"@x-gmeow-english ;
+    skos:definition "Every declared domain member that no supplied operand lacks belongs to the realized meet result in the same complete interpretation and complete operand inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use for the operands-to-result direction of exact n-ary intersection, including zero and singleton inventories."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading absent operand assertions as a complete empty inventory or dropping this reverse direction."@x-gmeow-english ;
+    gmeow:howToUse "Bind a declared domain member and require result membership when there is no operand lacking that member."@x-gmeow-english ;
+    skos:scopeNote "With an explicit complete zero-operand inventory the result is the whole declared nonempty domain; one operand preserves that operand’s extent."@x-gmeow-english ;
+    skos:example "A common-membership obligation: gmeow:NaryMeetCommonMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFrameMeetExtent ;
+    logic:message "Every declared domain member that no supplied operand lacks belongs to the realized meet result in the same complete interpretation and complete operand inventory." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ], [ logic:termIndex 2 ; logic:termVariable "world" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetRealized ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "model" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "model" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "missingOperand" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "missingOperand" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "missingOperand" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ] ] .
+
+gmeow:MeetSyntaxAtomForwardLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet syntax atom forward law"@x-gmeow-english ;
+    skos:definition "Every typed atom in a supplied complete operand syntax inventory occurs under that same role in the complete result syntax of a declared complete meet inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use for the operand-to-result direction of exact syntax-inventory union."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting a restriction kind, hashing a composite name as an atom or requiring semantic realization merely to retain syntax."@x-gmeow-english ;
+    gmeow:howToUse "Join operand extents to their complete syntax descriptions and preserve each original atom under its explicit role in the result syntax."@x-gmeow-english ;
+    skos:scopeNote "This union concerns syntax atoms, not alternative witnesses or the universal-truth union of admitted contexts."@x-gmeow-english ;
+    skos:example "A syntax-union obligation: gmeow:MeetSyntaxAtomForwardLaw logic:formalizes gmeow:QueryFrameMeetExtent ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFrameMeetExtent ;
+    logic:message "Every typed atom in a supplied complete operand syntax inventory occurs under that same role in the complete result syntax of a declared complete meet inventory." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 2 ; logic:termVariable "operand" ], [ logic:termIndex 3 ; logic:termVariable "inputSyntax" ], [ logic:termIndex 4 ; logic:termVariable "role" ], [ logic:termIndex 5 ; logic:termVariable "atom" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "resultSyntax" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "operand" ], [ logic:termIndex 1 ; logic:termVariable "inputSyntax" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inputSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inputSyntax" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ],
+[ a logic:Formula ;
+logic:relation logic:termIn ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "role" ], [ logic:termIndex 1 ; logic:termIri gmeow:restrictionStandpoint ], [ logic:termIndex 2 ; logic:termIri gmeow:restrictionCounterfactual ], [ logic:termIndex 3 ; logic:termIri gmeow:restrictionImagined ], [ logic:termIndex 4 ; logic:termIri gmeow:restrictionAssumed ], [ logic:termIndex 5 ; logic:termIri gmeow:restrictionLicensedFalsehood ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ] ] ] .
+
+gmeow:MeetSyntaxAtomReverseLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "meet syntax atom reverse law"@x-gmeow-english ;
+    skos:definition "Every typed atom of a complete meet result syntax is witnessed under the same role in a complete syntax inventory of one of that meet’s supplied operands."@x-gmeow-english ;
+    gmeow:useWhen "Use to exclude extra result atoms and complete the exact syntax-inventory union."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the correlated operand/frame/atom witness with independent existence statements."@x-gmeow-english ;
+    gmeow:howToUse "Retain one joined witness from the meet operand through its complete syntax to the same explicit role and atom resource."@x-gmeow-english ;
+    skos:scopeNote "The law applies independently of semantic realization and preserves kind distinctions for the same resource."@x-gmeow-english ;
+    skos:example "A reverse syntax-union obligation: gmeow:MeetSyntaxAtomReverseLaw logic:formalizes gmeow:QueryFrameMeetExtent ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFrameMeetExtent ;
+    logic:message "Every typed atom of a complete meet result syntax is witnessed under the same role in a complete syntax inventory of one of that meet’s supplied operands." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 2 ; logic:termVariable "role" ], [ logic:termIndex 3 ; logic:termVariable "atom" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "resultSyntax" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "resultSyntax" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ],
+[ a logic:Formula ;
+logic:relation logic:termIn ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "role" ], [ logic:termIndex 1 ; logic:termIri gmeow:restrictionStandpoint ], [ logic:termIndex 2 ; logic:termIri gmeow:restrictionCounterfactual ], [ logic:termIndex 3 ; logic:termIri gmeow:restrictionImagined ], [ logic:termIndex 4 ; logic:termIri gmeow:restrictionAssumed ], [ logic:termIndex 5 ; logic:termIri gmeow:restrictionLicensedFalsehood ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "witnessOperand" ], [ logic:termIndex 1 ; logic:termVariable "witnessSyntax" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:meetOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "witnessOperand" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "witnessOperand" ], [ logic:termIndex 1 ; logic:termVariable "witnessSyntax" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "witnessSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation logic:linkVia ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "witnessSyntax" ], [ logic:termIndex 1 ; logic:termVariable "role" ], [ logic:termIndex 2 ; logic:termVariable "atom" ] ] ] ] ] ] .
+
+gmeow:MeetUsableFrameLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "usable meet frame law"@x-gmeow-english ;
+    skos:definition "An exposed meet frame is the same complete syntax frame represented by a realized nonempty result in a complete interpretation with a complete operand inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use to require all supplied evidence before usable-result exposure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid exposing a different frame, an empty result or a partial description as usable."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact represented frame, shared interpretation, complete inventories, realization assertion and at least one result member."@x-gmeow-english ;
+    skos:scopeNote "No law manufactures the witness, certifies the source assertions or promotes a restriction into global truth or actuality."@x-gmeow-english ;
+    skos:example "A usable-result obligation: gmeow:MeetUsableFrameLaw logic:formalizes gmeow:meetUsableFrame ."@x-gmeow-english ;
+    logic:formalizes gmeow:meetUsableFrame ;
+    logic:message "An exposed meet frame is the same complete syntax frame represented by a realized nonempty result in a complete interpretation with a complete operand inventory." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "usableSyntax" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFrameMeetExtent ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetUsableFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "usableSyntax" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "usableModel" ], [ logic:termIndex 1 ; logic:termVariable "usableWorld" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:extentInterpretation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "usableModel" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:interpretationComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "usableModel" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetOperandsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:meetRealized ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "usableSyntax" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "usableSyntax" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRestrictionFrame ] ],
+[ a logic:Formula ;
+logic:relation gmeow:restrictionComponentsComplete ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "usableSyntax" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ],
+[ a logic:Formula ;
+logic:relation gmeow:extentMember ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "usableWorld" ] ] ] ] ] ] .
+
+# Class-local coordinate bounds; partial descriptions retain absent flags.
+gmeow:QueryRestrictionFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restrictionComponentsComplete ; logic:allValuesFrom xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restrictionComponentsComplete ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+
+gmeow:QueryFrameMeetExtent logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:meetOperandsComplete ; logic:allValuesFrom xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:meetOperandsComplete ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:meetRealized ; logic:allValuesFrom xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:meetRealized ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ],
+    [ a logic:Restriction ; logic:onProperty gmeow:extentFrame ; logic:allValuesFrom gmeow:QueryRestrictionFrame ],
+    [ a logic:Restriction ; logic:onProperty gmeow:extentFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
