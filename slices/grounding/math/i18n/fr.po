@@ -9720,3 +9720,59 @@ msgstr "Ne pas traiter q comme un nombre invariant de directions temporelles dan
 msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer through math:signatureNegative. For a metric's supplied context, distinguish the p + q dimension comparison, the Lorentzian p = 1 or q = 1 condition and the Riemannian q = 0 condition; these are not signature constructors."
 msgstr "Joindre l’entier non négatif fourni par math:signatureNegative. Pour le contexte fourni d’une métrique, distinguer la comparaison de dimension p + q, la condition lorentzienne p = 1 ou q = 1 et la condition riemannienne q = 0 ; ce ne sont pas des constructeurs de signature."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Orthogonal Complement"
+msgstr "Complément orthogonal"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The orthogonal complement S⊥ of a subspace S within an inner-product space — the vectors orthogonal to every vector of S under a declared inner product. A subclass of math:Complement that realizes the geometry charter's complement contract: it names its math:ambientSpace, sets math:complementSemantics math:orthogonalComplement, and additionally is math:definedByInnerProduct (the math:HermitianInnerProduct in the complex case), so 'the orthogonal complement' is never ambiguous. An orthogonal complement not naming its inner product is ill-formed (math:UnqualifiedOrthogonalComplement)."
+msgstr "Le complément orthogonal S⊥ d’un sous-espace S dans un espace à produit scalaire — les vecteurs orthogonaux à tout vecteur de S selon un produit scalaire déclaré. Sous-classe de math:Complement qui réalise le contrat de complément de la charte de géométrie : il nomme son math:ambientSpace, fixe math:complementSemantics math:orthogonalComplement et est en outre math:definedByInnerProduct (le math:HermitianInnerProduct dans le cas complexe), afin que « le complément orthogonal » ne soit jamais ambigu. Un complément orthogonal qui ne nomme pas son produit scalaire est mal formé (math:UnqualifiedOrthogonalComplement)."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "S⊥ consists of vectors whose inner product with every vector of the operand subspace S is zero. It is mathematically a subspace, while the authored class inherits math:Complement without a formal math:Subspace superclass. In a complex ambient space, orthogonality uses the declared Hermitian inner product."
+msgstr "S⊥ est constitué des vecteurs dont le produit scalaire avec tout vecteur du sous-espace opérande S est nul. C’est mathématiquement un sous-espace, tandis que la classe définie hérite de math:Complement sans super-classe formelle math:Subspace. Dans un espace ambiant complexe, l’orthogonalité utilise le produit scalaire hermitien déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example describes ex:residualSubspace as the orthogonal complement of ex:embeddedSubspace in ex:complexSpace4096, defined by ex:hermitianInnerProduct. The record declares these roles and math:complementSemantics math:orthogonalComplement; it does not calculate a basis or prove orthogonality."
+msgstr "L’exemple linear-algebra-and-learning décrit ex:residualSubspace comme le complément orthogonal de ex:embeddedSubspace dans ex:complexSpace4096, défini par ex:hermitianInnerProduct. La ressource déclare ces rôles et math:complementSemantics math:orthogonalComplement ; elle ne calcule pas de base et ne prouve pas l’orthogonalité."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a complement determined by an inner product, including a Hermitian inner product in the complex case. Retain the operand, ambient space and defining inner product together when describing a residual subspace."
+msgstr "À utiliser pour un complément déterminé par un produit scalaire, notamment un produit scalaire hermitien dans le cas complexe. Conserver ensemble l’opérande, l’espace ambiant et le produit scalaire définissant le complément lors de la description d’un sous-espace résiduel."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming V = S ⊕ S⊥ in every inner-product space. This decomposition holds in finite dimensions and for a closed subspace S of a Hilbert space; it is not guaranteed for arbitrary infinite-dimensional spaces. A declared complement or retrieved competency answer is not a construction or proof."
+msgstr "Ne pas supposer V = S ⊕ S⊥ dans tout espace à produit scalaire. Cette décomposition vaut en dimension finie et pour un sous-espace fermé S d’un espace de Hilbert ; elle n’est pas garantie dans les espaces de dimension infinie quelconques. Un complément déclaré ou une réponse obtenue à une question de compétence n’est ni une construction ni une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resource as math:OrthogonalComplement, name S with math:orthogonalComplementOf and supply one math:ambientSpace, one math:complementSemantics math:orthogonalComplement and one math:definedByInnerProduct. The inspected native real rational Gram checks do not establish a generic complex orthogonal-complement constructor."
+msgstr "Typer la ressource comme math:OrthogonalComplement, nommer S avec math:orthogonalComplementOf et fournir un math:ambientSpace, un math:complementSemantics math:orthogonalComplement et un math:definedByInnerProduct. Les contrôles natifs inspectés sur les matrices de Gram réelles rationnelles n’établissent pas un constructeur générique de complément orthogonal complexe."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orthogonal complement of"
+msgstr "complément orthogonal de"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:OrthogonalComplement to the subspace S it is the orthogonal complement of (S⊥ of S). Domain math:OrthogonalComplement, range math:Subspace (stated in prose). Distinct from the ambient space (math:ambientSpace, the enclosing inner-product space) — the complement is orthogonal to this subspace within that ambient space."
+msgstr "Relie un math:OrthogonalComplement au sous-espace S dont il est le complément orthogonal (S⊥ de S). Domaine math:OrthogonalComplement, portée math:Subspace (indiqués en prose). Rôle distinct de l’espace ambiant (math:ambientSpace, l’espace à produit scalaire qui l’englobe) — le complément est orthogonal à ce sous-espace au sein de cet espace ambiant."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the orthogonal-complement resource and the object is the operand subspace S. math:ambientSpace names V in a separate role. Those roles may refer to the same resource: when S = V, its orthogonal complement within V is the zero subspace."
+msgstr "Le sujet est la ressource du complément orthogonal et l’objet est le sous-espace opérande S. math:ambientSpace nomme V dans un rôle distinct. Ces rôles peuvent référencer la même ressource : lorsque S = V, son complément orthogonal dans V est le sous-espace nul."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:residualSubspace math:orthogonalComplementOf ex:embeddedSubspace and separately names ex:complexSpace4096 as ambient space. The competency query retrieves this operand together with the ambient space and inner product; it does not enumerate complement vectors."
+msgstr "L’exemple linear-algebra-and-learning énonce ex:residualSubspace math:orthogonalComplementOf ex:embeddedSubspace et nomme séparément ex:complexSpace4096 comme espace ambiant. La requête de compétence retrouve cet opérande avec l’espace ambiant et le produit scalaire ; elle n’énumère pas les vecteurs du complément."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify which subspace an orthogonal complement is taken against. Keep this operand relation explicit when the same ambient space carries several subspaces and residual constructions."
+msgstr "À utiliser pour identifier le sous-espace dont on prend le complément orthogonal. Expliciter cette relation d’opérande lorsque le même espace ambiant porte plusieurs sous-espaces et constructions résiduelles."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation or treating the operand role as a requirement that S and V have different IRIs. The inspected specialized rules do not impose an operand cardinality here, and this edge alone does not establish the universal zero-inner-product condition."
+msgstr "Ne pas inverser la relation ni interpréter le rôle d’opérande comme une exigence d’IRI distincts pour S et V. Les règles spécialisées inspectées n’imposent ici aucune cardinalité d’opérande, et ce lien seul n’établit pas la condition universelle de produit scalaire nul."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:orthogonalComplementOf from the math:OrthogonalComplement to the intended math:Subspace. Retain math:ambientSpace, math:complementSemantics math:orthogonalComplement and math:definedByInnerProduct on the complement, with any basis computation or mathematical justification supplied separately."
+msgstr "Diriger math:orthogonalComplementOf du math:OrthogonalComplement vers le math:Subspace voulu. Conserver math:ambientSpace, math:complementSemantics math:orthogonalComplement et math:definedByInnerProduct sur le complément, et fournir séparément tout calcul de base ou toute justification mathématique."

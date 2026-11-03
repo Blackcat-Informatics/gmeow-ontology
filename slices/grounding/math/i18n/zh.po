@@ -9720,3 +9720,59 @@ msgstr "不要将 q 视为在两种符号约定下不变的类时方向数，也
 msgctxt "https://blackcatinformatics.ca/math/signatureNegative|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer through math:signatureNegative. For a metric's supplied context, distinguish the p + q dimension comparison, the Lorentzian p = 1 or q = 1 condition and the Riemannian q = 0 condition; these are not signature constructors."
 msgstr "通过 math:signatureNegative 关联已提供的非负整数。对于度量的已提供背景，须区分 p + q 的维数比较、洛伦兹条件 p = 1 或 q = 1，以及黎曼条件 q = 0；这些都不是惯性指数对构造器。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Orthogonal Complement"
+msgstr "正交补"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The orthogonal complement S⊥ of a subspace S within an inner-product space — the vectors orthogonal to every vector of S under a declared inner product. A subclass of math:Complement that realizes the geometry charter's complement contract: it names its math:ambientSpace, sets math:complementSemantics math:orthogonalComplement, and additionally is math:definedByInnerProduct (the math:HermitianInnerProduct in the complex case), so 'the orthogonal complement' is never ambiguous. An orthogonal complement not naming its inner product is ill-formed (math:UnqualifiedOrthogonalComplement)."
+msgstr "内积空间中子空间 S 的正交补 S⊥，即在已声明内积下与 S 中每个向量正交的向量。它是 math:Complement 的子类，实现几何章程的补对象约定：指明 math:ambientSpace，设置 math:complementSemantics math:orthogonalComplement，并通过 math:definedByInnerProduct 指明内积（复数情形为 math:HermitianInnerProduct），使“正交补”不再含糊。未指明内积的正交补是不合式的（math:UnqualifiedOrthogonalComplement）。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "S⊥ consists of vectors whose inner product with every vector of the operand subspace S is zero. It is mathematically a subspace, while the authored class inherits math:Complement without a formal math:Subspace superclass. In a complex ambient space, orthogonality uses the declared Hermitian inner product."
+msgstr "S⊥ 由与操作数子空间 S 中每个向量的内积均为零的向量组成。它在数学上是子空间，但所定义的类继承 math:Complement，并无形式化的 math:Subspace 超类。在复环境空间中，正交性使用已声明的厄米内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example describes ex:residualSubspace as the orthogonal complement of ex:embeddedSubspace in ex:complexSpace4096, defined by ex:hermitianInnerProduct. The record declares these roles and math:complementSemantics math:orthogonalComplement; it does not calculate a basis or prove orthogonality."
+msgstr "linear-algebra-and-learning 示例将 ex:residualSubspace 描述为 ex:complexSpace4096 中 ex:embeddedSubspace 的正交补，由 ex:hermitianInnerProduct 定义。该记录声明这些角色及 math:complementSemantics math:orthogonalComplement；它不计算基，也不证明正交性。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a complement determined by an inner product, including a Hermitian inner product in the complex case. Retain the operand, ambient space and defining inner product together when describing a residual subspace."
+msgstr "用于由内积确定的补对象，包括复数情形下的厄米内积。描述残差子空间时，须一并保留操作数、环境空间和定义该补对象的内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming V = S ⊕ S⊥ in every inner-product space. This decomposition holds in finite dimensions and for a closed subspace S of a Hilbert space; it is not guaranteed for arbitrary infinite-dimensional spaces. A declared complement or retrieved competency answer is not a construction or proof."
+msgstr "不要假定每个内积空间中都有 V = S ⊕ S⊥。该分解在有限维情形及希尔伯特空间的闭子空间 S 情形成立，但在任意无限维空间中并无保证。补对象声明或检索所得的能力问题答案不是构造，也不是证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/OrthogonalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resource as math:OrthogonalComplement, name S with math:orthogonalComplementOf and supply one math:ambientSpace, one math:complementSemantics math:orthogonalComplement and one math:definedByInnerProduct. The inspected native real rational Gram checks do not establish a generic complex orthogonal-complement constructor."
+msgstr "将资源定型为 math:OrthogonalComplement，用 math:orthogonalComplementOf 指明 S，并提供一个 math:ambientSpace、一个 math:complementSemantics math:orthogonalComplement 和一个 math:definedByInnerProduct。已检查的原生实有理数 Gram 校验不能确立通用的复正交补构造器。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orthogonal complement of"
+msgstr "其正交补所对应的子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:OrthogonalComplement to the subspace S it is the orthogonal complement of (S⊥ of S). Domain math:OrthogonalComplement, range math:Subspace (stated in prose). Distinct from the ambient space (math:ambientSpace, the enclosing inner-product space) — the complement is orthogonal to this subspace within that ambient space."
+msgstr "将 math:OrthogonalComplement 关联到它所取正交补的子空间 S（S 的 S⊥）。定义域为 math:OrthogonalComplement，值域为 math:Subspace（以文字说明）。此角色不同于环境空间（math:ambientSpace，即包含它的内积空间）；补对象在该环境空间中与此子空间正交。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the orthogonal-complement resource and the object is the operand subspace S. math:ambientSpace names V in a separate role. Those roles may refer to the same resource: when S = V, its orthogonal complement within V is the zero subspace."
+msgstr "主语是正交补资源，宾语是操作数子空间 S。math:ambientSpace 以另一角色指明 V。这些角色可以引用同一资源：当 S = V 时，它在 V 内的正交补为零子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:residualSubspace math:orthogonalComplementOf ex:embeddedSubspace and separately names ex:complexSpace4096 as ambient space. The competency query retrieves this operand together with the ambient space and inner product; it does not enumerate complement vectors."
+msgstr "linear-algebra-and-learning 示例声明 ex:residualSubspace math:orthogonalComplementOf ex:embeddedSubspace，并另行指明环境空间 ex:complexSpace4096。能力查询检索此操作数及环境空间和内积；它不枚举正交补向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify which subspace an orthogonal complement is taken against. Keep this operand relation explicit when the same ambient space carries several subspaces and residual constructions."
+msgstr "用于标识针对哪个子空间取正交补。当同一环境空间承载多个子空间和残差构造时，须明确保留此操作数关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation or treating the operand role as a requirement that S and V have different IRIs. The inspected specialized rules do not impose an operand cardinality here, and this edge alone does not establish the universal zero-inner-product condition."
+msgstr "不要反转此关系，也不要将操作数角色理解为要求 S 与 V 具有不同 IRI。已检查的专门规则未在此施加操作数基数要求，且此边本身不确立内积普遍为零的条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplementOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:orthogonalComplementOf from the math:OrthogonalComplement to the intended math:Subspace. Retain math:ambientSpace, math:complementSemantics math:orthogonalComplement and math:definedByInnerProduct on the complement, with any basis computation or mathematical justification supplied separately."
+msgstr "以 math:orthogonalComplementOf 从 math:OrthogonalComplement 指向所需的 math:Subspace。在补对象上保留 math:ambientSpace、math:complementSemantics math:orthogonalComplement 和 math:definedByInnerProduct，并另行提供基计算或数学论证。"
