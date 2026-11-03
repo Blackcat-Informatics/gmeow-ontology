@@ -9615,7 +9615,7 @@ msgstr "tenseur métrique"
 
 msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a math:RiemannianManifold or math:LorentzianManifold to its math:MetricTensor. Domain a math:Manifold, range math:MetricTensor (stated in prose). The metric gives the manifold its lengths, angles, and — for a Lorentzian metric — its causal structure."
-msgstr "Relie une math:RiemannianManifold ou une math:LorentzianManifold à son math:MetricTensor. Domaine une math:Manifold, portée math:MetricTensor (indiqués en prose). La métrique donne à la variété ses longueurs, ses angles et — pour une métrique lorentzienne — sa structure causale."
+msgstr "Relie une math:RiemannianManifold ou une math:LorentzianManifold à son math:MetricTensor. Domaine : math:Manifold ; portée : math:MetricTensor (tous deux indiqués en prose). La métrique donne à la variété ses longueurs, ses angles et — pour une métrique lorentzienne — sa structure causale."
 
 msgctxt "https://blackcatinformatics.ca/math/metricTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The manifold-to-metric link names its geometric tensor field. The field still names its base through math:tensorFieldOn and has the mathematical symmetry, nondegeneracy and smoothness obligations of a real metric."
