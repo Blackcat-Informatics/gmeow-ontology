@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: f532a39476124b4244c5ea38a5668e18b2c008de
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2305
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2305
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 395d7009f735e91af32a65ad39d2fb53e89107c8
+GhpRsq-Head-Ref: paudley/2303-correct-stale-weyl-and-automorphism
+GhpRsq-Head-OID: f532a39476124b4244c5ea38a5668e18b2c008de
+GhpRsq-Result-Tree: 6138314b135083ad7db85f9f29c22ec42ab00908
+GhpRsq-Result-Commit: 802ab108ad7c50a6de4326d06efb53e3a692ad86
+GhpRsq-Parent-Hashes: f532a39476124b4244c5ea38a5668e18b2c008de
+GhpRsq-Squash-Notes-SHA256: 0aa354707cf65dc7831b9787df115f5ebef1ec3b7f90d8d74bde963c7c99ecaf
+GhpRsq-Stage-Evidence: none
