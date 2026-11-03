@@ -2808,7 +2808,7 @@ msgstr "dimension de l'espace"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|skos:definition"
 msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
-msgstr "La dimension vectorielle entière non négative d'un espace de coordonnées, espace tangent, support algébrique ou autre objet linéaire ; elle est distincte de la dimension physique math:hasDimension."
+msgstr "La dimension vectorielle entière non négative d’un espace de coordonnées, d’un espace tangent, du support d’une algèbre ou d’un autre objet mathématique explicitement linéaire — distincte de la dimension physique math:hasDimension (une dimension du SI). La cible d’une carte et un espace tangent l’emploient pour la cohérence avec la dimension de la variété ; une algèbre de Clifford l’emploie pour la dimension exacte 2^(p+q) de son support."
 
 msgctxt "https://blackcatinformatics.ca/math/metricSignature|rdfs:label"
 msgid "metric signature"
@@ -7763,7 +7763,7 @@ msgstr "dimension de l'espace"
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
-msgstr "La dimension vectorielle entière non négative d'un espace de coordonnées, espace tangent, support algébrique ou autre objet linéaire ; elle est distincte de la dimension physique math:hasDimension."
+msgstr "La dimension vectorielle entière non négative d’un espace de coordonnées, d’un espace tangent, du support d’une algèbre ou d’un autre objet mathématique explicitement linéaire — distincte de la dimension physique math:hasDimension (une dimension du SI). La cible d’une carte et un espace tangent l’emploient pour la cohérence avec la dimension de la variété ; une algèbre de Clifford l’emploie pour la dimension exacte 2^(p+q) de son support."
 
 msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This is a finite nonnegative integer linear dimension for an explicitly linear object. It is separate from physical math:hasDimension and from the local manifold dimension math:manifoldDimension; matching dimensions alone do not identify spaces or establish their algebraic laws."
