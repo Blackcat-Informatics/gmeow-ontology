@@ -230,3 +230,103 @@ The class resources identify retrieval families or spaces and are not typed as
 ontology classes. The supplied exact decimals are coefficients, not normalized
 probabilities. This account specifies neither a fitting algorithm nor a claim
 that any consumer implemented the representation or applied the weights.
+
+## Candidate union with original class lists
+
+QueryCandidateUnion specializes QueryLedgerMerge. Use its existing
+mergeAnswerInput and mergeAnswerOutput relations: selected inputs are original
+RankedQueryList resources, and the single output is a QueryUnionAnswer. The
+inherited contract requires at least one input and retains the exact candidate
+and original loss identity unions. Empty evaluated input lists and empty ledgers
+remain valid; an unavailable retrieval family is not replaced by an invented
+successful empty answer. There is no zero-input union contract.
+
+unionClassList retains exactly those original input list resources on the linked
+output. Their original rankedQueryEntry occurrences, rankedEntryCandidate values,
+queryInputRank values and source queryTieKey values remain attached to the same
+lists. A candidate may recur across lists with different ranks and separate
+entry identities; it occurs once in the union's candidate set. Neither RDF
+serialization order nor the candidate set supplies a global merit order.
+
+rankedListClass retains one supplied retrieval-family or space resource, without
+typing it as an ontology class or deriving identity from a display label.
+The property is optional on ordinary RankedQueryList records and has an
+at-most-one bound there. Only inputs selected by a QueryCandidateUnion require
+the binding. Different lists can name the same class, retaining their separate
+source contexts and identities; no one-list-per-class rule is imposed.
+
+The union stage supplies no aggregate fusion score, global rank or later
+ordering policy. Class-local native scores retained as source evidence remain
+distinct from an aggregate score; they are not deleted or rewritten to zero.
+The original loss nodes retain their causes, affected resources and any supplied
+acceptance attribution. Union membership changes no answer verdict or
+completeness axis, repairs no loss and selects no weighted arithmetic.
+
+This fictional graph supplies two distinct lists for the same class and an
+explicitly empty evaluated list for another class. The shared candidate keeps
+two original entry occurrences with different ranks and tie keys. The same loss
+resource appears in both contributing ledgers and the output ledger.
+
+```turtle
+@prefix ex: <https://example.org/union/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:union a gmeow:QueryCandidateUnion ;
+    gmeow:queryNodeEffectful false ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:mergeAnswerInput ex:listA, ex:listB, ex:emptyList ;
+    gmeow:mergeAnswerOutput ex:answer .
+
+ex:listA a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:queryA ;
+    gmeow:queryLossLedger ex:ledgerA ;
+    gmeow:rankedListClass ex:classOne ;
+    gmeow:queryCandidate ex:shared, ex:extra ;
+    gmeow:rankedQueryEntry ex:entryA1, ex:entryA2 .
+ex:listB a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:queryB ;
+    gmeow:queryLossLedger ex:ledgerB ;
+    gmeow:rankedListClass ex:classOne ;
+    gmeow:queryCandidate ex:shared ;
+    gmeow:rankedQueryEntry ex:entryB1 .
+ex:emptyList a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:queryC ;
+    gmeow:queryLossLedger ex:emptyLedger ;
+    gmeow:rankedListClass ex:classTwo ;
+    gmeow:queryEvaluationStatus logic:EvaluationCompleted ;
+    gmeow:queryCompletenessStatus logic:CompleteForFragment .
+
+ex:entryA1 a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:shared ;
+    gmeow:queryInputRank "1"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "a-shared" .
+ex:entryA2 a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:extra ;
+    gmeow:queryInputRank "3"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "a-extra" .
+ex:entryB1 a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:shared ;
+    gmeow:queryInputRank "4"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "b-shared" .
+
+ex:ledgerA a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:loss .
+ex:ledgerB a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:loss .
+ex:emptyLedger a gmeow:QueryLossLedger .
+ex:loss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:sourceInput ;
+    gmeow:lossCause gmeow:lossValueMissing .
+
+ex:answer a gmeow:QueryUnionAnswer ;
+    gmeow:queryAnswerFor ex:union ;
+    gmeow:queryLossLedger ex:outputLedger ;
+    gmeow:queryCandidate ex:shared, ex:extra ;
+    gmeow:unionClassList ex:listA, ex:listB, ex:emptyList .
+ex:outputLedger a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:loss .
+```
+
+The source ranks remain 1, 3 and 4; they are not renumbered into a union-wide
+ranking. The explicit empty list remains one of the selected inputs, with its
+supplied evaluation/completeness report. This description installs no executor,
+certifies no source outcome and claims no consumer adoption of the graph.

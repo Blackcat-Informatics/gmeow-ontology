@@ -2863,3 +2863,199 @@ msgstr "此定律在一个拟合内为每个类别保留唯一的量身份，不
 msgctxt "https://blackcatinformatics.ca/gmeow/FusionFitClassWeightUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A fit-identity obligation: gmeow:FusionFitClassWeightUniquenessLaw logic:formalizes gmeow:fittedClassWeight ."
 msgstr "拟合身份义务：gmeow:FusionFitClassWeightUniquenessLaw logic:formalizes gmeow:fittedClassWeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Candidate Union"
+msgstr "查询候选并集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description taking the exact candidate and original loss identity unions of selected class-ranked answers while retaining their original ranked-list resources. It supplies no aggregate fusion score or global merit order."
+msgstr "一种查询节点描述，对所选类别内有序答案的候选项及原始损失身份分别取精确并集，同时保留其原始有序列表资源。它不提供聚合融合分数或全局优劣顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a union stage that preserves class-local ranks and source evidence before later ordering or scoring."
+msgstr "用于在后续排序或评分之前保留类别内名次及来源证据的并集阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating per-class ranks as a global order, fabricating successful empty family answers or identifying this operation with reciprocal rank fusion."
+msgstr "避免将各类别名次视为全局顺序、为检索族虚构成功的空答案，或将此操作等同于倒数名次融合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use mergeAnswerInput for original RankedQueryList resources and mergeAnswerOutput for one QueryUnionAnswer; retain each selected list’s supplied class binding."
+msgstr "使用 mergeAnswerInput 关联原始 RankedQueryList 资源，使用 mergeAnswerOutput 关联一个 QueryUnionAnswer；保留每个所选列表提供的类别绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inherited merge contract requires at least one input and exactly one output. Explicitly empty evaluated lists and ledgers remain valid; no zero-input operation is defined."
+msgstr "继承的合并契约要求至少一个输入且恰好一个输出。显式为空的已求值列表和空账本仍有效；不定义零输入操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateUnion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied union description: ex:union a gmeow:QueryCandidateUnion ; gmeow:mergeAnswerInput ex:list ; gmeow:mergeAnswerOutput ex:answer ."
+msgstr "所提供的并集描述：ex:union a gmeow:QueryCandidateUnion ; gmeow:mergeAnswerInput ex:list ; gmeow:mergeAnswerOutput ex:answer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Union Answer"
+msgstr "查询并集答案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed unranked union answer retaining the selected original class-ranked lists, their exact candidate union and their original loss identities. Listed candidates have no union-wide merit order or aggregate score from this stage."
+msgstr "带有归属且不作排名的并集答案，保留所选原始类别内有序列表、其精确候选并集及其原始损失身份。所列候选项不从此阶段获得覆盖整个并集的优劣顺序或聚合分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a union result without replacing the evidence of its contributing class answers."
+msgstr "用于保留并集结果，同时不替换各贡献类别答案的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning a global input rank from serialization order or turning an absent aggregate score into zero."
+msgstr "避免从序列化顺序赋予全局输入名次，或将缺失的聚合分数变成零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep queryAnswerFor and queryLossLedger, retain queryCandidate membership and link the original class lists through unionClassList."
+msgstr "保留 queryAnswerFor 及 queryLossLedger，保留 queryCandidate 成员关系，并通过 unionClassList 关联原始类别列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Standalone records acquire no required class-list path. When linked as a QueryCandidateUnion output, the directional list laws require exactly its selected input lists."
+msgstr "独立记录不增加必需的类别列表路径。关联为 QueryCandidateUnion 输出时，列表的双向定律要求恰好保留该节点所选的输入列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryUnionAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied union answer: ex:answer a gmeow:QueryUnionAnswer ; gmeow:unionClassList ex:list ."
+msgstr "所提供的并集答案：ex:answer a gmeow:QueryUnionAnswer ; gmeow:unionClassList ex:list ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union class list"
+msgstr "并集类别列表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An original RankedQueryList resource retained by a QueryUnionAnswer. It preserves that list’s own entry occurrences, source ranks, tie keys and associated evidence without copying entries into a global ranking."
+msgstr "QueryUnionAnswer 保留的原始 RankedQueryList 资源。它保留该列表自身的条目出现、来源名次、并列键及关联证据，不将条目复制到全局排名中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the original class-local evidence alongside an unranked union answer."
+msgstr "用于在不作排名的并集答案旁公开原始类别内证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting replacement list or entry identities, merging lists by class label or discarding per-class evidence because the union has no aggregate score."
+msgstr "避免创建替代列表或条目身份、按类别标签合并列表，或因并集没有聚合分数而丢弃各类别证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each original list; for an answer linked to a union node, retain every selected input list and no unrelated list."
+msgstr "引用每个原始列表；对于关联到并集节点的答案，保留每个所选输入列表，且不保留无关列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional membership permits several lists, including lists naming the same source class. Retention changes no class-local scores into a union-wide score."
+msgstr "非函数性成员关系允许多个列表，包括命名同一来源类别的列表。保留操作不将任何类别内分数变成覆盖整个并集的分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unionClassList|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two retained original lists: ex:answer gmeow:unionClassList ex:listA, ex:listB ."
+msgstr "两个保留的原始列表：ex:answer gmeow:unionClassList ex:listA, ex:listB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ranked list retrieval class"
+msgstr "有序列表检索类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied retrieval-class resource identified by a RankedQueryList, such as a family or space identity. The relation does not type the resource as an RDF class or derive its identity from a display label."
+msgstr "RankedQueryList 所标识的来源检索类别资源，例如检索族或空间身份。该关系不将资源标为 RDF 类，也不从显示标签推导其身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source class of a ranked list selected by a candidate union."
+msgstr "用于保留候选并集所选有序列表的来源类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a class binding for an old list, inferring a preferred class or requiring different lists to have different classes."
+msgstr "避免为旧列表虚构类别绑定、推断偏好类别，或要求不同列表具有不同类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference at most one supplied class resource on a list. A QueryCandidateUnion requires this binding only on its selected inputs."
+msgstr "在一个列表上至多引用一个所提供类别资源。QueryCandidateUnion 仅要求其所选输入具有此绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional on ordinary RankedQueryList records, with a class-local at-most-one bound and no required-path closure. Multiple lists may share the same class resource."
+msgstr "在普通 RankedQueryList 记录上可选，至多单值约束限定在 RankedQueryList 类内，且没有必需路径闭包。多个列表可以共享同一类别资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedListClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied class identity: ex:list gmeow:rankedListClass ex:retrievalClass ."
+msgstr "所提供的类别身份：ex:list gmeow:rankedListClass ex:retrievalClass ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union input list retention law"
+msgstr "并集输入列表保留定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected input list of a QueryCandidateUnion is retained by its output answer through unionClassList using the same list resource."
+msgstr "QueryCandidateUnion 的每个所选输入列表，都由其输出答案通过 unionClassList 使用同一列表资源保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the input-to-output direction of exact class-list retention."
+msgstr "用于精确类别列表保留的输入到输出方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying retention with a copied list, copied ranked entries or only the input’s candidate labels."
+msgstr "避免用复制的列表、复制的有序条目或仅用输入候选项标签来满足保留要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each selected mergeAnswerInput and the union’s mergeAnswerOutput, require unionClassList to reference that original input resource."
+msgstr "针对每个所选 mergeAnswerInput 及并集的 mergeAnswerOutput，要求 unionClassList 引用该原始输入资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This preserves list-local evidence and works with the inherited candidate and loss identity unions; it does not synthesize a global rank."
+msgstr "此要求保留列表内证据，并与继承的候选并集及损失身份并集配合；它不合成全局名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionInputListRetentionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A retention obligation: gmeow:UnionInputListRetentionLaw logic:formalizes gmeow:unionClassList ."
+msgstr "保留义务：gmeow:UnionInputListRetentionLaw logic:formalizes gmeow:unionClassList ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union retained list source law"
+msgstr "并集保留列表来源定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every class list retained by the linked output of a QueryCandidateUnion is one of that node’s selected original input lists."
+msgstr "QueryCandidateUnion 所关联输出保留的每个类别列表，都是该节点所选原始输入列表之一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the output-to-input direction that excludes unrelated retained lists."
+msgstr "用于排除无关保留列表的输出到输入方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an extra list merely because it has the same class, ranks or candidate membership as a selected input."
+msgstr "避免仅因额外列表与所选输入具有相同类别、名次或候选成员关系就接受该列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the union to its output and each retained list, then require the same list resource as mergeAnswerInput."
+msgstr "将并集与其输出及每个保留列表连接，然后要求同一列表资源作为 mergeAnswerInput。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law constrains linked union outputs; it does not impose list membership or an owner on an otherwise standalone answer."
+msgstr "此定律约束关联的并集输出；它不对原本独立的答案施加列表成员关系或所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionRetainedListSourceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-list obligation: gmeow:UnionRetainedListSourceLaw logic:formalizes gmeow:unionClassList ."
+msgstr "来源列表义务：gmeow:UnionRetainedListSourceLaw logic:formalizes gmeow:unionClassList ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union selected list class law"
+msgstr "并集所选列表类别定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each RankedQueryList selected as a QueryCandidateUnion input retains a supplied retrieval-class resource through rankedListClass."
+msgstr "选作 QueryCandidateUnion 输入的每个 RankedQueryList 都通过 rankedListClass 保留所提供的检索类别资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require class identity for selected union inputs without changing the required fields of ordinary ranked lists."
+msgstr "用于要求所选并集输入具有类别身份，同时不改变普通有序列表的必需字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a class identity, selecting it from a human label or adding a global required-path closure."
+msgstr "避免制造类别身份、从人类可读标签中选择该身份，或添加全局必需路径闭包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every selected input, retain an explicit rankedListClass resource; the existing optional at-most-one bound keeps that list’s coordinate single-valued."
+msgstr "为每个所选输入保留显式 rankedListClass 资源；此可选绑定现有的至多单值约束使该列表坐标保持单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class witness is supplied source evidence, not an instruction to create one or a requirement of one list per class."
+msgstr "类别见证是来源提供的证据，不是创建见证的指令，也不是每个类别只能有一个列表的要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnionSelectedListClassLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected-class obligation: gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."
+msgstr "所选类别义务：gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."

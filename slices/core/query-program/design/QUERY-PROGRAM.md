@@ -125,3 +125,48 @@ No probability interpretation, held-out validity or consumer adoption follows
 from the record. The query-program manifest directly depends on math for its
 quantitative carriers; no language-grammar grounding or lexical numeric property
 is needed for machine decimal magnitudes.
+
+## Source-preserving candidate unions
+
+QueryCandidateUnion is a SubKind of QueryLedgerMerge, and QueryUnionAnswer is a
+SubKind of QueryAnswer. The node narrows mergeAnswerInput to RankedQueryList and
+mergeAnswerOutput to QueryUnionAnswer. The existing parent contract retains a
+nonempty input set and exactly one output; the answer retains its required
+queryAnswerFor and queryLossLedger. No duplicate input/output relation or required
+path is introduced.
+
+The inherited QueryMergeCandidateUnionLaw and QueryMergeLossUnionLaw remain the
+two-sided authority for candidate and original loss membership. They read the
+reused merge relations directly. RankedListMembershipConstraint and the existing
+entry-ownership laws preserve each list's candidate/entry correspondence,
+exclusive entry occurrence ownership, original positive ranks and local tie keys.
+No copied entry or union-wide rank is required to express the result.
+
+UnionInputListRetentionLaw requires the linked answer to retain every selected
+input list through unionClassList. UnionRetainedListSourceLaw requires every
+retained list of that linked answer to be an original selected input. Together
+they define exact list-identity retention without merging lists by class labels,
+equal candidates or equal ranks.
+
+rankedListClass has a class-local at-most-one qualified bound on RankedQueryList
+and no required-path ClosureEntry. UnionSelectedListClassLaw requires an explicit
+class resource only on selected union inputs. This preserves older unselected
+list descriptions and allows several lists to name the same retrieval class.
+The resource is a supplied retrieval-family or space identity, not an RDF Class.
+
+unionClassList has no standalone required-path closure. When an answer is linked
+as the output of a candidate union, the directional laws and inherited nonempty
+input contract supply its exact retained-list obligation. A standalone answer
+does not acquire an invented producing node, list set or class binding.
+
+All three additional obligations are realized Constraint/Formula trees with
+explicit focus variables and indexed arguments. The class-binding obligation
+uses a fresh existential resource witness. Their validation surface is generated
+from the canonical logic source; no second shape surface, marker metadata,
+primitive numerical property or new grounding vocabulary is authored.
+
+The unranked union stage supplies neither an aggregate fusion score nor a global
+merit order. Existing class-local score evidence remains source evidence; the
+absence of a union score does not mean zero. Original loss identities and their
+attribution remain intact. The description does not alter reciprocal-rank
+arithmetic, order policy, accepted-reason folding or verdict-choice semantics.

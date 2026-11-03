@@ -4668,3 +4668,151 @@ gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onPr
 gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( math:dimensionless ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionClassWeight ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryFusionClassWeight logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
+
+gmeow:QueryCandidateUnion
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Candidate Union"@x-gmeow-english ;
+    skos:definition "A query-node description taking the exact candidate and original loss identity unions of selected class-ranked answers while retaining their original ranked-list resources. It supplies no aggregate fusion score or global merit order."@x-gmeow-english ;
+    gmeow:useWhen "Use for a union stage that preserves class-local ranks and source evidence before later ordering or scoring."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating per-class ranks as a global order, fabricating successful empty family answers or identifying this operation with reciprocal rank fusion."@x-gmeow-english ;
+    gmeow:howToUse "Use mergeAnswerInput for original RankedQueryList resources and mergeAnswerOutput for one QueryUnionAnswer; retain each selected list’s supplied class binding."@x-gmeow-english ;
+    skos:scopeNote "The inherited merge contract requires at least one input and exactly one output. Explicitly empty evaluated lists and ledgers remain valid; no zero-input operation is defined."@x-gmeow-english ;
+    skos:example "A supplied union description: ex:union a gmeow:QueryCandidateUnion ; gmeow:mergeAnswerInput ex:list ; gmeow:mergeAnswerOutput ex:answer ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryLedgerMerge .
+
+gmeow:QueryUnionAnswer
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Union Answer"@x-gmeow-english ;
+    skos:definition "An attributed unranked union answer retaining the selected original class-ranked lists, their exact candidate union and their original loss identities. Listed candidates have no union-wide merit order or aggregate score from this stage."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a union result without replacing the evidence of its contributing class answers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning a global input rank from serialization order or turning an absent aggregate score into zero."@x-gmeow-english ;
+    gmeow:howToUse "Keep queryAnswerFor and queryLossLedger, retain queryCandidate membership and link the original class lists through unionClassList."@x-gmeow-english ;
+    skos:scopeNote "Standalone records acquire no required class-list path. When linked as a QueryCandidateUnion output, the directional list laws require exactly its selected input lists."@x-gmeow-english ;
+    skos:example "A supplied union answer: ex:answer a gmeow:QueryUnionAnswer ; gmeow:unionClassList ex:list ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryAnswer .
+
+gmeow:unionClassList
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "union class list"@x-gmeow-english ;
+    skos:definition "An original RankedQueryList resource retained by a QueryUnionAnswer. It preserves that list’s own entry occurrences, source ranks, tie keys and associated evidence without copying entries into a global ranking."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the original class-local evidence alongside an unranked union answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting replacement list or entry identities, merging lists by class label or discarding per-class evidence because the union has no aggregate score."@x-gmeow-english ;
+    gmeow:howToUse "Reference each original list; for an answer linked to a union node, retain every selected input list and no unrelated list."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional membership permits several lists, including lists naming the same source class. Retention changes no class-local scores into a union-wide score."@x-gmeow-english ;
+    skos:example "Two retained original lists: ex:answer gmeow:unionClassList ex:listA, ex:listB ."@x-gmeow-english ;
+    logic:domain gmeow:QueryUnionAnswer ; logic:range gmeow:RankedQueryList .
+
+gmeow:rankedListClass
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "ranked list retrieval class"@x-gmeow-english ;
+    skos:definition "The supplied retrieval-class resource identified by a RankedQueryList, such as a family or space identity. The relation does not type the resource as an RDF class or derive its identity from a display label."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source class of a ranked list selected by a candidate union."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a class binding for an old list, inferring a preferred class or requiring different lists to have different classes."@x-gmeow-english ;
+    gmeow:howToUse "Reference at most one supplied class resource on a list. A QueryCandidateUnion requires this binding only on its selected inputs."@x-gmeow-english ;
+    skos:scopeNote "Optional on ordinary RankedQueryList records, with a class-local at-most-one bound and no required-path closure. Multiple lists may share the same class resource."@x-gmeow-english ;
+    skos:example "A supplied class identity: ex:list gmeow:rankedListClass ex:retrievalClass ."@x-gmeow-english ;
+    logic:domain gmeow:RankedQueryList ; logic:range logic:Thing .
+
+gmeow:UnionInputListRetentionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "union input list retention law"@x-gmeow-english ;
+    skos:definition "Every selected input list of a QueryCandidateUnion is retained by its output answer through unionClassList using the same list resource."@x-gmeow-english ;
+    gmeow:useWhen "Use for the input-to-output direction of exact class-list retention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying retention with a copied list, copied ranked entries or only the input’s candidate labels."@x-gmeow-english ;
+    gmeow:howToUse "For each selected mergeAnswerInput and the union’s mergeAnswerOutput, require unionClassList to reference that original input resource."@x-gmeow-english ;
+    skos:scopeNote "This preserves list-local evidence and works with the inherited candidate and loss identity unions; it does not synthesize a global rank."@x-gmeow-english ;
+    skos:example "A retention obligation: gmeow:UnionInputListRetentionLaw logic:formalizes gmeow:unionClassList ."@x-gmeow-english ;
+    logic:formalizes gmeow:unionClassList ;
+    logic:message "Every selected input list of a QueryCandidateUnion is retained by its output answer through unionClassList using the same list resource." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "inputList" ], [ logic:termIndex 2 ; logic:termVariable "answer" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateUnion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:mergeAnswerInput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "inputList" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:mergeAnswerOutput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:unionClassList ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "inputList" ] ] ] ] .
+
+gmeow:UnionRetainedListSourceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "union retained list source law"@x-gmeow-english ;
+    skos:definition "Every class list retained by the linked output of a QueryCandidateUnion is one of that node’s selected original input lists."@x-gmeow-english ;
+    gmeow:useWhen "Use for the output-to-input direction that excludes unrelated retained lists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting an extra list merely because it has the same class, ranks or candidate membership as a selected input."@x-gmeow-english ;
+    gmeow:howToUse "Join the union to its output and each retained list, then require the same list resource as mergeAnswerInput."@x-gmeow-english ;
+    skos:scopeNote "The law constrains linked union outputs; it does not impose list membership or an owner on an otherwise standalone answer."@x-gmeow-english ;
+    skos:example "A source-list obligation: gmeow:UnionRetainedListSourceLaw logic:formalizes gmeow:unionClassList ."@x-gmeow-english ;
+    logic:formalizes gmeow:unionClassList ;
+    logic:message "Every class list retained by the linked output of a QueryCandidateUnion is one of that node’s selected original input lists." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "answer" ], [ logic:termIndex 2 ; logic:termVariable "retainedList" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateUnion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:mergeAnswerOutput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:unionClassList ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "retainedList" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:mergeAnswerInput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "retainedList" ] ] ] ] .
+
+gmeow:UnionSelectedListClassLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "union selected list class law"@x-gmeow-english ;
+    skos:definition "Each RankedQueryList selected as a QueryCandidateUnion input retains a supplied retrieval-class resource through rankedListClass."@x-gmeow-english ;
+    gmeow:useWhen "Use to require class identity for selected union inputs without changing the required fields of ordinary ranked lists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a class identity, selecting it from a human label or adding a global required-path closure."@x-gmeow-english ;
+    gmeow:howToUse "For every selected input, retain an explicit rankedListClass resource; the existing optional at-most-one bound keeps that list’s coordinate single-valued."@x-gmeow-english ;
+    skos:scopeNote "The class witness is supplied source evidence, not an instruction to create one or a requirement of one list per class."@x-gmeow-english ;
+    skos:example "A selected-class obligation: gmeow:UnionSelectedListClassLaw logic:formalizes gmeow:rankedListClass ."@x-gmeow-english ;
+    logic:formalizes gmeow:rankedListClass ;
+    logic:message "Each RankedQueryList selected as a QueryCandidateUnion input retains a supplied retrieval-class resource through rankedListClass." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "selectedList" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateUnion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:mergeAnswerInput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "selectedList" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "suppliedClass" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:rankedListClass ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "selectedList" ], [ logic:termIndex 1 ; logic:termVariable "suppliedClass" ] ] ] ] ] .
+
+gmeow:QueryCandidateUnion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:mergeAnswerInput ; logic:allValuesFrom gmeow:RankedQueryList ],
+    [ a logic:Restriction ; logic:onProperty gmeow:mergeAnswerOutput ; logic:allValuesFrom gmeow:QueryUnionAnswer ] .
+
+gmeow:RankedQueryList logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:rankedListClass ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
