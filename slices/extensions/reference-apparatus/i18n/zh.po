@@ -906,8 +906,8 @@ msgid "ContentBlock inherits ContentSegment, so the same property applies to div
 msgstr "ContentBlock 继承 ContentSegment，因此同一属性适用于划分及内容块。普通字符串、语言字符串及带方向的语言字符串保留其完整 RDF 字面值身份。该关系不具函数性；不同来源标签可以共存，不设首选标签。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
-msgstr "ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+msgid "Retain printed source labels: ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
+msgstr "保留来源印刷标签：ex:chapter gmeow:printedLabel \"Chapter 3\"@en . ex:figure gmeow:printedLabel \"Figure 8.3\"@en ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/printedLabel|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to preserve the actual printed label attached to an identified source division or block independently of its segmentType, segmentIndex, title or caption."
