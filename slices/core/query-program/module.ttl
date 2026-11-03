@@ -6314,3 +6314,832 @@ gmeow:QueryPredicateTierBinding logic:subClassOf [ a logic:Restriction ; logic:o
 gmeow:QueryOrderPolicy logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderCriterion ; logic:allValuesFrom gmeow:QueryOrderCriterion ] .
 
 gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentTierBinding ; logic:allValuesFrom gmeow:QueryPredicateTierBinding ] .
+
+gmeow:QueryAcceptedReasonFold
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Accepted Reason Fold"@x-gmeow-english ;
+    skos:definition "A query-operation description declaring complete original established and undecided row partitions, an accepted reason selection and the known-reason inventory of a named original evidence workspace. It retains established rows and admits an undecided row exactly when any original reason is selected."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe a selected accepted-reason fold over retained original row occurrences without re-querying or recomputing their payload."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating acceptance as repaired evidence, complete information, a candidate-union operation or proof that the description executed."@x-gmeow-english ;
+    gmeow:howToUse "Supply acceptedFoldInput, acceptedFoldOutput and foldEvidenceWorkspace, declare the complete foldEstablishedRow, foldUndecidedRow, foldAcceptedReason and foldKnownReason collections, and retain inherited node effect and stratum declarations."@x-gmeow-english ;
+    skos:scopeNote "Class membership selects complete supplied collections; no edges means declared empty in that profile. An importer must fail on unavailable or truncated source lists and must not import a terminal-error prefix as a successful complete fold."@x-gmeow-english ;
+    skos:example "A selected fold: ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded ; gmeow:foldEvidenceWorkspace ex:workspace ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryProgramNode .
+
+gmeow:QueryAcceptedReasonAnswer
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Accepted Reason Answer"@x-gmeow-english ;
+    skos:definition "An attributed selected fold answer retaining its original answer, exactly the declared established rows and undecided rows with accepted overlap, and separate answer-local acceptance annotations. Every such answer has an incoming typed selected fold operation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied accepted-reason result with original row identities and the exact original query and loss-ledger resource collections."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, aggregate completeness or a unique inverse operation owner from the answer type."@x-gmeow-english ;
+    gmeow:howToUse "Supply acceptedFoldOriginal and an incoming acceptedFoldOutput from a typed QueryAcceptedReasonFold; retain solutionRow membership, required query and ledger contexts, and rowAcceptance annotations for admitted undecided rows."@x-gmeow-english ;
+    skos:scopeNote "Several operation descriptions may share an answer only when all operation-relative membership and accepted-intersection laws agree. Original row content authentication and successful native iterator completion are importer requirements."@x-gmeow-english ;
+    skos:example "An attributed fold result: ex:folded a gmeow:QueryAcceptedReasonAnswer ; gmeow:acceptedFoldOriginal ex:original ; gmeow:solutionRow ex:row ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryAnswer .
+
+gmeow:QueryOrderedEvidenceRow
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Ordered Evidence Row"@x-gmeow-english ;
+    skos:definition "An original solution-row occurrence declaring its complete supplied original reason collection, one original sequence position in the unsigned 64-bit value domain and one original evidence resource. The same occurrence can be retained by original and folded answers."@x-gmeow-english ;
+    gmeow:useWhen "Use for an original retained row whose source order and evidence identity must survive accepted-reason folding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing occurrence identity with equal bindings, assigning a new dense output rank or claiming that an unchanged resource name authenticates unchanged payload."@x-gmeow-english ;
+    gmeow:howToUse "Supply entryOrdinal as xsd:nonNegativeInteger no greater than 18446744073709551615, orderedRowEvidence and the complete supplied solutionReason collection; retain solutionFrame when supplied without overwriting it with acceptance context."@x-gmeow-english ;
+    skos:scopeNote "There is no inverse answer-owner, required-reason or exclusive-frame rule. Empty declared reasons are permitted; unavailable reasons must fail import before asserting this complete profile. Authentic payload, evidence and reason preservation is not proved by graph identity alone."@x-gmeow-english ;
+    skos:example "An original occurrence: ex:row a gmeow:QueryOrderedEvidenceRow ; gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ; gmeow:orderedRowEvidence ex:evidence ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QuerySolutionRow .
+
+gmeow:QueryRowAcceptance
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Row Acceptance"@x-gmeow-english ;
+    skos:definition "An answer-local visible acceptance annotation naming one retained original undecided row and exactly its accepted original reasons. The annotation belongs to exactly one folded answer and does not replace the row or its original evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep selection-dependent accepted reasons separate from the original full row-reason collection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid annotating an established row, sharing the annotation between answers or treating acceptance as a new truth or completeness verdict."@x-gmeow-english ;
+    gmeow:howToUse "Link the annotation from its answer through rowAcceptance, supply one acceptanceOriginalRow and retain every acceptanceReason in the original-reason and selected-reason intersection."@x-gmeow-english ;
+    skos:scopeNote "Other answers may annotate the same original row with separate occurrences. This resource is not an invented native accepted-row digest or an immutable-content certificate."@x-gmeow-english ;
+    skos:example "A separate annotation: ex:accepted a gmeow:QueryRowAcceptance ; gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:reason ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:acceptedFoldInput
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "accepted fold original input"@x-gmeow-english ;
+    skos:definition "The one original attributed query answer whose complete row collection is partitioned by this selected fold."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the original answer resource rather than a reconstructed row list."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using mergeAnswerInput, silently omitting original rows or treating input membership as source authentication."@x-gmeow-english ;
+    gmeow:howToUse "Reference one QueryAnswer and declare its complete established and undecided partitions on the operation."@x-gmeow-english ;
+    skos:scopeNote "The input may have no rows. Its existing queryAnswerFor and queryLossLedger paths remain required nonfunctional collections."@x-gmeow-english ;
+    skos:example "An original input: ex:fold gmeow:acceptedFoldInput ex:original ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range gmeow:QueryAnswer .
+
+gmeow:acceptedFoldOutput
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "accepted fold output"@x-gmeow-english ;
+    skos:definition "The one supplied selected fold answer whose retained rows and acceptance annotations agree with this operation’s original partitions and accepted selection."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the declared fold operation to its supplied attributed result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the edge as proof of execution or imposing one inverse operation owner on the result."@x-gmeow-english ;
+    gmeow:howToUse "Reference one QueryAcceptedReasonAnswer with matching acceptedFoldOriginal and exact declared row and acceptance collections."@x-gmeow-english ;
+    skos:scopeNote "Every typed folded answer requires some incoming typed fold operation. Multiple descriptions can name one output when all their exactness laws agree."@x-gmeow-english ;
+    skos:example "A supplied result: ex:fold gmeow:acceptedFoldOutput ex:folded ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range gmeow:QueryAcceptedReasonAnswer .
+
+gmeow:acceptedFoldOriginal
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "accepted fold retained original answer"@x-gmeow-english ;
+    skos:definition "The one original QueryAnswer retained by a selected fold answer, agreeing by resource identity with every incoming selected fold operation’s input."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the original rows, evidence and context accessible beside the filtered result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the original with an equal-binding answer or assuming that its resource name proves immutable source content."@x-gmeow-english ;
+    gmeow:howToUse "Supply one original answer and retain its exact queryAnswerFor and queryLossLedger collections on the folded answer in both directions."@x-gmeow-english ;
+    skos:scopeNote "Original and folded answers may reference the same row occurrences. This link does not select an aggregate information or completeness status."@x-gmeow-english ;
+    skos:example "The retained original: ex:folded gmeow:acceptedFoldOriginal ex:original ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonAnswer ; logic:range gmeow:QueryAnswer .
+
+gmeow:foldEstablishedRow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold established row"@x-gmeow-english ;
+    skos:definition "An original row in this operation’s complete source-established partition. Every such row is retained unconditionally, without a visible acceptance annotation."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the original established partition separately from undecided admission."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring accepted overlap for established rows or deriving established membership from missing status fields."@x-gmeow-english ;
+    gmeow:howToUse "Link each original established occurrence and retain it in the output solutionRow collection without rowAcceptance for that row."@x-gmeow-english ;
+    skos:scopeNote "The established and undecided partitions are disjoint and together equal the original answer’s declared row collection. An established row may itself have reasons overlapping the accepted set."@x-gmeow-english ;
+    skos:example "An unconditional retained row: ex:fold gmeow:foldEstablishedRow ex:establishedRow ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range gmeow:QueryOrderedEvidenceRow .
+
+gmeow:foldUndecidedRow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold undecided row"@x-gmeow-english ;
+    skos:definition "An original row in this operation’s complete source-undecided partition, admitted exactly when at least one original solutionReason belongs to the selected accepted set."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare rows whose visible admission depends on explicit accepted-reason overlap."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring all reasons to be accepted, removing nonaccepted original reasons or treating an absent partition as a status default."@x-gmeow-english ;
+    gmeow:howToUse "Link each original undecided occurrence, retain it only on accepted overlap and supply a separate answer-local annotation containing the exact accepted intersection."@x-gmeow-english ;
+    skos:scopeNote "A row with no declared reasons has no overlap and cannot be admitted as undecided. Complete source reasons must be available to the importer before this profile is asserted."@x-gmeow-english ;
+    skos:example "A conditionally admitted row: ex:fold gmeow:foldUndecidedRow ex:undecidedRow ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range gmeow:QueryOrderedEvidenceRow .
+
+gmeow:foldAcceptedReason
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold accepted reason selection"@x-gmeow-english ;
+    skos:definition "A reason resource in this operation’s complete explicitly selected acceptance set. Every selected reason belongs to the declared known inventory of the named original evidence workspace."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied accepted reason identities without rewriting original reasons or evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating acceptance with an Agent’s loss acknowledgement, positive proof, repaired completeness or the union of reasons on emitted rows."@x-gmeow-english ;
+    gmeow:howToUse "Link every selected original reason identity and retain the complete foldKnownReason inventory and foldEvidenceWorkspace context."@x-gmeow-english ;
+    skos:scopeNote "The selected set may be explicitly empty or contain a known reason unused by all selected rows. RDF set membership does not certify native sorted unique ID bytes or authenticate source availability."@x-gmeow-english ;
+    skos:example "An explicit accepted member: ex:fold gmeow:foldAcceptedReason ex:reasonA ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range logic:Thing .
+
+gmeow:foldEvidenceWorkspace
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold original evidence workspace"@x-gmeow-english ;
+    skos:definition "The one supplied original source evidence-owner context whose complete reason inventory is declared by this operation’s foldKnownReason collection."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope known accepted identities to the actual original evidence context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a resource reference as live memory access, owner liveness, source authentication or an instruction to create missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain one supplied original workspace resource and its complete known-reason inventory without inventing a native ownership or hash recipe."@x-gmeow-english ;
+    skos:scopeNote "The importer must validate actual selected source owner admission and fail on aborted ownership or unavailable evidence. Graph references alone do not establish those native conditions."@x-gmeow-english ;
+    skos:example "An original evidence context: ex:fold gmeow:foldEvidenceWorkspace ex:workspace ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range logic:Thing .
+
+gmeow:foldKnownReason
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold workspace known reason"@x-gmeow-english ;
+    skos:definition "A reason resource in the declared complete inventory of the operation’s named original evidence workspace. The inventory can include reasons unused by the selected original rows."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the workspace-wide acceptance-admission scope instead of substituting the selected-row reason union."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rejecting an accepted reason merely because no selected row uses it or claiming that an invented known edge authenticates native evidence."@x-gmeow-english ;
+    gmeow:howToUse "Declare every known reason supplied by the original workspace and require every foldAcceptedReason to belong to that same operation’s inventory."@x-gmeow-english ;
+    skos:scopeNote "An explicitly empty inventory is permitted only as a complete source declaration. Unavailable or truncated inventories must fail import before asserting this profile."@x-gmeow-english ;
+    skos:example "A known unused reason: ex:fold gmeow:foldKnownReason ex:reasonUnused ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonFold ; logic:range logic:Thing .
+
+gmeow:orderedRowEvidence
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "ordered row original evidence"@x-gmeow-english ;
+    skos:definition "The one supplied original evidence resource retained by an ordered row occurrence. Its identity stays separate from the answer-local acceptance annotation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve access to the row’s original evidence context while accepted reasons remain visibly separate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rewriting original evidence as complete, substituting a generic reasoning result or claiming that resource identity validates immutable content."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual supplied original evidence resource and preserve its authentic payload, information, completeness, reasons and frame through the importer."@x-gmeow-english ;
+    skos:scopeNote "The required link and its resource identity are graph obligations. Authentic evidence contents, native owner liveness and preservation across edits require source admission; they are not proved by this association."@x-gmeow-english ;
+    skos:example "Original evidence retained: ex:row gmeow:orderedRowEvidence ex:originalEvidence ."@x-gmeow-english ;
+    logic:domain gmeow:QueryOrderedEvidenceRow ; logic:range logic:Thing .
+
+gmeow:rowAcceptance
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fold row acceptance annotation"@x-gmeow-english ;
+    skos:definition "An answer-local annotation for one retained original undecided row, carrying exactly the selected original reasons that overlap the operation’s accepted set."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose acceptance without replacing the original row or removing its other reasons."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid annotating established rows, sharing annotation occurrences across answers or treating RDF serialization order as source row order."@x-gmeow-english ;
+    gmeow:howToUse "Link one QueryRowAcceptance per admitted undecided row and preserve its acceptanceOriginalRow and nonempty acceptanceReason intersection."@x-gmeow-english ;
+    skos:scopeNote "An explicitly empty accepted set yields no annotations. Each annotation has one answer owner; the answer itself may have several consistent incoming selected fold descriptions."@x-gmeow-english ;
+    skos:example "Visible acceptance retained separately: ex:folded gmeow:rowAcceptance ex:annotation ."@x-gmeow-english ;
+    logic:domain gmeow:QueryAcceptedReasonAnswer ; logic:range gmeow:QueryRowAcceptance .
+
+gmeow:acceptanceOriginalRow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "acceptance original row"@x-gmeow-english ;
+    skos:definition "The one original retained undecided row occurrence described by an answer-local acceptance annotation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the distinction between original row identity and visible acceptance context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying a replacement row by equal bindings or using the annotation as a new original evidence record."@x-gmeow-english ;
+    gmeow:howToUse "Reference the same original occurrence present in the owning answer’s solutionRow collection and the selected operation’s undecided partition."@x-gmeow-english ;
+    skos:scopeNote "Within one answer there is one annotation per original row. Other answers may reuse the row through distinct annotations without imposing an inverse row-owner rule."@x-gmeow-english ;
+    skos:example "The original occurrence: ex:annotation gmeow:acceptanceOriginalRow ex:row ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRowAcceptance ; logic:range gmeow:QueryOrderedEvidenceRow .
+
+gmeow:acceptanceReason
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "visible accepted original reason"@x-gmeow-english ;
+    skos:definition "An original row reason that also belongs to the selected operation’s accepted set, retained in the exact nonempty intersection exposed by an answer-local acceptance annotation."@x-gmeow-english ;
+    gmeow:useWhen "Use to show precisely which original reasons were accepted while retaining every original reason on the row."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding a reason absent from either source collection, deleting unaccepted original reasons or interpreting acceptance as repaired truth or completeness."@x-gmeow-english ;
+    gmeow:howToUse "Retain all and only reason resources linked both by solutionReason from the original row and by foldAcceptedReason from the operation."@x-gmeow-english ;
+    skos:scopeNote "At least one accepted reason is required per annotation. Graph exactness is relative to declared complete collections; authentic source completeness and unchanged payload remain importer requirements."@x-gmeow-english ;
+    skos:example "One visible accepted reason: ex:annotation gmeow:acceptanceReason ex:reasonA ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRowAcceptance ; logic:range logic:Thing .
+
+gmeow:QueryAcceptedFoldInputAgreementLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold input agreement law"@x-gmeow-english ;
+    skos:definition "Every selected fold operation’s output retains exactly its original input answer resource through acceptedFoldOriginal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a result context naming a different original answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating originals by equal row bindings or introducing a unique inverse operation owner on an output."@x-gmeow-english ;
+    gmeow:howToUse "Bind the operation input and output and require the output’s acceptedFoldOriginal edge to that same input resource."@x-gmeow-english ;
+    skos:scopeNote "The required single original coordinate handles conflicting originals. Other laws require a typed operation context for every folded answer."@x-gmeow-english ;
+    skos:example "Matching original context: ex:fold gmeow:acceptedFoldInput ex:original ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:acceptedFoldOriginal ex:original ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedFoldOriginal ;
+    logic:message "Every selected fold operation’s output retains exactly its original input answer resource through acceptedFoldOriginal." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "output" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldInput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:relation gmeow:acceptedFoldOriginal;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ] ] ] .
+
+gmeow:QueryAcceptedFoldPartitionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold partition law"@x-gmeow-english ;
+    skos:definition "The original answer’s declared solution rows are exactly the disjoint established and undecided partitions of a selected fold, and every original member has the ordered-evidence row type."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject missing, extra or doubly partitioned original row occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving source partitions from absent statuses, dropping an original occurrence or identifying equal-binding rows."@x-gmeow-english ;
+    gmeow:howToUse "Require input membership to imply ordered-row type and one partition, each partition to imply input membership, and forbid membership in both partitions."@x-gmeow-english ;
+    skos:scopeNote "Complete collections may be explicitly empty. The graph checks declared partition membership rather than authentic source availability or payload contents."@x-gmeow-english ;
+    skos:example "Distinct source partitions: ex:fold gmeow:foldEstablishedRow ex:established ; gmeow:foldUndecidedRow ex:undecided ."@x-gmeow-english ;
+    logic:formalizes gmeow:foldEstablishedRow ;
+    logic:message "The original answer’s declared solution rows are exactly the disjoint established and undecided partitions of a selected fold, and every original member has the ordered-evidence row type." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "row" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldInput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:solutionRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderedEvidenceRow ] ],
+                        [ a logic:Formula ;
+                            logic:or [ a logic:Formula ;
+                                logic:relation gmeow:foldEstablishedRow;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:foldUndecidedRow;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:foldEstablishedRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:solutionRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:foldUndecidedRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:solutionRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ],
+                [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:foldEstablishedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:foldUndecidedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldPositionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold original position law"@x-gmeow-english ;
+    skos:definition "Every ordered evidence row position lies in the unsigned 64-bit value domain. Within a selected original answer, equal original sequence positions require the same row occurrence resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject an out-of-range original position or distinct selected original rows competing for one source position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid changing the canonical entryOrdinal datatype, renumbering filtered output, requiring contiguous positions or claiming RDF membership certifies native iterator emission order."@x-gmeow-english ;
+    gmeow:howToUse "On every typed ordered row, compare a bound xsd:nonNegativeInteger position with the exact maximum 18446744073709551615 through logic:termLessEqual; within a selected input use logic:termEqual on bound positions and require equal row resources."@x-gmeow-english ;
+    skos:scopeNote "The existing nonnegative integer carrier and explicit upper bound retain the original u64 numeric value domain, without a source literal or byte-encoding identity claim. Output order uses retained original positions, possibly with gaps; native ordering and successful completion remain importer requirements."@x-gmeow-english ;
+    skos:example "Retained source positions: ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:later gmeow:entryOrdinal \"4\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryOrderedEvidenceRow ;
+    logic:message "Every ordered evidence row position lies in the unsigned 64-bit value domain. Within a selected original answer, equal original sequence positions require the same row occurrence resource." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "position" ], [ logic:termIndex 2 ; logic:termVariable "operation" ], [ logic:termIndex 3 ; logic:termVariable "input" ], [ logic:termIndex 4 ; logic:termVariable "other" ], [ logic:termIndex 5 ; logic:termVariable "otherPosition" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderedEvidenceRow ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "position" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation logic:termLessEqual;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "position" ], [ logic:termIndex 1 ; logic:termLiteral "18446744073709551615" ; logic:termLiteralDatatype xsd:nonNegativeInteger ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "operation" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:acceptedFoldInput;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "operation" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:entryOrdinal;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "position" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:entryOrdinal;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "otherPosition" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "position" ], [ logic:termIndex 1 ; logic:termVariable "otherPosition" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation logic:termEqual;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldKnownReasonLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold known reason law"@x-gmeow-english ;
+    skos:definition "Every selected accepted reason belongs to the same operation’s declared complete known-reason inventory for its named original workspace."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject accepted identities absent from the declared original evidence scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing workspace-wide knownness with a requirement that an emitted row use every accepted reason."@x-gmeow-english ;
+    gmeow:howToUse "Bind a foldAcceptedReason member and require foldKnownReason for that same reason on that operation."@x-gmeow-english ;
+    skos:scopeNote "Known accepted reasons unused by selected rows remain legal. This graph implication does not authenticate a source inventory or establish native owner liveness."@x-gmeow-english ;
+    skos:example "A known accepted identity: ex:fold gmeow:foldKnownReason ex:unused ; gmeow:foldAcceptedReason ex:unused ."@x-gmeow-english ;
+    logic:formalizes gmeow:foldAcceptedReason ;
+    logic:message "Every selected accepted reason belongs to the same operation’s declared complete known-reason inventory for its named original workspace." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:foldAcceptedReason;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:relation gmeow:foldKnownReason;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ] ] .
+
+gmeow:QueryAcceptedFoldEstablishedLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold established retention law"@x-gmeow-english ;
+    skos:definition "Every original established row is retained by the selected fold output unconditionally on accepted-reason overlap."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain established occurrences even under an explicitly empty accepted selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filtering established rows by reasons or treating their overlap as a visible acceptance override."@x-gmeow-english ;
+    gmeow:howToUse "Bind a selected operation, its output and an established partition row, then require output solutionRow membership for that exact row resource."@x-gmeow-english ;
+    skos:scopeNote "An established row receives no acceptance annotation even when its original reasons overlap the accepted set; partition and acceptance laws enforce that distinction."@x-gmeow-english ;
+    skos:example "Unconditional output membership: ex:fold gmeow:foldEstablishedRow ex:row ; gmeow:acceptedFoldOutput ex:folded . ex:folded gmeow:solutionRow ex:row ."@x-gmeow-english ;
+    logic:formalizes gmeow:foldEstablishedRow ;
+    logic:message "Every original established row is retained by the selected fold output unconditionally on accepted-reason overlap." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ], [ logic:termIndex 2 ; logic:termVariable "row" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:foldEstablishedRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:relation gmeow:solutionRow;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ] ] .
+
+gmeow:QueryAcceptedFoldUndecidedLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold undecided admission law"@x-gmeow-english ;
+    skos:definition "An original undecided row belongs to the selected output if and only if at least one of its declared original reasons belongs to the accepted selection."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve ANY-overlap admission rather than an all-reasons test."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a no-overlap row, requiring every reason to be accepted or deleting original reasons after admission."@x-gmeow-english ;
+    gmeow:howToUse "Require a joined original-reason and accepted-set witness for every emitted undecided row, and require emission for every undecided row with such a witness."@x-gmeow-english ;
+    skos:scopeNote "A fresh existential witness realizes the reverse direction without a positive nested universal. Exactness is relative to the complete declared original reason collection."@x-gmeow-english ;
+    skos:example "One accepted reason suffices: ex:row gmeow:solutionReason ex:a, ex:b . ex:fold gmeow:foldUndecidedRow ex:row ; gmeow:foldAcceptedReason ex:a ."@x-gmeow-english ;
+    logic:formalizes gmeow:foldUndecidedRow ;
+    logic:message "An original undecided row belongs to the selected output if and only if at least one of its declared original reasons belongs to the accepted selection." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ], [ logic:termIndex 2 ; logic:termVariable "row" ], [ logic:termIndex 3 ; logic:termVariable "reason" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:foldUndecidedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:foldAcceptedReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:solutionRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:foldUndecidedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "undecidedOverlapReason" ];
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation gmeow:solutionReason;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termVariable "undecidedOverlapReason" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:foldAcceptedReason;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "undecidedOverlapReason" ] ] ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldOutputLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold exact output law"@x-gmeow-english ;
+    skos:definition "Every declared output solution row is an original established row or an original undecided row with an accepted original-reason overlap."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject fabricated or replacement output row identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this membership law validates arbitrary candidate edges, binding schemas, numeric scores or authenticated payload contents."@x-gmeow-english ;
+    gmeow:howToUse "Bind each output row and require established membership or undecided membership with a fresh reason witness joined through original and accepted reason edges."@x-gmeow-english ;
+    skos:scopeNote "The law constrains solutionRow identities. Reusing an identity retains access to declared graph content but does not prove that its authentic original content was unchanged."@x-gmeow-english ;
+    skos:example "An original row retained: ex:original gmeow:solutionRow ex:row . ex:folded gmeow:solutionRow ex:row ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedFoldOutput ;
+    logic:message "Every declared output solution row is an original established row or an original undecided row with an accepted original-reason overlap." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ], [ logic:termIndex 2 ; logic:termVariable "row" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:solutionRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:or [ a logic:Formula ;
+                    logic:relation gmeow:foldEstablishedRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation gmeow:foldUndecidedRow;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "outputOverlapReason" ];
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation gmeow:solutionReason;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termVariable "outputOverlapReason" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:foldAcceptedReason;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "outputOverlapReason" ] ] ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldAcceptanceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold acceptance accounting law"@x-gmeow-english ;
+    skos:definition "Every emitted original undecided row has an answer-local typed acceptance annotation, and every annotation linked from the output names an emitted original undecided row."@x-gmeow-english ;
+    gmeow:useWhen "Use to make every visible undecided admission explicit without annotating established rows."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid missing annotations, extra annotations on excluded rows or an override annotation on an established row."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh typed-and-linked annotation witness for each retained undecided row and require each linked annotation’s original row to be retained and undecided."@x-gmeow-english ;
+    skos:scopeNote "Required annotation coordinates and typed collection ranges prevent missing-row escape. Annotation uniqueness and exact accepted reasons are enforced separately."@x-gmeow-english ;
+    skos:example "Visible admitted occurrence: ex:folded gmeow:solutionRow ex:row ; gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."@x-gmeow-english ;
+    logic:formalizes gmeow:rowAcceptance ;
+    logic:message "Every emitted original undecided row has an answer-local typed acceptance annotation, and every annotation linked from the output names an emitted original undecided row." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ], [ logic:termIndex 2 ; logic:termVariable "row" ], [ logic:termIndex 3 ; logic:termVariable "annotation" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:foldUndecidedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredRowAcceptance" ];
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation rdf:type;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredRowAcceptance" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRowAcceptance ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:rowAcceptance;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "requiredRowAcceptance" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:acceptanceOriginalRow;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredRowAcceptance" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:rowAcceptance;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "annotation" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:acceptanceOriginalRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "annotation" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:foldUndecidedRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:solutionRow;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ] ] ] ] ] .
+
+gmeow:QueryRowAcceptanceOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "row acceptance answer owner law"@x-gmeow-english ;
+    skos:definition "Every acceptance annotation belongs to exactly one typed folded answer. Separate answers use separate annotations even when they retain the same original row."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep selection-dependent acceptance context local to its answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing inverse ownership on original rows or a unique inverse operation owner on folded answers."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh existing typed answer owner, then compare any two rowAcceptance links to the annotation through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "The Formula uses one outer universal, a fresh joined owner existential and a guarded owner-pair implication, without a positive nested universal."@x-gmeow-english ;
+    skos:example "One annotation owner: ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation a gmeow:QueryRowAcceptance ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRowAcceptance ;
+    logic:message "Every acceptance annotation belongs to exactly one typed folded answer. Separate answers use separate annotations even when they retain the same original row." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftAnswer" ], [ logic:termIndex 2 ; logic:termVariable "rightAnswer" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRowAcceptance ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "freshAcceptanceOwner" ];
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "freshAcceptanceOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonAnswer ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:rowAcceptance;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "freshAcceptanceOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:rowAcceptance;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "leftAnswer" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:rowAcceptance;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "rightAnswer" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation logic:termEqual;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "leftAnswer" ], [ logic:termIndex 1 ; logic:termVariable "rightAnswer" ] ] ] ] ] ] .
+
+gmeow:QueryRowAcceptanceUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "row acceptance original row uniqueness law"@x-gmeow-english ;
+    skos:definition "Within one folded answer, two acceptance annotations naming the same original row must be the same annotation resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate visible acceptance occurrences for one row in one answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging annotations across answers or identifying original rows solely by equal bindings."@x-gmeow-english ;
+    gmeow:howToUse "Bind two annotations linked from one answer and to the same acceptanceOriginalRow, then require logic:termEqual on annotation identities."@x-gmeow-english ;
+    skos:scopeNote "Other answers may reuse the original row with distinct annotations and different compatible accepted selections."@x-gmeow-english ;
+    skos:example "One annotation per original row: ex:folded gmeow:rowAcceptance ex:annotation . ex:annotation gmeow:acceptanceOriginalRow ex:row ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptanceOriginalRow ;
+    logic:message "Within one folded answer, two acceptance annotations naming the same original row must be the same annotation resource." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftAnnotation" ], [ logic:termIndex 2 ; logic:termVariable "rightAnnotation" ], [ logic:termIndex 3 ; logic:termVariable "row" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonAnswer ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:rowAcceptance;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftAnnotation" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:rowAcceptance;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rightAnnotation" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptanceOriginalRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "leftAnnotation" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptanceOriginalRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "rightAnnotation" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:relation logic:termEqual;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "leftAnnotation" ], [ logic:termIndex 1 ; logic:termVariable "rightAnnotation" ] ] ] ] .
+
+gmeow:QueryRowAcceptanceReasonsLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "row acceptance exact reasons law"@x-gmeow-english ;
+    skos:definition "An answer-local annotation’s accepted reasons are exactly the intersection of its original row’s declared full reasons and each incoming selected operation’s accepted set."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain all and only visibly accepted original reason identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping an intersecting reason, adding a reason absent from either collection or rewriting the row’s original reasons as only the accepted subset."@x-gmeow-english ;
+    gmeow:howToUse "Require every acceptanceReason in both original and selected collections, and every reason in both collections in acceptanceReason on that same annotation."@x-gmeow-english ;
+    skos:scopeNote "The two guarded directions compare complete declared sets. They do not authenticate source completeness or detect source deletions followed by consistent graph edits."@x-gmeow-english ;
+    skos:example "Separate complete and accepted reasons: ex:row gmeow:solutionReason ex:a, ex:b . ex:annotation gmeow:acceptanceOriginalRow ex:row ; gmeow:acceptanceReason ex:a ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptanceReason ;
+    logic:message "An answer-local annotation’s accepted reasons are exactly the intersection of its original row’s declared full reasons and each incoming selected operation’s accepted set." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ], [ logic:termIndex 2 ; logic:termVariable "annotation" ], [ logic:termIndex 3 ; logic:termVariable "row" ], [ logic:termIndex 4 ; logic:termVariable "reason" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:rowAcceptance;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "annotation" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptanceOriginalRow;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "annotation" ], [ logic:termIndex 1 ; logic:termVariable "row" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:acceptanceReason;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "annotation" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:solutionReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:foldAcceptedReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:solutionReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:foldAcceptedReason;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:acceptanceReason;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "annotation" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold exact original context law"@x-gmeow-english ;
+    skos:definition "The selected output retains exactly the original answer’s queryAnswerFor targets and queryLossLedger resources in both collection directions."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve declared query and original loss-ledger identities even when some original rows are not emitted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting one context witness, imposing a single-query or single-ledger maximum, inferring aggregate status or claiming ledger-content immutability is validated."@x-gmeow-english ;
+    gmeow:howToUse "Require original-to-output and output-to-original membership for queryAnswerFor, and both directions independently for queryLossLedger."@x-gmeow-english ;
+    skos:scopeNote "These four implications preserve declared resource collections. Authentic original ledger contents and any additional host-supplied aggregate statuses retain their separate source requirements."@x-gmeow-english ;
+    skos:example "Multiple contexts retained: ex:original gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 . ex:folded gmeow:queryAnswerFor ex:q1, ex:q2 ; gmeow:queryLossLedger ex:l1, ex:l2 ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedFoldOriginal ;
+    logic:message "The selected output retains exactly the original answer’s queryAnswerFor targets and queryLossLedger resources in both collection directions." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "output" ], [ logic:termIndex 3 ; logic:termVariable "target" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldInput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:acceptedFoldOutput;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "output" ] ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:queryAnswerFor;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:queryAnswerFor;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:queryAnswerFor;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:queryAnswerFor;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:queryLossLedger;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:queryLossLedger;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ],
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ;
+                        logic:relation gmeow:queryLossLedger;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "output" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ];
+                    logic:consequent [ a logic:Formula ;
+                        logic:relation gmeow:queryLossLedger;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedFoldAnswerContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "accepted fold answer operation context law"@x-gmeow-english ;
+    skos:definition "Every typed folded answer has an existing typed selected fold operation linked to it through acceptedFoldOutput, so its declared rows and annotations are subject to operation-relative laws."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a standalone folded answer that evades accepted-set and partition obligations by lacking an operation context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring a unique inverse operation owner or fabricating an executed occurrence from an operation description."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh joined existential QueryAcceptedReasonFold witness whose acceptedFoldOutput is this answer."@x-gmeow-english ;
+    skos:scopeNote "Several descriptions may share the answer only when all their membership and exact accepted-intersection obligations agree. Accepted sets differing only in unused known reasons can remain consistent."@x-gmeow-english ;
+    skos:example "An explicit operation witness: ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldOutput ex:folded . ex:folded a gmeow:QueryAcceptedReasonAnswer ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAcceptedReasonAnswer ;
+    logic:message "Every typed folded answer has an existing typed selected fold operation linked to it through acceptedFoldOutput, so its declared rows and annotations are subject to operation-relative laws." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ];
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonAnswer ] ];
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredFoldOperation" ];
+                logic:exists [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredFoldOperation" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAcceptedReasonFold ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:acceptedFoldOutput;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredFoldOperation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldInput ; logic:allValuesFrom gmeow:QueryAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAcceptedReasonFold ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptedFoldInput" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldInput ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAnswer ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldOutput ; logic:allValuesFrom gmeow:QueryAcceptedReasonAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAcceptedReasonFold ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptedFoldOutput" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldOutput ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAcceptedReasonAnswer ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldEvidenceWorkspace ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAcceptedReasonFold ; logic:closureKey "https://blackcatinformatics.ca/gmeow/foldEvidenceWorkspace" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldEvidenceWorkspace ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldOriginal ; logic:allValuesFrom gmeow:QueryAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAcceptedReasonAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptedFoldOriginal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptedFoldOriginal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAnswer ] .
+
+gmeow:QueryOrderedEvidenceRow logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryOrderedEvidenceRow ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryOrderedEvidenceRow logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:QueryOrderedEvidenceRow logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderedRowEvidence ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryOrderedEvidenceRow ; logic:closureKey "https://blackcatinformatics.ca/gmeow/orderedRowEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryOrderedEvidenceRow logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderedRowEvidence ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryRowAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptanceOriginalRow ; logic:allValuesFrom gmeow:QueryOrderedEvidenceRow ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRowAcceptance ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptanceOriginalRow" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRowAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptanceOriginalRow ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryOrderedEvidenceRow ] .
+
+gmeow:QueryRowAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptanceReason ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRowAcceptance ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptanceReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldEstablishedRow ; logic:allValuesFrom gmeow:QueryOrderedEvidenceRow ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldUndecidedRow ; logic:allValuesFrom gmeow:QueryOrderedEvidenceRow ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldAcceptedReason ; logic:allValuesFrom logic:Thing ] .
+
+gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:foldKnownReason ; logic:allValuesFrom logic:Thing ] .
+
+gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rowAcceptance ; logic:allValuesFrom gmeow:QueryRowAcceptance ] .
+
+gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:solutionRow ; logic:allValuesFrom gmeow:QueryOrderedEvidenceRow ] .
