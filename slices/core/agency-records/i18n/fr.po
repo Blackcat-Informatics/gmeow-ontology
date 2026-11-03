@@ -5826,3 +5826,87 @@ msgstr "Éviter de déduire l’association de mots identiques, d’un auteur co
 msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the NotebookEntry to the supplied OpenLoop while preserving the entry’s existing content, kind, state claims and attribution."
 msgstr "Relier la NotebookEntry à l’OpenLoop fourni tout en conservant le contenu, le type, les affirmations d’état et l’attribution existants de l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Guidance Offer Note"
+msgstr "Note de conseil proposé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A note retaining a source’s offered guidance as content, separately from a command or executed action."
+msgstr "Une note qui conserve comme contenu un conseil proposé par une source, séparément d’une commande ou d’une action exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This classification establishes no command, permission, Intention, adoption or execution. The note author, recorder, declaring frame and slot bearer do not by themselves identify a proposer or pursuer."
+msgstr "Cette classification n’établit ni commande, ni permission, ni Intention, ni adoption, ni exécution. L’auteur de la note, l’agent qui consigne, le cadre déclarant et le porteur de la case n’identifient pas à eux seuls un proposant ou un agent poursuivant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:offer a gmeow:Guidance ; gmeow:noteContent \"Consider reviewing the archive discrepancy.\"@en ."
+msgstr "ex:offer a gmeow:Guidance ; gmeow:noteContent \"Envisager de réexaminer l’écart de l’archive.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source keeps an offer of guidance as a note rather than an execution or authority verdict."
+msgstr "Utiliser lorsqu’une source conserve une offre de conseil comme note plutôt que comme verdict d’exécution ou d’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the offer as a Norm, an executable plan, a computed preference winner or proof that anyone acted on it."
+msgstr "Éviter de traiter l’offre comme une Norm, un plan exécutable, un choix privilégié calculé ou une preuve que quelqu’un l’a suivie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain wording with noteContent and supplied reasons with statedRationale; keep source derivation, recording attribution and declaring frame separate."
+msgstr "Conserver le libellé avec noteContent et les raisons fournies avec statedRationale ; distinguer la dérivation source, l’attribution de l’enregistrement et le cadre déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance loop association"
+msgstr "association du conseil à une boucle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied association of an offered guidance note with a durable pursuit record."
+msgstr "Une association fournie par une source entre une note de conseil proposé et un dossier durable de poursuite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and supplied-only. The association copies no loop state or content and identifies no Intention, proposer or pursuer by implication."
+msgstr "Non fonctionnelle et limitée aux valeurs fournies. L’association ne copie ni état ni contenu de boucle et n’identifie implicitement ni Intention, ni proposant, ni agent poursuivant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:offer gmeow:guidanceLoop ex:pursuit ."
+msgstr "ex:offer gmeow:guidanceLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly relates the offered guidance to an existing loop record."
+msgstr "Utiliser lorsque la source relie explicitement le conseil proposé à un dossier de boucle existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the association from shared wording, note authorship, a slot selection or a recording Agent."
+msgstr "Éviter de déduire l’association d’un libellé commun, de l’auteur de la note, d’une sélection de case ou d’un Agent qui consigne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Guidance note to each supplied OpenLoop and preserve the exact association’s source and context."
+msgstr "Relier la note Guidance à chaque OpenLoop fourni et conserver la source et le contexte de l’association exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "current-guidance attention-slot role"
+msgstr "rôle de case d’attention pour le conseil courant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named role descriptor for an attention slot whose positions point to actual Guidance offer notes."
+msgstr "Un descripteur de rôle nommé pour une case d’attention dont les positions pointent vers des notes réelles de conseil proposé de type Guidance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The descriptor is not a mutable property, slot, position, pointer or offer note. It creates no assignment, current winner, resolver, authentication or permission."
+msgstr "Le descripteur n’est ni une propriété mutable, ni une case, ni une position, ni un pointeur, ni une note d’offre. Il ne crée ni affectation, ni sélection courante privilégiée, ni résolveur, ni authentification, ni permission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:slot gmeow:slotRole gmeow:slotCurrentGuidance ."
+msgstr "ex:slot gmeow:slotRole gmeow:slotCurrentGuidance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the role of a source-identified attention slot retaining current-guidance selections."
+msgstr "Utiliser comme rôle d’une case d’attention identifiée par la source qui conserve les sélections de conseil courant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the role itself as an offer, a chosen action or a replacement for the existing slot-assignment protocol."
+msgstr "Éviter de traiter le rôle lui-même comme une offre, une action choisie ou un remplacement du protocole existant d’affectation des cases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use through slotRole; follow slotState to its SlotPosition and slotPointer to the actual Guidance note, retaining typed SlotAssignmentClaim reifiers."
+msgstr "Utiliser avec slotRole ; suivre slotState vers sa SlotPosition, puis slotPointer vers la note Guidance réelle, en conservant les nœuds de réification typés SlotAssignmentClaim."

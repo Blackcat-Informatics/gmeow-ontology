@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/guidance-offer-and-attention/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Illustrative source content and attention reports, with no executed scheduler.
+ex:noteWriter a gmeow:Agent ;
+    rdfs:label "Source-identified note writer"@en .
+
+ex:declaringWriter a gmeow:Agent ;
+    rdfs:label "Declaring report writer"@en .
+
+ex:recorder a gmeow:SoftwareAgent ;
+    rdfs:label "Offer record importer"@en .
+
+ex:slotHolder a gmeow:Agent ;
+    rdfs:label "Source-identified attention-slot bearer"@en .
+
+ex:earlierSource a gmeow:InformationObject ;
+    rdfs:label "Earlier offer source"@en ;
+    gmeow:wasAttributedTo ex:noteWriter .
+
+ex:laterSource a gmeow:InformationObject ;
+    rdfs:label "Later offer source"@en ;
+    gmeow:wasAttributedTo ex:noteWriter .
+
+ex:pursuit a gmeow:OpenLoop ;
+    rdfs:label "Archive discrepancy pursuit record"@en .
+
+# The content remains offered guidance, not a command or adopted intention.
+ex:earlierOffer a gmeow:Guidance ;
+    gmeow:noteAuthor ex:noteWriter ;
+    gmeow:noteContent "Consider reviewing the archive discrepancy."@en ;
+    gmeow:statedRationale "The source reports an unresolved difference in the inventory."@en ;
+    gmeow:guidanceLoop ex:pursuit ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasDerivedFrom ex:earlierSource .
+
+ex:laterOffer a gmeow:Guidance ;
+    gmeow:noteAuthor ex:noteWriter ;
+    gmeow:noteContent "Consider asking for the supplied inventory revision first."@en ;
+    gmeow:statedRationale "The source records uncertainty about which revision was supplied."@en ;
+    gmeow:guidanceLoop ex:pursuit ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasDerivedFrom ex:laterSource .
+
+# These roles alone identify neither the proposer nor the actual pursuer.
+# Identity overlap would remain valid if the source explicitly supplied it.
+ex:history a logic:Path .
+
+ex:attentionSlot a gmeow:AttentionSlot ;
+    gmeow:slotBearer ex:slotHolder ;
+    gmeow:slotRole gmeow:slotCurrentGuidance ;
+    gmeow:slotHistory ex:history ;
+    gmeow:slotState ex:earlierPosition, ex:laterPosition .
+
+# IRI pointers name the actual offer notes, not the role descriptor or loop.
+ex:earlierPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:attentionSlot ;
+    gmeow:slotPointer ex:earlierOffer .
+
+ex:laterPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:attentionSlot ;
+    gmeow:slotPointer ex:laterOffer ;
+    logic:temporallySucceeds ex:earlierPosition .
+
+ex:earlierAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:attentionSlot gmeow:slotState ex:earlierPosition )>> ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:earlierSource .
+
+ex:laterAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:attentionSlot gmeow:slotState ex:laterPosition )>> ;
+    gmeow:accordingTo ex:declaringWriter ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:wasDerivedFrom ex:laterSource ;
+    gmeow:supersedes ex:earlierAssignment .
+
+# All source records remain retained. No current winner, permission or adoption
+# is computed, and no history check or target resolution is reported as executed.

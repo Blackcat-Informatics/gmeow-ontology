@@ -319,3 +319,43 @@ All new property axioms and supplied-value restrictions use canonical logic:.
 No existing slot obligation, integrity formula or required field is changed.
 The ordinary scene illustrates the source contract; it does not establish
 runtime history validation, resolution or generated-surface acceptance.
+
+## Offered guidance remains a note
+
+Guidance specializes the notes owner's Note as retained offer content. Existing
+noteContent and statedRationale preserve wording and supplied reasons without
+new text or reason predicates. The latter is domain-free and establishes
+neither verified causation nor an executed decision. Documentary derivation,
+recording attribution and the source's declaring frame retain separate roles.
+
+The offer classification creates no command, Norm, permission, Intention,
+adoption, action execution or computed preference winner. It neither replaces
+the existing GuidanceSet of governing rubrics/checklists nor claims the
+closed-roster comparison semantics of the preference model. The source record
+does not gain a proposer or pursuer from note authorship, a recording Agent,
+its declaring frame or the bearer of a slot pointing to it.
+
+guidanceLoop has canonical domain Guidance and range OpenLoop.
+The relation is nonfunctional and supplied-only, with a class-local all-values
+restriction and no required target. It copies no loop state or content and
+introduces no lifecycle or intention rule.
+
+slotCurrentGuidance is an InformationObject role descriptor for the existing
+slotRole relation. An actual AttentionSlot still needs its bearer, role and
+history Path. Each immutable SlotPosition retains its owning slot and IRI
+pointer to the actual Guidance note; each actual slotState assertion retains
+its typed SlotAssignmentClaim native reifier. Supersession records the source's
+relation between actual assignment claims without deleting history or deriving
+a global current winner. The existing consumer obligations for same-slot and
+bearer history and target resolution remain unchanged.
+
+The role adds no new mutable field, resolver, permission protocol or stronger
+generic StateAssignmentClaim profile. Source-identified identity overlap among
+roles remains possible without inferring a missing role occupant. No activity
+descriptor, ahead-anchor target, ordinal convention or time representation is
+invented by this partial vocabulary foundation.
+
+All new axioms use canonical logic: declarations and supplied-value restrictions.
+No existing field requirement or integrity formula is changed. The ordinary
+scene illustrates retained source metadata, not executed history validation,
+offer adoption or generated-surface qualification.

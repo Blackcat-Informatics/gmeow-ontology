@@ -5826,3 +5826,87 @@ msgstr "避免根据措辞相同、共同作者或当前槽断言推导此关联
 msgctxt "https://blackcatinformatics.ca/gmeow/notebookLoop|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the NotebookEntry to the supplied OpenLoop while preserving the entry’s existing content, kind, state claims and attribution."
 msgstr "将 NotebookEntry 关联到所提供的 OpenLoop，同时保留条目已有的内容、种类、状态断言和归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Guidance Offer Note"
+msgstr "指导提议笔记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A note retaining a source’s offered guidance as content, separately from a command or executed action."
+msgstr "一种将来源提出的指导建议保留为内容的笔记，与命令或已执行的行动分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This classification establishes no command, permission, Intention, adoption or execution. The note author, recorder, declaring frame and slot bearer do not by themselves identify a proposer or pursuer."
+msgstr "此分类不确立命令、许可、Intention、采纳或执行。笔记作者、记录者、声明框架和槽承载者本身均不标识提议者或开展事项的智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:offer a gmeow:Guidance ; gmeow:noteContent \"Consider reviewing the archive discrepancy.\"@en ."
+msgstr "ex:offer a gmeow:Guidance ; gmeow:noteContent \"考虑复核档案中的差异。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source keeps an offer of guidance as a note rather than an execution or authority verdict."
+msgstr "当来源将指导提议保留为笔记，而非执行或权限判定时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the offer as a Norm, an executable plan, a computed preference winner or proof that anyone acted on it."
+msgstr "避免将提议视为 Norm、可执行计划、计算出的优先选择，或有人据此行动的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Guidance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain wording with noteContent and supplied reasons with statedRationale; keep source derivation, recording attribution and declaring frame separate."
+msgstr "使用 noteContent 保留措辞，使用 statedRationale 保留所提供的理由；区分来源派生、记录归属和声明框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance loop association"
+msgstr "指导建议事项关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied association of an offered guidance note with a durable pursuit record."
+msgstr "来源提供的指导提议笔记与持久持续事项记录之间的关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and supplied-only. The association copies no loop state or content and identifies no Intention, proposer or pursuer by implication."
+msgstr "非函数性关系，仅记录所提供的值。此关联不复制事项状态或内容，也不隐含地标识 Intention、提议者或开展事项的智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:offer gmeow:guidanceLoop ex:pursuit ."
+msgstr "ex:offer gmeow:guidanceLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly relates the offered guidance to an existing loop record."
+msgstr "当来源明确将指导提议关联到现有事项记录时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the association from shared wording, note authorship, a slot selection or a recording Agent."
+msgstr "避免根据共同措辞、笔记作者身份、槽选择或记录 Agent 推导此关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Guidance note to each supplied OpenLoop and preserve the exact association’s source and context."
+msgstr "将 Guidance 笔记关联到所提供的每个 OpenLoop，并保留确切关联的来源和语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "current-guidance attention-slot role"
+msgstr "当前指导建议注意槽角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named role descriptor for an attention slot whose positions point to actual Guidance offer notes."
+msgstr "一种具名角色描述项，用于其位置指向实际 Guidance 指导提议笔记的注意槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The descriptor is not a mutable property, slot, position, pointer or offer note. It creates no assignment, current winner, resolver, authentication or permission."
+msgstr "此描述项不是可变属性、槽、位置、指针或提议笔记。它不创建赋值、当前优先选择、解析器、身份认证或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:slot gmeow:slotRole gmeow:slotCurrentGuidance ."
+msgstr "ex:slot gmeow:slotRole gmeow:slotCurrentGuidance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the role of a source-identified attention slot retaining current-guidance selections."
+msgstr "用作来源标识的注意槽的角色，以保留当前指导建议选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the role itself as an offer, a chosen action or a replacement for the existing slot-assignment protocol."
+msgstr "避免将角色本身视为提议、选定行动，或现有槽赋值协议的替代品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use through slotRole; follow slotState to its SlotPosition and slotPointer to the actual Guidance note, retaining typed SlotAssignmentClaim reifiers."
+msgstr "通过 slotRole 使用；沿 slotState 到达其 SlotPosition，再沿 slotPointer 到达实际 Guidance 笔记，并保留类型为 SlotAssignmentClaim 的重述节点。"

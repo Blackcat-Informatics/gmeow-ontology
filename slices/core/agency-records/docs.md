@@ -495,3 +495,53 @@ task artifacts and notebook content, and supplies the existing slot and
 position fields, typed assignment reifiers and explicit supersession. It
 reports no executed history check, resolver, state update or scheduler
 (Principle 17).
+
+## Offered guidance as retained content
+
+`Guidance` specializes `Note` to retain a source's offered guidance as content.
+Reuse `noteContent` for its wording and domain-free `statedRationale` for a
+source-supplied reason. Source derivation through `wasDerivedFrom`, recording
+attribution through `wasAttributedTo` and the declaring frame through
+`accordingTo` remain separate. A supplied reason establishes no verified cause.
+
+The note is an offer record. Its classification creates no command, Norm,
+permission, Intention, adoption, execution or computed preference winner. The
+versioned rubrics and checklists of `GuidanceSet` retain their separate meaning.
+No offer is silently converted into governing guidance or a required action.
+
+`guidanceLoop` is a nonfunctional, supplied-value association from the offer to
+an existing `OpenLoop`. It copies neither state nor content. Matching words,
+note authorship, a recording Agent or an attention selection cannot supply an
+unstated association, proposer or pursuer. A loop's own source-supported
+Intention retains its separate bearer and goal.
+
+The named `slotCurrentGuidance` role reuses the existing attention-slot protocol:
+
+1. An actual `AttentionSlot` retains its source-supplied Agent `slotBearer`,
+   `slotRole slotCurrentGuidance` and history `Path` through `slotHistory`.
+2. Its selected `slotState` names a `SlotPosition` belonging to that slot through
+   `positionInSlot`. The position's IRI `slotPointer` targets the actual
+   `Guidance` offer note.
+3. Every actual `slotState` assertion retains its typed `SlotAssignmentClaim`
+   native RDF 1.2 reifier. Source-supplied `supersedes` relates assignment
+   records while retaining earlier claims and competing views.
+
+The role is an `InformationObject` descriptor, not a mutable property, slot,
+position, pointer or offer. It creates no assignment, global current winner,
+resolver, authentication or permission. Same-slot/bearer history checking and
+target resolution remain existing consumer obligations. No stronger generic
+state-assignment profile or new protocol is introduced.
+
+Note author, declaring frame, recorder, slot bearer, proposer and actual pursuer
+are separate roles. The same source-identified Agent can occupy several roles,
+but none supplies a missing identity by implication (Principles 9 and 11).
+
+This foundation defines no activity target type, ahead-task target type,
+ordering index base or ahead-anchor time representation. It claims no
+equivalence to unspecified consumer fields.
+
+The ordinary [guidance-offer scene](examples/guidance-offer-and-attention.ttl)
+retains two offer notes, their supplied loop associations, source reasons,
+separate recording roles and the existing typed assignment history. It reports
+no executed scheduler, history validation, resolver or adoption of an offer
+(Principle 17).
