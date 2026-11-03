@@ -1008,3 +1008,171 @@ msgstr "contrat currency-realm"
 msgctxt "urn:gmeow:finance:constraint:currency-realm|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Requires the declared currency-realm relation for each guarded financial input; the complete frame profile remains owned by places."
 msgstr "Impose la relation déclarée currency-realm pour chaque entrée financière gardée ; le profil complet du repère reste sous l’autorité de places."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Policy Finding Kind"
+msgstr "Type de constat de politique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of individual-valued kinds for the results of PolicyFinding observations. A kind classifies what the named policy process reports about the judged claim or write attempt; it is not the claim, policy process or admission action."
+msgstr "Un vocabulaire ouvert de types à valeurs individuelles pour les résultats des observations PolicyFinding. Un type classe ce que le processus de politique nommé rapporte sur l’assertion ou la tentative d’écriture jugée ; il n’est ni l’assertion, ni le processus de politique, ni l’action d’admission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Use the existing nonfunctional observationResult relation. Several attributed findings and consumer-defined kind IRIs may coexist; the five supplied individuals do not close the vocabulary, select a winner or imply a result from absence."
+msgstr "Utiliser la relation observationResult existante et non fonctionnelle. Plusieurs constats attribués et IRI de types définis par les consommateurs peuvent coexister ; les cinq individus fournis ne ferment pas le vocabulaire, ne sélectionnent pas de résultat privilégié et n’impliquent aucun résultat par absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record an attributed kind: ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:writeAttempt ; gmeow:observationResult ex:consumerKind . ex:consumerKind a gmeow:PolicyFindingKind ."
+msgstr "Consigner un type attribué : ex:finding a gmeow:PolicyFinding ; gmeow:vantage ex:policyV2 ; gmeow:observedFeature ex:writeAttempt ; gmeow:observationResult ex:consumerKind . ex:consumerKind a gmeow:PolicyFindingKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit, queryable policy result kinds while retaining the versioned policy as vantage and the exact judged claim or attempt as observedFeature."
+msgstr "À utiliser pour des types explicites et interrogeables de résultats de politique, en conservant la politique versionnée comme vantage et l’assertion ou la tentative exacte jugée comme observedFeature."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a kind as unattributed truth, cryptographic proof, a trust grant, a native constraint result or mandatory rejection. Do not turn unknown or unchecked evidence into a failed check."
+msgstr "Ne pas traiter un type comme une vérité sans attribution, une preuve cryptographique, un octroi de confiance, un résultat de contrainte native ou un rejet obligatoire. Ne pas transformer des éléments probants inconnus ou non contrôlés en échec de contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PolicyFindingKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a supplied or consumer-owned kind individual through observationResult on PolicyFinding. Preserve the policy’s evaluated evidence, selected context and actual outcome separately. The consumer chooses whether to record, flag or refuse the write; the vocabulary executes no check or admission decision."
+msgstr "Référencer un individu de type fourni ou détenu par un consommateur au moyen d’observationResult sur PolicyFinding. Conserver séparément les éléments probants évalués par la politique, le contexte sélectionné et le résultat effectif. Le consommateur choisit d’enregistrer, de signaler ou de refuser l’écriture ; le vocabulaire n’exécute aucun contrôle ni décision d’admission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signature verification failed finding"
+msgstr "constat d’échec de vérification de signature"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that an actual verification attempt for the relevant signature returned failure under its declared verification context. This finding is distinct from an absent, unchecked or undetermined verification result."
+msgstr "La politique sélectionnée rapporte qu’une tentative effective de vérification de la signature pertinente a échoué dans son contexte de vérification déclaré. Ce constat est distinct d’un résultat de vérification absent, non contrôlé ou indéterminé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It is the policy’s attributed classification of the supplied verification outcome, not a cryptographic proof produced by this individual. Signature validity, signer identity, key authorization and trust remain separate questions."
+msgstr "Il s’agit de la classification attribuée par la politique au résultat de vérification fourni, et non d’une preuve cryptographique produite par cet individu. La validité de la signature, l’identité du signataire, l’autorisation de la clé et la confiance restent des questions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingSignatureVerificationFailed ."
+msgstr "Consigner le type rapporté : ex:finding gmeow:observationResult gmeow:policyFindingSignatureVerificationFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has an actual failed verification outcome for the exact signature and signed content it evaluated."
+msgstr "À utiliser lorsque la politique nommée dispose d’un résultat effectif d’échec de vérification pour la signature et le contenu signé exacts qu’elle a évalués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a missing signature, an unperformed check, unavailable verification capability, unknown result or an otherwise valid key lacking a grant. Do not infer malicious intent or mandatory rejection."
+msgstr "Ne pas utiliser pour une signature absente, un contrôle non effectué, une capacité de vérification indisponible, un résultat inconnu ou une clé par ailleurs valide mais sans autorisation accordée. Ne pas en déduire une intention malveillante ni un rejet obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingSignatureVerificationFailed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach this individual through observationResult on the PolicyFinding and retain the actual verifier outcome, checked signature/content identity and policy vantage as evidence. This link runs no verifier and does not replace a signature’s own verification status."
+msgstr "Rattacher cet individu par observationResult au PolicyFinding et conserver comme éléments probants le résultat effectif du vérificateur, l’identité de la signature et du contenu contrôlés, ainsi que le vantage de politique. Ce lien ne lance aucun vérificateur et ne remplace pas le statut de vérification propre à une signature."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "object not shown by signed act finding"
+msgstr "constat d’objet non présenté par un acte signé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that its completed check found no relevant signed act showing the exact submitted object within the declared evidence scope and showing criterion. It reports that bounded admission finding, not the absence of every possible act."
+msgstr "La politique sélectionnée rapporte que son contrôle achevé n’a trouvé aucun acte signé pertinent présentant l’objet soumis exact dans le périmètre probant et selon le critère de présentation déclarés. Elle rapporte ce constat d’admission délimité, et non l’absence de tout acte possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The policy supplies what counts as showing an object and which act evidence was evaluated. The kind supplies neither a new act/object relation nor a global closed-world assumption, signature proof or identity merge."
+msgstr "La politique fournit ce qui constitue la présentation d’un objet et les éléments probants d’actes évalués. Ce type ne fournit ni nouvelle relation acte/objet, ni hypothèse globale de monde clos, ni preuve de signature, ni fusion d’identités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingObjectNotShown ."
+msgstr "Consigner le type rapporté : ex:finding gmeow:observationResult gmeow:policyFindingObjectNotShown ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit negative finding from the named policy’s evaluated signed-act evidence under its selected showing criterion."
+msgstr "À utiliser pour un constat négatif explicite issu des éléments probants d’actes signés évalués par la politique nommée selon son critère de présentation sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer this finding merely because no act edge was supplied to the ontology. An unperformed or undetermined evidence assessment is not this result, and the result does not prove that the object is false or nonexistent."
+msgstr "Ne pas déduire ce constat du seul fait qu’aucune arête d’acte n’a été fournie à l’ontologie. Une évaluation probante non effectuée ou indéterminée n’est pas ce résultat, et celui-ci ne prouve pas que l’objet est faux ou inexistant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingObjectNotShown|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the kind through observationResult and retain the exact submitted object, evaluated act evidence, showing criterion and policy context in the finding’s supporting evidence. Preserve missing or disputed inputs without inventing acts or resolution."
+msgstr "Consigner le type par observationResult et conserver l’objet soumis exact, les éléments probants d’actes évalués, le critère de présentation et le contexte de politique dans les éléments probants étayant le constat. Conserver les entrées absentes ou contestées sans inventer d’actes ni de résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act vault mismatch finding"
+msgstr "constat de discordance de coffre de l’acte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that the submitted act names a vault whose evaluated identity differs from the intended admission vault under the declared identity context. The finding records an actual mismatch, not an absent or unresolved vault identity."
+msgstr "La politique sélectionnée rapporte que l’acte soumis nomme un coffre dont l’identité évaluée diffère du coffre d’admission visé dans le contexte d’identité déclaré. Le constat consigne une discordance effective, et non une identité de coffre absente ou non résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vault identity and the intended admission target belong to the selected policy’s supplied context. Different identifier spellings alone do not prove distinct vaults; this kind declares no new vault type, authority or cross-store identity law."
+msgstr "L’identité du coffre et la cible d’admission visée appartiennent au contexte fourni de la politique sélectionnée. Des graphies d’identifiants différentes ne prouvent pas à elles seules des coffres distincts ; ce type ne déclare aucun nouveau type de coffre, aucune autorité ni loi d’identité entre magasins."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingActVaultMismatch ."
+msgstr "Consigner le type rapporté : ex:finding gmeow:observationResult gmeow:policyFindingActVaultMismatch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy actually determines that the act names another vault than the selected admission target."
+msgstr "À utiliser lorsque la politique nommée détermine effectivement que l’acte nomme un autre coffre que la cible d’admission sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for a missing target, unresolved alias or unchecked vault field. Do not infer signature failure, key revocation or malicious intent from the mismatch."
+msgstr "Ne pas utiliser pour une cible absente, un alias non résolu ou un champ de coffre non contrôlé. Ne pas déduire de la discordance un échec de signature, une révocation de clé ou une intention malveillante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingActVaultMismatch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through observationResult and preserve the act’s named vault, intended admission vault, evaluated identity comparison and policy vantage separately. The vocabulary performs no comparison or admission routing."
+msgstr "Référencer cet individu par observationResult et conserver séparément le coffre nommé par l’acte, le coffre d’admission visé, la comparaison d’identité évaluée et le vantage de politique. Le vocabulaire n’effectue aucune comparaison ni aucun routage d’admission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required key grant not established finding"
+msgstr "constat d’autorisation requise de clé non établie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that its completed authorization check did not establish the grant required for the supplied key and attempted operation within the declared evidence and authority context. This is a policy-scoped lack-of-grant finding, not a global claim that no grant exists."
+msgstr "La politique sélectionnée rapporte que son contrôle d’autorisation achevé n’a pas établi l’autorisation requise pour la clé fournie et l’opération tentée dans le contexte probant et d’autorité déclaré. Il s’agit d’un constat d’absence d’autorisation délimité par la politique, et non d’une affirmation globale qu’aucune autorisation n’existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required grant, operation scope and applicable authority are supplied by the selected policy. Cryptographic validity or a boundToKey assertion alone does not confer that grant. No global negation, revocation or trust judgment is inferred."
+msgstr "L’autorisation requise, le périmètre de l’opération et l’autorité applicable sont fournis par la politique sélectionnée. La validité cryptographique ou une assertion boundToKey ne confère pas à elle seule cette autorisation. Aucune négation globale, révocation ni appréciation de confiance n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingKeyNotGranted ."
+msgstr "Consigner le type rapporté : ex:finding gmeow:observationResult gmeow:policyFindingKeyNotGranted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has completed its applicable grant check and reports that the required key authorization was not established for this attempt."
+msgstr "À utiliser lorsque la politique nommée a achevé son contrôle des autorisations applicables et rapporte que l’autorisation requise de la clé n’a pas été établie pour cette tentative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not derive this kind from a missing grant triple alone, an unperformed lookup or an undetermined authorization check. Do not confuse it with an invalid signature or infer that every use of the key is forbidden."
+msgstr "Ne pas déduire ce type du seul fait qu’un triplet d’autorisation manque, d’une recherche non effectuée ou d’un contrôle d’autorisation indéterminé. Ne pas le confondre avec une signature invalide ni en déduire que tout usage de la clé est interdit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingKeyNotGranted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the kind through observationResult and retain the actual checked key, requested operation, grant criterion, authority context and policy evidence. A recorded refusal or flag remains distinct from a grant, revocation or cryptographic verification event."
+msgstr "Rattacher le type par observationResult et conserver la clé effectivement contrôlée, l’opération demandée, le critère d’autorisation, le contexte d’autorité et les éléments probants de politique. Un refus ou un signalement consigné reste distinct d’un octroi, d’une révocation ou d’un événement de vérification cryptographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value outside declared form finding"
+msgstr "constat de valeur hors de la forme déclarée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy reports that the actual submitted value failed its explicitly declared form requirement in a completed check. The requirement and evaluated value remain policy evidence rather than a new universal value constraint."
+msgstr "La politique sélectionnée rapporte que la valeur effectivement soumise n’a pas satisfait à son exigence de forme explicitement déclarée lors d’un contrôle achevé. L’exigence et la valeur évaluée restent des éléments probants de politique, et non une nouvelle contrainte universelle sur les valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected policy states what form is required and what was checked. This kind does not itself declare a datatype, grammar, shape, parser or formal language object, and does not certify a native constraint violation."
+msgstr "La politique sélectionnée énonce la forme requise et ce qui a été contrôlé. Ce type ne déclare lui-même ni type de données, ni grammaire, ni forme de validation, ni analyseur, ni objet de langage formel, et ne certifie pas une violation de contrainte native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported kind: ex:finding gmeow:observationResult gmeow:policyFindingValueOutsideDeclaredForm ."
+msgstr "Consigner le type rapporté : ex:finding gmeow:observationResult gmeow:policyFindingValueOutsideDeclaredForm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the named policy has an actual failed form check for the exact value and declared requirement under evaluation."
+msgstr "À utiliser lorsque la politique nommée dispose d’un échec effectif de contrôle de forme pour la valeur exacte et l’exigence déclarée évaluées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for an absent requirement, an unavailable checker, an unchecked value or an unknown result. Do not normalize or replace the submitted value, assert a stronger ontology constraint or infer rejection from the kind alone."
+msgstr "Ne pas utiliser pour une exigence absente, un contrôleur indisponible, une valeur non contrôlée ou un résultat inconnu. Ne pas normaliser ni remplacer la valeur soumise, affirmer une contrainte ontologique plus forte ni déduire le rejet du seul type."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."
+msgstr "Référencer cet individu par observationResult et conserver la valeur soumise exacte, l’exigence de forme déclarée, le résultat du contrôle achevé et le vantage de politique. Conserver séparément un résultat véritable de validation native lorsqu’il est fourni ; le type n’effectue aucune validation."
