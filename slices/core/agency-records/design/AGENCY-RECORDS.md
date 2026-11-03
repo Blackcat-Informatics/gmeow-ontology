@@ -237,3 +237,45 @@ that binding; lexical equality alone does not supply a missing matching claim.
 All integrity formula trees and closure entries remain unchanged. Tool-agent
 identity, provider/world object resolution, execution evidence and screening
 verdicts retain their existing owners (Principles 2, 4, 7, 9 and 17).
+
+## Loop records preserve a pursuit separately from its reports
+
+`OpenLoop` specializes the existing `InformationObject` as a durable pursuit
+record. The record can span episodes and remain after reported closure. It
+creates no second Intention, Plan, episode or attempt occurrence, and its class
+does not entail `loopOpen`. The source wording reuses `description`; a supplied
+task specification is an information artifact rather than the Task event or an
+automatically inferred abstract Document Work.
+
+Agency records already consume the intention and information-record owners.
+`loopServesIntention` preserves an actual supplied link; the linked Intention
+retains its own bearer and goal. A selected writer frame or recording agent
+does not identify the pursuing agent. No additional dependency or notebook
+bridge is introduced by this unit.
+
+The open LoopState axis records source assessments. Its nonfunctional relation
+preserves exact RDF 1.2 state assertions with their own declaring frame,
+recording attribution and source. Conflicting and historical assessments do not
+select a current winner, imply a latest-timestamp policy or compute transitions.
+Done has no goal-satisfaction or execution bridge; letting go has no deletion,
+cancellation-permission or intention-abandonment bridge.
+
+LoopClosure is an information report, not an event or decision. Its reported
+actual closer is separate from the recording and declaring roles; those roles
+can share an actual identity only when supplied by the source. No missing actor
+is synthesized from a consumer role code, evidence basis or recorder identity.
+The closure's cited basis and its documentary source are separate relations.
+
+Evidence targets remain information artifacts or native reifiers. An underlying
+occurrence or Observation retains its own type; it is not made an information
+object to fit the evidence range. Quoted content alone asserts no fact and
+certifies no support, authenticity or permission. Existing domain-free
+statedRationale retains the source's words without inferring an Activity or a
+verified cause.
+
+All new declarations use canonical `logic:` domain, range and subclass axioms.
+Class-local supplied-value restrictions add no mandatory paths, functional
+properties, closed enumerations, exclusivity or state/closure/intention rules.
+No existing integrity formula is changed, and no hand-authored projection or
+runtime state protocol is introduced. This is an authored source contract;
+generated behavior and runtime acceptance remain unverified.

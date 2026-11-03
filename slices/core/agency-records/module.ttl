@@ -2783,3 +2783,173 @@ gmeow:CreatureDemandAnsweredConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demandKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demandResponse" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/answersDemand" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:OpenLoop
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Open Loop Record"@x-gmeow-english ;
+    skos:definition "A durable information record of a pursuit, retained across episodes and after reported closure."@x-gmeow-english ;
+    skos:scopeNote "The record is neither an Intention, a Plan, an episode nor an attempt occurrence. Its type supplies no default open state and identifies no pursuing agent."@x-gmeow-english ;
+    skos:example "ex:pursuit a gmeow:OpenLoop ; gmeow:description \"Keep the archive discrepancy in view.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a pursuit record whose identity persists across episodes and declared states."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the record as a running event, an internal commitment or proof that its pursuit remains open."@x-gmeow-english ;
+    gmeow:howToUse "Retain source wording with description; link supplied task artifacts and Intentions separately, and scope exact state claims with their declared frame and source."@x-gmeow-english .
+
+gmeow:loopTaskDocument
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenLoop ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loop task artifact"@x-gmeow-english ;
+    skos:definition "A supplied task-specification information object associated with a pursuit record."@x-gmeow-english ;
+    skos:scopeNote "The target is an information object, not the Task occurrence. A concrete source artifact is not forced into the abstract Document Work type."@x-gmeow-english ;
+    skos:example "ex:pursuit gmeow:loopTaskDocument ex:taskArtifact ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the task specification kept for a pursuit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this edge for the task event or inferring an executable plan from a supplied artifact."@x-gmeow-english ;
+    gmeow:howToUse "Link the OpenLoop to the source-identified InformationObject and retain its original identity and provenance."@x-gmeow-english .
+
+gmeow:loopServesIntention
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenLoop ;
+    logic:range gmeow:Intention ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loop serves intention"@x-gmeow-english ;
+    skos:definition "An Intention that the source explicitly says a pursuit record serves."@x-gmeow-english ;
+    skos:scopeNote "The linked Intention retains its own supplied intentBearer and goal. Neither the declaring writer nor the recorder identifies that bearer by implication."@x-gmeow-english ;
+    skos:example "ex:pursuit gmeow:loopServesIntention ex:resolveDiscrepancy ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source link identifies an Intention served by the pursuit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a commitment, bearer or goal, or inferring intention satisfaction or abandonment from loop state."@x-gmeow-english ;
+    gmeow:howToUse "Link the OpenLoop to the supplied Intention; preserve the Intention’s own identity, bearer and goal evidence."@x-gmeow-english .
+
+gmeow:LoopState
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Loop State"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for declared source assessments of a pursuit record’s state."@x-gmeow-english ;
+    skos:scopeNote "The three seeds describe open, done or let-go assessments. They compute no transition, reopening, goal satisfaction or current winner."@x-gmeow-english ;
+    skos:example "gmeow:loopDone a gmeow:LoopState ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the state a source explicitly declares for a pursuit record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing the vocabulary or treating an assessment as a runtime verdict."@x-gmeow-english ;
+    gmeow:howToUse "Select a value through loopState; retain the exact assertion’s declaring frame and source."@x-gmeow-english .
+
+gmeow:loopOpen
+    a gmeow:LoopState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "pursuit declared open"@x-gmeow-english ;
+    skos:definition "A source assessment recording a pursuit as remaining open."@x-gmeow-english ;
+    skos:scopeNote "Open is an explicit declaration, not a default from OpenLoop typing or evidence of a running episode."@x-gmeow-english ;
+    skos:example "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly records the pursuit as open."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this state from missing metadata or the existence of a loop record."@x-gmeow-english ;
+    gmeow:howToUse "Record loopOpen through loopState on the exact source-scoped state assertion."@x-gmeow-english .
+
+gmeow:loopDone
+    a gmeow:LoopState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "pursuit declared done"@x-gmeow-english ;
+    skos:definition "A source assessment recording a pursuit as done."@x-gmeow-english ;
+    skos:scopeNote "The declaration establishes no successful execution, goal satisfaction or completion of a linked Intention."@x-gmeow-english ;
+    skos:example "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopDone )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly records the pursuit as done."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this value as a verified outcome or inferring the actual closing Agent."@x-gmeow-english ;
+    gmeow:howToUse "Record loopDone through loopState; keep any closure report, actor and evidence separately identified."@x-gmeow-english .
+
+gmeow:loopLetGo
+    a gmeow:LoopState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "pursuit declared let go"@x-gmeow-english ;
+    skos:definition "A source assessment recording that a pursuit was let go rather than recorded as done."@x-gmeow-english ;
+    skos:scopeNote "Letting go establishes no deletion, cancellation permission or abandonment of a linked Intention. The record and earlier claims remain retained."@x-gmeow-english ;
+    skos:example "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopLetGo )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly records letting go of the pursuit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this declaration as authority to cancel work, erase history or end an Intention."@x-gmeow-english ;
+    gmeow:howToUse "Record loopLetGo through loopState while preserving the source, context and retained loop identity."@x-gmeow-english .
+
+gmeow:loopState
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenLoop ;
+    logic:range gmeow:LoopState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "loop state"@x-gmeow-english ;
+    skos:definition "A state assessment declared for a pursuit record in the selected source context."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. Missing values are unspecified; historical and conflicting claims coexist without a default, current winner or latest-timestamp selection."@x-gmeow-english ;
+    skos:example "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies an explicit state assessment for a loop record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid computing transitions, reopening or goal satisfaction from declared states."@x-gmeow-english ;
+    gmeow:howToUse "Reify the exact loop and state tuple; keep accordingTo for its declaring frame, wasAttributedTo for the recorder and wasDerivedFrom for the source artifact."@x-gmeow-english .
+
+gmeow:LoopClosure
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Loop Closure Report"@x-gmeow-english ;
+    skos:definition "An information record reporting closure of a pursuit record."@x-gmeow-english ;
+    skos:scopeNote "The report is not the closing Event or Activity. It rewrites no loop state and supplies no enactment receipt, goal evaluation or permission."@x-gmeow-english ;
+    skos:example "ex:report a gmeow:LoopClosure ; gmeow:closureLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source keeps a separately identified report about closing a pursuit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a report as an executed closure or identifying the closer from the reporting or recording agent."@x-gmeow-english ;
+    gmeow:howToUse "Retain closureLoop, any supplied closedBy and closureEvidence, and the exact statedRationale; keep recording attribution, declaring frame and report source distinct."@x-gmeow-english .
+
+gmeow:closureLoop
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LoopClosure ;
+    logic:range gmeow:OpenLoop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported closure loop"@x-gmeow-english ;
+    skos:definition "The pursuit record whose closure a source report describes."@x-gmeow-english ;
+    skos:scopeNote "The link identifies the report’s subject; it neither changes loopState nor establishes that closure occurred."@x-gmeow-english ;
+    skos:example "ex:report gmeow:closureLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a closure report identifies the pursuit record it concerns."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this relation as a command to close a loop or an inferred state transition."@x-gmeow-english ;
+    gmeow:howToUse "Link the LoopClosure report to the source-identified OpenLoop, retaining both record identities."@x-gmeow-english .
+
+gmeow:closedBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LoopClosure ;
+    logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported actual closing agent"@x-gmeow-english ;
+    skos:definition "The actual closing Agent identified by the source of a loop closure report."@x-gmeow-english ;
+    skos:scopeNote "The closing, recording and declaring-frame roles are distinct; a source-identified Agent may occupy more than one role. Unknown actors stay unknown; consumer role codes and evidence do not synthesize an Agent identity."@x-gmeow-english ;
+    skos:example "ex:report gmeow:closedBy ex:closer ."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source identifies an actual Agent as the closer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating evidence, a local role code, the declaring writer or the recorder as the closer without an explicit source identification."@x-gmeow-english ;
+    gmeow:howToUse "Link the LoopClosure report to the source-identified Agent; retain wasAttributedTo, accordingTo and evidence separately, without inventing unknown actors."@x-gmeow-english .
+
+gmeow:closureEvidence
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LoopClosure ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported closure evidence"@x-gmeow-english ;
+    skos:definition "A retained information artifact or exact native reifier cited as the basis of a loop closure report."@x-gmeow-english ;
+    skos:scopeNote "Cite the information record without retyping its underlying occurrence or Observation as InformationObject. Citation establishes no verification, entailment, authenticity or permission."@x-gmeow-english ;
+    skos:example "ex:report gmeow:closureEvidence ex:evidenceRecord ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source cites an identified information artifact or reifier as closure evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an actual occurrence as the information record, inferring support or converting an evidence basis into a closing Agent."@x-gmeow-english ;
+    gmeow:howToUse "Link the LoopClosure report to the retained InformationObject; preserve exact rdf:reifies content when citing a reifier and keep the report’s wasDerivedFrom source separate."@x-gmeow-english .
+
+# Supplied values are typed without requiring paths, choosing winners or deriving states.
+gmeow:OpenLoop logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:loopTaskDocument ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:loopServesIntention ; logic:allValuesFrom gmeow:Intention ],
+    [ a logic:Restriction ; logic:onProperty gmeow:loopState ; logic:allValuesFrom gmeow:LoopState ] .
+
+gmeow:LoopClosure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:closureLoop ; logic:allValuesFrom gmeow:OpenLoop ],
+    [ a logic:Restriction ; logic:onProperty gmeow:closedBy ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:closureEvidence ; logic:allValuesFrom gmeow:InformationObject ] .

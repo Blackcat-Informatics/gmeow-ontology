@@ -5350,3 +5350,339 @@ msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:stri
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching tool-name spelling does not establish tool-agent identity."
 msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 工具名称拼写相同并不能确立工具代理身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Loop Record"
+msgstr "持续事项记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A durable information record of a pursuit, retained across episodes and after reported closure."
+msgstr "一种关于持续事项的持久信息记录，在不同片段之间及报告关闭后均予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record is neither an Intention, a Plan, an episode nor an attempt occurrence. Its type supplies no default open state and identifies no pursuing agent."
+msgstr "该记录不是 Intention、Plan、片段或尝试事件。其类型不提供默认开放状态，也不标识正在开展该事项的智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:pursuit a gmeow:OpenLoop ; gmeow:description \"Keep the archive discrepancy in view.\"@en ."
+msgstr "ex:pursuit a gmeow:OpenLoop ; gmeow:description \"持续关注档案中的差异。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a pursuit record whose identity persists across episodes and declared states."
+msgstr "用于身份在不同片段和声明状态之间保持不变的持续事项记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as a running event, an internal commitment or proof that its pursuit remains open."
+msgstr "避免将记录视为正在进行的事件、内部承诺，或事项仍开放的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain source wording with description; link supplied task artifacts and Intentions separately, and scope exact state claims with their declared frame and source."
+msgstr "使用 description 保留来源措辞；分别关联所提供的任务制品和 Intention，并为确切状态断言保留声明的框架和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loop task artifact"
+msgstr "事项任务制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied task-specification information object associated with a pursuit record."
+msgstr "与持续事项记录相关联的、所提供的任务说明信息对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is an information object, not the Task occurrence. A concrete source artifact is not forced into the abstract Document Work type."
+msgstr "目标是信息对象，而非 Task 事件。不将具体来源制品强制归入抽象的 Document Work 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:pursuit gmeow:loopTaskDocument ex:taskArtifact ."
+msgstr "ex:pursuit gmeow:loopTaskDocument ex:taskArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the task specification kept for a pursuit."
+msgstr "当来源标识为持续事项保留的任务说明时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this edge for the task event or inferring an executable plan from a supplied artifact."
+msgstr "避免用此关系指向任务事件，或从所提供的制品推断可执行计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopTaskDocument|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the OpenLoop to the source-identified InformationObject and retain its original identity and provenance."
+msgstr "将 OpenLoop 关联到来源标识的 InformationObject，并保留其原始身份和溯源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loop serves intention"
+msgstr "事项服务于意图"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Intention that the source explicitly says a pursuit record serves."
+msgstr "来源明确指出某个持续事项记录所服务的 Intention。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The linked Intention retains its own supplied intentBearer and goal. Neither the declaring writer nor the recorder identifies that bearer by implication."
+msgstr "关联的 Intention 保留其自身所提供的 intentBearer 和目标。声明撰写者与记录者均不由此隐含地标识该承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:pursuit gmeow:loopServesIntention ex:resolveDiscrepancy ."
+msgstr "ex:pursuit gmeow:loopServesIntention ex:resolveDiscrepancy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source link identifies an Intention served by the pursuit."
+msgstr "当来源实际提供的关系标识该事项所服务的 Intention 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a commitment, bearer or goal, or inferring intention satisfaction or abandonment from loop state."
+msgstr "避免虚构承诺、承载者或目标，或从事项状态推断意图已满足或已放弃。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopServesIntention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the OpenLoop to the supplied Intention; preserve the Intention’s own identity, bearer and goal evidence."
+msgstr "将 OpenLoop 关联到所提供的 Intention；保留该 Intention 自身的身份、承载者和目标证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loop State"
+msgstr "事项状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for declared source assessments of a pursuit record’s state."
+msgstr "一个开放的值词汇表，用于描述来源对持续事项记录状态声明的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The three seeds describe open, done or let-go assessments. They compute no transition, reopening, goal satisfaction or current winner."
+msgstr "三个初始值描述开放、完成或放下的评估，不计算转换、重新开放、目标满足或当前优先状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:loopDone a gmeow:LoopState ."
+msgstr "gmeow:loopDone a gmeow:LoopState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the state a source explicitly declares for a pursuit record."
+msgstr "用于保留来源为持续事项记录明确声明的状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the vocabulary or treating an assessment as a runtime verdict."
+msgstr "避免封闭词汇表，或将评估视为运行时判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select a value through loopState; retain the exact assertion’s declaring frame and source."
+msgstr "通过 loopState 选择值，并保留确切断言的声明框架和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pursuit declared open"
+msgstr "事项声明为开放"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source assessment recording a pursuit as remaining open."
+msgstr "来源将某个持续事项记录为仍开放的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Open is an explicit declaration, not a default from OpenLoop typing or evidence of a running episode."
+msgstr "开放是明确声明，不是由 OpenLoop 类型产生的默认值，也不是片段正在运行的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records the pursuit as open."
+msgstr "当来源明确将该事项记录为开放时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this state from missing metadata or the existence of a loop record."
+msgstr "避免从缺失元数据或事项记录的存在推导此状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopOpen|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record loopOpen through loopState on the exact source-scoped state assertion."
+msgstr "在按来源限定的确切状态断言上，通过 loopState 记录 loopOpen。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pursuit declared done"
+msgstr "事项声明为完成"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source assessment recording a pursuit as done."
+msgstr "来源将某个持续事项记录为完成的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The declaration establishes no successful execution, goal satisfaction or completion of a linked Intention."
+msgstr "此声明不确立成功执行、目标满足或关联 Intention 的完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopDone )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopDone )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records the pursuit as done."
+msgstr "当来源明确将该事项记录为完成时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this value as a verified outcome or inferring the actual closing Agent."
+msgstr "避免将此值视为已验证的结果，或推断实际执行关闭的 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopDone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record loopDone through loopState; keep any closure report, actor and evidence separately identified."
+msgstr "通过 loopState 记录 loopDone；分别标识任何关闭报告、执行者和证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pursuit declared let go"
+msgstr "事项声明为放下"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source assessment recording that a pursuit was let go rather than recorded as done."
+msgstr "来源记录某个持续事项已被放下，而非被记录为完成的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Letting go establishes no deletion, cancellation permission or abandonment of a linked Intention. The record and earlier claims remain retained."
+msgstr "放下不确立删除、取消许可或关联 Intention 的放弃。记录和此前断言仍予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopLetGo )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopLetGo )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records letting go of the pursuit."
+msgstr "当来源明确记录放下该事项时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this declaration as authority to cancel work, erase history or end an Intention."
+msgstr "避免将此声明解释为取消工作、抹除历史或终止 Intention 的权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopLetGo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record loopLetGo through loopState while preserving the source, context and retained loop identity."
+msgstr "通过 loopState 记录 loopLetGo，同时保留来源、语境和事项记录身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loop state"
+msgstr "事项状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A state assessment declared for a pursuit record in the selected source context."
+msgstr "在所选来源语境中为持续事项记录声明的状态评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Missing values are unspecified; historical and conflicting claims coexist without a default, current winner or latest-timestamp selection."
+msgstr "非函数性关系。缺失值表示未指定；历史断言与冲突断言可以共存，不产生默认值、当前优先状态或按最新时间戳选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."
+msgstr "ex:claim rdf:reifies <<( ex:pursuit gmeow:loopState gmeow:loopOpen )>> ; gmeow:accordingTo ex:writer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies an explicit state assessment for a loop record."
+msgstr "当来源为事项记录提供明确状态评估时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing transitions, reopening or goal satisfaction from declared states."
+msgstr "避免从声明状态计算转换、重新开放或目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/loopState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact loop and state tuple; keep accordingTo for its declaring frame, wasAttributedTo for the recorder and wasDerivedFrom for the source artifact."
+msgstr "创建 RDF 1.2 rdf:reifies 重述节点以保留确切的事项与状态元组；使用 accordingTo 指明声明框架、wasAttributedTo 指明记录者、wasDerivedFrom 指明来源制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loop Closure Report"
+msgstr "事项关闭报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record reporting closure of a pursuit record."
+msgstr "一种报告持续事项记录关闭情况的信息记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The report is not the closing Event or Activity. It rewrites no loop state and supplies no enactment receipt, goal evaluation or permission."
+msgstr "报告不是执行关闭的 Event 或 Activity，不改写事项状态，也不提供计划执行回执、目标评估或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report a gmeow:LoopClosure ; gmeow:closureLoop ex:pursuit ."
+msgstr "ex:report a gmeow:LoopClosure ; gmeow:closureLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source keeps a separately identified report about closing a pursuit."
+msgstr "当来源保留关于关闭某个持续事项的独立标识报告时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a report as an executed closure or identifying the closer from the reporting or recording agent."
+msgstr "避免将报告视为已执行的关闭，或根据声明者或记录者推断关闭执行者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LoopClosure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain closureLoop, any supplied closedBy and closureEvidence, and the exact statedRationale; keep recording attribution, declaring frame and report source distinct."
+msgstr "保留 closureLoop、所提供的 closedBy 和 closureEvidence，以及确切的 statedRationale；区分记录归属、声明框架和报告来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported closure loop"
+msgstr "报告关闭的事项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The pursuit record whose closure a source report describes."
+msgstr "来源报告所描述关闭情况的持续事项记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link identifies the report’s subject; it neither changes loopState nor establishes that closure occurred."
+msgstr "此关系标识报告的对象，既不更改 loopState，也不确立关闭已发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:closureLoop ex:pursuit ."
+msgstr "ex:report gmeow:closureLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a closure report identifies the pursuit record it concerns."
+msgstr "当关闭报告标识其涉及的持续事项记录时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this relation as a command to close a loop or an inferred state transition."
+msgstr "避免将此关系用作关闭事项的命令或推断出的状态转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the LoopClosure report to the source-identified OpenLoop, retaining both record identities."
+msgstr "将 LoopClosure 报告关联到来源标识的 OpenLoop，并保留两种记录的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported actual closing agent"
+msgstr "报告的实际关闭智能体"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual closing Agent identified by the source of a loop closure report."
+msgstr "事项关闭报告的来源所标识的实际执行关闭的 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The closing, recording and declaring-frame roles are distinct; a source-identified Agent may occupy more than one role. Unknown actors stay unknown; consumer role codes and evidence do not synthesize an Agent identity."
+msgstr "关闭执行者、记录者和声明框架是不同角色；来源标识的同一个 Agent 可以承担多个角色。未知执行者保持未知；使用方角色代码和证据不生成 Agent 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:closedBy ex:closer ."
+msgstr "ex:report gmeow:closedBy ex:closer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source identifies an actual Agent as the closer."
+msgstr "仅当来源标识实际执行关闭的 Agent 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating evidence, a local role code, the declaring writer or the recorder as the closer without an explicit source identification."
+msgstr "避免在来源未明确标识时，将证据、本地角色代码、声明撰写者或记录者视为关闭执行者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the LoopClosure report to the source-identified Agent; retain wasAttributedTo, accordingTo and evidence separately, without inventing unknown actors."
+msgstr "将 LoopClosure 报告关联到来源标识的 Agent；分别保留 wasAttributedTo、accordingTo 和证据，不虚构未知执行者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported closure evidence"
+msgstr "报告的关闭证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained information artifact or exact native reifier cited as the basis of a loop closure report."
+msgstr "作为事项关闭报告依据而引用的、保留的信息制品或确切的原生重述节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Cite the information record without retyping its underlying occurrence or Observation as InformationObject. Citation establishes no verification, entailment, authenticity or permission."
+msgstr "引用信息记录时，不将其底层事件或 Observation 重新归类为 InformationObject。引用不确立验证、逻辑蕴含、真实性或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:closureEvidence ex:evidenceRecord ."
+msgstr "ex:report gmeow:closureEvidence ex:evidenceRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source cites an identified information artifact or reifier as closure evidence."
+msgstr "当来源引用已标识的信息制品或重述节点作为关闭证据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an actual occurrence as the information record, inferring support or converting an evidence basis into a closing Agent."
+msgstr "避免将实际事件用作信息记录、推断证据支持，或将证据依据转化为关闭 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closureEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the LoopClosure report to the retained InformationObject; preserve exact rdf:reifies content when citing a reifier and keep the report’s wasDerivedFrom source separate."
+msgstr "将 LoopClosure 报告关联到保留的 InformationObject；引用重述节点时保留确切的 rdf:reifies 内容，并另行保留报告的 wasDerivedFrom 来源。"

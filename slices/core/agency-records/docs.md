@@ -377,3 +377,69 @@ A tool name does not identify a tool agent, and an unresolved object identifier
 needs its provider-and-world context. The datatype union neither resolves
 references nor supplies evidence of execution, success or contract compliance.
 Existing required paths, scopes and integrity formulas remain intact.
+
+## Durable pursuit records and closure reports
+
+An `OpenLoop` is a durable information record of a pursuit, retained across
+episodes and after reported closure. It is neither the pursuing agent's
+`Intention` nor a `Plan`, episode or attempt occurrence. Its type supplies no
+default open state. Existing `description` retains the source's unstructured
+wording.
+
+`loopTaskDocument` identifies a supplied task-specification `InformationObject`.
+It does not name the `Task` occurrence or force a concrete source artifact into
+the abstract `Document` Work type. `loopServesIntention` retains an actual
+source-supplied link to an existing `Intention`. That Intention keeps its own
+supplied `intentBearer` and goal. Neither a declaring writer nor a recorder
+identifies the pursuing agent by implication.
+
+The open `LoopState` vocabulary has three seed assessments:
+
+| Value | Declared source assessment |
+| --- | --- |
+| `loopOpen` | The pursuit remains open. |
+| `loopDone` | The pursuit is recorded as done. |
+| `loopLetGo` | The pursuit is recorded as let go. |
+
+Record each `loopState` assertion with its exact RDF 1.2 context and provenance.
+Missing state is unspecified. Historical and conflicting claims coexist; the
+vocabulary selects no default, current winner or latest timestamp. Done proves
+neither successful execution nor goal satisfaction. Letting go deletes nothing,
+grants no cancellation permission and does not abandon a linked Intention.
+No transition or reopening is computed (Principles 9 and 11).
+
+A `LoopClosure` is a separately identified information report about closure,
+not the closing Event or Activity. `closureLoop` names the reported loop.
+Its other roles remain separate:
+
+| Relation | Reported role |
+| --- | --- |
+| `closedBy` | The source-identified actual closing Agent. |
+| `wasAttributedTo` | The recording Agent. |
+| `accordingTo` | The selected declaring writer or standpoint. |
+| `closureEvidence` | The cited information evidence artifact or exact native reifier. |
+| `wasDerivedFrom` | The source artifact supplying the report. |
+
+These distinctions separate roles; they do not require different identities
+when a source actually assigns several roles to one agent. Unknown actual
+actors remain unknown. Evidence and consumer-specific closer codes do not
+create an Agent identity or make the recorder the closer. Such local role
+values remain local until their actual referents are established.
+
+Use existing domain-free `statedRationale` for the source's exact reason,
+retaining language and RDF 1.2 base direction. It does not turn an information
+report into an Activity or Decision, or establish that the explanation is true.
+When citing a fact about an occurrence or Observation, link an information
+artifact or exact `rdf:reifies` record through `closureEvidence`; do not retype
+the underlying occurrence as `InformationObject`. Citation establishes no
+verification, entailment, authenticity or permission.
+
+The new properties are nonfunctional and type supplied values without requiring
+them. No closure report rewrites state or produces an enactment receipt or goal
+evaluation. These records add no execution or permission protocol (Principle 17).
+
+The ordinary [loop-record scene](examples/loop-records-and-closure.ttl) retains
+all three states, task-artifact and Intention links, historical and competing
+claims, separate reporting roles and a closure report with an unknown actual
+actor. It reports no executed scheduler, closure, test, state update or
+successful goal.
