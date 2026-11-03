@@ -26,19 +26,32 @@ Preserve the supplied datatype, case, spaces and punctuation. Do not convert
 a string to token or collapse whitespace in an engine’s exact designation. This string names the sampler, not the model, and does not imply
 that differently named samplers are equivalent.
 
-`ModelMode` is an open `logic:QualityValue` vocabulary. Its four initial values
+`ModelMode` is an open `logic:QualityValue` vocabulary. Its nine named values
 express requested intent:
 
 - `modelModeDeepThinking`: extended reasoning when no immediate reply is needed.
 - `modelModeCreative`: inventive exploration with room for alternatives.
 - `modelModeExtremelyCreative`: the serving layer’s widest creative range.
 - `modelModeNarrative`: prose integrating supplied material.
+- `modelModeExact`: precision in following supplied material or instructions.
+- `modelModeStructuredLogic`: organization of logical material.
+- `modelModeChat`: conversational interaction.
+- `modelModeInstruct`: following supplied instructions.
+- `modelModeFaithful`: fidelity to supplied material.
 
 A serving layer can mint further `ModelMode` individuals with their own labels
 and definitions. These values have no universal mapping to temperature, top-p,
 step count or guidance scale. Record the requested profile and actual supplied
 parameters independently; neither implies that the request was fulfilled or
 that the output achieved a quality level.
+
+Exact requests precision in following material or instructions; faithful requests
+fidelity to supplied material. The serving layer interprets each requested
+profile. Neither value certifies factuality or preservation, and exact does not
+promise deterministic output. Structured logic requests organization of logical
+material without certifying a proof, a structured abstract syntax tree or an
+executed solver capability. Chat does not establish reply delivery, and instruct
+does not identify an instruction-tuned model or prove compliance.
 
 The new properties constrain supplied values without requiring every invocation
 to have them. They impose no global uniqueness: attributed records and claims
@@ -51,3 +64,9 @@ other parameters and execution conditions also matter. The ordinary
 [image-generation scene](examples/image-generation.ttl) records a requested
 creative profile alongside actual parameters and the existing provenance links;
 it makes no replay or fulfillment claim.
+
+The ordinary [requested-profile scene](examples/requested-mode-profiles.ttl)
+illustrates all five additional profiles with separate invocation, model and
+prompt identities. Prompt attribution and source derivation use the existing
+provenance vocabulary. Supplied parameters are recorded separately where shown;
+the scene reports no executed call or generated output.

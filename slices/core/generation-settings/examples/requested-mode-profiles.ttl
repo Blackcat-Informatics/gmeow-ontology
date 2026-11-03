@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/requested-mode-profiles/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# An illustrative archive scene, with no executed call or generated output.
+# A requested profile does not establish fulfillment or actual parameters.
+ex:caller a gmeow:SoftwareAgent ;
+    rdfs:label "Archive request writer"@en .
+
+ex:model a gmeow:SoftwareAgent ;
+    rdfs:label "Model named in the requests"@en .
+
+ex:source a gmeow:InformationObject ;
+    rdfs:label "Supplied observatory notes"@en .
+
+ex:exactPrompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Follow the supplied observatory notes and instructions precisely." ;
+    gmeow:wasAttributedTo ex:caller ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:logicPrompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Organize the premises and conclusions in the observatory notes." ;
+    gmeow:wasAttributedTo ex:caller ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:chatPrompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Discuss the observatory notes with me." ;
+    gmeow:wasAttributedTo ex:caller ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:instructPrompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "List the observatory notes under the headings supplied here." ;
+    gmeow:wasAttributedTo ex:caller ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:faithfulPrompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Retell the supplied observatory notes faithfully." ;
+    gmeow:wasAttributedTo ex:caller ;
+    gmeow:wasDerivedFrom ex:source .
+
+# These distinct invocation records retain the named model and concrete prompt.
+# The seed supplied in the first record is independent of its requested mode;
+# the absence of parameters in the other records supplies no defaults.
+ex:exactRun a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:exactPrompt ;
+    gmeow:modelMode gmeow:modelModeExact ;
+    gmeow:generationSeed 42 .
+
+ex:logicRun a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:logicPrompt ;
+    gmeow:modelMode gmeow:modelModeStructuredLogic .
+
+ex:chatRun a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:chatPrompt ;
+    gmeow:modelMode gmeow:modelModeChat .
+
+ex:instructRun a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:instructPrompt ;
+    gmeow:modelMode gmeow:modelModeInstruct .
+
+ex:faithfulRun a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:faithfulPrompt ;
+    gmeow:modelMode gmeow:modelModeFaithful .

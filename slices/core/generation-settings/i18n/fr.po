@@ -268,3 +268,143 @@ msgstr "Adaptateurs de mémoire d’agent et archives de génération conservant
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact mode"
+msgstr "mode de précision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for precision in following supplied material or instructions, under the serving layer’s interpretation."
+msgstr "Un profil de réglages demandé pour suivre avec précision les éléments ou les instructions fournis, selon l’interprétation de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Precision is the requested intent. This value specifies no universal numerical settings and promises neither deterministic output nor successful adherence."
+msgstr "La précision est l’intention exprimée par la demande. Cette valeur ne définit aucun réglage numérique universel et ne promet ni sortie déterministe ni respect effectif de la demande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:exactRun gmeow:modelMode gmeow:modelModeExact ."
+msgstr "Consigner cette demande : ex:exactRun gmeow:modelMode gmeow:modelModeExact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests precise adherence to supplied material or instructions."
+msgstr "Utiliser lorsque l’appelant demande de suivre avec précision les éléments ou les instructions fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this request as evidence of exact reproduction, factual correctness or a fixed sampling configuration."
+msgstr "Éviter de traiter cette demande comme une preuve de reproduction exacte, d’exactitude factuelle ou de configuration d’échantillonnage fixe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeExact with modelMode and record actual supplied parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeExact avec modelMode et consigner séparément les paramètres effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structured logic mode"
+msgstr "mode de logique structurée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for organizing logical material, under the serving layer’s interpretation."
+msgstr "Un profil de réglages demandé pour organiser des éléments logiques, selon l’interprétation de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request concerns organization of logical material. It does not assert a formal proof, a structured abstract syntax tree or an executed solver capability."
+msgstr "La demande porte sur l’organisation d’éléments logiques. Elle n’affirme ni preuve formelle, ni arbre de syntaxe abstraite structuré, ni mise en œuvre effective d’une capacité de résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:logicRun gmeow:modelMode gmeow:modelModeStructuredLogic ."
+msgstr "Consigner cette demande : ex:logicRun gmeow:modelMode gmeow:modelModeStructuredLogic ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests an organized presentation of logical material."
+msgstr "Utiliser lorsque l’appelant demande une présentation organisée d’éléments logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this profile as a proof verdict, a parser result or evidence that a solver ran."
+msgstr "Éviter d’utiliser ce profil comme verdict de preuve, résultat d’analyse syntaxique ou preuve qu’un solveur a été exécuté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeStructuredLogic with modelMode and record actual supplied parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeStructuredLogic avec modelMode et consigner séparément les paramètres effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat mode"
+msgstr "mode de conversation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for conversational interaction, under the serving layer’s interpretation."
+msgstr "Un profil de réglages demandé pour une interaction conversationnelle, selon l’interprétation de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value records a conversational intent. It specifies no universal numerical settings and does not assert that a reply was generated, delivered or received."
+msgstr "La valeur consigne une intention conversationnelle. Elle ne définit aucun réglage numérique universel et n’affirme pas qu’une réponse a été produite, remise ou reçue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
+msgstr "Consigner cette demande : ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests conversational interaction rather than another named profile."
+msgstr "Utiliser lorsque l’appelant demande une interaction conversationnelle plutôt qu’un autre profil nommé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value to identify a model, assign a message role or claim that a conversation occurred."
+msgstr "Éviter d’utiliser cette valeur pour identifier un modèle, attribuer un rôle à un message ou affirmer qu’une conversation a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeChat with modelMode and record actual supplied parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeChat avec modelMode et consigner séparément les paramètres effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "instruction following mode"
+msgstr "mode de suivi des instructions"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for following supplied instructions, under the serving layer’s interpretation."
+msgstr "Un profil de réglages demandé pour suivre les instructions fournies, selon l’interprétation de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Following instructions is the requested intent. The value does not identify an instruction-tuned model or assert that the instructions were followed."
+msgstr "Le suivi des instructions est l’intention exprimée par la demande. La valeur n’identifie pas un modèle ajusté pour suivre des instructions et n’affirme pas que celles-ci ont été suivies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:instructRun gmeow:modelMode gmeow:modelModeInstruct ."
+msgstr "Consigner cette demande : ex:instructRun gmeow:modelMode gmeow:modelModeInstruct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests the serving layer’s instruction following profile."
+msgstr "Utiliser lorsque l’appelant demande le profil de suivi des instructions de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this profile as the instructions themselves, an authorization or evidence of compliance."
+msgstr "Éviter de traiter ce profil comme les instructions elles-mêmes, une autorisation ou une preuve de conformité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeInstruct with modelMode and retain the supplied instructions through hasPrompt."
+msgstr "Relier l’appel à gmeow:modelModeInstruct avec modelMode et conserver les instructions fournies au moyen de hasPrompt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "faithful mode"
+msgstr "mode de fidélité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for fidelity to supplied material, under the serving layer’s interpretation."
+msgstr "Un profil de réglages demandé pour rester fidèle aux éléments fournis, selon l’interprétation de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Fidelity to supplied material is the requested intent, distinct from a general request for precise adherence to material or instructions. It guarantees neither preservation nor the truth of the material."
+msgstr "La fidélité aux éléments fournis est l’intention exprimée par la demande, distincte d’une demande générale de suivi précis d’éléments ou d’instructions. Elle ne garantit ni leur préservation ni leur véracité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:faithfulRun gmeow:modelMode gmeow:modelModeFaithful ."
+msgstr "Consigner cette demande : ex:faithfulRun gmeow:modelMode gmeow:modelModeFaithful ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests fidelity to supplied material rather than inventive departure from it."
+msgstr "Utiliser lorsque l’appelant demande de rester fidèle aux éléments fournis plutôt que de s’en écarter par invention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this profile as evidence of factuality, complete source preservation or endorsement of the source."
+msgstr "Éviter de traiter ce profil comme une preuve d’exactitude factuelle, de préservation intégrale de la source ou d’approbation de celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeFaithful with modelMode and retain the supplied material through the invocation’s prompts and source provenance."
+msgstr "Relier l’appel à gmeow:modelModeFaithful avec modelMode et conserver les éléments fournis au moyen des prompts de l’appel et de la provenance des sources."

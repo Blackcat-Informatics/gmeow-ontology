@@ -21,12 +21,28 @@ lexical form; converting a string to token could lose source whitespace. There i
 sampler registry or speculative alignment to an external execution vocabulary:
 the supplied name alone does not establish an external sampler identity.
 
-Requested profiles are open quality values. The four initial individuals denote
+Requested profiles are open quality values. The nine named individuals denote
 intents rather than ranked output quality, mandatory parameter recipes or
 execution outcomes. Serving layers may supply additional profiles. An alias may
 identify a model endpoint while `modelMode` states what the caller requested;
 these remain separate relations. No profile implies any numerical setting,
 success, completion or reproducibility.
+
+The named profiles are deep thinking, creative, extremely creative, narrative,
+exact, structured logic, chat, instruct and faithful. Exact requests precision
+in following supplied material or instructions; faithful requests fidelity to
+supplied material. Structured logic requests organization of logical material,
+chat requests conversational interaction, and instruct requests following
+supplied instructions. These distinctions describe caller intent under the
+serving layer’s interpretation. They add no exclusivity, ranking, default or
+required profile. They establish no deterministic output, factuality, formal
+proof, structured abstract syntax tree, solver execution or reply delivery.
+
+The additional values use the existing ModelMode type and modelMode relation,
+without changing the existing property axioms or dependencies. The ordinary requested-profile scene
+retains distinct invocation, model and prompt identities with existing source
+provenance links. It illustrates requested profiles and separate supplied
+parameters without recording an executed call or its outputs.
 
 All authored axioms remain in `module.ttl`; downstream validation and external
 formal surfaces are projections of this source (Principle 17). The module adds
