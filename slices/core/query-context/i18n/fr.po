@@ -510,8 +510,8 @@ msgid "Query Frame Extent"
 msgstr "Extension de cadre de requête"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."
-msgstr "Contextes d’évaluation admis enregistrés pour un cadre dans une QueryFrameInterpretation. Une extension vide peut consigner une incompatibilité sans fournir un point de vue ou scénario utilisable."
+msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable frame."
+msgstr "Contextes d’évaluation admis enregistrés pour un cadre dans une QueryFrameInterpretation. Une extension vide peut consigner une incompatibilité sans fournir à elle seule un cadre utilisable."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to make component and result membership explicit within a named interpretation."
@@ -702,8 +702,8 @@ msgid "represented extent frame"
 msgstr "cadre représenté par l’extension"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
-msgstr "Standpoint ou Scenario représenté par l’extension. Les résultats vides incompatibles n’ont pas à nommer de cadre utilisable."
+msgid "A Standpoint, Scenario or QueryRestrictionFrame represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
+msgstr "Standpoint, Scenario ou QueryRestrictionFrame représenté par l’extension enregistrée. Les extensions de résultats vides incompatibles n’ont pas à nommer de cadre utilisable."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to retain the explicit represented extent frame binding."
@@ -1673,3 +1673,703 @@ msgstr "Cet horodatage n’entraîne ni valeur par défaut de l’instant prése
 msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
 msgstr "Un instant fourni : ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Restriction Frame"
+msgstr "Cadre de restriction de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object describing conjunctive query-frame restriction syntax through explicit typed atom roles. Its syntax identity is independent of any interpretation, admitted extent, realization or truth claim."
+msgstr "Objet informationnel décrivant la syntaxe conjonctive de restriction d’un cadre de requête par des rôles atomiques explicitement typés. Son identité syntaxique est indépendante de toute interprétation, extension admise, réalisation ou assertion de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied complete or partial restriction description without conflating it with a standpoint, scenario or world."
+msgstr "Utiliser pour conserver une description de restriction fournie, complète ou partielle, sans la confondre avec un point de vue, un scénario ou un monde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing atoms as actual, assigning an atom kind from generic Scenario typing or reading a syntax name as a usable result."
+msgstr "Éviter de traiter des atomes absents comme le cadre des faits réels, d’attribuer un type atomique à partir du seul typage Scenario ou de lire un nom syntaxique comme un résultat utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each supplied typed atom and restrictionComponentsComplete assertion; interpret the frame through separate QueryFrameExtent records."
+msgstr "Conserver chaque atome typé fourni et chaque assertion restrictionComponentsComplete ; interpréter le cadre par des enregistrements QueryFrameExtent distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IRI-key identity profile requires an explicitly complete finite inventory of absolute resource IRIs. A partial description supplies no canonical frame name."
+msgstr "Le profil d’identité par clés IRI exige un inventaire fini explicitement complet d’IRI absolus de ressources. Une description partielle ne fournit aucun nom canonique de cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied syntax description: ex:frame a gmeow:QueryRestrictionFrame ; gmeow:restrictionAssumed ex:scenario ."
+msgstr "Une description syntaxique fournie : ex:frame a gmeow:QueryRestrictionFrame ; gmeow:restrictionAssumed ex:scenario ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unrestricted actual query frame"
+msgstr "cadre de requête des faits réels sans restriction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The unrestricted query-frame syntax with an explicitly complete empty atom inventory. In a complete admitted interpretation its extent is the whole declared domain; it is neither a particular world nor a privileged standpoint."
+msgstr "Syntaxe de cadre de requête sans restriction dont l’inventaire atomique vide est explicitement complet. Dans une interprétation admise complète, son extension est le domaine déclaré entier ; elle n’est ni un monde particulier ni un point de vue privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit identity of conjunctive query-frame restriction composition."
+msgstr "Utiliser comme élément neutre explicite de la composition conjonctive de restrictions de cadres de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this frame from missing descriptions or identifying it with logic:actualWorld, a universal standpoint or globally true propositions."
+msgstr "Éviter de déduire ce cadre de descriptions absentes ou de l’identifier à logic:actualWorld, à un point de vue universel ou à des propositions globalement vraies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference actualQueryFrame explicitly; retain its interpretation-specific extent and apply the same realization and usable-result guards as for other meet results."
+msgstr "Référencer explicitement actualQueryFrame ; conserver son extension propre à l’interprétation et appliquer les mêmes conditions de réalisation et de résultat utilisable qu’aux autres résultats d’intersection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual contributes no atom to a conjunction. Its admitted interpretation domain remains nonempty under the existing profile; empty result extents elsewhere remain representable."
+msgstr "Le cadre des faits réels n’apporte aucun atome à une conjonction. Son domaine d’interprétation admis reste non vide selon le profil existant ; les extensions de résultats vides restent représentables ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unrestricted frame: ex:extent gmeow:extentFrame gmeow:actualQueryFrame ."
+msgstr "Un cadre explicite sans restriction : ex:extent gmeow:extentFrame gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint restriction"
+msgstr "restriction de point de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied standpoint atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 0. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "Rôle atomique de point de vue explicitement fourni dans l’inventaire d’un QueryRestrictionFrame, correspondant au type natif de composant 0. Ce rôle sélectionne une syntaxe de restriction sans affirmer son contenu ni attribuer une classe à sa cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the standpoint role for a supplied restriction resource."
+msgstr "Utiliser lorsque la source sélectionne explicitement le rôle de point de vue pour une ressource de restriction fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a standpoint atom as the observer, as a preferred perspective or as a claim that its contents hold globally."
+msgstr "Éviter de traiter un atome de point de vue comme l’observateur, comme une perspective préférée ou comme une assertion selon laquelle son contenu vaut globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionStandpoint; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "Rattacher la ressource originale par restrictionStandpoint ; le profil par clés IRI conserve son IRI absolu résolu exact et son type explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "Une même ressource dans des rôles atomiques différents reste un contenu typé distinct. Le cadre des faits réels n’est pas un atome, et un nom de cadre composite ne remplace pas ses atomes aplatis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionStandpoint ex:restriction ."
+msgstr "Un atome typé fourni : ex:frame gmeow:restrictionStandpoint ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterfactual restriction"
+msgstr "restriction contrefactuelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied counterfactual atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 1. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "Rôle atomique contrefactuel explicitement fourni dans l’inventaire d’un QueryRestrictionFrame, correspondant au type natif de composant 1. Ce rôle sélectionne une syntaxe de restriction sans affirmer son contenu ni attribuer une classe à sa cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the counterfactual role for a supplied restriction resource."
+msgstr "Utiliser lorsque la source sélectionne explicitement le rôle contrefactuel pour une ressource de restriction fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning counterfactual kind from generic Scenario typing or promoting a counterfactual restriction into unrestricted actual evidence."
+msgstr "Éviter d’attribuer le type contrefactuel à partir du typage générique Scenario ou de transformer une restriction contrefactuelle en élément de preuve relevant du cadre des faits réels sans restriction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionCounterfactual; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "Rattacher la ressource originale par restrictionCounterfactual ; le profil par clés IRI conserve son IRI absolu résolu exact et son type explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "Une même ressource dans des rôles atomiques différents reste un contenu typé distinct. Le cadre des faits réels n’est pas un atome, et un nom de cadre composite ne remplace pas ses atomes aplatis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionCounterfactual ex:restriction ."
+msgstr "Un atome typé fourni : ex:frame gmeow:restrictionCounterfactual ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "imagined restriction"
+msgstr "restriction imaginée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied imagined atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 2. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "Rôle atomique imaginé explicitement fourni dans l’inventaire d’un QueryRestrictionFrame, correspondant au type natif de composant 2. Ce rôle sélectionne une syntaxe de restriction sans affirmer son contenu ni attribuer une classe à sa cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the imagined role for a supplied restriction resource."
+msgstr "Utiliser lorsque la source sélectionne explicitement le rôle imaginé pour une ressource de restriction fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an imagined restriction as a proved possibility, an actual premise or an identity inferred from a display label."
+msgstr "Éviter de traiter une restriction imaginée comme une possibilité prouvée, une prémisse réelle ou une identité déduite d’une étiquette d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionImagined; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "Rattacher la ressource originale par restrictionImagined ; le profil par clés IRI conserve son IRI absolu résolu exact et son type explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "Une même ressource dans des rôles atomiques différents reste un contenu typé distinct. Le cadre des faits réels n’est pas un atome, et un nom de cadre composite ne remplace pas ses atomes aplatis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionImagined ex:restriction ."
+msgstr "Un atome typé fourni : ex:frame gmeow:restrictionImagined ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assumed restriction"
+msgstr "restriction supposée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied assumed atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 3. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "Rôle atomique supposé explicitement fourni dans l’inventaire d’un QueryRestrictionFrame, correspondant au type natif de composant 3. Ce rôle sélectionne une syntaxe de restriction sans affirmer son contenu ni attribuer une classe à sa cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the assumed role for a supplied restriction resource."
+msgstr "Utiliser lorsque la source sélectionne explicitement le rôle supposé pour une ressource de restriction fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the assumed kind from a Scenario label or turning an assumed premise into an actual assertion or a verified proof."
+msgstr "Éviter de déduire le type supposé d’une étiquette Scenario ou de transformer une prémisse supposée en assertion réelle ou en preuve vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionAssumed; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "Rattacher la ressource originale par restrictionAssumed ; le profil par clés IRI conserve son IRI absolu résolu exact et son type explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "Une même ressource dans des rôles atomiques différents reste un contenu typé distinct. Le cadre des faits réels n’est pas un atome, et un nom de cadre composite ne remplace pas ses atomes aplatis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionAssumed ex:restriction ."
+msgstr "Un atome typé fourni : ex:frame gmeow:restrictionAssumed ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licensed-falsehood restriction"
+msgstr "restriction de fausseté autorisée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied licensed-falsehood atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 4. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "Rôle atomique de fausseté autorisée explicitement fourni dans l’inventaire d’un QueryRestrictionFrame, correspondant au type natif de composant 4. Ce rôle sélectionne une syntaxe de restriction sans affirmer son contenu ni attribuer une classe à sa cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the licensed-falsehood role for a supplied restriction resource."
+msgstr "Utiliser lorsque la source sélectionne explicitement le rôle de fausseté autorisée pour une ressource de restriction fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a declared licensed-falsehood restriction as unrestricted actual evidence or as authority or permission conferred by this syntax."
+msgstr "Éviter de lire une restriction déclarée de fausseté autorisée comme un élément de preuve relevant du cadre des faits réels sans restriction ou comme une autorité ou une permission conférée par cette syntaxe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionLicensedFalsehood; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "Rattacher la ressource originale par restrictionLicensedFalsehood ; le profil par clés IRI conserve son IRI absolu résolu exact et son type explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "Une même ressource dans des rôles atomiques différents reste un contenu typé distinct. Le cadre des faits réels n’est pas un atome, et un nom de cadre composite ne remplace pas ses atomes aplatis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionLicensedFalsehood ex:restriction ."
+msgstr "Un atome typé fourni : ex:frame gmeow:restrictionLicensedFalsehood ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restriction components complete"
+msgstr "composants de restriction complets"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that the recorded typed atom inventory of a QueryRestrictionFrame is complete for its declared syntax. A true value selects a complete finite inventory for the IRI-key profile; it does not certify a hash or semantic realization."
+msgstr "Assertion source explicite selon laquelle l’inventaire atomique typé enregistré pour un QueryRestrictionFrame est complet pour sa syntaxe déclarée. La valeur true sélectionne un inventaire fini complet pour le profil par clés IRI ; elle ne certifie ni hachage ni réalisation sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a deliberately complete inventory, including an explicitly empty one, from partial or missing descriptions."
+msgstr "Utiliser pour distinguer un inventaire délibérément complet, y compris explicitement vide, de descriptions partielles ou absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting this flag from absent atoms or equating inventory completeness with interpretation completeness."
+msgstr "Éviter d’attribuer une valeur par défaut à cet indicateur à partir d’atomes absents ou de confondre complétude de l’inventaire et complétude de l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean. Canonical naming requires one explicit true value and the complete profile inputs; missing or conflicting declarations refuse that naming operation."
+msgstr "Conserver le booléen fourni. Le nommage canonique exige une unique valeur true explicite et toutes les entrées du profil ; des déclarations absentes ou contradictoires entraînent le refus de cette opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on one syntax description. It neither fetches missing descriptions nor verifies a canonical name or an interpretation."
+msgstr "Cet indicateur possède au plus une valeur par description syntaxique. Il ne récupère aucune description absente et ne vérifie ni nom canonique ni interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied inventory assertion: ex:frame gmeow:restrictionComponentsComplete true ."
+msgstr "Une assertion d’inventaire fournie : ex:frame gmeow:restrictionComponentsComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Meet Extent"
+msgstr "Extension d’intersection de cadres de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An interpretation-scoped result-extent descriptor for the intersection of an explicitly complete finite set of operand extents. Operand syntax may mix explicit standpoint and scenario restriction roles; their admitted contexts are intersected in one declared interpretation."
+msgstr "Descripteur d’extension de résultat, délimité par une interprétation, pour l’intersection d’un ensemble fini explicitement complet d’extensions opérandes. Leur syntaxe peut mêler des rôles explicites de restriction de point de vue et de scénario ; leurs contextes admis sont intersectés dans une même interprétation déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an n-ary mixed restriction meet while retaining the requested syntax separately from semantic realization and usable-frame exposure."
+msgstr "Utiliser pour une intersection n-aire de restrictions mixtes, en conservant la syntaxe demandée séparément de la réalisation sémantique et de l’exposition d’un cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inheriting binary left/right requirements, replacing universal-truth union with a meet or treating a descriptor as evidence of a realized nonempty result."
+msgstr "Éviter d’hériter des exigences binaires gauche/droite, de remplacer l’union de vérité universelle par une intersection ou de prendre un descripteur pour preuve d’un résultat réalisé non vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use inherited extentInterpretation, extentFrame and extentMember; retain meetOperand entries and explicit inventory and realization assertions."
+msgstr "Utiliser les propriétés héritées extentInterpretation, extentFrame et extentMember ; conserver les entrées meetOperand et les assertions explicites d’inventaire et de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero operands yield the unrestricted actual frame over the declared nonempty domain. One operand preserves its extent; an empty result remains incompatible and supplies no usable frame."
+msgstr "Zéro opérande donne le cadre des faits réels sans restriction sur le domaine déclaré non vide. Un seul opérande conserve son extension ; un résultat vide reste incompatible et ne fournit aucun cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied meet extent: ex:meet a gmeow:QueryFrameMeetExtent ; gmeow:meetOperand ex:leftExtent, ex:rightExtent ."
+msgstr "Une extension d’intersection fournie : ex:meet a gmeow:QueryFrameMeetExtent ; gmeow:meetOperand ex:leftExtent, ex:rightExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand"
+msgstr "opérande d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One supplied operand extent of a QueryFrameMeetExtent. Operands share the result extent’s interpretation and, under an explicit complete inventory, each selects one complete typed restriction-syntax identity."
+msgstr "Une extension opérande fournie d’un QueryFrameMeetExtent. Les opérandes partagent l’interprétation de l’extension résultat et, sous un inventaire explicitement complet, sélectionnent chacun une identité syntaxique de restriction typée complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain any finite number of supplied operand extents without ordered binary slots."
+msgstr "Utiliser pour conserver un nombre fini quelconque d’extensions opérandes fournies sans positions binaires ordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining interpretations, inventing operand membership or choosing a native kind from a raw scenario alias."
+msgstr "Éviter de combiner des interprétations, d’inventer l’appartenance à un opérande ou de choisir un type natif à partir d’un simple alias de scénario."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference operand QueryFrameExtent records with their own interpretation, admitted members and explicitly complete QueryRestrictionFrame descriptions."
+msgstr "Référencer les enregistrements QueryFrameExtent opérandes avec leur propre interprétation, leurs membres admis et leurs descriptions QueryRestrictionFrame explicitement complètes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operand relation is unordered and nonfunctional. Zero operands require an explicit complete inventory; absence alone does not describe the actual frame."
+msgstr "La relation d’opérande est non ordonnée et non fonctionnelle. Zéro opérande exige un inventaire explicitement complet ; l’absence seule ne décrit pas le cadre des faits réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied operands: ex:meet gmeow:meetOperand ex:standpointExtent, ex:scenarioExtent ."
+msgstr "Deux opérandes fournis : ex:meet gmeow:meetOperand ex:standpointExtent, ex:scenarioExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operands complete"
+msgstr "opérandes d’intersection complets"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that the recorded meetOperand set is the complete finite operand inventory for this meet extent. It is distinct from syntax-component completeness and interpretation completeness."
+msgstr "Assertion source explicite selon laquelle l’ensemble meetOperand enregistré est l’inventaire fini complet des opérandes de cette extension d’intersection. Elle est distincte de la complétude des composants syntaxiques et de celle de l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly closes the operand inventory, including a deliberate zero-operand meet."
+msgstr "Utiliser lorsque la source clôt explicitement l’inventaire des opérandes, y compris pour une intersection délibérément sans opérande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading an absent operand relation or flag as a complete empty inventory."
+msgstr "Éviter de lire une relation d’opérande ou un indicateur absent comme un inventaire vide complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean and all operand records. Realization requires an explicit true value together with complete operand syntax descriptions."
+msgstr "Conserver le booléen fourni et tous les enregistrements d’opérandes. La réalisation exige une valeur true explicite accompagnée de descriptions syntaxiques complètes des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on this extent record and supplies no missing operands, interpretation members or realization."
+msgstr "Cet indicateur possède au plus une valeur sur cet enregistrement d’extension et ne fournit aucun opérande absent, membre d’interprétation absent ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit operand inventory: ex:meet gmeow:meetOperandsComplete true ."
+msgstr "Un inventaire explicite des opérandes : ex:meet gmeow:meetOperandsComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet realized"
+msgstr "intersection réalisée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that this meet extent realizes its named restriction syntax in a declared complete interpretation with a complete operand inventory. It is not a runtime verification certificate."
+msgstr "Assertion source explicite selon laquelle cette extension d’intersection réalise sa syntaxe de restriction nommée dans une interprétation déclarée complète avec un inventaire complet des opérandes. Ce n’est pas un certificat de vérification à l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a supplied semantic realization claim from a partial request or syntax description."
+msgstr "Utiliser pour distinguer une assertion fournie de réalisation sémantique d’une demande partielle ou d’une description syntaxique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring realization from a canonical syntax name, an existing descriptor or missing result members."
+msgstr "Éviter de déduire une réalisation d’un nom syntaxique canonique, d’un descripteur existant ou de membres de résultat absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean; a true claim requires the interpretation and complete inventories and is subject to both exact intersection directions."
+msgstr "Conserver le booléen fourni ; une assertion true exige l’interprétation et les inventaires complets et reste soumise aux deux sens de l’intersection exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on this extent record. Realization can retain an empty result without exposing a usable frame."
+msgstr "Cet indicateur possède au plus une valeur sur cet enregistrement d’extension. Une réalisation peut conserver un résultat vide sans exposer de cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source realization assertion: ex:meet gmeow:meetRealized true ."
+msgstr "Une assertion source de réalisation : ex:meet gmeow:meetRealized true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable meet frame"
+msgstr "cadre d’intersection utilisable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly supplied complete restriction-syntax frame represented by a realized nonempty meet extent in its declared complete interpretation. It must be the same frame identified by that extent’s extentFrame."
+msgstr "Cadre syntaxique de restriction complet explicitement fourni, représenté par une extension d’intersection réalisée non vide dans son interprétation déclarée complète. Il doit être le même cadre que celui identifié par extentFrame sur cette extension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose a supplied usable result only with complete inventories, realization and a result member."
+msgstr "Utiliser pour exposer un résultat utilisable fourni uniquement avec des inventaires complets, une réalisation et un membre du résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing an empty, partial or unrealized result, inventing an admitted context or substituting a different frame."
+msgstr "Éviter d’exposer un résultat vide, partiel ou non réalisé, d’inventer un contexte admis ou de substituer un autre cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the existing complete syntax frame and retain the exact interpretation, realization claim, complete operand inventory and nonempty extent evidence."
+msgstr "Référencer le cadre syntaxique complet existant et conserver l’interprétation exacte, l’assertion de réalisation, l’inventaire complet des opérandes et la preuve d’une extension non vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation certifies no global semantic existence, proposition truth, privileged observer or native hash computation."
+msgstr "Cette relation ne certifie aucune existence sémantique globale, vérité de proposition, présence d’un observateur privilégié ou exécution native d’un hachage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied usable result: ex:meet gmeow:meetUsableFrame ex:combinedFrame ."
+msgstr "Un résultat utilisable fourni : ex:meet gmeow:meetUsableFrame ex:combinedFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restriction atom IRI constraint"
+msgstr "contrainte d’IRI des atomes de restriction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete restriction-syntax inventory uses IRI targets for each explicit atom role in the IRI-key profile."
+msgstr "Un inventaire syntaxique de restriction complet utilise des cibles IRI pour chacun des rôles atomiques explicites du profil par clés IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a non-IRI atom target in a declared complete profile inventory."
+msgstr "Utiliser pour rejeter une cible atomique autre qu’un IRI dans un inventaire déclaré complet selon le profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing blank nodes, literals or triple terms into resource identifiers."
+msgstr "Éviter de convertir de force des nœuds anonymes, littéraux ou termes triples en identifiants de ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each recorded target under the five explicit atom roles with the native RDF term-kind predicate."
+msgstr "Vérifier chaque cible enregistrée sous les cinq rôles atomiques explicites avec le prédicat natif de type de terme RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This structural obligation does not resolve relative source syntax, derive component keys or verify a frame name."
+msgstr "Cette obligation structurelle ne résout pas la syntaxe source relative, ne dérive pas de clés de composants et ne vérifie pas de nom de cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A profile obligation: gmeow:RestrictionAtomIriConstraint logic:formalizes gmeow:QueryRestrictionFrame ."
+msgstr "Une obligation du profil : gmeow:RestrictionAtomIriConstraint logic:formalizes gmeow:QueryRestrictionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual restriction inventory law"
+msgstr "loi de l’inventaire de restrictions du cadre des faits réels"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actualQueryFrame syntax has no atom under any of the five explicit restriction roles."
+msgstr "La syntaxe actualQueryFrame ne comporte aucun atome sous aucun des cinq rôles explicites de restriction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the explicitly empty complete inventory of the unrestricted actual frame."
+msgstr "Utiliser pour préserver l’inventaire vide explicitement complet du cadre des faits réels sans restriction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law by deleting unknown source descriptions or classifying a partial frame as actual."
+msgstr "Éviter de satisfaire cette loi en supprimant des descriptions sources inconnues ou en classant un cadre partiel comme cadre des faits réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the named actual syntax against any recorded atom-role witness; retain its explicit complete-inventory assertion."
+msgstr "Vérifier la syntaxe nommée du cadre des faits réels contre tout témoin enregistré d’un rôle atomique ; conserver son assertion explicite d’inventaire complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law constrains the fixed actual individual; it does not identify other incomplete or empty-looking descriptions with it."
+msgstr "Cette loi contraint l’individu fixe du cadre des faits réels ; elle ne l’identifie pas à d’autres descriptions incomplètes ou apparemment vides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual-syntax obligation: gmeow:ActualRestrictionInventoryLaw logic:formalizes gmeow:actualQueryFrame ."
+msgstr "Une obligation de syntaxe du cadre des faits réels : gmeow:ActualRestrictionInventoryLaw logic:formalizes gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual frame domain law"
+msgstr "loi du domaine du cadre des faits réels"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An extent representing actualQueryFrame in a complete admitted interpretation contains every member of that interpretation’s declared domain. The existing extent-domain law supplies the opposite inclusion."
+msgstr "Une extension représentant actualQueryFrame dans une interprétation admise complète contient chaque membre du domaine déclaré de cette interprétation. La loi existante du domaine des extensions fournit l’inclusion réciproque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain actual as the unrestricted query-frame identity within the declared model."
+msgstr "Utiliser pour conserver le cadre des faits réels comme élément neutre de cadre de requête sans restriction dans le modèle déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying this extent with a particular PossibleWorld or weakening the required nonempty interpretation domain."
+msgstr "Éviter d’identifier cette extension à un PossibleWorld particulier ou d’affaiblir l’exigence d’un domaine d’interprétation non vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every declared domain member, require its membership in each actual extent in that complete interpretation."
+msgstr "Pour chaque membre du domaine déclaré, exiger son appartenance à chaque extension du cadre des faits réels dans cette interprétation complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The equation is interpretation-relative and asserts no global truth or preferred standpoint. Empty result extents remain allowed for other frames."
+msgstr "Cette égalité est relative à l’interprétation et n’affirme aucune vérité globale ni aucun point de vue préféré. Les extensions de résultats vides restent permises pour les autres cadres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual-extent obligation: gmeow:ActualFrameDomainLaw logic:formalizes gmeow:actualQueryFrame ."
+msgstr "Une obligation d’extension du cadre des faits réels : gmeow:ActualFrameDomainLaw logic:formalizes gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand interpretation law"
+msgstr "loi de l’interprétation des opérandes d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every operand of a QueryFrameMeetExtent uses that meet extent’s same interpretation."
+msgstr "Chaque opérande d’un QueryFrameMeetExtent utilise la même interprétation que cette extension d’intersection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject mixed-interpretation operand inventories."
+msgstr "Utiliser pour rejeter les inventaires d’opérandes mêlant plusieurs interprétations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a shared model or importing members from an unrelated interpretation."
+msgstr "Éviter de fabriquer un modèle partagé ou d’importer des membres d’une interprétation sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare each supplied operand interpretation with the meet extent’s interpretation; preserve the inherited single-interpretation bound."
+msgstr "Comparer l’interprétation de chaque opérande fourni à celle de l’extension d’intersection ; préserver la limite héritée d’une seule interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The obligation applies to descriptors as well as realization claims and grants no semantic compatibility."
+msgstr "Cette obligation s’applique aux descripteurs comme aux assertions de réalisation et n’accorde aucune compatibilité sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operand-scope obligation: gmeow:MeetOperandInterpretationLaw logic:formalizes gmeow:meetOperand ."
+msgstr "Une obligation de portée des opérandes : gmeow:MeetOperandInterpretationLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand syntax law"
+msgstr "loi de la syntaxe des opérandes d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each operand in a declared complete meet inventory names an explicitly complete QueryRestrictionFrame syntax description."
+msgstr "Chaque opérande d’un inventaire d’intersection déclaré complet nomme une description syntaxique QueryRestrictionFrame explicitement complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain typed operand identities before canonical naming or semantic realization."
+msgstr "Utiliser pour conserver les identités typées des opérandes avant le nommage canonique ou la réalisation sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an assumed or counterfactual kind from generic Scenario typing."
+msgstr "Éviter de déduire un type supposé ou contrefactuel du seul typage générique Scenario."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every supplied operand, retain a represented syntax frame with explicit QueryRestrictionFrame typing and a true component-inventory assertion."
+msgstr "Pour chaque opérande fourni, conserver un cadre syntaxique représenté portant un typage QueryRestrictionFrame explicite et une assertion true d’inventaire de composants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The witness is supplied evidence, not an instruction to create a frame or fill absent atom descriptions."
+msgstr "Ce témoin est une preuve fournie, pas une instruction de créer un cadre ou de compléter des descriptions atomiques absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operand-syntax obligation: gmeow:MeetOperandSyntaxLaw logic:formalizes gmeow:meetOperand ."
+msgstr "Une obligation de syntaxe des opérandes : gmeow:MeetOperandSyntaxLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand syntax uniqueness law"
+msgstr "loi de l’unicité syntaxique des opérandes d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operand in a declared complete meet inventory selects one complete QueryRestrictionFrame syntax identity; two selected complete syntax resources must be equal."
+msgstr "Un opérande d’un inventaire d’intersection déclaré complet sélectionne une seule identité syntaxique QueryRestrictionFrame complète ; deux ressources syntaxiques complètes sélectionnées doivent être égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent raw extent aliases from ambiguously selecting the atom inventory used by a meet."
+msgstr "Utiliser pour empêcher que de simples alias d’extension sélectionnent de manière ambiguë l’inventaire atomique utilisé par une intersection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning an atom kind, realization or actual status to a raw Standpoint or Scenario alias."
+msgstr "Éviter d’attribuer un type atomique, une réalisation ou le statut de cadre des faits réels à un simple alias Standpoint ou Scenario."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of explicitly typed complete restriction frames named by the operand using bound RDF resource equality."
+msgstr "Comparer chaque paire de cadres de restriction explicitement typés complets nommés par l’opérande au moyen de l’égalité des ressources RDF liées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law does not impose a global one-frame limit on old extents or publish sameAs assertions."
+msgstr "Cette loi n’impose pas de limite globale d’un seul cadre aux anciennes extensions et ne publie pas d’assertions sameAs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A syntax-selection obligation: gmeow:MeetOperandSyntaxUniquenessLaw logic:formalizes gmeow:meetOperand ."
+msgstr "Une obligation de sélection syntaxique : gmeow:MeetOperandSyntaxUniquenessLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet realization evidence law"
+msgstr "loi des preuves de réalisation d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A meet realization claim retains its complete interpretation, complete operand inventory and explicitly complete represented restriction syntax."
+msgstr "Une assertion de réalisation d’intersection conserve son interprétation complète, l’inventaire complet de ses opérandes et la syntaxe de restriction représentée explicitement complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the supplied coordinates on which exact meet membership is interpreted."
+msgstr "Utiliser pour exiger les coordonnées fournies selon lesquelles l’appartenance exacte à l’intersection est interprétée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a realization flag as an engine certificate or creating missing model or syntax evidence."
+msgstr "Éviter de lire un indicateur de réalisation comme un certificat du moteur ou de créer des preuves de modèle ou de syntaxe absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one shared interpretation and syntax witness with both completeness assertions and the declared complete operand inventory."
+msgstr "Conserver une interprétation et un témoin syntaxique partagés avec les deux assertions de complétude et l’inventaire déclaré complet des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The interpretation and extent-frame bounds retain one coordinate each; realization may still record an empty incompatible result."
+msgstr "Les limites d’interprétation et de cadre d’extension conservent chacune une seule coordonnée ; la réalisation peut toujours enregistrer un résultat vide incompatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A realization obligation: gmeow:MeetRealizationEvidenceLaw logic:formalizes gmeow:meetRealized ."
+msgstr "Une obligation de réalisation : gmeow:MeetRealizationEvidenceLaw logic:formalizes gmeow:meetRealized ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-ary meet result membership law"
+msgstr "loi des membres du résultat d’intersection n-aire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every member of a realized meet result belongs to every supplied operand extent in the same complete interpretation and complete operand inventory."
+msgstr "Chaque membre d’un résultat d’intersection réalisé appartient à chaque extension opérande fournie dans la même interprétation complète et sous le même inventaire complet des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the result-to-operands direction of exact n-ary intersection."
+msgstr "Utiliser pour le sens allant du résultat aux opérandes dans l’intersection n-aire exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this subset direction alone as an exact intersection or inventing operand members."
+msgstr "Éviter de prendre ce seul sens d’inclusion pour une intersection exacte ou d’inventer des membres d’opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check every result member against each supplied operand under the explicit realization and completeness guards."
+msgstr "Vérifier chaque membre du résultat dans chaque opérande fourni sous les conditions explicites de réalisation et de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reverse common-membership law remains required. An empty result supplies no usable frame."
+msgstr "La loi réciproque des membres communs reste obligatoire. Un résultat vide ne fournit aucun cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An intersection obligation: gmeow:NaryMeetResultMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "Une obligation d’intersection : gmeow:NaryMeetResultMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-ary meet common membership law"
+msgstr "loi des membres communs d’intersection n-aire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every declared domain member that no supplied operand lacks belongs to the realized meet result in the same complete interpretation and complete operand inventory."
+msgstr "Chaque membre du domaine déclaré qui ne manque à aucun opérande fourni appartient au résultat d’intersection réalisé dans la même interprétation complète et sous le même inventaire complet des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the operands-to-result direction of exact n-ary intersection, including zero and singleton inventories."
+msgstr "Utiliser pour le sens allant des opérandes au résultat dans l’intersection n-aire exacte, y compris pour les inventaires sans opérande ou à un seul opérande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading absent operand assertions as a complete empty inventory or dropping this reverse direction."
+msgstr "Éviter de lire des assertions d’opérandes absentes comme un inventaire vide complet ou d’omettre ce sens réciproque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a declared domain member and require result membership when there is no operand lacking that member."
+msgstr "Lier un membre du domaine déclaré et exiger son appartenance au résultat lorsqu’aucun opérande ne manque de ce membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "With an explicit complete zero-operand inventory the result is the whole declared nonempty domain; one operand preserves that operand’s extent."
+msgstr "Avec un inventaire explicitement complet sans opérande, le résultat est le domaine déclaré non vide entier ; un seul opérande conserve l’extension de cet opérande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A common-membership obligation: gmeow:NaryMeetCommonMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "Une obligation d’appartenance commune : gmeow:NaryMeetCommonMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet syntax atom forward law"
+msgstr "loi directe des atomes syntaxiques d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed atom in a supplied complete operand syntax inventory occurs under that same role in the complete result syntax of a declared complete meet inventory."
+msgstr "Chaque atome typé d’un inventaire syntaxique complet d’opérande fourni figure sous le même rôle dans la syntaxe complète du résultat d’un inventaire d’intersection déclaré complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the operand-to-result direction of exact syntax-inventory union."
+msgstr "Utiliser pour le sens allant des opérandes au résultat dans l’union exacte des inventaires syntaxiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting a restriction kind, hashing a composite name as an atom or requiring semantic realization merely to retain syntax."
+msgstr "Éviter de convertir un type de restriction, de hacher un nom composite comme un atome ou d’exiger une réalisation sémantique pour simplement conserver la syntaxe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join operand extents to their complete syntax descriptions and preserve each original atom under its explicit role in the result syntax."
+msgstr "Joindre les extensions opérandes à leurs descriptions syntaxiques complètes et préserver chaque atome original sous son rôle explicite dans la syntaxe du résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This union concerns syntax atoms, not alternative witnesses or the universal-truth union of admitted contexts."
+msgstr "Cette union porte sur des atomes syntaxiques, pas sur des témoins alternatifs ni sur l’union de vérité universelle des contextes admis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A syntax-union obligation: gmeow:MeetSyntaxAtomForwardLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "Une obligation d’union syntaxique : gmeow:MeetSyntaxAtomForwardLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet syntax atom reverse law"
+msgstr "loi réciproque des atomes syntaxiques d’intersection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed atom of a complete meet result syntax is witnessed under the same role in a complete syntax inventory of one of that meet’s supplied operands."
+msgstr "Chaque atome typé d’une syntaxe complète de résultat d’intersection possède un témoin sous le même rôle dans l’inventaire syntaxique complet d’un des opérandes fournis de cette intersection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to exclude extra result atoms and complete the exact syntax-inventory union."
+msgstr "Utiliser pour exclure les atomes supplémentaires du résultat et compléter l’union exacte des inventaires syntaxiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the correlated operand/frame/atom witness with independent existence statements."
+msgstr "Éviter de remplacer le témoin corrélé opérande/cadre/atome par des assertions d’existence indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one joined witness from the meet operand through its complete syntax to the same explicit role and atom resource."
+msgstr "Conserver un témoin joint depuis l’opérande de l’intersection, passant par sa syntaxe complète, jusqu’au même rôle explicite et à la même ressource atomique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law applies independently of semantic realization and preserves kind distinctions for the same resource."
+msgstr "Cette loi s’applique indépendamment de la réalisation sémantique et préserve les distinctions de types pour une même ressource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reverse syntax-union obligation: gmeow:MeetSyntaxAtomReverseLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "Une obligation réciproque d’union syntaxique : gmeow:MeetSyntaxAtomReverseLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable meet frame law"
+msgstr "loi du cadre d’intersection utilisable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exposed meet frame is the same complete syntax frame represented by a realized nonempty result in a complete interpretation with a complete operand inventory."
+msgstr "Un cadre d’intersection exposé est le même cadre syntaxique complet que celui représenté par un résultat réalisé non vide dans une interprétation complète avec un inventaire complet des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require all supplied evidence before usable-result exposure."
+msgstr "Utiliser pour exiger toutes les preuves fournies avant d’exposer un résultat utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing a different frame, an empty result or a partial description as usable."
+msgstr "Éviter d’exposer comme utilisable un autre cadre, un résultat vide ou une description partielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact represented frame, shared interpretation, complete inventories, realization assertion and at least one result member."
+msgstr "Conserver le cadre représenté exact, l’interprétation partagée, les inventaires complets, l’assertion de réalisation et au moins un membre du résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No law manufactures the witness, certifies the source assertions or promotes a restriction into global truth or actuality."
+msgstr "Aucune loi ne fabrique le témoin, ne certifie les assertions sources et ne transforme une restriction en vérité globale ou en fait réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A usable-result obligation: gmeow:MeetUsableFrameLaw logic:formalizes gmeow:meetUsableFrame ."
+msgstr "Une obligation de résultat utilisable : gmeow:MeetUsableFrameLaw logic:formalizes gmeow:meetUsableFrame ."

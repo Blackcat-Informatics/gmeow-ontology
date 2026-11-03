@@ -510,8 +510,8 @@ msgid "Query Frame Extent"
 msgstr "查询框架外延"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."
-msgstr "某框架在一个 QueryFrameInterpretation 中记录的可接纳求值上下文。空外延可记录不相容，但本身不提供可用立场或情景。"
+msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable frame."
+msgstr "某框架在一个 QueryFrameInterpretation 中记录的可接纳求值上下文。空外延可记录不相容，但本身不提供可用框架。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to make component and result membership explicit within a named interpretation."
@@ -702,8 +702,8 @@ msgid "represented extent frame"
 msgstr "外延表示框架"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
-msgstr "已记录外延所表示的 Standpoint 或 Scenario。空且不相容的结果外延无需命名可用框架。"
+msgid "A Standpoint, Scenario or QueryRestrictionFrame represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
+msgstr "已记录外延所表示的 Standpoint、Scenario 或 QueryRestrictionFrame。空且不相容的结果外延无需命名可用框架。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to retain the explicit represented extent frame binding."
@@ -1673,3 +1673,703 @@ msgstr "此时间戳不导出当前时间默认值、事实的时间顺序或来
 msgctxt "https://blackcatinformatics.ca/gmeow/lossObservedAt|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied time: ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
 msgstr "提供的时间：ex:loss gmeow:lossObservedAt \"2026-11-03T12:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Restriction Frame"
+msgstr "查询限制框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object describing conjunctive query-frame restriction syntax through explicit typed atom roles. Its syntax identity is independent of any interpretation, admitted extent, realization or truth claim."
+msgstr "通过显式类型化原子角色描述查询框架限制合取语法的信息对象。其语法身份独立于任何解释、可接纳外延、实现或真值断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied complete or partial restriction description without conflating it with a standpoint, scenario or world."
+msgstr "用于保留所提供的完整或部分限制描述，而不将其与立场、情景或世界混同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing atoms as actual, assigning an atom kind from generic Scenario typing or reading a syntax name as a usable result."
+msgstr "避免将缺失原子视为现实框架、从通用 Scenario 类型推定原子种类，或将语法名称理解为可用结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each supplied typed atom and restrictionComponentsComplete assertion; interpret the frame through separate QueryFrameExtent records."
+msgstr "保留每个所提供的类型化原子及 restrictionComponentsComplete 断言；通过独立的 QueryFrameExtent 记录解释该框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IRI-key identity profile requires an explicitly complete finite inventory of absolute resource IRIs. A partial description supplies no canonical frame name."
+msgstr "IRI 键身份配置要求显式完整的有限资源绝对 IRI 清单。部分描述不提供规范框架名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRestrictionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied syntax description: ex:frame a gmeow:QueryRestrictionFrame ; gmeow:restrictionAssumed ex:scenario ."
+msgstr "所提供的语法描述：ex:frame a gmeow:QueryRestrictionFrame ; gmeow:restrictionAssumed ex:scenario ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unrestricted actual query frame"
+msgstr "无限制现实查询框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The unrestricted query-frame syntax with an explicitly complete empty atom inventory. In a complete admitted interpretation its extent is the whole declared domain; it is neither a particular world nor a privileged standpoint."
+msgstr "具有显式完整空原子清单的无限制查询框架语法。在完整的可接纳解释中，其外延为整个声明论域；它既不是某个特定世界，也不是特权立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit identity of conjunctive query-frame restriction composition."
+msgstr "用于查询框架限制合取组合的显式单位元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this frame from missing descriptions or identifying it with logic:actualWorld, a universal standpoint or globally true propositions."
+msgstr "避免从缺失描述推导此框架，或将其等同于 logic:actualWorld、普遍立场或全局为真的命题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference actualQueryFrame explicitly; retain its interpretation-specific extent and apply the same realization and usable-result guards as for other meet results."
+msgstr "显式引用 actualQueryFrame；保留其针对特定解释的外延，并应用与其他下确界结果相同的实现及可用结果守卫条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual contributes no atom to a conjunction. Its admitted interpretation domain remains nonempty under the existing profile; empty result extents elsewhere remain representable."
+msgstr "现实框架不向合取贡献任何原子。在现有配置下，其可接纳解释论域保持非空；其他空结果外延仍可表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actualQueryFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unrestricted frame: ex:extent gmeow:extentFrame gmeow:actualQueryFrame ."
+msgstr "显式无限制框架：ex:extent gmeow:extentFrame gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint restriction"
+msgstr "立场限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied standpoint atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 0. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "QueryRestrictionFrame 清单中显式提供的立场原子角色，对应原生组件种类 0。该角色选择限制语法，不断言其内容，也不为其目标赋予类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the standpoint role for a supplied restriction resource."
+msgstr "用于来源为所提供限制资源显式选择立场角色的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a standpoint atom as the observer, as a preferred perspective or as a claim that its contents hold globally."
+msgstr "避免将立场原子视为观察者、偏好视角，或其内容全局成立的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionStandpoint; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "通过 restrictionStandpoint 关联原始资源；IRI 键配置保留其精确的已解析绝对 IRI 及显式种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "同一资源处于不同原子角色时，仍是不同的类型化内容。现实框架不是原子，复合框架名称也不替代其展平后的原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionStandpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionStandpoint ex:restriction ."
+msgstr "所提供的类型化原子：ex:frame gmeow:restrictionStandpoint ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterfactual restriction"
+msgstr "反事实限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied counterfactual atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 1. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "QueryRestrictionFrame 清单中显式提供的反事实原子角色，对应原生组件种类 1。该角色选择限制语法，不断言其内容，也不为其目标赋予类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the counterfactual role for a supplied restriction resource."
+msgstr "用于来源为所提供限制资源显式选择反事实角色的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning counterfactual kind from generic Scenario typing or promoting a counterfactual restriction into unrestricted actual evidence."
+msgstr "避免从通用 Scenario 类型赋予反事实种类，或将反事实限制提升为无限制现实证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionCounterfactual; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "通过 restrictionCounterfactual 关联原始资源；IRI 键配置保留其精确的已解析绝对 IRI 及显式种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "同一资源处于不同原子角色时，仍是不同的类型化内容。现实框架不是原子，复合框架名称也不替代其展平后的原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionCounterfactual|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionCounterfactual ex:restriction ."
+msgstr "所提供的类型化原子：ex:frame gmeow:restrictionCounterfactual ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "imagined restriction"
+msgstr "想象限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied imagined atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 2. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "QueryRestrictionFrame 清单中显式提供的想象原子角色，对应原生组件种类 2。该角色选择限制语法，不断言其内容，也不为其目标赋予类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the imagined role for a supplied restriction resource."
+msgstr "用于来源为所提供限制资源显式选择想象角色的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an imagined restriction as a proved possibility, an actual premise or an identity inferred from a display label."
+msgstr "避免将想象限制视为已证明的可能性、现实前提，或从显示标签推断的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionImagined; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "通过 restrictionImagined 关联原始资源；IRI 键配置保留其精确的已解析绝对 IRI 及显式种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "同一资源处于不同原子角色时，仍是不同的类型化内容。现实框架不是原子，复合框架名称也不替代其展平后的原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionImagined|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionImagined ex:restriction ."
+msgstr "所提供的类型化原子：ex:frame gmeow:restrictionImagined ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assumed restriction"
+msgstr "假定限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied assumed atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 3. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "QueryRestrictionFrame 清单中显式提供的假定原子角色，对应原生组件种类 3。该角色选择限制语法，不断言其内容，也不为其目标赋予类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the assumed role for a supplied restriction resource."
+msgstr "用于来源为所提供限制资源显式选择假定角色的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the assumed kind from a Scenario label or turning an assumed premise into an actual assertion or a verified proof."
+msgstr "避免从 Scenario 标签推导假定种类，或将假定前提变成现实断言或已验证证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionAssumed; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "通过 restrictionAssumed 关联原始资源；IRI 键配置保留其精确的已解析绝对 IRI 及显式种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "同一资源处于不同原子角色时，仍是不同的类型化内容。现实框架不是原子，复合框架名称也不替代其展平后的原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionAssumed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionAssumed ex:restriction ."
+msgstr "所提供的类型化原子：ex:frame gmeow:restrictionAssumed ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licensed-falsehood restriction"
+msgstr "获准虚假限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly supplied licensed-falsehood atom role in a QueryRestrictionFrame inventory, corresponding to native component kind 4. The role selects restriction syntax without asserting its contents or assigning a class to its target."
+msgstr "QueryRestrictionFrame 清单中显式提供的获准虚假原子角色，对应原生组件种类 4。该角色选择限制语法，不断言其内容，也不为其目标赋予类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the licensed-falsehood role for a supplied restriction resource."
+msgstr "用于来源为所提供限制资源显式选择获准虚假角色的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a declared licensed-falsehood restriction as unrestricted actual evidence or as authority or permission conferred by this syntax."
+msgstr "避免将声明的获准虚假限制理解为无限制现实证据，或理解为此语法授予的权威或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original resource through restrictionLicensedFalsehood; the IRI-key profile retains its exact resolved absolute IRI and the explicit kind."
+msgstr "通过 restrictionLicensedFalsehood 关联原始资源；IRI 键配置保留其精确的已解析绝对 IRI 及显式种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same resource in different atom roles remains distinct typed content. Actual is not an atom, and a composite frame name is not substituted for its flattened atoms."
+msgstr "同一资源处于不同原子角色时，仍是不同的类型化内容。现实框架不是原子，复合框架名称也不替代其展平后的原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionLicensedFalsehood|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied typed atom: ex:frame gmeow:restrictionLicensedFalsehood ex:restriction ."
+msgstr "所提供的类型化原子：ex:frame gmeow:restrictionLicensedFalsehood ex:restriction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restriction components complete"
+msgstr "限制组件完整"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that the recorded typed atom inventory of a QueryRestrictionFrame is complete for its declared syntax. A true value selects a complete finite inventory for the IRI-key profile; it does not certify a hash or semantic realization."
+msgstr "显式来源断言，声明 QueryRestrictionFrame 已记录的类型化原子清单对其声明语法而言是完整的。true 值为 IRI 键配置选择完整有限清单；它不认证哈希或语义实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a deliberately complete inventory, including an explicitly empty one, from partial or missing descriptions."
+msgstr "用于将有意提供的完整清单，包括显式空清单，与部分或缺失描述区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting this flag from absent atoms or equating inventory completeness with interpretation completeness."
+msgstr "避免根据原子缺失为此标志赋默认值，或将清单完整性等同于解释完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean. Canonical naming requires one explicit true value and the complete profile inputs; missing or conflicting declarations refuse that naming operation."
+msgstr "保留所提供的布尔值。规范命名要求唯一一个显式 true 值以及完整的配置输入；声明缺失或冲突时拒绝该命名操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on one syntax description. It neither fetches missing descriptions nor verifies a canonical name or an interpretation."
+msgstr "在一个语法描述上，此标志至多取单个值。它既不获取缺失描述，也不验证规范名称或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restrictionComponentsComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied inventory assertion: ex:frame gmeow:restrictionComponentsComplete true ."
+msgstr "所提供的清单断言：ex:frame gmeow:restrictionComponentsComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Meet Extent"
+msgstr "查询框架下确界外延"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An interpretation-scoped result-extent descriptor for the intersection of an explicitly complete finite set of operand extents. Operand syntax may mix explicit standpoint and scenario restriction roles; their admitted contexts are intersected in one declared interpretation."
+msgstr "在解释作用域内描述结果外延的描述符，用于对显式完整的有限操作数外延集取交集。操作数语法可混合显式立场与情景限制角色；在一个声明解释中对其可接纳上下文取交集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an n-ary mixed restriction meet while retaining the requested syntax separately from semantic realization and usable-frame exposure."
+msgstr "用于多元混合限制下确界，同时将请求语法与语义实现及可用框架公开分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inheriting binary left/right requirements, replacing universal-truth union with a meet or treating a descriptor as evidence of a realized nonempty result."
+msgstr "避免继承二元左／右要求、用下确界替代普遍真值并集，或将描述符视为已实现非空结果的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use inherited extentInterpretation, extentFrame and extentMember; retain meetOperand entries and explicit inventory and realization assertions."
+msgstr "使用继承的 extentInterpretation、extentFrame 及 extentMember；保留 meetOperand 条目和显式清单及实现断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero operands yield the unrestricted actual frame over the declared nonempty domain. One operand preserves its extent; an empty result remains incompatible and supplies no usable frame."
+msgstr "零个操作数在声明的非空论域上产生无限制现实框架。单个操作数保留其外延；空结果仍不相容且不提供可用框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameMeetExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied meet extent: ex:meet a gmeow:QueryFrameMeetExtent ; gmeow:meetOperand ex:leftExtent, ex:rightExtent ."
+msgstr "所提供的下确界外延：ex:meet a gmeow:QueryFrameMeetExtent ; gmeow:meetOperand ex:leftExtent, ex:rightExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand"
+msgstr "下确界操作数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One supplied operand extent of a QueryFrameMeetExtent. Operands share the result extent’s interpretation and, under an explicit complete inventory, each selects one complete typed restriction-syntax identity."
+msgstr "QueryFrameMeetExtent 的一个所提供操作数外延。操作数共享结果外延的解释；在显式完整清单下，每个操作数选择一个完整的类型化限制语法身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain any finite number of supplied operand extents without ordered binary slots."
+msgstr "用于保留任意有限数量的所提供操作数外延，无需有序二元位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining interpretations, inventing operand membership or choosing a native kind from a raw scenario alias."
+msgstr "避免组合不同解释、虚构操作数成员关系，或根据原始情景别名选择原生种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference operand QueryFrameExtent records with their own interpretation, admitted members and explicitly complete QueryRestrictionFrame descriptions."
+msgstr "引用操作数 QueryFrameExtent 记录及其自身解释、可接纳成员和显式完整的 QueryRestrictionFrame 描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operand relation is unordered and nonfunctional. Zero operands require an explicit complete inventory; absence alone does not describe the actual frame."
+msgstr "操作数关系无序且非函数性。零个操作数要求显式完整清单；仅凭缺失不构成现实框架描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperand|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied operands: ex:meet gmeow:meetOperand ex:standpointExtent, ex:scenarioExtent ."
+msgstr "两个所提供的操作数：ex:meet gmeow:meetOperand ex:standpointExtent, ex:scenarioExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operands complete"
+msgstr "下确界操作数完整"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that the recorded meetOperand set is the complete finite operand inventory for this meet extent. It is distinct from syntax-component completeness and interpretation completeness."
+msgstr "显式来源断言，声明已记录 meetOperand 集是此下确界外延的完整有限操作数清单。它区别于语法组件完整性及解释完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly closes the operand inventory, including a deliberate zero-operand meet."
+msgstr "用于来源显式封闭操作数清单的情形，包括有意提供的零操作数下确界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading an absent operand relation or flag as a complete empty inventory."
+msgstr "避免将缺失的操作数关系或标志理解为完整空清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean and all operand records. Realization requires an explicit true value together with complete operand syntax descriptions."
+msgstr "保留所提供的布尔值及所有操作数记录。实现要求显式 true 值和完整的操作数语法描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on this extent record and supplies no missing operands, interpretation members or realization."
+msgstr "在此外延记录上，此标志至多取单个值，不提供任何缺失操作数、解释成员或实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetOperandsComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit operand inventory: ex:meet gmeow:meetOperandsComplete true ."
+msgstr "显式操作数清单：ex:meet gmeow:meetOperandsComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet realized"
+msgstr "下确界已实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source assertion that this meet extent realizes its named restriction syntax in a declared complete interpretation with a complete operand inventory. It is not a runtime verification certificate."
+msgstr "显式来源断言，声明此下确界外延在具有完整操作数清单的声明完整解释中，实现其具名限制语法。它不是运行时验证证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a supplied semantic realization claim from a partial request or syntax description."
+msgstr "用于将所提供的语义实现断言与部分请求或语法描述区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring realization from a canonical syntax name, an existing descriptor or missing result members."
+msgstr "避免从规范语法名称、已有描述符或结果成员缺失推断实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied boolean; a true claim requires the interpretation and complete inventories and is subject to both exact intersection directions."
+msgstr "保留所提供的布尔值；true 断言要求解释及完整清单，并须遵守精确交集的两个方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag is at most single-valued on this extent record. Realization can retain an empty result without exposing a usable frame."
+msgstr "在此外延记录上，此标志至多取单个值。实现可以保留空结果而不公开可用框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetRealized|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source realization assertion: ex:meet gmeow:meetRealized true ."
+msgstr "来源实现断言：ex:meet gmeow:meetRealized true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable meet frame"
+msgstr "可用下确界框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly supplied complete restriction-syntax frame represented by a realized nonempty meet extent in its declared complete interpretation. It must be the same frame identified by that extent’s extentFrame."
+msgstr "在声明完整解释中，由已实现非空下确界外延表示、且显式提供的完整限制语法框架。它必须是该外延的 extentFrame 所标识的同一框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose a supplied usable result only with complete inventories, realization and a result member."
+msgstr "仅在具备完整清单、实现及一个结果成员时，用于公开所提供的可用结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing an empty, partial or unrealized result, inventing an admitted context or substituting a different frame."
+msgstr "避免公开空、部分或未实现结果，虚构可接纳上下文，或替换为其他框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the existing complete syntax frame and retain the exact interpretation, realization claim, complete operand inventory and nonempty extent evidence."
+msgstr "引用已有完整语法框架，并保留精确解释、实现断言、完整操作数清单及非空外延证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation certifies no global semantic existence, proposition truth, privileged observer or native hash computation."
+msgstr "此关系不认证全局语义存在、命题真值、特权观察者或原生哈希计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetUsableFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied usable result: ex:meet gmeow:meetUsableFrame ex:combinedFrame ."
+msgstr "所提供的可用结果：ex:meet gmeow:meetUsableFrame ex:combinedFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restriction atom IRI constraint"
+msgstr "限制原子 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete restriction-syntax inventory uses IRI targets for each explicit atom role in the IRI-key profile."
+msgstr "在 IRI 键配置中，完整限制语法清单的每个显式原子角色均使用 IRI 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a non-IRI atom target in a declared complete profile inventory."
+msgstr "用于拒绝声明完整配置清单中的非 IRI 原子目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing blank nodes, literals or triple terms into resource identifiers."
+msgstr "避免将空白节点、字面量或三元组项强制转换为资源标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each recorded target under the five explicit atom roles with the native RDF term-kind predicate."
+msgstr "使用原生 RDF 项种类谓词检查五个显式原子角色下的每个已记录目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This structural obligation does not resolve relative source syntax, derive component keys or verify a frame name."
+msgstr "此结构义务不解析相对来源语法、不导出组件键，也不验证框架名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestrictionAtomIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A profile obligation: gmeow:RestrictionAtomIriConstraint logic:formalizes gmeow:QueryRestrictionFrame ."
+msgstr "配置义务：gmeow:RestrictionAtomIriConstraint logic:formalizes gmeow:QueryRestrictionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual restriction inventory law"
+msgstr "现实限制清单定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actualQueryFrame syntax has no atom under any of the five explicit restriction roles."
+msgstr "actualQueryFrame 语法在五个显式限制角色中的任一角色下均无原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the explicitly empty complete inventory of the unrestricted actual frame."
+msgstr "用于保留无限制现实框架的显式完整空清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law by deleting unknown source descriptions or classifying a partial frame as actual."
+msgstr "避免通过删除未知来源描述或将部分框架归类为现实框架来满足此定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the named actual syntax against any recorded atom-role witness; retain its explicit complete-inventory assertion."
+msgstr "对照任何已记录原子角色见证检查具名现实语法；保留其显式完整清单断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law constrains the fixed actual individual; it does not identify other incomplete or empty-looking descriptions with it."
+msgstr "此定律约束固定现实个体；它不将其他不完整或表面为空的描述与该个体等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualRestrictionInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual-syntax obligation: gmeow:ActualRestrictionInventoryLaw logic:formalizes gmeow:actualQueryFrame ."
+msgstr "现实语法义务：gmeow:ActualRestrictionInventoryLaw logic:formalizes gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual frame domain law"
+msgstr "现实框架论域定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An extent representing actualQueryFrame in a complete admitted interpretation contains every member of that interpretation’s declared domain. The existing extent-domain law supplies the opposite inclusion."
+msgstr "在完整可接纳解释中，表示 actualQueryFrame 的外延包含该解释声明论域的每个成员。现有外延论域定律提供反向包含。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain actual as the unrestricted query-frame identity within the declared model."
+msgstr "用于在声明模型中保留现实框架作为无限制查询框架的单位元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying this extent with a particular PossibleWorld or weakening the required nonempty interpretation domain."
+msgstr "避免将此外延等同于某个特定 PossibleWorld，或弱化解释论域必须非空的要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every declared domain member, require its membership in each actual extent in that complete interpretation."
+msgstr "对每个声明论域成员，要求其属于该完整解释中的每个现实框架外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The equation is interpretation-relative and asserts no global truth or preferred standpoint. Empty result extents remain allowed for other frames."
+msgstr "此等式相对于解释成立，不断言全局真值或偏好立场。其他框架仍允许空结果外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActualFrameDomainLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual-extent obligation: gmeow:ActualFrameDomainLaw logic:formalizes gmeow:actualQueryFrame ."
+msgstr "现实外延义务：gmeow:ActualFrameDomainLaw logic:formalizes gmeow:actualQueryFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand interpretation law"
+msgstr "下确界操作数解释定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every operand of a QueryFrameMeetExtent uses that meet extent’s same interpretation."
+msgstr "QueryFrameMeetExtent 的每个操作数都使用与该下确界外延相同的解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject mixed-interpretation operand inventories."
+msgstr "用于拒绝混合不同解释的操作数清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a shared model or importing members from an unrelated interpretation."
+msgstr "避免制造共享模型或从无关解释导入成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare each supplied operand interpretation with the meet extent’s interpretation; preserve the inherited single-interpretation bound."
+msgstr "比较每个所提供操作数的解释与下确界外延的解释；保留继承的单解释界限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The obligation applies to descriptors as well as realization claims and grants no semantic compatibility."
+msgstr "此义务同时适用于描述符及实现断言，不授予语义相容性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandInterpretationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operand-scope obligation: gmeow:MeetOperandInterpretationLaw logic:formalizes gmeow:meetOperand ."
+msgstr "操作数作用域义务：gmeow:MeetOperandInterpretationLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand syntax law"
+msgstr "下确界操作数语法定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each operand in a declared complete meet inventory names an explicitly complete QueryRestrictionFrame syntax description."
+msgstr "声明完整下确界清单中的每个操作数都命名一个显式完整的 QueryRestrictionFrame 语法描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain typed operand identities before canonical naming or semantic realization."
+msgstr "用于在规范命名或语义实现之前保留类型化操作数身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an assumed or counterfactual kind from generic Scenario typing."
+msgstr "避免从通用 Scenario 类型推断假定或反事实种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every supplied operand, retain a represented syntax frame with explicit QueryRestrictionFrame typing and a true component-inventory assertion."
+msgstr "对每个所提供操作数，保留被表示的语法框架，并具备显式 QueryRestrictionFrame 类型及取值为 true 的组件清单断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The witness is supplied evidence, not an instruction to create a frame or fill absent atom descriptions."
+msgstr "见证是所提供的证据，不是创建框架或补齐缺失原子描述的指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operand-syntax obligation: gmeow:MeetOperandSyntaxLaw logic:formalizes gmeow:meetOperand ."
+msgstr "操作数语法义务：gmeow:MeetOperandSyntaxLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet operand syntax uniqueness law"
+msgstr "下确界操作数语法唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operand in a declared complete meet inventory selects one complete QueryRestrictionFrame syntax identity; two selected complete syntax resources must be equal."
+msgstr "声明完整下确界清单中的一个操作数选择一个完整 QueryRestrictionFrame 语法身份；两个被选中的完整语法资源必须相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent raw extent aliases from ambiguously selecting the atom inventory used by a meet."
+msgstr "用于防止原始外延别名含糊地选择下确界所用的原子清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning an atom kind, realization or actual status to a raw Standpoint or Scenario alias."
+msgstr "避免为原始 Standpoint 或 Scenario 别名赋予原子种类、实现或现实状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of explicitly typed complete restriction frames named by the operand using bound RDF resource equality."
+msgstr "使用绑定 RDF 资源相等关系，比较由该操作数命名的每一对显式类型化完整限制框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law does not impose a global one-frame limit on old extents or publish sameAs assertions."
+msgstr "此定律不对旧外延施加全局单框架限制，也不发布 sameAs 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetOperandSyntaxUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A syntax-selection obligation: gmeow:MeetOperandSyntaxUniquenessLaw logic:formalizes gmeow:meetOperand ."
+msgstr "语法选择义务：gmeow:MeetOperandSyntaxUniquenessLaw logic:formalizes gmeow:meetOperand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet realization evidence law"
+msgstr "下确界实现证据定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A meet realization claim retains its complete interpretation, complete operand inventory and explicitly complete represented restriction syntax."
+msgstr "下确界实现断言保留其完整解释、完整操作数清单及显式完整的被表示限制语法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the supplied coordinates on which exact meet membership is interpreted."
+msgstr "用于要求所提供的坐标，以便据此解释精确下确界成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a realization flag as an engine certificate or creating missing model or syntax evidence."
+msgstr "避免将实现标志理解为引擎证书，或创建缺失的模型或语法证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one shared interpretation and syntax witness with both completeness assertions and the declared complete operand inventory."
+msgstr "保留一个共享解释及语法见证，并保留两者的完整性断言和声明完整操作数清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The interpretation and extent-frame bounds retain one coordinate each; realization may still record an empty incompatible result."
+msgstr "解释及外延框架界限各保留一个坐标；实现仍可记录空且不相容的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetRealizationEvidenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A realization obligation: gmeow:MeetRealizationEvidenceLaw logic:formalizes gmeow:meetRealized ."
+msgstr "实现义务：gmeow:MeetRealizationEvidenceLaw logic:formalizes gmeow:meetRealized ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-ary meet result membership law"
+msgstr "多元下确界结果成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every member of a realized meet result belongs to every supplied operand extent in the same complete interpretation and complete operand inventory."
+msgstr "在同一完整解释及完整操作数清单中，已实现下确界结果的每个成员都属于所提供的每个操作数外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the result-to-operands direction of exact n-ary intersection."
+msgstr "用于精确多元交集的结果到操作数方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this subset direction alone as an exact intersection or inventing operand members."
+msgstr "避免仅凭此子集方向就将其视为精确交集，或虚构操作数成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check every result member against each supplied operand under the explicit realization and completeness guards."
+msgstr "在显式实现及完整性守卫条件下，对照每个所提供操作数检查每个结果成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reverse common-membership law remains required. An empty result supplies no usable frame."
+msgstr "反向共同成员定律仍是必需的。空结果不提供可用框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An intersection obligation: gmeow:NaryMeetResultMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "交集义务：gmeow:NaryMeetResultMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-ary meet common membership law"
+msgstr "多元下确界共同成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every declared domain member that no supplied operand lacks belongs to the realized meet result in the same complete interpretation and complete operand inventory."
+msgstr "每个声明论域成员，只要不存在缺少它的所提供操作数，就属于同一完整解释及完整操作数清单中的已实现下确界结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the operands-to-result direction of exact n-ary intersection, including zero and singleton inventories."
+msgstr "用于精确多元交集的操作数到结果方向，包括零操作数及单操作数清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading absent operand assertions as a complete empty inventory or dropping this reverse direction."
+msgstr "避免将缺失的操作数断言理解为完整空清单，或省略此反向要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a declared domain member and require result membership when there is no operand lacking that member."
+msgstr "绑定一个声明论域成员；若不存在缺少该成员的操作数，则要求该成员属于结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "With an explicit complete zero-operand inventory the result is the whole declared nonempty domain; one operand preserves that operand’s extent."
+msgstr "在显式完整零操作数清单下，结果是整个声明非空论域；单个操作数保留其自身外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NaryMeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A common-membership obligation: gmeow:NaryMeetCommonMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "共同成员义务：gmeow:NaryMeetCommonMembershipLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet syntax atom forward law"
+msgstr "下确界语法原子正向定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed atom in a supplied complete operand syntax inventory occurs under that same role in the complete result syntax of a declared complete meet inventory."
+msgstr "在声明完整下确界清单中，所提供完整操作数语法清单内的每个类型化原子，都以相同角色出现在完整结果语法中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the operand-to-result direction of exact syntax-inventory union."
+msgstr "用于精确语法清单并集的操作数到结果方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting a restriction kind, hashing a composite name as an atom or requiring semantic realization merely to retain syntax."
+msgstr "避免转换限制种类、将复合名称作为原子进行哈希，或仅为保留语法而要求语义实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join operand extents to their complete syntax descriptions and preserve each original atom under its explicit role in the result syntax."
+msgstr "将操作数外延与其完整语法描述连接，并在结果语法中以其显式角色保留每个原始原子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This union concerns syntax atoms, not alternative witnesses or the universal-truth union of admitted contexts."
+msgstr "此并集涉及语法原子，不是备选见证或可接纳上下文的普遍真值并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomForwardLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A syntax-union obligation: gmeow:MeetSyntaxAtomForwardLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "语法并集义务：gmeow:MeetSyntaxAtomForwardLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meet syntax atom reverse law"
+msgstr "下确界语法原子反向定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed atom of a complete meet result syntax is witnessed under the same role in a complete syntax inventory of one of that meet’s supplied operands."
+msgstr "完整下确界结果语法的每个类型化原子，都在该下确界某个所提供操作数的完整语法清单中具有相同角色的见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to exclude extra result atoms and complete the exact syntax-inventory union."
+msgstr "用于排除多余结果原子并完成精确语法清单并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the correlated operand/frame/atom witness with independent existence statements."
+msgstr "避免将相关联的操作数／框架／原子见证替换为彼此独立的存在断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one joined witness from the meet operand through its complete syntax to the same explicit role and atom resource."
+msgstr "保留一个连接见证，从下确界操作数经由其完整语法，关联至同一显式角色及原子资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law applies independently of semantic realization and preserves kind distinctions for the same resource."
+msgstr "此定律独立于语义实现适用，并为同一资源保留种类区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetSyntaxAtomReverseLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reverse syntax-union obligation: gmeow:MeetSyntaxAtomReverseLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+msgstr "反向语法并集义务：gmeow:MeetSyntaxAtomReverseLaw logic:formalizes gmeow:QueryFrameMeetExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable meet frame law"
+msgstr "可用下确界框架定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exposed meet frame is the same complete syntax frame represented by a realized nonempty result in a complete interpretation with a complete operand inventory."
+msgstr "公开的下确界框架，必须是在具有完整操作数清单的完整解释中，由已实现非空结果表示的同一完整语法框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require all supplied evidence before usable-result exposure."
+msgstr "用于在公开可用结果之前要求所有所提供证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exposing a different frame, an empty result or a partial description as usable."
+msgstr "避免将其他框架、空结果或部分描述作为可用项公开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact represented frame, shared interpretation, complete inventories, realization assertion and at least one result member."
+msgstr "保留精确的被表示框架、共享解释、完整清单、实现断言及至少一个结果成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No law manufactures the witness, certifies the source assertions or promotes a restriction into global truth or actuality."
+msgstr "任何定律都不制造见证、不认证来源断言，也不将限制提升为全局真值或现实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetUsableFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A usable-result obligation: gmeow:MeetUsableFrameLaw logic:formalizes gmeow:meetUsableFrame ."
+msgstr "可用结果义务：gmeow:MeetUsableFrameLaw logic:formalizes gmeow:meetUsableFrame ."
