@@ -2335,16 +2335,16 @@ msgid "Clifford Involution"
 msgstr "Involution de Clifford"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
-msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
-msgstr "Une opération d'ordre deux sur une algèbre de Clifford, dont l'action sur les degrés et l'ordre du produit est déclarée. Ce n’est pas un endomorphisme algébrique arbitraire : l’appliquer deux fois doit restituer l’entrée."
+msgid "A self-inverse operation on a Clifford algebra, with its action on grades and product order declared. Applying it twice returns the input; the operation may specialize to the identity."
+msgstr "Une opération sur une algèbre de Clifford qui est son propre inverse, dont l’action sur les degrés et sur l’ordre du produit est déclarée. L’appliquer deux fois restitue l’entrée ; l’opération peut se spécialiser en l’identité."
 
 msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
 msgid "Clifford Reversion"
 msgstr "Réversion de Clifford"
 
 msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
-msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
-msgstr "L'anti-involution qui inverse l'ordre des générateurs de base dans chaque lame. Ce n’est pas l’involution de degré ; ses signes dépendant du degré proviennent de l’inversion de l’ordre."
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. Its grade-dependent signs arise from order reversal."
+msgstr "L’anti-involution de Clifford qui inverse l’ordre des générateurs de base dans chaque lame. Ses signes dépendant du degré proviennent de l’inversion de l’ordre."
 
 msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
 msgid "Grade Involution"
@@ -2352,15 +2352,15 @@ msgstr "Involution de degré"
 
 msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|skos:definition"
 msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
-msgstr "L'involution qui nie les composantes de degré impair et préserve celles de degré pair."
+msgstr "L’involution de Clifford qui change le signe des composantes de degré impair et préserve celles de degré pair."
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|rdfs:label"
 msgid "Clifford Conjugation"
 msgstr "Conjugaison de Clifford"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
-msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
-msgstr "La composition de l'involution de degré et de la réversion. Ce n’est ni la réversion seule ni l’involution de degré seule."
+msgid "The composition of grade involution and reversion in a Clifford algebra. These commuting operations define a self-inverse anti-automorphism."
+msgstr "La composition de l’involution de degré et de la réversion dans une algèbre de Clifford. Ces opérations qui commutent définissent un anti-automorphisme qui est son propre inverse."
 
 msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
 msgid "Rotor"
@@ -10196,3 +10196,115 @@ msgstr "Ne pas traiter la projection de degré comme l’extraction d’une coor
 msgctxt "https://blackcatinformatics.ca/math/GradeProjection|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the math:GradeProjection in its multivector, grade and algebra context without inventing dedicated slots or a cardinality gate. The native real diagonal rational method rejects grades above the generator count and returns the zero multivector for a valid absent grade; preserve that bounded behavior and separate calculation evidence from the declaration."
 msgstr "Décrire la math:GradeProjection dans son contexte de multivecteur, de degré et d’algèbre sans inventer d’emplacements dédiés ni de contrôle de cardinalité. La méthode native réelle diagonale rationnelle rejette les degrés supérieurs au nombre de générateurs et renvoie le multivecteur nul pour un degré valide absent ; préserver ce comportement borné et séparer les éléments probants de calcul de la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Involution"
+msgstr "Involution de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-inverse operation on a Clifford algebra, with its action on grades and product order declared. Applying it twice returns the input; the operation may specialize to the identity."
+msgstr "Une opération sur une algèbre de Clifford qui est son propre inverse, dont l’action sur les degrés et sur l’ordre du produit est déclarée. L’appliquer deux fois restitue l’entrée ; l’opération peut se spécialiser en l’identité."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Self-inverse means f(f(x)) = x, without requiring a nonidentity map. Grade involution preserves product order; reversion and Clifford conjugation reverse it. Their maps may coincide in a particular algebra or on particular inputs."
+msgstr "Être son propre inverse signifie f(f(x)) = x, sans exiger une application différente de l’identité. L’involution de degré préserve l’ordre du produit ; la réversion et la conjugaison de Clifford l’inversent. Leurs applications peuvent coïncider dans une algèbre particulière ou sur certains arguments."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), reversion sends 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ to 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃; applying it again returns the original multivector."
+msgstr "Dans Cl(3,0), la réversion envoie 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ sur 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃ ; une seconde application restitue le multivecteur initial."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a self-inverse Clifford operation whose grade action and product-order behavior are declared. The canonical operations preserve the scalar unit and send the zero multivector to zero; the unit is distinct from zero."
+msgstr "À utiliser pour une opération de Clifford qui est son propre inverse, dont l’action sur les degrés et sur l’ordre du produit est déclarée. Les opérations canoniques préservent l’unité scalaire et envoient le multivecteur nul sur zéro ; l’unité est distincte de zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the class label as a calculation, a proof of self-inversion, a nonidentity requirement or a proof that multiplication is additive in integer degree."
+msgstr "Ne pas traiter l’étiquette de classe comme un calcul, une preuve que l’opération est son propre inverse, une exigence de différence avec l’identité ou une preuve que la multiplication additionne les degrés entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the operation and algebra context without inventing argument slots or cardinality rules. The native sparse methods apply checked rational signs from blade-mask degree, take no algebra parameter and perform no signature validation. Their real diagonal orthonormal context establishes no characteristic-two, complex, degenerate-form or nonorthogonal execution."
+msgstr "Identifier l’opération et le contexte algébrique sans inventer d’emplacements d’arguments ni de règles de cardinalité. Les méthodes natives creuses appliquent des signes rationnels contrôlés à partir du degré du masque de lame, sans paramètre d’algèbre ni validation de signature. Leur contexte réel diagonal orthonormal n’établit aucune exécution en caractéristique deux, sur les complexes, avec une forme dégénérée ou dans une base non orthogonale."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Reversion"
+msgstr "Réversion de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. Its grade-dependent signs arise from order reversal."
+msgstr "L’anti-involution de Clifford qui inverse l’ordre des générateurs de base dans chaque lame. Ses signes dépendant du degré proviennent de l’inversion de l’ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "On degree k, reversion multiplies by (-1)^(k(k-1)/2). It is an anti-automorphism: R(ab) = R(b)R(a). It fixes scalars and vectors and extends linearly to mixed-grade multivectors."
+msgstr "Au degré k, la réversion multiplie par (-1)^(k(k-1)/2). C’est un anti-automorphisme : R(ab) = R(b)R(a). Elle fixe les scalaires et les vecteurs et s’étend linéairement aux multivecteurs de degrés mélangés."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), R(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃."
+msgstr "Dans Cl(3,0), R(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the operation reverses generator order in each blade and factor order in a product. Applying it twice restores the complete multivector and its exact coefficients."
+msgstr "À utiliser lorsque l’opération inverse l’ordre des générateurs dans chaque lame et celui des facteurs d’un produit. L’appliquer deux fois restitue le multivecteur entier et ses coefficients exacts."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing generator-order reversal with odd-degree negation, reversal of displayed term order or complex conjugation of coefficients. Coinciding values do not change the defining action."
+msgstr "Ne pas remplacer l’inversion de l’ordre des générateurs par le changement de signe des composantes de degré impair, l’inversion de l’ordre d’affichage des termes ou la conjugaison complexe des coefficients. Des valeurs identiques ne changent pas l’action définissante."
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify reversion in the declared algebra and decomposition. The native sparse rational method uses blade-mask population count as k and checked sign changes. It preserves blade identities without validating an algebra signature or proving a multiplication grading law."
+msgstr "Identifier la réversion dans l’algèbre et la décomposition déclarées. La méthode native creuse rationnelle utilise le nombre de bits à un du masque de lame comme k et des changements de signe contrôlés. Elle préserve les identités des lames sans valider de signature algébrique ni prouver de loi de graduation de la multiplication."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grade Involution"
+msgstr "Involution de degré"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "L’involution de Clifford qui change le signe des composantes de degré impair et préserve celles de degré pair."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "On degree k, grade involution multiplies by (-1)^k. It is an automorphism: alpha(ab) = alpha(a)alpha(b), preserving factor order. This parity action does not make multiplication additive in integer degree."
+msgstr "Au degré k, l’involution de degré multiplie par (-1)^k. C’est un automorphisme : alpha(ab) = alpha(a)alpha(b), qui préserve l’ordre des facteurs. Cette action de parité ne rend pas la multiplication additive en degré entier."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), alpha(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ + 3e₁e₂ - 4e₁e₂e₃."
+msgstr "Dans Cl(3,0), alpha(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ + 3e₁e₂ - 4e₁e₂e₃."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the Clifford parity operation: negate every odd-degree component and retain every even-degree component, including the coefficient on the scalar unit blade."
+msgstr "À utiliser pour l’opération de parité de Clifford : changer le signe de chaque composante de degré impair et conserver chaque composante de degré pair, y compris le coefficient de la lame unité scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating grade involution as grade projection, logical negation, reversal of product factors or extraction of one coefficient. It transforms the complete multivector with the declared parity signs."
+msgstr "Ne pas traiter l’involution de degré comme une projection de degré, une négation logique, une inversion des facteurs du produit ou l’extraction d’un coefficient. Elle transforme le multivecteur entier avec les signes de parité déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the algebra and parity decomposition. The native method uses blade-mask degree and checked rational sign changes without an algebra parameter or signature validation. Preserve the distinction between the scalar unit and zero; no integer multiplication grading law follows."
+msgstr "Identifier l’algèbre et la décomposition de parité. La méthode native utilise le degré du masque de lame et des changements de signe rationnels contrôlés, sans paramètre d’algèbre ni validation de signature. Préserver la distinction entre l’unité scalaire et zéro ; aucune loi de graduation entière de la multiplication n’en découle."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Conjugation"
+msgstr "Conjugaison de Clifford"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. These commuting operations define a self-inverse anti-automorphism."
+msgstr "La composition de l’involution de degré et de la réversion dans une algèbre de Clifford. Ces opérations qui commutent définissent un anti-automorphisme qui est son propre inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Clifford conjugation satisfies C = alpha composed with R = R composed with alpha and C(ab) = C(b)C(a). On degree k it multiplies by (-1)^(k(k+1)/2), without complex conjugation of scalar coefficients."
+msgstr "La conjugaison de Clifford vérifie C = alpha composée avec R = R composée avec alpha et C(ab) = C(b)C(a). Au degré k, elle multiplie par (-1)^(k(k+1)/2), sans conjugaison complexe des coefficients scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), C(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ - 3e₁e₂ + 4e₁e₂e₃."
+msgstr "Dans Cl(3,0), C(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ - 3e₁e₂ + 4e₁e₂e₃."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when both parity action and generator-order reversal are intended. The composition is defined by those actions even when its map coincides with another named operation in a particular algebra."
+msgstr "À utiliser lorsque l’action de parité et l’inversion de l’ordre des générateurs sont toutes deux visées. La composition est définie par ces actions, même si son application coïncide avec une autre opération nommée dans une algèbre particulière."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring complex coefficient conjugation, matrix adjunction, multivector inversion or a global inequality between the three canonical maps. A self-inverse operation does not make every input an invertible multivector."
+msgstr "Ne pas en déduire une conjugaison complexe des coefficients, une adjonction matricielle, une inversion de multivecteur ni une inégalité globale entre les trois applications canoniques. Une opération qui est son propre inverse ne rend pas tout argument inversible."
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the Clifford algebra, decomposition and composition action. The native sparse method applies the combined degree sign with checked rational arithmetic and no algebra parameter. It preserves the scalar unit and zero separately, performs no signature validation and establishes no broader coefficient-field or basis execution."
+msgstr "Identifier l’algèbre de Clifford, la décomposition et l’action composée. La méthode native creuse applique le signe combiné du degré par arithmétique rationnelle contrôlée, sans paramètre d’algèbre. Elle préserve séparément l’unité scalaire et zéro, ne valide aucune signature et n’établit aucune exécution sur un corps de coefficients ou une base plus généraux."

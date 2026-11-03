@@ -2335,16 +2335,16 @@ msgid "Clifford Involution"
 msgstr "Clifford 对合"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|skos:definition"
-msgid "An order-two operation on a Clifford algebra, with its action on grades and product order declared. It is not an arbitrary algebra endomorphism: applying it twice must return the input."
-msgstr "Clifford 代数上的二阶运算，并声明其对次数及乘积次序的作用。 它不是任意代数自同态：连续应用两次必须返回输入。"
+msgid "A self-inverse operation on a Clifford algebra, with its action on grades and product order declared. Applying it twice returns the input; the operation may specialize to the identity."
+msgstr "Clifford 代数上以自身为逆的运算，并声明其对次数及乘积次序的作用。连续应用两次返回输入；该运算在特定情形下可以是恒等映射。"
 
 msgctxt "https://blackcatinformatics.ca/math/Reversion|rdfs:label"
 msgid "Clifford Reversion"
 msgstr "Clifford 逆序"
 
 msgctxt "https://blackcatinformatics.ca/math/Reversion|skos:definition"
-msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. It is not grade involution; its grade-dependent signs arise from order reversal."
-msgstr "在每个刃中反转基生成元次序的 Clifford 反对合。 它不是次数对合；其依赖次数的符号来自顺序反转。"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. Its grade-dependent signs arise from order reversal."
+msgstr "在每个刃中反转基生成元次序的 Clifford 反对合。其依赖次数的符号来自次序反转。"
 
 msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|rdfs:label"
 msgid "Grade Involution"
@@ -2359,8 +2359,8 @@ msgid "Clifford Conjugation"
 msgstr "Clifford 共轭"
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|skos:definition"
-msgid "The composition of grade involution and reversion in a Clifford algebra. It is not reversion or grade involution alone."
-msgstr "Clifford 代数中分次对合与逆序的复合。 它既不只是逆序，也不只是次数对合。"
+msgid "The composition of grade involution and reversion in a Clifford algebra. These commuting operations define a self-inverse anti-automorphism."
+msgstr "Clifford 代数中分次对合与逆序的复合。这两个可交换运算定义一个自逆的反自同构。"
 
 msgctxt "https://blackcatinformatics.ca/math/Rotor|rdfs:label"
 msgid "Rotor"
@@ -10196,3 +10196,115 @@ msgstr "不要将次数投影视为提取单个坐标或标量系数、输入齐
 msgctxt "https://blackcatinformatics.ca/math/GradeProjection|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the math:GradeProjection in its multivector, grade and algebra context without inventing dedicated slots or a cardinality gate. The native real diagonal rational method rejects grades above the generator count and returns the zero multivector for a valid absent grade; preserve that bounded behavior and separate calculation evidence from the declaration."
 msgstr "按多向量、次数和代数背景描述 math:GradeProjection，不要臆造专用槽位或基数校验。原生实对角有理数方法拒绝高于生成元数的次数，并对有效但不存在项的次数返回零多向量；须保留该有界行为，并将计算依据与声明分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Involution"
+msgstr "Clifford 对合"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-inverse operation on a Clifford algebra, with its action on grades and product order declared. Applying it twice returns the input; the operation may specialize to the identity."
+msgstr "Clifford 代数上以自身为逆的运算，并声明其对次数及乘积次序的作用。连续应用两次返回输入；该运算在特定情形下可以是恒等映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Self-inverse means f(f(x)) = x, without requiring a nonidentity map. Grade involution preserves product order; reversion and Clifford conjugation reverse it. Their maps may coincide in a particular algebra or on particular inputs."
+msgstr "以自身为逆意味着 f(f(x)) = x，不要求映射非恒等。分次对合保留乘积次序；逆序和 Clifford 共轭反转乘积次序。它们的映射在特定代数中或对特定输入可以相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), reversion sends 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ to 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃; applying it again returns the original multivector."
+msgstr "在 Cl(3,0) 中，逆序将 1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃ 映为 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃；再次应用返回原多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a self-inverse Clifford operation whose grade action and product-order behavior are declared. The canonical operations preserve the scalar unit and send the zero multivector to zero; the unit is distinct from zero."
+msgstr "用于已声明次数作用及乘积次序行为的 Clifford 自逆运算。典范运算保持标量单位元，并将零多向量映为零；单位元不同于零。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the class label as a calculation, a proof of self-inversion, a nonidentity requirement or a proof that multiplication is additive in integer degree."
+msgstr "不要将类标签当作计算、自逆性的证明、非恒等要求，或乘法具有整数次数可加性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordInvolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the operation and algebra context without inventing argument slots or cardinality rules. The native sparse methods apply checked rational signs from blade-mask degree, take no algebra parameter and perform no signature validation. Their real diagonal orthonormal context establishes no characteristic-two, complex, degenerate-form or nonorthogonal execution."
+msgstr "标识运算及代数背景，不要臆造参数槽位或基数规则。原生稀疏方法按基刃掩码次数以受检有理数算术改变符号，不接收代数参数，也不校验度量惯性指数对。其实对角正交归一背景不能证明支持特征二、复数、退化形式或非正交基下的执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Reversion"
+msgstr "Clifford 逆序"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Clifford anti-involution that reverses the order of basis generators in every blade. Its grade-dependent signs arise from order reversal."
+msgstr "在每个刃中反转基生成元次序的 Clifford 反对合。其依赖次数的符号来自次序反转。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "On degree k, reversion multiplies by (-1)^(k(k-1)/2). It is an anti-automorphism: R(ab) = R(b)R(a). It fixes scalars and vectors and extends linearly to mixed-grade multivectors."
+msgstr "逆序将 k 次分量乘以 (-1)^(k(k-1)/2)。它是反自同构：R(ab) = R(b)R(a)。它固定标量及向量，并线性延拓到混合次数多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), R(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃."
+msgstr "在 Cl(3,0) 中，R(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 + 2e₁ - 3e₁e₂ - 4e₁e₂e₃。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the operation reverses generator order in each blade and factor order in a product. Applying it twice restores the complete multivector and its exact coefficients."
+msgstr "当运算反转每个刃内的生成元次序及乘积的因子次序时使用。连续应用两次恢复完整多向量及其精确系数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing generator-order reversal with odd-degree negation, reversal of displayed term order or complex conjugation of coefficients. Coinciding values do not change the defining action."
+msgstr "不要以奇次分量取负、反转项的显示顺序或对系数作复共轭来替代生成元次序反转。得到相同值不会改变其定义作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Reversion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify reversion in the declared algebra and decomposition. The native sparse rational method uses blade-mask population count as k and checked sign changes. It preserves blade identities without validating an algebra signature or proving a multiplication grading law."
+msgstr "在已声明的代数及分解中标识逆序。原生稀疏有理数方法以基刃掩码的置位数为 k，并执行受检符号变换。它保留基刃身份，不校验代数的度量惯性指数对，也不证明乘法分次律。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grade Involution"
+msgstr "分次对合"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Clifford involution that negates odd-grade components and preserves even-grade components."
+msgstr "对奇次分量取负而保持偶次分量的 Clifford 对合。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "On degree k, grade involution multiplies by (-1)^k. It is an automorphism: alpha(ab) = alpha(a)alpha(b), preserving factor order. This parity action does not make multiplication additive in integer degree."
+msgstr "分次对合将 k 次分量乘以 (-1)^k。它是自同构：alpha(ab) = alpha(a)alpha(b)，保留因子次序。该奇偶作用不使乘法具有整数次数可加性。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), alpha(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ + 3e₁e₂ - 4e₁e₂e₃."
+msgstr "在 Cl(3,0) 中，alpha(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ + 3e₁e₂ - 4e₁e₂e₃。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the Clifford parity operation: negate every odd-degree component and retain every even-degree component, including the coefficient on the scalar unit blade."
+msgstr "用于 Clifford 奇偶运算：对每个奇次分量取负，并保留每个偶次分量，包括标量单位刃上的系数。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating grade involution as grade projection, logical negation, reversal of product factors or extraction of one coefficient. It transforms the complete multivector with the declared parity signs."
+msgstr "不要将分次对合当作次数投影、逻辑否定、乘积因子逆序或单个系数提取。它按已声明的奇偶符号变换整个多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradeInvolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the algebra and parity decomposition. The native method uses blade-mask degree and checked rational sign changes without an algebra parameter or signature validation. Preserve the distinction between the scalar unit and zero; no integer multiplication grading law follows."
+msgstr "标识代数及奇偶分解。原生方法使用基刃掩码次数及受检有理数符号变换，不接收代数参数，也不校验度量惯性指数对。须区分标量单位元与零；由此不能推出整数乘法分次律。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clifford Conjugation"
+msgstr "Clifford 共轭"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The composition of grade involution and reversion in a Clifford algebra. These commuting operations define a self-inverse anti-automorphism."
+msgstr "Clifford 代数中分次对合与逆序的复合。这两个可交换运算定义一个自逆的反自同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Clifford conjugation satisfies C = alpha composed with R = R composed with alpha and C(ab) = C(b)C(a). On degree k it multiplies by (-1)^(k(k+1)/2), without complex conjugation of scalar coefficients."
+msgstr "Clifford 共轭满足 C = alpha 与 R 的复合 = R 与 alpha 的复合，以及 C(ab) = C(b)C(a)。它将 k 次分量乘以 (-1)^(k(k+1)/2)，不对标量系数作复共轭。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Cl(3,0), C(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ - 3e₁e₂ + 4e₁e₂e₃."
+msgstr "在 Cl(3,0) 中，C(1 + 2e₁ + 3e₁e₂ + 4e₁e₂e₃) = 1 - 2e₁ - 3e₁e₂ + 4e₁e₂e₃。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when both parity action and generator-order reversal are intended. The composition is defined by those actions even when its map coincides with another named operation in a particular algebra."
+msgstr "当同时需要奇偶作用和生成元次序反转时使用。该复合由这两种作用定义，即使其映射在特定代数中与另一具名运算相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring complex coefficient conjugation, matrix adjunction, multivector inversion or a global inequality between the three canonical maps. A self-inverse operation does not make every input an invertible multivector."
+msgstr "不要据此推断系数复共轭、矩阵伴随、多向量求逆，或三个典范映射在所有情形下均不相等。运算自逆不使每个输入都成为可逆多向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/CliffordConjugation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the Clifford algebra, decomposition and composition action. The native sparse method applies the combined degree sign with checked rational arithmetic and no algebra parameter. It preserves the scalar unit and zero separately, performs no signature validation and establishes no broader coefficient-field or basis execution."
+msgstr "标识 Clifford 代数、分解及复合作用。原生稀疏方法以受检有理数算术应用合并的次数符号，不接收代数参数。它分别保持标量单位元与零，不校验度量惯性指数对，也不能证明支持更广的系数域或基下的执行。"
