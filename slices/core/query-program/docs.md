@@ -1450,3 +1450,170 @@ requires two recursively executable operands and dispatches on guard support,
 forwarding the selected branch's success, failure or pending outcome unchanged.
 A branch failure is not a verdict-unknown route or a fallback operation. No
 state-support producer, native query adapter or consumer adoption is asserted.
+
+## Reported exact fused scores and declared source profiles
+
+QueryReportedFusionScore is a reported exact-decimal math:Quantity. Its sole
+magnitude is math:quantityValue with xsd:decimal datatype. It requires one
+declared math:hasDimension, one applicable hasReferenceFrame and one
+reportedFusionScoreProfile. The selected QueryFusionScoreProfile record itself
+is the declared interpretation and source-profile context; it carries its own
+dimension and frame, which must be the exact same resources used by the score.
+Several score carriers may share that declared record without becoming the
+same score or proving an application.
+
+The two explicit convention values preserve different source claims:
+
+| Convention | Source arithmetic claim |
+| --- | --- |
+| `gmeow:fusionWeightedScale18Convention` | Positive weighted reciprocal ranks, k=60, u128 units divided by 10^18. Divide each present-class coefficient once by 60 plus retained source class rank, truncate before class-order checked summation; an absent class contributes zero. Retain source tied ranks and the candidate's minimum rank per class. Final overflow refuses rather than saturates. |
+| `gmeow:fusionUnitScale12Convention` | Pinned unit-weight reciprocal-first arithmetic, k=60, signed i128 units divided by 10^12. Truncate the reciprocal first, then checked-multiply by the unit coefficient and checked-sum contributions. Family ranks count distinct subjects from one, with defocus ranked as an admitted source component. Positive unit contributions yield nonnegative scores. |
+
+Selection is explicit; neither convention is a default or interchangeable with
+the other. No sum-to-one normalization, generic weighted algorithm, custom k,
+new rank convention or calibration is inferred. The actual selected full source
+FusionProfile supplies its component set. Name/version alone neither determines
+nor validates that set, which this foundation does not serialize.
+
+The source identity forms differ. Under the weighted scale-18 convention,
+fusionProfileDigest retains actual returned native bytes as xsd:hexBinary;
+name and version are absent. Under the pinned unit scale-12 convention,
+fusionProfileName and fusionProfileVersion retain actual supplied text and
+the selected public profile's u32 version; digest is absent. The inspected
+result returns a fusion name, while its version comes from the actual selected
+full profile input. It must not be guessed from a crate version, an assumed
+default or a nonexistent returned candidate-version field. There is no universal
+native-byte requirement.
+
+These fields preserve supplied metadata. They are not unique keys for RDF
+records or a content-unique complete profile. Equal native bytes, names or
+versions do not merge interpretation records, authenticate components/weights,
+recompute a source hash or describe an arbitrary canonical order prescription.
+The foundation has no separate retained source-call resource or call/result
+association. Authentic association with the actual call, full source profile
+and result remains application-owned.
+
+The APIs examined do not serialize mathematical dimension or reference-frame
+objects. Those coordinates explicitly declare an interpretation with actual
+source or adapter justification. No default frame or dimension is manufactured
+from score text, source identity or a display label. If the required actual
+quantitative interpretation or identity metadata is unavailable, import must
+fail this selected contract rather than fabricate it.
+
+The following complete fictional input report illustrates both identity forms,
+an explicit dimensionless scalar frame, shared interpretation records, zero,
+equal values on distinct carriers, both capacity boundaries and finer-quantum
+values. Its digest, name and version are supplied synthetic example data,
+not identities observed from either live consumer or assigned to a real result.
+The graph contains no source-call/result association or application proof.
+
+```turtle
+@prefix ex: <https://example.org/reported-fused-score/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:scalarFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis ex:scoreAxis ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:requiresHost "false"^^xsd:boolean .
+ex:scoreAxis a gmeow:Axis .
+
+ex:profile18 a gmeow:QueryFusionScoreProfile ;
+    gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ;
+    gmeow:fusionScoreDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:fusionProfileDigest "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^xsd:hexBinary .
+ex:profile12 a gmeow:QueryFusionScoreProfile ;
+    gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ;
+    gmeow:fusionScoreDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:fusionProfileName "example-profile"^^xsd:string ;
+    gmeow:fusionProfileVersion "3"^^xsd:unsignedInt .
+
+ex:score18 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0.016393442622950819"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile18 .
+ex:equalScore18 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0.016393442622950819"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile18 .
+ex:score12 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0.016393442622"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile12 .
+ex:zero a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile18 .
+ex:capacity18 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "340282366920938463463.374607431768211455"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile18 .
+ex:capacity12 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "170141183460469231731687303.715884105727"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile12 .
+ex:finerQuantum18 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0.0000000000000000001"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile18 .
+ex:finerQuantum12 a gmeow:QueryReportedFusionScore ;
+    math:quantityValue "0.0000000000001"^^xsd:decimal ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scalarFrame ;
+    gmeow:reportedFusionScoreProfile ex:profile12 .
+```
+
+Both capacity values are legal **carrier-range boundaries** under this
+foundation. This does not claim either could be produced by a particular full
+application with its actual class count and coefficients. The finer-quantum
+values also pass these structural/range laws, while failing the named source's
+fixed-point quantum. Their inclusion makes the reporting boundary explicit:
+QueryReportedFusionScore is neither a fixed-point datatype nor an
+arithmetic-conformant result class. Decimal datatype already excludes infinity
+and NaN; no additional finiteness test is needed.
+
+The exact capacity limits are (2^128-1)/10^18 and (2^127-1)/10^12. The carrier
+law uses nonnegative and upper-bound comparisons over exact decimals. It does
+not certify full numeric-domain membership, source quantum, truncation,
+normalization, complete contribution summation, overflow-path behavior or native
+admission. Zero is legal: positive source coefficients can yield a truncated
+zero contribution. Equal decimals or equal frames do not identify carriers or
+make distinct source profiles comparable in meaning.
+
+Frame completeness follows the places owner. The example's scalar mathematical
+realm, dimension count, actual Axis, crisp frame declaration and explicit
+host requirement are supplied together. Crispness is a frame declaration,
+not a relevance truth or confidence claim. Real alternative dimensions and
+frames need actual justification; dimensionless is not an inferred fallback.
+
+Within this foundation the graph laws reject a missing or unknown convention,
+missing or duplicate required coordinates, wrong datatypes, different dimension
+or frame resources on score and profile, missing or wrong native identity form,
+a negative magnitude or a value over the selected carrier maximum. For example,
+adding name/version to the weighted byte form or supplying a digest to the unit
+name/version form violates the source-form law. A byte-width or cryptographic
+identity check is not claimed; those source obligations are not replaced by a
+well-typed literal.
+
+The magnitude stays in math:quantityValue, and actual identity literals use
+lang:literalValue specializations. No second numeric carrier, numeric-string
+parser or hash implementation is introduced. The profile is declared evidence,
+without source authentication or a source-call/result link. No query operator,
+candidate accounting, actual coefficient/fit selection, contribution graph,
+ordering result or execution is asserted by these records. Existing unweighted
+integer fusion, measured fit evidence and rerank float contracts keep their
+own meanings. Full application, complete arithmetic qualification and final
+integration remain separate requirements.

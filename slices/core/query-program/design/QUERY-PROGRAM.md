@@ -636,3 +636,106 @@ check supplied support and structure; they do not authenticate State history,
 run a provider or establish a query-leaf adapter. A reported evaluation State
 is not a native transaction start, and generic Choice's existing recursive
 execution requirements and success/failure/pending semantics remain separate.
+
+## Reported fused magnitudes and source interpretation
+
+QueryReportedFusionScore specializes math:Quantity as a reported exact-decimal
+carrier, not a fixed-point datatype or arithmetic-conformant result class.
+QueryFusionScoreProfile is the declared interpretation and source-profile
+context selected directly by reportedFusionScoreProfile. It is not a separate
+source-call resource, full application profile or call/result association
+(Principles 4, 7, 11, 12, 17 and 19).
+
+The ten data terms preserve one canonical magnitude door: math:quantityValue.
+Source identity literals use lang:literalValue specializations; dimension uses
+math:Dimension and applicable frame uses the existing places ReferenceFrame
+spine. Generic mathematical concepts, scalar operations and frame semantics
+remain with those owners. No old unweighted fusion role, integer score/fold
+record or measured-fit association is broadened into weighted application.
+
+The two explicit convention individuals describe the observed arithmetic
+families, without independent parameter defaults or arbitrary field combinations.
+The weighted scale-18 claim uses k=60, u128 raw units, a single numerator division
+per present class and class-order checked summation. Source ranks and tied ranks
+are retained; absent class contribution is zero and final overflow refuses.
+The pinned unit scale-12 claim uses k=60, signed i128 raw units and reciprocal-first
+truncation before unit checked multiplication and checked sums. Source family
+ranks count distinct subjects from one, with defocus as an admitted component.
+Current positive unit contributions yield nonnegative scores. Neither selection
+certifies these calculations, fits, component availability or normalization.
+
+The actual selected full source FusionProfile supplies its component set.
+Recorded name/version alone neither determines nor validates that set, which
+this foundation does not serialize. Supplied native profile bytes likewise do
+not reveal all weights/policy content or encode arbitrary canonical order.
+Equal metadata does not merge RDF interpretation records or authenticate a
+source. Actual source call, complete profile and result association remains
+application-owned rather than invented through a new wrapper or identifier.
+
+Seven class-local required-one coordinates use allValuesFrom, ClosureEntry and
+qualified maximum one: score magnitude, dimension, frame and selected profile,
+plus profile convention, dimension and frame. Convention is restricted to the
+two explicit values. The three native identity roles have local datatype ranges
+and maxima but no unconditional ClosureEntry. Together there are seven closures
+and ten qualified maxima. No global functionality or inverse context-owner rule
+is added, and no existing quantity/frame property is globally narrowed.
+
+FusionScoreProfileSourceFormLaw uses one outer universal with positively bound
+profile/convention. Its two guarded consequences require digest only under the
+weighted convention and actual name/version only under the unit convention.
+The three required and three forbidden existence occurrences have six distinct
+fresh binders. Optional local ranges/maxima handle datatype and multiplicity;
+the Formula handles applicable conditional presence and exclusion. No universal
+native-byte requirement or guessed source version is introduced.
+
+The inspected unit-source result returns its fusion name; version is supplied
+by the actual selected public FusionProfile input. It is not the crate version,
+a returned candidate field or a default. The byte-identified source requires
+actual returned profile bytes without manufacturing a name/version. This law
+checks representation form only, not source authenticity, native byte width,
+hash validity, component identity or application. Missing actual required
+metadata must fail selected import rather than borrow fictional example data.
+
+FusionScoreContextAgreementLaw joins each score to its declared profile record
+and compares positively bound dimension and frame pairs through termEqual.
+Required coordinates are independently enforced by local class restrictions.
+Agreement is exact resource identity, not equal labels or equal-looking frames.
+The profile record itself is the declared context; no separate call/result link
+or authenticated call-context resource is represented by this law.
+
+FusionScoreCarrierRangeLaw uses a typed score guard, selected profile/convention
+and bound decimal magnitude. It requires nonnegative value and the appropriate
+exact carrier maximum: (2^128-1)/10^18 or (2^127-1)/10^12. termGreaterEqual and
+termLessEqual grade representable carrier range only. They do not establish
+the complete numeric domain, quantum membership, bit encoding or arithmetic
+conformity. An in-range finer-quantum decimal can pass, as documentation shows.
+xsd:decimal already excludes nonfinite values, so no redundant finite law exists.
+
+All three constraints are ordinary Formula ASTs with formalizes, message,
+indexed arguments and one outer universal. Only supported termEqual,
+termGreaterEqual and termLessEqual comparisons are used, with variable operands
+positively joined before comparison. Existential names are distinct; there is
+no Iff, positive nested universal, reflected arithmetic relation or hand-authored
+shape surface. Validation derives from the canonical structural/range laws.
+
+The native APIs serialize no mathematical dimension/frame object. Required
+coordinates are an explicit declared interpretation with actual source/adapter
+justification, not metadata inferred from score words or native IDs. No automatic
+dimensionless or frame default is introduced. The complete scalar frame example
+uses the places owner's actual realm, kind, dimension count, Axis, determinacy
+and host declarations; frame crispness does not confer relevance truth.
+
+This foundation adds no multiplication, division, floor or complete-score
+computation path. The existing ordinary shape comparison support and separate
+native numeric mechanism are not a certificate of source quantization. Full
+arithmetic qualification must address the exact selected grid, truncation
+placement and checked summation rather than silently replacing these with
+exact no-rounding division or a rounded rational sum. Unsupported projections
+must remain honest; no fallback, omitted law or shape exception is authorized.
+
+The reported values and source claims can later be referenced by complete
+weighted application and applied ordering accounts. Original union/result
+linkage, actual coefficients and fits, all contributions, complete candidate
+and loss/query retention, source authentication and final integration retain
+their independent acceptance obligations. These records assert no provider
+execution, consumer adoption, calibration, confidence or arithmetic change.

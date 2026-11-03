@@ -5611,3 +5611,367 @@ msgstr "缺失或显式未知实际值及已知不相等禁止匹配支持。此
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A known matching value: ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."
 msgstr "已知匹配值：ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Reported Fusion Score"
+msgstr "查询已报告融合分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported exact-decimal fused-score Quantity with one declared dimension, one applicable reference frame and one selected source-profile interpretation record. It is not a fixed-point datatype or an arithmetic-conformant result class."
+msgstr "已报告的精确十进制融合分数 Quantity，具有一个声明量纲、一个适用参照系及一个所选来源配置解释记录。它不是定点数据类型或算术符合性结果类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an exact supplied fused magnitude with its explicit quantitative interpretation and source convention."
+msgstr "用于保留所提供的精确融合量值及其显式定量解释和来源约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the old unweighted integer QueryFusionScore, a rerank float, Probability, Confidence or an arithmetic certificate as a substitute."
+msgstr "避免用旧的非加权整数 QueryFusionScore、重排浮点数、Probability、Confidence 或算术证书替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:decimal math:quantityValue, math:hasDimension, hasReferenceFrame and reportedFusionScoreProfile, preserving the same dimension and frame resources on the selected profile record."
+msgstr "提供一个 xsd:decimal 类型的 math:quantityValue、math:hasDimension、hasReferenceFrame 及 reportedFusionScoreProfile，并在所选配置记录上保留相同量纲及参照系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier-range law checks nonnegative magnitude and the selected source carrier capacity only. Fixed-point quantum membership, truncation, complete summation, native admission and authentic call/result association remain outside this foundation."
+msgstr "载体范围定律仅检查量值非负及所选来源载体容量。定点量化步长符合性、截断、完整求和、原生接纳及真实调用/结果关联不属于此基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported magnitude: ex:score a gmeow:QueryReportedFusionScore ; math:quantityValue \"0.016393442622950819\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile ."
+msgstr "报告的量值：ex:score a gmeow:QueryReportedFusionScore ; math:quantityValue \"0.016393442622950819\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Score Profile"
+msgstr "查询融合分数配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared interpretation and source-profile context selected by a reported fusion score, retaining one source convention, one declared dimension, one applicable reference frame and the convention’s supplied native identity form."
+msgstr "已报告融合分数选择的声明解释及来源配置上下文，保留一个来源约定、一个声明量纲、一个适用参照系及该约定所提供的原生身份形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the declared source arithmetic claim and quantitative context distinct from a reported magnitude and its actual application."
+msgstr "用于将声明的来源算术主张及定量上下文，与报告量值及其实际应用分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as a complete source profile, a retained source-call resource, a call/result association or a content-unique identity derived from name, version or native bytes."
+msgstr "避免将此记录视为完整来源配置、保留的来源调用资源、调用/结果关联，或从名称、版本或原生字节推导的内容唯一身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply fusionScoreConvention, fusionScoreDimension and hasReferenceFrame; retain actual digest bytes for the weighted scale-18 convention or actual selected profile name and version for the unit scale-12 convention."
+msgstr "提供 fusionScoreConvention、fusionScoreDimension 及 hasReferenceFrame；对 18 位小数加权约定保留实际摘要字节，或对 12 位小数单位权重约定保留实际所选配置名称及版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record itself is the selected declared context. The actual full source profile supplies its components; recorded name/version neither determines nor validates them. Authentic source-call, full-profile and result association remains application-owned."
+msgstr "记录本身就是所选声明上下文。实际完整来源配置提供其组件；记录的名称/版本既不确定也不验证组件。真实来源调用、完整配置及结果关联仍由应用负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared context: ex:profile a gmeow:QueryFusionScoreProfile ; gmeow:fusionScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ."
+msgstr "声明的上下文：ex:profile a gmeow:QueryFusionScoreProfile ; gmeow:fusionScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported fusion score profile"
+msgstr "已报告融合分数配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one declared interpretation and source-profile context selected by a reported exact-decimal fusion-score carrier."
+msgstr "已报告精确十进制融合分数载体所选择的单个声明解释及来源配置上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to share an explicit profile record across supplied score quantities without adding another scalar-value property."
+msgstr "用于使所提供分数的量载体共享显式配置记录，不添加另一标量值属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this link as an association to an authenticated source call or as proof that the selected arithmetic produced the reported value."
+msgstr "避免将此链接理解为与经过认证的来源调用关联，或理解为所选算术产生报告值的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryFusionScoreProfile and retain its exact dimension and reference-frame resources on the score quantity."
+msgstr "引用一个 QueryFusionScoreProfile，并在该分数的量载体上保留其确切量纲及参照系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several score carriers may select the same declared context. Equal magnitudes, native bytes or name/version labels do not merge profile records or establish an application."
+msgstr "多个分数载体可以选择同一声明上下文。相等量值、原生字节或名称/版本标签不合并配置记录，也不确立应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit profile selection: ex:score gmeow:reportedFusionScoreProfile ex:profile ."
+msgstr "显式配置选择：ex:score gmeow:reportedFusionScoreProfile ex:profile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score source convention"
+msgstr "融合分数来源约定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected source arithmetic convention described by a fusion-score profile record: weighted scale-18 numerator division or pinned unit scale-12 reciprocal-first arithmetic."
+msgstr "融合分数配置记录描述的显式所选来源算术约定：18 位小数加权分子除法，或固定版本的 12 位小数单位权重倒数优先算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish the two observed source claims without introducing independent parameter defaults or arbitrary combinations of numeric conventions."
+msgstr "用于区分两种观察到的来源主张，不引入独立参数默认值或任意数值约定组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating selection as arithmetic verification, substituting current upstream behavior for a pinned consumer or inferring a convention from an equal decimal value."
+msgstr "避免将选择视为算术验证、用当前上游行为替代固定版本消费者，或从相等十进制值推断约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one of the two declared convention resources and retain its matching native identity form, declared dimension and applicable frame."
+msgstr "选择两种声明约定资源之一，并保留其相符原生身份形式、声明量纲及适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each convention describes source precision, k, rounding placement, rank and range/overflow behavior. This foundation certifies neither quantum membership nor truncation, component sums, native admission or source authenticity."
+msgstr "每种约定描述来源精度、k、舍入位置、名次及范围/溢出行为。此基础不认证量化步长符合性、截断、组件和、原生接纳或来源真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#example"
+msgid "A weighted convention selection: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+msgstr "加权约定选择：ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score declared dimension"
+msgstr "融合分数声明量纲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one explicitly declared mathematical dimension of the score interpretation carried by a fusion-score profile record."
+msgstr "融合分数配置记录承载的分数解释所具有的单个显式声明数学量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain quantitative meaning without inventing a parallel magnitude carrier or inferring dimension from the word score."
+msgstr "用于保留定量含义，不虚构并行量值载体，也不从分数一词推断量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this declaration as dimension metadata serialized by the inspected APIs or silently substituting dimensionless when required context is unavailable."
+msgstr "避免将此声明视为所检查 API 序列化的量纲元数据，或在必需上下文不可用时静默替换为无量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an actual math:Dimension and use that same resource through math:hasDimension on each score selecting this interpretation."
+msgstr "引用一个实际 math:Dimension，并在选择此解释的每个分数上通过 math:hasDimension 使用同一资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The API surfaces examined supply no mathematical dimension object. A declared interpretation needs actual source or adapter justification; equal dimensions alone do not equate arithmetic, calibration, frames or profiles."
+msgstr "所检查 API 接口不提供数学量纲对象。声明解释需要实际来源或适配器依据；仅有量纲相等不使算术、校准、参照系或配置相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly declared interpretation: ex:profile gmeow:fusionScoreDimension math:dimensionless ."
+msgstr "显式声明的解释：ex:profile gmeow:fusionScoreDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile supplied digest"
+msgstr "融合配置所提供摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual supplied native profile byte identity retained under the weighted scale-18 convention, separately from the RDF interpretation-record identity."
+msgstr "在 18 位小数加权约定下保留的实际所提供原生配置字节身份，与 RDF 解释记录身份分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s returned profile bytes without inventing a name, version, semantic IRI or replacement hash recipe."
+msgstr "用于保留来源返回的配置字节，不虚构名称、版本、语义 IRI 或替代哈希方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring native bytes for a source that exposes name/version instead, recomputing a digest from incomplete graph fields or equating records because their bytes match."
+msgstr "避免为提供名称/版本的来源要求原生字节、从不完整图字段重算摘要，或因字节相同而将记录视为同一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:hexBinary literal from the actual source profile identity on the selected interpretation record."
+msgstr "在所选解释记录上保留一个来自实际来源配置身份的 xsd:hexBinary 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source-form law checks the applicable identity representation. It does not authenticate a digest, grade native byte width, prove covered weights/policy content or create a source-call/result association."
+msgstr "来源形式定律检查适用身份表示。它不认证摘要、不评定原生字节宽度、不证明覆盖的权重/策略内容，也不创建来源调用/结果关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic input identity bytes: ex:profile gmeow:fusionProfileDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+msgstr "合成输入身份字节：ex:profile gmeow:fusionProfileDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile supplied name"
+msgstr "融合配置所提供名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual textual source profile identity retained under the pinned unit scale-12 convention together with its actual selected version."
+msgstr "在固定版本的 12 位小数单位权重约定下，与实际所选版本一同保留的实际文本来源配置身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a supplied profile name without pretending the source exposes a Katamari-style native digest."
+msgstr "用于保留所提供配置名称，不假称来源暴露 Katamari 式原生摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the name or name/version pair as a unique key for the complete component set, source-call context or RDF interpretation record."
+msgstr "避免将名称或名称/版本对用作完整组件集、来源调用上下文或 RDF 解释记录的唯一键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:string literal from the source’s selected profile identity and its actual fusionProfileVersion."
+msgstr "从来源所选配置身份保留一个 xsd:string 字面量，以及其实际 fusionProfileVersion。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual selected full FusionProfile supplies its components. Recorded name/version alone neither determines nor validates them, and this foundation does not serialize them or authenticate their application."
+msgstr "实际所选完整 FusionProfile 提供其组件。仅记录名称/版本既不确定也不验证组件，此基础不序列化组件，也不认证其应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic input name: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ."
+msgstr "合成输入名称：ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile selected source version"
+msgstr "融合配置所选来源版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual u32 version of the selected source FusionProfile under the pinned unit scale-12 convention, retained as an identifier coordinate rather than a measured magnitude."
+msgstr "固定版本的 12 位小数单位权重约定下，所选来源 FusionProfile 的实际 u32 版本，作为标识符坐标保留，而不是测得量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve version supplied by the actual selected public profile input or source call context."
+msgstr "用于保留实际所选公共配置输入或来源调用上下文提供的版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a crate version, treating version as a returned candidate field or default, or inventing a version for the byte-identified scale-18 source."
+msgstr "避免猜测 crate 版本、将版本视为返回候选字段或默认值，或为按字节标识的 18 位小数来源虚构版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:unsignedInt value from the actual selected FusionProfile alongside its supplied fusionProfileName."
+msgstr "从实际所选 FusionProfile 保留一个 xsd:unsignedInt 值，连同其所提供 fusionProfileName。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inspected result returns a fusion name; its version comes from the selected full profile input. Name/version does not uniquely determine components or establish a call/result association in this foundation."
+msgstr "所检查结果返回融合名称；版本来自所选完整配置输入。名称/版本不唯一确定组件，也不在此基础中确立调用/结果关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic selected version: ex:profile gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+msgstr "合成所选版本：ex:profile gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted scale-18 fusion convention"
+msgstr "18 位小数加权融合约定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The observed positive weighted reciprocal-rank source convention with k equal to 60 and u128 raw units at scale 10^18. Each present-class coefficient is divided once by 60 plus retained source rank, truncated before class-order checked summation; an absent class contributes zero."
+msgstr "观察到的正权重倒数名次来源约定，k 等于 60，原始单位为按 10^18 缩放的 u128。对每个存在类别，其系数仅除以 60 加保留来源名次一次，在按类别顺序进行溢出检查求和前截断；缺失类别贡献零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the observed scale-18 weighted source claim independently of old unweighted integer fusion or a differently rounded reciprocal-first source."
+msgstr "用于保留观察到的 18 位小数加权来源主张，独立于旧非加权整数融合或舍入不同的倒数优先来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing weights to sum one, renumbering source tied ranks into distinct-subject ranks or claiming that selecting this value verifies arithmetic or fitting."
+msgstr "避免将权重归一化为总和一、将来源并列名次重编号为不同主体名次，或声称选择此值验证了算术或拟合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this convention explicitly and retain actual native profile digest bytes plus the declared dimension and reference frame of the reported Quantity."
+msgstr "显式选择此约定，并保留实际原生配置摘要字节，以及已报告 Quantity 的声明量纲及参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The candidate uses its minimum retained rank within each class; final score overflow refuses rather than saturates. Fitting, measured/unmeasured mode, complete weights/contributions, quantum membership and native profile authentication remain outside this foundation."
+msgstr "候选项在每个类别内使用其保留的最小名次；最终分数溢出时拒绝而非饱和。拟合、实测/未实测模式、完整权重/贡献、量化步长符合性及原生配置认证不属于此基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit weighted source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+msgstr "显式加权来源主张：ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit scale-12 reciprocal-first fusion convention"
+msgstr "12 位小数单位权重倒数优先融合约定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The observed pinned unit-weight source convention with k equal to 60 and signed i128 raw units at scale 10^12. The reciprocal is truncated first and then checked-multiplied by the unit coefficient for each admitted family or defocus stratum; contribution sums are checked."
+msgstr "观察到的固定版本单位权重来源约定，k 等于 60，原始单位为按 10^12 缩放的有符号 i128。先截断倒数，再为每个已接纳检索族或 defocus 层级与单位系数进行溢出检查乘法；贡献和也进行检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual pinned unit-weight source claim with its selected profile name/version and quantitative interpretation."
+msgstr "用于保留实际固定版本单位权重来源主张，连同其所选配置名称/版本及定量解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting current upstream Precision/Score behavior, importing fitted Katamari coefficients or equating reciprocal-first and numerator-division arithmetic."
+msgstr "避免替换为当前上游 Precision/Score 行为、导入已拟合 Katamari 系数，或将倒数优先算术与分子除法算术等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this convention explicitly and retain actual selected source profile name/version, declared dimension and applicable reference frame."
+msgstr "显式选择此约定，并保留实际所选来源配置名称/版本、声明量纲及适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source family ranks count distinct subjects from one, with defocus ranked as an admitted component. Positive unit contributions yield nonnegative scores despite the signed carrier. The actual full profile supplies its component set; names/versions alone do not determine or validate it."
+msgstr "来源检索族名次从一开始按不同主体计数，defocus 作为已接纳组件参与排名。即使载体有符号，正单位贡献也产生非负分数。实际完整配置提供其组件集；仅有名称/版本既不确定也不验证组件集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unit source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ."
+msgstr "显式单位权重来源主张：ex:profile gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score profile source form law"
+msgstr "融合分数配置来源形式定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared fusion-score profile uses the supplied native identity form appropriate to its selected source convention: digest bytes alone for weighted scale-18, or actual profile name and selected version for unit scale-12."
+msgstr "声明融合分数配置使用与其所选来源约定相符的所提供原生身份形式：18 位小数加权约定仅用摘要字节，12 位小数单位权重约定用实际配置名称及所选版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the applicable identity representation without a universal native-byte requirement or a parameter default."
+msgstr "用于要求适用身份表示，不施加普遍原生字节要求或参数默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating identity form with digest authenticity, content-unique profile identity, component validation or a source-call/result association."
+msgstr "避免将身份形式等同于摘要真实性、内容唯一配置身份、组件验证或来源调用/结果关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under each explicit convention require its applicable identity fields and forbid the other form, using distinct fresh existence witnesses and local datatype/maximality restrictions."
+msgstr "在每个显式约定下要求其适用身份字段并禁止另一形式，使用不同的新绑定存在见证及局部数据类型及最大基数限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law grades representation form only. Actual identity bytes/text/version, native byte width and authentic binding to the selected full source profile remain import and application obligations; equal metadata does not merge interpretation records."
+msgstr "此定律仅评定表示形式。实际身份字节/文本/版本、原生字节宽度及与所选完整来源配置的真实绑定仍是导入及应用义务；相等元数据不合并解释记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The unit identity form: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ; gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+msgstr "单位权重身份形式：ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ; gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score interpretation agreement law"
+msgstr "融合分数解释一致定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fusion score and its selected declared profile interpretation use the exact same dimension resource and the exact same applicable reference-frame resource."
+msgstr "已报告融合分数及其所选声明配置解释使用完全相同的量纲资源及完全相同的适用参照系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep quantitative meaning explicit and consistent across a supplied score and its declared context."
+msgstr "用于使所提供分数与其声明上下文之间的定量含义明确且一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing only labels, merging equal-looking frames or claiming this agreement authenticates an actual source call or arithmetic application."
+msgstr "避免仅比较标签、合并看似相同的参照系，或声称此一致性认证实际来源调用或算术应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the score’s selected profile and each side’s stored dimension and frame, then require termEqual on the corresponding resource pairs."
+msgstr "绑定分数所选配置及两端存储的量纲和参照系，然后要求对应资源对满足 termEqual。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The profile record itself is the selected interpretation context; no separate call-context resource or result link is introduced. Authentic association with an actual source call, full profile and result remains application-owned."
+msgstr "配置记录本身就是所选解释上下文；不引入独立调用上下文资源或结果链接。与实际来源调用、完整配置及结果的真实关联仍由应用负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A shared frame resource: ex:score gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile . ex:profile gmeow:hasReferenceFrame ex:frame ."
+msgstr "共享参照系资源：ex:score gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile . ex:profile gmeow:hasReferenceFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score representable carrier range law"
+msgstr "融合分数可表示载体范围定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fused magnitude is nonnegative and no greater than the selected observed source carrier’s exact capacity: unsigned 128-bit units at scale 10^18 or the positive capacity of signed 128-bit units at scale 10^12."
+msgstr "报告融合量值非负，且不大于所选观察来源载体的精确容量：按 10^18 缩放的无符号 128 位单位，或按 10^12 缩放的有符号 128 位单位的正容量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject negative or over-capacity decimal reports under these explicit positive-weight source claims."
+msgstr "用于在这些显式正权重来源主张下，拒绝负数或超容量十进制报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling an in-range decimal a fixed-point value, full numeric-domain member, quantum-valid value or arithmetic-conformant result."
+msgstr "避免将范围内十进制数称为定点值、完整数值域成员、符合量化步长的值或算术符合性结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the exact decimal magnitude and selected convention; compare against zero and the appropriate exact decimal carrier maximum with supported term comparisons."
+msgstr "绑定精确十进制量值及所选约定；使用受支持项比较与零及适用的精确十进制载体最大值比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are carrier-range checks only. An in-range decimal finer than the selected quantum can pass. Truncation, quantum membership, complete summation, native admission and source authenticity are not certified; xsd:decimal already excludes nonfinite values."
+msgstr "这些仅是载体范围检查。比所选量化步长更细的范围内十进制数可以通过。不认证截断、量化步长符合性、完整求和、原生接纳或来源真实性；xsd:decimal 已排除非有限值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported zero remains valid: ex:score math:quantityValue \"0\"^^xsd:decimal ."
+msgstr "报告零仍有效：ex:score math:quantityValue \"0\"^^xsd:decimal ."
