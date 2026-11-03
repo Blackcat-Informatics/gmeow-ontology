@@ -213,3 +213,18 @@ reifier is demanded for an inferred edge.
 The [ordinary operation account](../agency-records/examples/stated-reasons-and-operation-reports.ttl)
 keeps a record's rationale, an event's rationale and the source's competing
 operation reports separate.
+
+## Producer-supplied structure names
+
+structureName retains the exact record-type tag supplied for a StructuredMap
+occurrence. Preserve its supplied xsd:string or xsd:token literal, including
+lexical form and datatype; do not normalize whitespace or infer token typing.
+The tag does not identify a schema or RDF class and does not install a parser
+or validator. It is independent of the map's field labels and is not a scalar
+variant tag. Missing names remain missing.
+
+For example, a supplied map can carry
+ex:detail gmeow:structureName "PendingInput" while its hasFacet entries retain
+their own facetLabel and typed or nested payloads. The
+[query-context account](../query-context/docs.md#row-reasons-and-scoped-loss-observations)
+shows nested maps, supplied record tags and native field values on a loss detail.

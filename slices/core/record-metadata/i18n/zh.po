@@ -1193,3 +1193,31 @@ msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。
 msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
 msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structure name"
+msgstr "结构名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact producer-supplied record-type tag of a StructuredMap occurrence, retained as its supplied xsd:string or xsd:token literal. The tag is data, not an inferred RDF class or schema identity."
+msgstr "生产者为 StructuredMap 出现项提供的精确记录类型标签，保留为提供的 xsd:string 或 xsd:token 字面量。该标签是数据，不是推断的 RDF 类或模式身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer supplies a named record structure independently of its field labels."
+msgstr "用于生产者独立于字段标签提供命名记录结构的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a schema IRI, normalizing the tag or using it for a scalar variant."
+msgstr "避免虚构模式 IRI、规范化标签或将其用于标量变体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the source literal to the StructuredMap occurrence; preserve its lexical form and supplied datatype without inferring token typing."
+msgstr "将来源字面量附于 StructuredMap 出现项；保留词法形式和提供的数据类型，不推断 token 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional source tags supply no missing name, class membership, schema validation or executable parser."
+msgstr "非函数式来源标签不提供缺失名称、类成员关系、模式验证或可执行解析器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."
+msgstr "提供的记录标签：ex:detail gmeow:structureName \"NotEmbedded\" ."

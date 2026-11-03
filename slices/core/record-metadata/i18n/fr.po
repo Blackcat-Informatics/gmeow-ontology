@@ -1193,3 +1193,31 @@ msgstr "Évaluer la formule d’intégrité réalisée sur le graphe fourni sans
 msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
 msgstr "Les occurrences de charge mal formées produisent un échec de validation plutôt qu’une représentation affaiblie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structure name"
+msgstr "nom de structure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact producer-supplied record-type tag of a StructuredMap occurrence, retained as its supplied xsd:string or xsd:token literal. The tag is data, not an inferred RDF class or schema identity."
+msgstr "L’étiquette exacte de type d’enregistrement fournie par le producteur pour une occurrence de StructuredMap, conservée comme le littéral xsd:string ou xsd:token fourni. L’étiquette est une donnée, non une classe RDF ou une identité de schéma inférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer supplies a named record structure independently of its field labels."
+msgstr "Utiliser lorsqu’un producteur fournit une structure d’enregistrement nommée indépendamment des étiquettes de ses champs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a schema IRI, normalizing the tag or using it for a scalar variant."
+msgstr "Éviter d’inventer une IRI de schéma, de normaliser l’étiquette ou de l’utiliser pour une variante scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the source literal to the StructuredMap occurrence; preserve its lexical form and supplied datatype without inferring token typing."
+msgstr "Attacher le littéral source à l’occurrence de StructuredMap ; préserver sa forme lexicale et son type de données fourni sans inférer le type token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional source tags supply no missing name, class membership, schema validation or executable parser."
+msgstr "Les étiquettes de source non fonctionnelles ne fournissent aucun nom absent, appartenance de classe, validation de schéma ou analyseur exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."
+msgstr "Une étiquette d’enregistrement fournie : ex:detail gmeow:structureName \"NotEmbedded\" ."
