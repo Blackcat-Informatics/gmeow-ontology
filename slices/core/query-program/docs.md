@@ -161,3 +161,72 @@ The [retrieval scene](examples/retrieval.ttl) combines ranked evidence and a los
 without erasing either. The [feedback scene](examples/feedback.ttl) retains actual
 body passes and a measured fixed point. See the [design rationale](design/QUERY-PROGRAM.md)
 for the canonical laws and source limits.
+
+## Measured class-weight evidence
+
+QueryFusionWeightFit retains source-reported fitted class weights against one
+exact judged-content resource. weightFitJudgedSet identifies that content;
+fittedClassWeight retains a nonempty collection of supplied quantitative values.
+Each QueryFusionClassWeight is a math:Quantity, not an information record,
+probability, confidence value or fitted-model artifact. It names one source
+retrieval-class resource through weightForClass and carries its magnitude through
+math:quantityValue with math:hasDimension math:dimensionless.
+
+The magnitude is one positive exact xsd:decimal value. The class and dimension
+coordinates are also required and single-valued; another dimension, a missing
+value, zero or a negative magnitude does not satisfy the selected description.
+No parallel numeric weight property or lexical-number field is introduced.
+Equal values for different classes do not identify the classes or quantities.
+Within a fit, one class selects one quantity identity.
+
+fusionWeightFit associates a QueryProgramNode with supplied evidence. It is
+optional and nonfunctional: one operation can carry several source fit records.
+It does not assert that the node applied those values, choose a default fit or
+change ReciprocalRankFusion's unweighted integer-quantization contract.
+Unmeasured unit coefficients are not fabricated fitted measurements.
+
+Fits retain their own identities and judged sets even when they share a supplied
+quantity carrier. No unique fit owner is imposed on a quantity. Preserve source
+attribution through existing provenance relations when actually supplied; the
+fit record is not thereby an Observation, proof of fitting, authentication of
+the judged contents or a claim of held-out generalization.
+
+This fictional graph records supplied evidence. Both fits explicitly report
+the same two quantities against different judged-content identities; neither
+fit is inferred from the other or from equal numeric values. The node records
+an evidence association only, with no execution or weighted-fusion assertion.
+
+```turtle
+@prefix ex: <https://example.org/fit/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:node a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful false ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:fusionWeightFit ex:fitA, ex:fitB .
+
+ex:fitA a gmeow:QueryFusionWeightFit ;
+    gmeow:weightFitJudgedSet ex:judgedA ;
+    gmeow:fittedClassWeight ex:lexicalWeight, ex:spaceWeight .
+ex:fitB a gmeow:QueryFusionWeightFit ;
+    gmeow:weightFitJudgedSet ex:judgedB ;
+    gmeow:fittedClassWeight ex:lexicalWeight, ex:spaceWeight .
+ex:judgedA a gmeow:InformationObject .
+ex:judgedB a gmeow:InformationObject .
+
+ex:lexicalWeight a gmeow:QueryFusionClassWeight ;
+    gmeow:weightForClass ex:lexicalClass ;
+    math:quantityValue "1.00"^^xsd:decimal ;
+    math:hasDimension math:dimensionless .
+ex:spaceWeight a gmeow:QueryFusionClassWeight ;
+    gmeow:weightForClass ex:spaceClass ;
+    math:quantityValue "2.00"^^xsd:decimal ;
+    math:hasDimension math:dimensionless .
+```
+
+The class resources identify retrieval families or spaces and are not typed as
+ontology classes. The supplied exact decimals are coefficients, not normalized
+probabilities. This account specifies neither a fitting algorithm nor a claim
+that any consumer implemented the representation or applied the weights.
