@@ -413,3 +413,263 @@ broader interface may admit values outside it. The record itself claims no
 provider invocation or current consumer adoption. It also supplies no rerank
 node, candidate coverage, scored/unscored result, source order or loss-retention
 contract. Those stage obligations require their own explicit result model.
+
+## Complete finite reported rerank stages
+
+QueryRerank describes an operation over one original QueryUnionAnswer and one
+reported QueryRerankAnswer. Both explicitly select rerankFiniteFloatProfile
+through rerankScoreProfile. The operation's rerankInput and the answer's
+rerankedUnion name the same original resource. A description does not assert a
+provider invocation or execution occurrence.
+
+The result retains exactly the input candidate identities through queryCandidate
+and exactly one QueryRerankEntry per candidate. Every entry belongs to one
+answer and retains its original union position through rerankInputPosition and
+its supplied output position through entryOrdinal. Positions are nonnegative
+and unique within each answer; no contiguous indices or source count are
+invented. Original unionClassList resources, class entry occurrences, ranks,
+tie keys and associated source evidence remain on the original lists.
+
+Each entry has exactly one outcome branch. A scored entry retains a
+QueryRerankScore and its supplied rerankWinningPassage. An unscored entry
+retains an actual StructuredValue through rerankUnscoredDetail, with no score
+or winning passage. Structured record tags and fields remain data through
+structureName, hasFacet and the native payload relations. An unscored detail
+does not automatically become an aggregate QueryLoss.
+
+Every scored answer retains rerankAuthority, and each score's direct
+rerankScoreAuthority references that same actual authority record. The existing
+score contract requires its finite xsd:float magnitude, source-declared
+dimension and actual frame to agree with that authority. Equal opaque identity
+bytes on different records do not satisfy answer-to-score authority agreement.
+Missing context or a rejected numeric value fails the selected profile; it is
+never silently dropped, replaced or relabeled as an unscored source outcome.
+
+Every original ledger loss survives by resource identity in an output ledger;
+additional stage losses may coexist. An answer with an unscored entry cannot
+report logic:CompleteForFragment. Other status evidence remains source supplied,
+and an absent status is not replaced with an inferred value.
+
+Canonical order checking has two integer-only obligations: all scored entries
+precede all unscored entries, and unscored entries retain their relative input
+order. Scored numeric-descending order, equal-score ties and the source's
+floating-point total comparator remain reported source behavior outside these
+checks. No ordinary numeric comparison is presented as a proof of signed-zero
+sorting, lexical rendering or bit identity.
+
+The fictional graph below retains four original candidates and their original
+class-list occurrences. The supplied output has two equal finite scores, with
+both winning passages retained, followed by two unscored candidates in original
+relative order. Its explicit dimensionless scalar frame and provider wording
+supply context without inferring a probability or confidence interpretation.
+The frame's crisp default is a frame declaration, not a relevance truth claim.
+
+```turtle
+@prefix ex: <https://example.org/rerank-stage/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:classList a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:query ;
+    gmeow:queryLossLedger ex:inputLedger ;
+    gmeow:rankedListClass ex:lexicalClass ;
+    gmeow:queryCandidate ex:a, ex:b, ex:c, ex:d ;
+    gmeow:rankedQueryEntry ex:classA, ex:classB, ex:classC, ex:classD .
+ex:classA a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:a ;
+    gmeow:queryInputRank "1"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "a" .
+ex:classB a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:b ;
+    gmeow:queryInputRank "1"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "b" .
+ex:classC a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:c ;
+    gmeow:queryInputRank "3"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "c" .
+ex:classD a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:d ;
+    gmeow:queryInputRank "4"^^xsd:positiveInteger ;
+    gmeow:queryTieKey "d" .
+
+ex:union a gmeow:QueryUnionAnswer ;
+    gmeow:queryAnswerFor ex:query ;
+    gmeow:queryLossLedger ex:inputLedger ;
+    gmeow:unionClassList ex:classList ;
+    gmeow:queryCandidate ex:a, ex:b, ex:c, ex:d .
+ex:inputLedger a gmeow:QueryLossLedger ;
+    gmeow:ledgerLoss ex:originalLoss .
+ex:originalLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:sourceGraph ;
+    gmeow:lossCause gmeow:lossCoverageEnds .
+
+ex:stage a gmeow:QueryRerank ;
+    gmeow:queryNodeEffectful false ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankInput ex:union ;
+    gmeow:rerankOutput ex:answer .
+ex:answer a gmeow:QueryRerankAnswer ;
+    gmeow:queryAnswerFor ex:query ;
+    gmeow:queryLossLedger ex:outputLedger ;
+    gmeow:queryCompletenessStatus logic:Incomplete ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankedUnion ex:union ;
+    gmeow:rerankAuthority ex:authority ;
+    gmeow:queryCandidate ex:a, ex:b, ex:c, ex:d ;
+    gmeow:rerankEntry ex:outB, ex:outD, ex:outA, ex:outC .
+ex:outputLedger a gmeow:QueryLossLedger ;
+    gmeow:ledgerLoss ex:originalLoss, ex:stageLoss .
+ex:stageLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:a ;
+    gmeow:lossCause gmeow:lossFamilyCouldNot ;
+    gmeow:lossDetail ex:unscoredA .
+
+ex:scoreFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis ex:scoreAxis ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:requiresHost false .
+ex:scoreAxis a gmeow:Axis .
+ex:authority a gmeow:QueryRerankAuthority ;
+    gmeow:rerankAuthorityIdentity "00a1"^^xsd:hexBinary ;
+    gmeow:rerankScoreKind "relevance-logit" ;
+    gmeow:rerankScoreDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame .
+ex:scoreB a gmeow:QueryRerankScore ;
+    math:quantityValue "-1.25"^^xsd:float ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame ;
+    gmeow:rerankScoreAuthority ex:authority .
+ex:scoreD a gmeow:QueryRerankScore ;
+    math:quantityValue "-1.25"^^xsd:float ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:scoreFrame ;
+    gmeow:rerankScoreAuthority ex:authority .
+
+ex:outB a gmeow:QueryRerankEntry ;
+    gmeow:rerankEntryCandidate ex:b ;
+    gmeow:rerankInputPosition "1"^^xsd:nonNegativeInteger ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:rerankScore ex:scoreB ;
+    gmeow:rerankWinningPassage "A retained passage for candidate b." .
+ex:outD a gmeow:QueryRerankEntry ;
+    gmeow:rerankEntryCandidate ex:d ;
+    gmeow:rerankInputPosition "3"^^xsd:nonNegativeInteger ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:rerankScore ex:scoreD ;
+    gmeow:rerankWinningPassage "A retained passage for candidate d." .
+ex:outA a gmeow:QueryRerankEntry ;
+    gmeow:rerankEntryCandidate ex:a ;
+    gmeow:rerankInputPosition "0"^^xsd:nonNegativeInteger ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:rerankUnscoredDetail ex:unscoredA .
+ex:outC a gmeow:QueryRerankEntry ;
+    gmeow:rerankEntryCandidate ex:c ;
+    gmeow:rerankInputPosition "2"^^xsd:nonNegativeInteger ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger ;
+    gmeow:rerankUnscoredDetail ex:unscoredC .
+
+ex:unscoredA a gmeow:StructuredMap ;
+    gmeow:structureName "NoWindowScored" ;
+    gmeow:hasFacet ex:firstRefusal .
+ex:firstRefusal a gmeow:LabelledFacet ;
+    gmeow:facetLabel "first" ;
+    gmeow:facetStructuredValue ex:wrongCount .
+ex:wrongCount a gmeow:StructuredMap ;
+    gmeow:structureName "WrongCount" ;
+    gmeow:hasFacet ex:scoreCount, ex:passageCount .
+ex:scoreCount a gmeow:LabelledFacet ;
+    gmeow:facetLabel "scores" ;
+    gmeow:facetValue "0"^^xsd:unsignedLong .
+ex:passageCount a gmeow:LabelledFacet ;
+    gmeow:facetLabel "passages" ;
+    gmeow:facetValue "1"^^xsd:unsignedLong .
+ex:unscoredC a gmeow:StructuredMap ;
+    gmeow:structureName "NoClassMatched" .
+```
+
+The equal-score order is retained as reported; it is not proved by the integer
+order law. The original list's tied positive ranks and distinct tie keys remain
+unchanged. The shared detail resource is explicitly supplied as both an outcome
+cause and stage loss detail; no rule infers those identities from similar text.
+
+An all-unscored answer may retain every candidate without an authority. This
+compact fictional example supplies its cause and reported incomplete status
+explicitly. It does not manufacture an authority from the cause text. Prefixes
+are the same as above.
+
+```turtle
+ex:unavailableUnion a gmeow:QueryUnionAnswer ;
+    gmeow:queryAnswerFor ex:otherQuery ;
+    gmeow:queryLossLedger ex:unavailableInputLedger ;
+    gmeow:queryCandidate ex:x .
+ex:unavailableInputLedger a gmeow:QueryLossLedger .
+ex:unavailableStage a gmeow:QueryRerank ;
+    gmeow:queryNodeEffectful false ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankInput ex:unavailableUnion ;
+    gmeow:rerankOutput ex:unavailableAnswer .
+ex:unavailableAnswer a gmeow:QueryRerankAnswer ;
+    gmeow:queryAnswerFor ex:otherQuery ;
+    gmeow:queryLossLedger ex:unavailableOutputLedger ;
+    gmeow:queryCompletenessStatus logic:Incomplete ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankedUnion ex:unavailableUnion ;
+    gmeow:queryCandidate ex:x ;
+    gmeow:rerankEntry ex:unavailableEntry .
+ex:unavailableOutputLedger a gmeow:QueryLossLedger ;
+    gmeow:ledgerLoss ex:unavailableLoss .
+ex:unavailableLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:x ;
+    gmeow:lossCause gmeow:lossFamilyCouldNot ;
+    gmeow:lossDetail ex:noReranker .
+ex:unavailableEntry a gmeow:QueryRerankEntry ;
+    gmeow:rerankEntryCandidate ex:x ;
+    gmeow:rerankInputPosition "0"^^xsd:nonNegativeInteger ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:rerankUnscoredDetail ex:noReranker .
+ex:noReranker a gmeow:StructuredMap ;
+    gmeow:structureName "NoReranker" ;
+    gmeow:hasFacet ex:noRerankerWhy .
+ex:noRerankerWhy a gmeow:LabelledFacet ;
+    gmeow:facetLabel "why" ;
+    gmeow:facetStructuredValue ex:notShared .
+ex:notShared a gmeow:StructuredMap ;
+    gmeow:structureName "NotShared" .
+```
+
+An empty original candidate set also admits an empty result. This final minimal
+standalone union supplies no class-list inventory and asserts no status from
+emptiness. The node and answer still explicitly select their profile and retain
+the required query, original union and ledgers.
+
+```turtle
+ex:emptyUnion a gmeow:QueryUnionAnswer ;
+    gmeow:queryAnswerFor ex:emptyQuery ;
+    gmeow:queryLossLedger ex:emptyInputLedger .
+ex:emptyInputLedger a gmeow:QueryLossLedger .
+ex:emptyStage a gmeow:QueryRerank ;
+    gmeow:queryNodeEffectful false ;
+    gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankInput ex:emptyUnion ;
+    gmeow:rerankOutput ex:emptyAnswer .
+ex:emptyAnswer a gmeow:QueryRerankAnswer ;
+    gmeow:queryAnswerFor ex:emptyQuery ;
+    gmeow:queryLossLedger ex:emptyOutputLedger ;
+    gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ;
+    gmeow:rerankedUnion ex:emptyUnion .
+ex:emptyOutputLedger a gmeow:QueryLossLedger .
+```
+
+These records retain supplied evidence without proving source authentication,
+provider execution, passage-selection exhaustiveness, current consumer adoption
+or a floating-point sorting implementation. The separate content-tier and
+activation order policy, accepted-reason folding and verdict-choice semantics
+remain governed by their own contracts.

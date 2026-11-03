@@ -234,3 +234,101 @@ rerank operation, result membership, ordering, outcome or loss semantics and
 does not establish consumer adoption. A complete rerank stage must separately
 retain the original union and all scored and unscored candidates with its
 source positions, passages, causes and losses.
+
+## Finite reported rerank stage and outcome accounting
+
+QueryRerank is a QueryProgramNode description; QueryRerankAnswer is an attributed
+QueryAnswer. rerankInput binds the declared original QueryUnionAnswer,
+rerankOutput binds the reported result and rerankedUnion retains the actual
+original evidence directly on that answer. QueryRerankInputAgreementLaw requires
+the two input resources to agree when an operation names that answer. This
+distinguishes declaration from reported evidence without inventing an execution
+occurrence (Principles 4, 7, 11, 12, 17 and 19).
+
+Operation and answer each require rerankScoreProfile with the single admitted
+value rerankFiniteFloatProfile. An explicit oneOf restriction and ClosureEntry
+make selection mandatory; no score presence, provider wording or class name
+inserts a default. The selected finite QueryRerankScore and QueryRerankAuthority
+contract is reused with its existing magnitude, dimension, actual frame, opaque
+identity and provider-wording obligations. No finite-value or score-context law
+is duplicated here.
+
+QueryRerankCandidateAccountingLaw has four guarded directions: each original
+candidate has a retained entry, each entry names an original candidate, each
+original candidate remains an output candidate and every output candidate is
+original. QueryRerankEntryUniquenessLaw identifies two entries for the same
+candidate within one answer. These obligations give exact identity coverage
+without a declared count and admit empty collections when the input is empty.
+The same original union resource preserves its original class-list resources,
+entry occurrences, class-local ranks, tie keys and associated evidence.
+
+QueryRerankEntry is an answer-local InformationObject. Its required coordinates
+are one candidate, one original union position and one reported output
+entryOrdinal. QueryRerankEntryOwnerLaw requires one existing typed answer owner
+and equal owner identities for any two links to the occurrence. Its Formula has
+one outer universal over entry and the owner pair. The typed-entry guard implies
+a conjunction of a fresh-owner joined existential and a guarded two-owner-link
+implication. It contains no positive nested universal. Only entry occurrences
+have this inverse-owner obligation; candidates, scores, authorities and losses
+remain shareable resources.
+
+QueryRerankPositionUniquenessLaw separately compares original input positions
+and output positions within one answer through logic:termEqual. Matching a
+position requires equal entry identity. The coordinates are source-supplied
+nonnegative integers; there is no contiguous-index requirement, successor law,
+renumbering or global sequence identity.
+
+QueryRerankOutcomeLaw requires a score or an explicit structured unscored cause
+and forbids both. Its two passage implications require a winning passage exactly
+when a score exists. Branch existence uses distinct fresh existential variables
+in every sibling or nested binder, preserving independent scope in validation
+projection. A typed StructuredValue retains its own native branch and field
+contracts. No missing payload is replaced with a null, zero or empty container.
+solutionReason and lossDetail retain their existing subject domains and are not
+generic entry payload properties.
+
+QueryRerankAuthorityRequiredLaw requires an answer authority for any scored
+entry, while allowing all-unscored results with no authority or a supplied one.
+QueryRerankAuthorityAgreementLaw requires each retained score's direct authority
+to be the same actual record as the answer's authority. Equal opaque bytes on
+different records are insufficient. The existing score laws enforce finite
+typed magnitude and dimension/frame agreement through that direct authority
+link; this stage adds no observer, model, authentication or calibration claim.
+
+QueryRerankReportedOrderLaw has exactly two integer-only guarded implications.
+Every scored entry's output ordinal is less than every unscored entry's output
+ordinal. For two unscored entries, a lesser original input position requires a
+lesser output ordinal. logic:termLess compares the bound integer coordinates.
+Canonical checking is limited to group placement and tail preservation. Scored
+numeric-descending order, equal-score tie order and floating-point total-order
+signed-zero behavior remain observed source behavior outside these checks.
+No score magnitude comparison or bit/lexical identity proof is authored.
+
+QueryRerankLossRetentionLaw requires every original ledger loss to appear by
+the same resource identity in an output ledger and permits additional stage
+losses. QueryRerankUnscoredCompletenessLaw forbids CompleteForFragment when any
+entry is unscored. It does not infer a missing status, make an empty ledger prove
+completeness or waive a limitation after acknowledgement.
+
+There are eight new required class/property coordinate pairs: three on the
+operation, two on the answer and three on entries. Each has allValuesFrom, an
+explicit ClosureEntry and qualified maximum one. Four optional-one coordinates
+have range and qualified maximum restrictions without ClosureEntry: answer
+authority and entry score, passage and unscored detail. Result entry and
+candidate collections have range restrictions, with full accounting supplied
+by the laws. No unqualified cardinality, global property functionality or
+authored validation shape is introduced.
+
+All eleven laws are ordinary Constraint/Formula trees with explicit quantified
+variables, indexed arguments, formalizes and messages. Generated validation is
+their projection; no special native marker lane is selected. Direct
+record-metadata dependency supplies entryOrdinal and the structured-value
+carriers. Existing direct lang, math and places dependencies supply literal,
+quantitative and actual-frame ownership without an extension dependency.
+
+A selected score with a nonfinite magnitude, wrong datatype or missing context
+fails its existing carrier contract. It cannot be silently removed, replaced
+or reclassified as a source unscored outcome. The stage retains the actual
+source branches and reported evidence without claiming provider execution or
+consumer adoption. Content-tier/activation order, accepted-reason folding,
+verdict-choice semantics and weighted-fusion behavior are separate contracts.

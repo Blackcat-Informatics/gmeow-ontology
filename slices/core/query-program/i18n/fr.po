@@ -3283,3 +3283,731 @@ msgstr "Les restrictions sur les coordonnées obligatoires traitent séparément
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A context-agreement obligation: gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
 msgstr "Une obligation de concordance de contexte : gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank"
+msgstr "Reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-operation description retaining an original candidate union and an attributed rerank answer under an explicitly selected finite reported score profile. It describes the operation without asserting that an execution occurred."
+msgstr "Description d’opération de requête conservant une union originale de candidats et une réponse de reclassement attribuée sous un profil explicitement sélectionné de scores finis rapportés. Elle décrit l’opération sans affirmer qu’une exécution a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a rerank stage that accounts for every original candidate and preserves its original union evidence."
+msgstr "Utiliser pour décrire une étape de reclassement qui rend compte de chaque candidat original et préserve les éléments probants de son union originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the description as a provider invocation, filtering operation or replacement for the original class-ranked lists."
+msgstr "Éviter de traiter cette description comme un appel au fournisseur, une opération de filtrage ou un remplacement des listes originales classées au sein de chaque classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one rerankInput, one rerankOutput and rerankScoreProfile rerankFiniteFloatProfile, together with the inherited node effect and stratum declarations."
+msgstr "Fournir un rerankInput, un rerankOutput et rerankScoreProfile rerankFiniteFloatProfile, avec les déclarations héritées d’effets et de strate du nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected contract retains supplied outcomes and positions. It checks scored-before-unscored grouping and unscored-tail order, without certifying the source’s floating-point sort algorithm."
+msgstr "Le contrat sélectionné conserve les résultats et positions fournis. Il vérifie le regroupement des entrées avec score avant celles sans score et l’ordre de la partie finale sans score, sans certifier l’algorithme source de tri en virgule flottante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared stage: ex:stage a gmeow:QueryRerank ; gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "Une étape déclarée : ex:stage a gmeow:QueryRerank ; gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Answer"
+msgstr "Réponse de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed supplied rerank result retaining its original QueryUnionAnswer, exactly one outcome occurrence per original candidate, reported source and output positions, and all original losses with any additional stage losses."
+msgstr "Résultat de reclassement fourni et attribué conservant sa QueryUnionAnswer originale, exactement une occurrence de résultat par candidat original, les positions sources et de sortie rapportées, et toutes les pertes originales avec les éventuelles pertes supplémentaires de l’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete account of the scored and unscored candidates reported by a selected rerank stage."
+msgstr "Utiliser pour conserver un compte rendu complet des candidats avec et sans score rapportés par une étape de reclassement sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid discarding unscored candidates, replacing original class ranks with a global rank or inferring completeness from an empty ledger."
+msgstr "Éviter d’éliminer des candidats sans score, de remplacer les rangs originaux par classe par un rang global ou de déduire la complétude d’un registre vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain rerankedUnion, the explicit rerankScoreProfile, every rerankEntry and queryCandidate, and the inherited query and loss-ledger coordinates."
+msgstr "Conserver rerankedUnion, le rerankScoreProfile explicite, chaque rerankEntry et queryCandidate, ainsi que les coordonnées héritées de requête et de registre de pertes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A scored entry requires an answer authority matching the score’s own authority record. An all-unscored answer may omit authority, and an empty input admits an empty result collection."
+msgstr "Une entrée avec score exige une autorité de réponse identique à l’enregistrement d’autorité propre du score. Une réponse entièrement sans score peut omettre l’autorité, et une entrée vide admet une collection vide de résultats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied result: ex:answer a gmeow:QueryRerankAnswer ; gmeow:rerankedUnion ex:union ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ; gmeow:rerankEntry ex:entry ."
+msgstr "Un résultat fourni : ex:answer a gmeow:QueryRerankAnswer ; gmeow:rerankedUnion ex:union ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ; gmeow:rerankEntry ex:entry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Entry"
+msgstr "Entrée de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One candidate outcome occurrence belonging to exactly one rerank answer. It retains that candidate’s original union position and reported output position, with either a finite score and winning passage or an explicit structured unscored cause."
+msgstr "Une occurrence de résultat de candidat appartenant à exactement une réponse de reclassement. Elle conserve la position de ce candidat dans l’union originale et sa position de sortie rapportée, avec soit un score fini et un passage gagnant, soit une cause structurée explicite d’absence de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an answer-local occurrence that keeps one candidate’s outcome and positions together."
+msgstr "Utiliser pour une occurrence propre à une réponse qui garde ensemble le résultat et les positions d’un candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing the occurrence between answers or attaching both a score and an unscored cause to it."
+msgstr "Éviter de partager cette occurrence entre réponses ou de lui rattacher à la fois un score et une cause d’absence de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply rerankEntryCandidate, rerankInputPosition and entryOrdinal; link it from its answer and choose exactly one scored or unscored branch."
+msgstr "Fournir rerankEntryCandidate, rerankInputPosition et entryOrdinal ; la relier depuis sa réponse et choisir exactement une branche avec ou sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Positions are nonnegative source-supplied sequence coordinates, not class ranks or global identity. Other answers use separate occurrences even when candidate or score resources are shared."
+msgstr "Les positions sont des coordonnées de séquence non négatives fournies par la source, pas des rangs par classe ni une identité globale. D’autres réponses utilisent des occurrences distinctes même si les ressources de candidat ou de score sont partagées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scored occurrence: ex:entry a gmeow:QueryRerankEntry ; gmeow:rerankEntryCandidate ex:candidate ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+msgstr "Une occurrence avec score : ex:entry a gmeow:QueryRerankEntry ; gmeow:rerankEntryCandidate ex:candidate ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finite reported float rerank profile"
+msgstr "profil de reclassement à scores flottants finis rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit profile value selecting a rerank account whose scored outcomes use the finite reported IEEE 754 single precision QueryRerankScore contract, while preserving every original candidate and explicit unscored outcome."
+msgstr "La valeur de profil explicite sélectionnant un compte rendu de reclassement dont les résultats avec score utilisent le contrat QueryRerankScore de scores finis rapportés en simple précision IEEE 754, tout en préservant chaque candidat original et chaque résultat explicitement sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the selected rerankScoreProfile value on a rerank operation and its reported answer."
+msgstr "Utiliser comme valeur rerankScoreProfile sélectionnée sur une opération de reclassement et sa réponse rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring profile selection from a node name, score presence or provider wording, or silently admitting nonfinite source scores."
+msgstr "Éviter de déduire la sélection du profil d’un nom de nœud, de la présence d’un score ou de la formulation du fournisseur, ou d’admettre silencieusement des scores sources non finis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert this value explicitly on both QueryRerank and QueryRerankAnswer through rerankScoreProfile."
+msgstr "Affirmer explicitement cette valeur à la fois sur QueryRerank et QueryRerankAnswer par rerankScoreProfile."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The profile requires finite score context and full outcome accounting. It supplies no automatic default, provider execution, float-comparator proof or completeness value."
+msgstr "Ce profil exige un contexte de score fini et un compte rendu exhaustif des résultats. Il ne fournit aucun défaut automatique, exécution du fournisseur, preuve de comparateur flottant ou valeur de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit selection: ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "Une sélection explicite : ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank input union"
+msgstr "union d’entrée du reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original QueryUnionAnswer selected as the declared input of a QueryRerank operation. Its candidate identities, retained class lists and loss records remain source evidence beside the reranked outcomes."
+msgstr "La QueryUnionAnswer originale sélectionnée comme entrée déclarée d’une opération QueryRerank. Ses identités de candidats, listes de classes conservées et enregistrements de pertes restent des éléments sources aux côtés des résultats reclassés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind the original union consumed by a declared rerank stage."
+msgstr "Utiliser pour lier l’union originale consommée par une étape de reclassement déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a filtered candidate subset or replacing original class-list occurrences with a newly ranked list."
+msgstr "Éviter de substituer un sous-ensemble filtré de candidats ou de remplacer les occurrences originales de listes de classes par une liste nouvellement classée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one original QueryUnionAnswer; require the operation’s output answer to retain that same resource through rerankedUnion."
+msgstr "Relier une QueryUnionAnswer originale ; exiger que la réponse de sortie de l’opération conserve cette même ressource par rerankedUnion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This operation-input declaration is distinct from the answer’s retained original-input evidence and does not itself assert an execution occurrence."
+msgstr "Cette déclaration d’entrée d’opération est distincte des éléments d’entrée originale conservés par la réponse et n’affirme pas elle-même une occurrence d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared original input: ex:stage gmeow:rerankInput ex:union ."
+msgstr "Une entrée originale déclarée : ex:stage gmeow:rerankInput ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank output answer"
+msgstr "réponse de sortie du reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed QueryRerankAnswer reported as the output of a QueryRerank operation description. The answer retains the operation’s original input union and its complete candidate outcome account."
+msgstr "La QueryRerankAnswer attribuée rapportée comme sortie d’une description d’opération QueryRerank. La réponse conserve l’union d’entrée originale de l’opération et son compte rendu complet des résultats des candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate a declared rerank stage with its supplied result record."
+msgstr "Utiliser pour associer une étape de reclassement déclarée à son enregistrement de résultat fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a ranked input list, bare score or filtered candidate set as the full rerank answer."
+msgstr "Éviter de relier une liste d’entrée classée, un score seul ou un ensemble filtré de candidats comme réponse de reclassement complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one QueryRerankAnswer and retain its original union, explicit profile, candidate entries and loss ledger."
+msgstr "Relier une QueryRerankAnswer et conserver son union originale, son profil explicite, ses entrées de candidats et son registre de pertes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge supplies no provider invocation, execution time, score authenticity or inferred result status."
+msgstr "Cette arête ne fournit aucun appel au fournisseur, instant d’exécution, authenticité de score ou statut de résultat déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied output association: ex:stage gmeow:rerankOutput ex:answer ."
+msgstr "Une association de sortie fournie : ex:stage gmeow:rerankOutput ex:answer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reranked original union"
+msgstr "union originale reclassée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The same original QueryUnionAnswer retained by a supplied rerank answer, preserving access to its class-list resources, original class entry occurrences, candidate identities and losses."
+msgstr "La même QueryUnionAnswer originale conservée par une réponse de reclassement fournie, préservant l’accès à ses ressources de listes de classes, occurrences originales d’entrées de classes, identités de candidats et pertes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original union evidence directly on a rerank result, including a standalone supplied answer."
+msgstr "Utiliser pour conserver directement les éléments probants de l’union originale sur un résultat de reclassement, y compris une réponse fournie autonome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying original entries into a global ranking or treating source union sequence order as merit."
+msgstr "Éviter de copier les entrées originales dans un classement global ou de traiter l’ordre de séquence de l’union source comme un mérite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original union resource and preserve all of its candidates and loss identities in the result account."
+msgstr "Relier la ressource d’union originale et préserver tous ses candidats et identités de pertes dans le compte rendu du résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "When the answer is a QueryRerank output, this resource must equal the operation’s rerankInput. Original ranks and tie keys remain on their original class-list entries."
+msgstr "Lorsque la réponse est une sortie de QueryRerank, cette ressource doit être égale au rerankInput de l’opération. Les rangs et clés de départage originaux restent sur leurs entrées originales de listes de classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A retained original resource: ex:answer gmeow:rerankedUnion ex:union ."
+msgstr "Une ressource originale conservée : ex:answer gmeow:rerankedUnion ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank result entry"
+msgstr "entrée de résultat du reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One answer-local candidate outcome occurrence retained by a QueryRerankAnswer. The collection contains exactly one entry per original union candidate, including candidates that were not scored."
+msgstr "Une occurrence de résultat de candidat propre à une réponse, conservée par une QueryRerankAnswer. La collection contient exactement une entrée par candidat de l’union originale, y compris les candidats qui n’ont pas reçu de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose all reported candidate outcomes and their source and output positions."
+msgstr "Utiliser pour exposer tous les résultats de candidats rapportés et leurs positions sources et de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting failed or unscored rows, repeating a candidate within one answer or sharing one occurrence between answer sequences."
+msgstr "Éviter d’omettre les lignes en échec ou sans score, de répéter un candidat dans une même réponse ou de partager une occurrence entre séquences de réponses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each QueryRerankEntry from its single owning answer and retain its candidate, positions and selected outcome branch."
+msgstr "Relier chaque QueryRerankEntry depuis son unique réponse propriétaire et conserver son candidat, ses positions et sa branche de résultat sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty input union permits no entries. Entry collection membership itself imposes no contiguous indices or floating-point score sort."
+msgstr "Une union d’entrée vide ne permet aucune entrée. L’appartenance à la collection d’entrées n’impose elle-même ni indices contigus ni tri des scores en virgule flottante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two retained outcomes: ex:answer gmeow:rerankEntry ex:scoredEntry, ex:unscoredEntry ."
+msgstr "Deux résultats conservés : ex:answer gmeow:rerankEntry ex:scoredEntry, ex:unscoredEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank entry candidate"
+msgstr "candidat de l’entrée de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original union candidate identity named by one rerank entry. Every input candidate has one such occurrence, and no entry names a candidate outside the retained original union."
+msgstr "L’identité exacte du candidat de l’union originale nommé par une entrée de reclassement. Chaque candidat d’entrée possède une telle occurrence, et aucune entrée ne nomme un candidat extérieur à l’union originale conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join a reported outcome to the original candidate without deriving identity from its passage or numeric score."
+msgstr "Utiliser pour relier un résultat rapporté au candidat original sans déduire son identité de son passage ou de son score numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting replacement candidates, identifying candidates by output position or interpreting membership as truth or confidence."
+msgstr "Éviter de créer des candidats de remplacement, d’identifier les candidats par leur position de sortie ou d’interpréter l’appartenance comme une vérité ou une confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one original candidate resource on the entry and preserve the same identity in input and output queryCandidate membership."
+msgstr "Référencer une ressource de candidat original sur l’entrée et préserver la même identité dans l’appartenance queryCandidate en entrée et en sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The candidate may occur in several original class lists or separate rerank answers; only the outcome occurrence is local to one answer."
+msgstr "Le candidat peut figurer dans plusieurs listes originales de classes ou réponses de reclassement distinctes ; seule l’occurrence de résultat est propre à une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "A retained candidate identity: ex:entry gmeow:rerankEntryCandidate ex:candidate ."
+msgstr "Une identité de candidat conservée : ex:entry gmeow:rerankEntryCandidate ex:candidate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank original union position"
+msgstr "position dans l’union originale du reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied zero-based position of an entry’s candidate in the original union sequence. It preserves source sequence evidence independently of the entry’s reported output entryOrdinal."
+msgstr "La position fournie, indexée à partir de zéro, du candidat d’une entrée dans la séquence d’union originale. Elle préserve les éléments de séquence sources indépendamment de la position de sortie entryOrdinal rapportée pour l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the original union order needed to account for the unscored tail."
+msgstr "Utiliser pour conserver l’ordre de l’union originale nécessaire au compte rendu de la partie finale sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this coordinate as class rank, merit, global candidate identity or a reason to renumber retained rows."
+msgstr "Éviter de traiter cette coordonnée comme un rang par classe, un mérite, une identité globale de candidat ou une raison de renuméroter les lignes conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:nonNegativeInteger on each entry and keep input positions unique within its owning answer."
+msgstr "Conserver un xsd:nonNegativeInteger sur chaque entrée et garder les positions d’entrée uniques dans sa réponse propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No contiguous sequence or declared source count is inferred. Canonical order checks preserve this relative order among unscored entries only."
+msgstr "Aucune séquence contiguë ni aucun effectif source déclaré n’est déduit. Les vérifications d’ordre canoniques préservent cet ordre relatif uniquement parmi les entrées sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied original position: ex:entry gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+msgstr "Une position originale fournie : ex:entry gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank entry score"
+msgstr "score de l’entrée de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied finite QueryRerankScore of a scored candidate occurrence. This branch requires a retained winning passage and excludes a simultaneous structured unscored cause."
+msgstr "Le QueryRerankScore fini fourni d’une occurrence de candidat avec score. Cette branche exige un passage gagnant conservé et exclut une cause structurée simultanée d’absence de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the reported quantitative outcome without moving its magnitude into an entry-local numeric property."
+msgstr "Utiliser pour conserver le résultat quantitatif rapporté sans déplacer sa valeur numérique vers une propriété numérique propre à l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a nonfinite source score, treating the score as probability or using score presence to infer a successful provider execution."
+msgstr "Éviter de remplacer un score source non fini, de traiter le score comme une probabilité ou de déduire de sa présence une exécution réussie du fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one existing QueryRerankScore, retain rerankWinningPassage, and match that score’s rerankScoreAuthority to the answer’s actual authority record."
+msgstr "Relier un QueryRerankScore existant, conserver rerankWinningPassage et faire correspondre la rerankScoreAuthority de ce score à l’enregistrement d’autorité effectif de la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing score contract owns magnitude, dimension, frame and authority context. The stage adds no duplicate finite-value law or floating-point sorting mechanism."
+msgstr "Le contrat de score existant régit la valeur numérique, la dimension, le repère et le contexte d’autorité. L’étape n’ajoute ni loi de valeur finie dupliquée ni mécanisme de tri en virgule flottante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scored branch: ex:entry gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+msgstr "Une branche avec score : ex:entry gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank winning passage"
+msgstr "passage gagnant du reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied best-scoring passage text retained beside a candidate’s reported rerank score. It is an xsd:string literal and is present exactly on the scored outcome branch."
+msgstr "Le texte du passage au meilleur score fourni par la source, conservé aux côtés du score de reclassement rapporté d’un candidat. C’est un littéral xsd:string présent exactement sur la branche de résultat avec score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which supplied passage accompanied a candidate’s reported score."
+msgstr "Utiliser pour préserver quel passage fourni accompagnait le score rapporté d’un candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a passage for an unscored candidate, declaring a language from plain text or treating retention as display authorization."
+msgstr "Éviter d’inventer un passage pour un candidat sans score, de déclarer une langue à partir de texte brut ou de traiter la conservation comme une autorisation d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied passage into one xsd:string literal on the scored entry and retain its score separately through rerankScore."
+msgstr "Copier le passage fourni dans un littéral xsd:string sur l’entrée avec score et conserver séparément son score par rerankScore."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier preserves text without re-running passage selection or proving that the provider evaluated every possible passage."
+msgstr "Le support préserve le texte sans réexécuter la sélection de passage ni prouver que le fournisseur a évalué chaque passage possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied winning passage: ex:entry gmeow:rerankWinningPassage \"A retained source passage.\" ."
+msgstr "Un passage gagnant fourni : ex:entry gmeow:rerankWinningPassage \"A retained source passage.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank unscored detail"
+msgstr "détail d’absence de score de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit source-reported structured cause of a candidate’s unscored outcome. It retains native structured values and record fields, excluding a simultaneous score or winning passage."
+msgstr "La cause structurée explicite rapportée par la source du résultat sans score d’un candidat. Elle conserve les valeurs structurées natives et champs d’enregistrement, en excluant un score ou passage gagnant simultané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to account for a retained candidate that the source did not score."
+msgstr "Utiliser pour rendre compte d’un candidat conservé auquel la source n’a pas attribué de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting a supplied numeric score into this branch after profile rejection, stringifying structured causes or identifying every detail with an aggregate QueryLoss."
+msgstr "Éviter de convertir un score numérique fourni vers cette branche après rejet du profil, de convertir des causes structurées en chaînes de texte ou d’identifier chaque détail à une QueryLoss agrégée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one actual StructuredValue and retain its source record tag, labelled fields and nested native values through the existing structured-value vocabulary."
+msgstr "Relier une StructuredValue effective et conserver son étiquette d’enregistrement source, ses champs étiquetés et ses valeurs natives imbriquées par le vocabulaire existant des valeurs structurées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual loss records remain in the answer’s loss ledger. A typed unscored cause does not prove the candidate false, and its answer cannot report CompleteForFragment."
+msgstr "Les enregistrements effectifs de pertes restent dans le registre de pertes de la réponse. Une cause typée d’absence de score ne prouve pas le candidat faux, et sa réponse ne peut pas rapporter CompleteForFragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unscored branch: ex:entry gmeow:rerankUnscoredDetail ex:detail ."
+msgstr "Une branche explicite sans score : ex:entry gmeow:rerankUnscoredDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank answer authority"
+msgstr "autorité de la réponse de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied source scoring authority retained by a rerank answer. It is required whenever any entry is scored and must be the same authority record referenced by each retained score."
+msgstr "L’autorité source de calcul des scores fournie conservée par une réponse de reclassement. Elle est obligatoire dès qu’une entrée possède un score et doit être le même enregistrement d’autorité que celui référencé par chaque score conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain answer-level source scoring identity and context alongside every candidate outcome."
+msgstr "Utiliser pour conserver l’identité et le contexte sources de calcul des scores au niveau de la réponse aux côtés de chaque résultat de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring authority from score-kind wording, merging records from equal opaque bytes or requiring an invented authority for an all-unscored result."
+msgstr "Éviter de déduire l’autorité de la formulation du type de score, de fusionner des enregistrements à partir d’octets opaques égaux ou d’exiger une autorité inventée pour un résultat entièrement sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain at most one supplied QueryRerankAuthority on the answer and bind every scored quantity to that actual record through rerankScoreAuthority."
+msgstr "Conserver au plus une QueryRerankAuthority fournie sur la réponse et lier chaque grandeur de score à cet enregistrement effectif par rerankScoreAuthority."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A supplied authority is legal even when all candidates are unscored. Its presence alone proves neither scoring success nor provider invocation."
+msgstr "Une autorité fournie est licite même lorsque tous les candidats sont sans score. Sa présence seule ne prouve ni la réussite du calcul de scores ni un appel au fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied answer authority: ex:answer gmeow:rerankAuthority ex:authority ."
+msgstr "Une autorité de réponse fournie : ex:answer gmeow:rerankAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score profile"
+msgstr "profil de score de reclassement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit selected profile of a rerank operation description or attributed result. This stage contract requires the sole admitted value rerankFiniteFloatProfile on each."
+msgstr "Le profil explicitement sélectionné d’une description d’opération de reclassement ou d’un résultat attribué. Ce contrat d’étape exige l’unique valeur admise rerankFiniteFloatProfile sur chacun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make finite reported score and full outcome-accounting obligations explicit on both operation and answer."
+msgstr "Utiliser pour rendre explicites les obligations de scores finis rapportés et de compte rendu exhaustif des résultats à la fois sur l’opération et la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently defaulting the profile, selecting it from provider wording or treating a missing selection as a weaker supported result."
+msgstr "Éviter d’attribuer silencieusement un profil par défaut, de le sélectionner à partir de la formulation du fournisseur ou de traiter une sélection absente comme un résultat pris en charge plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert exactly one rerankScoreProfile value on the QueryRerank node and its QueryRerankAnswer, choosing rerankFiniteFloatProfile."
+msgstr "Affirmer exactement une valeur rerankScoreProfile sur le nœud QueryRerank et sa QueryRerankAnswer, en choisissant rerankFiniteFloatProfile."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected value fixes mandatory evidence obligations without asserting native execution, score comparator equivalence or completeness."
+msgstr "La valeur sélectionnée fixe des obligations probantes impératives sans affirmer une exécution native, une équivalence de comparateur de scores ou une complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "Explicit operation and result selection: ex:stage gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile . ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "Une sélection explicite pour l’opération et le résultat : ex:stage gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile . ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank input agreement law"
+msgstr "loi de concordance des entrées de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer named as a QueryRerank output retains the same original union resource that the operation declares through rerankInput. Reported original evidence cannot silently substitute another input."
+msgstr "La réponse nommée comme sortie d’un QueryRerank conserve la même ressource d’union originale que celle déclarée par l’opération par rerankInput. Les éléments originaux rapportés ne peuvent pas substituer silencieusement une autre entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check agreement between a declared operation input and its result’s retained original union."
+msgstr "Utiliser pour vérifier la concordance entre l’entrée d’opération déclarée et l’union originale conservée par son résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching inputs by candidate count, display label or equal scores rather than the actual union resource."
+msgstr "Éviter de faire correspondre les entrées par nombre de candidats, étiquette d’affichage ou scores égaux plutôt que par la ressource d’union effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the typed operation, rerankInput and rerankOutput, then require rerankedUnion from that answer to the bound input."
+msgstr "Lier l’opération typée, rerankInput et rerankOutput, puis exiger rerankedUnion de cette réponse vers l’entrée liée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required single-valued input and original-union paths make conflicting source associations invalid without creating execution evidence."
+msgstr "Les chemins obligatoires monovalués d’entrée et d’union originale rendent invalides les associations sources contradictoires sans créer de preuve d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Matching original evidence: ex:stage gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer . ex:answer gmeow:rerankedUnion ex:union ."
+msgstr "Des éléments originaux concordants : ex:stage gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer . ex:answer gmeow:rerankedUnion ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank candidate accounting law"
+msgstr "loi de compte rendu des candidats de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer retains exactly its original union’s candidate identities and an outcome occurrence for each. Every entry names an original candidate; no original candidate is omitted and no foreign candidate is added."
+msgstr "Une réponse de reclassement conserve exactement les identités de candidats de son union originale et une occurrence de résultat pour chacun. Chaque entrée nomme un candidat original ; aucun candidat original n’est omis et aucun candidat étranger n’est ajouté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check complete candidate accounting across original membership, output membership and entry occurrences."
+msgstr "Utiliser pour vérifier le compte rendu exhaustif des candidats entre l’appartenance originale, l’appartenance de sortie et les occurrences d’entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting an unscored outcome as permission to remove the candidate or replacing identity accounting with a matching total count."
+msgstr "Éviter d’interpréter un résultat sans score comme une permission de supprimer le candidat ou de remplacer le compte rendu des identités par un simple effectif total égal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check input-to-entry coverage, entry-to-input membership, input-to-output membership and output-to-input membership as four guarded implications."
+msgstr "Vérifier la couverture de l’entrée vers les occurrences, l’appartenance des occurrences à l’entrée, l’appartenance de l’entrée à la sortie et l’appartenance de la sortie à l’entrée sous forme de quatre implications gardées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law permits an empty input with empty output collections. Candidate uniqueness remains a separate occurrence obligation."
+msgstr "Cette loi permet une entrée vide avec des collections de sortie vides. L’unicité des candidats reste une obligation distincte sur les occurrences."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One retained candidate: ex:union gmeow:queryCandidate ex:c . ex:answer gmeow:queryCandidate ex:c ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+msgstr "Un candidat conservé : ex:union gmeow:queryCandidate ex:c . ex:answer gmeow:queryCandidate ex:c ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank entry uniqueness law"
+msgstr "loi d’unicité des entrées de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two entries of one rerank answer naming the same original candidate must be the same occurrence resource. Together with complete candidate accounting, this gives one outcome occurrence per input candidate."
+msgstr "Deux entrées d’une même réponse de reclassement nommant le même candidat original doivent être la même ressource d’occurrence. Avec le compte rendu exhaustif des candidats, cela donne une occurrence de résultat par candidat d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate outcome occurrences for one candidate within a result."
+msgstr "Utiliser pour rejeter les occurrences de résultat dupliquées pour un candidat dans un résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying this within-answer identity rule to candidates retained by different answers or to shared quantitative score resources."
+msgstr "Éviter d’appliquer cette règle d’identité interne à une réponse aux candidats conservés par des réponses différentes ou aux ressources quantitatives de scores partagées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two entries of the same answer and their common rerankEntryCandidate, then compare entry identities through logic:termEqual."
+msgstr "Lier deux entrées de la même réponse et leur rerankEntryCandidate commun, puis comparer les identités d’entrées par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal score values or passages do not identify different candidates, and the same candidate may have another occurrence in another result."
+msgstr "Des valeurs de scores ou passages égaux n’identifient pas des candidats différents, et le même candidat peut avoir une autre occurrence dans un autre résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One occurrence for one candidate: ex:answer gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+msgstr "Une occurrence pour un candidat : ex:answer gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank entry owner law"
+msgstr "loi de propriété des entrées de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rerank entry belongs to exactly one rerank answer. Its source and output positions are local to that answer’s sequences, so another answer requires a separate occurrence."
+msgstr "Chaque entrée de reclassement appartient à exactement une réponse de reclassement. Ses positions sources et de sortie sont propres aux séquences de cette réponse ; une autre réponse exige donc une occurrence distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent one outcome occurrence from borrowing two result or original-input contexts."
+msgstr "Utiliser pour empêcher une occurrence de résultat d’emprunter deux contextes de résultat ou d’entrée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse ownership on candidate identities, score quantities, authority records or retained losses."
+msgstr "Éviter d’imposer une propriété inverse unique aux identités de candidats, grandeurs de scores, enregistrements d’autorité ou pertes conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh existing typed answer owner and compare any pair of answer links to the entry through logic:termEqual."
+msgstr "Exiger un témoin nouvellement lié d’une réponse propriétaire existante et typée, puis comparer toute paire de liens de réponses vers l’entrée par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication. It introduces no positive nested universal and no global ownership rule beyond entries."
+msgstr "La Formula utilise une quantification universelle externe, une quantification existentielle jointe de propriétaire et une implication gardée sur une paire de propriétaires. Elle n’introduit aucune quantification universelle positive imbriquée ni règle de propriété globale au-delà des entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A single owning sequence: ex:answer gmeow:rerankEntry ex:e . ex:e a gmeow:QueryRerankEntry ."
+msgstr "Une seule séquence propriétaire : ex:answer gmeow:rerankEntry ex:e . ex:e a gmeow:QueryRerankEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank position uniqueness law"
+msgstr "loi d’unicité des positions de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one rerank answer, equal reported output positions identify the same entry, and equal original union positions separately identify the same entry. Source positions remain unique without renumbering."
+msgstr "Dans une même réponse de reclassement, des positions de sortie rapportées égales identifient la même entrée, et des positions d’union originale égales identifient séparément la même entrée. Les positions sources restent uniques sans renumérotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject competing occurrences at one supplied input or output position."
+msgstr "Utiliser pour rejeter des occurrences concurrentes à une position d’entrée ou de sortie fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring contiguous indices, inventing a source count or treating positions from different answers as a global coordinate system."
+msgstr "Éviter d’exiger des indices contigus, d’inventer un effectif source ou de traiter les positions de réponses différentes comme un système global de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare bound integer entryOrdinal values and, separately, bound rerankInputPosition values with logic:termEqual; each equality requires equal entry identities."
+msgstr "Comparer les valeurs entières liées de entryOrdinal et, séparément, les valeurs liées de rerankInputPosition par logic:termEqual ; chaque égalité exige des identités d’entrées égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The admitted nonnegative integer coordinates are compared through the canonical term relation. No reflected numeric relation or floating-point comparison is used."
+msgstr "Les coordonnées entières non négatives admises sont comparées par la relation canonique de termes. Aucune relation numérique reflétée ni comparaison en virgule flottante n’est utilisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct source coordinates: ex:left gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger . ex:right gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+msgstr "Des coordonnées sources distinctes : ex:left gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger . ex:right gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank outcome law"
+msgstr "loi des résultats de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rerank entry selects exactly one scored or structured unscored branch. A winning passage is present exactly when a score is retained, while the unscored branch has neither score nor winning passage."
+msgstr "Chaque entrée de reclassement sélectionne exactement une branche avec score ou structurée sans score. Un passage gagnant est présent exactement lorsqu’un score est conservé, tandis que la branche sans score ne possède ni score ni passage gagnant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject missing, contradictory or partly declared candidate outcome branches."
+msgstr "Utiliser pour rejeter les branches de résultat de candidat absentes, contradictoires ou partiellement déclarées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling a missing branch with zero, empty passage text or a fabricated cause, or converting profile-rejected source scores into unscored outcomes."
+msgstr "Éviter de compléter une branche absente par zéro, un passage vide ou une cause fabriquée, ou de convertir des scores sources rejetés par le profil en résultats sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a score or structured detail, forbid their conjunction, and enforce both score-to-passage and passage-to-score existence implications."
+msgstr "Exiger un score ou un détail structuré, interdire leur conjonction et imposer les deux implications d’existence du score vers le passage et du passage vers le score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Branch datatype and single-value checks come from the local restrictions. StructuredValue retains its own payload-branch contract."
+msgstr "Les vérifications de type de données et de valeur unique des branches proviennent des restrictions locales. StructuredValue conserve son propre contrat de branches de contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unscored outcome: ex:e gmeow:rerankUnscoredDetail ex:detail . ex:detail a gmeow:StructuredMap ."
+msgstr "Un résultat explicitement sans score : ex:e gmeow:rerankUnscoredDetail ex:detail . ex:detail a gmeow:StructuredMap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank authority required law"
+msgstr "loi d’autorité obligatoire du reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer retaining any scored entry must retain a supplied source authority record. No authority is manufactured for an all-unscored answer."
+msgstr "Une réponse de reclassement conservant une entrée avec score doit conserver un enregistrement d’autorité source fourni. Aucune autorité n’est fabriquée pour une réponse entièrement sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject scored results whose answer-level source scoring context is absent."
+msgstr "Utiliser pour rejeter les résultats avec score dont le contexte source de calcul des scores au niveau de la réponse est absent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a present authority as proof that any candidate was scored or forbidding a supplied authority on an all-unscored result."
+msgstr "Éviter d’interpréter une autorité présente comme une preuve qu’un candidat a reçu un score ou d’interdire une autorité fournie sur un résultat entièrement sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the answer, its entry and that entry’s score; require an existing QueryRerankAuthority linked through rerankAuthority."
+msgstr "Lier la réponse, son entrée et le score de cette entrée ; exiger une QueryRerankAuthority existante reliée par rerankAuthority."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The answer permits at most one authority. Its agreement with each score’s own authority is a separate law, and the score retains its existing quantitative context requirements."
+msgstr "La réponse permet au plus une autorité. Sa concordance avec l’autorité propre de chaque score relève d’une loi distincte, et le score conserve ses exigences existantes de contexte quantitatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Scored answer context: ex:answer gmeow:rerankEntry ex:e ; gmeow:rerankAuthority ex:authority . ex:e gmeow:rerankScore ex:score ."
+msgstr "Le contexte d’une réponse avec score : ex:answer gmeow:rerankEntry ex:e ; gmeow:rerankAuthority ex:authority . ex:e gmeow:rerankScore ex:score ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank authority agreement law"
+msgstr "loi de concordance d’autorité du reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every score retained by a rerank answer references the same actual source authority record as the answer. Equal opaque identity bytes on different records do not satisfy this record-identity obligation."
+msgstr "Chaque score conservé par une réponse de reclassement référence le même enregistrement effectif d’autorité source que la réponse. Des octets d’identité opaques égaux sur des enregistrements différents ne satisfont pas cette obligation d’identité d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an answer that mixes scores from another retained authority context."
+msgstr "Utiliser pour rejeter une réponse qui mêle des scores provenant d’un autre contexte d’autorité conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing authority labels, byte values or frames in place of the authority resource, or repeating the score’s existing finite and quantitative context laws."
+msgstr "Éviter de comparer les étiquettes, valeurs d’octets ou repères d’autorité à la place de la ressource d’autorité, ou de répéter les lois existantes de finitude et de contexte quantitatif du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the answer, entry, score, score authority and answer authority, then require logic:termEqual between the two authority resources."
+msgstr "Lier la réponse, l’entrée, le score, l’autorité du score et l’autorité de réponse, puis exiger logic:termEqual entre les deux ressources d’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing QueryRerankScoreContextLaw handles dimension and frame agreement through the score’s direct authority link. This law adds only answer-to-score authority identity agreement."
+msgstr "La QueryRerankScoreContextLaw existante traite la concordance de dimension et de repère par le lien direct d’autorité du score. Cette loi ajoute uniquement la concordance d’identité d’autorité entre réponse et score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Matching authority record: ex:answer gmeow:rerankAuthority ex:authority . ex:score gmeow:rerankScoreAuthority ex:authority ."
+msgstr "Un enregistrement d’autorité concordant : ex:answer gmeow:rerankAuthority ex:authority . ex:score gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank reported order law"
+msgstr "loi de l’ordre rapporté du reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within a rerank answer, every scored occurrence precedes every unscored occurrence, and unscored occurrences retain their relative original union order. Both obligations compare integer sequence positions only."
+msgstr "Dans une réponse de reclassement, chaque occurrence avec score précède chaque occurrence sans score, et les occurrences sans score conservent leur ordre relatif dans l’union originale. Ces deux obligations comparent uniquement des positions entières de séquence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check scored-group placement and original order within the unscored tail."
+msgstr "Utiliser pour vérifier le placement du groupe avec score et l’ordre original dans la partie finale sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law validates scored numeric-descending order, equal-score tie order, signed-zero behavior or a provider’s floating-point comparator."
+msgstr "Éviter d’affirmer que cette loi valide l’ordre numérique décroissant des scores, l’ordre des ex æquo, le comportement des zéros signés ou le comparateur en virgule flottante d’un fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use logic:termLess on bound entryOrdinal values for scored versus unscored entries; for two unscored entries, require output order whenever their input positions are ordered."
+msgstr "Utiliser logic:termLess sur les valeurs liées de entryOrdinal pour les entrées avec score face aux entrées sans score ; pour deux entrées sans score, une position d’entrée inférieure exige une position de sortie inférieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are exactly two guarded integer implications. No score magnitude, contiguous-index requirement or comparator implementation is added."
+msgstr "Il s’agit exactement de deux implications gardées sur des entiers. Aucune valeur numérique de score, exigence d’indices contigus ou implémentation de comparateur n’est ajoutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Group placement: ex:scored gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:unscored gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ."
+msgstr "Le placement des groupes : ex:scored gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:unscored gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank loss retention law"
+msgstr "loi de conservation des pertes de reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every loss resource retained by an original union ledger survives by identity in an output answer ledger. Additional supplied rerank-stage losses may coexist with those original records."
+msgstr "Chaque ressource de perte conservée par un registre d’union originale survit par identité dans un registre de réponse de sortie. Des pertes supplémentaires fournies pour l’étape de reclassement peuvent coexister avec ces enregistrements originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a rerank result that omits or replaces an inherited loss record."
+msgstr "Utiliser pour rejeter un résultat de reclassement qui omet ou remplace un enregistrement de perte hérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring input and output ledgers to be identical, erasing acknowledged losses or treating a new stage loss as a replacement for an original one."
+msgstr "Éviter d’exiger des registres d’entrée et de sortie identiques, d’effacer des pertes reconnues ou de traiter une nouvelle perte d’étape comme remplacement d’une perte originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each input ledger and loss, then require an existing output ledger containing the same loss resource through ledgerLoss."
+msgstr "Lier chaque registre d’entrée et perte, puis exiger un registre de sortie existant contenant la même ressource de perte par ledgerLoss."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law forwards source loss identities without repairing, waiving or authenticating them. It imposes no inverse owner on a shared loss or ledger."
+msgstr "Cette loi transmet les identités de pertes sources sans les réparer, les lever ou les authentifier. Elle n’impose aucun propriétaire inverse à une perte ou un registre partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Original plus stage loss: ex:inputLedger gmeow:ledgerLoss ex:originalLoss . ex:outputLedger gmeow:ledgerLoss ex:originalLoss, ex:stageLoss ."
+msgstr "Une perte originale et une perte d’étape : ex:inputLedger gmeow:ledgerLoss ex:originalLoss . ex:outputLedger gmeow:ledgerLoss ex:originalLoss, ex:stageLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank unscored completeness law"
+msgstr "loi de complétude sans score du reclassement de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer with any explicit unscored candidate cannot report CompleteForFragment. The source’s other status evidence and any missing status remain independently represented."
+msgstr "Une réponse de reclassement comportant un candidat explicitement sans score ne peut pas rapporter CompleteForFragment. Les autres éléments de statut sources et tout statut absent restent représentés indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a complete-result claim that coexists with a retained unscored outcome."
+msgstr "Utiliser pour rejeter une assertion de résultat complet qui coexiste avec un résultat conservé sans score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating an incomplete status from absence, deleting the unscored row or treating an empty loss ledger as proof of complete scoring."
+msgstr "Éviter de fabriquer un statut incomplet à partir d’une absence, de supprimer la ligne sans score ou de traiter un registre de pertes vide comme preuve d’un calcul complet des scores."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind an answer entry and its structured unscored detail, then forbid the answer’s queryCompletenessStatus value logic:CompleteForFragment."
+msgstr "Lier une entrée de réponse et son détail structuré d’absence de score, puis interdire la valeur logic:CompleteForFragment pour queryCompletenessStatus de la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law is a negative compatibility check, not a status default or inference of provider success. Empty input and all-scored results still carry only statuses actually supplied."
+msgstr "Cette loi est une vérification négative de compatibilité, pas un statut par défaut ni une déduction de réussite du fournisseur. Une entrée vide et des résultats entièrement avec score ne portent toujours que les statuts effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly incomplete source report: ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
+msgstr "Un rapport source explicitement incomplet : ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
