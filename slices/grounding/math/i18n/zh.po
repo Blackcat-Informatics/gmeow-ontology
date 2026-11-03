@@ -9832,3 +9832,87 @@ msgstr "不要将未归一化极化形式 b_Q 等同于半极化形式 B = b_Q/2
 msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the inherited math:Function obligations and name the domain carrier and scalar-value codomain through math:domain and math:codomain. State the polarization normalization and any evaluation evidence separately; the inspected real rational Gram evaluator and diagonal Cl(p,q) kernel do not establish a general arbitrary-field evaluator."
 msgstr "保留继承自 math:Function 的义务，并通过 math:domain 和 math:codomain 指明定义域载体及标量值陪域。另行说明极化归一化方式和求值依据；已检查的实有理数 Gram 求值器和对角 Cl(p,q) 内核不能确立适用于任意域的通用求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Graded Algebra"
+msgstr "分次代数"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "分解为按次数索引分量且乘法遵守已声明分次律的代数。 它不是任意直和分解：乘法必须遵守分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The decomposition must be compatible with multiplication: in additive index notation, A_g A_h lies in A_(g+h). Exterior degree gives an integer grading, while a Clifford algebra has an algebra grading by even/odd parity; its integer blade-degree decomposition need not be preserved by geometric multiplication."
+msgstr "分解必须与乘法相容：采用加法索引记号时，A_g A_h 包含于 A_(g+h)。外积次数给出整数分次，而 Clifford 代数具有按偶奇性的代数分次；其按基刃整数次数的分解未必由几何乘法保持。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:cl120 is a math:CliffordAlgebra, hence a math:GradedAlgebra, linked to cov:cl120Grading. The typed grading record declares that role without supplying the indexed components or a realized multiplication-compatibility law."
+msgstr "在 external-concept-coverage.ttl 中，cov:cl120 是 math:CliffordAlgebra，因而也是 math:GradedAlgebra，并链接到 cov:cl120Grading。类型化分次记录声明该角色，但不提供索引分量或已实现的乘法相容性定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an algebra's homogeneous components and their index-combination rule matter to its multiplication. Keep the chosen grading distinct from an arbitrary vector-space decomposition."
+msgstr "当代数的齐次分量及其索引组合规则对乘法重要时使用。须区分所选分次与任意向量空间分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an integer algebra grading from integer blade grades alone. In the inspected real diagonal Clifford kernel, a grade-one generator squares to a scalar, so integer grades do not simply add under geometric multiplication even though parity adds modulo two."
+msgstr "不要仅从基刃的整数次数推断整数代数分次。在已检查的实对角 Clifford 内核中，一次生成元的平方是标量，因此几何乘法下整数次数并不简单相加，但偶奇性按模二相加。"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:GradedAlgebra with its inherited algebra structure and link its declared math:Grading through math:hasGrading. State the index structure, homogeneous components and compatibility law separately; the link alone is not a decomposition, computation or proof."
+msgstr "描述 math:GradedAlgebra 及其继承的代数结构，并通过 math:hasGrading 链接其声明的 math:Grading。另行说明索引结构、齐次分量及相容性定律；该链接本身不是分解、计算或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grading"
+msgstr "分次"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "将代数或模分解为按索引的齐次分量，并带有运算如何组合次数的定律。 它不是对元素的简单分区或标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A grading specifies the homogeneous components and the structure used to combine their indices, together with the relevant operation-compatibility law. Natural-number exterior degree and Clifford Z₂ parity are different choices; integer blade degree can also describe a vector-space decomposition without making Clifford multiplication degree-additive."
+msgstr "分次指定齐次分量、用于组合其索引的结构，以及相关的运算相容性定律。取自然数值的外积次数与 Clifford 的 Z₂ 偶奇性是不同选择；基刃的整数次数也可描述向量空间分解，而不使 Clifford 乘法具有次数可加性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11 names ex:cl11Grading through math:hasGrading, and ex:cl11Grading is typed as math:Grading. This fixture supplies a grading declaration, not an explicit list of components or a proof that every product respects a stated index law."
+msgstr "在 clifford-complete.ttl 中，ex:cl11 通过 math:hasGrading 指明 ex:cl11Grading，后者定型为 math:Grading。该测试数据提供分次声明，而非显式分量列表，也不证明每个乘积都遵守某个已说明的索引定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which grading an algebra or module is described with, including its index convention and homogeneous-component meaning. Different grading choices should remain distinguishable rather than being collapsed into one unexplained grade label."
+msgstr "用于保留描述代数或模时所采用的分次，包括索引约定及齐次分量的含义。不同分次选择须保持可区分，不应合并为一个未经解释的次数标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a typed math:Grading node as a realized grading law or a numerical grade extractor. The native mask-population grade projection is a particular basis-degree operation, not evidence that every declared grading has been constructed or verified."
+msgstr "不要将类型化的 math:Grading 节点当作已实现的分次定律或数值次数提取器。原生按掩码置位数进行的次数投影是特定的基次数操作，并不证明每个声明的分次都已构造或验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a math:Grading resource and retain its intended indices, components and compatibility rule in the mathematical description, linking it from the algebra or module with math:hasGrading. Preserve any separate formal law or calculation evidence without inventing new component slots or a generic verification gate."
+msgstr "指明 math:Grading 资源，在数学描述中保留所需索引、分量和相容规则，并用 math:hasGrading 从代数或模链接到它。保留独立的形式定律或计算依据，不要臆造新的分量槽位或通用验证关卡。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has grading"
+msgstr "具有分次"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "将分次代数或模关联到把它分解为齐次分量的显式分次。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation points from an algebra or module to its declared grading. The existing math:CliffordAlgebra frame requires one typed math:Grading value; that class-local obligation does not impose an exactly-one grading rule on every math:GradedAlgebra or module."
+msgstr "此关系从代数或模指向其声明的分次。现有 math:CliffordAlgebra 框架要求恰好一个类型为 math:Grading 的值；该类局部义务不对每个 math:GradedAlgebra 或模施加分次恰好一个的规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native Clifford producer emits math:hasGrading links to typed math:Grading records for its real diagonal algebras. These source declarations do not enumerate homogeneous components or realize their multiplication law; the linked record alone is not a computation or proof."
+msgstr "原生 Clifford 生产器为其实对角代数输出指向类型化 math:Grading 记录的 math:hasGrading 链接。这些源码声明不枚举齐次分量，也不实现其乘法律；所链接的记录本身不是计算或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended grading must remain an explicit object related to its algebra or module. Retain the declared index convention so consumers can distinguish parity from exterior or blade degree."
+msgstr "当所需分次须作为与其代数或模关联的显式对象保留时使用。保留声明的索引约定，使使用方能区分偶奇性、外积次数和基刃次数。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting a numeric blade grade for the grading resource or inferring multiplication compatibility from this edge alone. A missing-grading counterexample for math:CliffordAlgebra does not establish a universal cardinality rule for the property."
+msgstr "不要反转此关系，不要用数值基刃次数替代分次资源，也不要仅从此边推断乘法相容性。math:CliffordAlgebra 的分次缺失反例并不确立该属性的普遍基数规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the algebra or module as subject and its math:Grading as object of math:hasGrading. For math:CliffordAlgebra retain the existing single typed grading declaration and its other frame requirements; describe component and law evidence separately from the link."
+msgstr "以代数或模为 math:hasGrading 的主语，以其 math:Grading 为宾语。对于 math:CliffordAlgebra，保留现有的单一类型化分次声明及其他框架要求；将分量和定律依据与该链接分开描述。"
