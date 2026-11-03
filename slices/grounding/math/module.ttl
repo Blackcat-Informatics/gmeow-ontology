@@ -11456,18 +11456,33 @@ math:bladeGrade
 math:generatorIndex
     a logic:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "generator index"@x-gmeow-english ;
+    skos:scopeNote "This is a positive, one-based position in the declared ordered generator basis. It differs from the native generator API's zero-based index, from a blade's integer grade and from a position in the full algebra basis."@x-gmeow-english ;
+    skos:example "In external-concept-coverage.ttl, cov:e13 has math:generatorIndex 13 and math:bladeGrade 1. In the native zero-based convention, index 12 denotes that thirteenth generator; this correspondence does not change its grade."@x-gmeow-english ;
+    gmeow:useWhen "Use when a declared generator's position must be retained with its algebra's ordered basis convention. State which indexing convention applies when exchanging positions with a native API."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying a zero-based API index into this positive ordinal without conversion, treating it as math:bladeGrade or inferring a square from the index alone. No generic uniqueness, contiguous-enumeration or missing-index gate is established by this property."@x-gmeow-english ;
+    gmeow:howToUse "Attach math:generatorIndex to the intended generator resource as its supplied positive integer position, retaining the algebra and basis order. Preserve math:generatorSquare and any calculation evidence separately; the producer's index-plus-one serialization is source evidence, not a new global indexing validator."@x-gmeow-english ;
     skos:definition "The positive integer position of a Clifford generator in the algebra's declared ordered basis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:generatorSquare
     a logic:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "generator square"@x-gmeow-english ;
+    skos:scopeNote "The scalar is Q(e_i) under the declared Clifford relation e_i² = Q(e_i). The inspected real diagonal orthonormal API returns +1 for the first p generators and −1 for the next q; those normalized values are not a global mathematical value set for this property."@x-gmeow-english ;
+    skos:example "In clifford-complete.ttl, ex:cl11e1 declares math:generatorSquare 1 and ex:cl11e2 declares math:generatorSquare -1 for Cl(1,1). The fixture records the normalized split; the declarations alone do not execute a generator-square calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a generator's exact scalar square with its quadratic-form, basis and product convention. Distinguish the scalar value from the generator resource and from a claimed proof of the Clifford relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every mathematical generator square as ±1 or excluding zero solely because the normalized API has no zero-square generator. Rational multivector coefficients and scaling are supported; the normalized generator API still does not admit arbitrary generator-square data or by itself supply arbitrary-field, degenerate-form or nonorthogonal basis constructors."@x-gmeow-english ;
+    gmeow:howToUse "Record the supplied scalar through math:generatorSquare on the declared generator and retain its algebra's signature and normalization. Keep any native calculation or law witness distinct; no dedicated generatorSquare cardinality or generic computation gate is asserted here."@x-gmeow-english ;
     skos:definition "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:pseudoscalarSquare
     a logic:DatatypeProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "pseudoscalar square"@x-gmeow-english ;
+    skos:scopeNote "For ordered orthogonal generators and I = e₁…e_n, I² = (−1)^(n(n−1)/2) times the product of their squares. In the normalized real Cl(p,q) convention this becomes (−1)^(q+n(n−1)/2), with n = p + q. Keep those hypotheses explicit rather than applying the formula as a generic nonorthogonal execution rule."@x-gmeow-english ;
+    skos:example "In clifford-complete.ttl, ex:cl11 declares math:pseudoscalarSquare 1 and ex:cl20 declares math:pseudoscalarSquare -1. The producer source also asserts +1 for Cl(12,0), Cl(6,6), Cl(13,0) and Cl(7,6); these named declarations and source assertions are not an executed proof here."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact scalar square of the declared top-grade pseudoscalar with its algebra and basis convention. Changing only the orientation sends I to −I without changing I², while rescaling I by a scalar c multiplies its square by c²."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the qualified xsd:integer minimum-one and maximum-one restrictions in the math:CliffordAlgebra frame as a global exactly-one-value rule, an all-values datatype rule or a ±1 value set. Zero is an integer and is not excluded by those restrictions; the native n = 0 unit square +1 does not establish nontrivial zero-form or degenerate execution."@x-gmeow-english ;
+    gmeow:howToUse "State the supplied scalar with math:pseudoscalarSquare on the algebra, retaining the top-blade and basis normalization used to interpret it. Preserve the existing qualified integer frame without strengthening it; keep product calculations, invertibility claims and verification evidence separate from the declaration."@x-gmeow-english ;
     skos:definition "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
