@@ -5867,6 +5867,11 @@ math:OrthogonalComplement
     rdfs:subClassOf math:Complement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Orthogonal Complement"@x-gmeow-english ;
+    skos:scopeNote "S⊥ consists of vectors whose inner product with every vector of the operand subspace S is zero. It is mathematically a subspace, while the authored class inherits math:Complement without a formal math:Subspace superclass. In a complex ambient space, orthogonality uses the declared Hermitian inner product."@x-gmeow-english ;
+    skos:example "The linear-algebra-and-learning example describes ex:residualSubspace as the orthogonal complement of ex:embeddedSubspace in ex:complexSpace4096, defined by ex:hermitianInnerProduct. The record declares these roles and math:complementSemantics math:orthogonalComplement; it does not calculate a basis or prove orthogonality."@x-gmeow-english ;
+    gmeow:useWhen "Use for a complement determined by an inner product, including a Hermitian inner product in the complex case. Retain the operand, ambient space and defining inner product together when describing a residual subspace."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming V = S ⊕ S⊥ in every inner-product space. This decomposition holds in finite dimensions and for a closed subspace S of a Hilbert space; it is not guaranteed for arbitrary infinite-dimensional spaces. A declared complement or retrieved competency answer is not a construction or proof."@x-gmeow-english ;
+    gmeow:howToUse "Type the resource as math:OrthogonalComplement, name S with math:orthogonalComplementOf and supply one math:ambientSpace, one math:complementSemantics math:orthogonalComplement and one math:definedByInnerProduct. The inspected native real rational Gram checks do not establish a generic complex orthogonal-complement constructor."@x-gmeow-english ;
     skos:definition "The orthogonal complement S⊥ of a subspace S within an inner-product space — the vectors orthogonal to every vector of S under a declared inner product. A subclass of math:Complement that realizes the geometry charter's complement contract: it names its math:ambientSpace, sets math:complementSemantics math:orthogonalComplement, and additionally is math:definedByInnerProduct (the math:HermitianInnerProduct in the complex case), so 'the orthogonal complement' is never ambiguous. An orthogonal complement not naming its inner product is ill-formed (math:UnqualifiedOrthogonalComplement)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -5944,6 +5949,11 @@ math:orthogonalComplementOf
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "orthogonal complement of"@x-gmeow-english ;
+    skos:scopeNote "The subject is the orthogonal-complement resource and the object is the operand subspace S. math:ambientSpace names V in a separate role. Those roles may refer to the same resource: when S = V, its orthogonal complement within V is the zero subspace."@x-gmeow-english ;
+    skos:example "The linear-algebra-and-learning example states ex:residualSubspace math:orthogonalComplementOf ex:embeddedSubspace and separately names ex:complexSpace4096 as ambient space. The competency query retrieves this operand together with the ambient space and inner product; it does not enumerate complement vectors."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify which subspace an orthogonal complement is taken against. Keep this operand relation explicit when the same ambient space carries several subspaces and residual constructions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the relation or treating the operand role as a requirement that S and V have different IRIs. The inspected specialized rules do not impose an operand cardinality here, and this edge alone does not establish the universal zero-inner-product condition."@x-gmeow-english ;
+    gmeow:howToUse "Point math:orthogonalComplementOf from the math:OrthogonalComplement to the intended math:Subspace. Retain math:ambientSpace, math:complementSemantics math:orthogonalComplement and math:definedByInnerProduct on the complement, with any basis computation or mathematical justification supplied separately."@x-gmeow-english ;
     skos:definition "Relates a math:OrthogonalComplement to the subspace S it is the orthogonal complement of (S⊥ of S). Domain math:OrthogonalComplement, range math:Subspace (stated in prose). Distinct from the ambient space (math:ambientSpace, the enclosing inner-product space) — the complement is orthogonal to this subspace within that ambient space."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
