@@ -2368,7 +2368,7 @@ msgstr "Roteur"
 
 msgctxt "https://blackcatinformatics.ca/math/Rotor|skos:definition"
 msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
-msgstr "Un multivecteur pair inversible dont l'action sandwich réalise une transformation orthogonale. Ce n’est pas n’importe quel multivecteur pair : l’inversibilité et l’action en sandwich sont constitutives."
+msgstr "Un multivecteur pair inversible dont l'action sandwich réalise une transformation orthogonale selon une convention de Clifford déclarée. Ce n’est pas n’importe quel multivecteur pair : l’inversibilité et l’action en sandwich sont constitutives."
 
 msgctxt "https://blackcatinformatics.ca/math/Spinor|rdfs:label"
 msgid "Spinor"
@@ -2376,7 +2376,7 @@ msgstr "Spineur"
 
 msgctxt "https://blackcatinformatics.ca/math/Spinor|skos:definition"
 msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
-msgstr "Un élément d'une représentation spinorielle ou d'un module de spineurs associé à un espace quadratique."
+msgstr "Un élément d'une représentation spinorielle déclarée ou d'un module de spineurs déclaré associé à un espace quadratique."
 
 msgctxt "https://blackcatinformatics.ca/math/DiracOperator|rdfs:label"
 msgid "Dirac Operator"
@@ -10336,3 +10336,59 @@ msgstr "Ne pas supposer la symétrie, une convention appliquant d’abord la ré
 msgctxt "https://blackcatinformatics.ca/math/LeftContraction|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Declare the convention without inventing argument slots or cardinality rules. Native algebra methods validate operand masks against the declared algebra before grade filtering, then use checked rational coefficient products and accumulation. Their real diagonal orthonormal profile admits at most sixty-four generators and establishes no generic characteristic-two, complex, degenerate-form or nonorthogonal execution."
 msgstr "Déclarer la convention sans inventer d’emplacements d’arguments ni de règles de cardinalité. Les méthodes natives de l’algèbre valident les masques des opérandes par rapport à l’algèbre déclarée avant le filtrage par degré, puis utilisent des produits de coefficients rationnels et une accumulation contrôlés. Leur profil réel diagonal orthonormal admet au plus soixante-quatre générateurs et n’établit aucune exécution générique en caractéristique deux, sur les complexes, avec une forme dégénérée ou dans une base non orthogonale."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rotor"
+msgstr "Roteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An even invertible multivector whose sandwich action implements an orthogonal transformation under a declared Clifford convention. It is not any even multivector: invertibility and the sandwich action are constitutive."
+msgstr "Un multivecteur pair inversible dont l'action sandwich réalise une transformation orthogonale selon une convention de Clifford déclarée. Ce n’est pas n’importe quel multivecteur pair : l’inversibilité et l’action en sandwich sont constitutives."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A rotor must be even and invertible, with a declared sandwich action that preserves the generating vector domain and its quadratic form. These conditions are substantive: evenness alone does not establish a rotor. Any normalization claim requires supplied evidence; the action convention must be explicit."
+msgstr "Un roteur doit être pair et inversible, avec une action en sandwich déclarée qui préserve le domaine des vecteurs générateurs et sa forme quadratique. Ces conditions sont substantielles : le seul caractère pair ne suffit pas à établir un roteur. Toute affirmation de normalisation exige des éléments probants fournis ; la convention d’action doit être explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In real Cl(2,0), with e₁² = e₂² = 1 and e₁e₂ = -e₂e₁, let R = e₁e₂. Its inverse is -e₁e₂. Under the declared action v ↦ RvR^-1 on the generating vector space, e₁ ↦ -e₁ and e₂ ↦ -e₂, preserving the quadratic form."
+msgstr "Dans Cl(2,0) réel, avec e₁² = e₂² = 1 et e₁e₂ = -e₂e₁, soit R = e₁e₂. Son inverse est -e₁e₂. Selon l’action déclarée v ↦ RvR^-1 sur l’espace des vecteurs générateurs, e₁ ↦ -e₁ et e₂ ↦ -e₂, ce qui préserve la forme quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified multivector with actual evenness, invertibility and a vector-domain-preserving orthogonal sandwich action in the declared algebra. Keep its field, quadratic space, basis and action convention explicit."
+msgstr "À utiliser pour un multivecteur identifié dont la parité paire, l’inversibilité et une action orthogonale en sandwich préservant le domaine des vecteurs sont effectives dans l’algèbre déclarée. Garder explicites son corps, son espace quadratique, sa base et sa convention d’action."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying every even or every even invertible multivector as a rotor, assuming normalization, or inferring an action proof from a type label. Generic native Clifford multiplication and reversion do not supply a rotor constructor, inverse or verified sandwich action."
+msgstr "Ne pas classer tout multivecteur pair, ni tout multivecteur pair inversible, comme un roteur, supposer une normalisation ou déduire une preuve de l’action d’une étiquette de type. La multiplication de Clifford et la réversion natives génériques ne fournissent ni constructeur de roteur, ni inverse, ni action en sandwich vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/Rotor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the actual action; RvR^-1 applies only under that declared convention. Writing reversion as ~R, if N = R~R = ~RR is invertible and central, then R^-1 = ~R N^-1. Replacing the inverse by ~R requires N = 1, not merely an invertible central norm. Retain supporting algebra and action evidence without inventing slots or normalization rules."
+msgstr "Énoncer l’action effective ; RvR^-1 ne s’applique que selon cette convention déclarée. En notant la réversion ~R, si N = R~R = ~RR est inversible et central, alors R^-1 = ~R N^-1. Remplacer l’inverse par ~R exige N = 1, et pas seulement une norme centrale inversible. Conserver les éléments probants relatifs à l’algèbre et à l’action sans inventer d’emplacements ni de règles de normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Spinor"
+msgstr "Spineur"
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An element of a declared spin representation or spinor module associated with a quadratic space."
+msgstr "Un élément d'une représentation spinorielle déclarée ou d'un module de spineurs déclaré associé à un espace quadratique."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A spinor belongs to an actual declared spin representation or spinor module, with its carrier, scalar field, quadratic-space context and action identified. A realization as a multivector, column or minimal-ideal element is additional structure, not a universal consequence of this class."
+msgstr "Un spineur appartient à une représentation spinorielle ou à un module de spineurs effectivement déclarés, dont le support, le corps des scalaires, le contexte d’espace quadratique et l’action sont identifiés. Une réalisation comme multivecteur, colonne ou élément d’un idéal minimal est une structure supplémentaire, et non une conséquence universelle de cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the declared real Cl(2,0) module with carrier R², let e₁ act by diag(1,-1) and e₂ by [[0,1],[1,0]]. These actions square to the identity and anticommute. The column (1,0)^T is a spinor in this module realization, with its induced spin action; this does not impose a column realization on other spinors."
+msgstr "Dans le module déclaré sur Cl(2,0) réel de support R², faire agir e₁ par diag(1,-1) et e₂ par [[0,1],[1,0]]. Ces actions ont pour carré l’identité et anticommutent. La colonne (1,0)^T est un spineur dans cette réalisation de module, avec son action spinorielle induite ; cela n’impose aucune réalisation en colonne aux autres spineurs."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an element of an identified spin representation or spinor module associated with its quadratic space. Retain the actual carrier, field and action rather than identifying the element with the representation or module itself."
+msgstr "À utiliser pour un élément d’une représentation spinorielle ou d’un module de spineurs identifié, associé à son espace quadratique. Conserver le support, le corps et l’action effectifs sans identifier l’élément à la représentation ou au module lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating all spinors with multivectors, columns or elements of a chosen minimal ideal, or assuming irreducibility, chirality or faithfulness. Generic native Clifford arithmetic does not construct a spinor module or execute its representation action."
+msgstr "Ne pas identifier tous les spineurs à des multivecteurs, à des colonnes ou à des éléments d’un idéal minimal choisi, ni supposer l’irréductibilité, la chiralité ou la fidélité. L’arithmétique de Clifford native générique ne construit pas de module de spineurs et n’exécute pas son action de représentation."
+
+msgctxt "https://blackcatinformatics.ca/math/Spinor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the element in its declared representation or module and preserve any supplied realization and action evidence separately. Claim no carrier, matrix action, irreducibility or chirality beyond that context; introduce no dedicated slots, action laws or execution guarantees from the class label."
+msgstr "Décrire l’élément dans sa représentation ou son module déclaré et conserver séparément toute réalisation fournie et les éléments probants de l’action. N’affirmer aucun support, action matricielle, irréductibilité ou chiralité au-delà de ce contexte ; ne tirer de l’étiquette de classe aucun emplacement dédié, loi d’action ni garantie d’exécution."
