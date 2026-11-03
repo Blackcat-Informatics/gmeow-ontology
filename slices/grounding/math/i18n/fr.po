@@ -9832,3 +9832,87 @@ msgstr "Ne pas identifier la forme polaire non normalisée b_Q à la demi-forme 
 msgctxt "https://blackcatinformatics.ca/math/QuadraticForm|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the inherited math:Function obligations and name the domain carrier and scalar-value codomain through math:domain and math:codomain. State the polarization normalization and any evaluation evidence separately; the inspected real rational Gram evaluator and diagonal Cl(p,q) kernel do not establish a general arbitrary-field evaluator."
 msgstr "Conserver les obligations héritées de math:Function et nommer le support du domaine et le codomaine des valeurs scalaires par math:domain et math:codomain. Préciser séparément la normalisation de polarisation et tout élément probant d’évaluation ; l’évaluateur inspecté de matrices de Gram réelles rationnelles et le noyau diagonal Cl(p,q) n’établissent pas un évaluateur général sur un corps quelconque."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Graded Algebra"
+msgstr "Algèbre graduée"
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."
+msgstr "Une algèbre décomposée en composantes indexées par le degré dont la multiplication respecte la loi de graduation. Ce n’est pas une décomposition en somme directe arbitraire : la multiplication doit respecter les degrés."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The decomposition must be compatible with multiplication: in additive index notation, A_g A_h lies in A_(g+h). Exterior degree gives an integer grading, while a Clifford algebra has an algebra grading by even/odd parity; its integer blade-degree decomposition need not be preserved by geometric multiplication."
+msgstr "La décomposition doit être compatible avec la multiplication : en notation additive des indices, A_g A_h est contenu dans A_(g+h). Le degré extérieur donne une graduation entière, tandis qu’une algèbre de Clifford possède une graduation d’algèbre par parité paire/impaire ; sa décomposition selon le degré entier des lames n’est pas nécessairement préservée par la multiplication géométrique."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:cl120 is a math:CliffordAlgebra, hence a math:GradedAlgebra, linked to cov:cl120Grading. The typed grading record declares that role without supplying the indexed components or a realized multiplication-compatibility law."
+msgstr "Dans external-concept-coverage.ttl, cov:cl120 est une math:CliffordAlgebra, donc une math:GradedAlgebra, reliée à cov:cl120Grading. La ressource de graduation typée déclare ce rôle sans fournir les composantes indexées ni une loi réalisée de compatibilité avec la multiplication."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an algebra's homogeneous components and their index-combination rule matter to its multiplication. Keep the chosen grading distinct from an arbitrary vector-space decomposition."
+msgstr "À utiliser lorsque les composantes homogènes d’une algèbre et la règle de combinaison de leurs indices importent pour sa multiplication. Distinguer la graduation choisie d’une décomposition arbitraire d’espace vectoriel."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an integer algebra grading from integer blade grades alone. In the inspected real diagonal Clifford kernel, a grade-one generator squares to a scalar, so integer grades do not simply add under geometric multiplication even though parity adds modulo two."
+msgstr "Ne pas déduire une graduation entière d’algèbre des seuls degrés entiers des lames. Dans le noyau réel diagonal de Clifford inspecté, le carré d’un générateur de degré un est un scalaire : les degrés entiers ne s’additionnent donc pas simplement sous la multiplication géométrique, même si la parité s’additionne modulo deux."
+
+msgctxt "https://blackcatinformatics.ca/math/GradedAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the math:GradedAlgebra with its inherited algebra structure and link its declared math:Grading through math:hasGrading. State the index structure, homogeneous components and compatibility law separately; the link alone is not a decomposition, computation or proof."
+msgstr "Décrire la math:GradedAlgebra avec sa structure d’algèbre héritée et relier sa math:Grading déclarée par math:hasGrading. Préciser séparément la structure des indices, les composantes homogènes et la loi de compatibilité ; le lien seul n’est ni une décomposition, ni un calcul, ni une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grading"
+msgstr "Graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."
+msgstr "Une décomposition d'une algèbre ou d'un module en composantes homogènes indexées, avec la loi combinant les degrés. Ce n’est pas une simple partition ou un simple étiquetage des éléments."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A grading specifies the homogeneous components and the structure used to combine their indices, together with the relevant operation-compatibility law. Natural-number exterior degree and Clifford Z₂ parity are different choices; integer blade degree can also describe a vector-space decomposition without making Clifford multiplication degree-additive."
+msgstr "Une graduation précise les composantes homogènes et la structure utilisée pour combiner leurs indices, avec la loi pertinente de compatibilité des opérations. Le degré extérieur à valeurs entières naturelles et la parité Z₂ de Clifford sont des choix distincts ; le degré entier des lames peut aussi décrire une décomposition d’espace vectoriel sans rendre la multiplication de Clifford additive en degré."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11 names ex:cl11Grading through math:hasGrading, and ex:cl11Grading is typed as math:Grading. This fixture supplies a grading declaration, not an explicit list of components or a proof that every product respects a stated index law."
+msgstr "Dans clifford-complete.ttl, ex:cl11 nomme ex:cl11Grading par math:hasGrading, et ex:cl11Grading est typée comme math:Grading. Ce jeu de données de test fournit une déclaration de graduation, pas une liste explicite de composantes ni une preuve que tout produit respecte une loi d’indices énoncée."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which grading an algebra or module is described with, including its index convention and homogeneous-component meaning. Different grading choices should remain distinguishable rather than being collapsed into one unexplained grade label."
+msgstr "À utiliser pour conserver la graduation selon laquelle une algèbre ou un module est décrit, y compris sa convention d’indices et le sens de ses composantes homogènes. Les choix de graduation distincts doivent rester discernables plutôt que d’être confondus dans une unique étiquette de degré inexpliquée."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a typed math:Grading node as a realized grading law or a numerical grade extractor. The native mask-population grade projection is a particular basis-degree operation, not evidence that every declared grading has been constructed or verified."
+msgstr "Ne pas traiter un nœud typé math:Grading comme une loi de graduation réalisée ni comme un extracteur numérique de degré. La projection native selon le nombre de bits à un du masque est une opération particulière de degré de base, pas une preuve que toute graduation déclarée a été construite ou vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/Grading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a math:Grading resource and retain its intended indices, components and compatibility rule in the mathematical description, linking it from the algebra or module with math:hasGrading. Preserve any separate formal law or calculation evidence without inventing new component slots or a generic verification gate."
+msgstr "Nommer une ressource math:Grading et conserver les indices, composantes et règle de compatibilité voulus dans la description mathématique, en la reliant depuis l’algèbre ou le module avec math:hasGrading. Préserver toute loi formelle ou tout élément probant de calcul distinct sans inventer de nouveaux emplacements de composantes ni de contrôle générique de vérification."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has grading"
+msgstr "a pour graduation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."
+msgstr "Relie une algèbre ou un module gradué à sa décomposition en composantes homogènes."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation points from an algebra or module to its declared grading. The existing math:CliffordAlgebra frame requires one typed math:Grading value; that class-local obligation does not impose an exactly-one grading rule on every math:GradedAlgebra or module."
+msgstr "Cette relation va d’une algèbre ou d’un module vers sa graduation déclarée. Le cadre existant de math:CliffordAlgebra requiert exactement une valeur typée math:Grading ; cette obligation locale à la classe n’impose pas une règle d’unicité de graduation à toute math:GradedAlgebra ou à tout module."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native Clifford producer emits math:hasGrading links to typed math:Grading records for its real diagonal algebras. These source declarations do not enumerate homogeneous components or realize their multiplication law; the linked record alone is not a computation or proof."
+msgstr "Le producteur natif de Clifford émet des liens math:hasGrading vers des ressources typées math:Grading pour ses algèbres réelles diagonales. Ces déclarations dans le source n’énumèrent pas les composantes homogènes et ne réalisent pas leur loi de multiplication ; la ressource liée seule n’est ni un calcul ni une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended grading must remain an explicit object related to its algebra or module. Retain the declared index convention so consumers can distinguish parity from exterior or blade degree."
+msgstr "À utiliser lorsque la graduation voulue doit rester un objet explicite relié à son algèbre ou à son module. Conserver la convention d’indices déclarée afin que les consommateurs puissent distinguer la parité du degré extérieur ou du degré des lames."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting a numeric blade grade for the grading resource or inferring multiplication compatibility from this edge alone. A missing-grading counterexample for math:CliffordAlgebra does not establish a universal cardinality rule for the property."
+msgstr "Ne pas inverser la relation, substituer un degré numérique de lame à la ressource de graduation ou déduire la compatibilité avec la multiplication de ce seul lien. Un contre-exemple de graduation manquante pour math:CliffordAlgebra n’établit pas de règle universelle de cardinalité pour la propriété."
+
+msgctxt "https://blackcatinformatics.ca/math/hasGrading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the algebra or module as subject and its math:Grading as object of math:hasGrading. For math:CliffordAlgebra retain the existing single typed grading declaration and its other frame requirements; describe component and law evidence separately from the link."
+msgstr "Écrire l’algèbre ou le module comme sujet et sa math:Grading comme objet de math:hasGrading. Pour math:CliffordAlgebra, conserver l’unique déclaration de graduation typée existante et les autres exigences de son cadre ; décrire les éléments probants de composantes et de lois séparément du lien."

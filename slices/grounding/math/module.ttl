@@ -10768,6 +10768,11 @@ math:GradedAlgebra
     a logic:Class ; logic:subClassOf math:Algebra ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Graded Algebra"@x-gmeow-english ;
+    skos:scopeNote "The decomposition must be compatible with multiplication: in additive index notation, A_g A_h lies in A_(g+h). Exterior degree gives an integer grading, while a Clifford algebra has an algebra grading by even/odd parity; its integer blade-degree decomposition need not be preserved by geometric multiplication."@x-gmeow-english ;
+    skos:example "In external-concept-coverage.ttl, cov:cl120 is a math:CliffordAlgebra, hence a math:GradedAlgebra, linked to cov:cl120Grading. The typed grading record declares that role without supplying the indexed components or a realized multiplication-compatibility law."@x-gmeow-english ;
+    gmeow:useWhen "Use when an algebra's homogeneous components and their index-combination rule matter to its multiplication. Keep the chosen grading distinct from an arbitrary vector-space decomposition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an integer algebra grading from integer blade grades alone. In the inspected real diagonal Clifford kernel, a grade-one generator squares to a scalar, so integer grades do not simply add under geometric multiplication even though parity adds modulo two."@x-gmeow-english ;
+    gmeow:howToUse "Describe the math:GradedAlgebra with its inherited algebra structure and link its declared math:Grading through math:hasGrading. State the index structure, homogeneous components and compatibility law separately; the link alone is not a decomposition, computation or proof."@x-gmeow-english ;
     skos:definition "An algebra decomposed into grade-indexed components whose multiplication respects the declared grading law. It is not an arbitrary direct-sum decomposition: multiplication must respect grades."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -10775,6 +10780,11 @@ math:Grading
     a logic:Class ; logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Grading"@x-gmeow-english ;
+    skos:scopeNote "A grading specifies the homogeneous components and the structure used to combine their indices, together with the relevant operation-compatibility law. Natural-number exterior degree and Clifford Z₂ parity are different choices; integer blade degree can also describe a vector-space decomposition without making Clifford multiplication degree-additive."@x-gmeow-english ;
+    skos:example "In clifford-complete.ttl, ex:cl11 names ex:cl11Grading through math:hasGrading, and ex:cl11Grading is typed as math:Grading. This fixture supplies a grading declaration, not an explicit list of components or a proof that every product respects a stated index law."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which grading an algebra or module is described with, including its index convention and homogeneous-component meaning. Different grading choices should remain distinguishable rather than being collapsed into one unexplained grade label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a typed math:Grading node as a realized grading law or a numerical grade extractor. The native mask-population grade projection is a particular basis-degree operation, not evidence that every declared grading has been constructed or verified."@x-gmeow-english ;
+    gmeow:howToUse "Name a math:Grading resource and retain its intended indices, components and compatibility rule in the mathematical description, linking it from the algebra or module with math:hasGrading. Preserve any separate formal law or calculation evidence without inventing new component slots or a generic verification gate."@x-gmeow-english ;
     skos:definition "A decomposition of an algebra or module into indexed homogeneous components together with the law governing how operations combine their grades. It is not a mere partition or labeling of elements."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -11369,6 +11379,11 @@ math:scalarField
 math:hasGrading
     a logic:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has grading"@x-gmeow-english ;
+    skos:scopeNote "This relation points from an algebra or module to its declared grading. The existing math:CliffordAlgebra frame requires one typed math:Grading value; that class-local obligation does not impose an exactly-one grading rule on every math:GradedAlgebra or module."@x-gmeow-english ;
+    skos:example "The native Clifford producer emits math:hasGrading links to typed math:Grading records for its real diagonal algebras. These source declarations do not enumerate homogeneous components or realize their multiplication law; the linked record alone is not a computation or proof."@x-gmeow-english ;
+    gmeow:useWhen "Use when the intended grading must remain an explicit object related to its algebra or module. Retain the declared index convention so consumers can distinguish parity from exterior or blade degree."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the relation, substituting a numeric blade grade for the grading resource or inferring multiplication compatibility from this edge alone. A missing-grading counterexample for math:CliffordAlgebra does not establish a universal cardinality rule for the property."@x-gmeow-english ;
+    gmeow:howToUse "Write the algebra or module as subject and its math:Grading as object of math:hasGrading. For math:CliffordAlgebra retain the existing single typed grading declaration and its other frame requirements; describe component and law evidence separately from the link."@x-gmeow-english ;
     skos:definition "Relates a graded algebra or module to the explicit grading that decomposes it into homogeneous components."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
