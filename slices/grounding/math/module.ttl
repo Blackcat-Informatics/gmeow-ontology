@@ -4719,6 +4719,11 @@ math:CompactSpace
     rdfs:label "Compact Space"@x-gmeow-english ;
     rdfs:seeAlso math:compactnessBoundary ;
     math:definingLaw math:compactnessBoundary ;
+    skos:scopeNote "Compactness quantifies over every open cover and requires a finite subcover. The authored math:compactnessBoundary records logic:SecondOrder and logic:Unsupported; it is not an executable Formula, satisfiability result or proof. Closed-and-bounded characterizes compact subsets of finite-dimensional Euclidean space, not compactness in every topology."@x-gmeow-english ;
+    skos:example "compact-space-declared.ttl gives ex:closedInterval math:isCompact true, the math:compactnessBoundary link and ex:closedIntervalWhole as an open of its own topology. The whole interval’s openness there does not say that [0, 1] is open in the usual real line."@x-gmeow-english ;
+    gmeow:useWhen "Use when a space’s compactness claim must retain the open-cover meaning and its honest expressiveness boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using closed-and-bounded as a universal definition, treating selected opens as every possible cover, or presenting the boundary link or boolean as a finite-subcover construction or compactness proof."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual space, its explicit math:isCompact value and the math:preservesStructure boundary record. Preserve supplied opens at their authored scope, keep proof or cover evidence separate where available, and disclose the SecondOrder/Unsupported boundary without inventing cover data or replacing it by a first-order law."@x-gmeow-english ;
     skos:definition "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4729,6 +4734,11 @@ math:ConnectedSpace
     rdfs:label "Connected Space"@x-gmeow-english ;
     rdfs:seeAlso math:connectednessLaw ;
     math:definingLaw math:connectednessLaw ;
+    skos:scopeNote "Connectedness rules out a cover by two disjoint nonempty opens. The realized math:connectednessLaw Formula uses the reified open-set, nonempty, disjointness and cover signature; its syntax and a connectedness declaration do not by themselves prove the law for a particular model. Connected need not mean path-connected or contractible."@x-gmeow-english ;
+    skos:example "connected-space-declared.ttl gives ex:interval math:isConnected true, a math:connectednessLaw link and the whole-space open ex:intervalWhole. These declarations do not author a separation search, a path or a contraction."@x-gmeow-english ;
+    gmeow:useWhen "Use when a space is described as admitting no separation into two disjoint nonempty opens covering it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring paths or contractibility from connectedness, treating a boolean as a model-check result, or interpreting an interval’s whole-space open as openness of that interval in an ambient real line."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual topology context, explicit math:isConnected value and math:preservesStructure law resource. Keep the formula and supplied open records distinct from evidence that no separation exists, and add no fabricated points, cover witnesses, paths or contraction maps."@x-gmeow-english ;
     skos:definition "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4736,6 +4746,11 @@ math:Homotopy
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Homotopy"@x-gmeow-english ;
+    skos:scopeNote "A homotopy deforms maps with the same source and target through a continuous family. It is not equality of those maps or a homeomorphism of spaces, and a named deformation or equivalence edge alone supplies no authored homotopy witness."@x-gmeow-english ;
+    skos:example "Illustrative mathematical case: H(x, t) = (1 − t)x for x in ℝ and t in [0, 1] deforms the identity map ℝ → ℝ to the constant-zero map, with common source and target. This is a mathematical illustration, not an authored repository Homotopy record."@x-gmeow-english ;
+    gmeow:useWhen "Use when a continuous deformation between specified maps needs its own mathematical referent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring equality of map resources from homotopy alone, inferring a deformation from a label, or confusing a homotopy between maps with the maps and composite conditions required for homotopy equivalence of spaces."@x-gmeow-english ;
+    gmeow:howToUse "Describe the actual endpoint maps, their common source and target, and any continuous family or evidence using existing mathematical representations. Keep deformation data and proofs separate from an equivalence assertion, without inventing mandatory endpoint slots, inverse witnesses or executed constructions."@x-gmeow-english ;
     skos:definition "A homotopy between two continuous maps: a continuous deformation H: X×[0,1] → Y from one map to the other. Two spaces are homotopy-equivalent (math:homotopyEquivalentTo) when maps between them compose to maps homotopic to the identities. Homotopy equivalence is coarser than homeomorphism and is the equivalence algebraic topology's invariants (homotopy and math:HomologyGroup) respect."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4744,6 +4759,11 @@ math:HomologyGroup
     rdfs:subClassOf math:AbelianGroup ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Homology Group"@x-gmeow-english ;
+    skos:scopeNote "Homology is a group of cycles modulo boundaries for a specified space or complex, degree and coefficient setting. The group is not one cycle, generator, boundary, Betti number, vector-space dimension or sheaf-cohomology construction; it may contain torsion and retains its full math:AbelianGroup frame."@x-gmeow-english ;
+    skos:example "homology-group-framed.ttl gives ex:firstHomology a carrier, operation and axiom link. The triangle fixture chain-complex-square-zero-complete.ttl gives ex:homologyH1 math:homologyCycles ex:cycleZ and math:homologyBoundaries ex:boundaryB; these records are declarations and links, not computed quotient representatives."@x-gmeow-english ;
+    gmeow:useWhen "Use when the homology group at a specified degree and coefficient setting must be represented as an algebraic object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reducing the group to a hole count, assuming all homology is torsion-free, inferring a unique coefficient choice from the fixture, or treating homotopy invariance as identical group resources or an automatically constructed isomorphism."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited carrier, abelian operation and axiom frame, and keep the space/complex, degree and coefficients explicit in the existing mathematical interpretation without inventing a mandatory field inventory. Preserve actual cycle/boundary links separately; homotopy-equivalent spaces have isomorphic homology groups at matching degree and coefficient settings, but these declarations do not construct the quotient or an isomorphism."@x-gmeow-english ;
     skos:definition "A homology group Hₙ(X): an abelian group functorially assigned to a topological space, counting n-dimensional holes. A subclass of math:AbelianGroup (ALGEBRA charter), so a homology-group individual carries the full algebraic-structure frame — its underlying set, its abelian operation, and its axioms — like any other abelian group. The algebraic-topology bridge: homotopy-equivalent spaces have isomorphic homology groups. The homology functor itself (the assignment X ↦ Hₙ(X)) belongs to a downstream category charter and is not minted here."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4754,6 +4774,11 @@ math:UndeclaredTopologicalProperty
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Undeclared Topological Property"@x-gmeow-english ;
+    skos:scopeNote "This diagnostic concerns missing boolean declarations under the existing ContinuousMap, CompactSpace and ConnectedSpace class rules. It does not make every TopologicalSpace or separation-axiom record require those booleans, and it is not mathematical falsity, missing homotopy data or absence of a proof."@x-gmeow-english ;
+    skos:example "compactness-assumed.ttl gives ex:assumedCompact a math:CompactSpace type but no math:isCompact, while connectedness-assumed.ttl gives ex:assumedConnected a math:ConnectedSpace type but no math:isConnected. The omissions concern declarations, not counterexamples to the mathematical properties."@x-gmeow-english ;
+    gmeow:useWhen "Use when an applicable class declaration rule identifies the missing continuity, compactness or connectedness boolean."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reporting this failure as a refuted theorem, a missing proof or a compactness-solver result, or extending its ownership to every topological or separation property."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the bearer’s actual class and missing declaration, then retain its explicit boolean under the existing class-local rule without forcing true. Preserve the associated realized law or compactness boundary and any separate evidence; completing the declaration does not verify a model, solve compactness or compute a topological invariant."@x-gmeow-english ;
     skos:definition "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, connectedness, and the T0–T4 separation axioms are each backed by a real first-order defining law (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw); compactness, being genuinely second-order (a finite subcover over an arbitrary family is not first-order axiomatizable), is backed instead by an honest recorded boundary (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Every listed property is therefore backed by a law or a recorded boundary, never a bare type. This gate enforces declaration discipline — that the property is declared, not silently assumed — not satisfaction of the law against a model (no logic:Formula model-checker is in scope)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -4795,6 +4820,11 @@ math:isCompact
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is compact"@x-gmeow-english ;
     rdfs:seeAlso math:compactnessBoundary ;
+    skos:scopeNote "This is a boolean compactness declaration with the existing class-local exactly-one check and closure for math:CompactSpace. Either boolean value can be recorded; false is negative, not affirmative evidence of compactness, and declaration presence is not a proof. The prose TopologicalSpace use does not impose a global required field."@x-gmeow-english ;
+    skos:example "ex:closedInterval in compact-space-declared.ttl records math:isCompact true and a math:preservesStructure link to math:compactnessBoundary. The boolean and boundary disclose the claim and its limit without enumerating covers or constructing finite subcovers."@x-gmeow-english ;
+    gmeow:useWhen "Use when a space’s compactness status must be explicitly recorded while retaining its open-cover interpretation and boundary disclosure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting a missing value to true, treating false as compactness evidence, converting the boundary into an executable formula or solver result, or applying the class-local check to every TopologicalSpace by a new global rule."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual xsd:boolean value under the applicable class-local declaration rule and preserve math:UndeclaredTopologicalProperty ownership without imposing hasValue true. Keep math:compactnessBoundary and its SecondOrder/Unsupported disclosure separate from cover data, proof and any separately established result."@x-gmeow-english ;
     skos:definition "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). The declaration is backed not by a first-order law but by the honest recorded second-order boundary math:compactnessBoundary — compactness genuinely exceeds first-order logic (open covers plus finiteness), so the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -4803,6 +4833,11 @@ math:isConnected
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is connected"@x-gmeow-english ;
     rdfs:seeAlso math:connectednessLaw ;
+    skos:scopeNote "The existing math:ConnectedSpace check requires exactly one boolean declaration with closure, not hasValue true. A false value records a negative declaration and is not proof of connectedness; a supplied value or law link alone is not a model-checking result, path or contraction."@x-gmeow-english ;
+    skos:example "ex:interval in connected-space-declared.ttl records math:isConnected true and references math:connectednessLaw. ex:intervalWhole is open in that interval’s own topology; the fixture does not thereby declare the embedded interval open in ℝ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an explicit boolean connectedness status is needed for the declared space and topology."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a missing declaration by an assumed true value, reading path connectedness from the boolean, or turning open TopologicalSpace prose usage into a global domain or declaration requirement."@x-gmeow-english ;
+    gmeow:howToUse "Record the actual xsd:boolean value, retain the applicable exactly-one class-local rule and math:UndeclaredTopologicalProperty ownership, and preserve the realized math:connectednessLaw separately. Keep the nonempty/disjoint-open-cover interpretation and any evidence distinct from the boolean; do not infer a proof or construct paths from declaration completeness."@x-gmeow-english ;
     skos:definition "Declares whether a space is connected — not the union of two disjoint non-empty open sets (math:connectednessLaw). Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). The canonical checkable bearer of connectedness; connectedness is declared here, not assumed from the math:ConnectedSpace type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -4810,6 +4845,11 @@ math:homotopyEquivalentTo
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "homotopy equivalent to"@x-gmeow-english ;
+    skos:scopeNote "Homotopy equivalence requires continuous maps in both directions whose composites are homotopic to the respective identities, not equality or necessarily a homeomorphism. Mathematical symmetry alone does not author a reverse edge, infer maps or identify space resources; matching homology invariants are isomorphic at matching degree and coefficients."@x-gmeow-english ;
+    skos:example "Illustrative mathematical case: ℝ is homotopy-equivalent to a one-point space using collapse and inclusion at 0; the composite on ℝ is homotopic to the identity and the composite on the point is its identity. This is not an authored repository edge, inverse-map record or executed witness."@x-gmeow-english ;
+    gmeow:useWhen "Use when two specified spaces have a justified homotopy-equivalence claim rather than merely matching labels or selected invariants."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a homotopy witness or reverse RDF assertion from the edge alone, merging equivalent spaces or homology groups, or replacing homotopy equivalence by homeomorphism."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual space resources and the separately described continuous maps and composite-to-identity homotopies where supplied. Preserve matching degree/coefficient context for homology comparisons without asserting resource identity, constructing an isomorphism automatically or inventing missing maps and reverse links."@x-gmeow-english ;
     skos:definition "Relates a math:TopologicalSpace to another it is homotopy-equivalent to — there are maps between them composing to maps homotopic to the identities. Domain and range math:TopologicalSpace (stated in prose). Symmetric mathematically; homotopy-equivalent spaces share homotopy and math:HomologyGroup invariants."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

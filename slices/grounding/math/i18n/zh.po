@@ -9272,3 +9272,227 @@ msgstr "不要将缺少声明默认为 true，不要将 false 解释为肯定连
 msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the actual xsd:boolean value and preserve the applicable exactly-one declaration requirement without imposing hasValue true. Retain math:continuityLaw as the realized Formula over the reified open-set/preimage signature, keeping that syntax and any supporting evidence separate from the boolean and from claims that the map satisfies the law."
 msgstr "记录实际 xsd:boolean 值，保留适用的恰好一个声明要求，不施加 hasValue true。保留 math:continuityLaw 为在重化开集/原像签名上的已实现 Formula，并将该语法及任何支持证据与布尔值及映射满足定律的主张区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compact Space"
+msgstr "紧空间"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."
+msgstr "紧拓扑空间，即每个开覆盖都有有限子覆盖的空间。它是 math:TopologicalSpace 的子类，通过 math:isCompact 声明紧性；紧性须声明而非假定（未声明紧性是不合式的，math:UndeclaredTopologicalProperty）。不同于定义定律 math:connectednessLaw 为一阶 logic:Formula 的 math:ConnectedSpace，紧性真正属于二阶性质（对开覆盖量化并涉及有限性），因此其依据不是一阶定律，而是通过 math:preservesStructure 引用的如实边界记录 math:compactnessBoundary（logic:expressivenessBoundary logic:SecondOrder、logic:preservationKind logic:Unsupported）。紧性是闭且有界（Heine–Borel）的拓扑推广，并在连续像下保持。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compactness quantifies over every open cover and requires a finite subcover. The authored math:compactnessBoundary records logic:SecondOrder and logic:Unsupported; it is not an executable Formula, satisfiability result or proof. Closed-and-bounded characterizes compact subsets of finite-dimensional Euclidean space, not compactness in every topology."
+msgstr "紧性对每个开覆盖量化，并要求有限子覆盖。已编写 math:compactnessBoundary 记录 logic:SecondOrder 和 logic:Unsupported；它不是可执行 Formula、可满足性结果或证明。闭且有界刻画有限维欧几里得空间中的紧子集，而非每种拓扑下的紧性。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "compact-space-declared.ttl gives ex:closedInterval math:isCompact true, the math:compactnessBoundary link and ex:closedIntervalWhole as an open of its own topology. The whole interval’s openness there does not say that [0, 1] is open in the usual real line."
+msgstr "compact-space-declared.ttl 为 ex:closedInterval 提供 math:isCompact true、math:compactnessBoundary 链接，以及作为自身拓扑中开集的 ex:closedIntervalWhole。整个区间在其中为开，不表示 [0, 1] 在通常实直线上为开。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space’s compactness claim must retain the open-cover meaning and its honest expressiveness boundary."
+msgstr "当空间紧性主张需要保留开覆盖含义及如实表达能力边界时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using closed-and-bounded as a universal definition, treating selected opens as every possible cover, or presenting the boundary link or boolean as a finite-subcover construction or compactness proof."
+msgstr "不要将闭且有界用作通用定义，不要将所选开集视为所有可能覆盖，也不要将边界链接或布尔值呈现为有限子覆盖构造或紧性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual space, its explicit math:isCompact value and the math:preservesStructure boundary record. Preserve supplied opens at their authored scope, keep proof or cover evidence separate where available, and disclose the SecondOrder/Unsupported boundary without inventing cover data or replacing it by a first-order law."
+msgstr "保留实际空间、显式 math:isCompact 值及 math:preservesStructure 边界记录。将已提供开集保留在已编写范围，在可用处另行保留证明或覆盖证据，披露 SecondOrder/Unsupported 边界，不臆造覆盖数据或将其替换成一阶定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connected Space"
+msgstr "连通空间"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."
+msgstr "连通拓扑空间，即不能表示为两个不相交非空开集之并的空间。它是 math:TopologicalSpace 的子类，通过 math:isConnected 声明连通性；连通性须声明而非假定（未声明连通性是不合式的，math:UndeclaredTopologicalProperty）。其保持结构是拓扑的连通性，定义定律为通过 math:preservesStructure 引用的 math:connectednessLaw（不存在覆盖空间的两个不相交非空开集分离）。连通性在连续像下保持（中间值定理是其在 ℝ 上的体现）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Connectedness rules out a cover by two disjoint nonempty opens. The realized math:connectednessLaw Formula uses the reified open-set, nonempty, disjointness and cover signature; its syntax and a connectedness declaration do not by themselves prove the law for a particular model. Connected need not mean path-connected or contractible."
+msgstr "连通性排除由两个不相交非空开集构成的覆盖。已实现 math:connectednessLaw Formula 使用重化的开集、非空、不相交及覆盖签名；其语法和连通性声明本身不证明特定模型满足定律。连通不必意味着道路连通或可缩。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "connected-space-declared.ttl gives ex:interval math:isConnected true, a math:connectednessLaw link and the whole-space open ex:intervalWhole. These declarations do not author a separation search, a path or a contraction."
+msgstr "connected-space-declared.ttl 为 ex:interval 提供 math:isConnected true、math:connectednessLaw 链接及全空间开集 ex:intervalWhole。这些声明未编写分离搜索、道路或收缩。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space is described as admitting no separation into two disjoint nonempty opens covering it."
+msgstr "当空间被描述为不存在覆盖其自身的两个不相交非空开集分离时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring paths or contractibility from connectedness, treating a boolean as a model-check result, or interpreting an interval’s whole-space open as openness of that interval in an ambient real line."
+msgstr "不要从连通性推断道路或可缩性，不要将布尔值视为模型检查结果，也不要将整个区间作为全空间开集解释为该区间在环境实直线上为开。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual topology context, explicit math:isConnected value and math:preservesStructure law resource. Keep the formula and supplied open records distinct from evidence that no separation exists, and add no fabricated points, cover witnesses, paths or contraction maps."
+msgstr "保留实际拓扑背景、显式 math:isConnected 值及 math:preservesStructure 定律资源。将公式和已提供开集记录与不存在分离的证据区分，不添加编造点、覆盖见证、道路或收缩映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homotopy"
+msgstr "同伦"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homotopy between two continuous maps: a continuous deformation H: X×[0,1] → Y from one map to the other. Two spaces are homotopy-equivalent (math:homotopyEquivalentTo) when maps between them compose to maps homotopic to the identities. Homotopy equivalence is coarser than homeomorphism and is the equivalence algebraic topology's invariants (homotopy and math:HomologyGroup) respect."
+msgstr "两个连续映射之间的同伦，即从一个映射到另一个映射的连续变形 H: X×[0,1] → Y。当两个空间之间的映射复合后与恒等映射同伦时，它们同伦等价（math:homotopyEquivalentTo）。同伦等价比同胚更粗，是代数拓扑不变量（同伦及 math:HomologyGroup）所保持的等价关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A homotopy deforms maps with the same source and target through a continuous family. It is not equality of those maps or a homeomorphism of spaces, and a named deformation or equivalence edge alone supplies no authored homotopy witness."
+msgstr "同伦通过连续族变形具有相同源和目标的映射。它不是这些映射相等，也不是空间同胚；仅命名变形或等价边不提供已编写同伦见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: H(x, t) = (1 − t)x for x in ℝ and t in [0, 1] deforms the identity map ℝ → ℝ to the constant-zero map, with common source and target. This is a mathematical illustration, not an authored repository Homotopy record."
+msgstr "数学示例：对 ℝ 中的 x 及 [0, 1] 中的 t，H(x, t) = (1 − t)x 将恒等映射 ℝ → ℝ 变形为常零映射，二者具有共同源和目标。这是数学说明，而非仓库中已编写 Homotopy 记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a continuous deformation between specified maps needs its own mathematical referent."
+msgstr "当指定映射之间的连续变形需要其自身数学指称对象时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring equality of map resources from homotopy alone, inferring a deformation from a label, or confusing a homotopy between maps with the maps and composite conditions required for homotopy equivalence of spaces."
+msgstr "不要仅由同伦推断映射资源相等，不要从标签推断变形，也不要将映射间同伦与空间同伦等价所需映射及复合条件混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual endpoint maps, their common source and target, and any continuous family or evidence using existing mathematical representations. Keep deformation data and proofs separate from an equivalence assertion, without inventing mandatory endpoint slots, inverse witnesses or executed constructions."
+msgstr "使用已有数学表示描述实际端点映射、共同源和目标，以及任何连续族或证据。将变形数据及证明与等价断言区分，不臆造必填端点槽位、逆映射见证或已执行构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homology Group"
+msgstr "同调群"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homology group Hₙ(X): an abelian group functorially assigned to a topological space, counting n-dimensional holes. A subclass of math:AbelianGroup (ALGEBRA charter), so a homology-group individual carries the full algebraic-structure frame — its underlying set, its abelian operation, and its axioms — like any other abelian group. The algebraic-topology bridge: homotopy-equivalent spaces have isomorphic homology groups. The homology functor itself (the assignment X ↦ Hₙ(X)) belongs to a downstream category charter and is not minted here."
+msgstr "同调群 Hₙ(X)，即函子性地赋予拓扑空间、计数 n 维洞的阿贝尔群。它是 math:AbelianGroup 的子类（ALGEBRA 章程），因此同调群个体与其他阿贝尔群一样承载完整代数结构框架，即底集、阿贝尔运算及公理。代数拓扑桥梁在于同伦等价空间具有同构同调群。同调函子本身（赋值 X ↦ Hₙ(X)）属于下游范畴章程，此处不创建。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Homology is a group of cycles modulo boundaries for a specified space or complex, degree and coefficient setting. The group is not one cycle, generator, boundary, Betti number, vector-space dimension or sheaf-cohomology construction; it may contain torsion and retains its full math:AbelianGroup frame."
+msgstr "同调是在指定空间或复形、次数及系数背景下的闭链模边界群。该群不是单个闭链、生成元、边界、Betti 数、向量空间维数或层上同调构造；它可含挠元，并保留完整 math:AbelianGroup 框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "homology-group-framed.ttl gives ex:firstHomology a carrier, operation and axiom link. The triangle fixture chain-complex-square-zero-complete.ttl gives ex:homologyH1 math:homologyCycles ex:cycleZ and math:homologyBoundaries ex:boundaryB; these records are declarations and links, not computed quotient representatives."
+msgstr "homology-group-framed.ttl 为 ex:firstHomology 提供载体、运算和公理链接。三角形测例 chain-complex-square-zero-complete.ttl 为 ex:homologyH1 提供 math:homologyCycles ex:cycleZ 及 math:homologyBoundaries ex:boundaryB；这些记录是声明和链接，而非已计算商代表元。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the homology group at a specified degree and coefficient setting must be represented as an algebraic object."
+msgstr "当指定次数及系数背景下的同调群需要作为代数对象表示时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reducing the group to a hole count, assuming all homology is torsion-free, inferring a unique coefficient choice from the fixture, or treating homotopy invariance as identical group resources or an automatically constructed isomorphism."
+msgstr "不要将群简化为洞数，不要假定所有同调均无挠，不要从测例推断唯一系数选择，也不要将同伦不变性视为群资源同一或自动构造同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited carrier, abelian operation and axiom frame, and keep the space/complex, degree and coefficients explicit in the existing mathematical interpretation without inventing a mandatory field inventory. Preserve actual cycle/boundary links separately; homotopy-equivalent spaces have isomorphic homology groups at matching degree and coefficient settings, but these declarations do not construct the quotient or an isomorphism."
+msgstr "保留继承载体、阿贝尔运算及公理框架，在已有数学解释中明确空间/复形、次数及系数，不臆造必填字段清单。另行保留实际闭链/边界链接；同伦等价空间在次数及系数匹配时具有同构同调群，但这些声明不构造商或同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is compact"
+msgstr "是否紧"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). The declaration is backed not by a first-order law but by the honest recorded second-order boundary math:compactnessBoundary — compactness genuinely exceeds first-order logic (open covers plus finiteness), so the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula."
+msgstr "声明空间是否紧，即每个开覆盖都有有限子覆盖。定义域为 math:CompactSpace（或 math:TopologicalSpace），值域为 xsd:boolean，以文字说明。紧性须声明而非由类型假定（未声明紧性是不合式的，math:UndeclaredTopologicalProperty）。声明的依据不是一阶定律，而是如实记录的二阶边界 math:compactnessBoundary；紧性真正超出一阶逻辑（开覆盖及有限性），因此边界记入损失账本（logic:preservationKind logic:Unsupported），不能伪装为一阶 logic:Formula。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a boolean compactness declaration with the existing class-local exactly-one check and closure for math:CompactSpace. Either boolean value can be recorded; false is negative, not affirmative evidence of compactness, and declaration presence is not a proof. The prose TopologicalSpace use does not impose a global required field."
+msgstr "这是紧性布尔声明，具有 math:CompactSpace 已有类局部恰好一个值检查及闭包。两种布尔值均可记录；false 是否定值，而非肯定紧性的证据，声明存在也不是证明。文字中的 TopologicalSpace 用法不施加全局必需字段。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:closedInterval in compact-space-declared.ttl records math:isCompact true and a math:preservesStructure link to math:compactnessBoundary. The boolean and boundary disclose the claim and its limit without enumerating covers or constructing finite subcovers."
+msgstr "compact-space-declared.ttl 中 ex:closedInterval 记录 math:isCompact true 及指向 math:compactnessBoundary 的 math:preservesStructure 链接。布尔值和边界披露主张及其限制，不枚举覆盖或构造有限子覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space’s compactness status must be explicitly recorded while retaining its open-cover interpretation and boundary disclosure."
+msgstr "当空间紧性状态需要显式记录，同时保留开覆盖解释及边界披露时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting a missing value to true, treating false as compactness evidence, converting the boundary into an executable formula or solver result, or applying the class-local check to every TopologicalSpace by a new global rule."
+msgstr "不要将缺少值默认为 true，不要将 false 视为紧性证据，不要将边界转为可执行公式或求解器结果，也不要以新全局规则将类局部检查施加于每个 TopologicalSpace。"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual xsd:boolean value under the applicable class-local declaration rule and preserve math:UndeclaredTopologicalProperty ownership without imposing hasValue true. Keep math:compactnessBoundary and its SecondOrder/Unsupported disclosure separate from cover data, proof and any separately established result."
+msgstr "按适用类局部声明规则保留实际 xsd:boolean 值及 math:UndeclaredTopologicalProperty 归属，不施加 hasValue true。将 math:compactnessBoundary 及其 SecondOrder/Unsupported 披露与覆盖数据、证明及另行确立的任何结果区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is connected"
+msgstr "是否连通"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a space is connected — not the union of two disjoint non-empty open sets (math:connectednessLaw). Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). The canonical checkable bearer of connectedness; connectedness is declared here, not assumed from the math:ConnectedSpace type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."
+msgstr "声明空间是否连通，即不是两个不相交非空开集的并（math:connectednessLaw）。定义域为 math:ConnectedSpace（或 math:TopologicalSpace），值域为 xsd:boolean，以文字说明。它是连通性的规范可检查承载字段；连通性在此声明，而非从 math:ConnectedSpace 类型假定（未声明连通性是不合式的，math:UndeclaredTopologicalProperty）。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing math:ConnectedSpace check requires exactly one boolean declaration with closure, not hasValue true. A false value records a negative declaration and is not proof of connectedness; a supplied value or law link alone is not a model-checking result, path or contraction."
+msgstr "已有 math:ConnectedSpace 检查要求具有闭包的恰好一个布尔声明，而非 hasValue true。false 值记录否定声明，不是连通性证明；单独提供值或定律链接不是模型检查结果、道路或收缩。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interval in connected-space-declared.ttl records math:isConnected true and references math:connectednessLaw. ex:intervalWhole is open in that interval’s own topology; the fixture does not thereby declare the embedded interval open in ℝ."
+msgstr "connected-space-declared.ttl 中 ex:interval 记录 math:isConnected true 并引用 math:connectednessLaw。ex:intervalWhole 在该区间自身拓扑中为开；测例不因此声明嵌入区间在 ℝ 中为开。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicit boolean connectedness status is needed for the declared space and topology."
+msgstr "当已声明空间及拓扑需要显式连通性布尔状态时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a missing declaration by an assumed true value, reading path connectedness from the boolean, or turning open TopologicalSpace prose usage into a global domain or declaration requirement."
+msgstr "不要以假定 true 值替代缺少声明，不要从布尔值读出道路连通性，也不要将文字中的开放 TopologicalSpace 用法转成全局定义域或声明要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the actual xsd:boolean value, retain the applicable exactly-one class-local rule and math:UndeclaredTopologicalProperty ownership, and preserve the realized math:connectednessLaw separately. Keep the nonempty/disjoint-open-cover interpretation and any evidence distinct from the boolean; do not infer a proof or construct paths from declaration completeness."
+msgstr "记录实际 xsd:boolean 值，保留适用类局部恰好一个值规则及 math:UndeclaredTopologicalProperty 归属，并另行保留已实现 math:connectednessLaw。将非空不相交开覆盖解释及任何证据与布尔值区分，不从声明完整性推断证明或构造道路。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "homotopy equivalent to"
+msgstr "与之同伦等价"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TopologicalSpace to another it is homotopy-equivalent to — there are maps between them composing to maps homotopic to the identities. Domain and range math:TopologicalSpace (stated in prose). Symmetric mathematically; homotopy-equivalent spaces share homotopy and math:HomologyGroup invariants."
+msgstr "将 math:TopologicalSpace 关联到与其同伦等价的另一个空间，即存在空间间映射，其复合与恒等映射同伦。定义域和值域均为 math:TopologicalSpace，以文字说明。数学上具有对称性；同伦等价空间共享同伦及 math:HomologyGroup 不变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Homotopy equivalence requires continuous maps in both directions whose composites are homotopic to the respective identities, not equality or necessarily a homeomorphism. Mathematical symmetry alone does not author a reverse edge, infer maps or identify space resources; matching homology invariants are isomorphic at matching degree and coefficients."
+msgstr "同伦等价要求两个方向的连续映射，其复合与各自恒等映射同伦，而非相等或必然同胚。仅数学对称性不会编写反向边、推断映射或使空间资源同一；对应同调不变量在次数及系数匹配时同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: ℝ is homotopy-equivalent to a one-point space using collapse and inclusion at 0; the composite on ℝ is homotopic to the identity and the composite on the point is its identity. This is not an authored repository edge, inverse-map record or executed witness."
+msgstr "数学示例：ℝ 通过塌缩及在 0 处的嵌入与单点空间同伦等价；ℝ 上的复合与恒等映射同伦，点上的复合就是其恒等映射。这不是仓库中已编写边、逆映射记录或已执行见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two specified spaces have a justified homotopy-equivalence claim rather than merely matching labels or selected invariants."
+msgstr "当两个指定空间具有有依据的同伦等价主张，而非仅标签或所选不变量匹配时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a homotopy witness or reverse RDF assertion from the edge alone, merging equivalent spaces or homology groups, or replacing homotopy equivalence by homeomorphism."
+msgstr "不要仅从边推导同伦见证或反向 RDF 断言，不要合并等价空间或同调群，也不要用同胚替代同伦等价。"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual space resources and the separately described continuous maps and composite-to-identity homotopies where supplied. Preserve matching degree/coefficient context for homology comparisons without asserting resource identity, constructing an isomorphism automatically or inventing missing maps and reverse links."
+msgstr "保留实际空间资源，在已提供处保留另行描述的连续映射及复合到恒等的同伦。为同调比较保留匹配次数/系数背景，不声明资源同一，不自动构造同构，也不臆造缺少映射及反向链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Undeclared Topological Property"
+msgstr "未声明拓扑性质"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, connectedness, and the T0–T4 separation axioms are each backed by a real first-order defining law (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw); compactness, being genuinely second-order (a finite subcover over an arbitrary family is not first-order axiomatizable), is backed instead by an honest recorded boundary (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Every listed property is therefore backed by a law or a recorded boundary, never a bare type. This gate enforces declaration discipline — that the property is declared, not silently assumed — not satisfaction of the law against a model (no logic:Formula model-checker is in scope)."
+msgstr "当拓扑性质被假定而非声明时引发的失败：math:ContinuousMap 缺少 math:isContinuous，math:CompactSpace 缺少 math:isCompact，或 math:ConnectedSpace 缺少 math:isConnected。连续性、连通性及 T0–T4 分离公理各自有真实一阶定义定律支持（math:continuityLaw、math:connectednessLaw、math:t0SeparationLaw … math:normalitySeparationLaw）；紧性真正属于二阶性质（任意族上的有限子覆盖不能一阶公理化），因此改由如实边界记录支持（math:compactnessBoundary、logic:expressivenessBoundary logic:SecondOrder）。每项所列性质均由定律或边界记录支持，而非纯类型。此检查强制声明纪律，即性质须声明而非默默假定，而不检查模型对定律的满足（此范围不涵盖 logic:Formula 模型检查器）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This diagnostic concerns missing boolean declarations under the existing ContinuousMap, CompactSpace and ConnectedSpace class rules. It does not make every TopologicalSpace or separation-axiom record require those booleans, and it is not mathematical falsity, missing homotopy data or absence of a proof."
+msgstr "此诊断涉及已有 ContinuousMap、CompactSpace 和 ConnectedSpace 类规则下缺少布尔声明。它不要求每个 TopologicalSpace 或分离公理记录都具有这些布尔值，也不表示数学假性、同伦数据缺失或证明缺失。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "compactness-assumed.ttl gives ex:assumedCompact a math:CompactSpace type but no math:isCompact, while connectedness-assumed.ttl gives ex:assumedConnected a math:ConnectedSpace type but no math:isConnected. The omissions concern declarations, not counterexamples to the mathematical properties."
+msgstr "compactness-assumed.ttl 为 ex:assumedCompact 提供 math:CompactSpace 类型但没有 math:isCompact；connectedness-assumed.ttl 为 ex:assumedConnected 提供 math:ConnectedSpace 类型但没有 math:isConnected。这些省略涉及声明，而非数学性质的反例。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an applicable class declaration rule identifies the missing continuity, compactness or connectedness boolean."
+msgstr "当适用类声明规则识别缺少的连续性、紧性或连通性布尔值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reporting this failure as a refuted theorem, a missing proof or a compactness-solver result, or extending its ownership to every topological or separation property."
+msgstr "不要将此失败报告为已否定定理、证明缺失或紧性求解器结果，也不要将其归属扩展到每项拓扑或分离性质。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the bearer’s actual class and missing declaration, then retain its explicit boolean under the existing class-local rule without forcing true. Preserve the associated realized law or compactness boundary and any separate evidence; completing the declaration does not verify a model, solve compactness or compute a topological invariant."
+msgstr "检查承载对象实际类及缺少声明，按已有类局部规则保留显式布尔值，不强制 true。保留相关已实现定律或紧性边界及独立证据；补全声明不会验证模型、求解紧性或计算拓扑不变量。"

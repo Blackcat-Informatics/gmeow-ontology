@@ -9272,3 +9272,227 @@ msgstr "Ne pas donner par défaut true à une déclaration manquante, interprét
 msgctxt "https://blackcatinformatics.ca/math/isContinuous|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the actual xsd:boolean value and preserve the applicable exactly-one declaration requirement without imposing hasValue true. Retain math:continuityLaw as the realized Formula over the reified open-set/preimage signature, keeping that syntax and any supporting evidence separate from the boolean and from claims that the map satisfies the law."
 msgstr "Consigner la valeur xsd:boolean réelle et préserver l’exigence applicable d’exactement une déclaration sans imposer hasValue true. Conserver math:continuityLaw comme Formula réalisée sur la signature réifiée d’ouverts et d’images réciproques, en distinguant cette syntaxe et tout élément probant du booléen et des affirmations que l’application satisfait la loi."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compact Space"
+msgstr "Espace compact"
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A compact topological space: one in which every open cover has a finite subcover. A subclass of math:TopologicalSpace that declares its compactness through math:isCompact — compactness is declared, not assumed (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). Unlike math:ConnectedSpace, whose defining law math:connectednessLaw is a first-order logic:Formula, compactness is genuinely second-order (it quantifies over open covers and appeals to finiteness) and so is backed not by a first-order law but by the honest recorded boundary math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:preservesStructure. Compactness is the topological generalization of closed-and-bounded (Heine–Borel) and is preserved by continuous images."
+msgstr "Un espace topologique compact : tout recouvrement ouvert admet un sous-recouvrement fini. Sous-classe de math:TopologicalSpace qui déclare sa compacité par math:isCompact — la compacité est déclarée, et non supposée (une compacité non déclarée est mal formée, math:UndeclaredTopologicalProperty). Contrairement à math:ConnectedSpace, dont la loi de définition math:connectednessLaw est une logic:Formula du premier ordre, la compacité est réellement du second ordre (elle quantifie sur les recouvrements ouverts et fait appel à la finitude) et est donc étayée non par une loi du premier ordre mais par la limite honnêtement consignée math:compactnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), référencée par math:preservesStructure. La compacité est la généralisation topologique de fermé et borné (Heine–Borel) et est préservée par les images continues."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compactness quantifies over every open cover and requires a finite subcover. The authored math:compactnessBoundary records logic:SecondOrder and logic:Unsupported; it is not an executable Formula, satisfiability result or proof. Closed-and-bounded characterizes compact subsets of finite-dimensional Euclidean space, not compactness in every topology."
+msgstr "La compacité quantifie sur tout recouvrement ouvert et exige un sous-recouvrement fini. La ressource écrite math:compactnessBoundary consigne logic:SecondOrder et logic:Unsupported ; ce n’est ni une Formula exécutable, ni un résultat de satisfiabilité, ni une preuve. Le critère fermé et borné caractérise les parties compactes d’un espace euclidien de dimension finie, pas la compacité dans toute topologie."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "compact-space-declared.ttl gives ex:closedInterval math:isCompact true, the math:compactnessBoundary link and ex:closedIntervalWhole as an open of its own topology. The whole interval’s openness there does not say that [0, 1] is open in the usual real line."
+msgstr "compact-space-declared.ttl donne à ex:closedInterval math:isCompact true, le lien math:compactnessBoundary et ex:closedIntervalWhole comme ouvert de sa propre topologie. Le fait que l’intervalle entier y soit ouvert ne dit pas que [0, 1] est ouvert dans la droite réelle usuelle."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space’s compactness claim must retain the open-cover meaning and its honest expressiveness boundary."
+msgstr "Utiliser lorsque l’affirmation de compacité d’un espace doit conserver le sens de recouvrement ouvert et sa limite d’expressivité honnête."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using closed-and-bounded as a universal definition, treating selected opens as every possible cover, or presenting the boundary link or boolean as a finite-subcover construction or compactness proof."
+msgstr "Ne pas utiliser fermé et borné comme définition universelle, traiter des ouverts choisis comme tous les recouvrements possibles ou présenter le lien de limite ou le booléen comme une construction de sous-recouvrement fini ou une preuve de compacité."
+
+msgctxt "https://blackcatinformatics.ca/math/CompactSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual space, its explicit math:isCompact value and the math:preservesStructure boundary record. Preserve supplied opens at their authored scope, keep proof or cover evidence separate where available, and disclose the SecondOrder/Unsupported boundary without inventing cover data or replacing it by a first-order law."
+msgstr "Conserver l’espace réel, sa valeur math:isCompact explicite et le relevé de limite math:preservesStructure. Préserver les ouverts fournis à leur portée écrite, distinguer preuves ou éléments de recouvrement lorsqu’ils sont disponibles et exposer la limite SecondOrder/Unsupported sans inventer de données de recouvrement ni la remplacer par une loi du premier ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connected Space"
+msgstr "Espace connexe"
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A connected topological space: one that is not the union of two disjoint non-empty open sets. A subclass of math:TopologicalSpace that declares its connectedness through math:isConnected — connectedness is declared, not assumed (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty). The structure it preserves is the topology's connectedness, whose defining law is math:connectednessLaw (no splitting into two disjoint non-empty open sets covering the space), referenced through math:preservesStructure. Connectedness is preserved by continuous images (the intermediate value theorem is its avatar on ℝ)."
+msgstr "Un espace topologique connexe : il n’est pas l’union de deux ouverts disjoints non vides. Sous-classe de math:TopologicalSpace qui déclare sa connexité par math:isConnected — la connexité est déclarée, et non supposée (une connexité non déclarée est mal formée, math:UndeclaredTopologicalProperty). La structure préservée est la connexité de la topologie, dont la loi de définition est math:connectednessLaw (aucune séparation en deux ouverts disjoints non vides recouvrant l’espace), référencée par math:preservesStructure. La connexité est préservée par les images continues (le théorème des valeurs intermédiaires en est la manifestation sur ℝ)."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Connectedness rules out a cover by two disjoint nonempty opens. The realized math:connectednessLaw Formula uses the reified open-set, nonempty, disjointness and cover signature; its syntax and a connectedness declaration do not by themselves prove the law for a particular model. Connected need not mean path-connected or contractible."
+msgstr "La connexité exclut un recouvrement par deux ouverts disjoints non vides. La Formula réalisée math:connectednessLaw utilise la signature réifiée d’ouverts, de non-vacuité, d’intersection vide et de recouvrement ; sa syntaxe et une déclaration de connexité ne prouvent pas à elles seules la loi pour un modèle particulier. Connexe ne signifie pas nécessairement connexe par arcs ou contractile."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "connected-space-declared.ttl gives ex:interval math:isConnected true, a math:connectednessLaw link and the whole-space open ex:intervalWhole. These declarations do not author a separation search, a path or a contraction."
+msgstr "connected-space-declared.ttl donne à ex:interval math:isConnected true, un lien math:connectednessLaw et l’ouvert de l’espace entier ex:intervalWhole. Ces déclarations n’écrivent ni recherche de séparation, ni chemin, ni contraction."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space is described as admitting no separation into two disjoint nonempty opens covering it."
+msgstr "Utiliser lorsqu’un espace est décrit comme n’admettant aucune séparation en deux ouverts disjoints non vides le recouvrant."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring paths or contractibility from connectedness, treating a boolean as a model-check result, or interpreting an interval’s whole-space open as openness of that interval in an ambient real line."
+msgstr "Ne pas déduire des chemins ou la contractilité de la connexité, traiter un booléen comme un résultat de vérification de modèle ou interpréter l’ouvert de l’intervalle entier comme l’ouverture de cet intervalle dans une droite réelle ambiante."
+
+msgctxt "https://blackcatinformatics.ca/math/ConnectedSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual topology context, explicit math:isConnected value and math:preservesStructure law resource. Keep the formula and supplied open records distinct from evidence that no separation exists, and add no fabricated points, cover witnesses, paths or contraction maps."
+msgstr "Conserver le contexte topologique réel, la valeur math:isConnected explicite et la ressource de loi math:preservesStructure. Distinguer formule et relevés d’ouverts fournis des éléments probants d’absence de séparation, et n’ajouter aucun point, témoin de recouvrement, chemin ou application de contraction fabriqué."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homotopy"
+msgstr "Homotopie"
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homotopy between two continuous maps: a continuous deformation H: X×[0,1] → Y from one map to the other. Two spaces are homotopy-equivalent (math:homotopyEquivalentTo) when maps between them compose to maps homotopic to the identities. Homotopy equivalence is coarser than homeomorphism and is the equivalence algebraic topology's invariants (homotopy and math:HomologyGroup) respect."
+msgstr "Une homotopie entre deux applications continues : une déformation continue H: X×[0,1] → Y de l’une à l’autre. Deux espaces sont homotopiquement équivalents (math:homotopyEquivalentTo) lorsque des applications entre eux se composent en applications homotopes aux identités. L’équivalence d’homotopie est plus grossière que l’homéomorphisme et est l’équivalence respectée par les invariants de la topologie algébrique (homotopie et math:HomologyGroup)."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A homotopy deforms maps with the same source and target through a continuous family. It is not equality of those maps or a homeomorphism of spaces, and a named deformation or equivalence edge alone supplies no authored homotopy witness."
+msgstr "Une homotopie déforme des applications de mêmes source et cible par une famille continue. Ce n’est ni l’égalité de ces applications ni un homéomorphisme d’espaces, et une déformation nommée ou un lien d’équivalence seuls ne fournissent pas de témoin d’homotopie écrit."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: H(x, t) = (1 − t)x for x in ℝ and t in [0, 1] deforms the identity map ℝ → ℝ to the constant-zero map, with common source and target. This is a mathematical illustration, not an authored repository Homotopy record."
+msgstr "Cas mathématique illustratif : H(x, t) = (1 − t)x pour x dans ℝ et t dans [0, 1] déforme l’identité ℝ → ℝ en l’application constante nulle, avec mêmes source et cible. C’est une illustration mathématique, et non un relevé Homotopy écrit dans le dépôt."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a continuous deformation between specified maps needs its own mathematical referent."
+msgstr "Utiliser lorsqu’une déformation continue entre applications spécifiées nécessite son propre référent mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring equality of map resources from homotopy alone, inferring a deformation from a label, or confusing a homotopy between maps with the maps and composite conditions required for homotopy equivalence of spaces."
+msgstr "Ne pas inférer l’égalité des ressources représentant des applications à partir de la seule homotopie, déduire une déformation d’un libellé ou confondre une homotopie entre applications avec les applications et conditions de composés requises pour l’équivalence d’homotopie d’espaces."
+
+msgctxt "https://blackcatinformatics.ca/math/Homotopy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the actual endpoint maps, their common source and target, and any continuous family or evidence using existing mathematical representations. Keep deformation data and proofs separate from an equivalence assertion, without inventing mandatory endpoint slots, inverse witnesses or executed constructions."
+msgstr "Décrire les applications réelles aux extrémités, leurs source et cible communes et toute famille continue ou preuve avec les représentations mathématiques existantes. Distinguer données de déformation et preuves d’une affirmation d’équivalence, sans inventer d’emplacements obligatoires d’extrémités, de témoins d’inverse ou de constructions exécutées."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homology Group"
+msgstr "Groupe d’homologie"
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homology group Hₙ(X): an abelian group functorially assigned to a topological space, counting n-dimensional holes. A subclass of math:AbelianGroup (ALGEBRA charter), so a homology-group individual carries the full algebraic-structure frame — its underlying set, its abelian operation, and its axioms — like any other abelian group. The algebraic-topology bridge: homotopy-equivalent spaces have isomorphic homology groups. The homology functor itself (the assignment X ↦ Hₙ(X)) belongs to a downstream category charter and is not minted here."
+msgstr "Un groupe d’homologie Hₙ(X) : un groupe abélien associé fonctoriellement à un espace topologique, comptant les trous de dimension n. Sous-classe de math:AbelianGroup (charte ALGEBRA), un individu groupe d’homologie porte donc le cadre complet de structure algébrique — son ensemble sous-jacent, son opération abélienne et ses axiomes — comme tout autre groupe abélien. Le pont de topologie algébrique : des espaces homotopiquement équivalents ont des groupes d’homologie isomorphes. Le foncteur d’homologie lui-même (l’assignation X ↦ Hₙ(X)) relève d’une charte catégorique en aval et n’est pas créé ici."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Homology is a group of cycles modulo boundaries for a specified space or complex, degree and coefficient setting. The group is not one cycle, generator, boundary, Betti number, vector-space dimension or sheaf-cohomology construction; it may contain torsion and retains its full math:AbelianGroup frame."
+msgstr "L’homologie est un groupe de cycles modulo les bords pour un espace ou complexe, un degré et un cadre de coefficients spécifiés. Le groupe ne se réduit ni à un cycle, ni à un générateur, ni à un bord, ni à un nombre de Betti, ni à une dimension vectorielle, ni à une construction de cohomologie de faisceau ; il peut contenir de la torsion et conserve son cadre complet math:AbelianGroup."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "homology-group-framed.ttl gives ex:firstHomology a carrier, operation and axiom link. The triangle fixture chain-complex-square-zero-complete.ttl gives ex:homologyH1 math:homologyCycles ex:cycleZ and math:homologyBoundaries ex:boundaryB; these records are declarations and links, not computed quotient representatives."
+msgstr "homology-group-framed.ttl donne à ex:firstHomology un support, une opération et un lien d’axiome. Le fichier de triangle chain-complex-square-zero-complete.ttl donne à ex:homologyH1 math:homologyCycles ex:cycleZ et math:homologyBoundaries ex:boundaryB ; ces relevés sont des déclarations et des liens, et non des représentants de quotient calculés."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the homology group at a specified degree and coefficient setting must be represented as an algebraic object."
+msgstr "Utiliser lorsque le groupe d’homologie à un degré et dans un cadre de coefficients spécifiés doit être représenté comme objet algébrique."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reducing the group to a hole count, assuming all homology is torsion-free, inferring a unique coefficient choice from the fixture, or treating homotopy invariance as identical group resources or an automatically constructed isomorphism."
+msgstr "Ne pas réduire le groupe à un compte de trous, supposer que toute homologie est sans torsion, déduire un choix unique de coefficients du fichier ou traiter l’invariance d’homotopie comme des ressources de groupe identiques ou un isomorphisme automatiquement construit."
+
+msgctxt "https://blackcatinformatics.ca/math/HomologyGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited carrier, abelian operation and axiom frame, and keep the space/complex, degree and coefficients explicit in the existing mathematical interpretation without inventing a mandatory field inventory. Preserve actual cycle/boundary links separately; homotopy-equivalent spaces have isomorphic homology groups at matching degree and coefficient settings, but these declarations do not construct the quotient or an isomorphism."
+msgstr "Conserver le support hérité, l’opération abélienne et le cadre d’axiomes, puis expliciter espace ou complexe, degré et coefficients dans l’interprétation mathématique existante sans inventer d’inventaire obligatoire de champs. Préserver séparément les liens réels de cycles et de bords ; les espaces homotopiquement équivalents ont des groupes d’homologie isomorphes à degré et coefficients correspondants, mais ces déclarations ne construisent ni le quotient ni un isomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is compact"
+msgstr "est compact"
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a space is compact — every open cover has a finite subcover. Domain math:CompactSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). Compactness is declared, not assumed from the type (an undeclared compactness is ill-formed, math:UndeclaredTopologicalProperty). The declaration is backed not by a first-order law but by the honest recorded second-order boundary math:compactnessBoundary — compactness genuinely exceeds first-order logic (open covers plus finiteness), so the boundary is carried in the loss ledger (logic:preservationKind logic:Unsupported), never faked as a first-order logic:Formula."
+msgstr "Déclare si un espace est compact — tout recouvrement ouvert admet un sous-recouvrement fini. Domaine math:CompactSpace (ou math:TopologicalSpace), portée xsd:boolean (énoncés en prose). La compacité est déclarée, et non supposée à partir du type (une compacité non déclarée est mal formée, math:UndeclaredTopologicalProperty). La déclaration est étayée non par une loi du premier ordre mais par la limite du second ordre honnêtement consignée math:compactnessBoundary — la compacité dépasse réellement la logique du premier ordre (recouvrements ouverts et finitude) ; la limite est donc portée dans le registre des pertes (logic:preservationKind logic:Unsupported), jamais simulée comme une logic:Formula du premier ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a boolean compactness declaration with the existing class-local exactly-one check and closure for math:CompactSpace. Either boolean value can be recorded; false is negative, not affirmative evidence of compactness, and declaration presence is not a proof. The prose TopologicalSpace use does not impose a global required field."
+msgstr "Il s’agit d’une déclaration booléenne de compacité avec le contrôle existant d’exactement une valeur et la fermeture locaux à la classe math:CompactSpace. L’un ou l’autre booléen peut être consigné ; false est négatif, pas un élément probant affirmatif de compacité, et la présence d’une déclaration n’est pas une preuve. L’usage TopologicalSpace en prose n’impose pas de champ globalement requis."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:closedInterval in compact-space-declared.ttl records math:isCompact true and a math:preservesStructure link to math:compactnessBoundary. The boolean and boundary disclose the claim and its limit without enumerating covers or constructing finite subcovers."
+msgstr "ex:closedInterval dans compact-space-declared.ttl consigne math:isCompact true et un lien math:preservesStructure vers math:compactnessBoundary. Le booléen et la limite exposent l’affirmation et sa portée sans énumérer les recouvrements ni construire de sous-recouvrements finis."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space’s compactness status must be explicitly recorded while retaining its open-cover interpretation and boundary disclosure."
+msgstr "Utiliser lorsque le statut de compacité d’un espace doit être explicitement consigné en conservant son interprétation de recouvrement ouvert et l’exposition de sa limite."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting a missing value to true, treating false as compactness evidence, converting the boundary into an executable formula or solver result, or applying the class-local check to every TopologicalSpace by a new global rule."
+msgstr "Ne pas donner par défaut true à une valeur manquante, traiter false comme preuve de compacité, convertir la limite en formule exécutable ou résultat de solveur, ou appliquer le contrôle local à tout TopologicalSpace par une nouvelle règle globale."
+
+msgctxt "https://blackcatinformatics.ca/math/isCompact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual xsd:boolean value under the applicable class-local declaration rule and preserve math:UndeclaredTopologicalProperty ownership without imposing hasValue true. Keep math:compactnessBoundary and its SecondOrder/Unsupported disclosure separate from cover data, proof and any separately established result."
+msgstr "Conserver la valeur xsd:boolean réelle selon la règle applicable de déclaration locale à la classe et préserver la responsabilité math:UndeclaredTopologicalProperty sans imposer hasValue true. Distinguer math:compactnessBoundary et son exposition SecondOrder/Unsupported des données de recouvrement, de la preuve et de tout résultat établi séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is connected"
+msgstr "est connexe"
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a space is connected — not the union of two disjoint non-empty open sets (math:connectednessLaw). Domain math:ConnectedSpace (or math:TopologicalSpace), range xsd:boolean (stated in prose). The canonical checkable bearer of connectedness; connectedness is declared here, not assumed from the math:ConnectedSpace type (an undeclared connectedness is ill-formed, math:UndeclaredTopologicalProperty)."
+msgstr "Déclare si un espace est connexe — il n’est pas l’union de deux ouverts disjoints non vides (math:connectednessLaw). Domaine math:ConnectedSpace (ou math:TopologicalSpace), portée xsd:boolean (énoncés en prose). Le porteur canonique vérifiable de connexité ; la connexité est déclarée ici, et non supposée à partir du type math:ConnectedSpace (une connexité non déclarée est mal formée, math:UndeclaredTopologicalProperty)."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing math:ConnectedSpace check requires exactly one boolean declaration with closure, not hasValue true. A false value records a negative declaration and is not proof of connectedness; a supplied value or law link alone is not a model-checking result, path or contraction."
+msgstr "Le contrôle existant pour math:ConnectedSpace exige exactement une déclaration booléenne avec fermeture, et non hasValue true. Une valeur false consigne une déclaration négative et n’est pas une preuve de connexité ; une valeur ou un lien de loi fournis seuls ne sont ni un résultat de vérification de modèle, ni un chemin, ni une contraction."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:interval in connected-space-declared.ttl records math:isConnected true and references math:connectednessLaw. ex:intervalWhole is open in that interval’s own topology; the fixture does not thereby declare the embedded interval open in ℝ."
+msgstr "ex:interval dans connected-space-declared.ttl consigne math:isConnected true et référence math:connectednessLaw. ex:intervalWhole est ouvert dans la topologie propre de cet intervalle ; le fichier ne déclare pas pour autant que l’intervalle plongé soit ouvert dans ℝ."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicit boolean connectedness status is needed for the declared space and topology."
+msgstr "Utiliser lorsqu’un statut booléen explicite de connexité est nécessaire pour l’espace et la topologie déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a missing declaration by an assumed true value, reading path connectedness from the boolean, or turning open TopologicalSpace prose usage into a global domain or declaration requirement."
+msgstr "Ne pas remplacer une déclaration manquante par une valeur true supposée, lire la connexité par arcs dans le booléen ou transformer l’usage ouvert de TopologicalSpace en prose en domaine ou exigence de déclaration globaux."
+
+msgctxt "https://blackcatinformatics.ca/math/isConnected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the actual xsd:boolean value, retain the applicable exactly-one class-local rule and math:UndeclaredTopologicalProperty ownership, and preserve the realized math:connectednessLaw separately. Keep the nonempty/disjoint-open-cover interpretation and any evidence distinct from the boolean; do not infer a proof or construct paths from declaration completeness."
+msgstr "Consigner la valeur xsd:boolean réelle, conserver la règle applicable d’exactement une valeur locale à la classe et la responsabilité math:UndeclaredTopologicalProperty, et préserver séparément la math:connectednessLaw réalisée. Distinguer l’interprétation d’un recouvrement par des ouverts non vides disjoints et tout élément probant du booléen ; ne pas déduire de preuve ni construire de chemins de la complétude de déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "homotopy equivalent to"
+msgstr "homotopiquement équivalent à"
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TopologicalSpace to another it is homotopy-equivalent to — there are maps between them composing to maps homotopic to the identities. Domain and range math:TopologicalSpace (stated in prose). Symmetric mathematically; homotopy-equivalent spaces share homotopy and math:HomologyGroup invariants."
+msgstr "Relie un math:TopologicalSpace à un autre auquel il est homotopiquement équivalent — il existe entre eux des applications dont les composés sont homotopes aux identités. Domaine et portée math:TopologicalSpace (énoncés en prose). Symétrique mathématiquement ; les espaces homotopiquement équivalents partagent les invariants d’homotopie et math:HomologyGroup."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Homotopy equivalence requires continuous maps in both directions whose composites are homotopic to the respective identities, not equality or necessarily a homeomorphism. Mathematical symmetry alone does not author a reverse edge, infer maps or identify space resources; matching homology invariants are isomorphic at matching degree and coefficients."
+msgstr "L’équivalence d’homotopie requiert des applications continues dans les deux sens dont les composés sont homotopes aux identités respectives, et non une égalité ou nécessairement un homéomorphisme. La symétrie mathématique seule n’écrit pas de lien inverse, ne déduit pas d’applications et n’identifie pas les ressources espaces ; les invariants homologiques correspondants sont isomorphes à degré et coefficients correspondants."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrative mathematical case: ℝ is homotopy-equivalent to a one-point space using collapse and inclusion at 0; the composite on ℝ is homotopic to the identity and the composite on the point is its identity. This is not an authored repository edge, inverse-map record or executed witness."
+msgstr "Cas mathématique illustratif : ℝ est homotopiquement équivalent à un espace à un point par effondrement et inclusion en 0 ; le composé sur ℝ est homotope à l’identité et le composé sur le point est son identité. Ce n’est ni un lien écrit du dépôt, ni un relevé d’application inverse, ni un témoin exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two specified spaces have a justified homotopy-equivalence claim rather than merely matching labels or selected invariants."
+msgstr "Utiliser lorsque deux espaces spécifiés possèdent une affirmation justifiée d’équivalence d’homotopie plutôt que de simples libellés ou invariants choisis concordants."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a homotopy witness or reverse RDF assertion from the edge alone, merging equivalent spaces or homology groups, or replacing homotopy equivalence by homeomorphism."
+msgstr "Ne pas déduire un témoin d’homotopie ou une affirmation RDF inverse du seul lien, fusionner des espaces ou groupes d’homologie équivalents, ou remplacer l’équivalence d’homotopie par un homéomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/homotopyEquivalentTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual space resources and the separately described continuous maps and composite-to-identity homotopies where supplied. Preserve matching degree/coefficient context for homology comparisons without asserting resource identity, constructing an isomorphism automatically or inventing missing maps and reverse links."
+msgstr "Conserver les ressources espaces réelles et les applications continues et homotopies des composés vers les identités décrites séparément lorsqu’elles sont fournies. Préserver les contextes correspondants de degré et de coefficients pour les comparaisons d’homologie sans affirmer l’identité des ressources, construire automatiquement un isomorphisme ni inventer des applications ou liens inverses manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Undeclared Topological Property"
+msgstr "Propriété topologique non déclarée"
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a topological property is assumed rather than declared: a math:ContinuousMap without math:isContinuous, a math:CompactSpace without math:isCompact, or a math:ConnectedSpace without math:isConnected. Continuity, connectedness, and the T0–T4 separation axioms are each backed by a real first-order defining law (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw); compactness, being genuinely second-order (a finite subcover over an arbitrary family is not first-order axiomatizable), is backed instead by an honest recorded boundary (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Every listed property is therefore backed by a law or a recorded boundary, never a bare type. This gate enforces declaration discipline — that the property is declared, not silently assumed — not satisfaction of the law against a model (no logic:Formula model-checker is in scope)."
+msgstr "L’échec signalé lorsqu’une propriété topologique est supposée plutôt que déclarée : un math:ContinuousMap sans math:isContinuous, un math:CompactSpace sans math:isCompact ou un math:ConnectedSpace sans math:isConnected. La continuité, la connexité et les axiomes de séparation T0–T4 sont chacun étayés par une véritable loi de définition du premier ordre (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw) ; la compacité, réellement du second ordre (un sous-recouvrement fini d’une famille arbitraire n’est pas axiomatisable au premier ordre), est plutôt étayée par une limite honnêtement consignée (math:compactnessBoundary, logic:expressivenessBoundary logic:SecondOrder). Toute propriété citée est donc étayée par une loi ou une limite consignée, jamais un simple type. Ce contrôle impose la discipline de déclaration — que la propriété soit déclarée et non implicitement supposée — et non la satisfaction de la loi sur un modèle (aucun vérificateur de modèle logic:Formula n’entre dans ce périmètre)."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This diagnostic concerns missing boolean declarations under the existing ContinuousMap, CompactSpace and ConnectedSpace class rules. It does not make every TopologicalSpace or separation-axiom record require those booleans, and it is not mathematical falsity, missing homotopy data or absence of a proof."
+msgstr "Ce diagnostic concerne les déclarations booléennes manquantes selon les règles existantes des classes ContinuousMap, CompactSpace et ConnectedSpace. Il n’impose pas ces booléens à tout TopologicalSpace ou relevé d’axiome de séparation, et ne désigne ni fausseté mathématique, ni données d’homotopie manquantes, ni absence de preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "compactness-assumed.ttl gives ex:assumedCompact a math:CompactSpace type but no math:isCompact, while connectedness-assumed.ttl gives ex:assumedConnected a math:ConnectedSpace type but no math:isConnected. The omissions concern declarations, not counterexamples to the mathematical properties."
+msgstr "compactness-assumed.ttl donne à ex:assumedCompact le type math:CompactSpace sans math:isCompact, tandis que connectedness-assumed.ttl donne à ex:assumedConnected le type math:ConnectedSpace sans math:isConnected. Les omissions concernent les déclarations, et non des contre-exemples aux propriétés mathématiques."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an applicable class declaration rule identifies the missing continuity, compactness or connectedness boolean."
+msgstr "Utiliser lorsqu’une règle applicable de déclaration de classe identifie le booléen manquant de continuité, de compacité ou de connexité."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reporting this failure as a refuted theorem, a missing proof or a compactness-solver result, or extending its ownership to every topological or separation property."
+msgstr "Ne pas présenter cet échec comme un théorème réfuté, une preuve manquante ou un résultat de solveur de compacité, ni étendre sa responsabilité à toute propriété topologique ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/math/UndeclaredTopologicalProperty|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the bearer’s actual class and missing declaration, then retain its explicit boolean under the existing class-local rule without forcing true. Preserve the associated realized law or compactness boundary and any separate evidence; completing the declaration does not verify a model, solve compactness or compute a topological invariant."
+msgstr "Examiner la classe réelle du porteur et la déclaration manquante, puis conserver son booléen explicite selon la règle locale existante sans imposer true. Préserver la loi réalisée associée ou la limite de compacité et tout élément probant distinct ; compléter la déclaration ne vérifie pas un modèle, ne résout pas la compacité et ne calcule pas d’invariant topologique."
