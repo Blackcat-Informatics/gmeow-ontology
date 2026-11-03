@@ -159,3 +159,131 @@ msgstr "Évitez d’affaiblir cette assertion pour admettre deux alias de corres
 msgctxt "https://blackcatinformatics.ca/gmeow/mappingDslSelectedPredicateFunctionality|gmeow:howToUse"
 msgid "Retain this canonical assertion with the target-choice constraint; the generated validation surface enforces both selector functionality and exclusive target mode."
 msgstr "Conservez cette assertion canonique avec la contrainte de choix de cible ; la surface de validation générée impose à la fois le caractère fonctionnel du sélecteur et l’exclusivité du mode cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path member item"
+msgstr "élément du membre de chemin"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named correspondence-path member cell to its selected predicate IRI or nested path constructor. The cell carries one member of a sequence or alternative; the item is the path body, not the next cell."
+msgstr "Relie une cellule nommée de membre de chemin de correspondance à l’IRI de prédicat ou au constructeur de chemin imbriqué qu’elle sélectionne. La cellule porte un membre d’une séquence ou d’une alternative ; l’élément est le corps du chemin, et non la cellule suivante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its domain and range are resources: the subject has the member-cell role, while the object may be a predicate or a composite path. A property-only range would incorrectly classify nested constructors as properties. This named-cell encoding is distinct from an RDF list."
+msgstr "Son domaine et son codomaine sont des ressources : le sujet joue le rôle de cellule de membre, tandis que l’objet peut être un prédicat ou un chemin composé. Un codomaine limité aux propriétés classerait à tort les constructeurs imbriqués comme propriétés. Ce codage par cellules nommées est distinct d’une liste RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a declared correspondence path, ex:cell gmeow:pathItem ex:inverse can select ex:inverse a gmeow:InversePath with gmeow:pathStep ex:edge, rather than selecting a forward predicate directly."
+msgstr "Dans un chemin de correspondance déclaré, ex:cell gmeow:pathItem ex:inverse peut sélectionner ex:inverse a gmeow:InversePath avec gmeow:pathStep ex:edge, plutôt que sélectionner directement un prédicat dans le sens direct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the member body in the named-cell encoding of a correspondence sequence or alternative path."
+msgstr "À utiliser pour le corps d’un membre dans le codage par cellules nommées d’un chemin de correspondance séquentiel ou alternatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for cell succession, replace rdf:first in a selected RDF-list profile, or require every item to be an rdf:Property. A vocabulary declaration does not validate or execute the selected path."
+msgstr "Ne pas utiliser pour la succession des cellules, remplacer rdf:first dans un profil de listes RDF sélectionné, ni exiger que chaque élément soit une rdf:Property. Une déclaration de vocabulaire ne valide ni n’exécute le chemin sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathItem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give each selected correspondence member cell exactly one IRI-valued item. Use gmeow:pathNext for its successor. The correspondence reader checks constructor shape and resource bounds; this property asserts no global functional characteristic or equality of different items."
+msgstr "Donner à chaque cellule de membre de correspondance sélectionnée exactement un élément dont la valeur est une IRI. Utiliser gmeow:pathNext pour son successeur. Le lecteur de correspondance contrôle la structure des constructeurs et les limites de ressources ; cette propriété n’affirme aucune caractéristique fonctionnelle globale ni égalité entre des éléments différents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next path member"
+msgstr "membre de chemin suivant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named correspondence-path member cell to its immediate successor cell in the selected sequence or alternative chain. It orders member cells rather than selecting a predicate or computing transitive reachability."
+msgstr "Relie une cellule nommée de membre de chemin de correspondance à sa cellule immédiatement suivante dans la chaîne séquentielle ou alternative sélectionnée. Elle ordonne les cellules de membres plutôt que sélectionner un prédicat ou calculer une accessibilité transitive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its domain and range are resources playing the member-cell role. In the selected correspondence profile a terminal cell has no next edge; rdf:nil is not this profile’s terminator. This edge is distinct from rdf:rest in an RDF-list profile."
+msgstr "Son domaine et son codomaine sont des ressources jouant le rôle de cellules de membres. Dans le profil de correspondance sélectionné, une cellule terminale n’a pas d’arête suivante ; rdf:nil n’est pas le terminateur de ce profil. Cette arête est distincte de rdf:rest dans un profil de listes RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a selected correspondence chain, ex:first gmeow:pathNext ex:last places ex:last immediately after ex:first; each cell separately names its body through gmeow:pathItem."
+msgstr "Dans une chaîne de correspondance sélectionnée, ex:first gmeow:pathNext ex:last place ex:last immédiatement après ex:first ; chaque cellule nomme séparément son corps par gmeow:pathItem."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain immediate member order in a named-cell correspondence path."
+msgstr "À utiliser pour conserver l’ordre immédiat des membres dans un chemin de correspondance à cellules nommées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use as the traversed property, infer transitive closure, substitute it for rdf:rest, or treat a malformed present tail as an absent tail."
+msgstr "Ne pas utiliser comme propriété parcourue, en déduire une clôture transitive, la substituer à rdf:rest, ni traiter une queue présente mais mal formée comme une queue absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathNext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply at most one IRI-valued successor per selected correspondence cell and omit the edge on the last cell. The reader rejects cycles and malformed tails within its resource bounds; no global functional or transitive characteristic is asserted."
+msgstr "Fournir au plus un successeur dont la valeur est une IRI par cellule de correspondance sélectionnée et omettre l’arête sur la dernière cellule. Le lecteur rejette les cycles et les queues mal formées dans ses limites de ressources ; aucune caractéristique fonctionnelle ou transitive globale n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path steps"
+msgstr "étapes du chemin"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a SeqPath to the head of its ordered path members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each member selects a predicate IRI or nested path."
+msgstr "Relie un SeqPath à la tête de ses membres de chemin ordonnés selon le codage sélectionné : une liste RDF pour un chemin de projection de mapping, ou une chaîne de membres nommés pathItem/pathNext pour un chemin de correspondance. Chaque membre sélectionne une IRI de prédicat ou un chemin imbriqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two profiles have distinct member and tail encodings. RDF-list members use rdf:first/rdf:rest; correspondence members use gmeow:pathItem/gmeow:pathNext. Selecting one profile supplies no conversion or equivalence to the other."
+msgstr "Les deux profils ont des codages distincts pour les membres et les queues. Les membres des listes RDF utilisent rdf:first/rdf:rest ; ceux des correspondances utilisent gmeow:pathItem/gmeow:pathNext. Sélectionner un profil ne fournit ni conversion ni équivalence vers l’autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the correspondence profile, ex:path a gmeow:SeqPath with gmeow:pathSteps ex:first can name ex:first gmeow:pathItem ex:p and gmeow:pathNext ex:last, with ex:last gmeow:pathItem ex:q, selecting p followed by q."
+msgstr "Dans le profil de correspondance, ex:path a gmeow:SeqPath avec gmeow:pathSteps ex:first peut nommer ex:first gmeow:pathItem ex:p et gmeow:pathNext ex:last, avec ex:last gmeow:pathItem ex:q, sélectionnant p puis q."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the ordered member head of a sequence path in its explicitly selected mapping or correspondence profile."
+msgstr "À utiliser pour identifier la tête des membres ordonnés d’un chemin séquentiel dans son profil de mapping ou de correspondance explicitement sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mix RDF-list and named-cell encodings, treat the head as the traversed predicate, or use gmeow:pathStep as a replacement for sequence membership."
+msgstr "Ne pas mélanger les codages par listes RDF et par cellules nommées, traiter la tête comme le prédicat parcouru, ni utiliser gmeow:pathStep à la place de l’appartenance à une séquence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathSteps|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the consuming profile and supply one value identifying the head of its complete nonempty member structure. Preserve member order. Head requiredness alone does not validate the chain or list, and a declaration supplies no execution result."
+msgstr "Sélectionner le profil consommateur et fournir une valeur de tête avec sa structure de membres complète et non vide. Conserver l’ordre des membres. L’exigence de présence de la tête ne valide à elle seule ni la chaîne ni la liste, et une déclaration ne fournit aucun résultat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path alternatives"
+msgstr "alternatives du chemin"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an AltPath to the head of its ordered alternative members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each alternative selects a predicate IRI or nested path."
+msgstr "Relie un AltPath à la tête de ses membres alternatifs ordonnés selon le codage sélectionné : une liste RDF pour un chemin de projection de mapping, ou une chaîne de membres nommés pathItem/pathNext pour un chemin de correspondance. Chaque alternative sélectionne une IRI de prédicat ou un chemin imbriqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An alternative member can itself be composite. RDF-list and named-cell profiles retain separate member and tail encodings; neither is an alias or an automatic conversion for the other. Member order does not select a single winning alternative."
+msgstr "Un membre alternatif peut lui-même être composé. Les profils de listes RDF et de cellules nommées conservent des codages distincts pour les membres et les queues ; aucun n’est un alias ni une conversion automatique de l’autre. L’ordre des membres ne sélectionne pas une seule alternative gagnante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a selected mapping projection profile, a gmeow:AltPath with gmeow:pathAlts (ex:p ex:q) declares the alternatives p and q in an RDF list. This does not declare a named-cell correspondence chain."
+msgstr "Dans un profil de projection de mapping sélectionné, un gmeow:AltPath avec gmeow:pathAlts (ex:p ex:q) déclare les alternatives p et q dans une liste RDF. Cela ne déclare pas une chaîne de correspondance à cellules nommées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the alternative-member head of an alternative path while preserving the selected representation."
+msgstr "À utiliser pour identifier la tête des membres alternatifs d’un chemin alternatif tout en conservant la représentation sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat alternatives as a sequence, infer a preferred branch from list order, or pass one encoding to a reader that requires the other."
+msgstr "Ne pas traiter les alternatives comme une séquence, déduire une branche préférée de l’ordre de la liste, ni transmettre un codage à un lecteur qui exige l’autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathAlts|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the consuming profile and supply one value identifying the head of its complete nonempty alternative structure. Use the corresponding member and successor predicates consistently. Head requiredness alone does not prove structural validity, branch execution or a law of equivalence."
+msgstr "Sélectionner le profil consommateur et fournir une valeur de tête avec sa structure alternative complète et non vide. Utiliser de manière cohérente les prédicats de membre et de successeur correspondants. L’exigence de présence de la tête ne prouve à elle seule ni validité structurelle, ni exécution des branches, ni loi d’équivalence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AltPathAltsRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:AltPath must carry exactly one gmeow:pathAlts value identifying the head of its ordered members."
+msgstr "Contrainte de présence en monde clos : un gmeow:AltPath doit porter exactement une valeur gmeow:pathAlts identifiant la tête de ses membres ordonnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AltPathAltsRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "AltPath must have exactly one gmeow:pathAlts value for the head of its ordered members"
+msgstr "AltPath doit avoir exactement une valeur gmeow:pathAlts pour la tête de ses membres ordonnés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SeqPathStepsRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:SeqPath must carry exactly one gmeow:pathSteps value identifying the head of its ordered members."
+msgstr "Contrainte de présence en monde clos : un gmeow:SeqPath doit porter exactement une valeur gmeow:pathSteps identifiant la tête de ses membres ordonnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SeqPathStepsRequiredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "SeqPath must have exactly one gmeow:pathSteps value for the head of its ordered members"
+msgstr "SeqPath doit avoir exactement une valeur gmeow:pathSteps pour la tête de ses membres ordonnés"

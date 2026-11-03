@@ -427,10 +427,10 @@ gmeow:ZeroOrMorePath a logic:Class ;
     skos:definition "A SPARQL zero-or-more property path p* (gmeow:pathStep)."@x-gmeow-english .
 gmeow:pathAlts a logic:ObjectProperty  ;
     rdfs:label "path alternatives"@x-gmeow-english ;
-    skos:definition "The ordered rdf:List of alternatives of an AltPath."@x-gmeow-english .
+    skos:definition "Relates an AltPath to the head of its ordered alternative members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each alternative selects a predicate IRI or nested path."@x-gmeow-english .
 gmeow:pathSteps a logic:ObjectProperty  ;
     rdfs:label "path steps"@x-gmeow-english ;
-    skos:definition "The ordered rdf:List of steps of a SeqPath (each a predicate IRI or a nested path)."@x-gmeow-english .
+    skos:definition "Relates a SeqPath to the head of its ordered path members under the selected encoding: an RDF list for a mapping projection path, or a named pathItem/pathNext member chain for a correspondence path. Each member selects a predicate IRI or nested path."@x-gmeow-english .
 gmeow:pathStep a logic:ObjectProperty  ;
     rdfs:label "path step"@x-gmeow-english ;
     skos:definition "The single inner predicate/path of a ZeroOrMorePath / OneOrMorePath / ZeroOrOnePath / InversePath."@x-gmeow-english .
@@ -1358,22 +1358,22 @@ gmeow:AltPathAltsRequiredConstraint
     rdfs:label "AltPath alternatives requiredness constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: an gmeow:AltPath must carry exactly one gmeow:pathAlts list."@x-gmeow-english ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:AltPath must carry exactly one gmeow:pathAlts value identifying the head of its ordered members."@x-gmeow-english ;
     logic:onClass gmeow:AltPath ;
     logic:anyOf gmeow:pathAlts ;
     logic:formalizes gmeow:AltPath ;
-    logic:message "AltPath must have exactly one gmeow:pathAlts (rdf:List)"@x-gmeow-english .
+    logic:message "AltPath must have exactly one gmeow:pathAlts value for the head of its ordered members"@x-gmeow-english .
 
 gmeow:SeqPathStepsRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
     rdfs:label "SeqPath steps requiredness constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world requiredness constraint: a gmeow:SeqPath must carry exactly one gmeow:pathSteps list."@x-gmeow-english ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:SeqPath must carry exactly one gmeow:pathSteps value identifying the head of its ordered members."@x-gmeow-english ;
     logic:onClass gmeow:SeqPath ;
     logic:anyOf gmeow:pathSteps ;
     logic:formalizes gmeow:SeqPath ;
-    logic:message "SeqPath must have exactly one gmeow:pathSteps (rdf:List)"@x-gmeow-english .
+    logic:message "SeqPath must have exactly one gmeow:pathSteps value for the head of its ordered members"@x-gmeow-english .
 
 gmeow:ZeroOrMorePathStepRequiredConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -2451,3 +2451,45 @@ gmeow:tPredFromCorrespondence a logic:ObjectProperty ;
     gmeow:avoidWhen "Avoid combining this selector with tPred, constant objects, optional witnesses or an unresolved catalog alias."@x-gmeow-english ;
     gmeow:howToUse "Name exactly one admitted correspondence and bind the template subject and object to the same mandatory source atom."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:pathItem
+    a logic:ObjectProperty ;
+    logic:domain logic:Thing ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox ;
+    rdfs:label "path member item"@x-gmeow-english ;
+    skos:definition "Relates a named correspondence-path member cell to its selected predicate IRI or nested path constructor. The cell carries one member of a sequence or alternative; the item is the path body, not the next cell."@x-gmeow-english ;
+    skos:scopeNote "Its domain and range are resources: the subject has the member-cell role, while the object may be a predicate or a composite path. A property-only range would incorrectly classify nested constructors as properties. This named-cell encoding is distinct from an RDF list."@x-gmeow-english ;
+    skos:example "In a declared correspondence path, ex:cell gmeow:pathItem ex:inverse can select ex:inverse a gmeow:InversePath with gmeow:pathStep ex:edge, rather than selecting a forward predicate directly."@x-gmeow-english ;
+    gmeow:useWhen "Use for the member body in the named-cell encoding of a correspondence sequence or alternative path."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for cell succession, replace rdf:first in a selected RDF-list profile, or require every item to be an rdf:Property. A vocabulary declaration does not validate or execute the selected path."@x-gmeow-english ;
+    gmeow:howToUse "Give each selected correspondence member cell exactly one IRI-valued item. Use gmeow:pathNext for its successor. The correspondence reader checks constructor shape and resource bounds; this property asserts no global functional characteristic or equality of different items."@x-gmeow-english .
+
+gmeow:pathNext
+    a logic:ObjectProperty ;
+    logic:domain logic:Thing ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox ;
+    rdfs:label "next path member"@x-gmeow-english ;
+    skos:definition "Relates a named correspondence-path member cell to its immediate successor cell in the selected sequence or alternative chain. It orders member cells rather than selecting a predicate or computing transitive reachability."@x-gmeow-english ;
+    skos:scopeNote "Its domain and range are resources playing the member-cell role. In the selected correspondence profile a terminal cell has no next edge; rdf:nil is not this profile’s terminator. This edge is distinct from rdf:rest in an RDF-list profile."@x-gmeow-english ;
+    skos:example "In a selected correspondence chain, ex:first gmeow:pathNext ex:last places ex:last immediately after ex:first; each cell separately names its body through gmeow:pathItem."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain immediate member order in a named-cell correspondence path."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as the traversed property, infer transitive closure, substitute it for rdf:rest, or treat a malformed present tail as an absent tail."@x-gmeow-english ;
+    gmeow:howToUse "Supply at most one IRI-valued successor per selected correspondence cell and omit the edge on the last cell. The reader rejects cycles and malformed tails within its resource bounds; no global functional or transitive characteristic is asserted."@x-gmeow-english .
+
+gmeow:pathSteps
+    skos:scopeNote "The two profiles have distinct member and tail encodings. RDF-list members use rdf:first/rdf:rest; correspondence members use gmeow:pathItem/gmeow:pathNext. Selecting one profile supplies no conversion or equivalence to the other."@x-gmeow-english ;
+    skos:example "In the correspondence profile, ex:path a gmeow:SeqPath with gmeow:pathSteps ex:first can name ex:first gmeow:pathItem ex:p and gmeow:pathNext ex:last, with ex:last gmeow:pathItem ex:q, selecting p followed by q."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the ordered member head of a sequence path in its explicitly selected mapping or correspondence profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mix RDF-list and named-cell encodings, treat the head as the traversed predicate, or use gmeow:pathStep as a replacement for sequence membership."@x-gmeow-english ;
+    gmeow:howToUse "Select the consuming profile and supply one value identifying the head of its complete nonempty member structure. Preserve member order. Head requiredness alone does not validate the chain or list, and a declaration supplies no execution result."@x-gmeow-english .
+
+gmeow:pathAlts
+    skos:scopeNote "An alternative member can itself be composite. RDF-list and named-cell profiles retain separate member and tail encodings; neither is an alias or an automatic conversion for the other. Member order does not select a single winning alternative."@x-gmeow-english ;
+    skos:example "In a selected mapping projection profile, a gmeow:AltPath with gmeow:pathAlts (ex:p ex:q) declares the alternatives p and q in an RDF list. This does not declare a named-cell correspondence chain."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the alternative-member head of an alternative path while preserving the selected representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat alternatives as a sequence, infer a preferred branch from list order, or pass one encoding to a reader that requires the other."@x-gmeow-english ;
+    gmeow:howToUse "Select the consuming profile and supply one value identifying the head of its complete nonempty alternative structure. Use the corresponding member and successor predicates consistently. Head requiredness alone does not prove structural validity, branch execution or a law of equivalence."@x-gmeow-english .
