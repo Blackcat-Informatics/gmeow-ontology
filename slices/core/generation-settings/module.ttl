@@ -137,3 +137,63 @@ gmeow:ModelInvocation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:guidanceScale ; logic:allValuesFrom xsd:decimal ],
     [ a logic:Restriction ; logic:onProperty gmeow:samplerName ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:modelMode ; logic:allValuesFrom gmeow:ModelMode ] .
+
+gmeow:modelModeExact
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "exact mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for precision in following supplied material or instructions, under the serving layer’s interpretation."@x-gmeow-english ;
+    skos:scopeNote "Precision is the requested intent. This value specifies no universal numerical settings and promises neither deterministic output nor successful adherence."@x-gmeow-english ;
+    skos:example "Record this request: ex:exactRun gmeow:modelMode gmeow:modelModeExact ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests precise adherence to supplied material or instructions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this request as evidence of exact reproduction, factual correctness or a fixed sampling configuration."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeExact with modelMode and record actual supplied parameters independently."@x-gmeow-english .
+
+gmeow:modelModeStructuredLogic
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "structured logic mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for organizing logical material, under the serving layer’s interpretation."@x-gmeow-english ;
+    skos:scopeNote "The request concerns organization of logical material. It does not assert a formal proof, a structured abstract syntax tree or an executed solver capability."@x-gmeow-english ;
+    skos:example "Record this request: ex:logicRun gmeow:modelMode gmeow:modelModeStructuredLogic ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests an organized presentation of logical material."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this profile as a proof verdict, a parser result or evidence that a solver ran."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeStructuredLogic with modelMode and record actual supplied parameters independently."@x-gmeow-english .
+
+gmeow:modelModeChat
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chat mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for conversational interaction, under the serving layer’s interpretation."@x-gmeow-english ;
+    skos:scopeNote "The value records a conversational intent. It specifies no universal numerical settings and does not assert that a reply was generated, delivered or received."@x-gmeow-english ;
+    skos:example "Record this request: ex:chatRun gmeow:modelMode gmeow:modelModeChat ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests conversational interaction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this value to identify a model, assign a message role or claim that a conversation occurred."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeChat with modelMode and record actual supplied parameters independently."@x-gmeow-english .
+
+gmeow:modelModeInstruct
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "instruction following mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for following supplied instructions, under the serving layer’s interpretation."@x-gmeow-english ;
+    skos:scopeNote "Following instructions is the requested intent. The value does not identify an instruction-tuned model or assert that the instructions were followed."@x-gmeow-english ;
+    skos:example "Record this request: ex:instructRun gmeow:modelMode gmeow:modelModeInstruct ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests the serving layer’s instruction following profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this profile as the instructions themselves, an authorization or evidence of compliance."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeInstruct with modelMode and retain the supplied instructions through hasPrompt."@x-gmeow-english .
+
+gmeow:modelModeFaithful
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "faithful mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for fidelity to supplied material, under the serving layer’s interpretation."@x-gmeow-english ;
+    skos:scopeNote "Fidelity to supplied material is the requested intent, distinct from a general request for precise adherence to material or instructions. It guarantees neither preservation nor the truth of the material."@x-gmeow-english ;
+    skos:example "Record this request: ex:faithfulRun gmeow:modelMode gmeow:modelModeFaithful ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests fidelity to supplied material rather than inventive departure from it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this profile as evidence of factuality, complete source preservation or endorsement of the source."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeFaithful with modelMode and retain the supplied material through the invocation’s prompts and source provenance."@x-gmeow-english .

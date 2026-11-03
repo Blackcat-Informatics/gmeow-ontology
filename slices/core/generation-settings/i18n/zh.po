@@ -268,3 +268,143 @@ msgstr "通过现有调用溯源保留每次运行参数和请求配置的智能
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact mode"
+msgstr "精确模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for precision in following supplied material or instructions, under the serving layer’s interpretation."
+msgstr "一种请求的设置配置，要求按照服务层的解释精确遵循所提供的材料或指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Precision is the requested intent. This value specifies no universal numerical settings and promises neither deterministic output nor successful adherence."
+msgstr "精确性是请求所表达的意图。此值不指定通用数值设置，也不承诺确定性输出或成功遵循要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:exactRun gmeow:modelMode gmeow:modelModeExact ."
+msgstr "记录此请求：ex:exactRun gmeow:modelMode gmeow:modelModeExact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests precise adherence to supplied material or instructions."
+msgstr "当调用方请求精确遵循所提供的材料或指令时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this request as evidence of exact reproduction, factual correctness or a fixed sampling configuration."
+msgstr "避免将此请求视为精确复现、事实正确性或固定采样配置的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeExact with modelMode and record actual supplied parameters independently."
+msgstr "使用 modelMode 将调用关联到 gmeow:modelModeExact，并单独记录实际提供的参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structured logic mode"
+msgstr "结构化逻辑模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for organizing logical material, under the serving layer’s interpretation."
+msgstr "一种请求的设置配置，要求按照服务层的解释组织逻辑材料。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request concerns organization of logical material. It does not assert a formal proof, a structured abstract syntax tree or an executed solver capability."
+msgstr "此请求涉及逻辑材料的组织方式，并不声称已有形式证明、结构化抽象语法树或已执行的求解器能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:logicRun gmeow:modelMode gmeow:modelModeStructuredLogic ."
+msgstr "记录此请求：ex:logicRun gmeow:modelMode gmeow:modelModeStructuredLogic ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests an organized presentation of logical material."
+msgstr "当调用方请求以有组织的方式呈现逻辑材料时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this profile as a proof verdict, a parser result or evidence that a solver ran."
+msgstr "避免将此配置用作证明判定、解析结果或求解器已运行的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeStructuredLogic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeStructuredLogic with modelMode and record actual supplied parameters independently."
+msgstr "使用 modelMode 将调用关联到 gmeow:modelModeStructuredLogic，并单独记录实际提供的参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat mode"
+msgstr "对话模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for conversational interaction, under the serving layer’s interpretation."
+msgstr "一种请求的设置配置，要求按照服务层的解释进行对话交互。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value records a conversational intent. It specifies no universal numerical settings and does not assert that a reply was generated, delivered or received."
+msgstr "此值记录对话意图，不指定通用数值设置，也不声称回复已生成、已送达或已接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
+msgstr "记录此请求：ex:chatRun gmeow:modelMode gmeow:modelModeChat ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests conversational interaction."
+msgstr "当调用方请求对话交互时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value to identify a model, assign a message role or claim that a conversation occurred."
+msgstr "避免使用此值标识模型、分配消息角色或声称对话已经发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeChat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeChat with modelMode and record actual supplied parameters independently."
+msgstr "使用 modelMode 将调用关联到 gmeow:modelModeChat，并单独记录实际提供的参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "instruction following mode"
+msgstr "指令遵循模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for following supplied instructions, under the serving layer’s interpretation."
+msgstr "一种请求的设置配置，要求按照服务层的解释遵循所提供的指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Following instructions is the requested intent. The value does not identify an instruction-tuned model or assert that the instructions were followed."
+msgstr "遵循指令是请求所表达的意图。此值不标识经过指令微调的模型，也不声称指令已被遵循。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:instructRun gmeow:modelMode gmeow:modelModeInstruct ."
+msgstr "记录此请求：ex:instructRun gmeow:modelMode gmeow:modelModeInstruct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests the serving layer’s instruction following profile."
+msgstr "当调用方请求服务层的指令遵循配置时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this profile as the instructions themselves, an authorization or evidence of compliance."
+msgstr "避免将此配置视为指令本身、授权或符合要求的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeInstruct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeInstruct with modelMode and retain the supplied instructions through hasPrompt."
+msgstr "使用 modelMode 将调用关联到 gmeow:modelModeInstruct，并通过 hasPrompt 保留所提供的指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "faithful mode"
+msgstr "忠实模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for fidelity to supplied material, under the serving layer’s interpretation."
+msgstr "一种请求的设置配置，要求按照服务层的解释忠实于所提供的材料。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Fidelity to supplied material is the requested intent, distinct from a general request for precise adherence to material or instructions. It guarantees neither preservation nor the truth of the material."
+msgstr "忠实于所提供的材料是请求所表达的意图，有别于精确遵循材料或指令的一般请求。此请求既不保证材料得到保留，也不保证材料真实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this request: ex:faithfulRun gmeow:modelMode gmeow:modelModeFaithful ."
+msgstr "记录此请求：ex:faithfulRun gmeow:modelMode gmeow:modelModeFaithful ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests fidelity to supplied material rather than inventive departure from it."
+msgstr "当调用方请求忠实于所提供的材料而非进行创意偏离时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this profile as evidence of factuality, complete source preservation or endorsement of the source."
+msgstr "避免将此配置视为事实正确性、完整保留来源或认可来源的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeFaithful|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeFaithful with modelMode and retain the supplied material through the invocation’s prompts and source provenance."
+msgstr "使用 modelMode 将调用关联到 gmeow:modelModeFaithful，并通过调用的提示及来源溯源保留所提供的材料。"
