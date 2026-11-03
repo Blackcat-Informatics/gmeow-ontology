@@ -736,3 +736,31 @@ msgstr "该关系保持非函数性和传输中立；电子邮件特有个体仍
 msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
 msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "said in the speaker’s name by"
+msgstr "以说话者名义发言的主体"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a recorded utterance or its holder-specific record to the agent that actually produced the utterance in the separately attributed speaker’s name. The attributed speaker did not compose this stand-in utterance."
+msgstr "将已记录的话语或其持有者专属记录关联到实际以另行归属的说话者名义产生该话语的行动者。该代为发出的话语并非由归属说话者本人拟定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports another agent producing words in the attributed speaker’s name, including a stand-in line when that speaker could not be asked."
+msgstr "用于来源报告另一行动者以归属说话者名义产生措辞的情形，包括无法询问该说话者时的代发话语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the speaker attribution with the producer, treating a persona label or tag as the producer’s identity, or inferring authorization, consent, endorsement, delivery or general authorship from this role."
+msgstr "不要用产生者替换说话者归属，不要将人格标签或标记视为产生者身份，也不要从此角色推断授权、同意、认可、送达或一般作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the utterance’s wasAttributedTo speaker link and mark each retained hearing or saying record independently with saidOnBehalfBy. Keep a listener-only record marked. Attribute each assertion to its own source and standpoint; retain and report actual disagreement without silently reconciling it."
+msgstr "保留话语指向说话者的 wasAttributedTo 链接，并用 saidOnBehalfBy 独立标记每个保留的听闻或说出记录。仅有听闻记录时也须保留标记。为每个断言保留其自身来源和立场归属；保留并报告实际分歧，不暗中调和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation has no domain and does not turn a record or assertion reifier into a Message. Multiple producer claims can coexist, including co-production and source disagreement. An absent link does not establish the speaker’s own composition, and the link does not diagnose why a stand-in was used."
+msgstr "该关系不声明定义域，不会将记录或断言具体化节点变为 Message。多个产生者主张可以共存，包括共同产生和来源分歧。缺少链接不能确立话语由说话者本人拟定，该链接也不诊断为何使用代发者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/saidOnBehalfBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn and ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn retain the producer; ex:utterance gmeow:wasAttributedTo ex:speaker retains the attributed speaker."
+msgstr "ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn 和 ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn 保留产生者；ex:utterance gmeow:wasAttributedTo ex:speaker 保留归属说话者。"

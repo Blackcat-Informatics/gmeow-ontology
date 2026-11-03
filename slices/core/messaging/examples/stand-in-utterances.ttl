@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/stand-in-utterances/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:speaker a gmeow:Agent .
+ex:standIn a gmeow:Agent .
+ex:coProducer a gmeow:Agent .
+ex:alternativeStandIn a gmeow:Agent .
+ex:listenerWriter a gmeow:Agent .
+ex:speakerWriter a gmeow:Agent .
+ex:archiveReviewer a gmeow:Agent .
+ex:listenerSource a gmeow:InformationObject .
+ex:speakerSource a gmeow:InformationObject .
+
+# The communicative artifact retains its attributed speaker. The stand-in
+# produced these words; neither the speaker attribution nor the marker proves
+# consent, authorization or delivery.
+ex:utterance a gmeow:Message ;
+    gmeow:utteranceText "I am here, and I will answer when I can."@en ;
+    gmeow:wasAttributedTo ex:speaker .
+
+# Each holder record independently names the producer. These information
+# records are not themselves asserted to be Messages.
+ex:listenerHearing a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:utterance ;
+    gmeow:receivedVia gmeow:receptionChannelConversation ;
+    gmeow:saidOnBehalfBy ex:standIn .
+
+ex:speakerSaying a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:utterance ;
+    gmeow:saidOnBehalfBy ex:standIn .
+
+# On these reifiers, wasAttributedTo identifies who reports the producer
+# assertion, not the utterance's attributed speaker or its actual producer.
+# Each reporting Agent also supplies its own frame through accordingTo;
+# wasDerivedFrom separately identifies the source artifact for that assertion.
+ex:listenerProducerClaim
+    rdf:reifies <<( ex:listenerHearing gmeow:saidOnBehalfBy ex:standIn )>> ;
+    gmeow:wasAttributedTo ex:listenerWriter ;
+    gmeow:accordingTo ex:listenerWriter ;
+    gmeow:wasDerivedFrom ex:listenerSource .
+
+ex:speakerProducerClaim
+    rdf:reifies <<( ex:speakerSaying gmeow:saidOnBehalfBy ex:standIn )>> ;
+    gmeow:wasAttributedTo ex:speakerWriter ;
+    gmeow:accordingTo ex:speakerWriter ;
+    gmeow:wasDerivedFrom ex:speakerSource .
+
+# No speaker-side record for this second utterance is retained. Its listener
+# record still carries the marker and reporting source.
+ex:anotherUtterance a gmeow:Message ;
+    gmeow:utteranceText "I cannot answer that now."@en ;
+    gmeow:wasAttributedTo ex:speaker .
+
+ex:listenerOnly a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:anotherUtterance ;
+    gmeow:receivedVia gmeow:receptionChannelConversation ;
+    gmeow:saidOnBehalfBy ex:standIn .
+
+ex:listenerOnlyClaim
+    rdf:reifies <<( ex:listenerOnly gmeow:saidOnBehalfBy ex:standIn )>> ;
+    gmeow:wasAttributedTo ex:listenerWriter ;
+    gmeow:accordingTo ex:listenerWriter ;
+    gmeow:wasDerivedFrom ex:listenerSource .
+
+# Two named producers can cooperate. No disagreement is inferred from this pair.
+ex:jointUtterance a gmeow:Message ;
+    gmeow:utteranceText "We will provide an answer later."@en ;
+    gmeow:wasAttributedTo ex:speaker ;
+    gmeow:saidOnBehalfBy ex:standIn , ex:coProducer .
+
+# This separate pair has explicitly incompatible source reports, rather than
+# merely different producer IRIs. Both records retain their own markers.
+ex:disputedUtterance a gmeow:Message ;
+    gmeow:utteranceText "The answer will follow."@en ;
+    gmeow:wasAttributedTo ex:speaker .
+
+ex:listenerDisputeSource a gmeow:InformationObject ;
+    gmeow:description "The listener source reports that the stand-in alone produced this utterance."@en .
+
+ex:speakerDisputeSource a gmeow:InformationObject ;
+    gmeow:description "The speaker source denies that the stand-in produced this utterance and names the alternative agent as its producer."@en .
+
+ex:disputedHearing a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:disputedUtterance ;
+    gmeow:receivedVia gmeow:receptionChannelConversation ;
+    gmeow:saidOnBehalfBy ex:standIn .
+
+ex:disputedSaying a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:disputedUtterance ;
+    gmeow:saidOnBehalfBy ex:alternativeStandIn .
+
+ex:disputedListenerClaim
+    rdf:reifies <<( ex:disputedHearing gmeow:saidOnBehalfBy ex:standIn )>> ;
+    gmeow:wasAttributedTo ex:listenerWriter ;
+    gmeow:accordingTo ex:listenerWriter ;
+    gmeow:wasDerivedFrom ex:listenerDisputeSource .
+
+ex:disputedSpeakerClaim
+    rdf:reifies <<( ex:disputedSaying gmeow:saidOnBehalfBy ex:alternativeStandIn )>> ;
+    gmeow:wasAttributedTo ex:speakerWriter ;
+    gmeow:accordingTo ex:speakerWriter ;
+    gmeow:wasDerivedFrom ex:speakerDisputeSource .
+
+# A retained, attributed report makes the actual disagreement visible. Nothing
+# here detects it automatically or selects one source as the winner.
+ex:disagreementReport a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:listenerDisputeSource , ex:speakerDisputeSource ;
+    gmeow:wasAttributedTo ex:archiveReviewer ;
+    gmeow:description "The sources disagree about whether the stand-in produced this utterance. Both producer claims and their sources are retained without silent reconciliation."@en .

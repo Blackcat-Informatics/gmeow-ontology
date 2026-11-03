@@ -81,3 +81,29 @@ rdf:langString and rdf:dirLangString. The same literal policy applies to chat's
 messagePartText on its own ordered part. Multiple attributed renderings may
 coexist; neither predicate computes a whole utterance from pieces or asserts
 delivery (Principles 2, 4 and 9).
+
+## Stand-in utterance production
+
+The messaging owner supplies `saidOnBehalfBy` as one canonical object property
+with `logic:range Agent`. It has no domain, inverse, subproperty bridge,
+functionality, cardinality or reconciliation rule. Messaging’s existing kernel,
+provenance and record-metadata dependencies already supply the required terms.
+Hearing and saying records retain their own identities and do not acquire a
+message, memory or observation type merely by carrying this role.
+
+The relation asserts production of this utterance in a separately attributed
+speaker’s name, rather than the speaker’s own composition. It does not replace
+the speaker’s attribution or infer a general author, delegation, authorization,
+consent, endorsement, cognitive failure or successful delivery. Generic
+`wasAttributedTo`, the derived `indirectContributor` chain and an informal tag
+do not express this specific producer role. No bridge from those predicates
+manufactures it.
+
+Each retained holder record carries its own producer assertion, with reporting
+source and standpoint preserved on the statement layer. Attribution of the
+utterance to its speaker and attribution of a statement to its reporting source
+are separate assertions. Nonfunctionality preserves both co-production and
+source disagreement without forcing identity, uniqueness or a preferred claim.
+Consumers retain and report actual disagreement from the supplied evidence;
+the vocabulary itself does not compute conflict or silently reconcile records
+(Principles 2, 4, 9, 14 and 17).

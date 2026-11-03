@@ -126,3 +126,37 @@ Message without choosing a primary category or inferring delivery.
 Email retains its specialized report-kind individuals; environment records
 supplies messageKindWorldNotice. The shared relation imposes no email-address
 or participant requirements on other notice transports.
+
+## Utterances produced in another speaker’s name
+
+`saidOnBehalfBy` names the agent that actually produced a stand-in utterance
+in the separately attributed speaker’s name. The speaker did not compose that
+utterance. Keep the utterance’s `wasAttributedTo` speaker attribution; the
+producer link supplements it. A persona label or a tag does not identify the
+producer, and the producer role does not establish authorization, consent,
+endorsement or general authorship.
+
+The relation is domain-free and nonfunctional. It can describe the utterance,
+a holder-specific hearing or saying record, or an assertion reifier for it
+without turning those records into `Message` instances. Put the producer link
+independently on both retained records. A listener’s record must remain marked
+when the speaker’s record is unavailable; neither record depends on a join to
+the other for its marker. A missing link does not mean the speaker composed the
+words, and the relation supplies no diagnosis of why a stand-in was used.
+
+Keep the attributed speaker, actual producer and reporting source separate.
+In the [stand-in utterance scene](examples/stand-in-utterances.ttl),
+`wasAttributedTo` on the utterance names the speaker, while the same predicate
+on an explicit `rdf:reifies` record identifies the reporting Agent responsible
+for that particular producer assertion. Existing `accordingTo` metadata retains
+the reporting Agent’s standpoint; the same Agent intentionally bears these
+distinct reporter and frame roles. `wasDerivedFrom` separately identifies the
+source artifact supporting that assertion.
+
+Multiple producer claims may describe co-production or different sources.
+Different agent IRIs alone do not establish a conflict. When sources actually
+disagree, consumers must retain their separately attributed claims, preserve the
+stand-in marker on each record and report the disagreement rather than choosing
+a winner silently. The scene includes explicit incompatible source reports and
+a retained report of that disagreement. These declarations add no disagreement
+detector, reconciliation engine, delivery proof or store-profile admission rule.
