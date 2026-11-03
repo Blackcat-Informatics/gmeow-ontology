@@ -8884,3 +8884,167 @@ msgstr "不要用根数、李维数、矩阵元素数据或群阶数替代秩，
 msgctxt "https://blackcatinformatics.ca/math/rootSystemRank|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "State the actual nonnegative rank on the math:RootSystem, preserving the existing typed declaration and its failure ownership. Keep independently supplied base, matrix, diagram, count and order evidence in their own roles; derive no equality, generic group-order rule or classification proof from this value alone."
 msgstr "在 math:RootSystem 上给出实际非负秩，保留已有带类型声明及其失败归属。将独立提供的基、矩阵、图、根数及阶数证据保留在各自角色中；不从该值单独推导相等关系、通用群阶数规则或分类证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lattice"
+msgstr "欧几里得格"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A discrete subgroup of a real vector space that spans it — a regular grid of points closed under addition. The E8 lattice is the densest lattice packing in 8 dimensions; lattices are also the hardness substrate of lattice-based homomorphic encryption. (The order-theoretic lattice is a distinct notion, named elsewhere.)"
+msgstr "张成实向量空间的离散子群，即对加法封闭的规则点格。E8 格是 8 维中最密的格堆积；格也是基于格的同态加密的困难性基础。（序理论中的格是不同概念，在别处命名。）"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the discrete additive Euclidean lattice, not the order-theoretic lattice meaning. A basis need not be orthogonal. Naming a lattice or a hardness-assumption referent alone does not supply coordinates, a basis, a Gram matrix, covolume, density evidence or a security proof."
+msgstr "这是离散加法欧几里得格，而非序理论格的含义。基不必正交。仅命名格或困难性假设指称对象不提供坐标、基、Gram 矩阵、余体积、密度证据或安全性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Lattice in e8-symmetry.ttl has only a math:Lattice type and a label. It has no authored basis, coordinates or root-system edge; the separate math:Lattice math:formalizes gmeow:tuningSystemJustIntonation annotation is not an identity between resources."
+msgstr "e8-symmetry.ttl 中 exa:e8Lattice 仅具有 math:Lattice 类型及标签。它没有已编写基、坐标或根系边；单独的 math:Lattice math:formalizes gmeow:tuningSystemJustIntonation 注解不表示资源间同一性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical referent is a discrete additive lattice spanning its real vector space."
+msgstr "当数学指称对象是张成其实向量空间的离散加法格时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an orthogonal basis, reading an E8 lattice/root bridge from a shared name, or treating math:learningWithErrors and math:ringLearningWithErrors as instantiated lattice data or proofs of cryptographic security."
+msgstr "不要要求正交基，不要从共享名称读出 E8 格与根系桥接，也不要将 math:learningWithErrors 和 math:ringLearningWithErrors 视为已实例化格数据或密码安全性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Lattice|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the lattice and retain any actually supplied additive, basis or geometric description using existing vocabulary. Keep type-and-label-only records at that evidenced level, preserve math:formalizes as a one-way annotation, and add no invented root bridge, coordinates, density calculation or security claim."
+msgstr "标识格，使用已有词汇保留实际提供的加法、基或几何描述。将仅有类型和标签的记录维持在其证据层级，保留 math:formalizes 的单向注解角色，不添加臆造根系桥接、坐标、密度计算或安全性主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Representation"
+msgstr "群表示"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism from a group into the general linear group of a math:VectorSpace — a realization of the abstract group as linear transformations. It names the group it is a math:representationOf. E8's 248-dimensional adjoint representation acts on its own Lie algebra."
+msgstr "从群到 math:VectorSpace 一般线性群的同态，即将抽象群实现为线性变换。它指定其 math:representationOf 对应的群。E8 的 248 维伴随表示作用于其自身李代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A representation has the mathematical interpretation of a homomorphism into linear automorphisms, but current GroupRepresentation source declares no formal Homomorphism superclass or frame. Representations can be nonfaithful; math:FaithfulRepresentation is the separate existing specialization for a trivial kernel."
+msgstr "表示在数学上解释为到线性自同构的同态，但当前 GroupRepresentation 源未声明形式 Homomorphism 超类或框架。表示可以不忠实；math:FaithfulRepresentation 是核平凡情形的已有独立特化。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Adjoint in e8-symmetry.ttl has a math:GroupRepresentation type, a 248-dimensional label and math:representationOf exa:E8LieGroup. The record supplies no target vector-space resource, representation matrices or constructed action."
+msgstr "e8-symmetry.ttl 中 exa:e8Adjoint 具有 math:GroupRepresentation 类型、248 维标签及 math:representationOf exa:E8LieGroup。记录未提供目标向量空间资源、表示矩阵或已构造作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical group’s realization by linear maps needs an identified representation descriptor."
+msgstr "当数学群通过线性映射的实现需要已标识表示描述对象时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring injectivity, importing a Homomorphism frame from the conceptual description, inventing target-map slots, or treating the label as an evaluated representation or proof."
+msgstr "不要推断单射性，不要从概念描述导入 Homomorphism 框架，不要臆造目标映射槽位，也不要将标签视为已求值表示或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupRepresentation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the descriptor to its actual represented group with math:representationOf, retaining the mathematical linear-map interpretation and any genuine carrier, matrix or law data separately where supplied. Preserve existing types, allow nonfaithful representations, and claim faithfulness or execution only with independent evidence."
+msgstr "通过 math:representationOf 将描述对象关联到实际被表示群，保留线性映射数学解释，在已提供处另行保留真实载体、矩阵或定律数据。保留已有类型，允许不忠实表示，仅在有独立证据时声明忠实性或执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Action"
+msgstr "群作用"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."
+msgstr "math:Group 在集合上的作用，即为每个群元素指定集合变换的映射，并与群运算相容（(g·h)·x = g·(h·x), e·x = x）。作用必须标识其作用群和 math:actsOn 目标，作用定律必须指称 logic: 公式；已有 E8 作用记录提供目标和定律链接，但缺少指向标识其作用群资源的显式链接。群作用是对称性的机制：根系外尔群作用于根。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."
+msgstr "群作用要求已标识作用群、目标、与群复合的相容性及恒等作用。当前 E8 描述对象缺少显式作用者链接：目标和定律不能唯一标识该群，此省略仍不完整，不能由背景免除。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."
+msgstr "e8-symmetry.ttl 中 exa:e8WeylAction 指定 exa:e8Roots、exa:rootReflection 及 exa:groupActionLaw。该定律以小型见证实现相容性 Formula 语法，但作用记录仍缺少显式作用群链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."
+msgstr "当数学作用需要明确其作用群、目标及作用定律义务时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a unique actor from the target, a law label, a nearby Weyl link or E8’s specific full-group equality, or treating a compatibility witness as proof of every identity, completeness and E8-root-action claim."
+msgstr "不要从目标、定律标签、附近外尔链接或 E8 特定完整群相等关系推导唯一作用者，也不要将相容性见证视为全部恒等性、完整性及 E8 根作用主张的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."
+msgstr "保留实际目标、保持运算及已实现定律，并在缺少链接处明确保留作用群标识要求。不添加臆造作用者谓词或补全声明。相容性公式的 exa:gaWr/exa:eqRel 见证是范围有限的证据；应另行保留作用的其余义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acts on"
+msgstr "作用于"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property records the acted-on target for existing action carriers, including GroupAction and Group uses. Set, AlgebraicStructure and RootSystem targets are examples, not a closed global range; the edge alone neither identifies an action descriptor’s acting group nor proves a full automorphism-group claim."
+msgstr "此属性为已有作用承载对象记录被作用目标，包括 GroupAction 和 Group 用法。Set、AlgebraicStructure 和 RootSystem 目标是示例，而非封闭全局值域；单凭此边既不能标识作用描述对象的作用群，也不能证明完整自同构群主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."
+msgstr "e8-symmetry.ttl 中 exa:e8Weyl 与 exa:e8WeylAction 均通过 math:actsOn 指向 exa:e8Roots。共同目标不会提供作用描述对象缺失的作用者链接，也不会使两个源角色相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."
+msgstr "当已有群或作用描述对象所作用的数学对象需要显式目标链接时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing a global subject or target kind, inferring an inverse edge or unique acting group, or reading executable transport, identity of resources or full-group equality from the target alone."
+msgstr "不要施加全局主语或目标种类，不要推断反向边或唯一作用群，也不要仅从目标读出可执行传输、资源同一性或完整群相等关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."
+msgstr "将实际承载对象关联到其作用目标，在已有处另行保留定律、运算及作用者标识信息。明确保留尚未满足的作用者标识要求，保留开放定义，不添加资源种类排除、推断反向边或自动作用执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "representation of"
+msgstr "为其表示"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GroupRepresentation to the mathematical group it represents as linear maps. The existing E8 target is a math:LieGroup; this group role does not assert a math:Group type or impose a closed global domain or range. E8's adjoint representation is a math:representationOf E8."
+msgstr "将 math:GroupRepresentation 关联到其以线性映射表示的数学群。已有 E8 目标为 math:LieGroup；此群角色不声明 math:Group 类型，也不施加封闭全局定义域或值域。E8 伴随表示是 E8 的 math:representationOf。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target fills the mathematical represented-group role. The current E8 target’s LieGroup type is retained without asserting Group membership; the descriptive link does not construct a vector-space carrier, representation matrices or an action."
+msgstr "目标承担被表示数学群角色。当前 E8 目标的 LieGroup 类型保持不变，不声明 Group 成员资格；描述链接不构造向量空间载体、表示矩阵或作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Adjoint has math:representationOf exa:E8LieGroup in e8-symmetry.ttl. Its type and 248-dimensional label do not add a target vector-space resource or establish a faithful representation."
+msgstr "e8-symmetry.ttl 中 exa:e8Adjoint 具有 math:representationOf exa:E8LieGroup。其类型和 248 维标签不添加目标向量空间资源，也不确立忠实表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a representation descriptor must name the mathematical group whose linear-map realization it describes."
+msgstr "当表示描述对象需要指定其线性映射实现所描述的数学群时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid retyping an existing LieGroup target as Group merely to fit prose, imposing a global range restriction, inferring a reverse link, or reading injectivity or execution from this edge."
+msgstr "不要仅为适应文字描述将已有 LieGroup 目标重定型为 Group，不要施加全局值域限制，不要推断反向链接，也不要从此边读出单射性或执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/representationOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the existing math:GroupRepresentation descriptor to its actual represented group, preserving the target’s current type and any separately supplied linear or law descriptions. Keep mathematical role, formal class membership, faithfulness evidence and evaluated representation data distinct, with no invented map slots or hierarchy changes."
+msgstr "从已有 math:GroupRepresentation 描述对象指向实际被表示群，保留目标当前类型及另行提供的线性或定律描述。区分数学角色、形式类成员资格、忠实性证据及已求值表示数据，不臆造映射槽位或层级变更。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "group order"
+msgstr "群阶"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The order (number of elements) of a finite math:Group — a validatable invariant. Domain math:Group, range a positive integer (stated in prose). E8's math:WeylGroup has order 696,729,600."
+msgstr "有限 math:Group 的阶（元素数量），是可验证的不变量。定义域为 math:Group，值域为正整数，以文字说明。E8 的 math:WeylGroup 阶数为 696,729,600。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Group order is the positive integer cardinality of a finite group, not the order of one element, root rank, root count or Lie dimension. The prose datatype does not itself establish a global validator or require every group, Lie group or lattice to carry a finite order."
+msgstr "群阶是有限群的正整数基数，而非单个元素的阶、根系秩、根数或李维数。文字数据类型本身不建立全局验证器，也不要求每个群、李群或格都携带有限阶数。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl in e8-symmetry.ttl has math:groupOrder 696729600 as an RDF integer literal. That value belongs to the finite Weyl group, not exa:E8LieGroup or exa:e8Lattice, and differs from root rank 8, root count 240 and Lie dimension 248."
+msgstr "e8-symmetry.ttl 中 exa:e8Weyl 的 math:groupOrder 696729600 是 RDF 整数字面量。该值属于有限外尔群，而非 exa:E8LieGroup 或 exa:e8Lattice，并区别于根系秩 8、根数 240 和李维数 248。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the known positive integral size of a finite mathematical group must be recorded."
+msgstr "当有限数学群已知的正整数大小需要记录时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning a finite Weyl order to the infinite E8 Lie group or lattice, confusing group order with element order, or treating a label or group link as a calculation or new presence-check capability."
+msgstr "不要将有限外尔群阶数赋予无限 E8 李群或格，不要混淆群阶和元素阶，也不要将标签或群链接视为计算或新的存在性检查能力。"
+
+msgctxt "https://blackcatinformatics.ca/math/groupOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the positive integral order on the appropriate finite group, preserving its actual RDF integer literal and the normative E8 value under the applicable canonical conditions. Keep evidence or computation separate from the declaration; a recorded value alone does not establish any validation result or imply a generic presence, cardinality or range axiom."
+msgstr "在适当有限群上记录正整数阶数，保留实际 RDF 整数字面量及适用规范条件下的 E8 必需值。将证据或计算与声明区分；仅凭已记录值不能确立任何验证结果，也不暗含通用存在性、基数或值域公理。"

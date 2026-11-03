@@ -2337,7 +2337,12 @@ math:GroupAction
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Group Action"@x-gmeow-english ;
-    skos:definition "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). It names the group and the set it math:actsOn, and its action law is a logic: formula. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."@x-gmeow-english ;
+    skos:scopeNote "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."@x-gmeow-english ;
+    skos:example "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a unique actor from the target, a law label, a nearby Weyl link or E8’s specific full-group equality, or treating a compatibility witness as proof of every identity, completeness and E8-root-action claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."@x-gmeow-english ;
+    skos:definition "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LieGroup
@@ -2429,6 +2434,11 @@ math:Lattice
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Lattice"@x-gmeow-english ;
+    skos:scopeNote "This is the discrete additive Euclidean lattice, not the order-theoretic lattice meaning. A basis need not be orthogonal. Naming a lattice or a hardness-assumption referent alone does not supply coordinates, a basis, a Gram matrix, covolume, density evidence or a security proof."@x-gmeow-english ;
+    skos:example "exa:e8Lattice in e8-symmetry.ttl has only a math:Lattice type and a label. It has no authored basis, coordinates or root-system edge; the separate math:Lattice math:formalizes gmeow:tuningSystemJustIntonation annotation is not an identity between resources."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mathematical referent is a discrete additive lattice spanning its real vector space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an orthogonal basis, reading an E8 lattice/root bridge from a shared name, or treating math:learningWithErrors and math:ringLearningWithErrors as instantiated lattice data or proofs of cryptographic security."@x-gmeow-english ;
+    gmeow:howToUse "Identify the lattice and retain any actually supplied additive, basis or geometric description using existing vocabulary. Keep type-and-label-only records at that evidenced level, preserve math:formalizes as a one-way annotation, and add no invented root bridge, coordinates, density calculation or security claim."@x-gmeow-english ;
     skos:definition "A discrete subgroup of a real vector space that spans it — a regular grid of points closed under addition. The E8 lattice is the densest lattice packing in 8 dimensions; lattices are also the hardness substrate of lattice-based homomorphic encryption. (The order-theoretic lattice is a distinct notion, named elsewhere.)"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2436,6 +2446,11 @@ math:GroupRepresentation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Group Representation"@x-gmeow-english ;
+    skos:scopeNote "A representation has the mathematical interpretation of a homomorphism into linear automorphisms, but current GroupRepresentation source declares no formal Homomorphism superclass or frame. Representations can be nonfaithful; math:FaithfulRepresentation is the separate existing specialization for a trivial kernel."@x-gmeow-english ;
+    skos:example "exa:e8Adjoint in e8-symmetry.ttl has a math:GroupRepresentation type, a 248-dimensional label and math:representationOf exa:E8LieGroup. The record supplies no target vector-space resource, representation matrices or constructed action."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical group’s realization by linear maps needs an identified representation descriptor."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring injectivity, importing a Homomorphism frame from the conceptual description, inventing target-map slots, or treating the label as an evaluated representation or proof."@x-gmeow-english ;
+    gmeow:howToUse "Link the descriptor to its actual represented group with math:representationOf, retaining the mathematical linear-map interpretation and any genuine carrier, matrix or law data separately where supplied. Preserve existing types, allow nonfaithful representations, and claim faithfulness or execution only with independent evidence."@x-gmeow-english ;
     skos:definition "A homomorphism from a group into the general linear group of a math:VectorSpace — a realization of the abstract group as linear transformations. It names the group it is a math:representationOf. E8's 248-dimensional adjoint representation acts on its own Lie algebra."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2445,6 +2460,11 @@ math:actsOn
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "acts on"@x-gmeow-english ;
+    skos:scopeNote "This property records the acted-on target for existing action carriers, including GroupAction and Group uses. Set, AlgebraicStructure and RootSystem targets are examples, not a closed global range; the edge alone neither identifies an action descriptor’s acting group nor proves a full automorphism-group claim."@x-gmeow-english ;
+    skos:example "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing a global subject or target kind, inferring an inverse edge or unique acting group, or reading executable transport, identity of resources or full-group equality from the target alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."@x-gmeow-english ;
     skos:definition "Relates an action carrier, such as a math:GroupAction or a math:Group, to what it acts on. Targets include a math:Set, math:AlgebraicStructure or math:RootSystem; these examples are not a closed domain or range declaration. A math:WeylGroup math:actsOn the roots of its math:RootSystem without thereby claiming to be their full automorphism group."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2543,6 +2563,11 @@ math:groupOrder
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "group order"@x-gmeow-english ;
+    skos:scopeNote "Group order is the positive integer cardinality of a finite group, not the order of one element, root rank, root count or Lie dimension. The prose datatype does not itself establish a global validator or require every group, Lie group or lattice to carry a finite order."@x-gmeow-english ;
+    skos:example "exa:e8Weyl in e8-symmetry.ttl has math:groupOrder 696729600 as an RDF integer literal. That value belongs to the finite Weyl group, not exa:E8LieGroup or exa:e8Lattice, and differs from root rank 8, root count 240 and Lie dimension 248."@x-gmeow-english ;
+    gmeow:useWhen "Use when the known positive integral size of a finite mathematical group must be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning a finite Weyl order to the infinite E8 Lie group or lattice, confusing group order with element order, or treating a label or group link as a calculation or new presence-check capability."@x-gmeow-english ;
+    gmeow:howToUse "Record the positive integral order on the appropriate finite group, preserving its actual RDF integer literal and the normative E8 value under the applicable canonical conditions. Keep evidence or computation separate from the declaration; a recorded value alone does not establish any validation result or imply a generic presence, cardinality or range axiom."@x-gmeow-english ;
     skos:definition "The order (number of elements) of a finite math:Group — a validatable invariant. Domain math:Group, range a positive integer (stated in prose). E8's math:WeylGroup has order 696,729,600."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2550,7 +2575,12 @@ math:representationOf
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "representation of"@x-gmeow-english ;
-    skos:definition "Relates a math:GroupRepresentation to the math:Group it represents as linear maps. Domain math:GroupRepresentation, range math:Group (stated in prose). E8's adjoint representation is a math:representationOf E8."@x-gmeow-english ;
+    skos:scopeNote "The target fills the mathematical represented-group role. The current E8 target’s LieGroup type is retained without asserting Group membership; the descriptive link does not construct a vector-space carrier, representation matrices or an action."@x-gmeow-english ;
+    skos:example "exa:e8Adjoint has math:representationOf exa:E8LieGroup in e8-symmetry.ttl. Its type and 248-dimensional label do not add a target vector-space resource or establish a faithful representation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a representation descriptor must name the mathematical group whose linear-map realization it describes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid retyping an existing LieGroup target as Group merely to fit prose, imposing a global range restriction, inferring a reverse link, or reading injectivity or execution from this edge."@x-gmeow-english ;
+    gmeow:howToUse "Point from the existing math:GroupRepresentation descriptor to its actual represented group, preserving the target’s current type and any separately supplied linear or law descriptions. Keep mathematical role, formal class membership, faithfulness evidence and evaluated representation data distinct, with no invented map slots or hierarchy changes."@x-gmeow-english ;
+    skos:definition "Relates a math:GroupRepresentation to the mathematical group it represents as linear maps. The existing E8 target is a math:LieGroup; this group role does not assert a math:Group type or impose a closed global domain or range. E8's adjoint representation is a math:representationOf E8."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Lie conformance failure ----------------------------------------------- #
