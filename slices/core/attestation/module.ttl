@@ -1792,3 +1792,194 @@ logic:pinCovClaimComp a logic:Formula ; logic:relation gmeow:claimedComponent ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "comp" ] .
 logic:pinCovClaimSite a logic:Formula ; logic:relation gmeow:claimSite ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "site" ] .
+
+gmeow:SignedObjectAct
+    a logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Signed Object Act Presentation"@x-gmeow-english ;
+    skos:definition "One supplied presentation of a multi-object assertion act in the salted-BLAKE3/MMR act-1 construction, with its exact signed body and presented leaf descriptions. It is an InformationObject, not the immutable ActId, an Activity or an Attestation."@x-gmeow-english ;
+    skos:scopeNote "This family covers the act-1 object-assertion construction only, excluding void acts. Typing or decoding a presentation proves neither signature validity, root agreement, admission nor authority."@x-gmeow-english ;
+    skos:example "Describe a supplied presentation: ex:view a gmeow:SignedObjectAct ; gmeow:actSignedBody ex:body ."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe this actual signed-act presentation without conflating the signer, observed objects or their holders."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for void acts, arbitrary algorithms, a verified outcome or a durable identity shared by different opening presentations."@x-gmeow-english ;
+    gmeow:howToUse "Use distinct presentation, list and leaf resources when supplied openings differ. Stable body, signature, root, order or hashes do not identify presentations or authorize retaining earlier openings."@x-gmeow-english .
+
+gmeow:ActCommitmentConstruction
+    a logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Act Commitment Construction"@x-gmeow-english ;
+    skos:definition "The complete identified specification of the salted-BLAKE3/MMR act-1 object-assertion construction, including signed-body serialization and framing, leaf encoding and ordered MMR composition."@x-gmeow-english ;
+    skos:scopeNote "The full domains are katamari:act:v1 for signing and katamari:act-leaf:v1 for leaf hashing, each followed by a zero byte. A primitive name or version label alone is insufficient."@x-gmeow-english ;
+    skos:example "Identify the actual supplied construction specification by its IRI; this example mints no construction individual or default."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact construction needed to interpret the signed body, object kind bytes, salts, identifiers and commitment order."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute an algorithm name, invent a profile, infer a security theorem or select another hash, schema or signature construction silently."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual complete specification by IRI and retain its source identity. It must identify frozen canonicalization, complete body fields, domain framing, kind/identifier encoding, 16-byte salts, leaf order and actual MMR boundary rules; no executor is supplied."@x-gmeow-english .
+
+gmeow:ActCommitmentLeaf
+    a logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Act Commitment Leaf Description"@x-gmeow-english ;
+    skos:definition "A description of one leaf in one exact supplied act presentation and ordered list. Its commitment refers to an original act slot; the descriptor is not a persistent cross-time slot identity."@x-gmeow-english ;
+    skos:scopeNote "An open description and a hash-only description use distinct resources even when the original hash and position agree. Missing opening edges do not classify a leaf as hash-only."@x-gmeow-english ;
+    skos:example "Describe the presented leaf: ex:leaf a gmeow:ActCommitmentLeaf ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an actual leaf description and its original commitment within the selected presentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not derive descriptor identity from a removed object identifier, equate descriptors by hash alone or preserve a prior opening as a deletion receipt."@x-gmeow-english ;
+    gmeow:howToUse "Place this resource in the actual presentation’s actLeaves list and retain leafCommitment. Record an explicit supplied opening representation where known; do not infer it by absence or create revision-history links."@x-gmeow-english .
+
+gmeow:OpenActCommitmentLeaf
+    a logic:Class ;
+    logic:subClassOf gmeow:ActCommitmentLeaf ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Open Act Commitment Leaf Description"@x-gmeow-english ;
+    skos:definition "A presentation-specific description of the act-1 Open leaf representation, carrying the supplied salt, object kind byte and opaque object identifier that open the original commitment."@x-gmeow-english ;
+    skos:scopeNote "An opening is supplied data, not evidence that a hash or signature was checked. Use a different descriptor when another presentation supplies only the hash."@x-gmeow-english ;
+    skos:example "Describe a supplied opening: ex:opening a gmeow:OpenActCommitmentLeaf ."@x-gmeow-english ;
+    gmeow:useWhen "Use when this exact presentation actually supplies the opening fields under the declared construction."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent a salt, kind, identifier or object binding, or reuse this resource for a hash-only presentation while keeping its opening facts."@x-gmeow-english ;
+    gmeow:howToUse "Retain leafSalt, leafObjectKind and leafObjectIdentifier exactly as supplied. Add leafShownObject only for an actual supplied resource binding; preserve the distinction between a record and its referent."@x-gmeow-english .
+
+gmeow:HashOnlyActCommitmentLeaf
+    a logic:Class ;
+    logic:subClassOf gmeow:ActCommitmentLeaf ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Hash-only Act Commitment Leaf Description"@x-gmeow-english ;
+    skos:definition "A presentation-specific description of the actual act-1 Pruned tag-3 representation, retaining only the original leaf commitment hash without its salt, object kind, identifier or shown-object binding."@x-gmeow-english ;
+    skos:scopeNote "The source serves this representation before purge and stores it after purge; it proves neither erasure nor why the opening is unavailable. It creates no retention permission or deletion receipt."@x-gmeow-english ;
+    skos:example "Describe the supplied hash-only representation: ex:hiddenLeaf a gmeow:HashOnlyActCommitmentLeaf ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an original commitment needed by the supplied presentation without asserting a removed object or its opening."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not add removed identifiers, salt, kind, object links, gone markers or prior-opening links, or infer this type from missing edges. Do not use it as a tombstone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original leafCommitment and list position on a distinct supplied descriptor. Infer no presence, absence, authority, recovery or confidentiality; stable commitments can still disclose shape or correlate with separately retained openings."@x-gmeow-english .
+
+gmeow:actSignedBody
+    a logic:ObjectProperty ;
+    logic:domain gmeow:SignedObjectAct ;
+    logic:range gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "exact signed act body"@x-gmeow-english ;
+    skos:definition "Relates a supplied SignedObjectAct presentation to the exact immutable canonical act-1 body whose framed bytes are signed. Openings travel separately and are not part of that body."@x-gmeow-english ;
+    skos:scopeNote "The body binds vault, public key, stream, sequence, assertion kind, zero through field, nonce and root. It has no invented issue timestamp; a bare root cannot replace it."@x-gmeow-english ;
+    skos:example "Identify the supplied signed payload: ex:view gmeow:actSignedBody ex:body . ex:body gmeow:hasSignature ex:signature ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain exact signature coverage instead of describing a signature over an unframed root or a mutable presentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach a body's signature to arbitrary metadata or imply that the leaf-opening bytes are part of the signed body. Do not infer verification from this link."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual complete body resource and construction. Reuse hasSignature on that exact payload, with signedBy and signingKey on its CryptographicSignature. A supplied contentDigest can identify actual body bytes, not the distinct domain-framed ActId."@x-gmeow-english .
+
+gmeow:actConstruction
+    a logic:ObjectProperty ;
+    logic:domain gmeow:SignedObjectAct ;
+    logic:range gmeow:ActCommitmentConstruction ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "act commitment construction"@x-gmeow-english ;
+    skos:definition "Relates a supplied act presentation to the actual identified specification of its complete salted-BLAKE3/MMR act-1 object-assertion construction."@x-gmeow-english ;
+    skos:scopeNote "The construction IRI belongs to the RDF description, not to an act-1 wire field. It must identify the actual externally documented construction; absence or ambiguity does not select a default or justify guessing canonical bytes."@x-gmeow-english ;
+    skos:example "Record the actual supplied specification IRI as the actConstruction value; no construction individual is invented here."@x-gmeow-english ;
+    gmeow:useWhen "Use when the complete construction identity must travel with the presentation and its body, root and openings."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a primitive label, treat a version string as a complete specification, or silently broaden this family to another construction."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual ActCommitmentConstruction resource and retain its identified specification evidence. Consistency and cryptographic checks remain separate operations, not entailments of the edge."@x-gmeow-english .
+
+gmeow:actCommitmentRoot
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:SignedObjectAct ;
+    logic:range gmeow:blake3_256Digest ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "act commitment root"@x-gmeow-english ;
+    skos:definition "The supplied BLAKE3-256 MMR root recorded for this act-1 object-assertion presentation. Its complete construction and exact signed body remain separately identified."@x-gmeow-english ;
+    skos:scopeNote "The datatype retains algorithm identity and 32 digest bytes. It does not define the MMR rules, prove leaf agreement or mean that a bare root was signed."@x-gmeow-english ;
+    skos:example "Illustrate a digest spelling, not computation: ex:view gmeow:actCommitmentRoot \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the actual supplied root beside the selected construction and ordered leaf description."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace it with an ActId, artifact contentDigest, leaf hash or another algorithm's value, or infer a security result from its datatype."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied bare lowercase hexadecimal literal with blake3_256Digest. Compare root and ordered commitments only through an actual check under the identified construction; this property computes nothing."@x-gmeow-english .
+
+gmeow:actLeaves
+    a logic:ObjectProperty ;
+    logic:domain gmeow:SignedObjectAct ;
+    logic:range rdf:List ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "presented act leaves"@x-gmeow-english ;
+    skos:definition "Relates one supplied act presentation to an RDF list of its presentation-specific leaf descriptors in the original commitment order, including explicit hash-only descriptors where supplied."@x-gmeow-english ;
+    skos:scopeNote "The list records this exact supplied representation, not a shared mutable list of all presentations. Order contributes to the MMR construction; unordered membership is insufficient."@x-gmeow-english ;
+    skos:example "Describe the supplied order: ex:view gmeow:actLeaves (ex:opening ex:hiddenLeaf) ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve each original commitment position while keeping the supplied opening descriptions distinct."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not sort, deduplicate or omit commitments, infer a complete list from its head, or share old opening-bearing descriptors with a hash-only presentation."@x-gmeow-english ;
+    gmeow:howToUse "Record the actual complete ordered representation with rdf:first/rdf:rest. Different supplied presentations use distinct list and leaf resources; the relation adds no list-validation or root-verification engine."@x-gmeow-english .
+
+gmeow:leafCommitment
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ActCommitmentLeaf ;
+    logic:range gmeow:blake3_256Digest ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "original leaf commitment"@x-gmeow-english ;
+    skos:definition "The original supplied BLAKE3-256 commitment of this presented act-1 leaf. Open and hash-only descriptions can retain the same commitment value without sharing descriptor identity."@x-gmeow-english ;
+    skos:scopeNote "For an opening, the construction hashes the actual salt, kind and identifier under katamari:act-leaf:v1 with its zero separator. A hash-only representation preserves that result without those opening fields."@x-gmeow-english ;
+    skos:example "Illustrate a commitment spelling: ex:leaf gmeow:leafCommitment \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual original leaf hash for the selected presentation and ordered MMR description."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not equate it with the object identifier or act root, infer current object presence, or regard a supplied digest as a checked opening."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete typed digest and the leaf’s original order. Actual opening/root checks and cryptographic assumptions remain separate; this edge neither computes a hash nor certifies confidentiality."@x-gmeow-english .
+
+gmeow:leafShownObject
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenActCommitmentLeaf ;
+    logic:range logic:Individual ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "supplied shown-object binding"@x-gmeow-english ;
+    skos:definition "Relates an open leaf descriptor to the actual supplied object or record resource identified by its opening. It preserves a supplied binding, not an inferred object IRI or the record’s referent."@x-gmeow-english ;
+    skos:scopeNote "The Individual range does not force every shown record into Entity, Person, signer or observer. A hash-only descriptor has no shown-object binding."@x-gmeow-english ;
+    skos:example "Retain an actual supplied binding: ex:opening gmeow:leafShownObject ex:record ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies the resource corresponding to the opened kind and identifier bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not manufacture a resource from an unresolved identifier, confuse a claim record with its subject, or attach this link to a hash-only leaf."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied resource binding alongside the exact leafObjectKind and leafObjectIdentifier. No identity resolution, inclusion verification, authority or permission follows from this relation."@x-gmeow-english .
+
+gmeow:leafObjectKind
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:OpenActCommitmentLeaf ;
+    logic:range xsd:unsignedByte ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "opened object kind byte"@x-gmeow-english ;
+    skos:definition "The source object-kind byte supplied in this open act-1 leaf. The actual construction maps 0 to claim record, 1 to representation record and 2 to bare blob."@x-gmeow-english ;
+    skos:scopeNote "This is the actual encoded byte, not an inferred RDF class or universal object-kind vocabulary. Its interpretation stays bound to the complete act construction."@x-gmeow-english ;
+    skos:example "Illustrate the encoded kind: ex:opening gmeow:leafObjectKind \"0\"^^xsd:unsignedByte ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact kind byte participating in the supplied leaf preimage."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer the byte from a convenient ontology type, substitute a display label or retain the kind on a hash-only descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied unsigned-byte literal with its identifier and salt. The datatype does not check that the byte is admitted by act-1 or that it matches the shown resource."@x-gmeow-english .
+
+gmeow:leafObjectIdentifier
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:OpenActCommitmentLeaf ;
+    logic:range xsd:hexBinary ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "opened object identifier bytes"@x-gmeow-english ;
+    skos:definition "The exact opaque object identifier bytes supplied in this open act-1 leaf, interpreted together with its object-kind byte and construction. The act-1 construction uses 32 identifier bytes."@x-gmeow-english ;
+    skos:scopeNote "These are scheme-specific identity bytes, not automatically a raw artifact contentDigest. The same byte spelling under another kind or scheme does not establish the same object."@x-gmeow-english ;
+    skos:example "Illustrate identifier bytes: ex:opening gmeow:leafObjectIdentifier \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the exact identifier bytes that the source places in the leaf hash preimage."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace them with an IRI spelling, relabel them as an artifact hash, invent missing bytes or retain them on a hash-only descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete hexBinary value with the actual kind, salt and construction. It creates no identifier resolver, global object equality or evidence that the identifier was checked."@x-gmeow-english .
+
+gmeow:leafSalt
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:OpenActCommitmentLeaf ;
+    logic:range xsd:hexBinary ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "opened leaf salt bytes"@x-gmeow-english ;
+    skos:definition "The actual per-object salt bytes supplied with this open act-1 leaf. The salted-BLAKE3 act-1 construction uses 16 bytes before the kind byte and object identifier."@x-gmeow-english ;
+    skos:scopeNote "A supplied hexBinary value proves neither random generation, independence nor secrecy. Salts are commitment openings, not signing keys or permission tokens."@x-gmeow-english ;
+    skos:example "Illustrate encoding, not randomness: ex:opening gmeow:leafSalt \"000102030405060708090a0b0c0d0e0f\"^^xsd:hexBinary ."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the exact supplied presentation includes the salt opening for this object."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint a default or replacement salt, treat an absent salt as zero, or retain salt on a hash-only descriptor. Disclosure may enable correlation with an object identifier."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied bytes and selected disclosure context with the corresponding kind and identifier. This property generates no randomness, validates no salt length and authorizes no retention of earlier openings."@x-gmeow-english .
