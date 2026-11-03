@@ -2624,7 +2624,7 @@ msgstr "indice du générateur"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorIndex|skos:definition"
 msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
-msgstr "La position entière positive d'un générateur dans la base ordonnée."
+msgstr "La position entière positive d’un générateur de Clifford dans la base ordonnée déclarée de l’algèbre."
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|rdfs:label"
 msgid "generator square"
@@ -2632,7 +2632,7 @@ msgstr "carré du générateur"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
 msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
-msgstr "Le carré scalaire exact d'un générateur selon la signature déclarée."
+msgstr "Le carré scalaire exact d’un générateur déclaré de la base d’une algèbre de Clifford, selon la convention de signature de cette algèbre."
 
 msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
 msgid "pseudoscalar square"
@@ -2640,7 +2640,7 @@ msgstr "carré du pseudo-scalaire"
 
 msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|skos:definition"
 msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
-msgstr "Le carré exact du pseudo-scalaire de degré maximal sous une convention déclarée."
+msgstr "Le carré scalaire exact du pseudo-scalaire de degré maximal dans une algèbre de Clifford déclarée, selon une convention de base déclarée."
 
 msgctxt "https://blackcatinformatics.ca/math/anticommutationVerified|rdfs:label"
 msgid "anticommutation verified"
@@ -10000,3 +10000,87 @@ msgstr "Ne pas traiter cette valeur comme une projection sur un degré, un contr
 msgctxt "https://blackcatinformatics.ca/math/bladeGrade|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer through math:bladeGrade to the intended math:BasisBlade, retaining its algebra and ordered-basis interpretation. Keep any component extraction, product computation or verification evidence separate from this declaration."
 msgstr "Joindre l’entier non négatif fourni par math:bladeGrade à la math:BasisBlade voulue, en conservant son interprétation dans l’algèbre et la base ordonnée. Séparer de cette déclaration toute extraction de composante, tout calcul de produit et tout élément probant de vérification."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generator index"
+msgstr "indice du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive integer position of a Clifford generator in the algebra's declared ordered basis."
+msgstr "La position entière positive d’un générateur de Clifford dans la base ordonnée déclarée de l’algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a positive, one-based position in the declared ordered generator basis. It differs from the native generator API's zero-based index, from a blade's integer grade and from a position in the full algebra basis."
+msgstr "Il s’agit d’une position entière positive, commençant à un, dans la base ordonnée de générateurs déclarée. Elle diffère de l’indice commençant à zéro de l’API native de générateurs, du degré entier d’une lame et d’une position dans la base complète de l’algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "In external-concept-coverage.ttl, cov:e13 has math:generatorIndex 13 and math:bladeGrade 1. In the native zero-based convention, index 12 denotes that thirteenth generator; this correspondence does not change its grade."
+msgstr "Dans external-concept-coverage.ttl, cov:e13 a math:generatorIndex 13 et math:bladeGrade 1. Selon la convention native commençant à zéro, l’indice 12 désigne ce treizième générateur ; cette correspondance ne change pas son degré."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a declared generator's position must be retained with its algebra's ordered basis convention. State which indexing convention applies when exchanging positions with a native API."
+msgstr "À utiliser lorsque la position d’un générateur déclaré doit être conservée avec la convention de base ordonnée de son algèbre. Préciser la convention d’indexation utilisée lors d’échanges de positions avec une API native."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a zero-based API index into this positive ordinal without conversion, treating it as math:bladeGrade or inferring a square from the index alone. No generic uniqueness, contiguous-enumeration or missing-index gate is established by this property."
+msgstr "Ne pas recopier un indice d’API commençant à zéro dans ce rang positif sans conversion, le traiter comme math:bladeGrade ou déduire un carré du seul indice. Cette propriété n’établit aucun contrôle générique d’unicité, d’énumération contiguë ou d’indice manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:generatorIndex to the intended generator resource as its supplied positive integer position, retaining the algebra and basis order. Preserve math:generatorSquare and any calculation evidence separately; the producer's index-plus-one serialization is source evidence, not a new global indexing validator."
+msgstr "Joindre math:generatorIndex à la ressource du générateur voulu comme position entière positive fournie, en conservant l’algèbre et l’ordre de la base. Préserver séparément math:generatorSquare et tout élément probant de calcul ; la sérialisation de l’indice augmenté d’une unité par le producteur est un élément probant provenant du code source, pas un nouveau validateur global d’indexation."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generator square"
+msgstr "carré du générateur"
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
+msgstr "Le carré scalaire exact d’un générateur déclaré de la base d’une algèbre de Clifford, selon la convention de signature de cette algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The scalar is Q(e_i) under the declared Clifford relation e_i² = Q(e_i). The inspected real diagonal orthonormal API returns +1 for the first p generators and −1 for the next q; those normalized values are not a global mathematical value set for this property."
+msgstr "Le scalaire est Q(e_i) selon la relation de Clifford déclarée e_i² = Q(e_i). L’API réelle diagonale orthonormale inspectée renvoie +1 pour les p premiers générateurs et −1 pour les q suivants ; ces valeurs normalisées ne sont pas un ensemble global de valeurs mathématiques pour cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11e1 declares math:generatorSquare 1 and ex:cl11e2 declares math:generatorSquare -1 for Cl(1,1). The fixture records the normalized split; the declarations alone do not execute a generator-square calculation."
+msgstr "Dans clifford-complete.ttl, ex:cl11e1 déclare math:generatorSquare 1 et ex:cl11e2 déclare math:generatorSquare -1 pour Cl(1,1). Le jeu de données de test consigne la répartition normalisée ; les déclarations seules n’exécutent pas un calcul de carré de générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a generator's exact scalar square with its quadratic-form, basis and product convention. Distinguish the scalar value from the generator resource and from a claimed proof of the Clifford relation."
+msgstr "À utiliser pour conserver le carré scalaire exact d’un générateur avec sa forme quadratique, sa base et sa convention de produit. Distinguer la valeur scalaire de la ressource du générateur et d’une preuve revendiquée de la relation de Clifford."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every mathematical generator square as ±1 or excluding zero solely because the normalized API has no zero-square generator. Rational multivector coefficients and scaling are supported; the normalized generator API still does not admit arbitrary generator-square data or by itself supply arbitrary-field, degenerate-form or nonorthogonal basis constructors."
+msgstr "Ne pas traiter tout carré mathématique de générateur comme ±1 ni exclure zéro au seul motif que l’API normalisée n’a pas de générateur de carré nul. Les coefficients rationnels et la mise à l’échelle des multivecteurs sont pris en charge ; l’API normalisée de générateurs n’admet pas des données arbitraires de carrés de générateurs et ne fournit pas à elle seule de constructeurs génériques de bases non orthogonales, de bases sur un corps quelconque ou de bases pour des formes dégénérées."
+
+msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supplied scalar through math:generatorSquare on the declared generator and retain its algebra's signature and normalization. Keep any native calculation or law witness distinct; no dedicated generatorSquare cardinality or generic computation gate is asserted here."
+msgstr "Consigner le scalaire fourni par math:generatorSquare sur le générateur déclaré et conserver la signature et la normalisation de son algèbre. Distinguer tout calcul natif ou témoin de loi ; aucun contrôle dédié de cardinalité de generatorSquare ni contrôle générique de calcul n’est affirmé ici."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pseudoscalar square"
+msgstr "carré du pseudo-scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact scalar square of the top-grade pseudoscalar in a declared Clifford algebra and basis convention."
+msgstr "Le carré scalaire exact du pseudo-scalaire de degré maximal dans une algèbre de Clifford déclarée, selon une convention de base déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For ordered orthogonal generators and I = e₁…e_n, I² = (−1)^(n(n−1)/2) times the product of their squares. In the normalized real Cl(p,q) convention this becomes (−1)^(q+n(n−1)/2), with n = p + q. Keep those hypotheses explicit rather than applying the formula as a generic nonorthogonal execution rule."
+msgstr "Pour des générateurs orthogonaux ordonnés et I = e₁…e_n, I² = (−1)^(n(n−1)/2) multiplié par le produit de leurs carrés. Dans la convention réelle normalisée Cl(p,q), cela devient (−1)^(q+n(n−1)/2), avec n = p + q. Expliciter ces hypothèses plutôt que d’appliquer la formule comme une règle générique d’exécution non orthogonale."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2004/02/skos/core#example"
+msgid "In clifford-complete.ttl, ex:cl11 declares math:pseudoscalarSquare 1 and ex:cl20 declares math:pseudoscalarSquare -1. The producer source also asserts +1 for Cl(12,0), Cl(6,6), Cl(13,0) and Cl(7,6); these named declarations and source assertions are not an executed proof here."
+msgstr "Dans clifford-complete.ttl, ex:cl11 déclare math:pseudoscalarSquare 1 et ex:cl20 déclare math:pseudoscalarSquare -1. Le source du producteur affirme aussi +1 pour Cl(12,0), Cl(6,6), Cl(13,0) et Cl(7,6) ; ces déclarations nommées et assertions du source ne constituent pas ici une preuve exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact scalar square of the declared top-grade pseudoscalar with its algebra and basis convention. Changing only the orientation sends I to −I without changing I², while rescaling I by a scalar c multiplies its square by c²."
+msgstr "À utiliser pour conserver le carré scalaire exact du pseudo-scalaire déclaré de degré maximal avec son algèbre et sa convention de base. Changer uniquement l’orientation envoie I sur −I sans changer I², tandis que multiplier I par un scalaire c multiplie son carré par c²."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the qualified xsd:integer minimum-one and maximum-one restrictions in the math:CliffordAlgebra frame as a global exactly-one-value rule, an all-values datatype rule or a ±1 value set. Zero is an integer and is not excluded by those restrictions; the native n = 0 unit square +1 does not establish nontrivial zero-form or degenerate execution."
+msgstr "Ne pas lire les restrictions qualifiées de minimum un et de maximum un sur xsd:integer dans le cadre de math:CliffordAlgebra comme une règle globale d’exactement une valeur, une règle de type de données pour toutes les valeurs ou un ensemble de valeurs ±1. Zéro est un entier et n’est pas exclu par ces restrictions ; le carré +1 de l’unité native pour n = 0 n’établit pas une exécution non triviale de forme nulle ou dégénérée."
+
+msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the supplied scalar with math:pseudoscalarSquare on the algebra, retaining the top-blade and basis normalization used to interpret it. Preserve the existing qualified integer frame without strengthening it; keep product calculations, invertibility claims and verification evidence separate from the declaration."
+msgstr "Indiquer le scalaire fourni avec math:pseudoscalarSquare sur l’algèbre, en conservant la lame de degré maximal et la normalisation de base utilisées pour l’interpréter. Préserver le cadre entier qualifié existant sans le renforcer ; séparer de la déclaration les calculs de produit, les revendications d’inversibilité et les éléments probants de vérification."
