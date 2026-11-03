@@ -2134,9 +2134,9 @@ math:NonDistributiveRing
 # Algebra — structure-preserving maps (homomorphisms) and the quotient/kernel
 #
 # A homomorphism is a map with a declared preserved operation and a preservation
-# law that is a logic: formula (math: expresses, logic: reasons). A symmetry group
-# IS an automorphism group; that identity is what makes E8's Weyl action, det, and
-# a homomorphic-encryption scheme the same kind of object.
+# law that is a logic: formula (math: expresses, logic: reasons). The determinant,
+# E8 Weyl action and homomorphic-encryption records share preservation vocabulary;
+# that sharing neither identifies their resource kinds nor proves their laws.
 # =========================================================================== #
 
 math:Homomorphism
@@ -2327,10 +2327,10 @@ math:UnanchoredAutomorphismGroup
 # Algebra — group actions, Lie theory, and root systems (the E8 flagship)
 #
 # A group action is how a symmetry group acts on the thing it is a symmetry of; its
-# action law is a logic: formula. A Lie group and its Lie algebra carry a root system
-# with a Cartan matrix, Dynkin diagram, and Weyl group (the symmetry group of the root
-# system, an automorphism group). E8 is the flagship: 240 roots, rank 8, Weyl order
-# 696,729,600.
+# action law is a logic: formula. The E8 Lie group and its Lie algebra share a root
+# system with a Cartan matrix, Dynkin diagram and Weyl reflection group. A Weyl group
+# need not be the full root-system automorphism group; E8 specifically has both roles.
+# E8 is the flagship: 240 roots, rank 8, Weyl order 696,729,600.
 # =========================================================================== #
 
 math:GroupAction
