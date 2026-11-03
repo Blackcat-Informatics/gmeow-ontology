@@ -229,8 +229,8 @@ msgid "Query Verdict Choice"
 msgstr "查询判定选择"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A query-node description comparing a bound answer-axis value with an expected value. Missing or unknown values select an explicit unknown branch."
-msgstr "将已绑定答案轴值与预期值比较的查询节点描述。缺失或未知值选择明确的未知分支。"
+msgid "A query-node description of an outer binary knownness gate: its supported knownness guard selects an owned internal verdict comparison on the left, and otherwise it selects the explicit unknown query target on the right. It binds one attributed answer, selected axis and known expected value without asserting execution."
+msgstr "描述外层二元已知性门的查询节点：已知性守卫有支持时选择其所属的左侧内部判定比较，否则选择右侧显式未知查询目标。它绑定一个带有归属的答案、所选轴及已知预期值，不断言执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for query verdict choice with explicit source bindings."
@@ -241,8 +241,8 @@ msgid "Avoid inferring execution, authorization or completeness from a declarati
 msgstr "避免仅从声明推断执行、授权或完整性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
-msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+msgid "Bind choiceAnswer, choiceAxis and a known choiceExpectedValue once on the outer node; supply its knownness guardSituation, its owned left QueryVerdictComparison with matching guard and two targets, and its unknown right target."
+msgstr "在外层节点上只绑定一次 choiceAnswer、choiceAxis 及已知 choiceExpectedValue；提供其已知性 guardSituation、所属左侧 QueryVerdictComparison 及该比较的匹配守卫和两个目标，并提供未知右目标。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record a gmeow:QueryVerdictChoice ."
@@ -1112,30 +1112,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|http://www.w3.
 msgid "ex:record gmeow:choiceExpectedValue ex:value ."
 msgstr "ex:record gmeow:choiceExpectedValue ex:value ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "query choice unknown branch"
-msgstr "查询选择未知分支"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The branch selected for absent information, InfoUndetermined or CompletenessUnknown. InfoNotEvaluated is an explicit comparable value."
-msgstr "在信息缺失、InfoUndetermined或CompletenessUnknown时所选分支。InfoNotEvaluated是明确可比较值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use for query choice unknown branch with explicit source bindings."
-msgstr "用于以明确来源绑定描述查询选择未知分支。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
-msgstr "避免仅从声明推断执行、授权或完整性。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
-msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:record gmeow:choiceUnknownBranch ex:value ."
-msgstr "ex:record gmeow:choiceUnknownBranch ex:value ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "executed query node"
 msgstr "执行的查询节点"
@@ -1165,8 +1141,8 @@ msgid "query execution selected branch"
 msgstr "查询执行所选分支"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The branch actually selected by a verdict-choice execution; it must agree with the bound answer or explicit unknown case."
-msgstr "判定选择执行实际选中的分支；必须符合已绑定答案或明确未知情形。"
+msgid "The resolved query target of a reported outer verdict-choice or internal comparison evaluation, coherent with its actual declared State and bound answer context. A matching outer evaluation resolves the comparison’s matching target, not the immediate left comparison node itself."
+msgstr "报告的外层判定选择或内部比较求值所解析的查询目标，与其实际声明 State 及已绑定答案上下文一致。匹配外层求值解析为比较的匹配目标，而非直接左侧比较节点本身。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for query execution selected branch with explicit source bindings."
@@ -1177,8 +1153,8 @@ msgid "Avoid inferring execution, authorization or completeness from a declarati
 msgstr "避免仅从声明推断执行、授权或完整性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
-msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+msgid "Supply choiceEvaluationState and record the resolved matching, known-nonmatching or outer unknown target appropriate to the executed node; an inner execution uses its unique structural outer context at its own State without inventing an outer execution."
+msgstr "提供 choiceEvaluationState，并记录适合已执行节点的解析后匹配、已知不匹配或外层未知目标；内部执行在自身 State 上使用唯一结构性外层上下文，不虚构外层执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:querySelectedBranch ex:value ."
@@ -2269,8 +2245,8 @@ msgid "Query choice selected-branch law"
 msgstr "查询选择所选分支定律"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false."
-msgstr "选择执行保留匹配、不匹配或明确未知分支，绝不将缺失判定视为false。"
+msgid "Reported outer verdict-choice evaluations resolve the explicit unknown target or the internal binary comparison route. Reported inner evaluations resolve matching or known-nonmatching targets only with knownness support at their own supplied State."
+msgstr "报告的外层判定选择求值解析为显式未知目标或内部二元比较路径。报告的内部求值仅在自身所提供 State 上具有已知性支持时，才解析为匹配或已知不匹配目标。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for query choice selected-branch law with explicit source bindings."
@@ -5467,3 +5443,171 @@ msgstr "仅当全部成员关系及精确已接受交集义务一致时，多个
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryAcceptedFoldAnswerContextLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "An explicit operation witness: ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldOutput ex:folded . ex:folded a gmeow:QueryAcceptedReasonAnswer ."
 msgstr "显式操作见证：ex:fold a gmeow:QueryAcceptedReasonFold ; gmeow:acceptedFoldOutput ex:folded . ex:folded a gmeow:QueryAcceptedReasonAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Verdict Comparison"
+msgstr "查询判定比较"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An outer-owned internal binary query-choice occurrence comparing a known selected answer-axis value with its outer choice’s expected value. Its matching guard selects the left target when supported and the known-nonmatching right target otherwise."
+msgstr "属于外层选择的内部二元查询选择出现项，将选定答案轴的已知值与外层选择的预期值比较。匹配守卫有支持时选择左目标，否则选择已知不匹配的右目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the internal comparison reached through a QueryVerdictChoice’s left operand after knownness is established."
+msgstr "用于确立已知性后，通过 QueryVerdictChoice 左操作数到达的内部比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying answer, axis or expected-value roles onto the comparison, sharing it between distinct outer choices or treating unknown context as known inequality."
+msgstr "避免将答案、轴或预期值角色复制到比较上、跨不同外层选择共享比较，或将未知上下文视为已知不相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one guardSituation, one matching leftOperand and one known-nonmatching rightOperand, inherited node effect and stratum, and one distinct typed structural outer owner through that outer’s leftOperand."
+msgstr "提供一个 guardSituation、一个匹配 leftOperand 及一个已知不匹配 rightOperand，继承的节点效应与层级，并通过外层的 leftOperand 提供一个不同的类型化结构性外层所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An inner-only execution uses its own choiceEvaluationState and its unique structural outer context, with knownness supported there. It needs no fabricated outer execution, native start instruction or distinct downstream branch targets."
+msgstr "仅内部执行使用自身 choiceEvaluationState 及唯一结构性外层上下文，在该 State 上有已知性支持。它不需要虚构外层执行、原生启动指令或不同的下游分支目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparison|http://www.w3.org/2004/02/skos/core#example"
+msgid "An owned binary comparison: ex:outer logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ; logic:guardSituation ex:matchingSituation ; logic:leftOperand ex:match ; logic:rightOperand ex:nonmatch ."
+msgstr "具有所属者的二元比较：ex:outer logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ; logic:guardSituation ex:matchingSituation ; logic:leftOperand ex:match ; logic:rightOperand ex:nonmatch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice evaluation state"
+msgstr "查询选择求值状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied State of a reported outer verdict-choice or internal comparison evaluation. Its situationObtains support is checked against that node’s bound answer context, without making the reusable node a native transaction root."
+msgstr "报告的外层判定选择或内部比较求值所提供的 State。其 situationObtains 支持依据该节点已绑定答案上下文检查，不使可复用节点成为原生事务根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual declared evaluation State on a reported outer or inner choice execution."
+msgstr "用于在报告的外层或内部选择执行上保留实际声明的求值 State。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a node-global flag, substituting an answer resource for State, adding a native start instruction or attaching this selected role to a nonchoice execution."
+msgstr "避免使用节点全局标志、以答案资源替代 State、添加原生启动指令，或将此所选角色附加到非选择执行上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link at most one typed State from the QueryNodeExecution; outer and inner choice executions require this coordinate and retain their resolved querySelectedBranch separately."
+msgstr "从 QueryNodeExecution 至多关联一个类型化 State；外层及内部选择执行要求此坐标，并单独保留解析后的 querySelectedBranch。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generic nonchoice executions without this role require no State. A graph link grades declared support rather than authenticating execution history or invoking a query adapter."
+msgstr "没有此角色的通用非选择执行不要求 State。图链接评定声明支持，不认证执行历史，也不调用查询适配器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceEvaluationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported evaluation context: ex:execution gmeow:choiceEvaluationState ex:state . ex:state a gmeow:State ."
+msgstr "报告的求值上下文：ex:execution gmeow:choiceEvaluationState ex:state . ex:state a gmeow:State ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query verdict comparison owner law"
+msgstr "查询判定比较归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every internal verdict comparison has an existing typed structural outer choice owner distinct from itself. Any two typed outer choices naming that comparison as left operand must be the same owner resource."
+msgstr "每个内部判定比较都有已存在、已类型化且不同于自身的结构性外层选择所属者。任意两个将该比较命名为左操作数的类型化外层选择必须是同一所属资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the comparison’s borrowed answer, axis and expected context unique and non-self-referential."
+msgstr "用于使比较借用的答案、轴及预期上下文唯一且非自引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting an arbitrary outer context, copying its bound fields onto the comparison or imposing inverse ownership on downstream targets, States or Situations."
+msgstr "避免选择任意外层上下文、将其绑定字段复制到比较上，或对下游目标、State 或 Situation 资源施加逆向归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh typed-and-linked outer owner witness, compare typed owner pairs through termEqual, and separately forbid a typed owner link from the comparison to itself."
+msgstr "要求新绑定的类型化且已关联外层所属者见证，通过 termEqual 比较类型化所属者对，并单独禁止从比较指向自身的类型化所属者链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The owner existential contains only positive stored joins. Owner-pair equality and non-self comparison use separate guarded universal branches; no positive nested universal or blanket class disjointness is introduced."
+msgstr "所属者存在量化仅包含正向存储连接。所属者对相等及非自身比较使用独立带守卫全称分支；不引入正极性的嵌套全称量化或全面类不相交约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictComparisonOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A structural owner: ex:outer a gmeow:QueryVerdictChoice ; logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ."
+msgstr "结构性所属者：ex:outer a gmeow:QueryVerdictChoice ; logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice evaluation state law"
+msgstr "查询选择求值状态定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported outer verdict-choice or internal comparison execution has a supplied typed evaluation State. The selected choiceEvaluationState role is restricted to those executed node kinds."
+msgstr "每个报告的外层判定选择或内部比较执行都有所提供的类型化求值 State。所选 choiceEvaluationState 角色仅限这些已执行节点种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject missing selected evaluation States and choice-state roles on unrelated query executions."
+msgstr "用于拒绝缺失的所选求值 State，以及无关查询执行上的选择状态角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring State on every generic QueryNodeExecution or treating missing required choice context as an unknown answer value."
+msgstr "避免要求每个通用 QueryNodeExecution 都有 State，或将缺失必需选择上下文视为未知答案值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For an executed outer or inner node require a fresh State witness joined by choiceEvaluationState; for a supplied choice-state edge require a separate fresh executed-node witness typed as outer or inner."
+msgstr "对已执行外层或内部节点，要求通过 choiceEvaluationState 连接的新绑定 State 见证；对所提供选择状态边，要求独立新绑定、类型为外层或内部的已执行节点见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The optional generic range and qualified maximum enforce State type and at most one coordinate without a global required path. Both existence witnesses have distinct names and neither creates an authentic execution."
+msgstr "可选通用值域及限定最大值约束 State 类型及至多一个坐标，不施加全局必需路径。两个存在见证使用不同名称，均不创建真实执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceEvaluationStateLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected evaluation: ex:execution gmeow:executesQueryNode ex:outer ; gmeow:choiceEvaluationState ex:state . ex:outer a gmeow:QueryVerdictChoice . ex:state a gmeow:State ."
+msgstr "所选求值：ex:execution gmeow:executesQueryNode ex:outer ; gmeow:choiceEvaluationState ex:state . ex:outer a gmeow:QueryVerdictChoice . ex:state a gmeow:State ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice knownness law"
+msgstr "查询选择已知性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "At a reported choice evaluation State, the outer knownness Situation is supported exactly when its selected answer axis has a known value. A reported internal comparison additionally requires that knownness support at its own State."
+msgstr "在报告的选择求值 State 上，当且仅当所选答案轴具有已知值时，外层已知性 Situation 有支持。报告的内部比较还要求在自身 State 上具有该已知性支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to align generic binary guard support with the same attributed answer context and prevent inner evaluation under unknown evidence."
+msgstr "用于使通用二元守卫支持与同一带有归属的答案上下文一致，并防止在未知证据下进行内部求值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating InfoBoth or InfoNotEvaluated as unknown, selecting a different outer owner or fabricating an outer execution for an inner-only report."
+msgstr "避免将 InfoBoth 或 InfoNotEvaluated 视为未知、选择不同外层所属者，或为仅内部报告虚构外层执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join execution, State, node, unique structural outer context and guard; expand the information and completeness known-value alternatives in both guarded support directions, with distinct fresh actual-value witnesses."
+msgstr "连接执行、State、节点、唯一结构性外层上下文及守卫；在两个带守卫支持方向上展开信息及完整性已知值备选，使用不同的新绑定实际值见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Absent axis values and their explicit unknown sentinels make knownness false within this selected contract. Missing structural fields or evaluation State is invalid, and Situation support is not authenticated history."
+msgstr "在此所选契约内，缺失轴值及其显式未知哨兵使已知性为假。结构字段或求值 State 缺失为无效，Situation 支持并非认证历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceKnownnessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Known context support: ex:answer gmeow:queryInformationState logic:InfoNotEvaluated . ex:state logic:situationObtains ex:knownSituation ."
+msgstr "已知上下文支持：ex:answer gmeow:queryInformationState logic:InfoNotEvaluated . ex:state logic:situationObtains ex:knownSituation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice matching guard law"
+msgstr "查询选择匹配守卫定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "At the same reported State and bound answer context, the internal matching Situation is supported exactly when the selected actual value is known and equals the expected value."
+msgstr "在同一报告 State 及已绑定答案上下文中，当且仅当所选实际值已知且等于预期值时，内部匹配 Situation 有支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject contradictory generic matching support even when matching, nonmatching or unknown targets happen to coincide."
+msgstr "用于拒绝矛盾的通用匹配支持，即使匹配、不匹配或未知目标恰好相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid admitting unknown expected sentinels, coercing information into completeness values or relying on the reported target alone to validate binary guard truth."
+msgstr "避免接纳未知预期哨兵、将信息强制转换为完整性值，或仅依靠报告目标验证二元守卫真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the execution context, expected value and comparison guard; expand known equality for both axes into two guarded support directions using separate fresh actual-value witnesses."
+msgstr "连接执行上下文、预期值及比较守卫；使用独立新绑定实际值见证，将两个轴的已知相等展开为两个带守卫支持方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing or explicit unknown actual values and known inequality forbid matching support. This check applies during outer unknown evaluations as well as known outer or inner evaluations, without requiring distinct target resources."
+msgstr "缺失或显式未知实际值及已知不相等禁止匹配支持。此检查既适用于外层未知求值，也适用于已知外层或内部求值，不要求目标资源不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A known matching value: ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."
+msgstr "已知匹配值：ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."

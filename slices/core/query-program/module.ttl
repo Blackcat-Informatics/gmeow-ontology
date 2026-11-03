@@ -124,10 +124,10 @@ gmeow:QueryVerdictChoice
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Query Verdict Choice"@x-gmeow-english ;
-    skos:definition "A query-node description comparing a bound answer-axis value with an expected value. Missing or unknown values select an explicit unknown branch."@x-gmeow-english ;
+    skos:definition "A query-node description of an outer binary knownness gate: its supported knownness guard selects an owned internal verdict comparison on the left, and otherwise it selects the explicit unknown query target on the right. It binds one attributed answer, selected axis and known expected value without asserting execution."@x-gmeow-english ;
     gmeow:useWhen "Use for query verdict choice with explicit source bindings."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authorization or completeness from a declaration alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."@x-gmeow-english ;
+    gmeow:howToUse "Bind choiceAnswer, choiceAxis and a known choiceExpectedValue once on the outer node; supply its knownness guardSituation, its owned left QueryVerdictComparison with matching guard and two targets, and its unknown right target."@x-gmeow-english ;
     skos:example "ex:record a gmeow:QueryVerdictChoice ."@x-gmeow-english ;
     logic:subClassOf gmeow:QueryProgramNode .
 
@@ -594,19 +594,6 @@ gmeow:choiceExpectedValue
     logic:domain gmeow:QueryVerdictChoice ;
     logic:range logic:Thing .
 
-gmeow:choiceUnknownBranch
-    a logic:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    rdfs:label "query choice unknown branch"@x-gmeow-english ;
-    skos:definition "The branch selected for absent information, InfoUndetermined or CompletenessUnknown. InfoNotEvaluated is an explicit comparable value."@x-gmeow-english ;
-    gmeow:useWhen "Use for query choice unknown branch with explicit source bindings."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inferring execution, authorization or completeness from a declaration alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."@x-gmeow-english ;
-    skos:example "ex:record gmeow:choiceUnknownBranch ex:value ."@x-gmeow-english ;
-    logic:domain gmeow:QueryVerdictChoice ;
-    logic:range gmeow:QueryProgramNode .
-
 gmeow:executesQueryNode
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
@@ -625,10 +612,10 @@ gmeow:querySelectedBranch
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "query execution selected branch"@x-gmeow-english ;
-    skos:definition "The branch actually selected by a verdict-choice execution; it must agree with the bound answer or explicit unknown case."@x-gmeow-english ;
+    skos:definition "The resolved query target of a reported outer verdict-choice or internal comparison evaluation, coherent with its actual declared State and bound answer context. A matching outer evaluation resolves the comparison’s matching target, not the immediate left comparison node itself."@x-gmeow-english ;
     gmeow:useWhen "Use for query execution selected branch with explicit source bindings."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authorization or completeness from a declaration alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."@x-gmeow-english ;
+    gmeow:howToUse "Supply choiceEvaluationState and record the resolved matching, known-nonmatching or outer unknown target appropriate to the executed node; an inner execution uses its unique structural outer context at its own State without inventing an outer execution."@x-gmeow-english ;
     skos:example "ex:record gmeow:querySelectedBranch ex:value ."@x-gmeow-english ;
     logic:domain gmeow:QueryNodeExecution ;
     logic:range gmeow:QueryProgramNode .
@@ -973,15 +960,12 @@ gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProper
 gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceExpectedValue ; logic:allValuesFrom logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictChoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/choiceExpectedValue" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceExpectedValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
-gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:allValuesFrom gmeow:QueryProgramNode ] .
+gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:allValuesFrom gmeow:QueryVerdictComparison ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictChoice ; logic:closureKey "https://blackcatinformatics.ca/logic/leftOperand" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:QueryProgramNode ] .
+gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:QueryVerdictComparison ] .
 gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:rightOperand ; logic:allValuesFrom gmeow:QueryProgramNode ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictChoice ; logic:closureKey "https://blackcatinformatics.ca/logic/rightOperand" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:rightOperand ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:QueryProgramNode ] .
-gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceUnknownBranch ; logic:allValuesFrom gmeow:QueryProgramNode ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictChoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceUnknownBranch ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:QueryProgramNode ] .
 gmeow:QueryNodeExecution logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:executesQueryNode ; logic:allValuesFrom gmeow:QueryProgramNode ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryNodeExecution ; logic:closureKey "https://blackcatinformatics.ca/gmeow/executesQueryNode" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryNodeExecution logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:executesQueryNode ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:QueryProgramNode ] .
@@ -2951,388 +2935,147 @@ gmeow:QueryChoiceAxisConstraint
     skos:example "Choice compares a known value from the selected answer axis; information and completeness values are not coerced. Example declaration: gmeow:QueryChoiceAxisConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."@x-gmeow-english  ;
     logic:formalizes gmeow:QueryProgramGraph ;
     logic:message "Choice compares a known value from the selected answer axis; information and completeness values are not coerced." ;
-    logic:integrity
-[
-    a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-    [ logic:termIndex 1 ; logic:termVariable "expected" ] ;
-    logic:forall [
-        a logic:Formula ;
-        logic:antecedent [
-            a logic:Formula ;
-            logic:relation gmeow:choiceExpectedValue ;
-            logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-            [ logic:termIndex 1 ; logic:termVariable "expected" ]
-        ] ;
-        logic:consequent [
-            a logic:Formula ;
-            logic:or [
-                a logic:Formula ;
-                logic:and [
-                    a logic:Formula ;
-                    logic:relation gmeow:choiceAxis ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                    [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:relation rdf:type ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ] ,
-                    [ logic:termIndex 1 ; logic:termIri logic:InformationState ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:and [
-                        a logic:Formula ;
-                        logic:relation gmeow:choiceAxis ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                        [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ]
-                    ] ,
-                    [
-                        a logic:Formula ;
-                        logic:relation rdf:type ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ] ,
-                        [ logic:termIndex 1 ; logic:termIri logic:InformationState ]
-                    ] ,
-                    [
-                        a logic:Formula ;
-                        logic:not [
-                            a logic:Formula ;
-                            logic:relation logic:termEqual ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ] ,
-                            [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ]
-                        ]
-                    ]
-                ]
-            ] ,
-            [
-                a logic:Formula ;
-                logic:and [
-                    a logic:Formula ;
-                    logic:relation gmeow:choiceAxis ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                    [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:relation rdf:type ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ] ,
-                    [ logic:termIndex 1 ; logic:termIri logic:CompletenessStatus ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:not [
-                        a logic:Formula ;
-                        logic:relation logic:termEqual ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ] ,
-                        [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ]
-                    ]
-                ]
-            ]
-        ]
-    ]
-] .
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceExpectedValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:choiceAxis ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ], [ logic:termIndex 1 ; logic:termIri logic:InformationState ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ], [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ] ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:choiceAxis ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessStatus ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "expected" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ] ] ] ] ] ] ] .
 
 gmeow:QueryChoiceSelectionLaw
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Query choice selected-branch law"@x-gmeow-english ;
-    skos:definition "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false."@x-gmeow-english ;
+    skos:definition "Reported outer verdict-choice evaluations resolve the explicit unknown target or the internal binary comparison route. Reported inner evaluations resolve matching or known-nonmatching targets only with knownness support at their own supplied State."@x-gmeow-english ;
     gmeow:useWhen "Use for query choice selected-branch law with explicit source bindings."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authorization or completeness from a declaration alone."@x-gmeow-english ;
     gmeow:howToUse "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."@x-gmeow-english ;
     skos:example "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false. Example declaration: gmeow:QueryChoiceSelectionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."@x-gmeow-english  ;
     logic:formalizes gmeow:QueryProgramGraph ;
-    logic:message "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false." ;
-    logic:integrity
-[
-    a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "execution" ] ,
-    [ logic:termIndex 1 ; logic:termVariable "choice" ] ,
-    [ logic:termIndex 2 ; logic:termVariable "answer" ] ,
-    [ logic:termIndex 3 ; logic:termVariable "expected" ] ;
-    logic:forall [
-        a logic:Formula ;
-        logic:antecedent [
-            a logic:Formula ;
-            logic:and [
-                a logic:Formula ;
-                logic:relation gmeow:executesQueryNode ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "execution" ] ,
-                [ logic:termIndex 1 ; logic:termVariable "choice" ]
-            ] ,
-            [
-                a logic:Formula ;
-                logic:relation rdf:type ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ]
-            ] ,
-            [
-                a logic:Formula ;
-                logic:relation gmeow:choiceAnswer ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                [ logic:termIndex 1 ; logic:termVariable "answer" ]
-            ] ,
-            [
-                a logic:Formula ;
-                logic:relation gmeow:choiceExpectedValue ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                [ logic:termIndex 1 ; logic:termVariable "expected" ]
-            ]
-        ] ;
-        logic:consequent [
-            a logic:Formula ;
-            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "branch" ] ;
-            logic:exists [
-                a logic:Formula ;
-                logic:and [
-                    a logic:Formula ;
-                    logic:relation gmeow:querySelectedBranch ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "execution" ] ,
-                    [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:or [
-                        a logic:Formula ;
-                        logic:and [
-                            a logic:Formula ;
-                            logic:relation gmeow:choiceAxis ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                            [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ]
-                        ] ,
-                        [
-                            a logic:Formula ;
-                            logic:or [
-                                a logic:Formula ;
-                                logic:and [
-                                    a logic:Formula ;
-                                    logic:or [
-                                        a logic:Formula ;
-                                        logic:not [
-                                            a logic:Formula ;
-                                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                            logic:exists [
-                                                a logic:Formula ;
-                                                logic:relation gmeow:queryInformationState ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                            ]
-                                        ]
-                                    ] ,
-                                    [
-                                        a logic:Formula ;
-                                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                        logic:exists [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:relation gmeow:queryInformationState ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ]
-                                            ]
-                                        ]
-                                    ]
-                                ] ,
-                                [
-                                    a logic:Formula ;
-                                    logic:relation gmeow:choiceUnknownBranch ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                    [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                ]
-                            ] ,
-                            [
-                                a logic:Formula ;
-                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                logic:exists [
-                                    a logic:Formula ;
-                                    logic:and [
-                                        a logic:Formula ;
-                                        logic:and [
-                                            a logic:Formula ;
-                                            logic:relation gmeow:queryInformationState ;
-                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                            [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                        ] ,
-                                        [
-                                            a logic:Formula ;
-                                            logic:not [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ]
-                                            ]
-                                        ]
-                                    ] ,
-                                    [
-                                        a logic:Formula ;
-                                        logic:or [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "expected" ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:leftOperand ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                            ]
-                                        ] ,
-                                        [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:not [
-                                                    a logic:Formula ;
-                                                    logic:relation logic:termEqual ;
-                                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                    [ logic:termIndex 1 ; logic:termVariable "expected" ]
-                                                ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:rightOperand ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ] ,
-                    [
-                        a logic:Formula ;
-                        logic:and [
-                            a logic:Formula ;
-                            logic:relation gmeow:choiceAxis ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                            [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ]
-                        ] ,
-                        [
-                            a logic:Formula ;
-                            logic:or [
-                                a logic:Formula ;
-                                logic:and [
-                                    a logic:Formula ;
-                                    logic:or [
-                                        a logic:Formula ;
-                                        logic:not [
-                                            a logic:Formula ;
-                                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                            logic:exists [
-                                                a logic:Formula ;
-                                                logic:relation gmeow:queryCompletenessStatus ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                            ]
-                                        ]
-                                    ] ,
-                                    [
-                                        a logic:Formula ;
-                                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                        logic:exists [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:relation gmeow:queryCompletenessStatus ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ]
-                                            ]
-                                        ]
-                                    ]
-                                ] ,
-                                [
-                                    a logic:Formula ;
-                                    logic:relation gmeow:choiceUnknownBranch ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                    [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                ]
-                            ] ,
-                            [
-                                a logic:Formula ;
-                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "actual" ] ;
-                                logic:exists [
-                                    a logic:Formula ;
-                                    logic:and [
-                                        a logic:Formula ;
-                                        logic:and [
-                                            a logic:Formula ;
-                                            logic:relation gmeow:queryCompletenessStatus ;
-                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] ,
-                                            [ logic:termIndex 1 ; logic:termVariable "actual" ]
-                                        ] ,
-                                        [
-                                            a logic:Formula ;
-                                            logic:not [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ]
-                                            ]
-                                        ]
-                                    ] ,
-                                    [
-                                        a logic:Formula ;
-                                        logic:or [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:relation logic:termEqual ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "expected" ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:leftOperand ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                            ]
-                                        ] ,
-                                        [
-                                            a logic:Formula ;
-                                            logic:and [
-                                                a logic:Formula ;
-                                                logic:not [
-                                                    a logic:Formula ;
-                                                    logic:relation logic:termEqual ;
-                                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "actual" ] ,
-                                                    [ logic:termIndex 1 ; logic:termVariable "expected" ]
-                                                ]
-                                            ] ,
-                                            [
-                                                a logic:Formula ;
-                                                logic:relation logic:rightOperand ;
-                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "choice" ] ,
-                                                [ logic:termIndex 1 ; logic:termVariable "branch" ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ]
-] .
+    logic:message "Reported outer verdict-choice evaluations resolve the explicit unknown target or the internal binary comparison route. Reported inner evaluations resolve matching or known-nonmatching targets only with knownness support at their own supplied State." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ], [ logic:termIndex 2 ; logic:termVariable "state" ], [ logic:termIndex 3 ; logic:termVariable "outer" ], [ logic:termIndex 4 ; logic:termVariable "inner" ], [ logic:termIndex 5 ; logic:termVariable "answer" ], [ logic:termIndex 6 ; logic:termVariable "axis" ], [ logic:termIndex 7 ; logic:termVariable "knownGuard" ], [ logic:termIndex 8 ; logic:termVariable "expected" ], [ logic:termIndex 9 ; logic:termVariable "matchGuard" ], [ logic:termIndex 10 ; logic:termVariable "unknown" ], [ logic:termIndex 11 ; logic:termVariable "matching" ], [ logic:termIndex 12 ; logic:termVariable "nonmatching" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryNodeExecution ] ],
+[ a logic:Formula ;
+logic:relation gmeow:executesQueryNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceEvaluationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termIri gmeow:State ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAnswer ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAxis ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "axis" ] ],
+[ a logic:Formula ;
+logic:relation logic:guardSituation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "outer" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceExpectedValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ],
+[ a logic:Formula ;
+logic:relation logic:guardSituation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ],
+[ a logic:Formula ;
+logic:relation logic:rightOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "unknown" ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termVariable "matching" ] ],
+[ a logic:Formula ;
+logic:relation logic:rightOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termVariable "nonmatching" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "selectedResolvedTarget" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:querySelectedBranch ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "selectedResolvedTarget" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "outer" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "selectedResolvedTarget" ], [ logic:termIndex 1 ; logic:termVariable "unknown" ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ],
+[ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "selectedResolvedTarget" ], [ logic:termIndex 1 ; logic:termVariable "matching" ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "selectedResolvedTarget" ], [ logic:termIndex 1 ; logic:termVariable "nonmatching" ] ] ] ] ] ] ] ] .
 
 gmeow:QueryFeedbackPurityConstraint
     a logic:Constraint ;
@@ -3989,58 +3732,26 @@ gmeow:QueryGraphOperandScopeConstraint
     skos:example "Choice branches and iteration bodies of graph nodes remain inside the same graph and its effect admission boundary. Example declaration: gmeow:QueryGraphOperandScopeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."@x-gmeow-english  ;
     logic:formalizes gmeow:QueryProgramGraph ;
     logic:message "Choice branches and iteration bodies of graph nodes remain inside the same graph and its effect admission boundary." ;
-    logic:integrity
-[
-    a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ] ,
-    [ logic:termIndex 1 ; logic:termVariable "node" ] ,
-    [ logic:termIndex 2 ; logic:termVariable "operand" ] ;
-    logic:forall [
-        a logic:Formula ;
-        logic:antecedent [
-            a logic:Formula ;
-            logic:and [
-                a logic:Formula ;
-                logic:relation gmeow:queryGraphNode ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] ,
-                [ logic:termIndex 1 ; logic:termVariable "node" ]
-            ] ,
-            [
-                a logic:Formula ;
-                logic:or [
-                    a logic:Formula ;
-                    logic:relation logic:leftOperand ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ] ,
-                    [ logic:termIndex 1 ; logic:termVariable "operand" ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:relation logic:rightOperand ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ] ,
-                    [ logic:termIndex 1 ; logic:termVariable "operand" ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:relation gmeow:choiceUnknownBranch ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ] ,
-                    [ logic:termIndex 1 ; logic:termVariable "operand" ]
-                ] ,
-                [
-                    a logic:Formula ;
-                    logic:relation logic:iterationBody ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ] ,
-                    [ logic:termIndex 1 ; logic:termVariable "operand" ]
-                ]
-            ]
-        ] ;
-        logic:consequent [
-            a logic:Formula ;
-            logic:relation gmeow:queryGraphNode ;
-            logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ] ,
-            [ logic:termIndex 1 ; logic:termVariable "operand" ]
-        ]
-    ]
-] .
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "node" ], [ logic:termIndex 2 ; logic:termVariable "operand" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryGraphNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ],
+[ a logic:Formula ;
+logic:relation logic:rightOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ],
+[ a logic:Formula ;
+logic:relation logic:iterationBody ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:queryGraphNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "operand" ] ] ] ] .
 
 gmeow:QueryIterationBodyEvidenceConstraint
     a logic:Constraint ;
@@ -7143,3 +6854,437 @@ gmeow:QueryAcceptedReasonFold logic:subClassOf [ a logic:Restriction ; logic:onP
 gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rowAcceptance ; logic:allValuesFrom gmeow:QueryRowAcceptance ] .
 
 gmeow:QueryAcceptedReasonAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:solutionRow ; logic:allValuesFrom gmeow:QueryOrderedEvidenceRow ] .
+
+gmeow:QueryVerdictComparison
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Verdict Comparison"@x-gmeow-english ;
+    skos:definition "An outer-owned internal binary query-choice occurrence comparing a known selected answer-axis value with its outer choice’s expected value. Its matching guard selects the left target when supported and the known-nonmatching right target otherwise."@x-gmeow-english ;
+    gmeow:useWhen "Use as the internal comparison reached through a QueryVerdictChoice’s left operand after knownness is established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying answer, axis or expected-value roles onto the comparison, sharing it between distinct outer choices or treating unknown context as known inequality."@x-gmeow-english ;
+    gmeow:howToUse "Supply one guardSituation, one matching leftOperand and one known-nonmatching rightOperand, inherited node effect and stratum, and one distinct typed structural outer owner through that outer’s leftOperand."@x-gmeow-english ;
+    skos:scopeNote "An inner-only execution uses its own choiceEvaluationState and its unique structural outer context, with knownness supported there. It needs no fabricated outer execution, native start instruction or distinct downstream branch targets."@x-gmeow-english ;
+    skos:example "An owned binary comparison: ex:outer logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ; logic:guardSituation ex:matchingSituation ; logic:leftOperand ex:match ; logic:rightOperand ex:nonmatch ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryProgramNode , logic:Choice .
+
+gmeow:choiceEvaluationState
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query choice evaluation state"@x-gmeow-english ;
+    skos:definition "The supplied State of a reported outer verdict-choice or internal comparison evaluation. Its situationObtains support is checked against that node’s bound answer context, without making the reusable node a native transaction root."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual declared evaluation State on a reported outer or inner choice execution."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a node-global flag, substituting an answer resource for State, adding a native start instruction or attaching this selected role to a nonchoice execution."@x-gmeow-english ;
+    gmeow:howToUse "Link at most one typed State from the QueryNodeExecution; outer and inner choice executions require this coordinate and retain their resolved querySelectedBranch separately."@x-gmeow-english ;
+    skos:scopeNote "Generic nonchoice executions without this role require no State. A graph link grades declared support rather than authenticating execution history or invoking a query adapter."@x-gmeow-english ;
+    skos:example "A reported evaluation context: ex:execution gmeow:choiceEvaluationState ex:state . ex:state a gmeow:State ."@x-gmeow-english ;
+    logic:domain gmeow:QueryNodeExecution ; logic:range gmeow:State .
+
+gmeow:QueryVerdictComparisonOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query verdict comparison owner law"@x-gmeow-english ;
+    skos:definition "Every internal verdict comparison has an existing typed structural outer choice owner distinct from itself. Any two typed outer choices naming that comparison as left operand must be the same owner resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the comparison’s borrowed answer, axis and expected context unique and non-self-referential."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting an arbitrary outer context, copying its bound fields onto the comparison or imposing inverse ownership on downstream targets, States or Situations."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh typed-and-linked outer owner witness, compare typed owner pairs through termEqual, and separately forbid a typed owner link from the comparison to itself."@x-gmeow-english ;
+    skos:scopeNote "The owner existential contains only positive stored joins. Owner-pair equality and non-self comparison use separate guarded universal branches; no positive nested universal or blanket class disjointness is introduced."@x-gmeow-english ;
+    skos:example "A structural owner: ex:outer a gmeow:QueryVerdictChoice ; logic:leftOperand ex:comparison . ex:comparison a gmeow:QueryVerdictComparison ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryVerdictComparison ;
+    logic:message "Every internal verdict comparison has an existing typed structural outer choice owner distinct from itself. Any two typed outer choices naming that comparison as left operand must be the same owner resource." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftOwner" ], [ logic:termIndex 2 ; logic:termVariable "rightOwner" ], [ logic:termIndex 3 ; logic:termVariable "reportedOwner" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "freshComparisonOwner" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshComparisonOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshComparisonOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "rightOwner" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "reportedOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "reportedOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "reportedOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] ] .
+
+gmeow:QueryChoiceEvaluationStateLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query choice evaluation state law"@x-gmeow-english ;
+    skos:definition "Every reported outer verdict-choice or internal comparison execution has a supplied typed evaluation State. The selected choiceEvaluationState role is restricted to those executed node kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject missing selected evaluation States and choice-state roles on unrelated query executions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring State on every generic QueryNodeExecution or treating missing required choice context as an unknown answer value."@x-gmeow-english ;
+    gmeow:howToUse "For an executed outer or inner node require a fresh State witness joined by choiceEvaluationState; for a supplied choice-state edge require a separate fresh executed-node witness typed as outer or inner."@x-gmeow-english ;
+    skos:scopeNote "The optional generic range and qualified maximum enforce State type and at most one coordinate without a global required path. Both existence witnesses have distinct names and neither creates an authentic execution."@x-gmeow-english ;
+    skos:example "A selected evaluation: ex:execution gmeow:executesQueryNode ex:outer ; gmeow:choiceEvaluationState ex:state . ex:outer a gmeow:QueryVerdictChoice . ex:state a gmeow:State ."@x-gmeow-english ;
+    logic:formalizes gmeow:choiceEvaluationState ;
+    logic:message "Every reported outer verdict-choice or internal comparison execution has a supplied typed evaluation State. The selected choiceEvaluationState role is restricted to those executed node kinds." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ], [ logic:termIndex 2 ; logic:termVariable "state" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryNodeExecution ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:executesQueryNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredChoiceState" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:choiceEvaluationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredChoiceState" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredChoiceState" ], [ logic:termIndex 1 ; logic:termIri gmeow:State ] ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation gmeow:choiceEvaluationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scopedChoiceNode" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:executesQueryNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scopedChoiceNode" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "scopedChoiceNode" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "scopedChoiceNode" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ] ] ] ] ] ] ] ] .
+
+gmeow:QueryChoiceKnownnessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query choice knownness law"@x-gmeow-english ;
+    skos:definition "At a reported choice evaluation State, the outer knownness Situation is supported exactly when its selected answer axis has a known value. A reported internal comparison additionally requires that knownness support at its own State."@x-gmeow-english ;
+    gmeow:useWhen "Use to align generic binary guard support with the same attributed answer context and prevent inner evaluation under unknown evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating InfoBoth or InfoNotEvaluated as unknown, selecting a different outer owner or fabricating an outer execution for an inner-only report."@x-gmeow-english ;
+    gmeow:howToUse "Join execution, State, node, unique structural outer context and guard; expand the information and completeness known-value alternatives in both guarded support directions, with distinct fresh actual-value witnesses."@x-gmeow-english ;
+    skos:scopeNote "Absent axis values and their explicit unknown sentinels make knownness false within this selected contract. Missing structural fields or evaluation State is invalid, and Situation support is not authenticated history."@x-gmeow-english ;
+    skos:example "Known context support: ex:answer gmeow:queryInformationState logic:InfoNotEvaluated . ex:state logic:situationObtains ex:knownSituation ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryVerdictChoice ;
+    logic:message "At a reported choice evaluation State, the outer knownness Situation is supported exactly when its selected answer axis has a known value. A reported internal comparison additionally requires that knownness support at its own State." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ], [ logic:termIndex 2 ; logic:termVariable "state" ], [ logic:termIndex 3 ; logic:termVariable "outer" ], [ logic:termIndex 4 ; logic:termVariable "inner" ], [ logic:termIndex 5 ; logic:termVariable "answer" ], [ logic:termIndex 6 ; logic:termVariable "axis" ], [ logic:termIndex 7 ; logic:termVariable "knownGuard" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryNodeExecution ] ],
+[ a logic:Formula ;
+logic:relation gmeow:executesQueryNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceEvaluationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termIri gmeow:State ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAnswer ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAxis ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "axis" ] ],
+[ a logic:Formula ;
+logic:relation logic:guardSituation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "outer" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "KnownForwardInformationActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryInformationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "KnownForwardInformationActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "KnownForwardInformationActual" ], [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ] ] ] ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "KnownForwardCompletenessActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryCompletenessStatus ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "KnownForwardCompletenessActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "KnownForwardCompletenessActual" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ] ] ] ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "KnownReverseInformationActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryInformationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "KnownReverseInformationActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "KnownReverseInformationActual" ], [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ] ] ] ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "KnownReverseCompletenessActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryCompletenessStatus ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "KnownReverseCompletenessActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "KnownReverseCompletenessActual" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ] ] ] ] ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ] ] ] ] ] .
+
+gmeow:QueryChoiceMatchLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query choice matching guard law"@x-gmeow-english ;
+    skos:definition "At the same reported State and bound answer context, the internal matching Situation is supported exactly when the selected actual value is known and equals the expected value."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject contradictory generic matching support even when matching, nonmatching or unknown targets happen to coincide."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid admitting unknown expected sentinels, coercing information into completeness values or relying on the reported target alone to validate binary guard truth."@x-gmeow-english ;
+    gmeow:howToUse "Join the execution context, expected value and comparison guard; expand known equality for both axes into two guarded support directions using separate fresh actual-value witnesses."@x-gmeow-english ;
+    skos:scopeNote "Missing or explicit unknown actual values and known inequality forbid matching support. This check applies during outer unknown evaluations as well as known outer or inner evaluations, without requiring distinct target resources."@x-gmeow-english ;
+    skos:example "A known matching value: ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryVerdictComparison ;
+    logic:message "At the same reported State and bound answer context, the internal matching Situation is supported exactly when the selected actual value is known and equals the expected value." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ], [ logic:termIndex 2 ; logic:termVariable "state" ], [ logic:termIndex 3 ; logic:termVariable "outer" ], [ logic:termIndex 4 ; logic:termVariable "inner" ], [ logic:termIndex 5 ; logic:termVariable "answer" ], [ logic:termIndex 6 ; logic:termVariable "axis" ], [ logic:termIndex 7 ; logic:termVariable "knownGuard" ], [ logic:termIndex 8 ; logic:termVariable "expected" ], [ logic:termIndex 9 ; logic:termVariable "matchGuard" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryNodeExecution ] ],
+[ a logic:Formula ;
+logic:relation gmeow:executesQueryNode ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceEvaluationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termIri gmeow:State ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictChoice ] ],
+[ a logic:Formula ;
+logic:relation logic:leftOperand ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ],
+[ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVerdictComparison ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAnswer ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceAxis ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "axis" ] ],
+[ a logic:Formula ;
+logic:relation logic:guardSituation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "knownGuard" ] ],
+[ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "outer" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termVariable "inner" ] ] ],
+[ a logic:Formula ;
+logic:relation gmeow:choiceExpectedValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outer" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ],
+[ a logic:Formula ;
+logic:relation logic:guardSituation ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inner" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "MatchForwardInformationActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryInformationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "MatchForwardInformationActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchForwardInformationActual" ], [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchForwardInformationActual" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "MatchForwardCompletenessActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryCompletenessStatus ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "MatchForwardCompletenessActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchForwardCompletenessActual" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchForwardCompletenessActual" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:situationObtains ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "state" ], [ logic:termIndex 1 ; logic:termVariable "matchGuard" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryInformationState ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "MatchReverseInformationActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryInformationState ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "MatchReverseInformationActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchReverseInformationActual" ], [ logic:termIndex 1 ; logic:termIri logic:InfoUndetermined ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchReverseInformationActual" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ] ],
+[ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termIri gmeow:queryCompletenessStatus ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "MatchReverseCompletenessActual" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:queryCompletenessStatus ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "MatchReverseCompletenessActual" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchReverseCompletenessActual" ], [ logic:termIndex 1 ; logic:termIri logic:CompletenessUnknown ] ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "MatchReverseCompletenessActual" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ] ] ] ] ] ] ] .
+
+gmeow:QueryVerdictChoice logic:subClassOf logic:Choice .
+
+gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:guardSituation ; logic:allValuesFrom logic:Situation ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictChoice ; logic:closureKey "https://blackcatinformatics.ca/logic/guardSituation" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVerdictChoice logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:guardSituation ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Situation ] .
+
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:allValuesFrom gmeow:QueryProgramNode ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictComparison ; logic:closureKey "https://blackcatinformatics.ca/logic/leftOperand" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:leftOperand ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryProgramNode ] .
+
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:rightOperand ; logic:allValuesFrom gmeow:QueryProgramNode ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictComparison ; logic:closureKey "https://blackcatinformatics.ca/logic/rightOperand" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:rightOperand ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryProgramNode ] .
+
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:guardSituation ; logic:allValuesFrom logic:Situation ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVerdictComparison ; logic:closureKey "https://blackcatinformatics.ca/logic/guardSituation" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:guardSituation ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Situation ] .
+
+gmeow:QueryNodeExecution logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceEvaluationState ; logic:allValuesFrom gmeow:State ],
+    [ a logic:Restriction ; logic:onProperty gmeow:choiceEvaluationState ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:State ] .

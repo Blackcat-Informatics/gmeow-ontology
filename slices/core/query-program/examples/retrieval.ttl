@@ -11,7 +11,7 @@
 ex:archiveQuery a gmeow:QueryProgramGraph ;
     gmeow:queryAdmissionContract gmeow:queryStratifiedFeedbackContract ;
     gmeow:queryGraphNode ex:lexical, ex:secondary, ex:vector, ex:choice,
-        ex:unavailable, ex:fusion, ex:merge, ex:answerSink, ex:ledgerSink, ex:auditSink ;
+        ex:unavailable, ex:choiceComparison, ex:fusion, ex:merge, ex:answerSink, ex:ledgerSink, ex:auditSink ;
     gmeow:queryGraphSink ex:answerSink, ex:ledgerSink, ex:auditSink ;
     gmeow:queryGraphEdge ex:fusionMerge, ex:mergeAnswer, ex:mergeLedger, ex:mergeAudit .
 
@@ -21,7 +21,7 @@ ex:noParameters a gmeow:InformationObject .
 ex:rowDescriptor a gmeow:InformationObject .
 
 ex:lexical a gmeow:SparqlSelectionLeaf ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
     gmeow:selectionText "PREFIX ex: <https://example.org/query-program/> SELECT ?item WHERE { ?item a ex:ArchiveRecord }" ;
     gmeow:selectionLanguage gmeow:querySparqlSelect ;
     gmeow:selectionNodeKind logic:Query ;
@@ -29,22 +29,31 @@ ex:lexical a gmeow:SparqlSelectionLeaf ;
     gmeow:selectionInput ex:noParameters ; gmeow:selectionOutput ex:rowDescriptor .
 
 ex:secondary a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
 ex:vector a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
 ex:unavailable a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger .
 
 # Explicit not-evaluated is comparable. It selects the ordinary matching branch.
 ex:choice a gmeow:QueryVerdictChoice ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
     gmeow:choiceAnswer ex:vectorAnswer ;
     gmeow:choiceAxis gmeow:queryInformationState ;
     gmeow:choiceExpectedValue logic:InfoNotEvaluated ;
-    logic:leftOperand ex:lexical ; logic:rightOperand ex:vector ;
-    gmeow:choiceUnknownBranch ex:unavailable .
+    logic:guardSituation ex:choiceKnownSituation ;
+    logic:leftOperand ex:choiceComparison ; logic:rightOperand ex:unavailable .
+ex:choiceComparison a gmeow:QueryVerdictComparison ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "0"^^xsd:nonNegativeInteger ;
+    logic:guardSituation ex:choiceMatchSituation ;
+    logic:leftOperand ex:lexical ; logic:rightOperand ex:vector .
+ex:choiceKnownSituation a logic:Situation .
+ex:choiceMatchSituation a logic:Situation .
+ex:choiceState a gmeow:State ;
+    logic:situationObtains ex:choiceKnownSituation, ex:choiceMatchSituation .
 ex:choiceOccurrence a gmeow:QueryNodeExecution ;
     gmeow:executesQueryNode ex:choice ;
+    gmeow:choiceEvaluationState ex:choiceState ;
     gmeow:querySelectedBranch ex:lexical .
 
 ex:reader a gmeow:Agent .
@@ -78,7 +87,7 @@ ex:secondA a gmeow:RankedQueryEntry ;
 
 # S=10, k=0: the three per-list contributions are 10, 5 and 10.
 ex:fusion a gmeow:ReciprocalRankFusion ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 1 ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "1"^^xsd:nonNegativeInteger ;
     gmeow:fusionInput ex:firstList, ex:secondList ;
     gmeow:fusionOutput ex:fusedAnswer ;
     gmeow:fusionScale "10"^^xsd:positiveInteger ;
@@ -119,7 +128,7 @@ ex:b1 a gmeow:QueryScoreFoldStep ;
 
 # The output refers to the exact original loss, retaining its acknowledgement.
 ex:merge a gmeow:QueryLedgerMerge ;
-    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 1 ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum "1"^^xsd:nonNegativeInteger ;
     gmeow:mergeAnswerInput ex:fusedAnswer, ex:vectorAnswer ;
     gmeow:mergeAnswerOutput ex:mergedAnswer ; logic:dataflowConsumes ex:fusion .
 ex:mergedAnswer a gmeow:QueryAnswer ;
@@ -129,11 +138,11 @@ ex:mergedLedger a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:lockedLoss .
 
 # Distinct external outputs remain terminal and have no downstream consumers.
 ex:answerSink a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum "2"^^xsd:nonNegativeInteger ; logic:dataflowConsumes ex:merge .
 ex:ledgerSink a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum "2"^^xsd:nonNegativeInteger ; logic:dataflowConsumes ex:merge .
 ex:auditSink a gmeow:QueryProgramNode ;
-    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum "2"^^xsd:nonNegativeInteger ; logic:dataflowConsumes ex:merge .
 ex:fusionMerge a logic:DataFlowEdge ;
     logic:flowFrom ex:fusion ; logic:flowTo ex:merge ; gmeow:queryEdgeMonotone true .
 ex:mergeAnswer a logic:DataFlowEdge ;

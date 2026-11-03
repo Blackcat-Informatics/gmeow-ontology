@@ -2180,7 +2180,7 @@ logic:guardSituation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "guard situation"@x-gmeow-english ;
-    skos:definition "Relates a conditional logic:GoalExpression to the logic:Situation type that guards it — the goal's target (its operand) applies only when the guard holds (via logic:situationObtains). Domain logic:GoalExpression, range logic:Situation (stated in prose). When the guard is false the conditional goal prescribes nothing: the evaluation reflects does-not-apply rather than asserting satisfied or violated."@x-gmeow-english ;
+    skos:definition "Relates a conditional logic:GoalExpression or a logic:Choice program to the logic:Situation type that guards it, with those existing subject uses and Situation range stated in prose. A conditional goal’s operand applies only when the guard obtains through logic:situationObtains; when false, that goal prescribes nothing and its evaluation reflects does-not-apply rather than satisfied or violated. A Choice program instead selects logic:leftOperand when the guard obtains at the current State and logic:rightOperand otherwise; binary program dispatch is distinct from goal applicability."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:operand
@@ -2201,7 +2201,7 @@ logic:situationObtains
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "situation obtains"@x-gmeow-english ;
-    skos:definition "Relates a gmeow:State (a configuration along a logic:Path) to a logic:Situation type that obtains at it — the engine reads this to decide whether an atomic goal's logic:boundSituationType, or a conditional goal's logic:guardSituation, holds at a given state. Domain gmeow:State, range logic:Situation (stated in prose). It records that a situation type is realized at a state without mutating that state, mirroring the prose 'each gmeow:State realizes a logic:Situation' on logic:Path."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:State (a configuration along a logic:Path) to a logic:Situation type that obtains at it — for example, the engine reads this when evaluating an atomic goal’s logic:boundSituationType, a conditional goal’s logic:guardSituation or a logic:Choice program’s guard dispatch at a given state. Domain gmeow:State, range logic:Situation (stated in prose). It records that a situation type is realized at a state without mutating that state, mirroring the prose 'each gmeow:State realizes a logic:Situation' on logic:Path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:observation
