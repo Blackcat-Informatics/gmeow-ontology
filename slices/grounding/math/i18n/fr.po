@@ -10027,7 +10027,7 @@ msgstr "Ne pas recopier un indice d’API commençant à zéro dans ce rang posi
 
 msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach math:generatorIndex to the intended generator resource as its supplied positive integer position, retaining the algebra and basis order. Preserve math:generatorSquare and any calculation evidence separately; the producer's index-plus-one serialization is source evidence, not a new global indexing validator."
-msgstr "Joindre math:generatorIndex à la ressource du générateur voulu comme position entière positive fournie, en conservant l’algèbre et l’ordre de la base. Préserver séparément math:generatorSquare et tout élément probant de calcul ; la sérialisation de l’indice augmenté de un par le producteur est un élément probant tiré du source, pas un nouveau validateur global d’indexation."
+msgstr "Joindre math:generatorIndex à la ressource du générateur voulu comme position entière positive fournie, en conservant l’algèbre et l’ordre de la base. Préserver séparément math:generatorSquare et tout élément probant de calcul ; la sérialisation de l’indice augmenté d’une unité par le producteur est un élément probant provenant du code source, pas un nouveau validateur global d’indexation."
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "generator square"

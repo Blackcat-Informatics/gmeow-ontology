@@ -2632,7 +2632,7 @@ msgstr "生成元平方"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|skos:definition"
 msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
-msgstr "已声明 Clifford 基生成元在代数惯性指数对约定下的精确标量平方。"
+msgstr "已声明 Clifford 基生成元在代数的符号约定下的精确标量平方。"
 
 msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|rdfs:label"
 msgid "pseudoscalar square"
@@ -10027,7 +10027,7 @@ msgstr "不要未经转换就把从零开始的 API 索引复制为此正序号�
 
 msgctxt "https://blackcatinformatics.ca/math/generatorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach math:generatorIndex to the intended generator resource as its supplied positive integer position, retaining the algebra and basis order. Preserve math:generatorSquare and any calculation evidence separately; the producer's index-plus-one serialization is source evidence, not a new global indexing validator."
-msgstr "以 math:generatorIndex 将已提供的正整数位置关联到所需生成元资源，并保留代数及基的次序。另行保留 math:generatorSquare 和计算依据；生产器将索引加一后序列化的源码事实不是新的全局索引验证器。"
+msgstr "以 math:generatorIndex 将已提供的正整数位置关联到所需生成元资源，并保留代数及基的次序。另行保留 math:generatorSquare 和计算依据；生产器将索引加一后序列化这一点是来自源码的证据，而不是新的全局索引验证器。"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "generator square"
@@ -10035,7 +10035,7 @@ msgstr "生成元平方"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The exact scalar square of a declared Clifford basis generator under the algebra's signature convention."
-msgstr "已声明 Clifford 基生成元在代数惯性指数对约定下的精确标量平方。"
+msgstr "已声明 Clifford 基生成元在代数的符号约定下的精确标量平方。"
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The scalar is Q(e_i) under the declared Clifford relation e_i² = Q(e_i). The inspected real diagonal orthonormal API returns +1 for the first p generators and −1 for the next q; those normalized values are not a global mathematical value set for this property."
@@ -10055,7 +10055,7 @@ msgstr "不要将每个数学意义上的生成元平方都视为 ±1，也不�
 
 msgctxt "https://blackcatinformatics.ca/math/generatorSquare|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the supplied scalar through math:generatorSquare on the declared generator and retain its algebra's signature and normalization. Keep any native calculation or law witness distinct; no dedicated generatorSquare cardinality or generic computation gate is asserted here."
-msgstr "通过 math:generatorSquare 在已声明生成元上记录提供的标量，并保留其代数的惯性指数对和归一化方式。须区分原生计算或定律见证；此处不声称存在专门的 generatorSquare 基数校验或通用计算关卡。"
+msgstr "通过 math:generatorSquare 在已声明生成元上记录提供的标量，并保留其代数的符号约定和归一化方式。须区分原生计算或定律见证；此处不声称存在专门的 generatorSquare 基数校验或通用计算关卡。"
 
 msgctxt "https://blackcatinformatics.ca/math/pseudoscalarSquare|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pseudoscalar square"
