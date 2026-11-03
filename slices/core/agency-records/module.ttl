@@ -3071,3 +3071,64 @@ gmeow:slotCurrentGuidance
 # Supplied loop links are typed without requiring a target or choosing a winner.
 gmeow:Guidance logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:guidanceLoop ; logic:allValuesFrom gmeow:OpenLoop ] .
+
+gmeow:EpisodeTransition
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Episode Transition Report"@x-gmeow-english ;
+    skos:definition "An information record of a source-reported departure from an episode Activity and entry into an episode Activity."@x-gmeow-english ;
+    skos:scopeNote "The report is distinct from the episode occurrences, a persona transition and a state update. It computes no chronology, causal order, timestamps, execution, permission or current winner."@x-gmeow-english ;
+    skos:example "ex:report a gmeow:EpisodeTransition ; gmeow:episodeLeft ex:episodeA ; gmeow:episodeEntered ex:episodeB ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source retains a separately identified report of an episode activity change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the report as an episode, an executed transition, a persona change or proof of scheduler action."@x-gmeow-english ;
+    gmeow:howToUse "Retain each supplied episodeLeft, episodeEntered and transitionLoop link with its source, recording attribution and declaring frame."@x-gmeow-english .
+
+gmeow:episodeLeft
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "episode left"@x-gmeow-english ;
+    skos:definition "The source-identified episode Activity occurrence reported as left by an episode-transition record."@x-gmeow-english ;
+    skos:scopeNote "The target is the actual episode occurrence, not a document describing it. The link establishes no ending time, completion, causal order or execution verdict."@x-gmeow-english ;
+    skos:example "ex:report gmeow:episodeLeft ex:episodeA ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies the episode Activity it reports leaving."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid targeting an activity descriptor, a report artifact or a persona instead of the episode occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Link the EpisodeTransition report to the supplied Activity endpoint and preserve the exact declaration’s source and frame."@x-gmeow-english .
+
+gmeow:episodeEntered
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "episode entered"@x-gmeow-english ;
+    skos:definition "The source-identified episode Activity occurrence reported as entered by an episode-transition record."@x-gmeow-english ;
+    skos:scopeNote "The target is the actual episode occurrence, not a document describing it. The link establishes no start time, causal order, permission or successful execution."@x-gmeow-english ;
+    skos:example "ex:report gmeow:episodeEntered ex:episodeB ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies the episode Activity it reports entering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid targeting a proposed activity description, a report artifact or a slot position instead of the episode occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Link the EpisodeTransition report to the supplied Activity endpoint and preserve the exact declaration’s source and frame."@x-gmeow-english .
+
+gmeow:transitionLoop
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:OpenLoop ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported transition loop"@x-gmeow-english ;
+    skos:definition "A source-supplied pursuit record named as the loop entered in an episode-transition report."@x-gmeow-english ;
+    skos:scopeNote "The link names an OpenLoop record without changing loop state, assigning a current slot or identifying an Intention, agent or pursuer."@x-gmeow-english ;
+    skos:example "ex:report gmeow:transitionLoop ex:pursuit ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies the loop entered in the reported episode change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a loop target from endpoint wording, recording attribution or the declaring frame."@x-gmeow-english ;
+    gmeow:howToUse "Link the EpisodeTransition report to each supplied OpenLoop and retain the original target identity and exact claim context."@x-gmeow-english .
+
+# Supplied endpoint and loop values are typed without requiring targets.
+gmeow:EpisodeTransition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:episodeLeft ; logic:allValuesFrom gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:episodeEntered ; logic:allValuesFrom gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionLoop ; logic:allValuesFrom gmeow:OpenLoop ] .

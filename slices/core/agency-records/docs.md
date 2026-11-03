@@ -545,3 +545,43 @@ retains two offer notes, their supplied loop associations, source reasons,
 separate recording roles and the existing typed assignment history. It reports
 no executed scheduler, history validation, resolver or adoption of an offer
 (Principle 17).
+
+## Episode-transition reports
+
+`EpisodeTransition` is an information report of a source-reported departure
+from an episode Activity and entry into an episode Activity. It is distinct
+from the episode occurrences, a persona transition and a state update.
+
+The existing runtime episode model treats episodes as Activity sub-aggregates.
+`Activity` is the provenance specialization of Event that acts upon or with
+entities; the broader Event class also admits generic happenings. Accordingly,
+`episodeLeft` and `episodeEntered` name the actual source-identified Activity
+occurrences, not their descriptions, source documents or slot positions.
+
+`transitionLoop` identifies the source-supplied OpenLoop record named as the
+loop entered. It changes no loop state, selects no current slot and infers no
+Intention or pursuer. The loop's own identity and any supplied Intention
+evidence remain independent.
+
+All three relations are nonfunctional and constrain supplied values only. No
+target is required or fabricated, and competing source reports remain
+attributable. Departure and entry preserve the source's meaning; they compute
+no timestamps, completion, chronology, causal order, scheduler action,
+permission or current winner (Principles 9, 11 and 17).
+
+Keep each report's source artifact through `wasDerivedFrom` and recording Agent
+through `wasAttributedTo` independent. For each supplied endpoint or loop
+assertion, use an ordinary native `rdf:reifies` record retaining that exact
+statement's source through `wasDerivedFrom`, recorder through `wasAttributedTo`
+and declaring frame through `accordingTo`. Report metadata does not propagate
+to constituent assertions. These roles do not identify episode performers or a
+loop's pursuer by implication. When a source supplies an actual Activity performer, retain that
+existing provenance relation on the Activity. One source-identified Agent may
+occupy several roles; no inequality is imposed.
+
+The ordinary [episode-transition scene](examples/episode-transition-reports.ttl)
+retains actual Activity endpoints and loop records in two coexisting reports,
+with report-level source and recorder metadata plus six exact-statement
+reifiers retaining source, recorder and declaring frame. It reports no
+locally executed transition, state update or scheduler, and derives no order
+between the endpoint activities.

@@ -5910,3 +5910,115 @@ msgstr "Éviter de traiter le rôle lui-même comme une offre, une action choisi
 msgctxt "https://blackcatinformatics.ca/gmeow/slotCurrentGuidance|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Use through slotRole; follow slotState to its SlotPosition and slotPointer to the actual Guidance note, retaining typed SlotAssignmentClaim reifiers."
 msgstr "Utiliser avec slotRole ; suivre slotState vers sa SlotPosition, puis slotPointer vers la note Guidance réelle, en conservant les nœuds de réification typés SlotAssignmentClaim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode Transition Report"
+msgstr "Rapport de transition entre épisodes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record of a source-reported departure from an episode Activity and entry into an episode Activity."
+msgstr "Un dossier d’information sur un départ d’une Activity d’épisode et une entrée dans une Activity d’épisode rapportés par une source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The report is distinct from the episode occurrences, a persona transition and a state update. It computes no chronology, causal order, timestamps, execution, permission or current winner."
+msgstr "Le rapport est distinct des occurrences d’épisodes, d’une transition de persona et d’une mise à jour d’état. Il ne calcule ni chronologie, ni ordre causal, ni horodatage, ni exécution, ni permission, ni sélection courante privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report a gmeow:EpisodeTransition ; gmeow:episodeLeft ex:episodeA ; gmeow:episodeEntered ex:episodeB ."
+msgstr "ex:report a gmeow:EpisodeTransition ; gmeow:episodeLeft ex:episodeA ; gmeow:episodeEntered ex:episodeB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source retains a separately identified report of an episode activity change."
+msgstr "Utiliser lorsqu’une source conserve un rapport identifié séparément sur un changement d’activité d’épisode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the report as an episode, an executed transition, a persona change or proof of scheduler action."
+msgstr "Éviter de traiter le rapport comme un épisode, une transition exécutée, un changement de persona ou une preuve d’action de l’ordonnanceur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each supplied episodeLeft, episodeEntered and transitionLoop link with its source, recording attribution and declaring frame."
+msgstr "Conserver chaque lien episodeLeft, episodeEntered et transitionLoop fourni, avec sa source, l’attribution de l’enregistrement et le cadre déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode left"
+msgstr "épisode quitté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-identified episode Activity occurrence reported as left by an episode-transition record."
+msgstr "L’occurrence d’Activity d’épisode identifiée par la source et rapportée comme quittée par un dossier de transition entre épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is the actual episode occurrence, not a document describing it. The link establishes no ending time, completion, causal order or execution verdict."
+msgstr "La cible est l’occurrence réelle d’épisode, non un document qui la décrit. Le lien n’établit ni heure de fin, ni achèvement, ni ordre causal, ni verdict d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:episodeLeft ex:episodeA ."
+msgstr "ex:report gmeow:episodeLeft ex:episodeA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the episode Activity it reports leaving."
+msgstr "Utiliser lorsque la source identifie explicitement l’Activity d’épisode qu’elle rapporte comme quittée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid targeting an activity descriptor, a report artifact or a persona instead of the episode occurrence."
+msgstr "Éviter de cibler un descripteur d’activité, un artefact de rapport ou une persona à la place de l’occurrence d’épisode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLeft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the EpisodeTransition report to the supplied Activity endpoint and preserve the exact declaration’s source and frame."
+msgstr "Relier le rapport EpisodeTransition à l’extrémité Activity fournie et conserver la source et le cadre de la déclaration exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode entered"
+msgstr "épisode rejoint"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-identified episode Activity occurrence reported as entered by an episode-transition record."
+msgstr "L’occurrence d’Activity d’épisode identifiée par la source et rapportée comme rejointe par un dossier de transition entre épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is the actual episode occurrence, not a document describing it. The link establishes no start time, causal order, permission or successful execution."
+msgstr "La cible est l’occurrence réelle d’épisode, non un document qui la décrit. Le lien n’établit ni heure de début, ni ordre causal, ni permission, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:episodeEntered ex:episodeB ."
+msgstr "ex:report gmeow:episodeEntered ex:episodeB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the episode Activity it reports entering."
+msgstr "Utiliser lorsque la source identifie explicitement l’Activity d’épisode qu’elle rapporte comme rejointe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid targeting a proposed activity description, a report artifact or a slot position instead of the episode occurrence."
+msgstr "Éviter de cibler une description d’activité proposée, un artefact de rapport ou une position de case à la place de l’occurrence d’épisode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeEntered|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the EpisodeTransition report to the supplied Activity endpoint and preserve the exact declaration’s source and frame."
+msgstr "Relier le rapport EpisodeTransition à l’extrémité Activity fournie et conserver la source et le cadre de la déclaration exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported transition loop"
+msgstr "boucle de transition rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied pursuit record named as the loop entered in an episode-transition report."
+msgstr "Un dossier de poursuite fourni par la source et nommé comme boucle rejointe dans un rapport de transition entre épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link names an OpenLoop record without changing loop state, assigning a current slot or identifying an Intention, agent or pursuer."
+msgstr "Le lien nomme un dossier OpenLoop sans modifier l’état de la boucle, affecter une case courante ni identifier une Intention, un agent ou un agent poursuivant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:transitionLoop ex:pursuit ."
+msgstr "ex:report gmeow:transitionLoop ex:pursuit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the loop entered in the reported episode change."
+msgstr "Utiliser lorsque la source identifie explicitement la boucle rejointe lors du changement d’épisode rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a loop target from endpoint wording, recording attribution or the declaring frame."
+msgstr "Éviter d’inventer une cible de boucle à partir du libellé des extrémités, de l’attribution de l’enregistrement ou du cadre déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the EpisodeTransition report to each supplied OpenLoop and retain the original target identity and exact claim context."
+msgstr "Relier le rapport EpisodeTransition à chaque OpenLoop fourni et conserver l’identité d’origine de la cible et le contexte exact de l’affirmation."

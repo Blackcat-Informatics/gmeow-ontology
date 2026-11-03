@@ -359,3 +359,39 @@ All new axioms use canonical logic: declarations and supplied-value restrictions
 No existing field requirement or integrity formula is changed. The ordinary
 scene illustrates retained source metadata, not executed history validation,
 offer adoption or generated-surface qualification.
+
+## Episode transitions name Activity endpoints
+
+The existing [runtime stack charter](../../inhabitation/design/INHABITED-RUNTIME-STACK.md)
+models sessions as Activity aggregates and episodes as Activity sub-aggregates.
+Its explicit episode example and the requested activity-change meaning support
+Activity endpoints. Event would widen the contract to generic happenings with
+no agent, generation or attribution role. The older illustrative event-kind
+spellings in that charter are not copied into this source vocabulary.
+
+EpisodeTransition specializes InformationObject as a report, not an occurrence.
+episodeLeft and episodeEntered retain actual episode Activity identities;
+documents or proposed activity descriptors cannot replace those endpoints.
+The source-reported departure and entry remain separate from any computation
+of timestamps, chronology, causal order, completion or execution.
+
+transitionLoop names the source-supplied OpenLoop recorded as entered. No rule
+copies state, assigns a current slot, identifies an Intention or infers a
+pursuer. Each report retains its documentary source and recording attribution
+independently. Each exact endpoint or loop assertion has an ordinary native
+rdf:reifies record carrying its own source, recorder and accordingTo declaring
+frame. Report metadata does not propagate to constituent assertions; no new
+protocol class or type requirement is introduced. A source-identified Activity
+performer is retained through existing
+provenance; neither recorder nor frame supplies that identity. Distinct roles
+do not require distinct Agents.
+
+Canonical logic: domain/range and class-local all-values restrictions type only
+supplied links. They require no endpoint or loop target, impose no functionality
+or exclusivity and introduce no temporal, causal, permission or state rule.
+Existing integrity formulas and manifest dependencies remain unchanged.
+
+This foundation defines no chain-claim attachment, duration calculation,
+cause-rule or cause-fact representation, interlude structure or ordering index.
+The ordinary scene illustrates retained source reports; it supplies no runtime
+transition, scheduler, history-validation or generated-surface qualification.
