@@ -4997,3 +4997,771 @@ gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProp
 gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAuthority ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryRerankAuthority logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryRerank
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Rerank"@x-gmeow-english ;
+    skos:definition "A query-operation description retaining an original candidate union and an attributed rerank answer under an explicitly selected finite reported score profile. It describes the operation without asserting that an execution occurred."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe a rerank stage that accounts for every original candidate and preserves its original union evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the description as a provider invocation, filtering operation or replacement for the original class-ranked lists."@x-gmeow-english ;
+    gmeow:howToUse "Supply one rerankInput, one rerankOutput and rerankScoreProfile rerankFiniteFloatProfile, together with the inherited node effect and stratum declarations."@x-gmeow-english ;
+    skos:scopeNote "The selected contract retains supplied outcomes and positions. It checks scored-before-unscored grouping and unscored-tail order, without certifying the source’s floating-point sort algorithm."@x-gmeow-english ;
+    skos:example "A declared stage: ex:stage a gmeow:QueryRerank ; gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryProgramNode .
+
+gmeow:QueryRerankAnswer
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Rerank Answer"@x-gmeow-english ;
+    skos:definition "An attributed supplied rerank result retaining its original QueryUnionAnswer, exactly one outcome occurrence per original candidate, reported source and output positions, and all original losses with any additional stage losses."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a complete account of the scored and unscored candidates reported by a selected rerank stage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid discarding unscored candidates, replacing original class ranks with a global rank or inferring completeness from an empty ledger."@x-gmeow-english ;
+    gmeow:howToUse "Retain rerankedUnion, the explicit rerankScoreProfile, every rerankEntry and queryCandidate, and the inherited query and loss-ledger coordinates."@x-gmeow-english ;
+    skos:scopeNote "A scored entry requires an answer authority matching the score’s own authority record. An all-unscored answer may omit authority, and an empty input admits an empty result collection."@x-gmeow-english ;
+    skos:example "A supplied result: ex:answer a gmeow:QueryRerankAnswer ; gmeow:rerankedUnion ex:union ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ; gmeow:rerankEntry ex:entry ."@x-gmeow-english ;
+    logic:subClassOf gmeow:QueryAnswer .
+
+gmeow:QueryRerankEntry
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Rerank Entry"@x-gmeow-english ;
+    skos:definition "One candidate outcome occurrence belonging to exactly one rerank answer. It retains that candidate’s original union position and reported output position, with either a finite score and winning passage or an explicit structured unscored cause."@x-gmeow-english ;
+    gmeow:useWhen "Use for an answer-local occurrence that keeps one candidate’s outcome and positions together."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sharing the occurrence between answers or attaching both a score and an unscored cause to it."@x-gmeow-english ;
+    gmeow:howToUse "Supply rerankEntryCandidate, rerankInputPosition and entryOrdinal; link it from its answer and choose exactly one scored or unscored branch."@x-gmeow-english ;
+    skos:scopeNote "Positions are nonnegative source-supplied sequence coordinates, not class ranks or global identity. Other answers use separate occurrences even when candidate or score resources are shared."@x-gmeow-english ;
+    skos:example "A scored occurrence: ex:entry a gmeow:QueryRerankEntry ; gmeow:rerankEntryCandidate ex:candidate ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:rerankFiniteFloatProfile
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "finite reported float rerank profile"@x-gmeow-english ;
+    skos:definition "The explicit profile value selecting a rerank account whose scored outcomes use the finite reported IEEE 754 single precision QueryRerankScore contract, while preserving every original candidate and explicit unscored outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use as the selected rerankScoreProfile value on a rerank operation and its reported answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring profile selection from a node name, score presence or provider wording, or silently admitting nonfinite source scores."@x-gmeow-english ;
+    gmeow:howToUse "Assert this value explicitly on both QueryRerank and QueryRerankAnswer through rerankScoreProfile."@x-gmeow-english ;
+    skos:scopeNote "The profile requires finite score context and full outcome accounting. It supplies no automatic default, provider execution, float-comparator proof or completeness value."@x-gmeow-english ;
+    skos:example "An explicit selection: ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."@x-gmeow-english .
+
+gmeow:rerankInput
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank input union"@x-gmeow-english ;
+    skos:definition "The original QueryUnionAnswer selected as the declared input of a QueryRerank operation. Its candidate identities, retained class lists and loss records remain source evidence beside the reranked outcomes."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the original union consumed by a declared rerank stage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a filtered candidate subset or replacing original class-list occurrences with a newly ranked list."@x-gmeow-english ;
+    gmeow:howToUse "Link one original QueryUnionAnswer; require the operation’s output answer to retain that same resource through rerankedUnion."@x-gmeow-english ;
+    skos:scopeNote "This operation-input declaration is distinct from the answer’s retained original-input evidence and does not itself assert an execution occurrence."@x-gmeow-english ;
+    skos:example "A declared original input: ex:stage gmeow:rerankInput ex:union ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerank ; logic:range gmeow:QueryUnionAnswer .
+
+gmeow:rerankOutput
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank output answer"@x-gmeow-english ;
+    skos:definition "The attributed QueryRerankAnswer reported as the output of a QueryRerank operation description. The answer retains the operation’s original input union and its complete candidate outcome account."@x-gmeow-english ;
+    gmeow:useWhen "Use to associate a declared rerank stage with its supplied result record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking a ranked input list, bare score or filtered candidate set as the full rerank answer."@x-gmeow-english ;
+    gmeow:howToUse "Link one QueryRerankAnswer and retain its original union, explicit profile, candidate entries and loss ledger."@x-gmeow-english ;
+    skos:scopeNote "The edge supplies no provider invocation, execution time, score authenticity or inferred result status."@x-gmeow-english ;
+    skos:example "A supplied output association: ex:stage gmeow:rerankOutput ex:answer ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerank ; logic:range gmeow:QueryRerankAnswer .
+
+gmeow:rerankedUnion
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reranked original union"@x-gmeow-english ;
+    skos:definition "The same original QueryUnionAnswer retained by a supplied rerank answer, preserving access to its class-list resources, original class entry occurrences, candidate identities and losses."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain original union evidence directly on a rerank result, including a standalone supplied answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying original entries into a global ranking or treating source union sequence order as merit."@x-gmeow-english ;
+    gmeow:howToUse "Link the original union resource and preserve all of its candidates and loss identities in the result account."@x-gmeow-english ;
+    skos:scopeNote "When the answer is a QueryRerank output, this resource must equal the operation’s rerankInput. Original ranks and tie keys remain on their original class-list entries."@x-gmeow-english ;
+    skos:example "A retained original resource: ex:answer gmeow:rerankedUnion ex:union ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAnswer ; logic:range gmeow:QueryUnionAnswer .
+
+gmeow:rerankEntry
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank result entry"@x-gmeow-english ;
+    skos:definition "One answer-local candidate outcome occurrence retained by a QueryRerankAnswer. The collection contains exactly one entry per original union candidate, including candidates that were not scored."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose all reported candidate outcomes and their source and output positions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting failed or unscored rows, repeating a candidate within one answer or sharing one occurrence between answer sequences."@x-gmeow-english ;
+    gmeow:howToUse "Link each QueryRerankEntry from its single owning answer and retain its candidate, positions and selected outcome branch."@x-gmeow-english ;
+    skos:scopeNote "An empty input union permits no entries. Entry collection membership itself imposes no contiguous indices or floating-point score sort."@x-gmeow-english ;
+    skos:example "Two retained outcomes: ex:answer gmeow:rerankEntry ex:scoredEntry, ex:unscoredEntry ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAnswer ; logic:range gmeow:QueryRerankEntry .
+
+gmeow:rerankEntryCandidate
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank entry candidate"@x-gmeow-english ;
+    skos:definition "The exact original union candidate identity named by one rerank entry. Every input candidate has one such occurrence, and no entry names a candidate outside the retained original union."@x-gmeow-english ;
+    gmeow:useWhen "Use to join a reported outcome to the original candidate without deriving identity from its passage or numeric score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting replacement candidates, identifying candidates by output position or interpreting membership as truth or confidence."@x-gmeow-english ;
+    gmeow:howToUse "Reference one original candidate resource on the entry and preserve the same identity in input and output queryCandidate membership."@x-gmeow-english ;
+    skos:scopeNote "The candidate may occur in several original class lists or separate rerank answers; only the outcome occurrence is local to one answer."@x-gmeow-english ;
+    skos:example "A retained candidate identity: ex:entry gmeow:rerankEntryCandidate ex:candidate ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankEntry ; logic:range logic:Thing .
+
+gmeow:rerankInputPosition
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank original union position"@x-gmeow-english ;
+    skos:definition "The supplied zero-based position of an entry’s candidate in the original union sequence. It preserves source sequence evidence independently of the entry’s reported output entryOrdinal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the original union order needed to account for the unscored tail."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this coordinate as class rank, merit, global candidate identity or a reason to renumber retained rows."@x-gmeow-english ;
+    gmeow:howToUse "Retain one xsd:nonNegativeInteger on each entry and keep input positions unique within its owning answer."@x-gmeow-english ;
+    skos:scopeNote "No contiguous sequence or declared source count is inferred. Canonical order checks preserve this relative order among unscored entries only."@x-gmeow-english ;
+    skos:example "A supplied original position: ex:entry gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankEntry ; logic:range xsd:nonNegativeInteger .
+
+gmeow:rerankScore
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank entry score"@x-gmeow-english ;
+    skos:definition "The supplied finite QueryRerankScore of a scored candidate occurrence. This branch requires a retained winning passage and excludes a simultaneous structured unscored cause."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reported quantitative outcome without moving its magnitude into an entry-local numeric property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a nonfinite source score, treating the score as probability or using score presence to infer a successful provider execution."@x-gmeow-english ;
+    gmeow:howToUse "Link one existing QueryRerankScore, retain rerankWinningPassage, and match that score’s rerankScoreAuthority to the answer’s actual authority record."@x-gmeow-english ;
+    skos:scopeNote "The existing score contract owns magnitude, dimension, frame and authority context. The stage adds no duplicate finite-value law or floating-point sorting mechanism."@x-gmeow-english ;
+    skos:example "A scored branch: ex:entry gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankEntry ; logic:range gmeow:QueryRerankScore .
+
+gmeow:rerankWinningPassage
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank winning passage"@x-gmeow-english ;
+    skos:definition "The source-supplied best-scoring passage text retained beside a candidate’s reported rerank score. It is an xsd:string literal and is present exactly on the scored outcome branch."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve which supplied passage accompanied a candidate’s reported score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a passage for an unscored candidate, declaring a language from plain text or treating retention as display authorization."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied passage into one xsd:string literal on the scored entry and retain its score separately through rerankScore."@x-gmeow-english ;
+    skos:scopeNote "The carrier preserves text without re-running passage selection or proving that the provider evaluated every possible passage."@x-gmeow-english ;
+    skos:example "A supplied winning passage: ex:entry gmeow:rerankWinningPassage \"A retained source passage.\" ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankEntry ; logic:range xsd:string ; logic:subPropertyOf lang:literalValue .
+
+gmeow:rerankUnscoredDetail
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank unscored detail"@x-gmeow-english ;
+    skos:definition "The explicit source-reported structured cause of a candidate’s unscored outcome. It retains native structured values and record fields, excluding a simultaneous score or winning passage."@x-gmeow-english ;
+    gmeow:useWhen "Use to account for a retained candidate that the source did not score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting a supplied numeric score into this branch after profile rejection, stringifying structured causes or identifying every detail with an aggregate QueryLoss."@x-gmeow-english ;
+    gmeow:howToUse "Link one actual StructuredValue and retain its source record tag, labelled fields and nested native values through the existing structured-value vocabulary."@x-gmeow-english ;
+    skos:scopeNote "Actual loss records remain in the answer’s loss ledger. A typed unscored cause does not prove the candidate false, and its answer cannot report CompleteForFragment."@x-gmeow-english ;
+    skos:example "An explicit unscored branch: ex:entry gmeow:rerankUnscoredDetail ex:detail ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankEntry ; logic:range gmeow:StructuredValue .
+
+gmeow:rerankAuthority
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank answer authority"@x-gmeow-english ;
+    skos:definition "The supplied source scoring authority retained by a rerank answer. It is required whenever any entry is scored and must be the same authority record referenced by each retained score."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain answer-level source scoring identity and context alongside every candidate outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring authority from score-kind wording, merging records from equal opaque bytes or requiring an invented authority for an all-unscored result."@x-gmeow-english ;
+    gmeow:howToUse "Retain at most one supplied QueryRerankAuthority on the answer and bind every scored quantity to that actual record through rerankScoreAuthority."@x-gmeow-english ;
+    skos:scopeNote "A supplied authority is legal even when all candidates are unscored. Its presence alone proves neither scoring success nor provider invocation."@x-gmeow-english ;
+    skos:example "A supplied answer authority: ex:answer gmeow:rerankAuthority ex:authority ."@x-gmeow-english ;
+    logic:domain gmeow:QueryRerankAnswer ; logic:range gmeow:QueryRerankAuthority .
+
+gmeow:rerankScoreProfile
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "rerank score profile"@x-gmeow-english ;
+    skos:definition "The explicit selected profile of a rerank operation description or attributed result. This stage contract requires the sole admitted value rerankFiniteFloatProfile on each."@x-gmeow-english ;
+    gmeow:useWhen "Use to make finite reported score and full outcome-accounting obligations explicit on both operation and answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid silently defaulting the profile, selecting it from provider wording or treating a missing selection as a weaker supported result."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one rerankScoreProfile value on the QueryRerank node and its QueryRerankAnswer, choosing rerankFiniteFloatProfile."@x-gmeow-english ;
+    skos:scopeNote "The selected value fixes mandatory evidence obligations without asserting native execution, score comparator equivalence or completeness."@x-gmeow-english ;
+    skos:example "Explicit operation and result selection: ex:stage gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile . ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:QueryRerank gmeow:QueryRerankAnswer ) ] ; logic:range logic:QualityValue .
+
+gmeow:QueryRerankInputAgreementLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank input agreement law"@x-gmeow-english ;
+    skos:definition "The answer named as a QueryRerank output retains the same original union resource that the operation declares through rerankInput. Reported original evidence cannot silently substitute another input."@x-gmeow-english ;
+    gmeow:useWhen "Use to check agreement between a declared operation input and its result’s retained original union."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid matching inputs by candidate count, display label or equal scores rather than the actual union resource."@x-gmeow-english ;
+    gmeow:howToUse "Bind the typed operation, rerankInput and rerankOutput, then require rerankedUnion from that answer to the bound input."@x-gmeow-english ;
+    skos:scopeNote "Required single-valued input and original-union paths make conflicting source associations invalid without creating execution evidence."@x-gmeow-english ;
+    skos:example "Matching original evidence: ex:stage gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer . ex:answer gmeow:rerankedUnion ex:union ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankInput ;
+    logic:message "The answer named as a QueryRerank output retains the same original union resource that the operation declares through rerankInput. Reported original evidence cannot silently substitute another input." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "answer" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerank ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankInput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankOutput ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "answer" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ] ] ] .
+
+gmeow:QueryRerankCandidateAccountingLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank candidate accounting law"@x-gmeow-english ;
+    skos:definition "A rerank answer retains exactly its original union’s candidate identities and an outcome occurrence for each. Every entry names an original candidate; no original candidate is omitted and no foreign candidate is added."@x-gmeow-english ;
+    gmeow:useWhen "Use to check complete candidate accounting across original membership, output membership and entry occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting an unscored outcome as permission to remove the candidate or replacing identity accounting with a matching total count."@x-gmeow-english ;
+    gmeow:howToUse "Check input-to-entry coverage, entry-to-input membership, input-to-output membership and output-to-input membership as four guarded implications."@x-gmeow-english ;
+    skos:scopeNote "This law permits an empty input with empty output collections. Candidate uniqueness remains a separate occurrence obligation."@x-gmeow-english ;
+    skos:example "One retained candidate: ex:union gmeow:queryCandidate ex:c . ex:answer gmeow:queryCandidate ex:c ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankEntry ;
+    logic:message "A rerank answer retains exactly its original union’s candidate identities and an outcome occurrence for each. Every entry names an original candidate; no original candidate is omitted and no foreign candidate is added." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "candidate" ], [ logic:termIndex 3 ; logic:termVariable "entry" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "retainedEntry" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "retainedEntry" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankEntry ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "retainedEntry" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "retainedEntry" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:queryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ] ] ] .
+
+gmeow:QueryRerankEntryUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank entry uniqueness law"@x-gmeow-english ;
+    skos:definition "Two entries of one rerank answer naming the same original candidate must be the same occurrence resource. Together with complete candidate accounting, this gives one outcome occurrence per input candidate."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate outcome occurrences for one candidate within a result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying this within-answer identity rule to candidates retained by different answers or to shared quantitative score resources."@x-gmeow-english ;
+    gmeow:howToUse "Bind two entries of the same answer and their common rerankEntryCandidate, then compare entry identities through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "Equal score values or passages do not identify different candidates, and the same candidate may have another occurrence in another result."@x-gmeow-english ;
+    skos:example "One occurrence for one candidate: ex:answer gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankEntry ;
+    logic:message "Two entries of one rerank answer naming the same original candidate must be the same occurrence resource. Together with complete candidate accounting, this gives one outcome occurrence per input candidate." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "candidate" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntryCandidate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:QueryRerankEntryOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank entry owner law"@x-gmeow-english ;
+    skos:definition "Every rerank entry belongs to exactly one rerank answer. Its source and output positions are local to that answer’s sequences, so another answer requires a separate occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent one outcome occurrence from borrowing two result or original-input contexts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing unique inverse ownership on candidate identities, score quantities, authority records or retained losses."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh existing typed answer owner and compare any pair of answer links to the entry through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "The Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication. It introduces no positive nested universal and no global ownership rule beyond entries."@x-gmeow-english ;
+    skos:example "A single owning sequence: ex:answer gmeow:rerankEntry ex:e . ex:e a gmeow:QueryRerankEntry ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankEntry ;
+    logic:message "Every rerank entry belongs to exactly one rerank answer. Its source and output positions are local to that answer’s sequences, so another answer requires a separate occurrence." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftOwner" ], [ logic:termIndex 2 ; logic:termVariable "rightOwner" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankEntry ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "freshOwner" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "rightOwner" ] ] ] ] ] ] .
+
+gmeow:QueryRerankPositionUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank position uniqueness law"@x-gmeow-english ;
+    skos:definition "Within one rerank answer, equal reported output positions identify the same entry, and equal original union positions separately identify the same entry. Source positions remain unique without renumbering."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject competing occurrences at one supplied input or output position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring contiguous indices, inventing a source count or treating positions from different answers as a global coordinate system."@x-gmeow-english ;
+    gmeow:howToUse "Compare bound integer entryOrdinal values and, separately, bound rerankInputPosition values with logic:termEqual; each equality requires equal entry identities."@x-gmeow-english ;
+    skos:scopeNote "The admitted nonnegative integer coordinates are compared through the canonical term relation. No reflected numeric relation or floating-point comparison is used."@x-gmeow-english ;
+    skos:example "Distinct source coordinates: ex:left gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger . ex:right gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankEntry ;
+    logic:message "Within one rerank answer, equal reported output positions identify the same entry, and equal original union positions separately identify the same entry. Source positions remain unique without renumbering." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "leftPosition" ], [ logic:termIndex 4 ; logic:termVariable "rightPosition" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftPosition" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftPosition" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankInputPosition ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftPosition" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankInputPosition ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftPosition" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] ] ] .
+
+gmeow:QueryRerankOutcomeLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank outcome law"@x-gmeow-english ;
+    skos:definition "Every rerank entry selects exactly one scored or structured unscored branch. A winning passage is present exactly when a score is retained, while the unscored branch has neither score nor winning passage."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject missing, contradictory or partly declared candidate outcome branches."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling a missing branch with zero, empty passage text or a fabricated cause, or converting profile-rejected source scores into unscored outcomes."@x-gmeow-english ;
+    gmeow:howToUse "Require a score or structured detail, forbid their conjunction, and enforce both score-to-passage and passage-to-score existence implications."@x-gmeow-english ;
+    skos:scopeNote "Branch datatype and single-value checks come from the local restrictions. StructuredValue retains its own payload-branch contract."@x-gmeow-english ;
+    skos:example "An explicit unscored outcome: ex:e gmeow:rerankUnscoredDetail ex:detail . ex:detail a gmeow:StructuredMap ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankEntry ;
+    logic:message "Every rerank entry selects exactly one scored or structured unscored branch. A winning passage is present exactly when a score is retained, while the unscored branch has neither score nor winning passage." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "score" ], [ logic:termIndex 2 ; logic:termVariable "passage" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankEntry ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "retainedScore" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "retainedScore" ] ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "retainedDetail" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "retainedDetail" ] ] ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "conflictingScore" ], [ logic:termIndex 1 ; logic:termVariable "conflictingDetail" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "conflictingScore" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "conflictingDetail" ] ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "score" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winningPassage" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:rerankWinningPassage ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "winningPassage" ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation gmeow:rerankWinningPassage ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "passage" ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "passageScore" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "passageScore" ] ] ] ] ] ] ] .
+
+gmeow:QueryRerankAuthorityRequiredLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank authority required law"@x-gmeow-english ;
+    skos:definition "A rerank answer retaining any scored entry must retain a supplied source authority record. No authority is manufactured for an all-unscored answer."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject scored results whose answer-level source scoring context is absent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a present authority as proof that any candidate was scored or forbidding a supplied authority on an all-unscored result."@x-gmeow-english ;
+    gmeow:howToUse "Bind the answer, its entry and that entry’s score; require an existing QueryRerankAuthority linked through rerankAuthority."@x-gmeow-english ;
+    skos:scopeNote "The answer permits at most one authority. Its agreement with each score’s own authority is a separate law, and the score retains its existing quantitative context requirements."@x-gmeow-english ;
+    skos:example "Scored answer context: ex:answer gmeow:rerankEntry ex:e ; gmeow:rerankAuthority ex:authority . ex:e gmeow:rerankScore ex:score ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankAuthority ;
+    logic:message "A rerank answer retaining any scored entry must retain a supplied source authority record. No authority is manufactured for an all-unscored answer." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ], [ logic:termIndex 2 ; logic:termVariable "score" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ], [ logic:termIndex 1 ; logic:termVariable "score" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "authority" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "authority" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAuthority ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankAuthority ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "authority" ] ] ] ] ] ] .
+
+gmeow:QueryRerankAuthorityAgreementLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank authority agreement law"@x-gmeow-english ;
+    skos:definition "Every score retained by a rerank answer references the same actual source authority record as the answer. Equal opaque identity bytes on different records do not satisfy this record-identity obligation."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject an answer that mixes scores from another retained authority context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing authority labels, byte values or frames in place of the authority resource, or repeating the score’s existing finite and quantitative context laws."@x-gmeow-english ;
+    gmeow:howToUse "Bind the answer, entry, score, score authority and answer authority, then require logic:termEqual between the two authority resources."@x-gmeow-english ;
+    skos:scopeNote "The existing QueryRerankScoreContextLaw handles dimension and frame agreement through the score’s direct authority link. This law adds only answer-to-score authority identity agreement."@x-gmeow-english ;
+    skos:example "Matching authority record: ex:answer gmeow:rerankAuthority ex:authority . ex:score gmeow:rerankScoreAuthority ex:authority ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankAuthority ;
+    logic:message "Every score retained by a rerank answer references the same actual source authority record as the answer. Equal opaque identity bytes on different records do not satisfy this record-identity obligation." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ], [ logic:termIndex 2 ; logic:termVariable "score" ], [ logic:termIndex 3 ; logic:termVariable "scoreAuthority" ], [ logic:termIndex 4 ; logic:termVariable "answerAuthority" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ], [ logic:termIndex 1 ; logic:termVariable "score" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScoreAuthority ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "score" ], [ logic:termIndex 1 ; logic:termVariable "scoreAuthority" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankAuthority ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "answerAuthority" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreAuthority" ], [ logic:termIndex 1 ; logic:termVariable "answerAuthority" ] ] ] ] .
+
+gmeow:QueryRerankReportedOrderLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank reported order law"@x-gmeow-english ;
+    skos:definition "Within a rerank answer, every scored occurrence precedes every unscored occurrence, and unscored occurrences retain their relative original union order. Both obligations compare integer sequence positions only."@x-gmeow-english ;
+    gmeow:useWhen "Use to check scored-group placement and original order within the unscored tail."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law validates scored numeric-descending order, equal-score tie order, signed-zero behavior or a provider’s floating-point comparator."@x-gmeow-english ;
+    gmeow:howToUse "Use logic:termLess on bound entryOrdinal values for scored versus unscored entries; for two unscored entries, require output order whenever their input positions are ordered."@x-gmeow-english ;
+    skos:scopeNote "These are exactly two guarded integer implications. No score magnitude, contiguous-index requirement or comparator implementation is added."@x-gmeow-english ;
+    skos:example "Group placement: ex:scored gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:unscored gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:formalizes gmeow:entryOrdinal ;
+    logic:message "Within a rerank answer, every scored occurrence precedes every unscored occurrence, and unscored occurrences retain their relative original union order. Both obligations compare integer sequence positions only." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "leftScore" ], [ logic:termIndex 4 ; logic:termVariable "leftDetail" ], [ logic:termIndex 5 ; logic:termVariable "rightDetail" ], [ logic:termIndex 6 ; logic:termVariable "leftInput" ], [ logic:termIndex 7 ; logic:termVariable "rightInput" ], [ logic:termIndex 8 ; logic:termVariable "leftOutput" ], [ logic:termIndex 9 ; logic:termVariable "rightOutput" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankScore ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftScore" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightDetail" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftOutput" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightOutput" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termLess ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOutput" ], [ logic:termIndex 1 ; logic:termVariable "rightOutput" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftDetail" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightDetail" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankInputPosition ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftInput" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankInputPosition ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightInput" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftOutput" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightOutput" ] ],
+[ a logic:Formula ;
+logic:relation logic:termLess ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftInput" ], [ logic:termIndex 1 ; logic:termVariable "rightInput" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termLess ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOutput" ], [ logic:termIndex 1 ; logic:termVariable "rightOutput" ] ] ] ] ] ] .
+
+gmeow:QueryRerankLossRetentionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank loss retention law"@x-gmeow-english ;
+    skos:definition "Every loss resource retained by an original union ledger survives by identity in an output answer ledger. Additional supplied rerank-stage losses may coexist with those original records."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a rerank result that omits or replaces an inherited loss record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring input and output ledgers to be identical, erasing acknowledged losses or treating a new stage loss as a replacement for an original one."@x-gmeow-english ;
+    gmeow:howToUse "Bind each input ledger and loss, then require an existing output ledger containing the same loss resource through ledgerLoss."@x-gmeow-english ;
+    skos:scopeNote "The law forwards source loss identities without repairing, waiving or authenticating them. It imposes no inverse owner on a shared loss or ledger."@x-gmeow-english ;
+    skos:example "Original plus stage loss: ex:inputLedger gmeow:ledgerLoss ex:originalLoss . ex:outputLedger gmeow:ledgerLoss ex:originalLoss, ex:stageLoss ."@x-gmeow-english ;
+    logic:formalizes gmeow:rerankedUnion ;
+    logic:message "Every loss resource retained by an original union ledger survives by identity in an output answer ledger. Additional supplied rerank-stage losses may coexist with those original records." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ], [ logic:termIndex 2 ; logic:termVariable "inputLedger" ], [ logic:termIndex 3 ; logic:termVariable "loss" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankedUnion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "input" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:queryLossLedger ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "input" ], [ logic:termIndex 1 ; logic:termVariable "inputLedger" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:ledgerLoss ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "inputLedger" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "outputLedger" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outputLedger" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryLossLedger ] ],
+[ a logic:Formula ;
+logic:relation gmeow:queryLossLedger ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "outputLedger" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:ledgerLoss ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "outputLedger" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ] ] ] ] ] .
+
+gmeow:QueryRerankUnscoredCompletenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query rerank unscored completeness law"@x-gmeow-english ;
+    skos:definition "A rerank answer with any explicit unscored candidate cannot report CompleteForFragment. The source’s other status evidence and any missing status remain independently represented."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a complete-result claim that coexists with a retained unscored outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating an incomplete status from absence, deleting the unscored row or treating an empty loss ledger as proof of complete scoring."@x-gmeow-english ;
+    gmeow:howToUse "Bind an answer entry and its structured unscored detail, then forbid the answer’s queryCompletenessStatus value logic:CompleteForFragment."@x-gmeow-english ;
+    skos:scopeNote "This law is a negative compatibility check, not a status default or inference of provider success. Empty input and all-scored results still carry only statuses actually supplied."@x-gmeow-english ;
+    skos:example "An explicitly incomplete source report: ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryRerankAnswer ;
+    logic:message "A rerank answer with any explicit unscored candidate cannot report CompleteForFragment. The source’s other status evidence and any missing status remain independently represented." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ], [ logic:termIndex 2 ; logic:termVariable "detail" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryRerankAnswer ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankEntry ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "entry" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:rerankUnscoredDetail ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ], [ logic:termIndex 1 ; logic:termVariable "detail" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation gmeow:queryCompletenessStatus ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:CompleteForFragment ] ] ] ] ] .
+
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankInput ; logic:allValuesFrom gmeow:QueryUnionAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerank ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankInput" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankInput ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryUnionAnswer ] .
+
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankOutput ; logic:allValuesFrom gmeow:QueryRerankAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerank ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankOutput" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankOutput ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryRerankAnswer ] .
+
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreProfile ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( gmeow:rerankFiniteFloatProfile ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerank ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankScoreProfile" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerank logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreProfile ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:QualityValue ] .
+
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankedUnion ; logic:allValuesFrom gmeow:QueryUnionAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankedUnion" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankedUnion ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryUnionAnswer ] .
+
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreProfile ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( gmeow:rerankFiniteFloatProfile ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankScoreProfile" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScoreProfile ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:QualityValue ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankEntryCandidate ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankEntryCandidate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankInputPosition ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rerankInputPosition" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankInputPosition ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryRerankEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankAuthority ; logic:allValuesFrom gmeow:QueryRerankAuthority ] .
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankAuthority ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryRerankAuthority ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScore ; logic:allValuesFrom gmeow:QueryRerankScore ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankScore ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryRerankScore ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankWinningPassage ; logic:allValuesFrom xsd:string ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankWinningPassage ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:string ] .
+
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankUnscoredDetail ; logic:allValuesFrom gmeow:StructuredValue ] .
+gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankUnscoredDetail ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:StructuredValue ] .
+
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankEntry ; logic:allValuesFrom gmeow:QueryRerankEntry ] .
+
+gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryCandidate ; logic:allValuesFrom logic:Thing ] .

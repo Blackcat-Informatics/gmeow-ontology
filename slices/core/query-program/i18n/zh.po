@@ -3283,3 +3283,731 @@ msgstr "必需坐标限制单独处理缺失值。一致性针对实际量纲和
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankScoreContextLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A context-agreement obligation: gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
 msgstr "上下文一致义务：gmeow:QueryRerankScoreContextLaw logic:formalizes gmeow:QueryRerankScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank"
+msgstr "查询重排"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-operation description retaining an original candidate union and an attributed rerank answer under an explicitly selected finite reported score profile. It describes the operation without asserting that an execution occurred."
+msgstr "一种查询操作描述，在显式选择的有限已报告分数配置下，保留原始候选并集及带有归属的重排答案。它描述操作，不断言执行已经发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a rerank stage that accounts for every original candidate and preserves its original union evidence."
+msgstr "用于描述交代每个原始候选项并保留其原始并集证据的重排阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the description as a provider invocation, filtering operation or replacement for the original class-ranked lists."
+msgstr "避免将此描述视为提供方调用、过滤操作或原始类别内有序列表的替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one rerankInput, one rerankOutput and rerankScoreProfile rerankFiniteFloatProfile, together with the inherited node effect and stratum declarations."
+msgstr "提供一个 rerankInput、一个 rerankOutput 及 rerankScoreProfile rerankFiniteFloatProfile，连同继承的节点效应及层级声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected contract retains supplied outcomes and positions. It checks scored-before-unscored grouping and unscored-tail order, without certifying the source’s floating-point sort algorithm."
+msgstr "所选契约保留所提供的结果及位置。它检查有分数条目先于无分数条目的分组及无分数尾部顺序，不认证来源的浮点排序算法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerank|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared stage: ex:stage a gmeow:QueryRerank ; gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "声明的阶段：ex:stage a gmeow:QueryRerank ; gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Answer"
+msgstr "查询重排答案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed supplied rerank result retaining its original QueryUnionAnswer, exactly one outcome occurrence per original candidate, reported source and output positions, and all original losses with any additional stage losses."
+msgstr "带有归属的所提供重排结果，保留其原始 QueryUnionAnswer、每个原始候选项恰好一个结果出现项、报告的来源位置及输出位置，以及全部原始损失和任何额外阶段损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete account of the scored and unscored candidates reported by a selected rerank stage."
+msgstr "用于完整记录所选重排阶段报告的有分数及无分数候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid discarding unscored candidates, replacing original class ranks with a global rank or inferring completeness from an empty ledger."
+msgstr "避免丢弃无分数候选项、用全局名次替代原始类别名次，或从空账本推断完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain rerankedUnion, the explicit rerankScoreProfile, every rerankEntry and queryCandidate, and the inherited query and loss-ledger coordinates."
+msgstr "保留 rerankedUnion、显式 rerankScoreProfile、每个 rerankEntry 和 queryCandidate，以及继承的查询及损失账本坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A scored entry requires an answer authority matching the score’s own authority record. An all-unscored answer may omit authority, and an empty input admits an empty result collection."
+msgstr "有分数条目要求答案权威记录与分数自身权威记录相同。全无分数答案可省略权威记录，空输入允许空结果集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied result: ex:answer a gmeow:QueryRerankAnswer ; gmeow:rerankedUnion ex:union ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ; gmeow:rerankEntry ex:entry ."
+msgstr "所提供的结果：ex:answer a gmeow:QueryRerankAnswer ; gmeow:rerankedUnion ex:union ; gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ; gmeow:rerankEntry ex:entry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Rerank Entry"
+msgstr "查询重排条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One candidate outcome occurrence belonging to exactly one rerank answer. It retains that candidate’s original union position and reported output position, with either a finite score and winning passage or an explicit structured unscored cause."
+msgstr "恰好属于一个重排答案的单个候选结果出现项。它保留该候选项的原始并集位置及报告的输出位置，并具有有限分数和胜出片段，或显式结构化无分数原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an answer-local occurrence that keeps one candidate’s outcome and positions together."
+msgstr "用于在单个答案内，将一个候选项的结果及位置共同保留的出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing the occurrence between answers or attaching both a score and an unscored cause to it."
+msgstr "避免跨答案共享该出现项，或同时为其附加分数及无分数原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply rerankEntryCandidate, rerankInputPosition and entryOrdinal; link it from its answer and choose exactly one scored or unscored branch."
+msgstr "提供 rerankEntryCandidate、rerankInputPosition 及 entryOrdinal；从其答案关联该条目，并在有分数与无分数分支中恰好选择一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Positions are nonnegative source-supplied sequence coordinates, not class ranks or global identity. Other answers use separate occurrences even when candidate or score resources are shared."
+msgstr "位置是来源提供的非负序列坐标，不是类别名次或全局身份。即使共享候选或分数资源，其他答案也使用独立出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scored occurrence: ex:entry a gmeow:QueryRerankEntry ; gmeow:rerankEntryCandidate ex:candidate ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+msgstr "有分数出现项：ex:entry a gmeow:QueryRerankEntry ; gmeow:rerankEntryCandidate ex:candidate ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finite reported float rerank profile"
+msgstr "有限已报告浮点重排配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit profile value selecting a rerank account whose scored outcomes use the finite reported IEEE 754 single precision QueryRerankScore contract, while preserving every original candidate and explicit unscored outcome."
+msgstr "显式配置值，选择一种重排记录：其有分数结果使用针对已报告有限 IEEE 754 单精度分数的 QueryRerankScore 契约，同时保留每个原始候选项及显式无分数结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the selected rerankScoreProfile value on a rerank operation and its reported answer."
+msgstr "用于作为重排操作及其报告答案上选定的 rerankScoreProfile 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring profile selection from a node name, score presence or provider wording, or silently admitting nonfinite source scores."
+msgstr "避免从节点名称、分数存在或提供方措辞推断配置选择，或静默接纳非有限来源分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert this value explicitly on both QueryRerank and QueryRerankAnswer through rerankScoreProfile."
+msgstr "通过 rerankScoreProfile，在 QueryRerank 和 QueryRerankAnswer 两者上显式断言此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The profile requires finite score context and full outcome accounting. It supplies no automatic default, provider execution, float-comparator proof or completeness value."
+msgstr "此配置要求有限分数上下文及完整结果核算。它不提供自动默认值、提供方执行、浮点比较器证明或完整性值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankFiniteFloatProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit selection: ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "显式选择：ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank input union"
+msgstr "重排输入并集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original QueryUnionAnswer selected as the declared input of a QueryRerank operation. Its candidate identities, retained class lists and loss records remain source evidence beside the reranked outcomes."
+msgstr "选作 QueryRerank 操作声明输入的原始 QueryUnionAnswer。其候选身份、保留的类别列表及损失记录在重排结果旁继续作为来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind the original union consumed by a declared rerank stage."
+msgstr "用于绑定声明重排阶段所消费的原始并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a filtered candidate subset or replacing original class-list occurrences with a newly ranked list."
+msgstr "避免替换为过滤后的候选子集，或用新排名列表替代原始类别列表出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one original QueryUnionAnswer; require the operation’s output answer to retain that same resource through rerankedUnion."
+msgstr "关联一个原始 QueryUnionAnswer；要求操作的输出答案通过 rerankedUnion 保留同一资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This operation-input declaration is distinct from the answer’s retained original-input evidence and does not itself assert an execution occurrence."
+msgstr "此操作输入声明区别于答案所保留的原始输入证据，本身不断言执行出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared original input: ex:stage gmeow:rerankInput ex:union ."
+msgstr "声明的原始输入：ex:stage gmeow:rerankInput ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank output answer"
+msgstr "重排输出答案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed QueryRerankAnswer reported as the output of a QueryRerank operation description. The answer retains the operation’s original input union and its complete candidate outcome account."
+msgstr "作为 QueryRerank 操作描述的输出而报告的带有归属的 QueryRerankAnswer。该答案保留操作的原始输入并集及完整候选结果记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate a declared rerank stage with its supplied result record."
+msgstr "用于将声明的重排阶段与其所提供结果记录关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a ranked input list, bare score or filtered candidate set as the full rerank answer."
+msgstr "避免将有序输入列表、单独分数或过滤后的候选集作为完整重排答案关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one QueryRerankAnswer and retain its original union, explicit profile, candidate entries and loss ledger."
+msgstr "关联一个 QueryRerankAnswer，并保留其原始并集、显式配置、候选条目及损失账本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge supplies no provider invocation, execution time, score authenticity or inferred result status."
+msgstr "此边不提供提供方调用、执行时间、分数真实性或推断的结果状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied output association: ex:stage gmeow:rerankOutput ex:answer ."
+msgstr "所提供的输出关联：ex:stage gmeow:rerankOutput ex:answer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reranked original union"
+msgstr "被重排的原始并集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The same original QueryUnionAnswer retained by a supplied rerank answer, preserving access to its class-list resources, original class entry occurrences, candidate identities and losses."
+msgstr "所提供重排答案保留的同一个原始 QueryUnionAnswer，保留对其类别列表资源、原始类别条目出现项、候选身份及损失的访问。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original union evidence directly on a rerank result, including a standalone supplied answer."
+msgstr "用于在重排结果上直接保留原始并集证据，包括独立提供的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying original entries into a global ranking or treating source union sequence order as merit."
+msgstr "避免将原始条目复制到全局排名中，或将来源并集的序列顺序视为优劣。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original union resource and preserve all of its candidates and loss identities in the result account."
+msgstr "关联原始并集资源，并在结果记录中保留其全部候选项及损失身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "When the answer is a QueryRerank output, this resource must equal the operation’s rerankInput. Original ranks and tie keys remain on their original class-list entries."
+msgstr "当答案是 QueryRerank 输出时，此资源必须等于操作的 rerankInput。原始名次及并列键留在其原始类别列表条目上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankedUnion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A retained original resource: ex:answer gmeow:rerankedUnion ex:union ."
+msgstr "保留的原始资源：ex:answer gmeow:rerankedUnion ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank result entry"
+msgstr "重排结果条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One answer-local candidate outcome occurrence retained by a QueryRerankAnswer. The collection contains exactly one entry per original union candidate, including candidates that were not scored."
+msgstr "QueryRerankAnswer 保留的、仅属于一个答案的候选结果出现项。该集合对每个原始并集候选项恰好包含一个条目，包括未获分数的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose all reported candidate outcomes and their source and output positions."
+msgstr "用于公开全部报告的候选结果及其来源位置和输出位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting failed or unscored rows, repeating a candidate within one answer or sharing one occurrence between answer sequences."
+msgstr "避免遗漏失败或无分数行、在同一答案内重复候选项，或跨答案序列共享同一出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each QueryRerankEntry from its single owning answer and retain its candidate, positions and selected outcome branch."
+msgstr "从其唯一所属答案关联每个 QueryRerankEntry，并保留其候选项、位置及所选结果分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty input union permits no entries. Entry collection membership itself imposes no contiguous indices or floating-point score sort."
+msgstr "空输入并集不允许任何条目。条目集合成员关系本身不施加连续索引或浮点分数排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two retained outcomes: ex:answer gmeow:rerankEntry ex:scoredEntry, ex:unscoredEntry ."
+msgstr "两个保留的结果：ex:answer gmeow:rerankEntry ex:scoredEntry, ex:unscoredEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank entry candidate"
+msgstr "重排条目候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original union candidate identity named by one rerank entry. Every input candidate has one such occurrence, and no entry names a candidate outside the retained original union."
+msgstr "一个重排条目所命名的确切原始并集候选身份。每个输入候选项具有一个这样的出现项，且任何条目都不命名保留的原始并集之外的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join a reported outcome to the original candidate without deriving identity from its passage or numeric score."
+msgstr "用于将报告结果连接至原始候选项，不从其片段或数值分数推导身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting replacement candidates, identifying candidates by output position or interpreting membership as truth or confidence."
+msgstr "避免创建替代候选项、按输出位置标识候选项，或将成员关系理解为真值或置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one original candidate resource on the entry and preserve the same identity in input and output queryCandidate membership."
+msgstr "在条目上引用一个原始候选资源，并在输入及输出的 queryCandidate 成员关系中保留同一身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The candidate may occur in several original class lists or separate rerank answers; only the outcome occurrence is local to one answer."
+msgstr "候选项可以出现在多个原始类别列表或独立重排答案中；只有结果出现项局限于一个答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankEntryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "A retained candidate identity: ex:entry gmeow:rerankEntryCandidate ex:candidate ."
+msgstr "保留的候选身份：ex:entry gmeow:rerankEntryCandidate ex:candidate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank original union position"
+msgstr "重排原始并集位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied zero-based position of an entry’s candidate in the original union sequence. It preserves source sequence evidence independently of the entry’s reported output entryOrdinal."
+msgstr "所提供的、条目候选项在原始并集序列中从零起算的位置。它保留来源序列证据，独立于条目所报告的输出 entryOrdinal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the original union order needed to account for the unscored tail."
+msgstr "用于保留交代无分数尾部所需的原始并集顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this coordinate as class rank, merit, global candidate identity or a reason to renumber retained rows."
+msgstr "避免将此坐标视为类别名次、优劣、全局候选身份或重编号保留行的理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:nonNegativeInteger on each entry and keep input positions unique within its owning answer."
+msgstr "在每个条目上保留一个 xsd:nonNegativeInteger，并使输入位置在其所属答案内唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No contiguous sequence or declared source count is inferred. Canonical order checks preserve this relative order among unscored entries only."
+msgstr "不推断连续序列或声明的来源数量。规范顺序检查仅在无分数条目之间保留此相对顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankInputPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied original position: ex:entry gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+msgstr "所提供的原始位置：ex:entry gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank entry score"
+msgstr "重排条目分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied finite QueryRerankScore of a scored candidate occurrence. This branch requires a retained winning passage and excludes a simultaneous structured unscored cause."
+msgstr "有分数候选出现项所提供的有限 QueryRerankScore。此分支要求保留胜出片段，并排除同时存在结构化无分数原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the reported quantitative outcome without moving its magnitude into an entry-local numeric property."
+msgstr "用于保留报告的定量结果，不将其量值移入条目专有数值属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a nonfinite source score, treating the score as probability or using score presence to infer a successful provider execution."
+msgstr "避免替换非有限来源分数、将分数视为概率，或从分数存在推断提供方成功执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one existing QueryRerankScore, retain rerankWinningPassage, and match that score’s rerankScoreAuthority to the answer’s actual authority record."
+msgstr "关联一个已有 QueryRerankScore，保留 rerankWinningPassage，并使该分数的 rerankScoreAuthority 与答案的实际权威记录相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing score contract owns magnitude, dimension, frame and authority context. The stage adds no duplicate finite-value law or floating-point sorting mechanism."
+msgstr "现有分数契约负责量值、量纲、参照系及权威上下文。此阶段不添加重复有限值定律或浮点排序机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scored branch: ex:entry gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+msgstr "有分数分支：ex:entry gmeow:rerankScore ex:score ; gmeow:rerankWinningPassage \"retained passage\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank winning passage"
+msgstr "重排胜出片段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied best-scoring passage text retained beside a candidate’s reported rerank score. It is an xsd:string literal and is present exactly on the scored outcome branch."
+msgstr "来源提供的最高分片段文本，在候选项报告的重排分数旁保留。它是 xsd:string 字面量，恰好在有分数结果分支上存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which supplied passage accompanied a candidate’s reported score."
+msgstr "用于保留哪一个所提供片段伴随候选项报告的分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a passage for an unscored candidate, declaring a language from plain text or treating retention as display authorization."
+msgstr "避免为无分数候选项虚构片段、从纯文本声明语言，或将保留视为显示授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied passage into one xsd:string literal on the scored entry and retain its score separately through rerankScore."
+msgstr "将所提供片段复制到有分数条目的一个 xsd:string 字面量中，并通过 rerankScore 单独保留其分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier preserves text without re-running passage selection or proving that the provider evaluated every possible passage."
+msgstr "此载体保留文本，不重新运行片段选择，也不证明提供方评估了每个可能片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankWinningPassage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied winning passage: ex:entry gmeow:rerankWinningPassage \"A retained source passage.\" ."
+msgstr "所提供的胜出片段：ex:entry gmeow:rerankWinningPassage \"A retained source passage.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank unscored detail"
+msgstr "重排无分数详情"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit source-reported structured cause of a candidate’s unscored outcome. It retains native structured values and record fields, excluding a simultaneous score or winning passage."
+msgstr "来源显式报告的候选无分数结果的结构化原因。它保留原生结构化值及记录字段，排除同时存在分数或胜出片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to account for a retained candidate that the source did not score."
+msgstr "用于交代来源未评分的保留候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting a supplied numeric score into this branch after profile rejection, stringifying structured causes or identifying every detail with an aggregate QueryLoss."
+msgstr "避免在配置拒绝后将所提供数值分数转换至此分支、将结构化原因字符串化，或将每个详情等同于聚合 QueryLoss。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one actual StructuredValue and retain its source record tag, labelled fields and nested native values through the existing structured-value vocabulary."
+msgstr "关联一个实际 StructuredValue，并通过现有结构化值词汇保留其来源记录标签、带标签字段及嵌套原生值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual loss records remain in the answer’s loss ledger. A typed unscored cause does not prove the candidate false, and its answer cannot report CompleteForFragment."
+msgstr "实际损失记录仍留在答案的损失账本中。类型化无分数原因不证明候选项为假，其答案也不能报告 CompleteForFragment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankUnscoredDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unscored branch: ex:entry gmeow:rerankUnscoredDetail ex:detail ."
+msgstr "显式无分数分支：ex:entry gmeow:rerankUnscoredDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank answer authority"
+msgstr "重排答案权威记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied source scoring authority retained by a rerank answer. It is required whenever any entry is scored and must be the same authority record referenced by each retained score."
+msgstr "重排答案保留的所提供来源评分权威记录。只要任一条目有分数就必须提供该记录，且其必须是每个保留分数引用的同一权威记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain answer-level source scoring identity and context alongside every candidate outcome."
+msgstr "用于在每个候选结果旁保留答案级来源评分身份及上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring authority from score-kind wording, merging records from equal opaque bytes or requiring an invented authority for an all-unscored result."
+msgstr "避免从分数种类措辞推断权威记录、因不透明字节相等而合并记录，或要求为全无分数结果虚构权威记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain at most one supplied QueryRerankAuthority on the answer and bind every scored quantity to that actual record through rerankScoreAuthority."
+msgstr "在答案上至多保留一个所提供的 QueryRerankAuthority，并通过 rerankScoreAuthority 将每个分数的量载体绑定至该实际记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A supplied authority is legal even when all candidates are unscored. Its presence alone proves neither scoring success nor provider invocation."
+msgstr "即使全部候选项都无分数，所提供权威记录仍合法。仅有其存在既不证明评分成功，也不证明提供方调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankAuthority|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied answer authority: ex:answer gmeow:rerankAuthority ex:authority ."
+msgstr "所提供的答案权威记录：ex:answer gmeow:rerankAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rerank score profile"
+msgstr "重排分数配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit selected profile of a rerank operation description or attributed result. This stage contract requires the sole admitted value rerankFiniteFloatProfile on each."
+msgstr "重排操作描述或带有归属结果的显式所选配置。此阶段契约要求两者各自具有唯一可接纳值 rerankFiniteFloatProfile。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make finite reported score and full outcome-accounting obligations explicit on both operation and answer."
+msgstr "用于在操作及答案两者上明确有限已报告分数及完整结果核算义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently defaulting the profile, selecting it from provider wording or treating a missing selection as a weaker supported result."
+msgstr "避免静默赋予默认配置、从提供方措辞选择配置，或将缺失选择视为受支持的较弱结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert exactly one rerankScoreProfile value on the QueryRerank node and its QueryRerankAnswer, choosing rerankFiniteFloatProfile."
+msgstr "在 QueryRerank 节点及其 QueryRerankAnswer 上恰好断言一个 rerankScoreProfile 值，选择 rerankFiniteFloatProfile。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected value fixes mandatory evidence obligations without asserting native execution, score comparator equivalence or completeness."
+msgstr "所选值确定强制证据义务，不断言原生执行、分数比较器等价或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rerankScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "Explicit operation and result selection: ex:stage gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile . ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+msgstr "操作及结果的显式选择：ex:stage gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile . ex:answer gmeow:rerankScoreProfile gmeow:rerankFiniteFloatProfile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank input agreement law"
+msgstr "查询重排输入一致定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer named as a QueryRerank output retains the same original union resource that the operation declares through rerankInput. Reported original evidence cannot silently substitute another input."
+msgstr "命名为 QueryRerank 输出的答案，保留操作通过 rerankInput 声明的同一原始并集资源。报告的原始证据不能静默替换成另一输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check agreement between a declared operation input and its result’s retained original union."
+msgstr "用于检查声明操作输入与其结果保留的原始并集之间的一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching inputs by candidate count, display label or equal scores rather than the actual union resource."
+msgstr "避免按候选数量、显示标签或相等分数匹配输入，而不匹配实际并集资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the typed operation, rerankInput and rerankOutput, then require rerankedUnion from that answer to the bound input."
+msgstr "绑定类型化操作、rerankInput 及 rerankOutput，然后要求从该答案通过 rerankedUnion 关联至已绑定输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required single-valued input and original-union paths make conflicting source associations invalid without creating execution evidence."
+msgstr "必需单值输入及原始并集路径使冲突来源关联无效，不创建执行证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankInputAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Matching original evidence: ex:stage gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer . ex:answer gmeow:rerankedUnion ex:union ."
+msgstr "一致的原始证据：ex:stage gmeow:rerankInput ex:union ; gmeow:rerankOutput ex:answer . ex:answer gmeow:rerankedUnion ex:union ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank candidate accounting law"
+msgstr "查询重排候选核算定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer retains exactly its original union’s candidate identities and an outcome occurrence for each. Every entry names an original candidate; no original candidate is omitted and no foreign candidate is added."
+msgstr "重排答案恰好保留其原始并集的候选身份，并为每个候选项保留一个结果出现项。每个条目命名一个原始候选项；不遗漏任何原始候选项，也不添加外来候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check complete candidate accounting across original membership, output membership and entry occurrences."
+msgstr "用于跨原始成员关系、输出成员关系及条目出现项检查完整候选核算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting an unscored outcome as permission to remove the candidate or replacing identity accounting with a matching total count."
+msgstr "避免将无分数结果理解为删除候选项的许可，或用相同总数量替代身份核算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check input-to-entry coverage, entry-to-input membership, input-to-output membership and output-to-input membership as four guarded implications."
+msgstr "将输入到条目覆盖、条目到输入成员关系、输入到输出成员关系及输出到输入成员关系检查为四个带守卫的蕴含。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law permits an empty input with empty output collections. Candidate uniqueness remains a separate occurrence obligation."
+msgstr "此定律允许空输入及空输出集合。候选唯一性仍是独立的出现项义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankCandidateAccountingLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One retained candidate: ex:union gmeow:queryCandidate ex:c . ex:answer gmeow:queryCandidate ex:c ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+msgstr "一个保留的候选项：ex:union gmeow:queryCandidate ex:c . ex:answer gmeow:queryCandidate ex:c ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank entry uniqueness law"
+msgstr "查询重排条目唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two entries of one rerank answer naming the same original candidate must be the same occurrence resource. Together with complete candidate accounting, this gives one outcome occurrence per input candidate."
+msgstr "同一重排答案中命名同一原始候选项的两个条目，必须是同一出现项资源。结合完整候选核算，这使每个输入候选项恰有一个结果出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate outcome occurrences for one candidate within a result."
+msgstr "用于拒绝同一结果中一个候选项具有重复结果出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying this within-answer identity rule to candidates retained by different answers or to shared quantitative score resources."
+msgstr "避免将此答案内身份规则应用于不同答案保留的候选项，或共享的定量分数资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two entries of the same answer and their common rerankEntryCandidate, then compare entry identities through logic:termEqual."
+msgstr "绑定同一答案的两个条目及其共同 rerankEntryCandidate，然后通过 logic:termEqual 比较条目身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal score values or passages do not identify different candidates, and the same candidate may have another occurrence in another result."
+msgstr "相等分数值或片段不使不同候选项具有同一身份，同一候选项可以在另一结果中具有另一个出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One occurrence for one candidate: ex:answer gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+msgstr "一个候选项对应一个出现项：ex:answer gmeow:rerankEntry ex:e . ex:e gmeow:rerankEntryCandidate ex:c ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank entry owner law"
+msgstr "查询重排条目归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rerank entry belongs to exactly one rerank answer. Its source and output positions are local to that answer’s sequences, so another answer requires a separate occurrence."
+msgstr "每个重排条目恰好属于一个重排答案。其来源位置及输出位置局限于该答案的序列，因此另一答案要求独立出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent one outcome occurrence from borrowing two result or original-input contexts."
+msgstr "用于防止单个结果出现项借用两个结果或原始输入上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse ownership on candidate identities, score quantities, authority records or retained losses."
+msgstr "避免对候选身份、分数量、权威记录或保留损失施加逆向唯一归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh existing typed answer owner and compare any pair of answer links to the entry through logic:termEqual."
+msgstr "要求以新绑定见证一个已有且已类型化的所属答案，并通过 logic:termEqual 比较任何一对关联至该条目的答案链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication. It introduces no positive nested universal and no global ownership rule beyond entries."
+msgstr "此 Formula 使用一个外层全称量化、连接的所属者存在量化及带守卫的所属者对蕴含。它不引入正极性的嵌套全称量化，也不引入条目之外的全局归属规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A single owning sequence: ex:answer gmeow:rerankEntry ex:e . ex:e a gmeow:QueryRerankEntry ."
+msgstr "单个所属序列：ex:answer gmeow:rerankEntry ex:e . ex:e a gmeow:QueryRerankEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank position uniqueness law"
+msgstr "查询重排位置唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one rerank answer, equal reported output positions identify the same entry, and equal original union positions separately identify the same entry. Source positions remain unique without renumbering."
+msgstr "在同一重排答案内，相等的报告输出位置标识同一条目；相等的原始并集位置也单独标识同一条目。来源位置保持唯一，不重新编号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject competing occurrences at one supplied input or output position."
+msgstr "用于拒绝同一所提供输入或输出位置上相互竞争的出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring contiguous indices, inventing a source count or treating positions from different answers as a global coordinate system."
+msgstr "避免要求连续索引、虚构来源数量，或将不同答案的位置视为全局坐标系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare bound integer entryOrdinal values and, separately, bound rerankInputPosition values with logic:termEqual; each equality requires equal entry identities."
+msgstr "通过 logic:termEqual 比较已绑定整数 entryOrdinal 值，并单独比较已绑定 rerankInputPosition 值；每个相等关系都要求条目身份相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The admitted nonnegative integer coordinates are compared through the canonical term relation. No reflected numeric relation or floating-point comparison is used."
+msgstr "通过规范项关系比较可接纳的非负整数坐标。不使用反射数值关系或浮点比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankPositionUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct source coordinates: ex:left gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger . ex:right gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+msgstr "不同的来源坐标：ex:left gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"3\"^^xsd:nonNegativeInteger . ex:right gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:rerankInputPosition \"7\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank outcome law"
+msgstr "查询重排结果定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rerank entry selects exactly one scored or structured unscored branch. A winning passage is present exactly when a score is retained, while the unscored branch has neither score nor winning passage."
+msgstr "每个重排条目恰好选择有分数或结构化无分数分支之一。当且仅当保留分数时存在胜出片段，而无分数分支既无分数也无胜出片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject missing, contradictory or partly declared candidate outcome branches."
+msgstr "用于拒绝缺失、矛盾或部分声明的候选结果分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling a missing branch with zero, empty passage text or a fabricated cause, or converting profile-rejected source scores into unscored outcomes."
+msgstr "避免用零、空片段文本或虚构原因填补缺失分支，或将配置拒绝的来源分数转换为无分数结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a score or structured detail, forbid their conjunction, and enforce both score-to-passage and passage-to-score existence implications."
+msgstr "要求分数或结构化详情，禁止两者合取，并同时实施分数到片段及片段到分数的存在蕴含。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Branch datatype and single-value checks come from the local restrictions. StructuredValue retains its own payload-branch contract."
+msgstr "分支数据类型及单值检查来自局部限制。StructuredValue 保留其自身的载荷分支契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankOutcomeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unscored outcome: ex:e gmeow:rerankUnscoredDetail ex:detail . ex:detail a gmeow:StructuredMap ."
+msgstr "显式无分数结果：ex:e gmeow:rerankUnscoredDetail ex:detail . ex:detail a gmeow:StructuredMap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank authority required law"
+msgstr "查询重排权威记录必需定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer retaining any scored entry must retain a supplied source authority record. No authority is manufactured for an all-unscored answer."
+msgstr "保留任一有分数条目的重排答案必须保留所提供来源权威记录。不为全无分数答案制造权威记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject scored results whose answer-level source scoring context is absent."
+msgstr "用于拒绝缺失答案级来源评分上下文的有分数结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a present authority as proof that any candidate was scored or forbidding a supplied authority on an all-unscored result."
+msgstr "避免将权威记录存在理解为任何候选项已获评分的证明，或禁止全无分数结果保留所提供权威记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the answer, its entry and that entry’s score; require an existing QueryRerankAuthority linked through rerankAuthority."
+msgstr "绑定答案、其条目及该条目的分数；要求通过 rerankAuthority 关联一个已有 QueryRerankAuthority。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The answer permits at most one authority. Its agreement with each score’s own authority is a separate law, and the score retains its existing quantitative context requirements."
+msgstr "答案至多允许一个权威记录。其与每个分数自身权威记录的一致性由另一条定律约束，分数仍保留其现有定量上下文要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityRequiredLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Scored answer context: ex:answer gmeow:rerankEntry ex:e ; gmeow:rerankAuthority ex:authority . ex:e gmeow:rerankScore ex:score ."
+msgstr "有分数答案上下文：ex:answer gmeow:rerankEntry ex:e ; gmeow:rerankAuthority ex:authority . ex:e gmeow:rerankScore ex:score ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank authority agreement law"
+msgstr "查询重排权威记录一致定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every score retained by a rerank answer references the same actual source authority record as the answer. Equal opaque identity bytes on different records do not satisfy this record-identity obligation."
+msgstr "重排答案保留的每个分数都引用与答案相同的实际来源权威记录。不同记录上的不透明身份字节相等，不满足此记录身份义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an answer that mixes scores from another retained authority context."
+msgstr "用于拒绝混入另一保留权威上下文分数的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing authority labels, byte values or frames in place of the authority resource, or repeating the score’s existing finite and quantitative context laws."
+msgstr "避免比较权威标签、字节值或参照系来替代权威资源，或重复分数现有的有限性及定量上下文定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the answer, entry, score, score authority and answer authority, then require logic:termEqual between the two authority resources."
+msgstr "绑定答案、条目、分数、分数权威记录及答案权威记录，然后要求两个权威资源之间满足 logic:termEqual。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing QueryRerankScoreContextLaw handles dimension and frame agreement through the score’s direct authority link. This law adds only answer-to-score authority identity agreement."
+msgstr "现有 QueryRerankScoreContextLaw 通过分数的直接权威链接处理量纲及参照系一致性。此定律仅添加答案与分数间的权威身份一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankAuthorityAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Matching authority record: ex:answer gmeow:rerankAuthority ex:authority . ex:score gmeow:rerankScoreAuthority ex:authority ."
+msgstr "一致的权威记录：ex:answer gmeow:rerankAuthority ex:authority . ex:score gmeow:rerankScoreAuthority ex:authority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank reported order law"
+msgstr "查询重排报告顺序定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within a rerank answer, every scored occurrence precedes every unscored occurrence, and unscored occurrences retain their relative original union order. Both obligations compare integer sequence positions only."
+msgstr "在一个重排答案内，每个有分数出现项都先于每个无分数出现项，且无分数出现项保留其原始并集相对顺序。两项义务仅比较整数序列位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check scored-group placement and original order within the unscored tail."
+msgstr "用于检查有分数组的位置及无分数尾部内的原始顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law validates scored numeric-descending order, equal-score tie order, signed-zero behavior or a provider’s floating-point comparator."
+msgstr "避免声称此定律验证了分数数值降序、同分并列顺序、有符号零行为或提供方的浮点比较器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use logic:termLess on bound entryOrdinal values for scored versus unscored entries; for two unscored entries, require output order whenever their input positions are ordered."
+msgstr "对有分数与无分数条目的已绑定 entryOrdinal 值使用 logic:termLess；对两个无分数条目，输入位置较小者的输出位置也必须较小。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are exactly two guarded integer implications. No score magnitude, contiguous-index requirement or comparator implementation is added."
+msgstr "这些恰好是两个带守卫的整数蕴含。不添加分数量值、连续索引要求或比较器实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankReportedOrderLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Group placement: ex:scored gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:unscored gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ."
+msgstr "分组位置：ex:scored gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:unscored gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank loss retention law"
+msgstr "查询重排损失保留定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every loss resource retained by an original union ledger survives by identity in an output answer ledger. Additional supplied rerank-stage losses may coexist with those original records."
+msgstr "原始并集账本保留的每个损失资源，均以同一身份保留在输出答案账本中。额外提供的重排阶段损失可以与这些原始记录共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a rerank result that omits or replaces an inherited loss record."
+msgstr "用于拒绝遗漏或替换继承损失记录的重排结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring input and output ledgers to be identical, erasing acknowledged losses or treating a new stage loss as a replacement for an original one."
+msgstr "避免要求输入与输出账本完全相同、抹除已确认损失，或将新阶段损失视为原始损失的替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each input ledger and loss, then require an existing output ledger containing the same loss resource through ledgerLoss."
+msgstr "绑定每个输入账本及损失，然后要求存在通过 ledgerLoss 包含同一损失资源的输出账本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law forwards source loss identities without repairing, waiving or authenticating them. It imposes no inverse owner on a shared loss or ledger."
+msgstr "此定律传递来源损失身份，不修复、豁免或认证这些损失。它不对共享损失或账本施加逆向所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankLossRetentionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Original plus stage loss: ex:inputLedger gmeow:ledgerLoss ex:originalLoss . ex:outputLedger gmeow:ledgerLoss ex:originalLoss, ex:stageLoss ."
+msgstr "原始损失及阶段损失：ex:inputLedger gmeow:ledgerLoss ex:originalLoss . ex:outputLedger gmeow:ledgerLoss ex:originalLoss, ex:stageLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query rerank unscored completeness law"
+msgstr "查询重排无分数完整性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rerank answer with any explicit unscored candidate cannot report CompleteForFragment. The source’s other status evidence and any missing status remain independently represented."
+msgstr "具有任一显式无分数候选项的重排答案不能报告 CompleteForFragment。来源的其他状态证据及任何缺失状态仍被独立表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a complete-result claim that coexists with a retained unscored outcome."
+msgstr "用于拒绝与保留的无分数结果共存的完整结果声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating an incomplete status from absence, deleting the unscored row or treating an empty loss ledger as proof of complete scoring."
+msgstr "避免因缺失而虚构不完整状态、删除无分数行，或将空损失账本视为完整评分的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind an answer entry and its structured unscored detail, then forbid the answer’s queryCompletenessStatus value logic:CompleteForFragment."
+msgstr "绑定答案条目及其结构化无分数详情，然后禁止答案的 queryCompletenessStatus 取值为 logic:CompleteForFragment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law is a negative compatibility check, not a status default or inference of provider success. Empty input and all-scored results still carry only statuses actually supplied."
+msgstr "此定律是负向相容性检查，不是状态默认值，也不推断提供方成功。空输入及全有分数结果仍仅携带实际提供的状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly incomplete source report: ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
+msgstr "来源显式报告的不完整状态：ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
