@@ -4011,3 +4011,647 @@ msgstr "此定律是负向相容性检查，不是状态默认值，也不推断
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "An explicitly incomplete source report: ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
 msgstr "来源显式报告的不完整状态：ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Order Policy"
+msgstr "查询排序策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit complete query-order definition selecting unique predicate-to-tier mappings and source-standard key directions. It contains ordered criterion occurrences with required fused-score and terminal source-subject-tie criteria, plus explicitly included content-tier or activation criteria."
+msgstr "显式完整的查询排序定义，选择谓词不重复的层级映射及来源标准键方向。它包含有序准则出现项，要求融合分数准则及末尾来源主体并列准则，并包含显式纳入的内容层级或激活准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe criterion precedence without changing the selected fusion arithmetic or asserting an executed order."
+msgstr "用于描述准则优先顺序，不改变所选融合算术，也不断言已经执行的顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the definition as an applied result, a native policy digest, a provider capability claim or a permission to filter candidates."
+msgstr "避免将此定义视为已应用结果、原生策略摘要、提供方能力声明或过滤候选项的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every orderCriterion occurrence with its own position, kind and explicit direction; include a fused-score criterion and a final source-subject-tie criterion."
+msgstr "保留每个 orderCriterion 出现项及其自身位置、种类和显式方向；纳入融合分数准则及最终来源主体并列准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selected contract admits both score-before-activation and activation-before-score definitions. Actual key values, snapshot evidence, result positions and source adoption require separate evidence."
+msgstr "此所选契约同时接纳分数先于激活及激活先于分数的定义。实际键值、快照证据、结果位置及来源采纳需要独立证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A complete minimal definition: ex:policy a gmeow:QueryOrderPolicy ; gmeow:orderCriterion ex:scoreCriterion, ex:tieCriterion ."
+msgstr "完整最小定义：ex:policy a gmeow:QueryOrderPolicy ; gmeow:orderCriterion ex:scoreCriterion, ex:tieCriterion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Order Criterion"
+msgstr "查询排序准则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One criterion occurrence in exactly one query-order policy sequence, retaining one nonnegative entryOrdinal, one selected key kind and one explicit boolean direction. Its precedence is local to the owning policy."
+msgstr "恰好属于一个查询排序策略序列的准则出现项，保留一个非负 entryOrdinal、一个所选键种类及一个显式布尔方向。其优先顺序局限于所属策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a mechanical comparison key whose position and direction must remain explicit in a policy definition."
+msgstr "用于在策略定义中必须明确保留位置及方向的机械比较键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing the occurrence into a rubric Criterion, sharing it between policy sequences or treating its ordinal as a measured magnitude."
+msgstr "避免将该出现项强制转换为量规 Criterion、跨策略序列共享它，或将其序号视为测得量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence from its policy through orderCriterion and supply entryOrdinal, orderCriterionKind and a typed boolean orderDescending."
+msgstr "从其策略通过 orderCriterion 关联该出现项，并提供 entryOrdinal、orderCriterionKind 及类型化布尔值 orderDescending。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Another policy uses another occurrence even when the key kind and direction agree. Predicate-tier binding declarations may still be shared across occurrences."
+msgstr "即使键种类和方向相同，另一策略也使用另一出现项。谓词层级绑定声明仍可以跨出现项共享。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit score occurrence: ex:scoreCriterion a gmeow:QueryOrderCriterion ; gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+msgstr "显式分数出现项：ex:scoreCriterion a gmeow:QueryOrderCriterion ; gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Predicate Tier Binding"
+msgstr "查询谓词层级绑定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied declaration mapping one actual content-predicate IRI to one unsigned integer control-tier label. A content-tier criterion selects at most one binding resource for each predicate."
+msgstr "所提供的声明，将一个实际内容谓词 IRI 映射到一个无符号整数控制层级标签。内容层级准则为每个谓词至多选择一个绑定资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to define the predicate-to-tier mapping consulted by a declared content-tier criterion."
+msgstr "用于定义声明的内容层级准则所查阅的谓词到层级映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the tier label as a mathematical magnitude, bibliographic source tier, audience tier or class rank."
+msgstr "避免将层级标签视为数学量值、文献来源层级、受众层级或类别名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one tierBindingPredicate IRI and one xsd:unsignedInt tierBindingOrdinal, then retain the declaration through contentTierBinding."
+msgstr "提供一个 tierBindingPredicate IRI 及一个 xsd:unsignedInt 类型的 tierBindingOrdinal，然后通过 contentTierBinding 保留该声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding is reusable across policies and has no unique inverse owner. The selected unique-predicate profile does not model a native last-wins duplicate mapping vector."
+msgstr "此绑定可跨策略复用，没有逆向唯一所属者。所选唯一谓词配置不建模重复映射中最后项生效的原生向量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reusable declaration: ex:labelTier a gmeow:QueryPredicateTierBinding ; gmeow:tierBindingPredicate ex:label ; gmeow:tierBindingOrdinal \"0\"^^xsd:unsignedInt ."
+msgstr "可复用声明：ex:labelTier a gmeow:QueryPredicateTierBinding ; gmeow:tierBindingPredicate ex:label ; gmeow:tierBindingOrdinal \"0\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order policy description"
+msgstr "查询排序策略描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Associates a query-program node description with a supplied query-order policy definition. The association retains descriptive evidence without changing the node’s existing operator contract or selecting an executed policy."
+msgstr "将查询程序节点描述与所提供查询排序策略定义关联。该关联保留描述性证据，不改变节点现有算子契约，也不选择已执行策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep one or more supplied order definitions beside a query-program description."
+msgstr "用于在查询程序描述旁保留一个或多个所提供排序定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the edge as proof that an operator applied the policy, a default selection or an alteration of existing reciprocal-fusion semantics."
+msgstr "避免将此边理解为算子已应用策略的证明、默认选择或对现有倒数融合语义的更改。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied QueryOrderPolicy and preserve its criterion sequence independently of execution and result evidence."
+msgstr "引用每个所提供的 QueryOrderPolicy，并独立于执行及结果证据保留其准则序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The association is optional and nonfunctional. Coexisting definitions do not imply that a result applied all of them or choose a preferred policy."
+msgstr "此关联可选且非函数性。多个定义共存不意味着结果应用了全部定义，也不选择偏好策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied definitions: ex:node gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst ."
+msgstr "两个所提供定义：ex:node gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion occurrence"
+msgstr "查询排序准则出现项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One criterion occurrence retained in a QueryOrderPolicy’s complete comparison prescription. Ascending entryOrdinal determines precedence among its distinct key kinds."
+msgstr "QueryOrderPolicy 完整比较规约中保留的一个准则出现项。entryOrdinal 升序确定其不同键种类之间的优先顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the full ordered set of comparison keys in a policy definition."
+msgstr "用于公开策略定义中完整有序的比较键集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RDF edge serialization order as criterion precedence or omitting the required fused-score or terminal tie criterion."
+msgstr "避免将 RDF 边的序列化顺序视为准则优先顺序，或遗漏必需融合分数准则或末尾并列准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each answer-independent QueryOrderCriterion and retain its own ordinal, key kind and explicit direction."
+msgstr "关联每个独立于答案的 QueryOrderCriterion，并保留其自身序号、键种类及显式方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Criterion positions and kinds are unique within the policy. Noncontiguous source positions are permitted, and collection membership does not assert an applied candidate order."
+msgstr "准则位置及种类在策略内唯一。允许不连续来源位置，集合成员关系不断言已应用的候选顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two precedence occurrences: ex:policy gmeow:orderCriterion ex:firstKey, ex:lastKey ."
+msgstr "两个优先顺序出现项：ex:policy gmeow:orderCriterion ex:firstKey, ex:lastKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion kind"
+msgstr "查询排序准则种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected comparison-key kind of a criterion occurrence: content tier, fused score, snapshot activation or source subject tie. The selected policy profile admits exactly those four value kinds."
+msgstr "准则出现项显式选择的比较键种类：内容层级、融合分数、快照激活或来源主体并列。所选策略配置恰好接纳这四种值种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish what a criterion compares from its sequence position and direction."
+msgstr "用于将准则比较的内容与其序列位置及方向区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a measured score, rubric axis, predicate IRI or source identity bytes for the key-kind value."
+msgstr "避免用测得分数、量规维度、谓词 IRI 或来源身份字节替代键种类值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one of orderContentTier, orderFusedScore, orderActivation or orderSubjectTie on each occurrence."
+msgstr "在每个出现项上选择 orderContentTier、orderFusedScore、orderActivation 或 orderSubjectTie 之一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Key-kind selection supplies no candidate key value or execution evidence. Content-tier and activation criteria are included explicitly rather than inferred from data availability."
+msgstr "键种类选择不提供候选键值或执行证据。内容层级及激活准则通过显式方式纳入，而不是从数据可用性推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit activation key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ."
+msgstr "显式激活键：ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order descending"
+msgstr "查询排序降序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit boolean direction coordinate of one criterion occurrence. This selected profile requires false for content tier and subject tie, and true for fused score and activation."
+msgstr "单个准则出现项的显式布尔方向坐标。此所选配置要求内容层级及主体并列取 false，融合分数及激活取 true。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a declared ascending or descending comparison direction as actual typed boolean data."
+msgstr "用于将声明的升序或降序比较方向保留为实际类型化布尔数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string-valued true or false, a missing direction default or a claim that a described reverse direction is supported by this selected profile."
+msgstr "避免使用字符串值 true 或 false、为缺失方向赋默认值，或声称此所选配置支持描述的反向方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write one xsd:boolean value on each occurrence and check it against the selected key kind’s required direction."
+msgstr "在每个出现项上写入一个 xsd:boolean 值，并对照所选键种类要求的方向检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction remains explicitly supplied even though the profile validates its value. No missing declaration is generated from the criterion kind."
+msgstr "即使配置验证方向值，方向仍须显式提供。不根据准则种类生成缺失声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit descending key: ex:scoreCriterion gmeow:orderDescending \"true\"^^xsd:boolean ."
+msgstr "显式降序键：ex:scoreCriterion gmeow:orderDescending \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding"
+msgstr "内容层级绑定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A predicate-to-tier declaration retained by a content-tier criterion occurrence. The candidate tier is the minimum declared label among its matched-literal predicates; a candidate with no matching declaration follows every declared tier."
+msgstr "内容层级准则出现项保留的谓词到层级声明。候选层级是其匹配字面量语句中的谓词所对应的最小声明标签；没有匹配声明的候选项排在所有声明层级之后。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain all predicate mappings of an explicitly selected content-tier comparison key."
+msgstr "用于保留显式所选内容层级比较键的全部谓词映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching mappings to score, activation or subject-tie criteria, matching every predicate a subject has or filtering candidates with undeclared predicates."
+msgstr "避免将映射附加至分数、激活或主体并列准则、匹配主体具有的每个谓词，或过滤具有未声明谓词的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each QueryPredicateTierBinding from an orderContentTier occurrence, preserving one binding per predicate within that occurrence."
+msgstr "从 orderContentTier 出现项关联每个 QueryPredicateTierBinding，在该出现项内为每个谓词保留一个绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A criterion may explicitly contain no mappings, making every candidate undeclared for that key. Shared binding resources do not merge policy occurrences or assert matched-literal evidence."
+msgstr "准则可显式不含任何映射，使每个候选项对该键均为未声明。共享绑定资源不合并策略出现项，也不断言匹配字面量证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied mappings: ex:tierCriterion gmeow:contentTierBinding ex:labelTier, ex:bodyTier ."
+msgstr "两个所提供映射：ex:tierCriterion gmeow:contentTierBinding ex:labelTier, ex:bodyTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding predicate"
+msgstr "内容层级绑定谓词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source content-predicate IRI mapped by one tier binding. It identifies the predicate on a matched literal statement, without interpreting an arbitrary text label as a predicate or asserting a new predicate schema."
+msgstr "一个层级绑定所映射的实际来源内容谓词 IRI。它标识匹配字面量语句上的谓词，不将任意文本标签解释为谓词，也不断言新谓词模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source predicate identity of a content-tier declaration."
+msgstr "用于保留内容层级声明中的来源谓词身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the IRI with a string, blank node, ontology class or an invented semantic identity derived from a source hash."
+msgstr "避免用字符串、空白节点、本体类或从来源哈希推导的虚构语义身份替代 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one predicate IRI on the binding and retain the unsigned control-tier label separately through tierBindingOrdinal."
+msgstr "在绑定上关联一个谓词 IRI，并通过 tierBindingOrdinal 单独保留无符号控制层级标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound term-kind check requires an IRI but does not authenticate it, resolve it or prove that any candidate matched a statement using it."
+msgstr "对已绑定项的种类检查要求 IRI，但不认证或解析它，也不证明任何候选项匹配过使用该谓词的语句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual predicate resource: ex:labelTier gmeow:tierBindingPredicate ex:label ."
+msgstr "实际谓词资源：ex:labelTier gmeow:tierBindingPredicate ex:label ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding ordinal"
+msgstr "内容层级绑定序号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied unsigned integer control-tier label assigned to one content predicate. Smaller declared labels precede larger ones, while undeclared candidates remain after every declared label."
+msgstr "赋予一个内容谓词的所提供无符号整数控制层级标签。较小声明标签先于较大标签，而未声明候选项保持在每个声明标签之后。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source predicate’s tier label without turning it into a score or measured quantity."
+msgstr "用于保留来源谓词的层级标签，不将其变为分数或测得的量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the ordinal as a probability, class rank, linear-map rank, physical dimension or a globally preferred classification."
+msgstr "避免将序号视为概率、类别名次、线性映射秩、物理量纲或全局偏好分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:unsignedInt value on the binding; let the selected content-tier criterion define comparison and undeclared behavior."
+msgstr "在绑定上保留一个 xsd:unsignedInt 值；由所选内容层级准则定义比较及未声明情形的行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal labels on different predicates are legal and preserve a shared tier. The label’s integer range does not impose contiguous tiers or construct a mathematical Quantity."
+msgstr "不同谓词上的相等标签合法，保留共享层级。标签整数范围不施加连续层级，也不构造数学 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied control label: ex:bodyTier gmeow:tierBindingOrdinal \"2\"^^xsd:unsignedInt ."
+msgstr "所提供的控制标签：ex:bodyTier gmeow:tierBindingOrdinal \"2\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier order key"
+msgstr "内容层级排序键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content-tier comparison-key kind: a candidate uses the smallest declared control-tier label among the predicates on its matched literal statements, with no declared match ordered after every declared tier."
+msgstr "内容层级比较键种类：候选项使用其匹配字面量语句上谓词的最小声明控制层级标签，没有声明匹配的候选项排在所有声明层级之后。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to include matched-content predicate tiers as an explicit policy criterion."
+msgstr "用于将匹配内容谓词层级纳入为显式策略准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the tier as evidence quality, truth, audience classification or an authorization to filter an undeclared candidate."
+msgstr "避免将层级理解为证据质量、真值、受众分类或过滤未声明候选项的授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on a criterion, declare orderDescending false and retain its contentTierBinding collection."
+msgstr "在准则上选择此种类，声明 orderDescending false，并保留其 contentTierBinding 集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty binding collection yields a constant undeclared key. Applied matching evidence and assigned candidate tiers are separate from this policy definition."
+msgstr "空绑定集合产生恒定未声明键。已应用匹配证据及赋予候选项的层级独立于此策略定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected tier key: ex:tierCriterion gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:orderDescending false ."
+msgstr "所选层级键：ex:tierCriterion gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:orderDescending false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fused score order key"
+msgstr "融合分数排序键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fused-score comparison-key kind, ordering greater source fused scores first without defining or changing the fusion arithmetic that produced them."
+msgstr "融合分数比较键种类，将较大来源融合分数排在前面，不定义或更改生成这些分数的融合算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to place the source fused-score criterion explicitly within a comparison prescription."
+msgstr "用于在比较规约中显式放置来源融合分数准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a reranker’s floating-point score, epistemic confidence or a new arithmetic rule for the source fused-score context."
+msgstr "避免用重排器浮点分数、认识置信度或新算术规则替代来源融合分数上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on one criterion with orderDescending true and retain its explicit sequence position."
+msgstr "在一个准则上选择此种类，并取 orderDescending true，保留其显式序列位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every selected policy includes exactly one fused-score occurrence. Actual magnitudes, datatype, dimension, frame and fusion-profile evidence belong to an applied account."
+msgstr "每个所选策略恰好包含一个融合分数出现项。实际量值、数据类型、量纲、参照系及融合配置证据属于已应用记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected score key: ex:scoreCriterion gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+msgstr "所选分数键：ex:scoreCriterion gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "snapshot activation order key"
+msgstr "快照激活排序键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The snapshot-activation comparison-key kind, ordering greater source activation estimates first in the explicitly chosen precedence position. It names a retrieval-history key rather than deployment activation authority."
+msgstr "快照激活比较键种类，在显式选定的优先位置将较大来源激活估计排在前面。它命名检索历史键，而不是部署激活权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to include source snapshot activation estimates as an explicit comparison criterion."
+msgstr "用于将来源快照激活估计纳入为显式比较准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating activation magnitude as confidence, truth, permission or a value read from unspecified live counters."
+msgstr "避免将激活量值视为置信度、真值、许可或从未指定实时计数器读取的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on a criterion with orderDescending true; preserve the chosen position independently of the fused-score criterion."
+msgstr "在准则上选择此种类并取 orderDescending true；独立于融合分数准则保留所选位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The policy definition supplies no measured estimate or snapshot. A later applied account must retain actual source snapshots, vault scope, aggregation conventions and quantitative context."
+msgstr "策略定义不提供测得估计或快照。后续已应用记录必须保留实际来源快照、库作用域、聚合约定及定量上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected snapshot key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ; gmeow:orderDescending true ."
+msgstr "所选快照键：ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source subject tie order key"
+msgstr "来源主体并列排序键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The terminal source-subject-tie comparison-key kind, ordering the source’s subject tie keys ascending after all other declared criteria. It does not replace those keys with canonical RDF tuple order."
+msgstr "末尾来源主体并列比较键种类，在所有其他声明准则之后，按来源的主体并列键升序排序。它不使用规范 RDF 元组顺序替代这些键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the required final comparison criterion of a complete selected policy definition."
+msgstr "用于作为完整所选策略定义的必需最终比较准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid synthesizing subject digest bytes, assuming an arbitrary IRI lexical order or claiming a non-IRI subject is admitted by a particular source profile."
+msgstr "避免合成主体摘要字节、假定任意 IRI 词法顺序，或声称某个来源配置接纳非 IRI 主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on one criterion with orderDescending false and an entryOrdinal greater than every other criterion’s position."
+msgstr "在一个准则上选择此种类，取 orderDescending false，并使 entryOrdinal 大于每个其他准则的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual subject identity, tie bytes and source refusal behavior belong to applied evidence. The declaration authenticates no hash recipe and supplies no missing tie value."
+msgstr "实际主体身份、并列字节及来源拒绝行为属于已应用证据。此声明不认证任何哈希方案，也不提供缺失并列值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#example"
+msgid "A terminal tie key: ex:tieCriterion gmeow:orderCriterionKind gmeow:orderSubjectTie ; gmeow:orderDescending false ."
+msgstr "末尾并列键：ex:tieCriterion gmeow:orderCriterionKind gmeow:orderSubjectTie ; gmeow:orderDescending false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion owner law"
+msgstr "查询排序准则归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every query-order criterion occurrence belongs to exactly one policy sequence. Another policy requires a separate occurrence so its position, kind and direction remain local to that prescription."
+msgstr "每个查询排序准则出现项恰好属于一个策略序列。另一策略要求独立出现项，使其位置、种类及方向局限于该规约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent a criterion occurrence from borrowing two policy contexts."
+msgstr "用于防止一个准则出现项借用两个策略上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing inverse ownership on reusable predicate-tier bindings or equating policies because their criteria have equal coordinates."
+msgstr "避免对可复用谓词层级绑定施加逆向归属，或因准则坐标相等而将策略视为同一身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh existing typed policy owner and compare any two policy links to the occurrence through logic:termEqual."
+msgstr "要求以新绑定见证一个已有且已类型化的所属策略，并通过 logic:termEqual 比较任意两个关联至该出现项的策略链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The realized Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication, without a positive nested universal."
+msgstr "实现的 Formula 使用一个外层全称量化、连接的所属者存在量化及带守卫的所属者对蕴含，不包含正极性的嵌套全称量化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One owning policy: ex:policy gmeow:orderCriterion ex:key . ex:key a gmeow:QueryOrderCriterion ."
+msgstr "一个所属策略：ex:policy gmeow:orderCriterion ex:key . ex:key a gmeow:QueryOrderCriterion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion position law"
+msgstr "查询排序准则位置定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one query-order policy, equal criterion positions require the same criterion occurrence resource. Different policies retain independent sequence positions."
+msgstr "在同一查询排序策略内，相等准则位置要求相同准则出现项资源。不同策略保留独立序列位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject competing key occurrences at one supplied precedence position."
+msgstr "用于拒绝同一所提供优先位置上相互竞争的键出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid renumbering source positions, requiring contiguous indices or identifying occurrences across policy boundaries."
+msgstr "避免重编号来源位置、要求连续索引或跨策略边界将出现项视为相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two criteria of one policy and their entryOrdinal values; use logic:termEqual on positions and require equality of the occurrence resources."
+msgstr "绑定同一策略的两个准则及其 entryOrdinal 值；对位置使用 logic:termEqual，并要求出现项资源相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The admitted integer coordinates express control precedence, not mathematical magnitudes, measured ranks or a source count."
+msgstr "可接纳整数坐标表达控制优先顺序，不是数学量值、测得名次或来源数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct precedence positions: ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:last gmeow:entryOrdinal \"3\"^^xsd:nonNegativeInteger ."
+msgstr "不同优先位置：ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:last gmeow:entryOrdinal \"3\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion kind law"
+msgstr "查询排序准则种类定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two criterion occurrences of one policy selecting the same comparison-key kind must be the same occurrence. A policy cannot give one key kind competing precedence positions."
+msgstr "同一策略中选择相同比较键种类的两个准则出现项必须是同一出现项。策略不能为一种键种类赋予相互竞争的优先位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate content-tier, score, activation or subject-tie occurrences within a definition."
+msgstr "用于拒绝定义内重复的内容层级、分数、激活或主体并列出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal key kinds in different policies as occurrence identity or interpreting duplicate rejection as permission to discard a source declaration."
+msgstr "避免将不同策略中的相等键种类视为出现项身份相同，或将重复拒绝理解为丢弃来源声明的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two policy criteria sharing the same orderCriterionKind resource and compare their occurrence identities through logic:termEqual."
+msgstr "绑定共享同一 orderCriterionKind 资源的两个策略准则，并通过 logic:termEqual 比较其出现项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law is scoped to one policy; it imposes no global identity key or cross-policy preference."
+msgstr "此定律局限于一个策略；不施加全局身份键或跨策略偏好。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One selected score occurrence: ex:policy gmeow:orderCriterion ex:scoreKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore ."
+msgstr "一个所选分数出现项：ex:policy gmeow:orderCriterion ex:scoreKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order required keys law"
+msgstr "查询排序必需键定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected query-order policy contains a typed fused-score criterion and a typed source-subject-tie criterion. Optional leading keys never replace those required comparison coordinates."
+msgstr "每个所选查询排序策略都包含类型化融合分数准则及类型化来源主体并列准则。可选前置键绝不替代这些必需比较坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a partial prescription presented as a complete selected order definition."
+msgstr "用于拒绝被当作完整所选排序定义呈现的部分规约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing absent keys, treating empty criterion membership as a default policy or equating criterion existence with measured candidate values."
+msgstr "避免制造缺失键、将空准则成员关系视为默认策略，或将准则存在等同于测得候选值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require distinct fresh typed-and-linked existential witnesses for orderFusedScore and orderSubjectTie; kind uniqueness supplies one occurrence of each."
+msgstr "为 orderFusedScore 及 orderSubjectTie 要求独立新绑定的类型化且已关联存在见证；种类唯一性保证两者各有一个出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each witness must belong to the policy rather than merely exist elsewhere. Local coordinate restrictions independently require position, kind and explicit direction."
+msgstr "每个见证必须属于该策略，而不只是存在于别处。局部坐标限制独立要求位置、种类及显式方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A minimal complete collection: ex:policy gmeow:orderCriterion ex:scoreKey, ex:tieKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore . ex:tieKey gmeow:orderCriterionKind gmeow:orderSubjectTie ."
+msgstr "最小完整集合：ex:policy gmeow:orderCriterion ex:scoreKey, ex:tieKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore . ex:tieKey gmeow:orderCriterionKind gmeow:orderSubjectTie ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order terminal tie law"
+msgstr "查询排序末尾并列定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-subject-tie criterion has a greater precedence ordinal than every other criterion in its policy. It is the final key without requiring contiguous positions."
+msgstr "来源主体并列准则的优先序号大于其策略中每个其他准则的序号。它是最终键，不要求连续位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a policy that places another criterion after its terminal tie key."
+msgstr "用于拒绝在末尾并列键之后放置另一准则的策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing source tie semantics with canonical RDF tuple order or claiming that terminal placement constructs actual tie bytes."
+msgstr "避免用规范 RDF 元组顺序替代来源并列语义，或声称末尾位置构造实际并列字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the policy’s tie occurrence, another distinct criterion and both stored positions; require logic:termLess from the other position to the tie position."
+msgstr "绑定策略的并列出现项、另一不同准则及两个存储位置；要求从另一位置到并列位置满足 logic:termLess。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence distinction and positions are positively bound before intrinsic comparison. Actual candidate ties and source admission remain outside this definition check."
+msgstr "在内建比较之前，出现项区别及位置已被正向绑定。实际候选并列及来源接纳仍在此定义检查之外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later terminal coordinate: ex:scoreKey gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger . ex:tieKey gmeow:entryOrdinal \"5\"^^xsd:nonNegativeInteger ."
+msgstr "较后的末尾坐标：ex:scoreKey gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger . ex:tieKey gmeow:entryOrdinal \"5\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order direction law"
+msgstr "查询排序方向定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy profile validates ascending content-tier and subject-tie directions, and descending fused-score and activation directions. Every direction remains explicitly declared as typed boolean data."
+msgstr "所选策略配置验证内容层级及主体并列的升序方向，以及融合分数及激活的降序方向。每个方向仍被显式声明为类型化布尔数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a supplied direction that disagrees with its selected key kind’s admitted source-standard direction."
+msgstr "用于拒绝与所选键种类接纳的来源标准方向不一致的所提供方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a missing direction, comparing string booleans or claiming that a reverse ordering is supported by this profile."
+msgstr "避免推导缺失方向、比较字符串布尔值或声称此配置支持反向排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the stored kind and boolean direction, then require logic:termEqual to typed false for tier or tie and typed true for score or activation."
+msgstr "绑定存储种类及布尔方向，然后要求与类型化值满足 logic:termEqual：层级或并列对应 false，分数或激活对应 true。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks declaration agreement only. It neither compares candidate magnitudes nor certifies that a consumer implemented the policy sequence."
+msgstr "此定律仅检查声明一致性。它既不比较候选量值，也不认证消费者已实现策略序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Explicit admitted directions: ex:tierKey gmeow:orderDescending \"false\"^^xsd:boolean . ex:scoreKey gmeow:orderDescending \"true\"^^xsd:boolean ."
+msgstr "显式可接纳方向：ex:tierKey gmeow:orderDescending \"false\"^^xsd:boolean . ex:scoreKey gmeow:orderDescending \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier binding scope law"
+msgstr "查询排序层级绑定作用域定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Predicate-tier bindings occur only on a content-tier criterion. Score, activation and subject-tie occurrences cannot acquire mappings that would silently introduce another comparison key."
+msgstr "谓词层级绑定仅出现在内容层级准则上。分数、激活及主体并列出现项不能获取会静默引入另一比较键的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject bindings attached to the wrong criterion kind."
+msgstr "用于拒绝附加到错误准则种类的绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring a nonempty mapping collection, treating no mappings as missing candidate data or filtering every undeclared candidate."
+msgstr "避免要求非空映射集合、将无映射视为候选数据缺失或过滤每个未声明候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a criterion with contentTierBinding and require its selected orderCriterionKind to be orderContentTier."
+msgstr "绑定具有 contentTierBinding 的准则，并要求其所选 orderCriterionKind 为 orderContentTier。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A content-tier criterion with no mappings yields a constant undeclared key. Mapping completeness and actual matched statements are separate source evidence."
+msgstr "无映射的内容层级准则产生恒定未声明键。映射完整性及实际匹配语句是独立来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A correctly scoped mapping: ex:tierKey gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:contentTierBinding ex:labelTier ."
+msgstr "作用域正确的映射：ex:tierKey gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:contentTierBinding ex:labelTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier predicate law"
+msgstr "查询排序层级谓词定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every predicate coordinate retained by a query tier binding is an actual IRI term. A string or blank node does not stand in for the source predicate."
+msgstr "查询层级绑定保留的每个谓词坐标都是实际 IRI 项。字符串或空白节点不替代来源谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject malformed term kinds in predicate-to-tier declarations."
+msgstr "用于拒绝谓词到层级声明中格式错误的项种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting IRI admission as dereferencing, schema validation, source authentication or evidence that a candidate matched the predicate."
+msgstr "避免将 IRI 接纳理解为解引用、模式验证、来源认证或候选项匹配了该谓词的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the typed binding’s tierBindingPredicate value through its stored edge and apply unary logic:termIsIri."
+msgstr "通过类型化绑定的存储边绑定其 tierBindingPredicate 值，并应用一元 logic:termIsIri。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required coordinate restriction handles presence separately. This term-kind check introduces no generic parser or inferred predicate class."
+msgstr "必需坐标限制单独处理存在性。此项种类检查不引入通用解析器或推断的谓词类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A valid term kind: ex:labelTier gmeow:tierBindingPredicate ex:label ."
+msgstr "有效项种类：ex:labelTier gmeow:tierBindingPredicate ex:label ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier uniqueness law"
+msgstr "查询排序层级唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one content-tier criterion, two binding records naming the same predicate must be the same selected binding. The binding’s own single ordinal prevents competing mappings for that predicate."
+msgstr "在一个内容层级准则内，命名相同谓词的两个绑定记录必须是同一所选绑定。绑定自身的单个序号防止该谓词具有相互竞争的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the selected unique-predicate mapping profile."
+msgstr "用于验证所选唯一谓词映射配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently applying native last-wins duplicate resolution, merging equal mappings globally or imposing one policy owner on a reusable binding."
+msgstr "避免静默应用原生的重复项最后生效消解规则、全局合并相等映射或为可复用绑定施加单个所属策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two retained mappings and their common predicate IRI within one content-tier criterion, then require logic:termEqual on binding identities."
+msgstr "在一个内容层级准则内绑定两个保留映射及其共同谓词 IRI，然后要求绑定身份满足 logic:termEqual。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal tier labels on different predicates remain legal. Other policies may reuse the same binding or retain their own declaration without an identity inference."
+msgstr "不同谓词上的相等层级标签仍合法。其他策略可以复用同一绑定或保留自身声明，不推断身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A shared tier for different predicates: ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."
+msgstr "不同谓词共享的层级：ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."

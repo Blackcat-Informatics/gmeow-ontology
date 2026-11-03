@@ -4011,3 +4011,647 @@ msgstr "Cette loi est une vérification négative de compatibilité, pas un stat
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryRerankUnscoredCompletenessLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "An explicitly incomplete source report: ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
 msgstr "Un rapport source explicitement incomplet : ex:answer gmeow:queryCompletenessStatus logic:Incomplete ; gmeow:rerankEntry ex:e . ex:e gmeow:rerankUnscoredDetail ex:detail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Order Policy"
+msgstr "Politique d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit complete query-order definition selecting unique predicate-to-tier mappings and source-standard key directions. It contains ordered criterion occurrences with required fused-score and terminal source-subject-tie criteria, plus explicitly included content-tier or activation criteria."
+msgstr "Définition explicite complète d’ordre de requête sélectionnant des correspondances de prédicats vers des paliers sans prédicat dupliqué et des directions de clés standard de la source. Elle contient des occurrences ordonnées de critères, avec un critère obligatoire de score fusionné et un critère terminal obligatoire de départage des sujets selon la source, ainsi que des critères de palier de contenu ou d’activation explicitement inclus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe criterion precedence without changing the selected fusion arithmetic or asserting an executed order."
+msgstr "Utiliser pour décrire la précédence des critères sans modifier l’arithmétique de fusion sélectionnée ni affirmer un ordre exécuté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the definition as an applied result, a native policy digest, a provider capability claim or a permission to filter candidates."
+msgstr "Éviter de traiter la définition comme un résultat appliqué, une empreinte native de politique, une assertion de capacité du fournisseur ou une permission de filtrer les candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every orderCriterion occurrence with its own position, kind and explicit direction; include a fused-score criterion and a final source-subject-tie criterion."
+msgstr "Conserver chaque occurrence orderCriterion avec sa propre position, son type et sa direction explicite ; inclure un critère de score fusionné et un critère final de départage des sujets selon la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selected contract admits both score-before-activation and activation-before-score definitions. Actual key values, snapshot evidence, result positions and source adoption require separate evidence."
+msgstr "Ce contrat sélectionné admet des définitions plaçant le score avant l’activation comme l’activation avant le score. Les valeurs de clés effectives, les preuves d’instantané, les positions de résultat et l’adoption par la source exigent des éléments distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A complete minimal definition: ex:policy a gmeow:QueryOrderPolicy ; gmeow:orderCriterion ex:scoreCriterion, ex:tieCriterion ."
+msgstr "Une définition minimale complète : ex:policy a gmeow:QueryOrderPolicy ; gmeow:orderCriterion ex:scoreCriterion, ex:tieCriterion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Order Criterion"
+msgstr "Critère d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One criterion occurrence in exactly one query-order policy sequence, retaining one nonnegative entryOrdinal, one selected key kind and one explicit boolean direction. Its precedence is local to the owning policy."
+msgstr "Une occurrence de critère dans exactement une séquence de politique d’ordre de requête, conservant un entryOrdinal non négatif, un type de clé sélectionné et une direction booléenne explicite. Sa précédence est propre à la politique propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a mechanical comparison key whose position and direction must remain explicit in a policy definition."
+msgstr "Utiliser pour une clé mécanique de comparaison dont la position et la direction doivent rester explicites dans une définition de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing the occurrence into a rubric Criterion, sharing it between policy sequences or treating its ordinal as a measured magnitude."
+msgstr "Éviter de convertir de force cette occurrence en Criterion de grille d’évaluation, de la partager entre séquences de politiques ou de traiter son ordinal comme une valeur mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence from its policy through orderCriterion and supply entryOrdinal, orderCriterionKind and a typed boolean orderDescending."
+msgstr "Relier l’occurrence depuis sa politique par orderCriterion et fournir entryOrdinal, orderCriterionKind et un booléen typé orderDescending."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Another policy uses another occurrence even when the key kind and direction agree. Predicate-tier binding declarations may still be shared across occurrences."
+msgstr "Une autre politique utilise une autre occurrence même si le type de clé et la direction concordent. Les déclarations de correspondance entre prédicats et paliers peuvent néanmoins être partagées entre occurrences."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterion|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit score occurrence: ex:scoreCriterion a gmeow:QueryOrderCriterion ; gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+msgstr "Une occurrence explicite de score : ex:scoreCriterion a gmeow:QueryOrderCriterion ; gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Predicate Tier Binding"
+msgstr "Correspondance de prédicat vers un palier de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied declaration mapping one actual content-predicate IRI to one unsigned integer control-tier label. A content-tier criterion selects at most one binding resource for each predicate."
+msgstr "Déclaration fournie faisant correspondre un IRI effectif de prédicat de contenu à une étiquette entière non signée de palier de contrôle. Un critère de palier de contenu sélectionne au plus une ressource de correspondance par prédicat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to define the predicate-to-tier mapping consulted by a declared content-tier criterion."
+msgstr "Utiliser pour définir la correspondance de prédicats vers des paliers consultée par un critère déclaré de palier de contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the tier label as a mathematical magnitude, bibliographic source tier, audience tier or class rank."
+msgstr "Éviter de traiter l’étiquette de palier comme une valeur mathématique, un niveau de source bibliographique, un niveau de public ou un rang de classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one tierBindingPredicate IRI and one xsd:unsignedInt tierBindingOrdinal, then retain the declaration through contentTierBinding."
+msgstr "Fournir un IRI tierBindingPredicate et un tierBindingOrdinal de type xsd:unsignedInt, puis conserver la déclaration par contentTierBinding."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding is reusable across policies and has no unique inverse owner. The selected unique-predicate profile does not model a native last-wins duplicate mapping vector."
+msgstr "Cette correspondance est réutilisable entre politiques et n’a pas de propriétaire inverse unique. Le profil sélectionné de prédicats uniques ne modélise pas un vecteur natif de correspondances dupliquées où la dernière l’emporte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryPredicateTierBinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reusable declaration: ex:labelTier a gmeow:QueryPredicateTierBinding ; gmeow:tierBindingPredicate ex:label ; gmeow:tierBindingOrdinal \"0\"^^xsd:unsignedInt ."
+msgstr "Une déclaration réutilisable : ex:labelTier a gmeow:QueryPredicateTierBinding ; gmeow:tierBindingPredicate ex:label ; gmeow:tierBindingOrdinal \"0\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order policy description"
+msgstr "description de politique d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Associates a query-program node description with a supplied query-order policy definition. The association retains descriptive evidence without changing the node’s existing operator contract or selecting an executed policy."
+msgstr "Associe une description de nœud de programme de requête à une définition fournie de politique d’ordre de requête. L’association conserve des éléments descriptifs sans modifier le contrat existant de l’opérateur du nœud ni sélectionner une politique exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep one or more supplied order definitions beside a query-program description."
+msgstr "Utiliser pour garder une ou plusieurs définitions d’ordre fournies aux côtés d’une description de programme de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the edge as proof that an operator applied the policy, a default selection or an alteration of existing reciprocal-fusion semantics."
+msgstr "Éviter d’interpréter cette arête comme une preuve qu’un opérateur a appliqué la politique, une sélection par défaut ou une modification de la sémantique existante de fusion réciproque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied QueryOrderPolicy and preserve its criterion sequence independently of execution and result evidence."
+msgstr "Référencer chaque QueryOrderPolicy fournie et préserver sa séquence de critères indépendamment des preuves d’exécution et de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The association is optional and nonfunctional. Coexisting definitions do not imply that a result applied all of them or choose a preferred policy."
+msgstr "Cette association est facultative et non fonctionnelle. Des définitions coexistantes n’impliquent pas qu’un résultat les a toutes appliquées et ne choisissent pas de politique préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied definitions: ex:node gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst ."
+msgstr "Deux définitions fournies : ex:node gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion occurrence"
+msgstr "occurrence de critère d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One criterion occurrence retained in a QueryOrderPolicy’s complete comparison prescription. Ascending entryOrdinal determines precedence among its distinct key kinds."
+msgstr "Une occurrence de critère conservée dans la prescription complète de comparaison d’une QueryOrderPolicy. L’ordre croissant de entryOrdinal détermine la précédence entre ses types de clés distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the full ordered set of comparison keys in a policy definition."
+msgstr "Utiliser pour exposer l’ensemble ordonné complet des clés de comparaison dans une définition de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RDF edge serialization order as criterion precedence or omitting the required fused-score or terminal tie criterion."
+msgstr "Éviter de traiter l’ordre de sérialisation des arêtes RDF comme la précédence des critères ou d’omettre le critère obligatoire de score fusionné ou de départage terminal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each answer-independent QueryOrderCriterion and retain its own ordinal, key kind and explicit direction."
+msgstr "Relier chaque QueryOrderCriterion indépendant des réponses et conserver son propre ordinal, son type de clé et sa direction explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Criterion positions and kinds are unique within the policy. Noncontiguous source positions are permitted, and collection membership does not assert an applied candidate order."
+msgstr "Les positions et types de critères sont uniques dans la politique. Des positions sources non contiguës sont permises, et l’appartenance à la collection n’affirme aucun ordre appliqué aux candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two precedence occurrences: ex:policy gmeow:orderCriterion ex:firstKey, ex:lastKey ."
+msgstr "Deux occurrences de précédence : ex:policy gmeow:orderCriterion ex:firstKey, ex:lastKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion kind"
+msgstr "type de critère d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected comparison-key kind of a criterion occurrence: content tier, fused score, snapshot activation or source subject tie. The selected policy profile admits exactly those four value kinds."
+msgstr "Le type explicitement sélectionné de clé de comparaison d’une occurrence de critère : palier de contenu, score fusionné, activation sur instantané ou départage des sujets selon la source. Le profil de politique sélectionné admet exactement ces quatre types de valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish what a criterion compares from its sequence position and direction."
+msgstr "Utiliser pour distinguer ce qu’un critère compare de sa position de séquence et de sa direction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a measured score, rubric axis, predicate IRI or source identity bytes for the key-kind value."
+msgstr "Éviter de substituer un score mesuré, un axe de grille d’évaluation, un IRI de prédicat ou des octets d’identité source à la valeur de type de clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one of orderContentTier, orderFusedScore, orderActivation or orderSubjectTie on each occurrence."
+msgstr "Sélectionner une valeur parmi orderContentTier, orderFusedScore, orderActivation ou orderSubjectTie sur chaque occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Key-kind selection supplies no candidate key value or execution evidence. Content-tier and activation criteria are included explicitly rather than inferred from data availability."
+msgstr "La sélection du type de clé ne fournit aucune valeur de clé de candidat ni preuve d’exécution. Les critères de palier de contenu et d’activation sont inclus explicitement plutôt que déduits de la disponibilité de données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderCriterionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit activation key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ."
+msgstr "Une clé explicite d’activation : ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order descending"
+msgstr "ordre décroissant de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit boolean direction coordinate of one criterion occurrence. This selected profile requires false for content tier and subject tie, and true for fused score and activation."
+msgstr "La coordonnée booléenne explicite de direction d’une occurrence de critère. Ce profil sélectionné exige false pour le palier de contenu et le départage des sujets, et true pour le score fusionné et l’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a declared ascending or descending comparison direction as actual typed boolean data."
+msgstr "Utiliser pour conserver une direction déclarée de comparaison croissante ou décroissante comme donnée booléenne effectivement typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string-valued true or false, a missing direction default or a claim that a described reverse direction is supported by this selected profile."
+msgstr "Éviter des valeurs true ou false portées par des chaînes, une direction absente remplacée par défaut ou l’affirmation qu’une direction inverse décrite est prise en charge par ce profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write one xsd:boolean value on each occurrence and check it against the selected key kind’s required direction."
+msgstr "Écrire une valeur xsd:boolean sur chaque occurrence et la vérifier contre la direction requise du type de clé sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction remains explicitly supplied even though the profile validates its value. No missing declaration is generated from the criterion kind."
+msgstr "La direction reste explicitement fournie même si le profil valide sa valeur. Aucune déclaration absente n’est générée à partir du type de critère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderDescending|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit descending key: ex:scoreCriterion gmeow:orderDescending \"true\"^^xsd:boolean ."
+msgstr "Une clé explicitement décroissante : ex:scoreCriterion gmeow:orderDescending \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding"
+msgstr "correspondance de palier de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A predicate-to-tier declaration retained by a content-tier criterion occurrence. The candidate tier is the minimum declared label among its matched-literal predicates; a candidate with no matching declaration follows every declared tier."
+msgstr "Une déclaration de correspondance entre prédicat et palier conservée par une occurrence de critère de palier de contenu. Le palier du candidat est l’étiquette déclarée minimale parmi les prédicats de ses énoncés à littéral correspondants ; un candidat sans déclaration correspondante suit tous les paliers déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain all predicate mappings of an explicitly selected content-tier comparison key."
+msgstr "Utiliser pour conserver toutes les correspondances de prédicats d’une clé de comparaison de palier de contenu explicitement sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching mappings to score, activation or subject-tie criteria, matching every predicate a subject has or filtering candidates with undeclared predicates."
+msgstr "Éviter de rattacher des correspondances aux critères de score, d’activation ou de départage des sujets, d’examiner chaque prédicat d’un sujet comme s’il avait correspondu ou de filtrer les candidats aux prédicats non déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each QueryPredicateTierBinding from an orderContentTier occurrence, preserving one binding per predicate within that occurrence."
+msgstr "Relier chaque QueryPredicateTierBinding depuis une occurrence orderContentTier, en préservant une correspondance par prédicat dans cette occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A criterion may explicitly contain no mappings, making every candidate undeclared for that key. Shared binding resources do not merge policy occurrences or assert matched-literal evidence."
+msgstr "Un critère peut explicitement ne contenir aucune correspondance, rendant chaque candidat non déclaré pour cette clé. Les ressources de correspondance partagées ne fusionnent pas les occurrences de politiques et n’affirment pas de preuve de littéral correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentTierBinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied mappings: ex:tierCriterion gmeow:contentTierBinding ex:labelTier, ex:bodyTier ."
+msgstr "Deux correspondances fournies : ex:tierCriterion gmeow:contentTierBinding ex:labelTier, ex:bodyTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding predicate"
+msgstr "prédicat de correspondance de palier de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source content-predicate IRI mapped by one tier binding. It identifies the predicate on a matched literal statement, without interpreting an arbitrary text label as a predicate or asserting a new predicate schema."
+msgstr "L’IRI effectif de prédicat de contenu source associé par une correspondance de palier. Il identifie le prédicat sur un énoncé à littéral correspondant, sans interpréter une étiquette textuelle arbitraire comme un prédicat ni affirmer un nouveau schéma de prédicat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source predicate identity of a content-tier declaration."
+msgstr "Utiliser pour préserver l’identité du prédicat source d’une déclaration de palier de contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the IRI with a string, blank node, ontology class or an invented semantic identity derived from a source hash."
+msgstr "Éviter de remplacer l’IRI par une chaîne, un nœud anonyme, une classe d’ontologie ou une identité sémantique inventée à partir d’un hachage source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one predicate IRI on the binding and retain the unsigned control-tier label separately through tierBindingOrdinal."
+msgstr "Relier un IRI de prédicat sur la correspondance et conserver séparément l’étiquette non signée de palier de contrôle par tierBindingOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound term-kind check requires an IRI but does not authenticate it, resolve it or prove that any candidate matched a statement using it."
+msgstr "La vérification du type de terme lié exige un IRI, mais ne l’authentifie pas, ne le résout pas et ne prouve pas qu’un candidat a correspondu à un énoncé l’utilisant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual predicate resource: ex:labelTier gmeow:tierBindingPredicate ex:label ."
+msgstr "Une ressource effective de prédicat : ex:labelTier gmeow:tierBindingPredicate ex:label ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier binding ordinal"
+msgstr "ordinal de correspondance de palier de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied unsigned integer control-tier label assigned to one content predicate. Smaller declared labels precede larger ones, while undeclared candidates remain after every declared label."
+msgstr "L’étiquette entière non signée de palier de contrôle fournie attribuée à un prédicat de contenu. Les étiquettes déclarées plus petites précèdent les plus grandes, tandis que les candidats non déclarés restent après toutes les étiquettes déclarées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source predicate’s tier label without turning it into a score or measured quantity."
+msgstr "Utiliser pour préserver l’étiquette de palier d’un prédicat source sans la transformer en score ni en grandeur mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the ordinal as a probability, class rank, linear-map rank, physical dimension or a globally preferred classification."
+msgstr "Éviter de traiter l’ordinal comme une probabilité, un rang de classe, un rang d’application linéaire, une dimension physique ou une classification globalement préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:unsignedInt value on the binding; let the selected content-tier criterion define comparison and undeclared behavior."
+msgstr "Conserver une valeur xsd:unsignedInt sur la correspondance ; laisser le critère de palier de contenu sélectionné définir la comparaison et le comportement des candidats non déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal labels on different predicates are legal and preserve a shared tier. The label’s integer range does not impose contiguous tiers or construct a mathematical Quantity."
+msgstr "Des étiquettes égales sur des prédicats différents sont licites et préservent un palier partagé. L’intervalle entier de l’étiquette n’impose pas des paliers contigus et ne construit pas de Quantity mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied control label: ex:bodyTier gmeow:tierBindingOrdinal \"2\"^^xsd:unsignedInt ."
+msgstr "Une étiquette de contrôle fournie : ex:bodyTier gmeow:tierBindingOrdinal \"2\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content tier order key"
+msgstr "clé d’ordre de palier de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content-tier comparison-key kind: a candidate uses the smallest declared control-tier label among the predicates on its matched literal statements, with no declared match ordered after every declared tier."
+msgstr "Le type de clé de comparaison de palier de contenu : un candidat utilise la plus petite étiquette déclarée de palier de contrôle parmi les prédicats de ses énoncés à littéral correspondants, et l’absence de correspondance déclarée le place après tous les paliers déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to include matched-content predicate tiers as an explicit policy criterion."
+msgstr "Utiliser pour inclure les paliers de prédicats de contenu correspondant comme critère explicite de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the tier as evidence quality, truth, audience classification or an authorization to filter an undeclared candidate."
+msgstr "Éviter de lire le palier comme une qualité de preuve, une vérité, une classification de public ou une autorisation de filtrer un candidat non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on a criterion, declare orderDescending false and retain its contentTierBinding collection."
+msgstr "Sélectionner ce type sur un critère, déclarer orderDescending false et conserver sa collection contentTierBinding."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty binding collection yields a constant undeclared key. Applied matching evidence and assigned candidate tiers are separate from this policy definition."
+msgstr "Une collection de correspondances vide produit une clé non déclarée constante. Les preuves de correspondance appliquée et les paliers attribués aux candidats sont distincts de cette définition de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderContentTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected tier key: ex:tierCriterion gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:orderDescending false ."
+msgstr "Une clé de palier sélectionnée : ex:tierCriterion gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:orderDescending false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fused score order key"
+msgstr "clé d’ordre de score fusionné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fused-score comparison-key kind, ordering greater source fused scores first without defining or changing the fusion arithmetic that produced them."
+msgstr "Le type de clé de comparaison de score fusionné, plaçant les scores fusionnés sources les plus grands en premier sans définir ni modifier l’arithmétique de fusion qui les a produits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to place the source fused-score criterion explicitly within a comparison prescription."
+msgstr "Utiliser pour placer explicitement le critère de score fusionné source dans une prescription de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a reranker’s floating-point score, epistemic confidence or a new arithmetic rule for the source fused-score context."
+msgstr "Éviter de substituer le score en virgule flottante d’un outil de reclassement, une confiance épistémique ou une nouvelle règle arithmétique au contexte source de score fusionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on one criterion with orderDescending true and retain its explicit sequence position."
+msgstr "Sélectionner ce type sur un critère avec orderDescending true et conserver sa position explicite dans la séquence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every selected policy includes exactly one fused-score occurrence. Actual magnitudes, datatype, dimension, frame and fusion-profile evidence belong to an applied account."
+msgstr "Chaque politique sélectionnée inclut exactement une occurrence de score fusionné. Les valeurs numériques effectives, le type de données, la dimension, le repère et les preuves du profil de fusion appartiennent à un compte rendu appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderFusedScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected score key: ex:scoreCriterion gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+msgstr "Une clé de score sélectionnée : ex:scoreCriterion gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "snapshot activation order key"
+msgstr "clé d’ordre d’activation sur instantané"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The snapshot-activation comparison-key kind, ordering greater source activation estimates first in the explicitly chosen precedence position. It names a retrieval-history key rather than deployment activation authority."
+msgstr "Le type de clé de comparaison d’activation sur instantané, plaçant les estimations sources d’activation les plus grandes en premier à la position de précédence explicitement choisie. Il nomme une clé d’historique de recherche plutôt qu’une autorité d’activation de déploiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to include source snapshot activation estimates as an explicit comparison criterion."
+msgstr "Utiliser pour inclure les estimations sources d’activation sur instantané comme critère explicite de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating activation magnitude as confidence, truth, permission or a value read from unspecified live counters."
+msgstr "Éviter de traiter la valeur d’activation comme une confiance, une vérité, une permission ou une valeur lue dans des compteurs en direct non spécifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on a criterion with orderDescending true; preserve the chosen position independently of the fused-score criterion."
+msgstr "Sélectionner ce type sur un critère avec orderDescending true ; préserver la position choisie indépendamment du critère de score fusionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The policy definition supplies no measured estimate or snapshot. A later applied account must retain actual source snapshots, vault scope, aggregation conventions and quantitative context."
+msgstr "La définition de politique ne fournit ni estimation mesurée ni instantané. Un compte rendu appliqué ultérieur doit conserver les instantanés sources effectifs, la portée du coffre, les conventions d’agrégation et le contexte quantitatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderActivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected snapshot key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ; gmeow:orderDescending true ."
+msgstr "Une clé d’instantané sélectionnée : ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ; gmeow:orderDescending true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source subject tie order key"
+msgstr "clé d’ordre de départage des sujets selon la source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The terminal source-subject-tie comparison-key kind, ordering the source’s subject tie keys ascending after all other declared criteria. It does not replace those keys with canonical RDF tuple order."
+msgstr "Le type terminal de clé de comparaison de départage des sujets selon la source, ordonnant ses clés de départage de sujets par ordre croissant après tous les autres critères déclarés. Il ne remplace pas ces clés par l’ordre canonique des tuples RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the required final comparison criterion of a complete selected policy definition."
+msgstr "Utiliser comme critère final obligatoire de comparaison d’une définition complète de politique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid synthesizing subject digest bytes, assuming an arbitrary IRI lexical order or claiming a non-IRI subject is admitted by a particular source profile."
+msgstr "Éviter de synthétiser des octets d’empreinte de sujet, de supposer un ordre lexical arbitraire des IRI ou d’affirmer qu’un sujet autre qu’un IRI est admis par un profil source particulier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this kind on one criterion with orderDescending false and an entryOrdinal greater than every other criterion’s position."
+msgstr "Sélectionner ce type sur un critère avec orderDescending false et un entryOrdinal supérieur à la position de chaque autre critère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual subject identity, tie bytes and source refusal behavior belong to applied evidence. The declaration authenticates no hash recipe and supplies no missing tie value."
+msgstr "L’identité effective de sujet, les octets de départage et le comportement de refus de la source appartiennent aux preuves appliquées. La déclaration n’authentifie aucune recette de hachage et ne fournit aucune valeur de départage absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderSubjectTie|http://www.w3.org/2004/02/skos/core#example"
+msgid "A terminal tie key: ex:tieCriterion gmeow:orderCriterionKind gmeow:orderSubjectTie ; gmeow:orderDescending false ."
+msgstr "Une clé terminale de départage : ex:tieCriterion gmeow:orderCriterionKind gmeow:orderSubjectTie ; gmeow:orderDescending false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion owner law"
+msgstr "loi de propriété des critères d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every query-order criterion occurrence belongs to exactly one policy sequence. Another policy requires a separate occurrence so its position, kind and direction remain local to that prescription."
+msgstr "Chaque occurrence de critère d’ordre de requête appartient à exactement une séquence de politique. Une autre politique exige une occurrence distincte afin que sa position, son type et sa direction restent propres à cette prescription."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent a criterion occurrence from borrowing two policy contexts."
+msgstr "Utiliser pour empêcher une occurrence de critère d’emprunter deux contextes de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing inverse ownership on reusable predicate-tier bindings or equating policies because their criteria have equal coordinates."
+msgstr "Éviter d’imposer une propriété inverse aux correspondances réutilisables de prédicats vers des paliers ou d’identifier des politiques parce que leurs critères ont des coordonnées égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a fresh existing typed policy owner and compare any two policy links to the occurrence through logic:termEqual."
+msgstr "Exiger un témoin nouvellement lié de politique propriétaire existante et typée, puis comparer deux liens quelconques de politiques vers l’occurrence par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The realized Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication, without a positive nested universal."
+msgstr "La Formula réalisée utilise une quantification universelle externe, une quantification existentielle jointe de propriétaire et une implication gardée sur une paire de propriétaires, sans quantification universelle positive imbriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One owning policy: ex:policy gmeow:orderCriterion ex:key . ex:key a gmeow:QueryOrderCriterion ."
+msgstr "Une politique propriétaire : ex:policy gmeow:orderCriterion ex:key . ex:key a gmeow:QueryOrderCriterion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion position law"
+msgstr "loi de position des critères d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one query-order policy, equal criterion positions require the same criterion occurrence resource. Different policies retain independent sequence positions."
+msgstr "Dans une même politique d’ordre de requête, des positions de critères égales exigent la même ressource d’occurrence de critère. Des politiques différentes conservent des positions de séquence indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject competing key occurrences at one supplied precedence position."
+msgstr "Utiliser pour rejeter des occurrences de clés concurrentes à une position de précédence fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid renumbering source positions, requiring contiguous indices or identifying occurrences across policy boundaries."
+msgstr "Éviter de renuméroter les positions sources, d’exiger des indices contigus ou d’identifier des occurrences au-delà des limites de politiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two criteria of one policy and their entryOrdinal values; use logic:termEqual on positions and require equality of the occurrence resources."
+msgstr "Lier deux critères d’une même politique et leurs valeurs entryOrdinal ; utiliser logic:termEqual sur les positions et exiger l’égalité des ressources d’occurrences."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The admitted integer coordinates express control precedence, not mathematical magnitudes, measured ranks or a source count."
+msgstr "Les coordonnées entières admises expriment la précédence de contrôle, pas des valeurs mathématiques, des rangs mesurés ou un effectif source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionPositionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct precedence positions: ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:last gmeow:entryOrdinal \"3\"^^xsd:nonNegativeInteger ."
+msgstr "Des positions de précédence distinctes : ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:last gmeow:entryOrdinal \"3\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order criterion kind law"
+msgstr "loi de type des critères d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two criterion occurrences of one policy selecting the same comparison-key kind must be the same occurrence. A policy cannot give one key kind competing precedence positions."
+msgstr "Deux occurrences de critères d’une même politique sélectionnant le même type de clé de comparaison doivent être la même occurrence. Une politique ne peut pas donner à un même type de clé des positions de précédence concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate content-tier, score, activation or subject-tie occurrences within a definition."
+msgstr "Utiliser pour rejeter les occurrences dupliquées de palier de contenu, de score, d’activation ou de départage des sujets dans une définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal key kinds in different policies as occurrence identity or interpreting duplicate rejection as permission to discard a source declaration."
+msgstr "Éviter de traiter des types de clés égaux dans des politiques différentes comme une identité d’occurrence ou d’interpréter le rejet de doublons comme une permission d’éliminer une déclaration source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two policy criteria sharing the same orderCriterionKind resource and compare their occurrence identities through logic:termEqual."
+msgstr "Lier deux critères de politique partageant la même ressource orderCriterionKind et comparer leurs identités d’occurrences par logic:termEqual."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law is scoped to one policy; it imposes no global identity key or cross-policy preference."
+msgstr "Cette loi est délimitée à une politique ; elle n’impose aucune clé d’identité globale ni préférence entre politiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderCriterionKindLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "One selected score occurrence: ex:policy gmeow:orderCriterion ex:scoreKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore ."
+msgstr "Une occurrence de score sélectionnée : ex:policy gmeow:orderCriterion ex:scoreKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order required keys law"
+msgstr "loi des clés obligatoires d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected query-order policy contains a typed fused-score criterion and a typed source-subject-tie criterion. Optional leading keys never replace those required comparison coordinates."
+msgstr "Chaque politique d’ordre de requête sélectionnée contient un critère typé de score fusionné et un critère typé de départage des sujets selon la source. Les clés préliminaires facultatives ne remplacent jamais ces coordonnées obligatoires de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a partial prescription presented as a complete selected order definition."
+msgstr "Utiliser pour rejeter une prescription partielle présentée comme une définition complète d’ordre sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing absent keys, treating empty criterion membership as a default policy or equating criterion existence with measured candidate values."
+msgstr "Éviter de fabriquer des clés absentes, de traiter une collection de critères vide comme une politique par défaut ou d’assimiler l’existence des critères à des valeurs de candidats mesurées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require distinct fresh typed-and-linked existential witnesses for orderFusedScore and orderSubjectTie; kind uniqueness supplies one occurrence of each."
+msgstr "Exiger des témoins existentiels distincts nouvellement liés, typés et reliés pour orderFusedScore et orderSubjectTie ; l’unicité de type fournit une occurrence de chacun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each witness must belong to the policy rather than merely exist elsewhere. Local coordinate restrictions independently require position, kind and explicit direction."
+msgstr "Chaque témoin doit appartenir à la politique plutôt que simplement exister ailleurs. Les restrictions locales de coordonnées exigent indépendamment une position, un type et une direction explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderRequiredKeysLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A minimal complete collection: ex:policy gmeow:orderCriterion ex:scoreKey, ex:tieKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore . ex:tieKey gmeow:orderCriterionKind gmeow:orderSubjectTie ."
+msgstr "Une collection minimale complète : ex:policy gmeow:orderCriterion ex:scoreKey, ex:tieKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore . ex:tieKey gmeow:orderCriterionKind gmeow:orderSubjectTie ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order terminal tie law"
+msgstr "loi de départage terminal d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-subject-tie criterion has a greater precedence ordinal than every other criterion in its policy. It is the final key without requiring contiguous positions."
+msgstr "Le critère de départage des sujets selon la source a un ordinal de précédence supérieur à celui de chaque autre critère de sa politique. Il est la clé finale sans exiger des positions contiguës."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a policy that places another criterion after its terminal tie key."
+msgstr "Utiliser pour rejeter une politique plaçant un autre critère après sa clé terminale de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing source tie semantics with canonical RDF tuple order or claiming that terminal placement constructs actual tie bytes."
+msgstr "Éviter de remplacer la sémantique source de départage par l’ordre canonique des tuples RDF ou d’affirmer que le placement terminal construit les octets effectifs de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the policy’s tie occurrence, another distinct criterion and both stored positions; require logic:termLess from the other position to the tie position."
+msgstr "Lier l’occurrence de départage de la politique, un autre critère distinct et les deux positions stockées ; exiger logic:termLess de l’autre position vers celle de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence distinction and positions are positively bound before intrinsic comparison. Actual candidate ties and source admission remain outside this definition check."
+msgstr "La distinction des occurrences et les positions sont liées positivement avant la comparaison intrinsèque. Les départages effectifs de candidats et l’admission par la source restent hors de cette vérification de définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTerminalTieLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later terminal coordinate: ex:scoreKey gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger . ex:tieKey gmeow:entryOrdinal \"5\"^^xsd:nonNegativeInteger ."
+msgstr "Une coordonnée terminale ultérieure : ex:scoreKey gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger . ex:tieKey gmeow:entryOrdinal \"5\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order direction law"
+msgstr "loi de direction d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected policy profile validates ascending content-tier and subject-tie directions, and descending fused-score and activation directions. Every direction remains explicitly declared as typed boolean data."
+msgstr "Le profil de politique sélectionné valide les directions croissantes de palier de contenu et de départage des sujets, et les directions décroissantes de score fusionné et d’activation. Chaque direction reste explicitement déclarée comme donnée booléenne typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a supplied direction that disagrees with its selected key kind’s admitted source-standard direction."
+msgstr "Utiliser pour rejeter une direction fournie qui diffère de la direction standard de la source admise pour son type de clé sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a missing direction, comparing string booleans or claiming that a reverse ordering is supported by this profile."
+msgstr "Éviter de déduire une direction absente, de comparer des booléens sous forme de chaînes ou d’affirmer qu’un ordre inverse est pris en charge par ce profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the stored kind and boolean direction, then require logic:termEqual to typed false for tier or tie and typed true for score or activation."
+msgstr "Lier le type stocké et la direction booléenne, puis exiger logic:termEqual vers false typé pour le palier ou le départage et true typé pour le score ou l’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks declaration agreement only. It neither compares candidate magnitudes nor certifies that a consumer implemented the policy sequence."
+msgstr "Cette loi vérifie uniquement la concordance des déclarations. Elle ne compare pas de valeurs de candidats et ne certifie pas qu’un consommateur a implémenté la séquence de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderDirectionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Explicit admitted directions: ex:tierKey gmeow:orderDescending \"false\"^^xsd:boolean . ex:scoreKey gmeow:orderDescending \"true\"^^xsd:boolean ."
+msgstr "Des directions admises explicites : ex:tierKey gmeow:orderDescending \"false\"^^xsd:boolean . ex:scoreKey gmeow:orderDescending \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier binding scope law"
+msgstr "loi de portée des correspondances de paliers d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Predicate-tier bindings occur only on a content-tier criterion. Score, activation and subject-tie occurrences cannot acquire mappings that would silently introduce another comparison key."
+msgstr "Les correspondances de prédicats vers des paliers figurent uniquement sur un critère de palier de contenu. Les occurrences de score, d’activation et de départage des sujets ne peuvent pas acquérir des correspondances introduisant silencieusement une autre clé de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject bindings attached to the wrong criterion kind."
+msgstr "Utiliser pour rejeter les correspondances rattachées au mauvais type de critère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring a nonempty mapping collection, treating no mappings as missing candidate data or filtering every undeclared candidate."
+msgstr "Éviter d’exiger une collection non vide de correspondances, de traiter l’absence de correspondances comme des données de candidats absentes ou de filtrer chaque candidat non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind a criterion with contentTierBinding and require its selected orderCriterionKind to be orderContentTier."
+msgstr "Lier un critère avec contentTierBinding et exiger que son orderCriterionKind sélectionné soit orderContentTier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A content-tier criterion with no mappings yields a constant undeclared key. Mapping completeness and actual matched statements are separate source evidence."
+msgstr "Un critère de palier de contenu sans correspondances produit une clé non déclarée constante. La complétude des correspondances et les énoncés effectivement correspondants sont des éléments sources distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierBindingScopeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A correctly scoped mapping: ex:tierKey gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:contentTierBinding ex:labelTier ."
+msgstr "Une correspondance à portée correcte : ex:tierKey gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:contentTierBinding ex:labelTier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier predicate law"
+msgstr "loi des prédicats de paliers d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every predicate coordinate retained by a query tier binding is an actual IRI term. A string or blank node does not stand in for the source predicate."
+msgstr "Chaque coordonnée de prédicat conservée par une correspondance de palier de requête est un terme IRI effectif. Une chaîne ou un nœud anonyme ne remplace pas le prédicat source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject malformed term kinds in predicate-to-tier declarations."
+msgstr "Utiliser pour rejeter les types de termes mal formés dans les déclarations de prédicats vers des paliers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting IRI admission as dereferencing, schema validation, source authentication or evidence that a candidate matched the predicate."
+msgstr "Éviter d’interpréter l’admission d’un IRI comme un déréférencement, une validation de schéma, une authentification source ou une preuve qu’un candidat a correspondu au prédicat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the typed binding’s tierBindingPredicate value through its stored edge and apply unary logic:termIsIri."
+msgstr "Lier la valeur tierBindingPredicate de la correspondance typée par son arête stockée et appliquer le prédicat unaire logic:termIsIri."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required coordinate restriction handles presence separately. This term-kind check introduces no generic parser or inferred predicate class."
+msgstr "La restriction de coordonnée obligatoire traite séparément la présence. Cette vérification du type de terme n’introduit aucun analyseur générique ni classe de prédicats déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierPredicateLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A valid term kind: ex:labelTier gmeow:tierBindingPredicate ex:label ."
+msgstr "Un type de terme valide : ex:labelTier gmeow:tierBindingPredicate ex:label ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query order tier uniqueness law"
+msgstr "loi d’unicité des paliers d’ordre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one content-tier criterion, two binding records naming the same predicate must be the same selected binding. The binding’s own single ordinal prevents competing mappings for that predicate."
+msgstr "Dans un même critère de palier de contenu, deux enregistrements de correspondance nommant le même prédicat doivent être la même correspondance sélectionnée. L’ordinal unique propre à la correspondance empêche des correspondances concurrentes pour ce prédicat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the selected unique-predicate mapping profile."
+msgstr "Utiliser pour valider le profil sélectionné de correspondances à prédicats uniques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently applying native last-wins duplicate resolution, merging equal mappings globally or imposing one policy owner on a reusable binding."
+msgstr "Éviter d’appliquer silencieusement la résolution native des doublons où le dernier l’emporte, de fusionner globalement des correspondances égales ou d’imposer une politique propriétaire unique à une correspondance réutilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two retained mappings and their common predicate IRI within one content-tier criterion, then require logic:termEqual on binding identities."
+msgstr "Lier deux correspondances conservées et leur IRI de prédicat commun dans un critère de palier de contenu, puis exiger logic:termEqual sur les identités de correspondances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal tier labels on different predicates remain legal. Other policies may reuse the same binding or retain their own declaration without an identity inference."
+msgstr "Des étiquettes de paliers égales sur des prédicats différents restent licites. D’autres politiques peuvent réutiliser la même correspondance ou conserver leur propre déclaration sans déduction d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryOrderTierUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A shared tier for different predicates: ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."
+msgstr "Un palier partagé par des prédicats différents : ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."

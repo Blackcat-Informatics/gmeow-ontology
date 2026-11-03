@@ -5765,3 +5765,552 @@ gmeow:QueryRerankEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty
 gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rerankEntry ; logic:allValuesFrom gmeow:QueryRerankEntry ] .
 
 gmeow:QueryRerankAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryCandidate ; logic:allValuesFrom logic:Thing ] .
+
+gmeow:QueryOrderPolicy
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Order Policy"@x-gmeow-english ;
+    skos:definition "An explicit complete query-order definition selecting unique predicate-to-tier mappings and source-standard key directions. It contains ordered criterion occurrences with required fused-score and terminal source-subject-tie criteria, plus explicitly included content-tier or activation criteria."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe criterion precedence without changing the selected fusion arithmetic or asserting an executed order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the definition as an applied result, a native policy digest, a provider capability claim or a permission to filter candidates."@x-gmeow-english ;
+    gmeow:howToUse "Retain every orderCriterion occurrence with its own position, kind and explicit direction; include a fused-score criterion and a final source-subject-tie criterion."@x-gmeow-english ;
+    skos:scopeNote "This selected contract admits both score-before-activation and activation-before-score definitions. Actual key values, snapshot evidence, result positions and source adoption require separate evidence."@x-gmeow-english ;
+    skos:example "A complete minimal definition: ex:policy a gmeow:QueryOrderPolicy ; gmeow:orderCriterion ex:scoreCriterion, ex:tieCriterion ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryOrderCriterion
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Order Criterion"@x-gmeow-english ;
+    skos:definition "One criterion occurrence in exactly one query-order policy sequence, retaining one nonnegative entryOrdinal, one selected key kind and one explicit boolean direction. Its precedence is local to the owning policy."@x-gmeow-english ;
+    gmeow:useWhen "Use for a mechanical comparison key whose position and direction must remain explicit in a policy definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing the occurrence into a rubric Criterion, sharing it between policy sequences or treating its ordinal as a measured magnitude."@x-gmeow-english ;
+    gmeow:howToUse "Link the occurrence from its policy through orderCriterion and supply entryOrdinal, orderCriterionKind and a typed boolean orderDescending."@x-gmeow-english ;
+    skos:scopeNote "Another policy uses another occurrence even when the key kind and direction agree. Predicate-tier binding declarations may still be shared across occurrences."@x-gmeow-english ;
+    skos:example "An explicit score occurrence: ex:scoreCriterion a gmeow:QueryOrderCriterion ; gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger ; gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryPredicateTierBinding
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Predicate Tier Binding"@x-gmeow-english ;
+    skos:definition "A supplied declaration mapping one actual content-predicate IRI to one unsigned integer control-tier label. A content-tier criterion selects at most one binding resource for each predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use to define the predicate-to-tier mapping consulted by a declared content-tier criterion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the tier label as a mathematical magnitude, bibliographic source tier, audience tier or class rank."@x-gmeow-english ;
+    gmeow:howToUse "Supply one tierBindingPredicate IRI and one xsd:unsignedInt tierBindingOrdinal, then retain the declaration through contentTierBinding."@x-gmeow-english ;
+    skos:scopeNote "The binding is reusable across policies and has no unique inverse owner. The selected unique-predicate profile does not model a native last-wins duplicate mapping vector."@x-gmeow-english ;
+    skos:example "A reusable declaration: ex:labelTier a gmeow:QueryPredicateTierBinding ; gmeow:tierBindingPredicate ex:label ; gmeow:tierBindingOrdinal \"0\"^^xsd:unsignedInt ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:queryOrderPolicy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query order policy description"@x-gmeow-english ;
+    skos:definition "Associates a query-program node description with a supplied query-order policy definition. The association retains descriptive evidence without changing the node’s existing operator contract or selecting an executed policy."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep one or more supplied order definitions beside a query-program description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the edge as proof that an operator applied the policy, a default selection or an alteration of existing reciprocal-fusion semantics."@x-gmeow-english ;
+    gmeow:howToUse "Reference each supplied QueryOrderPolicy and preserve its criterion sequence independently of execution and result evidence."@x-gmeow-english ;
+    skos:scopeNote "The association is optional and nonfunctional. Coexisting definitions do not imply that a result applied all of them or choose a preferred policy."@x-gmeow-english ;
+    skos:example "Two supplied definitions: ex:node gmeow:queryOrderPolicy ex:scoreFirst, ex:activationFirst ."@x-gmeow-english ;
+    logic:domain gmeow:QueryProgramNode ; logic:range gmeow:QueryOrderPolicy .
+
+gmeow:orderCriterion
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query order criterion occurrence"@x-gmeow-english ;
+    skos:definition "One criterion occurrence retained in a QueryOrderPolicy’s complete comparison prescription. Ascending entryOrdinal determines precedence among its distinct key kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the full ordered set of comparison keys in a policy definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating RDF edge serialization order as criterion precedence or omitting the required fused-score or terminal tie criterion."@x-gmeow-english ;
+    gmeow:howToUse "Link each answer-independent QueryOrderCriterion and retain its own ordinal, key kind and explicit direction."@x-gmeow-english ;
+    skos:scopeNote "Criterion positions and kinds are unique within the policy. Noncontiguous source positions are permitted, and collection membership does not assert an applied candidate order."@x-gmeow-english ;
+    skos:example "Two precedence occurrences: ex:policy gmeow:orderCriterion ex:firstKey, ex:lastKey ."@x-gmeow-english ;
+    logic:domain gmeow:QueryOrderPolicy ; logic:range gmeow:QueryOrderCriterion .
+
+gmeow:orderCriterionKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query order criterion kind"@x-gmeow-english ;
+    skos:definition "The explicitly selected comparison-key kind of a criterion occurrence: content tier, fused score, snapshot activation or source subject tie. The selected policy profile admits exactly those four value kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish what a criterion compares from its sequence position and direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a measured score, rubric axis, predicate IRI or source identity bytes for the key-kind value."@x-gmeow-english ;
+    gmeow:howToUse "Select one of orderContentTier, orderFusedScore, orderActivation or orderSubjectTie on each occurrence."@x-gmeow-english ;
+    skos:scopeNote "Key-kind selection supplies no candidate key value or execution evidence. Content-tier and activation criteria are included explicitly rather than inferred from data availability."@x-gmeow-english ;
+    skos:example "An explicit activation key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ."@x-gmeow-english ;
+    logic:domain gmeow:QueryOrderCriterion ; logic:range logic:QualityValue .
+
+gmeow:orderDescending
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "query order descending"@x-gmeow-english ;
+    skos:definition "The explicit boolean direction coordinate of one criterion occurrence. This selected profile requires false for content tier and subject tie, and true for fused score and activation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a declared ascending or descending comparison direction as actual typed boolean data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid string-valued true or false, a missing direction default or a claim that a described reverse direction is supported by this selected profile."@x-gmeow-english ;
+    gmeow:howToUse "Write one xsd:boolean value on each occurrence and check it against the selected key kind’s required direction."@x-gmeow-english ;
+    skos:scopeNote "The direction remains explicitly supplied even though the profile validates its value. No missing declaration is generated from the criterion kind."@x-gmeow-english ;
+    skos:example "An explicit descending key: ex:scoreCriterion gmeow:orderDescending \"true\"^^xsd:boolean ."@x-gmeow-english ;
+    logic:domain gmeow:QueryOrderCriterion ; logic:range xsd:boolean .
+
+gmeow:contentTierBinding
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "content tier binding"@x-gmeow-english ;
+    skos:definition "A predicate-to-tier declaration retained by a content-tier criterion occurrence. The candidate tier is the minimum declared label among its matched-literal predicates; a candidate with no matching declaration follows every declared tier."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain all predicate mappings of an explicitly selected content-tier comparison key."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching mappings to score, activation or subject-tie criteria, matching every predicate a subject has or filtering candidates with undeclared predicates."@x-gmeow-english ;
+    gmeow:howToUse "Link each QueryPredicateTierBinding from an orderContentTier occurrence, preserving one binding per predicate within that occurrence."@x-gmeow-english ;
+    skos:scopeNote "A criterion may explicitly contain no mappings, making every candidate undeclared for that key. Shared binding resources do not merge policy occurrences or assert matched-literal evidence."@x-gmeow-english ;
+    skos:example "Two supplied mappings: ex:tierCriterion gmeow:contentTierBinding ex:labelTier, ex:bodyTier ."@x-gmeow-english ;
+    logic:domain gmeow:QueryOrderCriterion ; logic:range gmeow:QueryPredicateTierBinding .
+
+gmeow:tierBindingPredicate
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "content tier binding predicate"@x-gmeow-english ;
+    skos:definition "The actual source content-predicate IRI mapped by one tier binding. It identifies the predicate on a matched literal statement, without interpreting an arbitrary text label as a predicate or asserting a new predicate schema."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source predicate identity of a content-tier declaration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the IRI with a string, blank node, ontology class or an invented semantic identity derived from a source hash."@x-gmeow-english ;
+    gmeow:howToUse "Link one predicate IRI on the binding and retain the unsigned control-tier label separately through tierBindingOrdinal."@x-gmeow-english ;
+    skos:scopeNote "The bound term-kind check requires an IRI but does not authenticate it, resolve it or prove that any candidate matched a statement using it."@x-gmeow-english ;
+    skos:example "An actual predicate resource: ex:labelTier gmeow:tierBindingPredicate ex:label ."@x-gmeow-english ;
+    logic:domain gmeow:QueryPredicateTierBinding ; logic:range logic:Thing .
+
+gmeow:tierBindingOrdinal
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "content tier binding ordinal"@x-gmeow-english ;
+    skos:definition "The supplied unsigned integer control-tier label assigned to one content predicate. Smaller declared labels precede larger ones, while undeclared candidates remain after every declared label."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a source predicate’s tier label without turning it into a score or measured quantity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the ordinal as a probability, class rank, linear-map rank, physical dimension or a globally preferred classification."@x-gmeow-english ;
+    gmeow:howToUse "Retain one xsd:unsignedInt value on the binding; let the selected content-tier criterion define comparison and undeclared behavior."@x-gmeow-english ;
+    skos:scopeNote "Equal labels on different predicates are legal and preserve a shared tier. The label’s integer range does not impose contiguous tiers or construct a mathematical Quantity."@x-gmeow-english ;
+    skos:example "A supplied control label: ex:bodyTier gmeow:tierBindingOrdinal \"2\"^^xsd:unsignedInt ."@x-gmeow-english ;
+    logic:domain gmeow:QueryPredicateTierBinding ; logic:range xsd:unsignedInt .
+
+gmeow:orderContentTier
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "content tier order key"@x-gmeow-english ;
+    skos:definition "The content-tier comparison-key kind: a candidate uses the smallest declared control-tier label among the predicates on its matched literal statements, with no declared match ordered after every declared tier."@x-gmeow-english ;
+    gmeow:useWhen "Use to include matched-content predicate tiers as an explicit policy criterion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the tier as evidence quality, truth, audience classification or an authorization to filter an undeclared candidate."@x-gmeow-english ;
+    gmeow:howToUse "Select this kind on a criterion, declare orderDescending false and retain its contentTierBinding collection."@x-gmeow-english ;
+    skos:scopeNote "An empty binding collection yields a constant undeclared key. Applied matching evidence and assigned candidate tiers are separate from this policy definition."@x-gmeow-english ;
+    skos:example "A selected tier key: ex:tierCriterion gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:orderDescending false ."@x-gmeow-english .
+
+gmeow:orderFusedScore
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "fused score order key"@x-gmeow-english ;
+    skos:definition "The fused-score comparison-key kind, ordering greater source fused scores first without defining or changing the fusion arithmetic that produced them."@x-gmeow-english ;
+    gmeow:useWhen "Use to place the source fused-score criterion explicitly within a comparison prescription."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a reranker’s floating-point score, epistemic confidence or a new arithmetic rule for the source fused-score context."@x-gmeow-english ;
+    gmeow:howToUse "Select this kind on one criterion with orderDescending true and retain its explicit sequence position."@x-gmeow-english ;
+    skos:scopeNote "Every selected policy includes exactly one fused-score occurrence. Actual magnitudes, datatype, dimension, frame and fusion-profile evidence belong to an applied account."@x-gmeow-english ;
+    skos:example "A selected score key: ex:scoreCriterion gmeow:orderCriterionKind gmeow:orderFusedScore ; gmeow:orderDescending true ."@x-gmeow-english .
+
+gmeow:orderActivation
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "snapshot activation order key"@x-gmeow-english ;
+    skos:definition "The snapshot-activation comparison-key kind, ordering greater source activation estimates first in the explicitly chosen precedence position. It names a retrieval-history key rather than deployment activation authority."@x-gmeow-english ;
+    gmeow:useWhen "Use to include source snapshot activation estimates as an explicit comparison criterion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating activation magnitude as confidence, truth, permission or a value read from unspecified live counters."@x-gmeow-english ;
+    gmeow:howToUse "Select this kind on a criterion with orderDescending true; preserve the chosen position independently of the fused-score criterion."@x-gmeow-english ;
+    skos:scopeNote "The policy definition supplies no measured estimate or snapshot. A later applied account must retain actual source snapshots, vault scope, aggregation conventions and quantitative context."@x-gmeow-english ;
+    skos:example "A selected snapshot key: ex:activationCriterion gmeow:orderCriterionKind gmeow:orderActivation ; gmeow:orderDescending true ."@x-gmeow-english .
+
+gmeow:orderSubjectTie
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "source subject tie order key"@x-gmeow-english ;
+    skos:definition "The terminal source-subject-tie comparison-key kind, ordering the source’s subject tie keys ascending after all other declared criteria. It does not replace those keys with canonical RDF tuple order."@x-gmeow-english ;
+    gmeow:useWhen "Use as the required final comparison criterion of a complete selected policy definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid synthesizing subject digest bytes, assuming an arbitrary IRI lexical order or claiming a non-IRI subject is admitted by a particular source profile."@x-gmeow-english ;
+    gmeow:howToUse "Select this kind on one criterion with orderDescending false and an entryOrdinal greater than every other criterion’s position."@x-gmeow-english ;
+    skos:scopeNote "Actual subject identity, tie bytes and source refusal behavior belong to applied evidence. The declaration authenticates no hash recipe and supplies no missing tie value."@x-gmeow-english ;
+    skos:example "A terminal tie key: ex:tieCriterion gmeow:orderCriterionKind gmeow:orderSubjectTie ; gmeow:orderDescending false ."@x-gmeow-english .
+
+gmeow:QueryOrderCriterionOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order criterion owner law"@x-gmeow-english ;
+    skos:definition "Every query-order criterion occurrence belongs to exactly one policy sequence. Another policy requires a separate occurrence so its position, kind and direction remain local to that prescription."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent a criterion occurrence from borrowing two policy contexts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing inverse ownership on reusable predicate-tier bindings or equating policies because their criteria have equal coordinates."@x-gmeow-english ;
+    gmeow:howToUse "Require a fresh existing typed policy owner and compare any two policy links to the occurrence through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "The realized Formula uses one outer universal, a joined owner existential and a guarded owner-pair implication, without a positive nested universal."@x-gmeow-english ;
+    skos:example "One owning policy: ex:policy gmeow:orderCriterion ex:key . ex:key a gmeow:QueryOrderCriterion ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryOrderCriterion ;
+    logic:message "Every query-order criterion occurrence belongs to exactly one policy sequence. Another policy requires a separate occurrence so its position, kind and direction remain local to that prescription." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftOwner" ], [ logic:termIndex 2 ; logic:termVariable "rightOwner" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "freshPolicyOwner" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshPolicyOwner" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderPolicy ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "freshPolicyOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightOwner" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftOwner" ], [ logic:termIndex 1 ; logic:termVariable "rightOwner" ] ] ] ] ] ] .
+
+gmeow:QueryOrderCriterionPositionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order criterion position law"@x-gmeow-english ;
+    skos:definition "Within one query-order policy, equal criterion positions require the same criterion occurrence resource. Different policies retain independent sequence positions."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject competing key occurrences at one supplied precedence position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid renumbering source positions, requiring contiguous indices or identifying occurrences across policy boundaries."@x-gmeow-english ;
+    gmeow:howToUse "Bind two criteria of one policy and their entryOrdinal values; use logic:termEqual on positions and require equality of the occurrence resources."@x-gmeow-english ;
+    skos:scopeNote "The admitted integer coordinates express control precedence, not mathematical magnitudes, measured ranks or a source count."@x-gmeow-english ;
+    skos:example "Distinct precedence positions: ex:first gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . ex:last gmeow:entryOrdinal \"3\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:formalizes gmeow:orderCriterion ;
+    logic:message "Within one query-order policy, equal criterion positions require the same criterion occurrence resource. Different policies retain independent sequence positions." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "leftPosition" ], [ logic:termIndex 4 ; logic:termVariable "rightPosition" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderPolicy ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftPosition" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftPosition" ], [ logic:termIndex 1 ; logic:termVariable "rightPosition" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:QueryOrderCriterionKindLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order criterion kind law"@x-gmeow-english ;
+    skos:definition "Two criterion occurrences of one policy selecting the same comparison-key kind must be the same occurrence. A policy cannot give one key kind competing precedence positions."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate content-tier, score, activation or subject-tie occurrences within a definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating equal key kinds in different policies as occurrence identity or interpreting duplicate rejection as permission to discard a source declaration."@x-gmeow-english ;
+    gmeow:howToUse "Bind two policy criteria sharing the same orderCriterionKind resource and compare their occurrence identities through logic:termEqual."@x-gmeow-english ;
+    skos:scopeNote "The law is scoped to one policy; it imposes no global identity key or cross-policy preference."@x-gmeow-english ;
+    skos:example "One selected score occurrence: ex:policy gmeow:orderCriterion ex:scoreKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore ."@x-gmeow-english ;
+    logic:formalizes gmeow:orderCriterionKind ;
+    logic:message "Two criterion occurrences of one policy selecting the same comparison-key kind must be the same occurrence. A policy cannot give one key kind competing precedence positions." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "keyKind" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderPolicy ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "keyKind" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "keyKind" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:QueryOrderRequiredKeysLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order required keys law"@x-gmeow-english ;
+    skos:definition "Every selected query-order policy contains a typed fused-score criterion and a typed source-subject-tie criterion. Optional leading keys never replace those required comparison coordinates."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a partial prescription presented as a complete selected order definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing absent keys, treating empty criterion membership as a default policy or equating criterion existence with measured candidate values."@x-gmeow-english ;
+    gmeow:howToUse "Require distinct fresh typed-and-linked existential witnesses for orderFusedScore and orderSubjectTie; kind uniqueness supplies one occurrence of each."@x-gmeow-english ;
+    skos:scopeNote "Each witness must belong to the policy rather than merely exist elsewhere. Local coordinate restrictions independently require position, kind and explicit direction."@x-gmeow-english ;
+    skos:example "A minimal complete collection: ex:policy gmeow:orderCriterion ex:scoreKey, ex:tieKey . ex:scoreKey gmeow:orderCriterionKind gmeow:orderFusedScore . ex:tieKey gmeow:orderCriterionKind gmeow:orderSubjectTie ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryOrderPolicy ;
+    logic:message "Every selected query-order policy contains a typed fused-score criterion and a typed source-subject-tie criterion. Optional leading keys never replace those required comparison coordinates." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderPolicy ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredScoreCriterion" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredScoreCriterion" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredScoreCriterion" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredScoreCriterion" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderFusedScore ] ] ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredTieCriterion" ] ;
+logic:exists [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredTieCriterion" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredTieCriterion" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "requiredTieCriterion" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderSubjectTie ] ] ] ] ] ] ] .
+
+gmeow:QueryOrderTerminalTieLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order terminal tie law"@x-gmeow-english ;
+    skos:definition "The source-subject-tie criterion has a greater precedence ordinal than every other criterion in its policy. It is the final key without requiring contiguous positions."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a policy that places another criterion after its terminal tie key."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing source tie semantics with canonical RDF tuple order or claiming that terminal placement constructs actual tie bytes."@x-gmeow-english ;
+    gmeow:howToUse "Bind the policy’s tie occurrence, another distinct criterion and both stored positions; require logic:termLess from the other position to the tie position."@x-gmeow-english ;
+    skos:scopeNote "Occurrence distinction and positions are positively bound before intrinsic comparison. Actual candidate ties and source admission remain outside this definition check."@x-gmeow-english ;
+    skos:example "A later terminal coordinate: ex:scoreKey gmeow:entryOrdinal \"1\"^^xsd:nonNegativeInteger . ex:tieKey gmeow:entryOrdinal \"5\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:formalizes gmeow:orderSubjectTie ;
+    logic:message "The source-subject-tie criterion has a greater precedence ordinal than every other criterion in its policy. It is the final key without requiring contiguous positions." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "criterion" ], [ logic:termIndex 2 ; logic:termVariable "tieCriterion" ], [ logic:termIndex 3 ; logic:termVariable "position" ], [ logic:termIndex 4 ; logic:termVariable "tiePosition" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderPolicy ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "criterion" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "tieCriterion" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "tieCriterion" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderSubjectTie ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "criterion" ], [ logic:termIndex 1 ; logic:termVariable "position" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:entryOrdinal ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "tieCriterion" ], [ logic:termIndex 1 ; logic:termVariable "tiePosition" ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "criterion" ], [ logic:termIndex 1 ; logic:termVariable "tieCriterion" ] ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termLess ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "position" ], [ logic:termIndex 1 ; logic:termVariable "tiePosition" ] ] ] ] .
+
+gmeow:QueryOrderDirectionLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order direction law"@x-gmeow-english ;
+    skos:definition "The selected policy profile validates ascending content-tier and subject-tie directions, and descending fused-score and activation directions. Every direction remains explicitly declared as typed boolean data."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a supplied direction that disagrees with its selected key kind’s admitted source-standard direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a missing direction, comparing string booleans or claiming that a reverse ordering is supported by this profile."@x-gmeow-english ;
+    gmeow:howToUse "Bind the stored kind and boolean direction, then require logic:termEqual to typed false for tier or tie and typed true for score or activation."@x-gmeow-english ;
+    skos:scopeNote "The law checks declaration agreement only. It neither compares candidate magnitudes nor certifies that a consumer implemented the policy sequence."@x-gmeow-english ;
+    skos:example "Explicit admitted directions: ex:tierKey gmeow:orderDescending \"false\"^^xsd:boolean . ex:scoreKey gmeow:orderDescending \"true\"^^xsd:boolean ."@x-gmeow-english ;
+    logic:formalizes gmeow:orderDescending ;
+    logic:message "The selected policy profile validates ascending content-tier and subject-tie directions, and descending fused-score and activation directions. Every direction remains explicitly declared as typed boolean data." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "keyKind" ], [ logic:termIndex 2 ; logic:termVariable "descending" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "keyKind" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderDescending ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "descending" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "keyKind" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "keyKind" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderSubjectTie ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "descending" ], [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:or [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "keyKind" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderFusedScore ] ],
+[ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "keyKind" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "descending" ], [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] ] ] .
+
+gmeow:QueryOrderTierBindingScopeLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order tier binding scope law"@x-gmeow-english ;
+    skos:definition "Predicate-tier bindings occur only on a content-tier criterion. Score, activation and subject-tie occurrences cannot acquire mappings that would silently introduce another comparison key."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject bindings attached to the wrong criterion kind."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring a nonempty mapping collection, treating no mappings as missing candidate data or filtering every undeclared candidate."@x-gmeow-english ;
+    gmeow:howToUse "Bind a criterion with contentTierBinding and require its selected orderCriterionKind to be orderContentTier."@x-gmeow-english ;
+    skos:scopeNote "A content-tier criterion with no mappings yields a constant undeclared key. Mapping completeness and actual matched statements are separate source evidence."@x-gmeow-english ;
+    skos:example "A correctly scoped mapping: ex:tierKey gmeow:orderCriterionKind gmeow:orderContentTier ; gmeow:contentTierBinding ex:labelTier ."@x-gmeow-english ;
+    logic:formalizes gmeow:contentTierBinding ;
+    logic:message "Predicate-tier bindings occur only on a content-tier criterion. Score, activation and subject-tie occurrences cannot acquire mappings that would silently introduce another comparison key." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "binding" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:contentTierBinding ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "binding" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ] ] ] .
+
+gmeow:QueryOrderTierPredicateLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order tier predicate law"@x-gmeow-english ;
+    skos:definition "Every predicate coordinate retained by a query tier binding is an actual IRI term. A string or blank node does not stand in for the source predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject malformed term kinds in predicate-to-tier declarations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting IRI admission as dereferencing, schema validation, source authentication or evidence that a candidate matched the predicate."@x-gmeow-english ;
+    gmeow:howToUse "Bind the typed binding’s tierBindingPredicate value through its stored edge and apply unary logic:termIsIri."@x-gmeow-english ;
+    skos:scopeNote "The required coordinate restriction handles presence separately. This term-kind check introduces no generic parser or inferred predicate class."@x-gmeow-english ;
+    skos:example "A valid term kind: ex:labelTier gmeow:tierBindingPredicate ex:label ."@x-gmeow-english ;
+    logic:formalizes gmeow:tierBindingPredicate ;
+    logic:message "Every predicate coordinate retained by a query tier binding is an actual IRI term. A string or blank node does not stand in for the source predicate." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryPredicateTierBinding ] ],
+[ a logic:Formula ;
+logic:relation gmeow:tierBindingPredicate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termIsIri ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ] ] ] ] .
+
+gmeow:QueryOrderTierUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "query order tier uniqueness law"@x-gmeow-english ;
+    skos:definition "Within one content-tier criterion, two binding records naming the same predicate must be the same selected binding. The binding’s own single ordinal prevents competing mappings for that predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the selected unique-predicate mapping profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid silently applying native last-wins duplicate resolution, merging equal mappings globally or imposing one policy owner on a reusable binding."@x-gmeow-english ;
+    gmeow:howToUse "Bind two retained mappings and their common predicate IRI within one content-tier criterion, then require logic:termEqual on binding identities."@x-gmeow-english ;
+    skos:scopeNote "Equal tier labels on different predicates remain legal. Other policies may reuse the same binding or retain their own declaration without an identity inference."@x-gmeow-english ;
+    skos:example "A shared tier for different predicates: ex:tierKey gmeow:contentTierBinding ex:labelTier, ex:bodyTier . ex:labelTier gmeow:tierBindingPredicate ex:label . ex:bodyTier gmeow:tierBindingPredicate ex:body ."@x-gmeow-english ;
+    logic:formalizes gmeow:contentTierBinding ;
+    logic:message "Within one content-tier criterion, two binding records naming the same predicate must be the same selected binding. The binding’s own single ordinal prevents competing mappings for that predicate." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftBinding" ], [ logic:termIndex 2 ; logic:termVariable "rightBinding" ], [ logic:termIndex 3 ; logic:termVariable "predicate" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryOrderCriterion ] ],
+[ a logic:Formula ;
+logic:relation gmeow:orderCriterionKind ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+[ a logic:Formula ;
+logic:relation gmeow:contentTierBinding ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftBinding" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:contentTierBinding ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rightBinding" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:tierBindingPredicate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftBinding" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:tierBindingPredicate ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "rightBinding" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "leftBinding" ], [ logic:termIndex 1 ; logic:termVariable "rightBinding" ] ] ] ] .
+
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryOrderCriterion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderCriterionKind ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( gmeow:orderContentTier gmeow:orderFusedScore gmeow:orderActivation gmeow:orderSubjectTie ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryOrderCriterion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/orderCriterionKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderCriterionKind ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:QualityValue ] .
+
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderDescending ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryOrderCriterion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/orderDescending" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderDescending ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+
+gmeow:QueryPredicateTierBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tierBindingPredicate ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryPredicateTierBinding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tierBindingPredicate" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryPredicateTierBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tierBindingPredicate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:QueryPredicateTierBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tierBindingOrdinal ; logic:allValuesFrom xsd:unsignedInt ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryPredicateTierBinding ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tierBindingOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryPredicateTierBinding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tierBindingOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedInt ] .
+
+gmeow:QueryOrderPolicy logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:orderCriterion ; logic:allValuesFrom gmeow:QueryOrderCriterion ] .
+
+gmeow:QueryOrderCriterion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentTierBinding ; logic:allValuesFrom gmeow:QueryPredicateTierBinding ] .
