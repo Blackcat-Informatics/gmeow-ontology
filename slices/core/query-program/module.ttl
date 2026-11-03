@@ -7288,3 +7288,331 @@ gmeow:QueryVerdictComparison logic:subClassOf [ a logic:Restriction ; logic:onPr
 
 gmeow:QueryNodeExecution logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:choiceEvaluationState ; logic:allValuesFrom gmeow:State ],
     [ a logic:Restriction ; logic:onProperty gmeow:choiceEvaluationState ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:State ] .
+
+gmeow:QueryReportedFusionScore
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Reported Fusion Score"@x-gmeow-english ;
+    skos:definition "A reported exact-decimal fused-score Quantity with one declared dimension, one applicable reference frame and one selected source-profile interpretation record. It is not a fixed-point datatype or an arithmetic-conformant result class."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an exact supplied fused magnitude with its explicit quantitative interpretation and source convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the old unweighted integer QueryFusionScore, a rerank float, Probability, Confidence or an arithmetic certificate as a substitute."@x-gmeow-english ;
+    gmeow:howToUse "Supply one xsd:decimal math:quantityValue, math:hasDimension, hasReferenceFrame and reportedFusionScoreProfile, preserving the same dimension and frame resources on the selected profile record."@x-gmeow-english ;
+    skos:scopeNote "The carrier-range law checks nonnegative magnitude and the selected source carrier capacity only. Fixed-point quantum membership, truncation, complete summation, native admission and authentic call/result association remain outside this foundation."@x-gmeow-english ;
+    skos:example "A reported magnitude: ex:score a gmeow:QueryReportedFusionScore ; math:quantityValue \"0.016393442622950819\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile ."@x-gmeow-english ;
+    logic:subClassOf math:Quantity .
+
+gmeow:QueryFusionScoreProfile
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Fusion Score Profile"@x-gmeow-english ;
+    skos:definition "The declared interpretation and source-profile context selected by a reported fusion score, retaining one source convention, one declared dimension, one applicable reference frame and the convention’s supplied native identity form."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the declared source arithmetic claim and quantitative context distinct from a reported magnitude and its actual application."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the record as a complete source profile, a retained source-call resource, a call/result association or a content-unique identity derived from name, version or native bytes."@x-gmeow-english ;
+    gmeow:howToUse "Supply fusionScoreConvention, fusionScoreDimension and hasReferenceFrame; retain actual digest bytes for the weighted scale-18 convention or actual selected profile name and version for the unit scale-12 convention."@x-gmeow-english ;
+    skos:scopeNote "The record itself is the selected declared context. The actual full source profile supplies its components; recorded name/version neither determines nor validates them. Authentic source-call, full-profile and result association remains application-owned."@x-gmeow-english ;
+    skos:example "A declared context: ex:profile a gmeow:QueryFusionScoreProfile ; gmeow:fusionScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:reportedFusionScoreProfile
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported fusion score profile"@x-gmeow-english ;
+    skos:definition "The one declared interpretation and source-profile context selected by a reported exact-decimal fusion-score carrier."@x-gmeow-english ;
+    gmeow:useWhen "Use to share an explicit profile record across supplied score quantities without adding another scalar-value property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this link as an association to an authenticated source call or as proof that the selected arithmetic produced the reported value."@x-gmeow-english ;
+    gmeow:howToUse "Reference one QueryFusionScoreProfile and retain its exact dimension and reference-frame resources on the score quantity."@x-gmeow-english ;
+    skos:scopeNote "Several score carriers may select the same declared context. Equal magnitudes, native bytes or name/version labels do not merge profile records or establish an application."@x-gmeow-english ;
+    skos:example "An explicit profile selection: ex:score gmeow:reportedFusionScoreProfile ex:profile ."@x-gmeow-english ;
+    logic:domain gmeow:QueryReportedFusionScore ; logic:range gmeow:QueryFusionScoreProfile .
+
+gmeow:fusionScoreConvention
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion score source convention"@x-gmeow-english ;
+    skos:definition "The explicitly selected source arithmetic convention described by a fusion-score profile record: weighted scale-18 numerator division or pinned unit scale-12 reciprocal-first arithmetic."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish the two observed source claims without introducing independent parameter defaults or arbitrary combinations of numeric conventions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating selection as arithmetic verification, substituting current upstream behavior for a pinned consumer or inferring a convention from an equal decimal value."@x-gmeow-english ;
+    gmeow:howToUse "Select one of the two declared convention resources and retain its matching native identity form, declared dimension and applicable frame."@x-gmeow-english ;
+    skos:scopeNote "Each convention describes source precision, k, rounding placement, rank and range/overflow behavior. This foundation certifies neither quantum membership nor truncation, component sums, native admission or source authenticity."@x-gmeow-english ;
+    skos:example "A weighted convention selection: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionScoreProfile ; logic:range logic:QualityValue .
+
+gmeow:fusionScoreDimension
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion score declared dimension"@x-gmeow-english ;
+    skos:definition "The one explicitly declared mathematical dimension of the score interpretation carried by a fusion-score profile record."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain quantitative meaning without inventing a parallel magnitude carrier or inferring dimension from the word score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this declaration as dimension metadata serialized by the inspected APIs or silently substituting dimensionless when required context is unavailable."@x-gmeow-english ;
+    gmeow:howToUse "Reference an actual math:Dimension and use that same resource through math:hasDimension on each score selecting this interpretation."@x-gmeow-english ;
+    skos:scopeNote "The API surfaces examined supply no mathematical dimension object. A declared interpretation needs actual source or adapter justification; equal dimensions alone do not equate arithmetic, calibration, frames or profiles."@x-gmeow-english ;
+    skos:example "An explicitly declared interpretation: ex:profile gmeow:fusionScoreDimension math:dimensionless ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionScoreProfile ; logic:range math:Dimension .
+
+gmeow:fusionProfileDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion profile supplied digest"@x-gmeow-english ;
+    skos:definition "The actual supplied native profile byte identity retained under the weighted scale-18 convention, separately from the RDF interpretation-record identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s returned profile bytes without inventing a name, version, semantic IRI or replacement hash recipe."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring native bytes for a source that exposes name/version instead, recomputing a digest from incomplete graph fields or equating records because their bytes match."@x-gmeow-english ;
+    gmeow:howToUse "Retain one xsd:hexBinary literal from the actual source profile identity on the selected interpretation record."@x-gmeow-english ;
+    skos:scopeNote "The source-form law checks the applicable identity representation. It does not authenticate a digest, grade native byte width, prove covered weights/policy content or create a source-call/result association."@x-gmeow-english ;
+    skos:example "Synthetic input identity bytes: ex:profile gmeow:fusionProfileDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionScoreProfile ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:fusionProfileName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion profile supplied name"@x-gmeow-english ;
+    skos:definition "The actual textual source profile identity retained under the pinned unit scale-12 convention together with its actual selected version."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a supplied profile name without pretending the source exposes a Katamari-style native digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the name or name/version pair as a unique key for the complete component set, source-call context or RDF interpretation record."@x-gmeow-english ;
+    gmeow:howToUse "Retain one xsd:string literal from the source’s selected profile identity and its actual fusionProfileVersion."@x-gmeow-english ;
+    skos:scopeNote "The actual selected full FusionProfile supplies its components. Recorded name/version alone neither determines nor validates them, and this foundation does not serialize them or authenticate their application."@x-gmeow-english ;
+    skos:example "Synthetic input name: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionScoreProfile ; logic:range xsd:string ; logic:subPropertyOf lang:literalValue .
+
+gmeow:fusionProfileVersion
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion profile selected source version"@x-gmeow-english ;
+    skos:definition "The actual u32 version of the selected source FusionProfile under the pinned unit scale-12 convention, retained as an identifier coordinate rather than a measured magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve version supplied by the actual selected public profile input or source call context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a crate version, treating version as a returned candidate field or default, or inventing a version for the byte-identified scale-18 source."@x-gmeow-english ;
+    gmeow:howToUse "Retain one xsd:unsignedInt value from the actual selected FusionProfile alongside its supplied fusionProfileName."@x-gmeow-english ;
+    skos:scopeNote "The inspected result returns a fusion name; its version comes from the selected full profile input. Name/version does not uniquely determine components or establish a call/result association in this foundation."@x-gmeow-english ;
+    skos:example "Synthetic selected version: ex:profile gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionScoreProfile ; logic:range xsd:unsignedInt ; logic:subPropertyOf lang:literalValue .
+
+gmeow:fusionWeightedScale18Convention
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "weighted scale-18 fusion convention"@x-gmeow-english ;
+    skos:definition "The observed positive weighted reciprocal-rank source convention with k equal to 60 and u128 raw units at scale 10^18. Each present-class coefficient is divided once by 60 plus retained source rank, truncated before class-order checked summation; an absent class contributes zero."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the observed scale-18 weighted source claim independently of old unweighted integer fusion or a differently rounded reciprocal-first source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalizing weights to sum one, renumbering source tied ranks into distinct-subject ranks or claiming that selecting this value verifies arithmetic or fitting."@x-gmeow-english ;
+    gmeow:howToUse "Select this convention explicitly and retain actual native profile digest bytes plus the declared dimension and reference frame of the reported Quantity."@x-gmeow-english ;
+    skos:scopeNote "The candidate uses its minimum retained rank within each class; final score overflow refuses rather than saturates. Fitting, measured/unmeasured mode, complete weights/contributions, quantum membership and native profile authentication remain outside this foundation."@x-gmeow-english ;
+    skos:example "An explicit weighted source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."@x-gmeow-english .
+
+gmeow:fusionUnitScale12Convention
+    a logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "unit scale-12 reciprocal-first fusion convention"@x-gmeow-english ;
+    skos:definition "The observed pinned unit-weight source convention with k equal to 60 and signed i128 raw units at scale 10^12. The reciprocal is truncated first and then checked-multiplied by the unit coefficient for each admitted family or defocus stratum; contribution sums are checked."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual pinned unit-weight source claim with its selected profile name/version and quantitative interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting current upstream Precision/Score behavior, importing fitted Katamari coefficients or equating reciprocal-first and numerator-division arithmetic."@x-gmeow-english ;
+    gmeow:howToUse "Select this convention explicitly and retain actual selected source profile name/version, declared dimension and applicable reference frame."@x-gmeow-english ;
+    skos:scopeNote "Source family ranks count distinct subjects from one, with defocus ranked as an admitted component. Positive unit contributions yield nonnegative scores despite the signed carrier. The actual full profile supplies its component set; names/versions alone do not determine or validate it."@x-gmeow-english ;
+    skos:example "An explicit unit source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ."@x-gmeow-english .
+
+gmeow:FusionScoreProfileSourceFormLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion score profile source form law"@x-gmeow-english ;
+    skos:definition "A declared fusion-score profile uses the supplied native identity form appropriate to its selected source convention: digest bytes alone for weighted scale-18, or actual profile name and selected version for unit scale-12."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the applicable identity representation without a universal native-byte requirement or a parameter default."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating identity form with digest authenticity, content-unique profile identity, component validation or a source-call/result association."@x-gmeow-english ;
+    gmeow:howToUse "Under each explicit convention require its applicable identity fields and forbid the other form, using distinct fresh existence witnesses and local datatype/maximality restrictions."@x-gmeow-english ;
+    skos:scopeNote "This law grades representation form only. Actual identity bytes/text/version, native byte width and authentic binding to the selected full source profile remain import and application obligations; equal metadata does not merge interpretation records."@x-gmeow-english ;
+    skos:example "The unit identity form: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ; gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionScoreProfile ;
+    logic:message "A declared fusion-score profile uses the supplied native identity form appropriate to its selected source convention: digest bytes alone for weighted scale-18, or actual profile name and selected version for unit scale-12." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "convention" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionScoreProfile ] ],
+[ a logic:Formula ;
+logic:relation gmeow:fusionScoreConvention ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "convention" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "convention" ], [ logic:termIndex 1 ; logic:termIri gmeow:fusionWeightedScale18Convention ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredWeightedDigest" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileDigest ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredWeightedDigest" ] ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenWeightedName" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileName ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenWeightedName" ] ] ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenWeightedVersion" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileVersion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenWeightedVersion" ] ] ] ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "convention" ], [ logic:termIndex 1 ; logic:termIri gmeow:fusionUnitScale12Convention ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredUnitName" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileName ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredUnitName" ] ] ],
+[ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "requiredUnitVersion" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileVersion ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "requiredUnitVersion" ] ] ],
+[ a logic:Formula ;
+logic:not [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "forbiddenUnitDigest" ] ;
+logic:exists [ a logic:Formula ;
+logic:relation gmeow:fusionProfileDigest ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "forbiddenUnitDigest" ] ] ] ] ] ] ] ] ] .
+
+gmeow:FusionScoreContextAgreementLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion score interpretation agreement law"@x-gmeow-english ;
+    skos:definition "A reported fusion score and its selected declared profile interpretation use the exact same dimension resource and the exact same applicable reference-frame resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep quantitative meaning explicit and consistent across a supplied score and its declared context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing only labels, merging equal-looking frames or claiming this agreement authenticates an actual source call or arithmetic application."@x-gmeow-english ;
+    gmeow:howToUse "Bind the score’s selected profile and each side’s stored dimension and frame, then require termEqual on the corresponding resource pairs."@x-gmeow-english ;
+    skos:scopeNote "The profile record itself is the selected interpretation context; no separate call-context resource or result link is introduced. Authentic association with an actual source call, full profile and result remains application-owned."@x-gmeow-english ;
+    skos:example "A shared frame resource: ex:score gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile . ex:profile gmeow:hasReferenceFrame ex:frame ."@x-gmeow-english ;
+    logic:formalizes gmeow:reportedFusionScoreProfile ;
+    logic:message "A reported fusion score and its selected declared profile interpretation use the exact same dimension resource and the exact same applicable reference-frame resource." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "profile" ], [ logic:termIndex 2 ; logic:termVariable "dimension" ], [ logic:termIndex 3 ; logic:termVariable "profileDimension" ], [ logic:termIndex 4 ; logic:termVariable "frame" ], [ logic:termIndex 5 ; logic:termVariable "profileFrame" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryReportedFusionScore ] ],
+[ a logic:Formula ;
+logic:relation gmeow:reportedFusionScoreProfile ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "profile" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation math:hasDimension ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "dimension" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:fusionScoreDimension ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ], [ logic:termIndex 1 ; logic:termVariable "profileDimension" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "dimension" ], [ logic:termIndex 1 ; logic:termVariable "profileDimension" ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation gmeow:hasReferenceFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:hasReferenceFrame ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ], [ logic:termIndex 1 ; logic:termVariable "profileFrame" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ], [ logic:termIndex 1 ; logic:termVariable "profileFrame" ] ] ] ] ] ] .
+
+gmeow:FusionScoreCarrierRangeLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion score representable carrier range law"@x-gmeow-english ;
+    skos:definition "A reported fused magnitude is nonnegative and no greater than the selected observed source carrier’s exact capacity: unsigned 128-bit units at scale 10^18 or the positive capacity of signed 128-bit units at scale 10^12."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject negative or over-capacity decimal reports under these explicit positive-weight source claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling an in-range decimal a fixed-point value, full numeric-domain member, quantum-valid value or arithmetic-conformant result."@x-gmeow-english ;
+    gmeow:howToUse "Bind the exact decimal magnitude and selected convention; compare against zero and the appropriate exact decimal carrier maximum with supported term comparisons."@x-gmeow-english ;
+    skos:scopeNote "These are carrier-range checks only. An in-range decimal finer than the selected quantum can pass. Truncation, quantum membership, complete summation, native admission and source authenticity are not certified; xsd:decimal already excludes nonfinite values."@x-gmeow-english ;
+    skos:example "A reported zero remains valid: ex:score math:quantityValue \"0\"^^xsd:decimal ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryReportedFusionScore ;
+    logic:message "A reported fused magnitude is nonnegative and no greater than the selected observed source carrier’s exact capacity: unsigned 128-bit units at scale 10^18 or the positive capacity of signed 128-bit units at scale 10^12." ;
+    logic:integrity [ a logic:Formula ;
+logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "profile" ], [ logic:termIndex 2 ; logic:termVariable "convention" ], [ logic:termIndex 3 ; logic:termVariable "value" ] ;
+logic:forall [ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation rdf:type ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryReportedFusionScore ] ],
+[ a logic:Formula ;
+logic:relation gmeow:reportedFusionScoreProfile ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "profile" ] ],
+[ a logic:Formula ;
+logic:relation gmeow:fusionScoreConvention ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ], [ logic:termIndex 1 ; logic:termVariable "convention" ] ],
+[ a logic:Formula ;
+logic:relation math:quantityValue ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:and [ a logic:Formula ;
+logic:relation logic:termGreaterEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:decimal ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "convention" ], [ logic:termIndex 1 ; logic:termIri gmeow:fusionWeightedScale18Convention ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termLessEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "340282366920938463463.374607431768211455" ; logic:termLiteralDatatype xsd:decimal ] ] ],
+[ a logic:Formula ;
+logic:antecedent [ a logic:Formula ;
+logic:relation logic:termEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "convention" ], [ logic:termIndex 1 ; logic:termIri gmeow:fusionUnitScale12Convention ] ] ;
+logic:consequent [ a logic:Formula ;
+logic:relation logic:termLessEqual ;
+logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "170141183460469231731687303.715884105727" ; logic:termLiteralDatatype xsd:decimal ] ] ] ] ] ] .
+
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedFusionScore ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:decimal ] .
+
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedFusionScore ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
+
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedFusionScore ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reportedFusionScoreProfile ; logic:allValuesFrom gmeow:QueryFusionScoreProfile ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedFusionScore ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedFusionScore logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reportedFusionScoreProfile ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryFusionScoreProfile ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionScoreConvention ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( gmeow:fusionWeightedScale18Convention gmeow:fusionUnitScale12Convention ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionScoreProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/fusionScoreConvention" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionScoreConvention ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:QualityValue ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionScoreDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionScoreProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/fusionScoreDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionScoreDimension ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass math:Dimension ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionScoreProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileDigest ; logic:allValuesFrom xsd:hexBinary ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileDigest ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileName ; logic:allValuesFrom xsd:string ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileName ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:string ] .
+
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileVersion ; logic:allValuesFrom xsd:unsignedInt ] .
+gmeow:QueryFusionScoreProfile logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionProfileVersion ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedInt ] .

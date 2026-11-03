@@ -5611,3 +5611,367 @@ msgstr "Les valeurs effectives absentes ou explicitement inconnues et l’inéga
 msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceMatchLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A known matching value: ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."
 msgstr "Une valeur connue correspondante : ex:answer gmeow:queryInformationState logic:InfoBoth . ex:outer gmeow:choiceExpectedValue logic:InfoBoth . ex:state logic:situationObtains ex:matchSituation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Reported Fusion Score"
+msgstr "Score rapporté de fusion de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported exact-decimal fused-score Quantity with one declared dimension, one applicable reference frame and one selected source-profile interpretation record. It is not a fixed-point datatype or an arithmetic-conformant result class."
+msgstr "Une Quantity rapportée de score fusionné en décimal exact avec une dimension déclarée, un repère de référence applicable et un enregistrement sélectionné d’interprétation du profil source. Ce n’est ni un type de données à virgule fixe ni une classe de résultats conformes à une arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an exact supplied fused magnitude with its explicit quantitative interpretation and source convention."
+msgstr "Utiliser pour conserver une valeur numérique exacte fournie de fusion avec son interprétation quantitative explicite et sa convention source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the old unweighted integer QueryFusionScore, a rerank float, Probability, Confidence or an arithmetic certificate as a substitute."
+msgstr "Éviter de substituer l’ancien QueryFusionScore entier non pondéré, un flottant de reclassement, une Probability, une Confidence ou un certificat arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:decimal math:quantityValue, math:hasDimension, hasReferenceFrame and reportedFusionScoreProfile, preserving the same dimension and frame resources on the selected profile record."
+msgstr "Fournir une math:quantityValue de type xsd:decimal, math:hasDimension, hasReferenceFrame et reportedFusionScoreProfile, en préservant les mêmes ressources de dimension et de repère sur l’enregistrement de profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier-range law checks nonnegative magnitude and the selected source carrier capacity only. Fixed-point quantum membership, truncation, complete summation, native admission and authentic call/result association remain outside this foundation."
+msgstr "La loi d’intervalle du support vérifie uniquement la valeur numérique non négative et la capacité du support source sélectionné. Le respect du pas de quantification fixe, la troncature, la sommation complète, l’admission native et l’association authentique appel/résultat restent hors de ce socle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported magnitude: ex:score a gmeow:QueryReportedFusionScore ; math:quantityValue \"0.016393442622950819\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile ."
+msgstr "Une valeur numérique rapportée : ex:score a gmeow:QueryReportedFusionScore ; math:quantityValue \"0.016393442622950819\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Score Profile"
+msgstr "Profil de score de fusion de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared interpretation and source-profile context selected by a reported fusion score, retaining one source convention, one declared dimension, one applicable reference frame and the convention’s supplied native identity form."
+msgstr "L’interprétation déclarée et le contexte de profil source sélectionnés par un score de fusion rapporté, conservant une convention source, une dimension déclarée, un repère de référence applicable et la forme d’identité native fournie de cette convention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the declared source arithmetic claim and quantitative context distinct from a reported magnitude and its actual application."
+msgstr "Utiliser pour garder l’assertion arithmétique source déclarée et le contexte quantitatif distincts d’une valeur numérique rapportée et de son application effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as a complete source profile, a retained source-call resource, a call/result association or a content-unique identity derived from name, version or native bytes."
+msgstr "Éviter de traiter cet enregistrement comme un profil source complet, une ressource conservée d’appel source, une association appel/résultat ou une identité unique de contenu déduite du nom, de la version ou des octets natifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply fusionScoreConvention, fusionScoreDimension and hasReferenceFrame; retain actual digest bytes for the weighted scale-18 convention or actual selected profile name and version for the unit scale-12 convention."
+msgstr "Fournir fusionScoreConvention, fusionScoreDimension et hasReferenceFrame ; conserver les octets effectifs d’empreinte pour la convention pondérée à 18 décimales ou le nom et la version effectifs du profil sélectionné pour la convention unitaire à 12 décimales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record itself is the selected declared context. The actual full source profile supplies its components; recorded name/version neither determines nor validates them. Authentic source-call, full-profile and result association remains application-owned."
+msgstr "L’enregistrement lui-même est le contexte déclaré sélectionné. Le profil source complet effectif fournit ses composants ; le nom et la version enregistrés ne les déterminent ni ne les valident. L’association authentique entre appel source, profil complet et résultat reste du ressort de l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared context: ex:profile a gmeow:QueryFusionScoreProfile ; gmeow:fusionScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ."
+msgstr "Un contexte déclaré : ex:profile a gmeow:QueryFusionScoreProfile ; gmeow:fusionScoreDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported fusion score profile"
+msgstr "profil du score de fusion rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one declared interpretation and source-profile context selected by a reported exact-decimal fusion-score carrier."
+msgstr "L’unique interprétation déclarée et contexte de profil source sélectionnés par un support rapporté de score de fusion en décimal exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to share an explicit profile record across supplied score quantities without adding another scalar-value property."
+msgstr "Utiliser pour partager un enregistrement explicite de profil entre des grandeurs de scores fournies sans ajouter une autre propriété de valeur scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this link as an association to an authenticated source call or as proof that the selected arithmetic produced the reported value."
+msgstr "Éviter d’interpréter ce lien comme une association à un appel source authentifié ou comme une preuve que l’arithmétique sélectionnée a produit la valeur rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryFusionScoreProfile and retain its exact dimension and reference-frame resources on the score quantity."
+msgstr "Référencer un QueryFusionScoreProfile et conserver ses ressources exactes de dimension et de repère de référence sur la grandeur de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several score carriers may select the same declared context. Equal magnitudes, native bytes or name/version labels do not merge profile records or establish an application."
+msgstr "Plusieurs supports de scores peuvent sélectionner le même contexte déclaré. Des valeurs numériques, octets natifs ou étiquettes de nom/version égaux ne fusionnent pas les enregistrements de profils et n’établissent pas une application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedFusionScoreProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit profile selection: ex:score gmeow:reportedFusionScoreProfile ex:profile ."
+msgstr "Une sélection explicite de profil : ex:score gmeow:reportedFusionScoreProfile ex:profile ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score source convention"
+msgstr "convention source du score de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected source arithmetic convention described by a fusion-score profile record: weighted scale-18 numerator division or pinned unit scale-12 reciprocal-first arithmetic."
+msgstr "La convention arithmétique source explicitement sélectionnée décrite par un enregistrement de profil de score de fusion : division du numérateur pondéré à 18 décimales ou arithmétique unitaire figée à 12 décimales calculant l’inverse en premier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish the two observed source claims without introducing independent parameter defaults or arbitrary combinations of numeric conventions."
+msgstr "Utiliser pour distinguer les deux assertions sources observées sans introduire des paramètres par défaut indépendants ni des combinaisons arbitraires de conventions numériques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating selection as arithmetic verification, substituting current upstream behavior for a pinned consumer or inferring a convention from an equal decimal value."
+msgstr "Éviter de traiter la sélection comme une vérification arithmétique, de substituer le comportement amont actuel à celui d’un consommateur figé ou de déduire une convention d’une valeur décimale égale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one of the two declared convention resources and retain its matching native identity form, declared dimension and applicable frame."
+msgstr "Sélectionner une des deux ressources déclarées de convention et conserver sa forme d’identité native correspondante, sa dimension déclarée et son repère applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each convention describes source precision, k, rounding placement, rank and range/overflow behavior. This foundation certifies neither quantum membership nor truncation, component sums, native admission or source authenticity."
+msgstr "Chaque convention décrit la précision source, k, le placement de l’arrondi, le rang et le comportement d’intervalle et de dépassement. Ce socle ne certifie ni le respect du pas de quantification, ni la troncature, les sommes de composants, l’admission native ou l’authenticité source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreConvention|http://www.w3.org/2004/02/skos/core#example"
+msgid "A weighted convention selection: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+msgstr "Une sélection de convention pondérée : ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score declared dimension"
+msgstr "dimension déclarée du score de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one explicitly declared mathematical dimension of the score interpretation carried by a fusion-score profile record."
+msgstr "L’unique dimension mathématique explicitement déclarée de l’interprétation de score portée par un enregistrement de profil de score de fusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain quantitative meaning without inventing a parallel magnitude carrier or inferring dimension from the word score."
+msgstr "Utiliser pour conserver le sens quantitatif sans inventer un support parallèle de valeur numérique ni déduire la dimension du mot score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this declaration as dimension metadata serialized by the inspected APIs or silently substituting dimensionless when required context is unavailable."
+msgstr "Éviter de traiter cette déclaration comme des métadonnées de dimension sérialisées par les API examinées ou d’imposer silencieusement le caractère sans dimension lorsque le contexte obligatoire est indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an actual math:Dimension and use that same resource through math:hasDimension on each score selecting this interpretation."
+msgstr "Référencer une math:Dimension effective et utiliser cette même ressource par math:hasDimension sur chaque score sélectionnant cette interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The API surfaces examined supply no mathematical dimension object. A declared interpretation needs actual source or adapter justification; equal dimensions alone do not equate arithmetic, calibration, frames or profiles."
+msgstr "Les interfaces API examinées ne fournissent aucun objet de dimension mathématique. Une interprétation déclarée nécessite une justification effective de source ou d’adaptateur ; des dimensions égales seules n’identifient ni arithmétiques, étalonnages, repères ou profils."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly declared interpretation: ex:profile gmeow:fusionScoreDimension math:dimensionless ."
+msgstr "Une interprétation explicitement déclarée : ex:profile gmeow:fusionScoreDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile supplied digest"
+msgstr "empreinte fournie du profil de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual supplied native profile byte identity retained under the weighted scale-18 convention, separately from the RDF interpretation-record identity."
+msgstr "L’identité native effective en octets du profil fournie, conservée sous la convention pondérée à 18 décimales, séparément de l’identité RDF de l’enregistrement d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s returned profile bytes without inventing a name, version, semantic IRI or replacement hash recipe."
+msgstr "Utiliser pour préserver les octets de profil renvoyés par la source sans inventer de nom, de version, d’IRI sémantique ou de recette de hachage de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring native bytes for a source that exposes name/version instead, recomputing a digest from incomplete graph fields or equating records because their bytes match."
+msgstr "Éviter d’exiger des octets natifs pour une source exposant plutôt un nom et une version, de recalculer une empreinte à partir de champs incomplets de graphe ou d’identifier des enregistrements parce que leurs octets correspondent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:hexBinary literal from the actual source profile identity on the selected interpretation record."
+msgstr "Conserver un littéral xsd:hexBinary issu de l’identité effective du profil source sur l’enregistrement d’interprétation sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source-form law checks the applicable identity representation. It does not authenticate a digest, grade native byte width, prove covered weights/policy content or create a source-call/result association."
+msgstr "La loi de forme source vérifie la représentation d’identité applicable. Elle n’authentifie pas une empreinte, ne vérifie pas la largeur native en octets, ne prouve pas le contenu couvert de poids ou de politique et ne crée pas d’association appel source/résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic input identity bytes: ex:profile gmeow:fusionProfileDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+msgstr "Des octets synthétiques d’identité d’entrée : ex:profile gmeow:fusionProfileDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile supplied name"
+msgstr "nom fourni du profil de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual textual source profile identity retained under the pinned unit scale-12 convention together with its actual selected version."
+msgstr "L’identité textuelle effective du profil source conservée sous la convention unitaire figée à 12 décimales avec sa version effectivement sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a supplied profile name without pretending the source exposes a Katamari-style native digest."
+msgstr "Utiliser pour préserver un nom de profil fourni sans prétendre que la source expose une empreinte native de type Katamari."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the name or name/version pair as a unique key for the complete component set, source-call context or RDF interpretation record."
+msgstr "Éviter d’utiliser le nom ou le couple nom/version comme clé unique de l’ensemble complet de composants, du contexte d’appel source ou de l’enregistrement RDF d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:string literal from the source’s selected profile identity and its actual fusionProfileVersion."
+msgstr "Conserver un littéral xsd:string issu de l’identité du profil sélectionné par la source et sa fusionProfileVersion effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual selected full FusionProfile supplies its components. Recorded name/version alone neither determines nor validates them, and this foundation does not serialize them or authenticate their application."
+msgstr "Le FusionProfile complet effectivement sélectionné fournit ses composants. Le nom et la version enregistrés seuls ne les déterminent ni ne les valident, et ce socle ne les sérialise pas et n’authentifie pas leur application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic input name: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ."
+msgstr "Un nom synthétique d’entrée : ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion profile selected source version"
+msgstr "version source sélectionnée du profil de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual u32 version of the selected source FusionProfile under the pinned unit scale-12 convention, retained as an identifier coordinate rather than a measured magnitude."
+msgstr "La version u32 effective du FusionProfile source sélectionné sous la convention unitaire figée à 12 décimales, conservée comme coordonnée d’identifiant plutôt que comme valeur mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve version supplied by the actual selected public profile input or source call context."
+msgstr "Utiliser pour préserver la version fournie par l’entrée publique effective du profil sélectionné ou le contexte d’appel source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a crate version, treating version as a returned candidate field or default, or inventing a version for the byte-identified scale-18 source."
+msgstr "Éviter de deviner une version de crate, de traiter la version comme un champ de candidat renvoyé ou une valeur par défaut, ou d’inventer une version pour la source à 18 décimales identifiée en octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one xsd:unsignedInt value from the actual selected FusionProfile alongside its supplied fusionProfileName."
+msgstr "Conserver une valeur xsd:unsignedInt issue du FusionProfile effectivement sélectionné aux côtés de son fusionProfileName fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inspected result returns a fusion name; its version comes from the selected full profile input. Name/version does not uniquely determine components or establish a call/result association in this foundation."
+msgstr "Le résultat examiné renvoie un nom de fusion ; sa version provient de l’entrée de profil complet sélectionné. Le nom et la version ne déterminent pas les composants de manière unique et n’établissent pas d’association appel/résultat dans ce socle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionProfileVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Synthetic selected version: ex:profile gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+msgstr "Une version synthétique sélectionnée : ex:profile gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted scale-18 fusion convention"
+msgstr "convention de fusion pondérée à 18 décimales"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The observed positive weighted reciprocal-rank source convention with k equal to 60 and u128 raw units at scale 10^18. Each present-class coefficient is divided once by 60 plus retained source rank, truncated before class-order checked summation; an absent class contributes zero."
+msgstr "La convention source observée de rangs réciproques à poids positifs avec k égal à 60 et des unités brutes u128 à l’échelle 10^18. Chaque coefficient de classe présente est divisé une fois par 60 plus le rang source conservé, puis tronqué avant sommation avec contrôle de dépassement dans l’ordre des classes ; une classe absente contribue zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the observed scale-18 weighted source claim independently of old unweighted integer fusion or a differently rounded reciprocal-first source."
+msgstr "Utiliser pour conserver l’assertion source observée pondérée à 18 décimales indépendamment de l’ancienne fusion entière non pondérée ou d’une source à arrondi différent calculant d’abord l’inverse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing weights to sum one, renumbering source tied ranks into distinct-subject ranks or claiming that selecting this value verifies arithmetic or fitting."
+msgstr "Éviter de normaliser les poids pour une somme de un, de renuméroter les rangs sources ex æquo en rangs de sujets distincts ou d’affirmer que sélectionner cette valeur vérifie l’arithmétique ou l’ajustement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this convention explicitly and retain actual native profile digest bytes plus the declared dimension and reference frame of the reported Quantity."
+msgstr "Sélectionner explicitement cette convention et conserver les octets effectifs d’empreinte native du profil ainsi que la dimension déclarée et le repère de référence de la Quantity rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The candidate uses its minimum retained rank within each class; final score overflow refuses rather than saturates. Fitting, measured/unmeasured mode, complete weights/contributions, quantum membership and native profile authentication remain outside this foundation."
+msgstr "Le candidat utilise son rang conservé minimal dans chaque classe ; un dépassement du score final entraîne un refus plutôt qu’une saturation. L’ajustement, le mode mesuré ou non mesuré, les poids et contributions complets, le respect du pas de quantification et l’authentification native du profil restent hors de ce socle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionWeightedScale18Convention|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit weighted source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+msgstr "Une assertion source pondérée explicite : ex:profile gmeow:fusionScoreConvention gmeow:fusionWeightedScale18Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit scale-12 reciprocal-first fusion convention"
+msgstr "convention de fusion unitaire à 12 décimales, inverse calculé d’abord"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The observed pinned unit-weight source convention with k equal to 60 and signed i128 raw units at scale 10^12. The reciprocal is truncated first and then checked-multiplied by the unit coefficient for each admitted family or defocus stratum; contribution sums are checked."
+msgstr "La convention source observée figée à poids unitaires avec k égal à 60 et des unités brutes signées i128 à l’échelle 10^12. L’inverse est tronqué en premier puis multiplié, avec contrôle de dépassement, par le coefficient unitaire pour chaque famille ou strate defocus admise ; les sommes de contributions sont contrôlées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual pinned unit-weight source claim with its selected profile name/version and quantitative interpretation."
+msgstr "Utiliser pour conserver l’assertion source effective figée à poids unitaires avec le nom et la version de son profil sélectionné et son interprétation quantitative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting current upstream Precision/Score behavior, importing fitted Katamari coefficients or equating reciprocal-first and numerator-division arithmetic."
+msgstr "Éviter de substituer le comportement amont actuel de Precision/Score, d’importer des coefficients Katamari ajustés ou d’identifier l’arithmétique où l’inverse est calculé d’abord à celle par division du numérateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this convention explicitly and retain actual selected source profile name/version, declared dimension and applicable reference frame."
+msgstr "Sélectionner explicitement cette convention et conserver le nom et la version effectifs du profil source sélectionné, la dimension déclarée et le repère de référence applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source family ranks count distinct subjects from one, with defocus ranked as an admitted component. Positive unit contributions yield nonnegative scores despite the signed carrier. The actual full profile supplies its component set; names/versions alone do not determine or validate it."
+msgstr "Les rangs des familles sources comptent les sujets distincts à partir de un, defocus étant classé comme une composante admise. Les contributions unitaires positives donnent des scores non négatifs malgré le support signé. Le profil complet effectif fournit son ensemble de composants ; les noms et versions seuls ne le déterminent ni ne le valident."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionUnitScale12Convention|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit unit source claim: ex:profile gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ."
+msgstr "Une assertion source unitaire explicite : ex:profile gmeow:fusionScoreConvention gmeow:fusionUnitScale12Convention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score profile source form law"
+msgstr "loi de forme source des profils de scores de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared fusion-score profile uses the supplied native identity form appropriate to its selected source convention: digest bytes alone for weighted scale-18, or actual profile name and selected version for unit scale-12."
+msgstr "Un profil déclaré de score de fusion utilise la forme fournie d’identité native appropriée à sa convention source sélectionnée : octets d’empreinte seuls pour la pondération à 18 décimales, ou nom effectif de profil et version sélectionnée pour la convention unitaire à 12 décimales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the applicable identity representation without a universal native-byte requirement or a parameter default."
+msgstr "Utiliser pour exiger la représentation applicable d’identité sans exigence universelle d’octets natifs ni paramètre par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating identity form with digest authenticity, content-unique profile identity, component validation or a source-call/result association."
+msgstr "Éviter d’assimiler la forme d’identité à l’authenticité d’une empreinte, à une identité de profil unique par contenu, à la validation des composants ou à une association appel source/résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under each explicit convention require its applicable identity fields and forbid the other form, using distinct fresh existence witnesses and local datatype/maximality restrictions."
+msgstr "Sous chaque convention explicite, exiger ses champs applicables d’identité et interdire l’autre forme, avec des témoins d’existence distincts nouvellement liés et des restrictions locales de type de données et de maximum."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law grades representation form only. Actual identity bytes/text/version, native byte width and authentic binding to the selected full source profile remain import and application obligations; equal metadata does not merge interpretation records."
+msgstr "Cette loi évalue uniquement la forme de représentation. Les octets, texte et version effectifs d’identité, la largeur native en octets et le lien authentique au profil source complet sélectionné restent des obligations d’importation et d’application ; des métadonnées égales ne fusionnent pas les enregistrements d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreProfileSourceFormLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The unit identity form: ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ; gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+msgstr "La forme d’identité unitaire : ex:profile gmeow:fusionProfileName \"example-profile\"^^xsd:string ; gmeow:fusionProfileVersion \"3\"^^xsd:unsignedInt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score interpretation agreement law"
+msgstr "loi de concordance des interprétations de scores de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fusion score and its selected declared profile interpretation use the exact same dimension resource and the exact same applicable reference-frame resource."
+msgstr "Un score de fusion rapporté et son interprétation de profil déclaré sélectionnée utilisent exactement la même ressource de dimension et exactement la même ressource applicable de repère de référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep quantitative meaning explicit and consistent across a supplied score and its declared context."
+msgstr "Utiliser pour garder explicite et cohérent le sens quantitatif entre un score fourni et son contexte déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing only labels, merging equal-looking frames or claiming this agreement authenticates an actual source call or arithmetic application."
+msgstr "Éviter de comparer uniquement les étiquettes, de fusionner des repères d’apparence égale ou d’affirmer que cette concordance authentifie un appel source effectif ou une application arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the score’s selected profile and each side’s stored dimension and frame, then require termEqual on the corresponding resource pairs."
+msgstr "Lier le profil sélectionné du score et la dimension et le repère stockés de chaque côté, puis exiger termEqual sur les paires correspondantes de ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The profile record itself is the selected interpretation context; no separate call-context resource or result link is introduced. Authentic association with an actual source call, full profile and result remains application-owned."
+msgstr "L’enregistrement de profil lui-même est le contexte d’interprétation sélectionné ; aucune ressource distincte de contexte d’appel ni lien de résultat n’est introduit. L’association authentique à un appel source effectif, à un profil complet et à un résultat reste du ressort de l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreContextAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A shared frame resource: ex:score gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile . ex:profile gmeow:hasReferenceFrame ex:frame ."
+msgstr "Une ressource de repère partagée : ex:score gmeow:hasReferenceFrame ex:frame ; gmeow:reportedFusionScoreProfile ex:profile . ex:profile gmeow:hasReferenceFrame ex:frame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score representable carrier range law"
+msgstr "loi de l’intervalle représentable du support de score de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fused magnitude is nonnegative and no greater than the selected observed source carrier’s exact capacity: unsigned 128-bit units at scale 10^18 or the positive capacity of signed 128-bit units at scale 10^12."
+msgstr "Une valeur numérique fusionnée rapportée est non négative et ne dépasse pas la capacité exacte du support source observé sélectionné : unités non signées sur 128 bits à l’échelle 10^18 ou capacité positive d’unités signées sur 128 bits à l’échelle 10^12."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject negative or over-capacity decimal reports under these explicit positive-weight source claims."
+msgstr "Utiliser pour rejeter les valeurs décimales rapportées négatives ou excédant la capacité sous ces assertions sources explicites à poids positifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling an in-range decimal a fixed-point value, full numeric-domain member, quantum-valid value or arithmetic-conformant result."
+msgstr "Éviter d’appeler un décimal dans l’intervalle une valeur à virgule fixe, un membre du domaine numérique complet, une valeur respectant le pas de quantification ou un résultat conforme à l’arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the exact decimal magnitude and selected convention; compare against zero and the appropriate exact decimal carrier maximum with supported term comparisons."
+msgstr "Lier la valeur numérique décimale exacte et la convention sélectionnée ; comparer à zéro et au maximum décimal exact approprié du support avec les comparaisons de termes prises en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are carrier-range checks only. An in-range decimal finer than the selected quantum can pass. Truncation, quantum membership, complete summation, native admission and source authenticity are not certified; xsd:decimal already excludes nonfinite values."
+msgstr "Ce sont uniquement des vérifications d’intervalle du support. Un décimal dans l’intervalle plus fin que le pas de quantification sélectionné peut passer. La troncature, le respect du pas de quantification, la sommation complète, l’admission native et l’authenticité source ne sont pas certifiés ; xsd:decimal exclut déjà les valeurs non finies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported zero remains valid: ex:score math:quantityValue \"0\"^^xsd:decimal ."
+msgstr "Un zéro rapporté reste valide : ex:score math:quantityValue \"0\"^^xsd:decimal ."
