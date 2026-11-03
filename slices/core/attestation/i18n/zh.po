@@ -468,3 +468,395 @@ msgstr "版本要求维度"
 msgctxt "https://blackcatinformatics.ca/gmeow/dimensionVersionRequirement|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The manifest's normalized semantic-version compatibility requirement. It constrains the exact release selected by a lockfile but does not itself name that release."
 msgstr "清单中规范化的语义版本兼容性要求。它约束锁文件选定的精确版本，但本身并不指定该版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signed Object Act Presentation"
+msgstr "已签署对象行为的呈现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One supplied presentation of a multi-object assertion act in the salted-BLAKE3/MMR act-1 construction, with its exact signed body and presented leaf descriptions. It is an InformationObject, not the immutable ActId, an Activity or an Attestation."
+msgstr "在加盐 BLAKE3/MMR act-1 构造中，多对象断言行为的一次已提供呈现，包含其确切签署正文及所呈现的叶描述。它是 InformationObject，而非不可变 ActId、Activity 或 Attestation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This family covers the act-1 object-assertion construction only, excluding void acts. Typing or decoding a presentation proves neither signature validity, root agreement, admission nor authority."
+msgstr "此词汇族仅涵盖 act-1 对象断言构造，不包括 void 行为。呈现的定型或解码不证明签名有效、根一致、已获接纳或具有权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe a supplied presentation: ex:view a gmeow:SignedObjectAct ; gmeow:actSignedBody ex:body ."
+msgstr "描述已提供的呈现：ex:view a gmeow:SignedObjectAct ; gmeow:actSignedBody ex:body ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe this actual signed-act presentation without conflating the signer, observed objects or their holders."
+msgstr "用于描述此实际已签署行为呈现，不混淆签署者、所观察对象及其持有人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use for void acts, arbitrary algorithms, a verified outcome or a durable identity shared by different opening presentations."
+msgstr "不要用于 void 行为、任意算法、已验证结果，或不同开示呈现共享的持久身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignedObjectAct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use distinct presentation, list and leaf resources when supplied openings differ. Stable body, signature, root, order or hashes do not identify presentations or authorize retaining earlier openings."
+msgstr "所提供的开示不同时，应使用不同的呈现、列表及叶资源。正文、签名、根、次序或哈希保持不变，不会使呈现具有同一身份，也不授权保留先前开示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Act Commitment Construction"
+msgstr "行为承诺构造"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete identified specification of the salted-BLAKE3/MMR act-1 object-assertion construction, including signed-body serialization and framing, leaf encoding and ordered MMR composition."
+msgstr "加盐 BLAKE3/MMR act-1 对象断言构造的完整已标识规范，包括签署正文序列化及分帧、叶编码和有序 MMR 组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The full domains are katamari:act:v1 for signing and katamari:act-leaf:v1 for leaf hashing, each followed by a zero byte. A primitive name or version label alone is insufficient."
+msgstr "完整域分别为签署使用的 katamari:act:v1 及叶哈希使用的 katamari:act-leaf:v1，各自后接一个零字节。仅有原语名称或版本标签并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the actual supplied construction specification by its IRI; this example mints no construction individual or default."
+msgstr "通过实际提供的构造规范 IRI 标识该规范；此示例不创建构造个体或默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact construction needed to interpret the signed body, object kind bytes, salts, identifiers and commitment order."
+msgstr "用于保留解释签署正文、对象种类字节、盐、标识符及承诺次序所需的确切构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute an algorithm name, invent a profile, infer a security theorem or select another hash, schema or signature construction silently."
+msgstr "不要以算法名称替代规范，不要臆造配置、推断安全定理，或静默选择其他哈希、模式或签名构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual complete specification by IRI and retain its source identity. It must identify frozen canonicalization, complete body fields, domain framing, kind/identifier encoding, 16-byte salts, leaf order and actual MMR boundary rules; no executor is supplied."
+msgstr "以 IRI 命名实际完整规范并保留其来源身份。规范必须标识冻结的规范化方式、完整正文字段、域分帧、种类及标识符编码、16 字节盐、叶次序及实际 MMR 边界规则；此处不提供执行器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Act Commitment Leaf Description"
+msgstr "行为承诺叶描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A description of one leaf in one exact supplied act presentation and ordered list. Its commitment refers to an original act slot; the descriptor is not a persistent cross-time slot identity."
+msgstr "某次确切已提供行为呈现及其有序列表中，一个叶的描述。其承诺对应原始行为中的位置；描述资源不是跨时间持久存在的位置身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An open description and a hash-only description use distinct resources even when the original hash and position agree. Missing opening edges do not classify a leaf as hash-only."
+msgstr "即使原始哈希及位置相同，已开示描述与仅哈希描述也使用不同资源。开示边缺失并不能将叶归类为仅哈希状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe the presented leaf: ex:leaf a gmeow:ActCommitmentLeaf ."
+msgstr "描述所呈现的叶：ex:leaf a gmeow:ActCommitmentLeaf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an actual leaf description and its original commitment within the selected presentation."
+msgstr "用于在所选呈现中保留实际叶描述及其原始承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not derive descriptor identity from a removed object identifier, equate descriptors by hash alone or preserve a prior opening as a deletion receipt."
+msgstr "不要从已移除对象标识符推导描述资源身份，不要仅凭哈希将描述资源视为相同，也不要将先前开示保留为删除收据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place this resource in the actual presentation’s actLeaves list and retain leafCommitment. Record an explicit supplied opening representation where known; do not infer it by absence or create revision-history links."
+msgstr "将该资源置于实际呈现的 actLeaves 列表中，并保留 leafCommitment。已知时记录明确提供的开示表示；不要通过缺失推断表示，也不要创建修订历史链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Open Act Commitment Leaf Description"
+msgstr "已开示行为承诺叶描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A presentation-specific description of the act-1 Open leaf representation, carrying the supplied salt, object kind byte and opaque object identifier that open the original commitment."
+msgstr "针对某次呈现的 act-1 Open 叶表示描述，承载用于开示原始承诺的已提供盐、对象种类字节及不透明对象标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An opening is supplied data, not evidence that a hash or signature was checked. Use a different descriptor when another presentation supplies only the hash."
+msgstr "开示是已提供数据，不是哈希或签名已被检查的证据。另一呈现仅提供哈希时，应使用不同描述资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe a supplied opening: ex:opening a gmeow:OpenActCommitmentLeaf ."
+msgstr "描述所提供的开示：ex:opening a gmeow:OpenActCommitmentLeaf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when this exact presentation actually supplies the opening fields under the declared construction."
+msgstr "当此确切呈现实际提供已声明构造下的开示字段时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent a salt, kind, identifier or object binding, or reuse this resource for a hash-only presentation while keeping its opening facts."
+msgstr "不要臆造盐、种类、标识符或对象绑定，也不要在保留开示事实的同时，将此资源复用于仅哈希呈现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpenActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain leafSalt, leafObjectKind and leafObjectIdentifier exactly as supplied. Add leafShownObject only for an actual supplied resource binding; preserve the distinction between a record and its referent."
+msgstr "原样保留所提供的 leafSalt、leafObjectKind 及 leafObjectIdentifier。仅在实际提供资源绑定时添加 leafShownObject；保留记录与其所指对象之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Hash-only Act Commitment Leaf Description"
+msgstr "仅哈希行为承诺叶描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A presentation-specific description of the actual act-1 Pruned tag-3 representation, retaining only the original leaf commitment hash without its salt, object kind, identifier or shown-object binding."
+msgstr "针对某次呈现的实际 act-1 Pruned 标签 3 表示描述，仅保留原始叶承诺哈希，不包含其盐、对象种类、标识符或已展示对象绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source serves this representation before purge and stores it after purge; it proves neither erasure nor why the opening is unavailable. It creates no retention permission or deletion receipt."
+msgstr "来源在清除前返回此表示，在清除后存储此表示；它既不证明擦除，也不证明开示不可用的原因。它不创建保留许可或删除收据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe the supplied hash-only representation: ex:hiddenLeaf a gmeow:HashOnlyActCommitmentLeaf ."
+msgstr "描述所提供的仅哈希表示：ex:hiddenLeaf a gmeow:HashOnlyActCommitmentLeaf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an original commitment needed by the supplied presentation without asserting a removed object or its opening."
+msgstr "用于保留所提供呈现所需的原始承诺，而不声明已移除对象或其开示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not add removed identifiers, salt, kind, object links, gone markers or prior-opening links, or infer this type from missing edges. Do not use it as a tombstone."
+msgstr "不要添加已移除标识符、盐、种类、对象链接、已消失标记或先前开示链接，也不要从边缺失推断此类型。不要将其用作墓碑记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HashOnlyActCommitmentLeaf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original leafCommitment and list position on a distinct supplied descriptor. Infer no presence, absence, authority, recovery or confidentiality; stable commitments can still disclose shape or correlate with separately retained openings."
+msgstr "在不同的已提供描述资源上保留原始 leafCommitment 及列表位置。不要推断存在、缺失、权威、可恢复性或保密性；稳定承诺仍可能泄露结构，或与另行保留的开示关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact signed act body"
+msgstr "确切的已签名行为正文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a supplied SignedObjectAct presentation to the exact immutable canonical act-1 body whose framed bytes are signed. Openings travel separately and are not part of that body."
+msgstr "将已提供的 SignedObjectAct 呈现关联到其分帧字节被签署的确切不可变规范 act-1 正文。开示单独传递，不属于该正文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The body binds vault, public key, stream, sequence, assertion kind, zero through field, nonce and root. It has no invented issue timestamp; a bare root cannot replace it."
+msgstr "正文绑定保险库、公钥、流、序号、断言种类、为零的 through 字段、nonce 及根。不臆造签发时间戳；单独的根不能替代正文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the supplied signed payload: ex:view gmeow:actSignedBody ex:body . ex:body gmeow:hasSignature ex:signature ."
+msgstr "标识所提供的签署载荷：ex:view gmeow:actSignedBody ex:body . ex:body gmeow:hasSignature ex:signature ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain exact signature coverage instead of describing a signature over an unframed root or a mutable presentation."
+msgstr "用于保留确切签名覆盖范围，而非描述对未分帧根或可变呈现的签名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach a body's signature to arbitrary metadata or imply that the leaf-opening bytes are part of the signed body. Do not infer verification from this link."
+msgstr "不要将正文签名附于任意元数据，也不要暗示叶开示字节属于签署正文。不要从此链接推断已验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actSignedBody|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual complete body resource and construction. Reuse hasSignature on that exact payload, with signedBy and signingKey on its CryptographicSignature. A supplied contentDigest can identify actual body bytes, not the distinct domain-framed ActId."
+msgstr "引用实际完整正文资源及构造。在该确切载荷上复用 hasSignature，并将 signedBy 及 signingKey 附于其 CryptographicSignature。所提供的 contentDigest 可标识实际正文字节，而非另一个带域分帧的 ActId。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act commitment construction"
+msgstr "行为承诺构造"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a supplied act presentation to the actual identified specification of its complete salted-BLAKE3/MMR act-1 object-assertion construction."
+msgstr "将已提供行为呈现关联到其完整加盐 BLAKE3/MMR act-1 对象断言构造的实际已标识规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The construction IRI belongs to the RDF description, not to an act-1 wire field. It must identify the actual externally documented construction; absence or ambiguity does not select a default or justify guessing canonical bytes."
+msgstr "构造 IRI 属于 RDF 描述，而非 act-1 编码中的字段。它必须标识实际且由外部文档说明的构造；缺失或歧义不会选取默认值，也不允许猜测规范字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the actual supplied specification IRI as the actConstruction value; no construction individual is invented here."
+msgstr "将实际提供的规范 IRI 记录为 actConstruction 值；此处不臆造构造个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complete construction identity must travel with the presentation and its body, root and openings."
+msgstr "当完整构造身份必须连同呈现及其正文、根和开示一并保留时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a primitive label, treat a version string as a complete specification, or silently broaden this family to another construction."
+msgstr "不要以原语标签替代规范，不要将版本字符串视为完整规范，也不要静默扩展此词汇族至其他构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual ActCommitmentConstruction resource and retain its identified specification evidence. Consistency and cryptographic checks remain separate operations, not entailments of the edge."
+msgstr "关联实际 ActCommitmentConstruction 资源，并保留其已标识规范证据。一致性及密码学检查仍是单独操作，而非该边的逻辑蕴涵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act commitment root"
+msgstr "行为承诺根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied BLAKE3-256 MMR root recorded for this act-1 object-assertion presentation. Its complete construction and exact signed body remain separately identified."
+msgstr "为此 act-1 对象断言呈现所提供并记录的 BLAKE3-256 MMR 根。其完整构造及确切签署正文仍单独标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The datatype retains algorithm identity and 32 digest bytes. It does not define the MMR rules, prove leaf agreement or mean that a bare root was signed."
+msgstr "该数据类型保留算法身份及 32 个摘要字节。它不定义 MMR 规则，不证明叶一致，也不表示单独的根已被签署。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrate a digest spelling, not computation: ex:view gmeow:actCommitmentRoot \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "示意摘要写法，而非计算：ex:view gmeow:actCommitmentRoot \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual supplied root beside the selected construction and ordered leaf description."
+msgstr "用于连同所选构造及有序叶描述保留实际提供的根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace it with an ActId, artifact contentDigest, leaf hash or another algorithm's value, or infer a security result from its datatype."
+msgstr "不要以 ActId、制品 contentDigest、叶哈希或其他算法的值替代它，也不要从数据类型推断安全结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actCommitmentRoot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied bare lowercase hexadecimal literal with blake3_256Digest. Compare root and ordered commitments only through an actual check under the identified construction; this property computes nothing."
+msgstr "使用 blake3_256Digest 保留所提供的无前缀小写十六进制字面值。只能通过已标识构造下的实际检查比较根与有序承诺；此属性不执行计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "presented act leaves"
+msgstr "所呈现的行为叶"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one supplied act presentation to an RDF list of its presentation-specific leaf descriptors in the original commitment order, including explicit hash-only descriptors where supplied."
+msgstr "将一次已提供行为呈现关联到其呈现专属叶描述资源的 RDF 列表，次序与原始承诺一致，并在已提供时包含明确的仅哈希描述资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The list records this exact supplied representation, not a shared mutable list of all presentations. Order contributes to the MMR construction; unordered membership is insufficient."
+msgstr "该列表记录此确切已提供表示，而非所有呈现共享的可变列表。次序参与 MMR 构造；无序成员关系并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe the supplied order: ex:view gmeow:actLeaves (ex:opening ex:hiddenLeaf) ."
+msgstr "描述所提供的次序：ex:view gmeow:actLeaves (ex:opening ex:hiddenLeaf) ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve each original commitment position while keeping the supplied opening descriptions distinct."
+msgstr "用于保留每个原始承诺位置，同时区分所提供的开示描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not sort, deduplicate or omit commitments, infer a complete list from its head, or share old opening-bearing descriptors with a hash-only presentation."
+msgstr "不要排序、去重或省略承诺，不要从列表头推断列表完整，也不要将承载先前开示的描述资源与仅哈希呈现共享。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actLeaves|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the actual complete ordered representation with rdf:first/rdf:rest. Different supplied presentations use distinct list and leaf resources; the relation adds no list-validation or root-verification engine."
+msgstr "使用 rdf:first/rdf:rest 记录实际完整有序表示。不同的已提供呈现使用不同列表及叶资源；该关系不添加列表验证或根验证引擎。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original leaf commitment"
+msgstr "原始叶承诺"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original supplied BLAKE3-256 commitment of this presented act-1 leaf. Open and hash-only descriptions can retain the same commitment value without sharing descriptor identity."
+msgstr "此所呈现 act-1 叶的原始已提供 BLAKE3-256 承诺。已开示描述与仅哈希描述可保留相同承诺值，而不共享描述资源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For an opening, the construction hashes the actual salt, kind and identifier under katamari:act-leaf:v1 with its zero separator. A hash-only representation preserves that result without those opening fields."
+msgstr "对于开示，构造在 katamari:act-leaf:v1 域及其零分隔字节下，对实际盐、种类及标识符进行哈希。仅哈希表示保留该结果，不包含这些开示字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrate a commitment spelling: ex:leaf gmeow:leafCommitment \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "示意承诺写法：ex:leaf gmeow:leafCommitment \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual original leaf hash for the selected presentation and ordered MMR description."
+msgstr "用于为所选呈现及有序 MMR 描述保留实际原始叶哈希。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not equate it with the object identifier or act root, infer current object presence, or regard a supplied digest as a checked opening."
+msgstr "不要将其等同于对象标识符或行为根，不要推断对象当前存在，也不要将所提供摘要视为已检查开示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafCommitment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete typed digest and the leaf’s original order. Actual opening/root checks and cryptographic assumptions remain separate; this edge neither computes a hash nor certifies confidentiality."
+msgstr "保留完整带类型摘要及叶的原始次序。实际开示与根检查及密码学假设仍是单独事项；此边不计算哈希，也不认证保密性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied shown-object binding"
+msgstr "已提供的展示对象绑定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an open leaf descriptor to the actual supplied object or record resource identified by its opening. It preserves a supplied binding, not an inferred object IRI or the record’s referent."
+msgstr "将已开示叶描述关联到其开示所标识的实际已提供对象或记录资源。它保留已提供绑定，而非推断出的对象 IRI 或该记录的所指对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Individual range does not force every shown record into Entity, Person, signer or observer. A hash-only descriptor has no shown-object binding."
+msgstr "Individual 范围不强制将每个已展示记录定型为 Entity、Person、签署者或观察者。仅哈希描述不具有展示对象绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain an actual supplied binding: ex:opening gmeow:leafShownObject ex:record ."
+msgstr "保留实际提供的绑定：ex:opening gmeow:leafShownObject ex:record ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the resource corresponding to the opened kind and identifier bytes."
+msgstr "当来源明确提供对应于已开示种类及标识符字节的资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not manufacture a resource from an unresolved identifier, confuse a claim record with its subject, or attach this link to a hash-only leaf."
+msgstr "不要从未解析标识符臆造资源，不要混淆声明记录与其主语，也不要将此链接附于仅哈希叶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafShownObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied resource binding alongside the exact leafObjectKind and leafObjectIdentifier. No identity resolution, inclusion verification, authority or permission follows from this relation."
+msgstr "连同确切 leafObjectKind 及 leafObjectIdentifier 保留所提供资源绑定。此关系不蕴涵身份解析、包含验证、权威或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opened object kind byte"
+msgstr "已开示对象种类字节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source object-kind byte supplied in this open act-1 leaf. The actual construction maps 0 to claim record, 1 to representation record and 2 to bare blob."
+msgstr "此已开示 act-1 叶中提供的来源对象种类字节。实际构造将 0 对应到声明记录，1 对应到表示记录，2 对应到原始二进制大对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the actual encoded byte, not an inferred RDF class or universal object-kind vocabulary. Its interpretation stays bound to the complete act construction."
+msgstr "这是实际编码字节，而非推断出的 RDF 类或普遍对象种类词汇。其解释始终绑定完整行为构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrate the encoded kind: ex:opening gmeow:leafObjectKind \"0\"^^xsd:unsignedByte ."
+msgstr "示意编码种类：ex:opening gmeow:leafObjectKind \"0\"^^xsd:unsignedByte ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact kind byte participating in the supplied leaf preimage."
+msgstr "用于保留参与所提供叶前像的确切种类字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer the byte from a convenient ontology type, substitute a display label or retain the kind on a hash-only descriptor."
+msgstr "不要从便于使用的本体类型推断该字节，不要以显示标签替代，也不要在仅哈希描述上保留种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied unsigned-byte literal with its identifier and salt. The datatype does not check that the byte is admitted by act-1 or that it matches the shown resource."
+msgstr "连同标识符及盐保留所提供无符号字节字面值。该数据类型不检查此字节是否被 act-1 接纳，也不检查其是否匹配已展示资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opened object identifier bytes"
+msgstr "已开示对象标识符字节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact opaque object identifier bytes supplied in this open act-1 leaf, interpreted together with its object-kind byte and construction. The act-1 construction uses 32 identifier bytes."
+msgstr "此已开示 act-1 叶中提供的确切不透明对象标识符字节，须结合其对象种类字节及构造解释。act-1 构造使用 32 个标识符字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are scheme-specific identity bytes, not automatically a raw artifact contentDigest. The same byte spelling under another kind or scheme does not establish the same object."
+msgstr "这些是特定方案的身份字节，不自动构成原始制品 contentDigest。另一种类或方案下相同的字节写法不能确立同一对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrate identifier bytes: ex:opening gmeow:leafObjectIdentifier \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary ."
+msgstr "示意标识符字节：ex:opening gmeow:leafObjectIdentifier \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the exact identifier bytes that the source places in the leaf hash preimage."
+msgstr "用于保留来源置入叶哈希前像的确切标识符字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace them with an IRI spelling, relabel them as an artifact hash, invent missing bytes or retain them on a hash-only descriptor."
+msgstr "不要以 IRI 写法替代这些字节，不要将其重新标记为制品哈希，不要臆造缺失字节，也不要将其保留在仅哈希描述上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafObjectIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete hexBinary value with the actual kind, salt and construction. It creates no identifier resolver, global object equality or evidence that the identifier was checked."
+msgstr "连同实际种类、盐及构造保留完整 hexBinary 值。它不创建标识符解析器或全局对象相等，也不构成标识符已被检查的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opened leaf salt bytes"
+msgstr "已开示叶盐字节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual per-object salt bytes supplied with this open act-1 leaf. The salted-BLAKE3 act-1 construction uses 16 bytes before the kind byte and object identifier."
+msgstr "此已开示 act-1 叶提供的实际每对象盐字节。加盐 BLAKE3 act-1 构造在种类字节及对象标识符之前使用 16 个字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A supplied hexBinary value proves neither random generation, independence nor secrecy. Salts are commitment openings, not signing keys or permission tokens."
+msgstr "所提供的 hexBinary 值不证明随机生成、独立性或秘密性。盐是承诺开示数据，而非签署密钥或许可令牌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustrate encoding, not randomness: ex:opening gmeow:leafSalt \"000102030405060708090a0b0c0d0e0f\"^^xsd:hexBinary ."
+msgstr "示意编码，而非随机性：ex:opening gmeow:leafSalt \"000102030405060708090a0b0c0d0e0f\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the exact supplied presentation includes the salt opening for this object."
+msgstr "仅当确切已提供呈现包含此对象的盐开示数据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mint a default or replacement salt, treat an absent salt as zero, or retain salt on a hash-only descriptor. Disclosure may enable correlation with an object identifier."
+msgstr "不要创建默认盐或替代盐，不要将盐缺失视为零，也不要在仅哈希描述上保留盐。披露盐可能使其与对象标识符产生关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leafSalt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied bytes and selected disclosure context with the corresponding kind and identifier. This property generates no randomness, validates no salt length and authorizes no retention of earlier openings."
+msgstr "连同对应种类及标识符保留所提供字节与所选披露上下文。此属性不生成随机数，不验证盐长度，也不授权保留先前开示。"

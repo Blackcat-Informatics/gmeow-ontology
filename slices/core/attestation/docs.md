@@ -298,3 +298,121 @@ in the solver layer (Principle 12).
 - `crates/validate/tests/conformance_cases/ontology_conformance.rs` — native negative fixture tests.
 - `slices/extensions/email/docs.md` — how `hasSignature` is used for DKIM / S/MIME / PGP in email.
 - `slices/core/trust/module.ttl` — `gmeow:Certification`, the key-to-identity specialisation.
+
+## Signed object act presentations
+
+This vocabulary describes one supplied presentation of the actual salted-BLAKE3/MMR
+act-1 **object-assertion** construction. It does not cover void acts or silently
+select another hash, schema or signing construction. All fields describe supplied
+data; typing and successful parsing prove no signature validity, leaf agreement,
+admission, authority or permission.
+
+`SignedObjectAct` is an InformationObject describing this presentation. It is not
+an Activity, Observation, Attestation or the immutable ActId. In particular, the
+actual body has no issued-at timestamp. `actSignedBody` identifies the complete
+canonical body, and the existing `hasSignature` attaches to that exact payload.
+`signedBy` and `signingKey` stay on the CryptographicSignature. They do not turn
+the signer into the observer or holder of every committed object.
+
+The body binds vault, public key, stream, sequence, assertion kind, the zero
+through field, nonce and root. The signed message is the full
+`katamari:act:v1` domain, a zero byte and canonical body bytes. Leaf openings
+travel separately. Signing a bare root or arbitrary RDF metadata would describe
+a different construction. A supplied `contentDigest` can identify actual body
+bytes; it is not the distinct domain-framed ActId.
+
+`ActCommitmentConstruction` names the actual complete specification by its
+supplied IRI. The act-1 wire carries no construction IRI. An RDF emitter
+identifies the externally documented construction from the actual frozen schema
+and framing and retains that correspondence as evidence. It identifies canonicalization, frozen body schema, full signing
+and leaf domains, framing, primitive algorithms, kind/identifier encoding, salt
+length, order and actual MMR boundary rules. No construction individual,
+default, mathematical security law or executor is minted here.
+
+### Worked supplied-data pattern
+
+This graph pattern shows the roles without inventing a construction IRI or an
+actual outcome. Variables stand for supplied resources and literal values. The
+pattern selects descriptors; it does not validate or verify them.
+
+```sparql
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?view ?body ?construction ?root ?cells ?leaf ?commitment
+       ?kind ?identifier ?salt ?object
+WHERE {
+  ?view a gmeow:SignedObjectAct ;
+        gmeow:actSignedBody ?body ;
+        gmeow:actConstruction ?construction ;
+        gmeow:actCommitmentRoot ?root ;
+        gmeow:actLeaves ?cells .
+  ?body gmeow:hasSignature ?signature .
+  ?cells rdf:rest*/rdf:first ?leaf .
+  ?leaf gmeow:leafCommitment ?commitment .
+  {
+    ?leaf a gmeow:OpenActCommitmentLeaf ;
+          gmeow:leafObjectKind ?kind ;
+          gmeow:leafObjectIdentifier ?identifier ;
+          gmeow:leafSalt ?salt .
+    OPTIONAL { ?leaf gmeow:leafShownObject ?object . }
+  }
+  UNION
+  {
+    ?leaf a gmeow:HashOnlyActCommitmentLeaf .
+  }
+}
+```
+
+The list's `rdf:first`/`rdf:rest` links retain commitment order; the query rows
+alone are not an ordering certificate. `actCommitmentRoot` and `leafCommitment`
+use the existing `gmeow:blake3_256Digest` datatype, preserving algorithm identity
+and the ordered 32 digest bytes. These literals alone define no MMR rule and
+prove no hash recomputation or root consistency.
+
+The actual leaf preimage is the full `katamari:act-leaf:v1` domain, a zero byte,
+the actual 16-byte salt, the object-kind byte and the exact 32 identifier bytes.
+Kinds 0, 1 and 2 name claim record, representation record and bare blob in this
+construction. `leafObjectKind` retains the byte as `xsd:unsignedByte`;
+`leafObjectIdentifier` and `leafSalt` retain bytes as `xsd:hexBinary`. They do
+not infer ontology types, identifier resolution, valid lengths or randomness.
+`leafShownObject` retains an actual supplied resource binding, without replacing
+the bytes or conflating a record with its referent. A salt is not a key or grant.
+
+### Presentation identity and hash-only commitments
+
+Different supplied opening presentations use distinct presentation, list and
+leaf descriptor resources. The exact body and signature may remain the same,
+and original commitment values and order remain unchanged. None of those stable
+values makes two descriptors identical. Do not mutate a persistent original-slot
+node from Open to HashOnly while leaving its old kind, identifier or salt in RDF
+union, and do not identify descriptors from removed object identifiers.
+
+`HashOnlyActCommitmentLeaf` explicitly describes the actual Pruned tag-3
+representation. It retains only the original commitment hash, without opening
+kind, identifier, salt or object binding. This state is never inferred from
+missing edges under open-world semantics. The same source representation is
+served for deleted-but-not-purged objects and stored after purge; it therefore
+cannot certify erasure or explain why an opening is unavailable. The source's
+actual admission rules still distinguish new open acts from held-act re-admission.
+No new admission or disclosure profile is declared.
+
+An original retained commitment needed for still-live siblings is not permission
+to create a deletion receipt. Constitution Principle 10 still governs actual
+erasure: no tombstone, removed-identifier list or derived purge history is
+authorized. Add no gone marker, pruning time/reason, removed-object pointer,
+prior-opening link or history-retention claim. Merely having a hash-only
+presentation authorizes no retention of an earlier opening.
+
+Hash-only commitments establish neither current object presence nor absence,
+authorized removal, recovery, trust or confidentiality. Root, order, slot counts
+and stable hashes can disclose shape or correlate with separately retained
+openings. Salted commitments depend on actual cryptographic assumptions and
+disclosure context, not on an RDF type. The source drops an act when no shown
+object remains; this vocabulary invents no universal tombstone or survivor rule.
+
+No functionality, cardinality, disjointness, hash-computation or verification law
+is added. A selected operation must obtain complete unambiguous supplied inputs
+under its actual construction; missing data does not choose a default or a
+weaker operation. Verification and policy decisions remain separate actual
+operations and results, rather than entailments of these descriptors.
