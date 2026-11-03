@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 6e8bd5a7e945414793687b20f4c113f9b8e98b70
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2345
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2345
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 6a4b4de82a33595498a46ce37f80d1cf675718d2
+GhpRsq-Head-Ref: paudley/2344-clarify-unrestricted-and-plan-step
+GhpRsq-Head-OID: 6e8bd5a7e945414793687b20f4c113f9b8e98b70
+GhpRsq-Result-Tree: 57c1daada4307fa4a21a2783840f9de87f695e9d
+GhpRsq-Result-Commit: d4de94bcac71865e576e650136d8d156cb9cbc82
+GhpRsq-Parent-Hashes: 6e8bd5a7e945414793687b20f4c113f9b8e98b70
+GhpRsq-Squash-Notes-SHA256: eccf32bc37057ba408dd5650ae1d8debe4c23b3a4d0bb0ae1c7e2aacc98ac2a5
+GhpRsq-Stage-Evidence: none
