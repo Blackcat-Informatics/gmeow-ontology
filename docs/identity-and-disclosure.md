@@ -10,11 +10,22 @@ turning a policy judgment into an unattributed fact (Principles 4, 9, 10 and 12)
 ## Address identity belongs to an explicit normalization policy
 
 `gmeow:addressValue` carries an EmailAddress's normalized addr-spec and is
-functional. It is not a global identity key. A store may derive an address node's
-identifier from the pair **normalization-policy identity and normalized value**.
-The policy must specify the transformation and retain the original spelling as
-source evidence. Equality under two different normalization policies is not
-implied. Do not silently add transformations when looking up an existing address.
+functional. It is not a global identity key. Name the actual normalization
+specification by IRI as `gmeow:EmailAddressNormalizationPolicy` and link the
+EmailAddress to it with `gmeow:addressNormalizationPolicy`. The link records the
+supplied policy; it does not prove execution or compliance. The policy must
+specify the transformation and retain the original spelling as source evidence.
+For a message occurrence, keep that spelling on its `MessageParticipant` through
+`gmeow:rawAddressValue`, with `gmeow:participantAddress` pointing to the address.
+Other sources retain their own exact evidence; the occurrence property is not
+moved onto the EmailAddress.
+
+A store may derive its own address identifier from an unambiguous pair of
+**policy IRI and normalized value** in its selected identity context. Missing or
+ambiguous policy evidence does not select a default or authorize another
+transformation. Distinct scoped policy assertions may coexist without equating
+their policies or addresses. Equality under different policies is not implied.
+Do not change policy meaning or silently add transformations during lookup.
 
 Two source address nodes are not automatically merged by the ontology. A store
 that canonicalizes its own address identifiers records the source-to-store

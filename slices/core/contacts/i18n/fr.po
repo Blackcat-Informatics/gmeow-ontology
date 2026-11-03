@@ -180,3 +180,151 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:tenuredContactPoint and nothing else. It is not a definition of gmeow:tenuredContactPoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenuredContactPoint, et rien d'autre. Ce n'est pas une définition de gmeow:tenuredContactPoint (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Email Address Normalization Policy"
+msgstr "Politique de normalisation des adresses électroniques"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified specification of the transformation used to produce an email address's normalized addr-spec. A policy individual is named by IRI so a store can retain policy identity together with the resulting gmeow:addressValue when deriving its own address identifier."
+msgstr "Une spécification identifiée de la transformation utilisée pour produire l’addr-spec normalisé d’une adresse électronique. Un individu de politique est nommé par une IRI afin qu’un magasin puisse conserver l’identité de la politique avec la valeur gmeow:addressValue obtenue lorsqu’il dérive son propre identifiant d’adresse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It is an information object, not a contact point, address holder or normalization execution. Its specification must state the actual transformation; a changed transformation requires a distinct policy identity. The class supplies no default case conversion, dot removal, Unicode normalization or domain encoding."
+msgstr "Il s’agit d’un objet informationnel, et non d’un point de contact, d’un titulaire d’adresse ou d’une exécution de normalisation. Sa spécification doit énoncer la transformation effective ; une transformation modifiée exige une identité de politique distincte. La classe ne fournit par défaut ni conversion de casse, ni suppression de points, ni normalisation Unicode, ni encodage du domaine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied specification named ex:preserveCaseV1 can be typed as gmeow:EmailAddressNormalizationPolicy and state that its addr-spec transformation preserves the supplied spelling. That name alone does not prove that the policy was applied."
+msgstr "Une spécification fournie nommée ex:preserveCaseV1 peut être typée gmeow:EmailAddressNormalizationPolicy et indiquer que sa transformation d’addr-spec conserve la graphie fournie. Ce nom ne prouve pas à lui seul que la politique a été appliquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual normalization specification that qualifies an EmailAddress's normalized value in a selected store identity context."
+msgstr "À utiliser pour identifier la spécification de normalisation effective qui qualifie la valeur normalisée d’une EmailAddress dans un contexte d’identité du magasin sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use as a default normalizer, an execution receipt, a disclosure policy or an address identity key by itself. Equal-looking values under different policies do not establish comparable address identities or the same person."
+msgstr "Ne pas utiliser comme normaliseur par défaut, reçu d’exécution, politique de divulgation ou clé d’identité d’adresse à elle seule. Des valeurs d’apparence identique sous des politiques différentes n’établissent ni des identités d’adresse comparables ni une même personne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the complete policy specification by IRI, preserve its source and transformation meaning, and link the EmailAddress through gmeow:addressNormalizationPolicy. Retain the original spelling as source evidence. The selected store must obtain an unambiguous policy and normalized-value pair before deriving its own identifier; missing or ambiguous evidence cannot trigger silent normalization."
+msgstr "Nommer la spécification complète de politique par une IRI, conserver sa source et le sens de sa transformation, et relier l’EmailAddress par gmeow:addressNormalizationPolicy. Conserver la graphie originale comme élément probant de source. Le magasin sélectionné doit obtenir une paire non ambiguë de politique et de valeur normalisée avant de dériver son propre identifiant ; des éléments probants absents ou ambigus ne peuvent déclencher une normalisation silencieuse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "address normalization policy"
+msgstr "politique de normalisation de l’adresse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an EmailAddress to the identified EmailAddressNormalizationPolicy recorded as producing its normalized gmeow:addressValue. It preserves the policy component of a selected store's policy-and-value identity pair without asserting that normalization was executed or verified."
+msgstr "Relie une EmailAddress à l’EmailAddressNormalizationPolicy identifiée et enregistrée comme ayant produit sa valeur gmeow:addressValue normalisée. Elle conserve la composante politique de la paire d’identité politique et valeur d’un magasin sélectionné sans affirmer que la normalisation a été exécutée ou vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the email address resource, not its literal value, holder, account or message occurrence. No global functional characteristic, identity key or address equality is asserted. Distinct scoped policy assertions may coexist; a selected identity operation must resolve its actual policy and value rather than choose silently."
+msgstr "Le sujet est la ressource d’adresse électronique, et non sa valeur littérale, son titulaire, son compte ou son occurrence dans un message. Aucune caractéristique fonctionnelle globale, clé d’identité ou égalité d’adresses n’est affirmée. Des assertions de politique distinctes et contextualisées peuvent coexister ; une opération d’identité sélectionnée doit résoudre sa politique et sa valeur effectives plutôt que choisir silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "An EmailAddress ex:address carrying gmeow:addressValue \"Case@example.org\" and gmeow:addressNormalizationPolicy ex:preserveCaseV1 records a supplied policy and value. A separate MessageParticipant can point to that address with gmeow:participantAddress and retain the original occurrence through gmeow:rawAddressValue."
+msgstr "Une EmailAddress ex:address portant gmeow:addressValue \"Case@example.org\" et gmeow:addressNormalizationPolicy ex:preserveCaseV1 enregistre une politique et une valeur fournies. Un MessageParticipant distinct peut pointer vers cette adresse par gmeow:participantAddress et conserver l’occurrence originale par gmeow:rawAddressValue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state which named normalization policy qualifies this email address's normalized value for store-relative identity."
+msgstr "À utiliser pour indiquer quelle politique de normalisation nommée qualifie la valeur normalisée de cette adresse électronique pour une identité relative au magasin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach the property to an address literal or person, apply it to other contact-point kinds, infer the same address from value equality alone, or merge source nodes or address holders. The policy edge is not a normalization proof or a permission to discard original spelling."
+msgstr "Ne pas rattacher la propriété à un littéral d’adresse ou à une personne, l’appliquer à d’autres sortes de points de contact, déduire une même adresse de la seule égalité des valeurs, ni fusionner des nœuds sources ou des titulaires d’adresses. L’arête de politique n’est ni une preuve de normalisation ni une permission de supprimer la graphie originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the EmailAddress to its supplied policy IRI and retain the existing functional gmeow:addressValue in the same selected identity context. Keep occurrence spelling on MessageParticipant through gmeow:rawAddressValue or retain other exact source evidence. Record any source-to-store correspondence explicitly; do not add transformations or change policy meaning during lookup."
+msgstr "Relier l’EmailAddress à l’IRI de politique fournie et conserver la valeur gmeow:addressValue fonctionnelle existante dans le même contexte d’identité sélectionné. Garder la graphie de l’occurrence sur MessageParticipant par gmeow:rawAddressValue ou conserver d’autres éléments probants exacts de source. Enregistrer explicitement toute correspondance de la source au magasin ; ne pas ajouter de transformations ni modifier le sens de la politique lors d’une recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcquaintanceRelationship|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+msgstr "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AddressTenure|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tenure a gmeow:AddressTenure ; gmeow:addressHolder ex:person ; gmeow:tenuredContactPoint ex:oldEmail ."
+msgstr "ex:tenure a gmeow:AddressTenure ; gmeow:addressHolder ex:person ; gmeow:tenuredContactPoint ex:oldEmail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail a gmeow:ContactPoint ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."
+msgstr "ex:personEmail a gmeow:ContactPoint ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddress|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail a gmeow:EmailAddress ; gmeow:addressValue \"person@example.org\" ."
+msgstr "ex:personEmail a gmeow:EmailAddress ; gmeow:addressValue \"person@example.org\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantMessageAddress|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personMatrix a gmeow:InstantMessageAddress ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."
+msgstr "ex:personMatrix a gmeow:InstantMessageAddress ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InterpersonalRelationship|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+msgstr "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProfessionalRelationship|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+msgstr "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TelephoneNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personMobile a gmeow:TelephoneNumber ; gmeow:contactPointType gmeow:contactPointTypePersonal ."
+msgstr "ex:personMobile a gmeow:TelephoneNumber ; gmeow:contactPointType gmeow:contactPointTypePersonal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolder|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tenure gmeow:addressHolder ex:person ."
+msgstr "ex:tenure gmeow:addressHolder ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail gmeow:addressValue \"person@example.org\" ."
+msgstr "ex:personEmail gmeow:addressValue \"person@example.org\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactPointProvider|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personWorkEmail gmeow:contactPointProvider ex:acmeCorp ."
+msgstr "ex:personWorkEmail gmeow:contactPointProvider ex:acmeCorp ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactPointType|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail gmeow:contactPointType gmeow:contactPointTypeWork ."
+msgstr "ex:personEmail gmeow:contactPointType gmeow:contactPointTypeWork ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliversToAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail gmeow:deliversToAccount ex:personMailbox ."
+msgstr "ex:personEmail gmeow:deliversToAccount ex:personMailbox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail gmeow:domainPart \"example.org\" ."
+msgstr "ex:personEmail gmeow:domainPart \"example.org\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/email|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:email \"person@example.org\" ."
+msgstr "ex:person gmeow:email \"person@example.org\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasAgreement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:hasAgreement ex:ndaWithAcme ."
+msgstr "ex:person gmeow:hasAgreement ex:ndaWithAcme ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasContactPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:hasContactPoint ex:personEmail ."
+msgstr "ex:person gmeow:hasContactPoint ex:personEmail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:hasMet ex:morgan ."
+msgstr "ex:person gmeow:hasMet ex:morgan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasUsed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:hasUsed ex:someTool ."
+msgstr "ex:person gmeow:hasUsed ex:someTool ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWorkedWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:hasWorkedWith ex:morgan ."
+msgstr "ex:person gmeow:hasWorkedWith ex:morgan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:personEmail gmeow:localPart \"person\" ."
+msgstr "ex:personEmail gmeow:localPart \"person\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipParty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tie gmeow:relationshipParty ex:person ."
+msgstr "ex:tie gmeow:relationshipParty ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/telephone|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:person gmeow:telephone \"+1-403-555-0100\" ."
+msgstr "ex:person gmeow:telephone \"+1-403-555-0100\" ."

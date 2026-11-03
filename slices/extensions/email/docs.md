@@ -261,14 +261,23 @@ The existing flat properties (`gmeow:from`, `gmeow:to`, `gmeow:cc`, `gmeow:bcc`,
 - Provenance, confidence, or validation status
 - Malformed or spoofed values that must not contaminate contact identity
 
-### Normalization rules (importer-side, Principle 12)
+### Selected normalization policy (importer-side, Principle 12)
 
-- `addressValue` is the normalized addr-spec (SMTP-lower-case local part,
-  Punycode A-label for IDN domains).
-- `localPart` is the mailbox portion; case-folding and dot-removal are
-  computation-layer concerns.
-- `domainPart` is the Punycode A-label for IDN domains; the Unicode U-label
-  is a projection-downcast concern.
+- `addressValue` is the addr-spec produced under the explicitly named
+  `EmailAddressNormalizationPolicy`, linked from the EmailAddress through
+  `addressNormalizationPolicy`. Store identity retains that policy IRI together
+  with the normalized value; equal values under different policies are not
+  automatically comparable.
+- `localPart` is the mailbox portion parsed from that value. Case conversion and
+  dot removal are permitted only when the selected policy explicitly specifies
+  them; neither is a default supplied by the vocabulary.
+- `domainPart` is parsed from the same value under the selected policy's domain
+  representation. IDNA conversion and A-label or U-label choices must be explicit
+  policy or projection choices, not silently added normalization.
+- Preserve the original header or envelope spelling on MessageParticipant via
+  `rawAddressValue`; `participantAddress` links the occurrence to EmailAddress.
+  The policy link records supplied provenance, not executed normalization or a
+  global identity merge.
 - Malformed or missing addr-specs: `participantAddress` is omitted from
   the `MessageParticipant`; the `rawAddressValue` retains the malformed text
   for audit.
