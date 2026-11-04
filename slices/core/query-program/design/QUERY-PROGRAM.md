@@ -845,3 +845,109 @@ bytes do not merge declared context resources. No guessed call identifier,
 synthetic actual fit, automatic weaker mode or substitute native arithmetic
 certificate is provided. Applied-order integration must preserve the actual
 source policy and comparison evidence on the same reported result.
+
+## Complete reported activation accounts
+
+The activation surface is a complete reported-evidence contract on the existing
+weighted application, answer and applied-score resources. Three InformationObject
+subtypes own account, candidate and selected-vault records; two local Quantity
+subtypes own aggregate activation and snapshot-held count magnitudes. Eleven
+domain-owned roles retain actual selection, complete collections, supplied
+identities and conditional fields. No new execution, answer, generic vault class,
+identity recipe, unit schema or arithmetic framework is introduced.
+
+The native selected-call roster is nonempty, and every actual returned candidate
+has a nonempty found-vault set. The account can still describe a successful empty
+candidate union with no candidate records. Candidate coverage is bidirectional
+through the exact existing application-score collection, and candidate identity
+follows the existing score. Candidate-found references must join that same
+account's roster. Complete equality to the actual selected source roster and
+native found-vault sets remains an import obligation; graph laws do not recover
+omitted external evidence. The returned captured list is the list used by scoring,
+while read versions can omit selected vaults and are insufficient to reconstruct
+it.
+
+The actual call input supplies the mode. Disabled source zero is an inactive key
+and supplies no reported activation Quantity. Enabled values require unsigned-long
+magnitudes, explicit Dimensions and complete applicable ReferenceFrames; all
+aggregate values in one account agree on the exact context resources. The source
+does not serialize those mathematical objects. Real source or adapter
+interpretation is mandatory, with no dimensionless default. Held counts are
+separate Quantities with independently justified contexts, not per-candidate
+components. Neither their frames nor the aggregate frame are forced to equal
+the fusion-score frame. Compatible Quantity sharing remains legal.
+
+Snapshot true requires actual supplied snapshot identity and held-count Quantity;
+false forbids both. False is deliberately qualified: actual evidence must show
+that the service was live at capture and had no first snapshot. Native
+`current().and_then(...)` can also produce None for retirement, and budget-cut
+recall can skip a selected service before reading it while still returning a
+partial union. Raw wire None therefore cannot choose the false branch. Missing
+capture-liveness or absence-reason proof fails this complete import. No unknown
+state, weaker profile fallback, invented historical recovery or lifecycle action
+is provided to disguise that evidence limit.
+
+Vault identity is sixteen supplied bytes, not a UUID or thirty-two-byte digest.
+Snapshot identity is thirty-two supplied bytes. Both use `xsd:hexBinary` under an
+explicit unspaced either-case profile. The ordinary two-argument `termRegex`
+relation tests a positively bound literal with the thirty-two- or sixty-four-digit
+pattern; it binds no result. Its existing SPARQL lowering uses
+`REGEX(STR(boundValue), pattern)`. This is not XSD-canonical lexical normalization
+or a new facet, datatype, intrinsic or helper, and existing regex-dialect
+projection residue remains explicit. `termEqual` compares decoded binary values
+for same-datatype hexBinary literals, so case variants participate in scoped vault
+uniqueness. Equality does not imply relational tie-byte comparator parity or hash
+authenticity.
+
+Ten grouped ordinary Constraint Formula trees realize twenty-two branches:
+
+| Law focus and responsibility | Branch obligations |
+| --- | --- |
+| Account owner | Incoming application existence and pairwise owner equality. |
+| Account candidate inventory | Every original score has a record; every selected record score belongs to the application; identical score selects identical record. |
+| Account vault uniqueness | Independently bound equal binary vault identities imply identical roster records. |
+| Candidate record owner | Incoming account existence and pairwise owner equality. |
+| Candidate record context | Found records belong to the same roster; enabled true requires an aggregate; false forbids it. |
+| Snapshot record | Incoming owner existence and uniqueness; true requires identity/count; false forbids both; bound vault and supplied snapshot literals satisfy their width profiles. |
+| Account aggregate context | Exact Dimension equality and exact ReferenceFrame equality among owned aggregate values. |
+| Reported activation Quantity owner | Some incoming typed candidate record, without unique inverse ownership. |
+| Held-count Quantity owner | Some incoming typed snapshot record, without unique inverse ownership. |
+| Enabled candidate zero | Positively bind owner, mode, Quantity and stored magnitude; absence of any present snapshot in the nonempty found scope requires unsigned-long zero. |
+
+Every realized tree has one root forall, a typed focus guard and same-focus
+guarded branches. Nonfocus universal names are branch-specific; existential
+witnesses have fresh local binders. Values and identities are positively joined
+before comparisons or regex tests. Negative existentials have local variables
+under an already bound outer record. No Iff, positive nested forall, unguarded
+filter arm, rebinding arithmetic output or speculative evaluator is used.
+
+The flat declarative tail adds seventeen allValuesFrom restrictions, twelve
+required ClosureEntry pairs and twelve qualified maxima. Required paths are
+account mode and nonempty roster, candidate score and nonempty found collection,
+snapshot vault identity and presence state, and value/dimension/frame on both
+Quantity subtypes. Reuse their two inherited dimension maxima. Conditional
+aggregate and snapshot fields have local ranges and at-most-one maxima, with
+presence determined by Formula branches. Only the candidate-record collection
+can be empty. No global functionality, unqualified cardinality, nested-filler
+authoring or hand-authored shape surface is introduced.
+
+The zero rule is necessary, not biconditional. A present snapshot can estimate
+zero, and actual present held count zero remains distinct from no snapshot.
+Selected roster vaults outside a candidate's actual found scope do not enter
+its aggregate. No held-count sum is mistaken for candidate activation, no missing
+per-vault component is invented, and no saturation proof or aggregate confidence
+claim is made. Native computation, historical association and source
+authentication need their actual evidence.
+
+This unit enables later actual order without representing that full order itself.
+Actual selected policy, ordered occurrences, original unsigned candidate-array
+coordinates, output ordinals, complete predicate/literal tier matching evidence,
+tier minimum and supplied subject tie bytes remain distinct requirements.
+Native precedence is tier, activation, score, tie; requested score-before-activation
+is a distinct prescription. A native policy digest cannot identify arbitrary
+precedence, and duplicate last-wins predicate mappings cannot be silently
+normalized into the existing unique-predicate policy contract. The same actual
+weighted application and answer must be enriched, with original candidate,
+query and loss context retained. Exact declared weighted sum, native fixed-point
+grid and truncation, authenticated execution, generated behavior and consumer
+adoption remain separate claims requiring evidence.

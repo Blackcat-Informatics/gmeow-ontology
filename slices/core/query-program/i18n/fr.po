@@ -7599,3 +7599,731 @@ msgstr "Des étapes de contrôle compatibles peuvent partager la même Quantity 
 msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional total Quantity shared by two compatible steps is permitted; an isolated typed partial sum fails."
 msgstr "Exemple fictif à portée limitée : Une Quantity fictive de total partagée par deux étapes compatibles est permise ; une somme partielle typée isolée est rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Activation Account"
+msgstr "Compte rendu d’activation de fusion de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete reported activation and call-start snapshot account for one actual weighted-fusion application, retaining actual selection, the nonempty selected-vault roster and every original candidate’s found-vault scope."
+msgstr "Un compte rendu complet rapporté d’activation et d’instantanés au début d’appel pour une application effective de fusion pondérée, conservant la sélection effective, la liste non vide de coffres sélectionnés et le périmètre des coffres où chaque candidat original a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual reported activation evidence with the existing weighted application and answer without inventing another source call."
+msgstr "Utiliser pour associer les preuves effectives rapportées d’activation à l’application pondérée et à la réponse existantes sans inventer un autre appel source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid importing an incomplete roster as empty, reconstructing it from read versions or treating wire snapshot absence as proof that a live vault had no first snapshot."
+msgstr "Éviter d’importer une liste incomplète comme vide, de la reconstruire à partir des versions lues ou de traiter l’absence d’instantané dans la transmission comme une preuve qu’un coffre actif n’avait pas de premier instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link from the existing application through fusionActivationAccount; supply activationEnabled, the complete nonempty activationVaultRecord collection and one activationCandidateRecord per original applied score."
+msgstr "Relier depuis l’application existante par fusionActivationAccount ; fournir activationEnabled, la collection complète non vide activationVaultRecord et un activationCandidateRecord par score appliqué original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same captured snapshot list feeds native scoring and the returned union. Explicit first-snapshot absence requires actual live-at-capture and absence-reason evidence; missing proof fails this selected import. A successful empty candidate union still has a nonempty roster."
+msgstr "La même liste d’instantanés capturée alimente le calcul natif des scores et l’union renvoyée. Une absence explicite de premier instantané exige une preuve effective d’activité à la capture et de motif d’absence ; une preuve manquante fait échouer cette importation sélectionnée. Une union de candidats vide réussie conserve une liste non vide de coffres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . The existing application, its original answer and the complete account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:fusionActivationAccount ex:account . L’application existante, sa réponse originale et les liens complets du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Candidate Activation Record"
+msgstr "Enregistrement d’activation de candidat de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptive record for one original applied score’s nonempty actual found-vault scope and its aggregate activation Quantity exactly when the actual application selected activation."
+msgstr "Un enregistrement descriptif du périmètre effectif non vide des coffres où le candidat d’un score appliqué original a été trouvé, avec sa Quantity d’activation agrégée exactement lorsque l’application effective a sélectionné l’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the candidate-specific aggregation scope independently of the whole selected-call snapshot roster."
+msgstr "Utiliser pour conserver le périmètre d’agrégation propre au candidat indépendamment de la liste complète d’instantanés sélectionnée pour l’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating the original candidate identity, inventing per-vault activation components or treating a disabled wire zero as measured data."
+msgstr "Éviter de dupliquer l’identité originale du candidat, d’inventer des composantes d’activation par coffre ou de traiter un zéro transmis lorsque l’activation est désactivée comme une donnée mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply activationAppliedScore and the complete nonempty activationFoundVault collection; supply reportedActivationValue exactly when the owner account’s activationEnabled is true."
+msgstr "Fournir activationAppliedScore et la collection complète non vide activationFoundVault ; fournir reportedActivationValue exactement lorsque activationEnabled du compte rendu propriétaire vaut true."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each record has exactly one account owner, and its score belongs to that account’s existing application. The original candidate follows appliedScoreCandidate. Record identity is descriptive graph identity, not a native serialized identifier."
+msgstr "Chaque enregistrement a exactement un compte rendu propriétaire, et son score appartient à l’application existante de celui-ci. Le candidat original suit appliedScoreCandidate. L’identité de l’enregistrement est une identité descriptive de graphe, pas un identifiant natif sérialisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row a gmeow:QueryCandidateActivationRecord ; gmeow:activationAppliedScore ex:score ; gmeow:activationFoundVault ex:vaultRecord . The owner and any enabled reported value are omitted."
+msgstr "Fragment fictif à portée limitée : ex:row a gmeow:QueryCandidateActivationRecord ; gmeow:activationAppliedScore ex:score ; gmeow:activationFoundVault ex:vaultRecord . Le propriétaire et toute valeur rapportée lorsque l’activation est sélectionnée sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Vault Snapshot Record"
+msgstr "Enregistrement d’instantané de coffre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One actual selected-call vault’s reported call-start snapshot state, retaining its supplied vault identity and either a present snapshot identity with held count or evidenced live-at-capture first-snapshot absence."
+msgstr "L’état rapporté d’instantané au début d’appel d’un coffre effectif sélectionné, conservant son identité fournie et soit une identité d’instantané présent avec un nombre d’activations conservées, soit une absence étayée de premier instantané pour un service actif lors de la capture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve every selected vault, including vaults outside a particular candidate’s found-vault subset."
+msgstr "Utiliser pour préserver chaque coffre sélectionné, y compris ceux hors du sous-ensemble où un candidat particulier a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting raw wire None, a retired service, a budget-skipped read or a later current read as sufficient first-snapshot-absence evidence."
+msgstr "Éviter d’interpréter un None brut transmis, un service retiré, une lecture omise pour cause de budget ou une lecture courante ultérieure comme preuve suffisante d’absence de premier instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply activationVaultIdentity and activationSnapshotPresent; true requires activationSnapshotIdentity and activationSnapshotHeld, while qualified false forbids both."
+msgstr "Fournir activationVaultIdentity et activationSnapshotPresent ; true exige activationSnapshotIdentity et activationSnapshotHeld, tandis que false qualifié interdit les deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each typed record has one account owner and is unique there by decoded vault bytes. False requires actual capture liveness and absence-reason evidence; unavailable evidence fails import. Present held count zero remains present."
+msgstr "Chaque enregistrement typé a un compte rendu propriétaire et y est unique par les octets décodés du coffre. La valeur false exige une preuve effective d’activité à la capture et de motif d’absence ; une preuve indisponible fait échouer l’importation. Un nombre présent d’activations conservées égal à zéro reste présent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord a gmeow:QueryVaultSnapshotRecord ; gmeow:activationSnapshotPresent false . The required vault identity, owner and actual live-at-capture absence evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:vaultRecord a gmeow:QueryVaultSnapshotRecord ; gmeow:activationSnapshotPresent false . L’identité obligatoire du coffre, le propriétaire et les preuves effectives d’absence pour un service actif lors de la capture sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Reported Activation"
+msgstr "Activation rapportée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An enabled source-reported aggregate activation ranking-signal Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."
+msgstr "Une Quantity de signal de classement d’activation agrégée rapportée par la source lorsque l’activation est sélectionnée, avec une valeur numérique entière longue non signée, une dimension explicite et un repère de référence applicable complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual aggregate returned for a candidate when activation was selected, including a genuinely reported zero."
+msgstr "Utiliser pour l’agrégat effectif renvoyé pour un candidat lorsque l’activation était sélectionnée, y compris un zéro réellement rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating disabled wire zero as an observation, using a confidence or probability interpretation, or certifying native saturation from the reported aggregate."
+msgstr "Éviter de traiter un zéro transmis lorsque l’activation est désactivée comme une observation, d’utiliser une interprétation de confiance ou de probabilité, ou de certifier la saturation native à partir de l’agrégat rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame, and link through reportedActivationValue from an owned candidate record."
+msgstr "Fournir math:quantityValue de type xsd:unsignedLong, math:hasDimension et hasReferenceFrame, et relier par reportedActivationValue depuis un enregistrement de candidat possédé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values within one account share the exact dimension and frame resources. The API supplies neither mathematical context object; source or adapter justification is required. Compatible sharing is legal, and neither the fusion-score nor held-count frame is imposed."
+msgstr "Les valeurs d’un même compte rendu partagent exactement les ressources de dimension et de repère. L’API ne fournit aucun de ces objets mathématiques de contexte ; une justification source ou d’adaptateur est obligatoire. Un partage compatible est licite, et ni le repère du score de fusion ni celui du nombre d’activations conservées n’est imposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:activation a gmeow:QueryReportedActivation ; math:quantityValue \"0\"^^xsd:unsignedLong . Its actual enabled source context, dimension, complete frame and incoming record are omitted."
+msgstr "Fragment fictif à portée limitée : ex:activation a gmeow:QueryReportedActivation ; math:quantityValue \"0\"^^xsd:unsignedLong . Son contexte source effectif où l’activation est sélectionnée, sa dimension, son repère complet et l’enregistrement entrant sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Snapshot Held Count"
+msgstr "Nombre d’activations conservées dans l’instantané de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual present activation snapshot’s held-activation count Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."
+msgstr "Une Quantity du nombre d’activations conservées d’un instantané d’activation effectif présent, avec une valeur numérique entière longue non signée, une dimension explicite et un repère de référence applicable complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual held count paired with a supplied present snapshot identity."
+msgstr "Utiliser pour conserver le nombre effectif d’activations conservées associé à une identité fournie d’instantané présent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating held count as a candidate activation component, graph watermark, timestamp, candidate cardinality or confidence guarantee."
+msgstr "Éviter de traiter ce nombre comme une composante d’activation de candidat, un marqueur de progression du graphe, un horodatage, une cardinalité de candidats ou une garantie de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame; reference the Quantity through activationSnapshotHeld from a present owned snapshot record."
+msgstr "Fournir math:quantityValue de type xsd:unsignedLong, math:hasDimension et hasReferenceFrame ; référencer la Quantity par activationSnapshotHeld depuis un enregistrement d’instantané présent possédé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero is legal when actually supplied for a present snapshot. Compatible records may share a coordinated count Quantity. Its interpretation is justified independently of aggregate activation and fusion scores; no cross-vault held-count comparison or common frame is imposed."
+msgstr "Zéro est licite lorsqu’il est effectivement fourni pour un instantané présent. Des enregistrements compatibles peuvent partager une Quantity coordonnée de nombre. Son interprétation est justifiée indépendamment de l’activation agrégée et des scores de fusion ; aucune comparaison entre coffres des nombres conservés ni aucun repère commun n’est imposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:held a gmeow:QuerySnapshotHeldCount ; math:quantityValue \"0\"^^xsd:unsignedLong . The present snapshot record, dimension and complete applicable frame are omitted."
+msgstr "Fragment fictif à portée limitée : ex:held a gmeow:QuerySnapshotHeldCount ; math:quantityValue \"0\"^^xsd:unsignedLong . L’enregistrement d’instantané présent, la dimension et le repère applicable complet sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation account"
+msgstr "compte rendu d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one complete reported activation and snapshot account selected on an existing actual weighted-fusion application."
+msgstr "Le compte rendu complet rapporté d’activation et d’instantanés, au plus unique, sélectionné sur une application effective existante de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enrich the same application and answer that already retain weighted scores and original evidence."
+msgstr "Utiliser pour enrichir la même application et la même réponse qui conservent déjà les scores pondérés et les preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a second execution or native answer merely to describe activation or later applied order."
+msgstr "Éviter de créer une seconde exécution ou réponse native simplement pour décrire l’activation ou un ordre appliqué ultérieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a complete QueryFusionActivationAccount on the actual QueryWeightedFusionApplication."
+msgstr "Référencer un QueryFusionActivationAccount complet sur la QueryWeightedFusionApplication effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing applications need not select this account. Once selected, every account obligation is mandatory; partial evidence cannot populate a weaker success branch."
+msgstr "Les applications existantes n’ont pas à sélectionner ce compte rendu. Une fois sélectionné, chacune de ses obligations est impérative ; des preuves partielles ne peuvent pas alimenter une branche plus faible de réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:fusionActivationAccount ex:account . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation selected"
+msgstr "activation sélectionnée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean retaining whether the actual source call selected activation as a comparison key."
+msgstr "Le booléen typé obligatoire conservant si l’appel source effectif a sélectionné l’activation comme clé de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish actual selected aggregate observations from the source’s inactive constant-zero branch."
+msgstr "Utiliser pour distinguer les observations effectives d’agrégats sélectionnés de la branche source inactive à zéro constant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring selection from an aggregate value, a digest alone or missing source input."
+msgstr "Éviter de déduire la sélection d’une valeur agrégée, d’une seule empreinte ou d’une entrée source absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual call-input xsd:boolean; true requires each candidate record’s reported aggregate and false forbids that Quantity edge."
+msgstr "Fournir le xsd:boolean effectif d’entrée d’appel ; true exige l’agrégat rapporté de chaque enregistrement de candidat et false interdit cette arête de Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Legal Boolean lexical variants compare by value. The future applied-policy account must agree with this actual selection; disabling activation does not remove the source snapshot roster."
+msgstr "Les variantes lexicales licites de booléens se comparent par valeur. Le futur compte rendu d’ordre appliqué doit concorder avec cette sélection effective ; désactiver l’activation ne supprime pas la liste source d’instantanés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationEnabled false . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:account gmeow:activationEnabled false . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation candidate record"
+msgstr "enregistrement de candidat pour l’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete original-applied-score-indexed candidate record collection of a selected activation account."
+msgstr "Un membre de la collection complète d’enregistrements de candidats d’un compte rendu sélectionné d’activation, indexée par scores appliqués originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain exactly one activation record for every original applied score and no unrelated score."
+msgstr "Utiliser pour conserver exactement un enregistrement d’activation par score appliqué original et aucun score sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting candidates, sharing one record across accounts or confusing an empty original union with an empty vault roster."
+msgstr "Éviter d’omettre des candidats, de partager un enregistrement entre comptes rendus ou de confondre une union originale vide avec une liste vide de coffres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every QueryCandidateActivationRecord and retain its actual applied score and nonempty found-vault scope."
+msgstr "Référencer chaque QueryCandidateActivationRecord et conserver son score appliqué effectif et le périmètre non vide des coffres où le candidat a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This collection is empty exactly when the existing application’s score collection is empty. Original query, candidate and loss identities remain governed by the weighted account."
+msgstr "Cette collection est vide exactement lorsque la collection de scores de l’application existante est vide. Les identités originales de requêtes, candidats et pertes restent régies par le compte rendu pondéré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationCandidateRecord ex:row . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:account gmeow:activationCandidateRecord ex:row . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation selected-vault record"
+msgstr "enregistrement de coffre sélectionné pour l’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete nonempty actual selected-call vault roster captured at call start for an activation account."
+msgstr "Un membre de la liste complète non vide des coffres effectivement sélectionnés pour l’appel, capturée au début de celui-ci pour un compte rendu d’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve selected vaults even when no candidate was found there or a budget prevented their later read."
+msgstr "Utiliser pour préserver les coffres sélectionnés même lorsqu’aucun candidat n’y a été trouvé ou qu’un budget a empêché leur lecture ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reconstructing this roster from read versions, dropping unavailable records or accepting an empty selected-call roster."
+msgstr "Éviter de reconstruire cette liste à partir des versions lues, d’éliminer les enregistrements indisponibles ou d’accepter une liste vide de coffres sélectionnés pour l’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every actual QueryVaultSnapshotRecord from the same captured list used for scoring and the returned union."
+msgstr "Référencer chaque QueryVaultSnapshotRecord effectif depuis la même liste capturée utilisée pour le calcul des scores et l’union renvoyée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every selected account has at least one roster member. Candidate found-vault membership is a separate nonempty subset, not the entire roster. Ambiguous capture absence blocks this complete import."
+msgstr "Chaque compte rendu sélectionné a au moins un membre de cette liste. Les coffres où un candidat a été trouvé constituent un sous-ensemble non vide distinct, pas la liste entière. Une absence ambiguë à la capture bloque cette importation complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation original applied score"
+msgstr "score appliqué original de l’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing original applied-score resource selected by a candidate activation record."
+msgstr "L’unique ressource existante de score appliqué original sélectionnée par un enregistrement d’activation de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to recover the original candidate through the score’s existing appliedScoreCandidate link."
+msgstr "Utiliser pour retrouver le candidat original par le lien existant appliedScoreCandidate du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying candidate identities into a parallel coordinate or selecting a score from another application."
+msgstr "Éviter de copier les identités de candidats dans une coordonnée parallèle ou de sélectionner un score d’une autre application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryAppliedFusionScore retained by the existing application that owns the activation account."
+msgstr "Référencer un QueryAppliedFusionScore conservé par l’application existante propriétaire du compte rendu d’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Within one account, records selecting the same score are identical. Separate calls retain their existing separate score occurrences."
+msgstr "Dans un même compte rendu, les enregistrements sélectionnant le même score sont identiques. Des appels distincts conservent leurs occurrences de scores existantes distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:activationAppliedScore ex:score . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:row gmeow:activationAppliedScore ex:score . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation candidate-found vault"
+msgstr "coffre de découverte du candidat pour l’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the candidate’s complete nonempty actual found-vault set, referencing the same account’s selected-call snapshot roster."
+msgstr "Un membre de l’ensemble effectif complet non vide des coffres où le candidat a été trouvé, référençant la liste des instantanés sélectionnés pour l’appel du même compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve exactly the original candidate-found scope used by native aggregate activation."
+msgstr "Utiliser pour préserver exactement le périmètre original des coffres de découverte du candidat utilisé par l’activation agrégée native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid including other selected roster vaults merely because they have snapshots or accepting an unavailable or empty found-vault collection."
+msgstr "Éviter d’inclure d’autres coffres de la liste sélectionnée au seul motif qu’ils possèdent des instantanés ou d’accepter une collection indisponible ou vide de coffres de découverte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the owning account’s roster records matching every actual original Candidate.vaults identity."
+msgstr "Référencer les enregistrements de la liste du compte rendu propriétaire correspondant à chaque identité originale effective Candidate.vaults."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each candidate has at least one found vault. Equality with the supplied original native set is an import obligation; graph membership laws cannot reconstruct unavailable external candidate evidence."
+msgstr "Chaque candidat a au moins un coffre où il a été trouvé. L’égalité avec l’ensemble natif original fourni est une obligation d’importation ; les lois d’appartenance au graphe ne peuvent pas reconstruire des preuves externes de candidats indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:activationFoundVault ex:vaultA . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:row gmeow:activationFoundVault ex:vaultA . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported aggregate activation value"
+msgstr "valeur d’activation agrégée rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one actual reported aggregate activation Quantity of a candidate record, required exactly when its account selected activation."
+msgstr "La Quantity effective d’activation agrégée rapportée d’un enregistrement de candidat, au plus unique et obligatoire exactement lorsque son compte rendu a sélectionné l’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a true reported zero or positive aggregate without claiming component recomputation."
+msgstr "Utiliser pour conserver un véritable agrégat rapporté nul ou positif sans revendiquer le recalcul des composantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid writing the disabled source constant zero as a measured Quantity or summing snapshot held counts as candidate activation."
+msgstr "Éviter d’écrire le zéro constant de la source désactivée comme une Quantity mesurée ou de sommer les nombres d’activations conservées dans les instantanés comme activation de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one fully coordinated QueryReportedActivation when activationEnabled is true; omit this edge when false."
+msgstr "Référencer une QueryReportedActivation entièrement coordonnée lorsque activationEnabled vaut true ; omettre cette arête lorsque ce booléen vaut false."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "All found vaults with qualified first-snapshot absence imply numeric zero. The converse is false: a real present snapshot may estimate zero. Per-vault candidate components are not exported by the inspected public Fused result."
+msgstr "L’absence qualifiée de premier instantané pour tous les coffres où le candidat a été effectivement trouvé implique zéro numérique. La réciproque est fausse : un instantané réellement présent peut estimer zéro. Les composantes de candidats par coffre ne sont pas exportées par le résultat public Fused examiné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:reportedActivationValue ex:activation . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:row gmeow:reportedActivationValue ex:activation . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation vault identity"
+msgstr "identité de coffre pour l’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required supplied sixteen-byte native vault identity on one selected-call snapshot record, represented as an unspaced either-case hexBinary literal."
+msgstr "L’identité native fournie obligatoire de seize octets d’un coffre sur un enregistrement d’instantané sélectionné pour l’appel, représentée comme littéral hexBinary sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual candidate-found vaults and the complete source snapshot roster by their supplied bytes."
+msgstr "Utiliser pour associer les coffres effectifs de découverte des candidats et la liste complète source d’instantanés par leurs octets fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating VaultId as a UUID or thirty-two-byte digest, fabricating an IRI or recomputing a source construction hash."
+msgstr "Éviter de traiter VaultId comme un UUID ou une empreinte de trente-deux octets, de fabriquer un IRI ou de recalculer un hachage source de construction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary with exactly thirty-two hex digits matching ^[0-9A-Fa-f]{32}$."
+msgstr "Fournir xsd:hexBinary avec exactement trente-deux chiffres hexadécimaux correspondant à ^[0-9A-Fa-f]{32}$."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The explicit lexical profile is not XSD-canonical normalization. Opposite-case spellings compare by decoded binary value and cannot identify distinct records in one account. Regex dialect projection residue remains explicit."
+msgstr "Le profil lexical explicite n’est pas une normalisation canonique XSD. Des graphies de casses opposées se comparent par valeur binaire décodée et ne peuvent pas identifier des enregistrements distincts dans un compte rendu. Le résidu de projection de dialecte regex reste explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationVaultIdentity \"00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."
+msgstr "Fragment fictif à portée limitée : ex:vaultRecord gmeow:activationVaultIdentity \"00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . Les octets sont fictifs et ne constituent pas une identité native authentifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot present"
+msgstr "présence d’instantané d’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean selecting actual snapshot presence or evidenced absence of a first snapshot in a live service at the original capture."
+msgstr "Le booléen typé obligatoire sélectionnant la présence effective d’un instantané ou l’absence étayée de premier instantané dans un service actif lors de la capture originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a present snapshot, including a zero held count, from qualified first-snapshot absence."
+msgstr "Utiliser pour distinguer un instantané présent, y compris avec un nombre conservé nul, d’une absence qualifiée de premier instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting false from raw wire None, retirement, a skipped read, unavailable liveness evidence or a later current read."
+msgstr "Éviter de sélectionner false à partir d’un None brut transmis, d’un retrait, d’une lecture omise, de preuves d’activité indisponibles ou d’une lecture courante ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply true with actual snapshot identity and held Quantity; supply false only with actual live-at-capture association and absence-reason evidence, and neither conditional edge."
+msgstr "Fournir true avec l’identité effective d’instantané et la Quantity conservée ; fournir false uniquement avec une association effective à l’activité du service lors de la capture et des preuves de motif d’absence, sans aucune des deux arêtes conditionnelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The public Option may be absent because the service was retired. Even a successful budget-cut union cannot establish the absence reason. Missing required proof fails this complete import rather than becoming false or zero."
+msgstr "L’Option publique peut être absente parce que le service a été retiré. Même une union partielle réussie limitée par le budget ne peut pas établir le motif d’absence. La preuve obligatoire absente fait échouer cette importation complète plutôt que devenir false ou zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotPresent false . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:vaultRecord gmeow:activationSnapshotPresent false . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot identity"
+msgstr "identité d’instantané d’activation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied thirty-two-byte identity of the actual present call-start snapshot, represented as an unspaced either-case hexBinary literal."
+msgstr "L’identité fournie de trente-deux octets de l’instantané effectif présent au début d’appel, représentée comme littéral hexBinary sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact supplied snapshot bytes alongside that snapshot’s actual held count."
+msgstr "Utiliser pour conserver les octets exacts fournis d’instantané aux côtés du nombre effectif d’activations conservées de cet instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a digest, converting a later current snapshot into historical evidence or populating this edge on qualified absence."
+msgstr "Éviter de fabriquer une empreinte, de transformer un instantané courant ultérieur en preuve historique ou de renseigner cette arête en cas d’absence qualifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary with exactly sixty-four hex digits matching ^[0-9A-Fa-f]{64}$ when activationSnapshotPresent is true."
+msgstr "Fournir xsd:hexBinary avec exactement soixante-quatre chiffres hexadécimaux correspondant à ^[0-9A-Fa-f]{64}$ lorsque activationSnapshotPresent vaut true."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge is required for presence and forbidden for absence. Width and lexical-profile checks do not authenticate contents or prove native hashing; regex dialect residue remains explicit."
+msgstr "Cette arête est obligatoire pour la présence et interdite pour l’absence. Les vérifications de largeur et de profil lexical n’authentifient pas le contenu et ne prouvent pas le hachage natif ; le résidu de dialecte regex reste explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotIdentity \"00112233445566778899aAbBcCdDeEfF00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."
+msgstr "Fragment fictif à portée limitée : ex:vaultRecord gmeow:activationSnapshotIdentity \"00112233445566778899aAbBcCdDeEfF00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . Les octets sont fictifs et ne constituent pas une identité native authentifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot held count"
+msgstr "nombre d’activations conservées de l’instantané"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual held-count Quantity paired with a present activation snapshot, absent on qualified first-snapshot absence."
+msgstr "L’unique Quantity effective de nombre d’activations conservées associée à un instantané d’activation présent, absente en cas d’absence qualifiée de premier instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s supplied count without confusing it with a per-candidate activation estimate."
+msgstr "Utiliser pour conserver le nombre fourni par la source sans le confondre avec une estimation d’activation par candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid populating a default zero for absent or unavailable snapshots, or comparing this count with candidate cardinality."
+msgstr "Éviter de fournir un zéro par défaut pour des instantanés absents ou indisponibles, ou de comparer ce nombre à la cardinalité des candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a fully coordinated QuerySnapshotHeldCount exactly when activationSnapshotPresent is true."
+msgstr "Référencer une QuerySnapshotHeldCount entièrement coordonnée exactement lorsque activationSnapshotPresent vaut true."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An actual present count can be zero. Compatible sharing is permitted; supplied count interpretation and frame are independent of aggregate activation and fusion-score frames."
+msgstr "Un nombre effectif présent peut être nul. Un partage compatible est permis ; l’interprétation et le repère du nombre fourni sont indépendants des repères d’activation agrégée et de score de fusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotHeld ex:held . Other required account bindings and source admission evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:vaultRecord gmeow:activationSnapshotHeld ex:held . Les autres liens obligatoires du compte rendu et les preuves d’admission source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation account owner law"
+msgstr "loi de propriété des comptes rendus d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed activation account has exactly one incoming typed existing weighted application owner."
+msgstr "Chaque compte rendu typé d’activation possède exactement une application pondérée existante propriétaire entrante typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind each complete reported account to one actual source occurrence."
+msgstr "Utiliser pour lier chaque compte rendu complet rapporté à une occurrence source effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated accounts or treating inverse ownership as source authentication."
+msgstr "Éviter d’accepter des comptes rendus isolés ou de traiter la propriété inverse comme une authentification source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed incoming weighted application and compare any two such owners by resource equality."
+msgstr "Exiger une application pondérée entrante typée et comparer deux propriétaires quelconques de ce type par égalité de ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The application’s at-most-one selected account is a separate local maximum. Existing answer and weighted-score ownership remain unchanged."
+msgstr "Le compte rendu sélectionné au plus unique de l’application relève d’un maximum local distinct de cardinalité. La propriété existante des réponses et scores pondérés reste inchangée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional account linked from two distinct weighted applications fails ownership."
+msgstr "Exemple fictif à portée limitée : Un compte rendu fictif relié depuis deux applications pondérées distinctes enfreint la propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate inventory law"
+msgstr "loi de l’inventaire des candidats d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activation account has exactly one candidate record for each applied score of its owning application and no unrelated selected score."
+msgstr "Un compte rendu d’activation possède exactement un enregistrement de candidat par score appliqué de son application propriétaire et aucun score sélectionné sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the complete original candidate collection through existing applied-score identities."
+msgstr "Utiliser pour préserver la collection originale complète de candidats par les identités existantes de scores appliqués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding unrelated scores, omitting original candidates or merging records merely because aggregate values agree."
+msgstr "Éviter d’ajouter des scores sans rapport, d’omettre des candidats originaux ou de fusionner les enregistrements au seul motif que leurs valeurs agrégées concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require score-to-record coverage, reverse application-score membership and record identity for the same selected score."
+msgstr "Exiger la couverture des scores vers les enregistrements, l’appartenance inverse des scores à l’application et l’identité des enregistrements pour un même score sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty original union has no score records, while its selected-call snapshot roster remains nonempty. Candidate identity follows the existing applied score."
+msgstr "Une union originale vide réussie n’a pas d’enregistrements de scores, tandis que sa liste d’instantanés sélectionnés pour l’appel reste non vide. L’identité du candidat suit le score appliqué existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-score application with only one activation candidate record fails coverage."
+msgstr "Exemple fictif à portée limitée : Une application fictive à deux scores avec un seul enregistrement de candidat pour l’activation enfreint la couverture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation vault uniqueness law"
+msgstr "loi d’unicité des coffres d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Equal decoded native vault identity bytes identify the same roster record within one activation account."
+msgstr "Des octets décodés égaux d’identité native de coffre identifient le même enregistrement de liste dans un compte rendu d’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the complete selected-call roster unique by actual supplied vault identity."
+msgstr "Utiliser pour garder la liste complète des coffres sélectionnés pour l’appel unique par identité effective fournie de coffre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using case-sensitive lexical equality or copying one vault into two record identities."
+msgstr "Éviter d’utiliser une égalité lexicale sensible à la casse ou de copier un coffre vers deux identités d’enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both roster records and both actual hexBinary identities, compare the binary values with termEqual and require equal record resources."
+msgstr "Lier les deux enregistrements de liste et les deux identités hexBinary effectives, comparer les valeurs binaires par termEqual et exiger des ressources d’enregistrements égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The either-case representation profile preserves decoded-byte identity. Width checks do not establish hash authenticity or a generic vault class."
+msgstr "Le profil de représentation acceptant les deux casses préserve l’identité par octets décodés. Les vérifications de largeur n’établissent pas l’authenticité d’un hachage ni une classe générique de coffre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional roster records with upper-case and lower-case spellings of the same vault bytes fail if their record identities differ."
+msgstr "Exemple fictif à portée limitée : Deux enregistrements fictifs de liste avec des graphies majuscules et minuscules des mêmes octets de coffre sont rejetés si leurs identités d’enregistrements diffèrent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate owner law"
+msgstr "loi de propriété des enregistrements de candidats d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed candidate activation record has exactly one incoming typed activation account owner."
+msgstr "Chaque enregistrement typé d’activation de candidat possède exactement un compte rendu d’activation propriétaire entrant typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent orphaned records and keep candidate-specific evidence in one actual account."
+msgstr "Utiliser pour empêcher les enregistrements orphelins et garder les preuves propres à un candidat dans un seul compte rendu effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a control record across accounts or accepting pairwise uniqueness without owner existence."
+msgstr "Éviter de partager un enregistrement de contrôle entre comptes rendus ou d’accepter une unicité par paires sans existence du propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed account and compare any two account owners of the same record."
+msgstr "Exiger un compte rendu entrant typé et comparer deux comptes rendus propriétaires quelconques du même enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantities may still be shared across compatible records. This ownership restriction applies to the descriptive record, not its magnitude carrier."
+msgstr "Les grandeurs peuvent toujours être partagées entre enregistrements compatibles. Cette restriction de propriété s’applique à l’enregistrement descriptif, pas au support de sa valeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional candidate record with no account owner fails even when its score and found-vault links are present."
+msgstr "Exemple fictif à portée limitée : Un enregistrement fictif de candidat sans compte rendu propriétaire est rejeté même si ses liens de score et de coffres de découverte sont présents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate context law"
+msgstr "loi du contexte des candidats d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each candidate record’s found-vault records belong to its own account roster, and its reported aggregate is present exactly when that account selected activation."
+msgstr "Les enregistrements de coffres de découverte de chaque candidat appartiennent à la liste de son propre compte rendu, et son agrégat rapporté est présent exactement lorsque ce compte rendu a sélectionné l’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual aggregation subset and distinguish enabled observations from inactive source constants."
+msgstr "Utiliser pour préserver le sous-ensemble effectif d’agrégation et distinguer les observations activées des constantes sources inactives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding roster-only vaults to a candidate’s found scope or importing a disabled wire zero as an observed Quantity."
+msgstr "Éviter d’ajouter au périmètre de découverte d’un candidat des coffres présents seulement dans la liste sélectionnée ou d’importer un zéro transmis lorsque l’activation est désactivée comme une Quantity observée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the account owner, require found-record roster membership and compare the bound Boolean mode to true or false before requiring or forbidding the aggregate edge."
+msgstr "Joindre le compte rendu propriétaire, exiger l’appartenance à sa liste des enregistrements de découverte et comparer le mode booléen lié à true ou false avant d’exiger ou d’interdire l’arête d’agrégat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonempty found-vault membership is a local required closure. Exact equality with actual Candidate.vaults and actual call-input selection remain strict import obligations."
+msgstr "L’appartenance non vide aux coffres de découverte est une clôture locale obligatoire. L’égalité exacte avec Candidate.vaults effectif et la sélection effective d’entrée d’appel restent des obligations strictes d’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional disabled account carrying a candidate activation Quantity fails even when its magnitude is zero."
+msgstr "Exemple fictif à portée limitée : Un compte rendu fictif avec activation désactivée portant une Quantity d’activation de candidat est rejeté même si sa valeur numérique est zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation snapshot record law"
+msgstr "loi des enregistrements d’instantanés d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each typed vault snapshot record has one account owner, coherent conditional snapshot fields and correctly sized unspaced either-case identity literals."
+msgstr "Chaque enregistrement typé d’instantané de coffre possède un compte rendu propriétaire, des champs conditionnels cohérents d’instantané et des littéraux d’identité de taille correcte, sans espaces et acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve actual present snapshots or qualified live-at-capture first-snapshot absence."
+msgstr "Utiliser pour préserver les instantanés effectivement présents ou l’absence qualifiée de premier instantané pour un service actif lors de la capture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving qualified false from wire None, retirement, budget-skipped reads or unavailable capture evidence, or claiming XSD-canonical hex normalization."
+msgstr "Éviter de déduire un false qualifié de None transmis, d’un retrait, de lectures omises pour cause de budget ou de preuves de capture indisponibles, ou de revendiquer une normalisation hexadécimale canonique XSD."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require owner existence and uniqueness; true requires identity and held count, false forbids both; apply result-free termRegex to the bound vault and any supplied snapshot identity."
+msgstr "Exiger l’existence et l’unicité du propriétaire ; true exige l’identité et le nombre conservé, false interdit les deux ; appliquer termRegex sans liaison de résultat à l’identité liée du coffre et à toute identité d’instantané fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vault literals use thirty-two hex digits and snapshots sixty-four. Missing capture-liveness and absence-reason evidence fails import. Existing regex lowering retains target-dialect residue and supplies no authentication certificate."
+msgstr "Les littéraux de coffre utilisent trente-deux chiffres hexadécimaux et ceux d’instantané soixante-quatre. Des preuves d’activité à la capture et de motif d’absence manquantes font échouer l’importation. La traduction regex existante conserve le résidu de dialecte cible et ne fournit aucun certificat d’authentification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional record with true but no held-count Quantity fails; a raw absent wire field without capture evidence cannot select the qualified false state."
+msgstr "Exemple fictif à portée limitée : Un enregistrement fictif avec true mais sans Quantity de nombre conservé est rejeté ; un champ absent brut transmis sans preuve de capture ne peut pas sélectionner l’état false qualifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation aggregate context law"
+msgstr "loi du contexte des agrégats d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported activation Quantity in one account has exactly the same dimension and applicable frame resources as the other aggregate values in that account."
+msgstr "Chaque Quantity d’activation rapportée dans un compte rendu possède exactement les mêmes ressources de dimension et de repère applicable que les autres valeurs agrégées de ce compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a coherent declared comparison context for candidate aggregate magnitudes."
+msgstr "Utiliser pour conserver un contexte déclaré cohérent de comparaison des valeurs numériques agrégées des candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating contexts because values are equal or forcing aggregate context to match held counts or weighted fusion scores."
+msgstr "Éviter d’identifier des contextes parce que les valeurs sont égales ou de forcer le contexte agrégé à correspondre aux nombres conservés ou aux scores de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join both owned candidate records and their actual reported Quantities, bind their dimensions or frames, then compare the resources."
+msgstr "Joindre les deux enregistrements possédés de candidats et leurs ressources Quantity effectivement rapportées, lier leurs dimensions ou repères puis comparer les ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each Quantity requires its own full coordinates locally. The source API supplies no default Dimension or ReferenceFrame; actual source or adapter interpretation must justify them."
+msgstr "Chaque Quantity exige localement ses coordonnées complètes propres. L’API source ne fournit aucune Dimension ni ReferenceFrame par défaut ; une interprétation source ou d’adaptateur effective doit les justifier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional aggregate values in one account with different stored frames fail even when both magnitudes are zero."
+msgstr "Exemple fictif à portée limitée : Deux valeurs agrégées fictives dans un compte rendu avec des repères stockés différents sont rejetées même lorsque leurs deux valeurs numériques sont zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion reported activation owner law"
+msgstr "loi de propriété de l’activation rapportée de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed reported activation Quantity has at least one incoming typed candidate activation record."
+msgstr "Chaque Quantity typée d’activation rapportée possède au moins un enregistrement typé entrant d’activation de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep observed aggregate carriers attached to complete reported accounts."
+msgstr "Utiliser pour garder les supports d’agrégats observés rattachés à des comptes rendus complets rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse Quantity ownership or accepting an isolated activation magnitude."
+msgstr "Éviter d’imposer une propriété inverse unique de Quantity ou d’accepter une valeur numérique isolée d’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed candidate record with reportedActivationValue pointing to the Quantity."
+msgstr "Exiger un enregistrement typé de candidat avec reportedActivationValue pointant vers la Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate ownership and mode coherence require actual enabled context. Compatible records may share the same fully coordinated Quantity without merging source applications."
+msgstr "La propriété du candidat et la cohérence du mode exigent un contexte effectif où l’activation est sélectionnée. Des enregistrements compatibles peuvent partager la même Quantity entièrement coordonnée sans fusionner les applications sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional activation Quantity shared by compatible enabled records is permitted; an isolated typed magnitude fails."
+msgstr "Exemple fictif à portée limitée : Une Quantity fictive d’activation partagée par des enregistrements compatibles où l’activation est sélectionnée est permise ; une valeur numérique typée isolée est rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion snapshot held owner law"
+msgstr "loi de propriété du nombre conservé d’instantané de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed snapshot held-count Quantity has at least one incoming typed vault snapshot record."
+msgstr "Chaque Quantity typée de nombre conservé d’instantané possède au moins un enregistrement typé entrant d’instantané de coffre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep actual held counts associated with their reported snapshot state."
+msgstr "Utiliser pour garder les nombres effectifs conservés associés à leur état rapporté d’instantané."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse count ownership or inventing a held count for absent or unavailable snapshots."
+msgstr "Éviter d’imposer une propriété inverse unique des nombres ou d’inventer un nombre conservé pour des instantanés absents ou indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed snapshot record with activationSnapshotHeld pointing to the Quantity."
+msgstr "Exiger un enregistrement typé d’instantané avec activationSnapshotHeld pointant vers la Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Snapshot coherence separately requires actual presence. Compatible sharing is legal; neither aggregate activation nor fusion-score context is imposed on held counts."
+msgstr "La cohérence de l’instantané exige séparément sa présence effective. Un partage compatible est licite ; ni le contexte d’activation agrégée ni celui de score de fusion n’est imposé aux nombres conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional typed held-count Quantity with no incoming snapshot record fails even when its value is zero."
+msgstr "Exemple fictif à portée limitée : Une Quantity fictive typée de nombre conservé sans enregistrement entrant d’instantané est rejetée même lorsque sa valeur est zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation absent snapshot zero law"
+msgstr "loi de zéro par absence d’instantané d’activation de fusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An enabled candidate’s reported aggregate is numeric zero when none of its nonempty actual found-vault subset has a present snapshot and every absence is qualified."
+msgstr "L’agrégat rapporté d’un candidat dont l’activation est sélectionnée est zéro numérique lorsqu’aucun membre de son sous-ensemble effectif non vide de coffres de découverte ne possède d’instantané présent et que chaque absence est qualifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the necessary native zero rule for confirmed first-snapshot absence in the actual candidate scope."
+msgstr "Utiliser pour conserver la règle native nécessaire de zéro pour une absence confirmée de premier instantané dans le périmètre effectif du candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring snapshot absence from zero, using roster-only snapshots as components or treating ambiguous wire absence as qualified evidence."
+msgstr "Éviter de déduire une absence d’instantané de zéro, d’utiliser les instantanés de coffres présents seulement dans la liste sélectionnée comme composantes ou de traiter une absence ambiguë dans la transmission comme une preuve qualifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind owner, true mode, actual reported Quantity and stored unsigned value; test that no found-vault record is present, then compare the bound value with unsigned-long zero."
+msgstr "Lier le propriétaire, le mode true, la Quantity effective rapportée et la valeur non signée stockée ; vérifier qu’aucun enregistrement de coffre de découverte n’indique un instantané présent, puis comparer la valeur liée au zéro entier long non signé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Qualified false states require actual live-at-capture absence proof before import. The law checks one necessary source rule, not saturation arithmetic, per-vault reconstruction or native execution parity."
+msgstr "Les états false qualifiés exigent une preuve effective d’activité à la capture et d’absence avant importation. La loi vérifie une règle source nécessaire, pas l’arithmétique de saturation, la reconstruction par coffre ou la parité d’exécution native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional candidate found only in confirmed no-first-snapshot vault A has aggregate zero even when another roster-only vault B has a present snapshot."
+msgstr "Exemple fictif à portée limitée : Un candidat fictif trouvé uniquement dans le coffre A dont l’absence de premier instantané est confirmée a un agrégat nul, même si un autre coffre B présent seulement dans la liste sélectionnée possède un instantané présent."
