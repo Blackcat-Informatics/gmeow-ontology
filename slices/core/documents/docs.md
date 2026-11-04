@@ -278,3 +278,40 @@ channelLayout preserves a MediaObject image's exact source channel-layout
 string, such as RGBA. It is independent of colour space, image decoding and
 pixel verification. Keep original case and spaces; the property provides no
 parser, closed code list or inferred channel count.
+
+## Source content modes
+
+`contentMode` records how a ContentBlock's content is expressed, independently
+of its structural `segmentType`. `ContentMode` is an open value category;
+`contentModeProse`, `contentModeVerse`, `contentModeDialogue` and
+`contentModeCode` are initial individuals rather than block subclasses or
+an exhaustive inventory.
+
+The relation is optional and nonfunctional. Mixed content and coexisting
+attributed classifications may retain several modes without selecting a winner.
+When a source supplies paragraph structure and dialogue expressed in verse,
+the independent axes can be retained together:
+
+```turtle
+ex:block a gmeow:ContentBlock ;
+    gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse .
+```
+
+Keep each mode assertion's actual source and viewpoint on that exact RDF 1.2
+statement. The example shows the two axes; the block's existing identity,
+container and source index obligations remain in force. A mode on this block
+does not classify every internal fragment or propagate to its containers,
+descendants or retrieval chunks. Missing mode metadata remains absent.
+
+Structural verse, dialogue and code-listing values keep their existing roles.
+Content mode supplies no line boundary, meter, actual speaker, conversation
+event, programming-language identity, code execution, validity or safety result.
+No mode follows from layout, markup or another classification alone.
+
+Media format, language and genre remain separate axes. In particular,
+`lang:UnanalyzedProse` describes surface analysis status, while
+`lang:renderingProse` identifies a rendering kind; neither is this block's
+prose mode. Retain independently supplied speaker and programming-language
+wording through their existing apparatus properties (Principles 2, 4, 9, 17
+and 19).

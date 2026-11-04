@@ -1229,3 +1229,172 @@ msgstr "例如：ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."
 msgctxt "https://blackcatinformatics.ca/gmeow/identifier|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A formal external identifier of a creative work, such as a DOI or patent number, retained as the supplied xsd:string or xsd:token literal. Its scheme and spelling remain unchanged; a work may carry several identifiers."
 msgstr "创作作品的正式外部标识符，如 DOI 或专利号，按所提供的 xsd:string 或 xsd:token 字面量保留。其方案和拼写不变；作品可以具有多个标识符。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Content Mode"
+msgstr "内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open category of values describing how the content of a source block is expressed, independently of its structural segment type."
+msgstr "描述来源块内容表达方式的开放值类别，独立于其结构性片段类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Prose, verse, dialogue and code are initial values, not an exhaustive inventory or mutually exclusive classes. Content mode is separate from structural kind, media format, language, genre and analysis status."
+msgstr "散文、诗体、对话和代码是初始值，并非穷尽清单或互斥的类。内容模式不同于结构类别、媒体格式、语言、体裁和分析状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record a supplied mode: ex:block gmeow:contentMode gmeow:contentModeVerse ."
+msgstr "记录所提供的模式：ex:block gmeow:contentMode gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value category for an explicitly supplied content-mode classification of a ContentBlock."
+msgstr "用作 ContentBlock 已明确提供的内容模式分类的值类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a ContentBlock subclass for each mode, closing the value set or equating mode with structural segmentType or a language analysis result."
+msgstr "避免为每种模式创建 ContentBlock 子类、封闭值集合，或将模式等同于结构性 segmentType 或语言分析结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Represent each mode as an individual of ContentMode and link the actual block through contentMode. Retain actual source and viewpoint on the exact statements and preserve other supplied modes."
+msgstr "将每种模式表示为 ContentMode 的个体，并通过 contentMode 关联实际的块。在确切断言上保留实际来源和视角，并保留其他已提供的模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content mode"
+msgstr "内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied mode describing how this ContentBlock's content is expressed, separately from the block's structural segmentType."
+msgstr "所提供的模式，用于描述此 ContentBlock 内容的表达方式，与该块的结构性 segmentType 分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation permits coexisting attributed classifications and mixed content. It supplies no default, exclusive winner, structural boundary or classification of every internal fragment."
+msgstr "此关系可省略且非函数式，允许有归属的分类共存，并允许混合内容。它不提供默认值、唯一优先值、结构边界或对每个内部片段的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "With the actual attribution retained, record ex:block gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse ."
+msgstr "保留实际归属，并记录 ex:block gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or attributed analysis supplies a content mode for the block actually being described."
+msgstr "当来源或有归属的分析为实际描述的块提供内容模式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting mode for structural kind or inferring a mode solely from layout, markup, a missing value or another mode."
+msgstr "避免用模式替代结构类别，或仅根据版式、标记、缺失值或另一种模式推断模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ContentBlock to each supplied ContentMode individual. Retain its existing segmentType and exact-statement attribution without requiring a mode on every block or selecting one preferred value."
+msgstr "将 ContentBlock 关联到每个已提供的 ContentMode 个体。保留其现有 segmentType 和确切断言的归属，不要求每个块都有模式，也不选择一个首选值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prose content mode"
+msgstr "散文内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for a block presented as prose, without imposing a paragraph shape or language-analysis status."
+msgstr "用于呈现为散文的块的内容模式，不强加段落形态或语言分析状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A prose classification does not establish a paragraph boundary, a particular language or an unanalyzed surface. Other supplied modes may coexist on the same block."
+msgstr "散文分类不确立段落边界、特定语言或未经分析的表层形式。同一块上可以共存其他已提供的模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied prose classification: ex:block gmeow:contentMode gmeow:contentModeProse ."
+msgstr "记录所提供的散文分类：ex:block gmeow:contentMode gmeow:contentModeProse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as prose."
+msgstr "当所选块的内容明确呈现为散文或被归类为散文时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning prose by default to an unclassified block or treating it as lang:UnanalyzedProse or lang:renderingProse."
+msgstr "避免默认将未分类的块归为散文，或将其视为 lang:UnanalyzedProse 或 lang:renderingProse。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode on the actual ContentBlock and retain the supplied classification's source and viewpoint. Keep structural and analysis-status assertions separate."
+msgstr "在实际的 ContentBlock 上通过 contentMode 引用此值，并保留所提供分类的来源和视角。将结构断言与分析状态断言分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verse content mode"
+msgstr "诗体内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as verse, independently of the block's structural boundaries."
+msgstr "用于呈现为诗体的内容的内容模式，独立于块的结构边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value does not require a line or stanza boundary, rhyme, meter or a parsed poetic structure. Verse may coexist with a supplied dialogue or other mode classification."
+msgstr "此值不要求诗行或诗节边界、押韵、格律或已解析的诗歌结构。诗体可以与已提供的对话或其他模式分类共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied verse classification: ex:block gmeow:contentMode gmeow:contentModeVerse ."
+msgstr "记录所提供的诗体分类：ex:block gmeow:contentMode gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as verse."
+msgstr "当所选块的内容明确呈现为诗体或被归类为诗体时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving verse from typography alone or replacing segmentTypeVerse, whose role is structural."
+msgstr "避免仅根据排版推断诗体，或替代承担结构角色的 segmentTypeVerse。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual attribution. Preserve any independently supplied structural segment type and other modes without imposing metrical or boundary rules."
+msgstr "通过 contentMode 引用此值并保留实际归属。保留任何独立提供的结构性片段类型和其他模式，不强加格律或边界规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dialogue content mode"
+msgstr "对话内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as dialogue, independently of structural segmentation and speaker attribution."
+msgstr "用于呈现为对话的内容的内容模式，独立于结构分段和说话者归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Dialogue classification supplies no actual speaker, turn count, fictional or real participant identity, or occurrence of a real conversation. It may coexist with prose or verse classification."
+msgstr "对话分类不提供实际说话者、轮次数、虚构或真实参与者身份，也不确立真实会话的发生。它可以与散文或诗体分类共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied dialogue classification: ex:block gmeow:contentMode gmeow:contentModeDialogue ."
+msgstr "记录所提供的对话分类：ex:block gmeow:contentMode gmeow:contentModeDialogue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as dialogue."
+msgstr "当所选块的内容明确呈现为对话或被归类为对话时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a speaker, conversation event or turn structure, or substituting this value for structural segmentTypeDialogue."
+msgstr "避免虚构说话者、会话事件或轮次结构，或用此值替代结构性的 segmentTypeDialogue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual classification's source and viewpoint. Record independently supplied speaker and structural information through their existing properties."
+msgstr "通过 contentMode 引用此值，并保留实际分类的来源和视角。通过现有属性记录独立提供的说话者信息和结构信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "code content mode"
+msgstr "代码内容模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as code, independently of the block's structural layout or programming-language attribution."
+msgstr "用于呈现为代码的内容的内容模式，独立于块的结构布局或编程语言归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value supplies no programming-language identity, syntactic validity, execution, successful result or security judgment. Code classification may coexist with other supplied modes."
+msgstr "此值不提供编程语言身份、语法有效性、执行、成功结果或安全判断。代码分类可以与其他已提供的模式共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied code classification: ex:block gmeow:contentMode gmeow:contentModeCode ."
+msgstr "记录所提供的代码分类：ex:block gmeow:contentMode gmeow:contentModeCode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as code."
+msgstr "当所选块的内容明确呈现为代码或被归类为代码时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid executing the content or inferring a programming language, validity or safety from this value, or substituting it for structural segmentTypeCodeListing."
+msgstr "避免执行该内容，或根据此值推断编程语言、有效性或安全性，或用它替代结构性的 segmentTypeCodeListing。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."
+msgstr "通过 contentMode 引用此值并保留实际归属。将独立提供的结构类别与编程语言表述分开。"
