@@ -96,3 +96,283 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/editionOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:editionOf and nothing else. It is not a definition of gmeow:editionOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:editionOf, et rien d'autre. Ce n'est pas une définition de gmeow:editionOf (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority reference record"
+msgstr "notice de référence à une autorité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object retaining one source-supplied external authority reference, with its target and reported descriptive fields."
+msgstr "Un objet informationnel conservant une référence externe à une autorité fournie par la source, avec sa cible et ses champs descriptifs rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One coherent record requires an IRI target and authority-source wording. Its target may concern the subject's author; it need not identify the subject itself."
+msgstr "Une notice cohérente exige une cible IRI et le libellé de la source d’autorité. Sa cible peut concerner l’auteur du sujet ; elle n’identifie pas nécessairement le sujet lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional record retains `ex:ref a gmeow:AuthorityReferenceRecord .` with its supplied target, source and note."
+msgstr "Une notice fictive conserve `ex:ref a gmeow:AuthorityReferenceRecord .` avec sa cible, sa source et sa note fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an external reference's supplied fields must stay together without an identity merge."
+msgstr "Utiliser lorsque les champs fournis d’une référence externe doivent rester regroupés sans fusion d’identités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the record as its external target, a resolved author, a verified authority response or an identity match."
+msgstr "Éviter de traiter la notice comme sa cible externe, un auteur résolu, une réponse d’autorité vérifiée ou une correspondance d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint a distinct record for each coherent supplied reference. Keep one target and source, optional wording, and actual exact-statement attribution."
+msgstr "Créer une notice distincte pour chaque référence fournie cohérente. Conserver une cible et une source, les libellés facultatifs et l’attribution réelle de chaque énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied authority reference"
+msgstr "référence à une autorité fournie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual InformationObject to one source-supplied AuthorityReferenceRecord associated with it."
+msgstr "Relie un InformationObject réel à une AuthorityReferenceRecord fournie par la source et qui lui est associée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation preserves reference occurrences. It asserts neither that the external record describes this subject nor a match strength."
+msgstr "Cette relation facultative et non fonctionnelle préserve les occurrences de référence. Elle n’affirme ni que la notice externe décrit ce sujet, ni une force de correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source associates two references: `ex:subject gmeow:authorityReference ex:first, ex:second .`"
+msgstr "Une source fictive associe deux références : `ex:subject gmeow:authorityReference ex:first, ex:second .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an authority reference associated with the actual information object."
+msgstr "Utiliser lorsque la curation fournit une référence à une autorité associée à l’objet informationnel réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring authorityLink, exactMatch, closeMatch, authorship or identity from this association."
+msgstr "Éviter de déduire authorityLink, exactMatch, closeMatch, la paternité ou l’identité de cette association."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the subject to each distinct supplied record. Retain separate attributed references even when their external targets agree."
+msgstr "Relier le sujet à chaque notice fournie distincte. Conserver des références attribuées séparées même lorsque leurs cibles externes concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority reference target"
+msgstr "cible de la référence à une autorité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The external authority-record IRI targeted by this source-supplied AuthorityReferenceRecord."
+msgstr "L’IRI de la notice d’autorité externe visée par cette AuthorityReferenceRecord fournie par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each coherent record requires one IRI target. The open Individual range supplies no author type, coreference strength, identity merge or retrieval claim."
+msgstr "Chaque notice cohérente exige une cible IRI. La portée ouverte Individual ne fournit ni type d’auteur, ni force de coréférence, ni fusion d’identités, ni affirmation de récupération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional supplied link is `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"
+msgstr "Un lien fourni fictif est `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual external IRI selected from the supplied authority locator."
+msgstr "Utiliser pour l’IRI externe réelle sélectionnée à partir du localisateur d’autorité fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a literal or blank-node target, guessed resolution, normalization, dereferencing or a fallback that conceals an invalid locator."
+msgstr "Éviter une cible littérale ou un nœud anonyme, une résolution supposée, la normalisation, le déréférencement ou un repli masquant un localisateur invalide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate the supplied locator for the selected IRI link and retain its spelling. Fail the operation on missing or invalid input; do not substitute locator text."
+msgstr "Valider le localisateur fourni pour le lien IRI sélectionné et conserver son orthographe. Faire échouer l’opération si l’entrée manque ou est invalide ; ne pas substituer le texte du localisateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority source"
+msgstr "source d’autorité rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied wording identifying the authority, registry, database or catalogue for this reference."
+msgstr "Le libellé fourni identifiant l’autorité, le registre, la base de données ou le catalogue de cette référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This required word literal names the reported authority source. It is separate from the evidence source, asserting agent and standpoint of an assertion."
+msgstr "Ce littéral textuel obligatoire nomme la source d’autorité rapportée. Il est distinct de la source de preuve, de l’agent qui affirme et du point de vue d’un énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:ref gmeow:authorityReferenceSource \"Amber catalogue\"@en .`"
+msgstr "Une source fictive fournit `ex:ref gmeow:authorityReferenceSource \"Amber catalogue\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the authority-source wording supplied with one reference record."
+msgstr "Utiliser pour conserver le libellé de la source d’autorité fourni avec une notice de référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the wording into an inferred authority Agent, substituting provenance metadata or inventing a missing source name."
+msgstr "Éviter de transformer le libellé en Agent d’autorité déduit, de substituer des métadonnées de provenance ou d’inventer un nom de source manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal, including blank wording and actual language or direction. Missing required wording fails the record contract."
+msgstr "Conserver un littéral textuel fourni complet, y compris un libellé vide et sa langue ou sa direction réelles. L’absence du libellé obligatoire enfreint le contrat de la notice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority resource type"
+msgstr "type de ressource d’autorité rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource-type wording supplied for the external record in this AuthorityReferenceRecord."
+msgstr "Le libellé du type de ressource fourni pour la notice externe dans cette AuthorityReferenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional wording retains the source's classification label without typing the subject, reference record or external target."
+msgstr "Ce libellé facultatif conserve l’étiquette de classification de la source sans typer le sujet, la notice de référence ni la cible externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report retains `ex:ref gmeow:authorityReferenceResourceType \"person entry\"@en .`"
+msgstr "Un rapport fictif conserve `ex:ref gmeow:authorityReferenceResourceType \"person entry\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies resource-type wording for the reference."
+msgstr "Utiliser lorsqu’une source fournit un libellé de type de ressource pour la référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the label into rdf:type, Person or an inferred controlled type IRI."
+msgstr "Éviter de convertir l’étiquette en rdf:type, Person ou en une IRI de type contrôlé déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceResourceType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied word literal with its actual language, direction and attribution. Leave unavailable type wording absent."
+msgstr "Conserver le littéral textuel fourni complet avec sa langue, sa direction et son attribution réelles. Omettre tout libellé de type indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority relation"
+msgstr "relation d’autorité rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The relation wording supplied for the association represented by this AuthorityReferenceRecord."
+msgstr "Le libellé de relation fourni pour l’association représentée par cette AuthorityReferenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional wording preserves the source's stated relation, including an author-related reference, without asserting a graph predicate or match strength."
+msgstr "Ce libellé facultatif préserve la relation déclarée par la source, y compris une référence liée à l’auteur, sans affirmer de prédicat du graphe ni de force de correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:ref gmeow:authorityReferenceRelation \"author reference\"@en .`"
+msgstr "Une source fictive fournit `ex:ref gmeow:authorityReferenceRelation \"author reference\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation explicitly supplies relation wording with the reference."
+msgstr "Utiliser lorsque la curation fournit explicitement un libellé de relation avec la référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid executing the wording as a relation IRI or inferring hasAuthor, exactMatch, closeMatch or sameAs from it."
+msgstr "Éviter d’exécuter le libellé comme une IRI de relation ou d’en déduire hasAuthor, exactMatch, closeMatch ou sameAs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceRelation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact complete word literal and its actual attribution. Preserve an unknown relation as unknown rather than deriving it from the target."
+msgstr "Conserver le littéral textuel complet exact et son attribution réelle. Garder une relation inconnue comme inconnue plutôt que de la déduire de la cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority author name"
+msgstr "nom d’auteur d’autorité rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The author-name wording supplied within this AuthorityReferenceRecord."
+msgstr "Le libellé du nom d’auteur fourni dans cette AuthorityReferenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional wording can retain original script without establishing an Agent, Appellation, authorship, language frame or transliteration."
+msgstr "Ce libellé facultatif peut conserver l’écriture d’origine sans établir d’Agent, d’Appellation, de paternité, de cadre linguistique ni de translittération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source retains `ex:ref gmeow:authorityReferenceAuthorName \"ソラ\"@ja .`"
+msgstr "Une source fictive conserve `ex:ref gmeow:authorityReferenceAuthorName \"ソラ\"@ja .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reference source supplies author-name wording as a descriptive field."
+msgstr "Utiliser lorsque la source de la référence fournit un libellé de nom d’auteur comme champ descriptif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving a person from the string, inferring authorship or inventing a language, script or romanization."
+msgstr "Éviter de résoudre une personne à partir de la chaîne, de déduire la paternité ou d’inventer une langue, une écriture ou une romanisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceAuthorName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied word literal with actual language and direction. Keep an untagged name untagged and an unavailable name absent."
+msgstr "Préserver le littéral textuel fourni complet avec sa langue et sa direction réelles. Garder un nom sans étiquette tel quel et omettre un nom indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority reference label"
+msgstr "libellé de référence à une autorité rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The descriptive label wording supplied with this AuthorityReferenceRecord."
+msgstr "Le libellé descriptif fourni avec cette AuthorityReferenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional label remains local to the supplied reference. It neither names the subject by inference nor asserts the external record's authoritative label."
+msgstr "Ce libellé facultatif reste propre à la référence fournie. Il ne nomme pas le sujet par déduction et n’affirme pas le libellé officiel de la notice externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies `ex:ref gmeow:authorityReferenceLabel \"Amber entry\"@en .`"
+msgstr "Un rapport fictif fournit `ex:ref gmeow:authorityReferenceLabel \"Amber entry\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a descriptive label for the authority reference."
+msgstr "Utiliser lorsqu’une source fournit un libellé descriptif pour la référence à une autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the label with a fetched target label, treating it as a preferred name or moving it onto the subject without evidence."
+msgstr "Éviter de remplacer le libellé par celui récupéré sur la cible, de le traiter comme un nom préféré ou de l’attribuer au sujet sans preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the full supplied word literal, including blank text, language, direction and exact-statement attribution. Leave a missing label absent."
+msgstr "Conserver le littéral textuel fourni entier, y compris le texte vide, la langue, la direction et l’attribution de l’énoncé exact. Omettre un libellé manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported authority reference note"
+msgstr "note de référence à une autorité rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The note wording supplied for this AuthorityReferenceRecord in its actual curation context."
+msgstr "Le libellé de la note fourni pour cette AuthorityReferenceRecord dans son contexte réel de curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional note retains source commentary. Its wording does not certify identity, endorse its content or convert a reference into evidence of authorship."
+msgstr "Cette note facultative conserve le commentaire de la source. Son libellé ne certifie pas l’identité, n’approuve pas son contenu et ne transforme pas une référence en preuve de paternité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional curator supplies `ex:ref gmeow:authorityReferenceNote \"Check the author heading.\"@en .`"
+msgstr "Une personne chargée d’une curation fictive fournit `ex:ref gmeow:authorityReferenceNote \"Check the author heading.\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied reference carries its own explanatory or cautionary note."
+msgstr "Utiliser lorsqu’une référence fournie porte sa propre note explicative ou de prudence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving confidence, match strength, truth or a resolved relation from free wording."
+msgstr "Éviter de déduire une confiance, une force de correspondance, une vérité ou une relation résolue d’un libellé libre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one complete supplied word literal with its actual attribution. Use separate reference records for separate coherent source accounts."
+msgstr "Conserver un littéral textuel fourni complet avec son attribution réelle. Utiliser des notices de référence distinctes pour des comptes rendus de source cohérents distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority reference target IRI constraint"
+msgstr "contrainte IRI de cible de référence à une autorité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied authorityReferenceTarget value is an IRI."
+msgstr "Chaque valeur authorityReferenceTarget fournie est une IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property-scoped constraint rejects literal and blank-node targets. Separate local closed paths and maxima require exactly one target per record."
+msgstr "Cette contrainte limitée à la propriété rejette les cibles littérales et les nœuds anonymes. Des chemins fermés locaux et des maxima distincts exigent exactement une cible par notice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The supplied value in `ex:ref gmeow:authorityReferenceTarget \"https://example.org/authority/amber\" .` fails this constraint."
+msgstr "La valeur fournie dans `ex:ref gmeow:authorityReferenceTarget \"https://example.org/authority/amber\" .` enfreint cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the RDF term kind of every supplied authority target, including any extra value."
+msgstr "Utiliser pour vérifier le genre de terme RDF de chaque cible d’autorité fournie, y compris toute valeur supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an IRI check as a network lookup, identity proof, match assertion or permission to repair rejected source input silently."
+msgstr "Éviter de traiter une vérification d’IRI comme une recherche réseau, une preuve d’identité, une affirmation de correspondance ou une permission de réparer silencieusement une entrée source rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each value through authorityReferenceTarget and require termIsIri. Report failure without coercion or fallback; retain the separate presence and cardinality laws."
+msgstr "Lier chaque valeur par authorityReferenceTarget et exiger termIsIri. Signaler l’échec sans conversion ni repli ; conserver les lois distinctes de présence et de cardinalité."

@@ -1,9 +1,11 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 gmeow:authorityLink
     a logic:ObjectProperty ;
@@ -187,3 +189,220 @@ gmeow:editionOfFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:editionOf and nothing else. It is not a definition of gmeow:editionOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:editionOfFunctionality logic:characterizes gmeow:editionOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:AuthorityReferenceRecord
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "authority reference record"@x-gmeow-english ;
+    skos:definition "An information object retaining one source-supplied external authority reference, with its target and reported descriptive fields."@x-gmeow-english ;
+    skos:scopeNote "One coherent record requires an IRI target and authority-source wording. Its target may concern the subject's author; it need not identify the subject itself."@x-gmeow-english ;
+    skos:example "A fictional record retains `ex:ref a gmeow:AuthorityReferenceRecord .` with its supplied target, source and note."@x-gmeow-english ;
+    gmeow:useWhen "Use when an external reference's supplied fields must stay together without an identity merge."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the record as its external target, a resolved author, a verified authority response or an identity match."@x-gmeow-english ;
+    gmeow:howToUse "Mint a distinct record for each coherent supplied reference. Keep one target and source, optional wording, and actual exact-statement attribution."@x-gmeow-english ;
+    a logic:Kind , logic:Class ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:authorityReference
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "supplied authority reference"@x-gmeow-english ;
+    skos:definition "Relates an actual InformationObject to one source-supplied AuthorityReferenceRecord associated with it."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation preserves reference occurrences. It asserts neither that the external record describes this subject nor a match strength."@x-gmeow-english ;
+    skos:example "A fictional source associates two references: `ex:subject gmeow:authorityReference ex:first, ex:second .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies an authority reference associated with the actual information object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring authorityLink, exactMatch, closeMatch, authorship or identity from this association."@x-gmeow-english ;
+    gmeow:howToUse "Link the subject to each distinct supplied record. Retain separate attributed references even when their external targets agree."@x-gmeow-english ;
+    a logic:ObjectProperty ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:AuthorityReferenceRecord .
+
+gmeow:authorityReferenceTarget
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "authority reference target"@x-gmeow-english ;
+    skos:definition "The external authority-record IRI targeted by this source-supplied AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "Each coherent record requires one IRI target. The open Individual range supplies no author type, coreference strength, identity merge or retrieval claim."@x-gmeow-english ;
+    skos:example "A fictional supplied link is `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual external IRI selected from the supplied authority locator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a literal or blank-node target, guessed resolution, normalization, dereferencing or a fallback that conceals an invalid locator."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied locator for the selected IRI link and retain its spelling. Fail the operation on missing or invalid input; do not substitute locator text."@x-gmeow-english ;
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range logic:Individual .
+
+gmeow:authorityReferenceSource
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority source"@x-gmeow-english ;
+    skos:definition "The supplied wording identifying the authority, registry, database or catalogue for this reference."@x-gmeow-english ;
+    skos:scopeNote "This required word literal names the reported authority source. It is separate from the evidence source, asserting agent and standpoint of an assertion."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:ref gmeow:authorityReferenceSource \"Amber catalogue\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the authority-source wording supplied with one reference record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning the wording into an inferred authority Agent, substituting provenance metadata or inventing a missing source name."@x-gmeow-english ;
+    gmeow:howToUse "Keep one complete supplied word literal, including blank wording and actual language or direction. Missing required wording fails the record contract."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:authorityReferenceResourceType
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority resource type"@x-gmeow-english ;
+    skos:definition "The resource-type wording supplied for the external record in this AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "This optional wording retains the source's classification label without typing the subject, reference record or external target."@x-gmeow-english ;
+    skos:example "A fictional report retains `ex:ref gmeow:authorityReferenceResourceType \"person entry\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies resource-type wording for the reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the label into rdf:type, Person or an inferred controlled type IRI."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete supplied word literal with its actual language, direction and attribution. Leave unavailable type wording absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:authorityReferenceRelation
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority relation"@x-gmeow-english ;
+    skos:definition "The relation wording supplied for the association represented by this AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "This optional wording preserves the source's stated relation, including an author-related reference, without asserting a graph predicate or match strength."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:ref gmeow:authorityReferenceRelation \"author reference\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation explicitly supplies relation wording with the reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid executing the wording as a relation IRI or inferring hasAuthor, exactMatch, closeMatch or sameAs from it."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact complete word literal and its actual attribution. Preserve an unknown relation as unknown rather than deriving it from the target."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:authorityReferenceAuthorName
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority author name"@x-gmeow-english ;
+    skos:definition "The author-name wording supplied within this AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "This optional wording can retain original script without establishing an Agent, Appellation, authorship, language frame or transliteration."@x-gmeow-english ;
+    skos:example "A fictional source retains `ex:ref gmeow:authorityReferenceAuthorName \"ソラ\"@ja .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when the reference source supplies author-name wording as a descriptive field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving a person from the string, inferring authorship or inventing a language, script or romanization."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete supplied word literal with actual language and direction. Keep an untagged name untagged and an unavailable name absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:authorityReferenceLabel
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority reference label"@x-gmeow-english ;
+    skos:definition "The descriptive label wording supplied with this AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "This optional label remains local to the supplied reference. It neither names the subject by inference nor asserts the external record's authoritative label."@x-gmeow-english ;
+    skos:example "A fictional report supplies `ex:ref gmeow:authorityReferenceLabel \"Amber entry\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a descriptive label for the authority reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the label with a fetched target label, treating it as a preferred name or moving it onto the subject without evidence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the full supplied word literal, including blank text, language, direction and exact-statement attribution. Leave a missing label absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:authorityReferenceNote
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported authority reference note"@x-gmeow-english ;
+    skos:definition "The note wording supplied for this AuthorityReferenceRecord in its actual curation context."@x-gmeow-english ;
+    skos:scopeNote "This optional note retains source commentary. Its wording does not certify identity, endorse its content or convert a reference into evidence of authorship."@x-gmeow-english ;
+    skos:example "A fictional curator supplies `ex:ref gmeow:authorityReferenceNote \"Check the author heading.\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied reference carries its own explanatory or cautionary note."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving confidence, match strength, truth or a resolved relation from free wording."@x-gmeow-english ;
+    gmeow:howToUse "Retain one complete supplied word literal with its actual attribution. Use separate reference records for separate coherent source accounts."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityReferenceRecord ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:AuthorityReferenceRecord logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceTarget ;
+      logic:allValuesFrom logic:Individual ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceTarget ;
+      logic:maxQualifiedCardinality 1 ; logic:onClass logic:Individual ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceSource ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceSource ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceResourceType ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceResourceType ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceRelation ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceRelation ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceAuthorName ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceAuthorName ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceLabel ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceLabel ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceNote ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceNote ;
+      logic:maxQualifiedCardinality 1 ; logic:onDataRange
+          [ a rdfs:Datatype ; logic:unionOf
+              ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:AuthorityReferenceRecord ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:AuthorityReferenceRecord ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityReferenceSource" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:AuthorityReferenceTargetIriConstraint
+    rdfs:label "authority reference target IRI constraint"@x-gmeow-english ;
+    skos:definition "Every supplied authorityReferenceTarget value is an IRI."@x-gmeow-english ;
+    skos:scopeNote "This property-scoped constraint rejects literal and blank-node targets. Separate local closed paths and maxima require exactly one target per record."@x-gmeow-english ;
+    skos:example "The supplied value in `ex:ref gmeow:authorityReferenceTarget \"https://example.org/authority/amber\" .` fails this constraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the RDF term kind of every supplied authority target, including any extra value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an IRI check as a network lookup, identity proof, match assertion or permission to repair rejected source input silently."@x-gmeow-english ;
+    gmeow:howToUse "Bind each value through authorityReferenceTarget and require termIsIri. Report failure without coercion or fallback; retain the separate presence and cardinality laws."@x-gmeow-english ;
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:authorityReferenceTarget ;
+    logic:message "Every supplied authorityReferenceTarget value is an IRI." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:authorityReferenceTarget ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "target" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation logic:termIsIri ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "target" ] ] ] ] .
