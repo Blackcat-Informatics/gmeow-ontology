@@ -236,6 +236,7 @@ impl SourceAdapter for PurrdfAdapter {
             None,
             &ParseOptions {
                 track_source_spans: true,
+                yaml_ld: None,
             },
         )
         .map_err(|e| {

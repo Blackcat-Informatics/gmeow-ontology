@@ -199,17 +199,17 @@ cargo-config2 = "0.1.45"
 # major bump edits every requirement here and in fuzz/Cargo.toml first. Every
 # declared `purrdf*` requirement must agree and admit nothing below major 3
 # (`gmeow_validate::substrate::PURRDF_MAJOR_FLOOR`).
-purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 # Diagnostics and gate orchestration use the RDF kernel without parser/query/shape engines.
-purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 # The substrate's one JSON/YAML/CBOR/XML home; the facade does not re-export it.
-purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 # The substrate JSON Schema engine; meta-schemas are embedded by the validator.
-purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 # The substrate's one Ed25519 implementation (GTS signing and verification keys).
-purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 # The substrate's one BLAKE3/hex home.
-purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
+purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "339215a46a0360d9390a758a21f15983eccf5e10" }
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.
