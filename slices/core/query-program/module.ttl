@@ -10014,3 +10014,889 @@ gmeow:QueryWeightedPartialSum logic:subClassOf [ a logic:Restriction ; logic:onP
 gmeow:QueryWeightedPartialSum logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryWeightedPartialSum ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryWeightedPartialSum logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryFusionActivationAccount
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Fusion Activation Account"@x-gmeow-english ;
+    skos:definition "A complete reported activation and call-start snapshot account for one actual weighted-fusion application, retaining actual selection, the nonempty selected-vault roster and every original candidate’s found-vault scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to associate actual reported activation evidence with the existing weighted application and answer without inventing another source call."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid importing an incomplete roster as empty, reconstructing it from read versions or treating wire snapshot absence as proof that a live vault had no first snapshot."@x-gmeow-english ;
+    gmeow:howToUse "Link from the existing application through fusionActivationAccount; supply activationEnabled, the complete nonempty activationVaultRecord collection and one activationCandidateRecord per original applied score."@x-gmeow-english ;
+    skos:scopeNote "The same captured snapshot list feeds native scoring and the returned union. Explicit first-snapshot absence requires actual live-at-capture and absence-reason evidence; missing proof fails this selected import. A successful empty candidate union still has a nonempty roster."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . The existing application, its original answer and the complete account bindings are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryCandidateActivationRecord
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Candidate Activation Record"@x-gmeow-english ;
+    skos:definition "A descriptive record for one original applied score’s nonempty actual found-vault scope and its aggregate activation Quantity exactly when the actual application selected activation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the candidate-specific aggregation scope independently of the whole selected-call snapshot roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the original candidate identity, inventing per-vault activation components or treating a disabled wire zero as measured data."@x-gmeow-english ;
+    gmeow:howToUse "Supply activationAppliedScore and the complete nonempty activationFoundVault collection; supply reportedActivationValue exactly when the owner account’s activationEnabled is true."@x-gmeow-english ;
+    skos:scopeNote "Each record has exactly one account owner, and its score belongs to that account’s existing application. The original candidate follows appliedScoreCandidate. Record identity is descriptive graph identity, not a native serialized identifier."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:row a gmeow:QueryCandidateActivationRecord ; gmeow:activationAppliedScore ex:score ; gmeow:activationFoundVault ex:vaultRecord . The owner and any enabled reported value are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryVaultSnapshotRecord
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Vault Snapshot Record"@x-gmeow-english ;
+    skos:definition "One actual selected-call vault’s reported call-start snapshot state, retaining its supplied vault identity and either a present snapshot identity with held count or evidenced live-at-capture first-snapshot absence."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve every selected vault, including vaults outside a particular candidate’s found-vault subset."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting raw wire None, a retired service, a budget-skipped read or a later current read as sufficient first-snapshot-absence evidence."@x-gmeow-english ;
+    gmeow:howToUse "Supply activationVaultIdentity and activationSnapshotPresent; true requires activationSnapshotIdentity and activationSnapshotHeld, while qualified false forbids both."@x-gmeow-english ;
+    skos:scopeNote "Each typed record has one account owner and is unique there by decoded vault bytes. False requires actual capture liveness and absence-reason evidence; unavailable evidence fails import. Present held count zero remains present."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:vaultRecord a gmeow:QueryVaultSnapshotRecord ; gmeow:activationSnapshotPresent false . The required vault identity, owner and actual live-at-capture absence evidence are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryReportedActivation
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Reported Activation"@x-gmeow-english ;
+    skos:definition "An enabled source-reported aggregate activation ranking-signal Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual aggregate returned for a candidate when activation was selected, including a genuinely reported zero."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating disabled wire zero as an observation, using a confidence or probability interpretation, or certifying native saturation from the reported aggregate."@x-gmeow-english ;
+    gmeow:howToUse "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame, and link through reportedActivationValue from an owned candidate record."@x-gmeow-english ;
+    skos:scopeNote "Values within one account share the exact dimension and frame resources. The API supplies neither mathematical context object; source or adapter justification is required. Compatible sharing is legal, and neither the fusion-score nor held-count frame is imposed."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:activation a gmeow:QueryReportedActivation ; math:quantityValue \"0\"^^xsd:unsignedLong . Its actual enabled source context, dimension, complete frame and incoming record are omitted."@x-gmeow-english ;
+    logic:subClassOf math:Quantity .
+
+gmeow:QuerySnapshotHeldCount
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Snapshot Held Count"@x-gmeow-english ;
+    skos:definition "An actual present activation snapshot’s held-activation count Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual held count paired with a supplied present snapshot identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating held count as a candidate activation component, graph watermark, timestamp, candidate cardinality or confidence guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame; reference the Quantity through activationSnapshotHeld from a present owned snapshot record."@x-gmeow-english ;
+    skos:scopeNote "Zero is legal when actually supplied for a present snapshot. Compatible records may share a coordinated count Quantity. Its interpretation is justified independently of aggregate activation and fusion scores; no cross-vault held-count comparison or common frame is imposed."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:held a gmeow:QuerySnapshotHeldCount ; math:quantityValue \"0\"^^xsd:unsignedLong . The present snapshot record, dimension and complete applicable frame are omitted."@x-gmeow-english ;
+    logic:subClassOf math:Quantity .
+
+gmeow:fusionActivationAccount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "fusion activation account"@x-gmeow-english ;
+    skos:definition "The at-most-one complete reported activation and snapshot account selected on an existing actual weighted-fusion application."@x-gmeow-english ;
+    gmeow:useWhen "Use to enrich the same application and answer that already retain weighted scores and original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating a second execution or native answer merely to describe activation or later applied order."@x-gmeow-english ;
+    gmeow:howToUse "Reference a complete QueryFusionActivationAccount on the actual QueryWeightedFusionApplication."@x-gmeow-english ;
+    skos:scopeNote "Existing applications need not select this account. Once selected, every account obligation is mandatory; partial evidence cannot populate a weaker success branch."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryWeightedFusionApplication ; logic:range gmeow:QueryFusionActivationAccount .
+
+gmeow:activationEnabled
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation selected"@x-gmeow-english ;
+    skos:definition "The required typed Boolean retaining whether the actual source call selected activation as a comparison key."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish actual selected aggregate observations from the source’s inactive constant-zero branch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring selection from an aggregate value, a digest alone or missing source input."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual call-input xsd:boolean; true requires each candidate record’s reported aggregate and false forbids that Quantity edge."@x-gmeow-english ;
+    skos:scopeNote "Legal Boolean lexical variants compare by value. The future applied-policy account must agree with this actual selection; disabling activation does not remove the source snapshot roster."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:account gmeow:activationEnabled false . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionActivationAccount ; logic:range xsd:boolean .
+
+gmeow:activationCandidateRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation candidate record"@x-gmeow-english ;
+    skos:definition "A member of the complete original-applied-score-indexed candidate record collection of a selected activation account."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain exactly one activation record for every original applied score and no unrelated score."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting candidates, sharing one record across accounts or confusing an empty original union with an empty vault roster."@x-gmeow-english ;
+    gmeow:howToUse "Reference every QueryCandidateActivationRecord and retain its actual applied score and nonempty found-vault scope."@x-gmeow-english ;
+    skos:scopeNote "This collection is empty exactly when the existing application’s score collection is empty. Original query, candidate and loss identities remain governed by the weighted account."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:account gmeow:activationCandidateRecord ex:row . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionActivationAccount ; logic:range gmeow:QueryCandidateActivationRecord .
+
+gmeow:activationVaultRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation selected-vault record"@x-gmeow-english ;
+    skos:definition "A member of the complete nonempty actual selected-call vault roster captured at call start for an activation account."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve selected vaults even when no candidate was found there or a budget prevented their later read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reconstructing this roster from read versions, dropping unavailable records or accepting an empty selected-call roster."@x-gmeow-english ;
+    gmeow:howToUse "Reference every actual QueryVaultSnapshotRecord from the same captured list used for scoring and the returned union."@x-gmeow-english ;
+    skos:scopeNote "Every selected account has at least one roster member. Candidate found-vault membership is a separate nonempty subset, not the entire roster. Ambiguous capture absence blocks this complete import."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryFusionActivationAccount ; logic:range gmeow:QueryVaultSnapshotRecord .
+
+gmeow:activationAppliedScore
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation original applied score"@x-gmeow-english ;
+    skos:definition "The one existing original applied-score resource selected by a candidate activation record."@x-gmeow-english ;
+    gmeow:useWhen "Use to recover the original candidate through the score’s existing appliedScoreCandidate link."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying candidate identities into a parallel coordinate or selecting a score from another application."@x-gmeow-english ;
+    gmeow:howToUse "Reference a QueryAppliedFusionScore retained by the existing application that owns the activation account."@x-gmeow-english ;
+    skos:scopeNote "Within one account, records selecting the same score are identical. Separate calls retain their existing separate score occurrences."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:row gmeow:activationAppliedScore ex:score . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryCandidateActivationRecord ; logic:range gmeow:QueryAppliedFusionScore .
+
+gmeow:activationFoundVault
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation candidate-found vault"@x-gmeow-english ;
+    skos:definition "A member of the candidate’s complete nonempty actual found-vault set, referencing the same account’s selected-call snapshot roster."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve exactly the original candidate-found scope used by native aggregate activation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid including other selected roster vaults merely because they have snapshots or accepting an unavailable or empty found-vault collection."@x-gmeow-english ;
+    gmeow:howToUse "Reference the owning account’s roster records matching every actual original Candidate.vaults identity."@x-gmeow-english ;
+    skos:scopeNote "Each candidate has at least one found vault. Equality with the supplied original native set is an import obligation; graph membership laws cannot reconstruct unavailable external candidate evidence."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:row gmeow:activationFoundVault ex:vaultA . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryCandidateActivationRecord ; logic:range gmeow:QueryVaultSnapshotRecord .
+
+gmeow:reportedActivationValue
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported aggregate activation value"@x-gmeow-english ;
+    skos:definition "The at-most-one actual reported aggregate activation Quantity of a candidate record, required exactly when its account selected activation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a true reported zero or positive aggregate without claiming component recomputation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid writing the disabled source constant zero as a measured Quantity or summing snapshot held counts as candidate activation."@x-gmeow-english ;
+    gmeow:howToUse "Reference one fully coordinated QueryReportedActivation when activationEnabled is true; omit this edge when false."@x-gmeow-english ;
+    skos:scopeNote "All found vaults with qualified first-snapshot absence imply numeric zero. The converse is false: a real present snapshot may estimate zero. Per-vault candidate components are not exported by the inspected public Fused result."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:row gmeow:reportedActivationValue ex:activation . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryCandidateActivationRecord ; logic:range gmeow:QueryReportedActivation .
+
+gmeow:activationVaultIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation vault identity"@x-gmeow-english ;
+    skos:definition "The required supplied sixteen-byte native vault identity on one selected-call snapshot record, represented as an unspaced either-case hexBinary literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to associate actual candidate-found vaults and the complete source snapshot roster by their supplied bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating VaultId as a UUID or thirty-two-byte digest, fabricating an IRI or recomputing a source construction hash."@x-gmeow-english ;
+    gmeow:howToUse "Supply xsd:hexBinary with exactly thirty-two hex digits matching ^[0-9A-Fa-f]{32}$."@x-gmeow-english ;
+    skos:scopeNote "The explicit lexical profile is not XSD-canonical normalization. Opposite-case spellings compare by decoded binary value and cannot identify distinct records in one account. Regex dialect projection residue remains explicit."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:vaultRecord gmeow:activationVaultIdentity \"00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."@x-gmeow-english ;
+    logic:domain gmeow:QueryVaultSnapshotRecord ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:activationSnapshotPresent
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation snapshot present"@x-gmeow-english ;
+    skos:definition "The required typed Boolean selecting actual snapshot presence or evidenced absence of a first snapshot in a live service at the original capture."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a present snapshot, including a zero held count, from qualified first-snapshot absence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting false from raw wire None, retirement, a skipped read, unavailable liveness evidence or a later current read."@x-gmeow-english ;
+    gmeow:howToUse "Supply true with actual snapshot identity and held Quantity; supply false only with actual live-at-capture association and absence-reason evidence, and neither conditional edge."@x-gmeow-english ;
+    skos:scopeNote "The public Option may be absent because the service was retired. Even a successful budget-cut union cannot establish the absence reason. Missing required proof fails this complete import rather than becoming false or zero."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotPresent false . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryVaultSnapshotRecord ; logic:range xsd:boolean .
+
+gmeow:activationSnapshotIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation snapshot identity"@x-gmeow-english ;
+    skos:definition "The supplied thirty-two-byte identity of the actual present call-start snapshot, represented as an unspaced either-case hexBinary literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact supplied snapshot bytes alongside that snapshot’s actual held count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a digest, converting a later current snapshot into historical evidence or populating this edge on qualified absence."@x-gmeow-english ;
+    gmeow:howToUse "Supply xsd:hexBinary with exactly sixty-four hex digits matching ^[0-9A-Fa-f]{64}$ when activationSnapshotPresent is true."@x-gmeow-english ;
+    skos:scopeNote "The edge is required for presence and forbidden for absence. Width and lexical-profile checks do not authenticate contents or prove native hashing; regex dialect residue remains explicit."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotIdentity \"00112233445566778899aAbBcCdDeEfF00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."@x-gmeow-english ;
+    logic:domain gmeow:QueryVaultSnapshotRecord ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:activationSnapshotHeld
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "activation snapshot held count"@x-gmeow-english ;
+    skos:definition "The one actual held-count Quantity paired with a present activation snapshot, absent on qualified first-snapshot absence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s supplied count without confusing it with a per-candidate activation estimate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid populating a default zero for absent or unavailable snapshots, or comparing this count with candidate cardinality."@x-gmeow-english ;
+    gmeow:howToUse "Reference a fully coordinated QuerySnapshotHeldCount exactly when activationSnapshotPresent is true."@x-gmeow-english ;
+    skos:scopeNote "An actual present count can be zero. Compatible sharing is permitted; supplied count interpretation and frame are independent of aggregate activation and fusion-score frames."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotHeld ex:held . Other required account bindings and source admission evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryVaultSnapshotRecord ; logic:range gmeow:QuerySnapshotHeldCount .
+
+gmeow:FusionActivationAccountOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation account owner law"@x-gmeow-english ;
+    skos:definition "Every typed activation account has exactly one incoming typed existing weighted application owner."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind each complete reported account to one actual source occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting isolated accounts or treating inverse ownership as source authentication."@x-gmeow-english ;
+    gmeow:howToUse "Require a typed incoming weighted application and compare any two such owners by resource equality."@x-gmeow-english ;
+    skos:scopeNote "The application’s at-most-one selected account is a separate local maximum. Existing answer and weighted-score ownership remain unchanged."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional account linked from two distinct weighted applications fails ownership."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionActivationAccount ;
+    logic:message "Every typed activation account has exactly one incoming typed existing weighted application owner." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a02_a" ], [ logic:termIndex 2 ; logic:termVariable "a02_b" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a01_e_app" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a01_e_app" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:fusionActivationAccount ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a01_e_app" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a02_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:fusionActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a02_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a02_b" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:fusionActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a02_b" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a02_a" ], [ logic:termIndex 1 ; logic:termVariable "a02_b" ] ] ] ] ] ] .
+
+gmeow:FusionActivationCandidateInventoryLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation candidate inventory law"@x-gmeow-english ;
+    skos:definition "An activation account has exactly one candidate record for each applied score of its owning application and no unrelated selected score."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the complete original candidate collection through existing applied-score identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding unrelated scores, omitting original candidates or merging records merely because aggregate values agree."@x-gmeow-english ;
+    gmeow:howToUse "Require score-to-record coverage, reverse application-score membership and record identity for the same selected score."@x-gmeow-english ;
+    skos:scopeNote "A successful empty original union has no score records, while its selected-call snapshot roster remains nonempty. Candidate identity follows the existing applied score."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional two-score application with only one activation candidate record fails coverage."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionActivationAccount ;
+    logic:message "An activation account has exactly one candidate record for each applied score of its owning application and no unrelated selected score." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a03_a" ], [ logic:termIndex 2 ; logic:termVariable "a03_s" ], [ logic:termIndex 3 ; logic:termVariable "a04_a" ], [ logic:termIndex 4 ; logic:termVariable "a04_r" ], [ logic:termIndex 5 ; logic:termVariable "a04_s" ], [ logic:termIndex 6 ; logic:termVariable "a05_r" ], [ logic:termIndex 7 ; logic:termVariable "a05_s" ], [ logic:termIndex 8 ; logic:termVariable "a05_t" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a03_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:fusionActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a03_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:weightedFusionScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a03_a" ], [ logic:termIndex 1 ; logic:termVariable "a03_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a03_e_r" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:activationCandidateRecord ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a03_e_r" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:activationAppliedScore ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a03_e_r" ], [ logic:termIndex 1 ; logic:termVariable "a03_s" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a04_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:fusionActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a04_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a04_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationAppliedScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a04_r" ], [ logic:termIndex 1 ; logic:termVariable "a04_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation gmeow:weightedFusionScore ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a04_a" ], [ logic:termIndex 1 ; logic:termVariable "a04_s" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a05_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a05_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationAppliedScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a05_r" ], [ logic:termIndex 1 ; logic:termVariable "a05_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationAppliedScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a05_t" ], [ logic:termIndex 1 ; logic:termVariable "a05_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a05_r" ], [ logic:termIndex 1 ; logic:termVariable "a05_t" ] ] ] ] ] ] .
+
+gmeow:FusionActivationVaultUniquenessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation vault uniqueness law"@x-gmeow-english ;
+    skos:definition "Equal decoded native vault identity bytes identify the same roster record within one activation account."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the complete selected-call roster unique by actual supplied vault identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using case-sensitive lexical equality or copying one vault into two record identities."@x-gmeow-english ;
+    gmeow:howToUse "Bind both roster records and both actual hexBinary identities, compare the binary values with termEqual and require equal record resources."@x-gmeow-english ;
+    skos:scopeNote "The either-case representation profile preserves decoded-byte identity. Width checks do not establish hash authenticity or a generic vault class."@x-gmeow-english ;
+    skos:example "Fictional scoped example: Two fictional roster records with upper-case and lower-case spellings of the same vault bytes fail if their record identities differ."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionActivationAccount ;
+    logic:message "Equal decoded native vault identity bytes identify the same roster record within one activation account." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a06_i" ], [ logic:termIndex 2 ; logic:termVariable "a06_j" ], [ logic:termIndex 3 ; logic:termVariable "a06_r" ], [ logic:termIndex 4 ; logic:termVariable "a06_t" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultRecord ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a06_r" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultRecord ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a06_t" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultIdentity ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a06_r" ], [ logic:termIndex 1 ; logic:termVariable "a06_i" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultIdentity ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a06_t" ], [ logic:termIndex 1 ; logic:termVariable "a06_j" ] ],
+                [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a06_i" ], [ logic:termIndex 1 ; logic:termVariable "a06_j" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation logic:termEqual ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "a06_r" ], [ logic:termIndex 1 ; logic:termVariable "a06_t" ] ] ] ] ] .
+
+gmeow:FusionActivationCandidateOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation candidate owner law"@x-gmeow-english ;
+    skos:definition "Every typed candidate activation record has exactly one incoming typed activation account owner."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent orphaned records and keep candidate-specific evidence in one actual account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sharing a control record across accounts or accepting pairwise uniqueness without owner existence."@x-gmeow-english ;
+    gmeow:howToUse "Require an incoming typed account and compare any two account owners of the same record."@x-gmeow-english ;
+    skos:scopeNote "Quantities may still be shared across compatible records. This ownership restriction applies to the descriptive record, not its magnitude carrier."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional candidate record with no account owner fails even when its score and found-vault links are present."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryCandidateActivationRecord ;
+    logic:message "Every typed candidate activation record has exactly one incoming typed activation account owner." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a08_a" ], [ logic:termIndex 2 ; logic:termVariable "a08_b" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a07_e_a" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a07_e_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:activationCandidateRecord ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a07_e_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a08_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a08_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a08_b" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a08_b" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a08_a" ], [ logic:termIndex 1 ; logic:termVariable "a08_b" ] ] ] ] ] ] .
+
+gmeow:FusionActivationCandidateContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation candidate context law"@x-gmeow-english ;
+    skos:definition "Each candidate record’s found-vault records belong to its own account roster, and its reported aggregate is present exactly when that account selected activation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the actual aggregation subset and distinguish enabled observations from inactive source constants."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding roster-only vaults to a candidate’s found scope or importing a disabled wire zero as an observed Quantity."@x-gmeow-english ;
+    gmeow:howToUse "Join the account owner, require found-record roster membership and compare the bound Boolean mode to true or false before requiring or forbidding the aggregate edge."@x-gmeow-english ;
+    skos:scopeNote "Nonempty found-vault membership is a local required closure. Exact equality with actual Candidate.vaults and actual call-input selection remain strict import obligations."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional disabled account carrying a candidate activation Quantity fails even when its magnitude is zero."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryCandidateActivationRecord ;
+    logic:message "Each candidate record’s found-vault records belong to its own account roster, and its reported aggregate is present exactly when that account selected activation." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a09_a" ], [ logic:termIndex 2 ; logic:termVariable "a09_v" ], [ logic:termIndex 3 ; logic:termVariable "a10_a" ], [ logic:termIndex 4 ; logic:termVariable "a10_m" ], [ logic:termIndex 5 ; logic:termVariable "a11_a" ], [ logic:termIndex 6 ; logic:termVariable "a11_m" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a09_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a09_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationFoundVault ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a09_v" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultRecord ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a09_a" ], [ logic:termIndex 1 ; logic:termVariable "a09_v" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a10_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a10_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationEnabled ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a10_a" ], [ logic:termIndex 1 ; logic:termVariable "a10_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a10_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a10_e_q" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a10_e_q" ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a11_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a11_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationEnabled ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a11_a" ], [ logic:termIndex 1 ; logic:termVariable "a11_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a11_m" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a11_e_q" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:relation gmeow:reportedActivationValue ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a11_e_q" ] ] ] ] ] ] ] ] .
+
+gmeow:FusionActivationSnapshotRecordLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation snapshot record law"@x-gmeow-english ;
+    skos:definition "Each typed vault snapshot record has one account owner, coherent conditional snapshot fields and correctly sized unspaced either-case identity literals."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve actual present snapshots or qualified live-at-capture first-snapshot absence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving qualified false from wire None, retirement, budget-skipped reads or unavailable capture evidence, or claiming XSD-canonical hex normalization."@x-gmeow-english ;
+    gmeow:howToUse "Require owner existence and uniqueness; true requires identity and held count, false forbids both; apply result-free termRegex to the bound vault and any supplied snapshot identity."@x-gmeow-english ;
+    skos:scopeNote "Vault literals use thirty-two hex digits and snapshots sixty-four. Missing capture-liveness and absence-reason evidence fails import. Existing regex lowering retains target-dialect residue and supplies no authentication certificate."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional record with true but no held-count Quantity fails; a raw absent wire field without capture evidence cannot select the qualified false state."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryVaultSnapshotRecord ;
+    logic:message "Each typed vault snapshot record has one account owner, coherent conditional snapshot fields and correctly sized unspaced either-case identity literals." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a13_a" ], [ logic:termIndex 2 ; logic:termVariable "a13_b" ], [ logic:termIndex 3 ; logic:termVariable "a14_m" ], [ logic:termIndex 4 ; logic:termVariable "a15_m" ], [ logic:termIndex 5 ; logic:termVariable "a16_vaultId" ], [ logic:termIndex 6 ; logic:termVariable "a17_snapshotId" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a12_e_a" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a12_e_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:activationVaultRecord ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "a12_e_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a13_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationVaultRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a13_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a13_b" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationVaultRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a13_b" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a13_a" ], [ logic:termIndex 1 ; logic:termVariable "a13_b" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationSnapshotPresent ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a14_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a14_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a14_e_id" ], [ logic:termIndex 1 ; logic:termVariable "a14_e_held" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:activationSnapshotIdentity ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a14_e_id" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:activationSnapshotHeld ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a14_e_held" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationSnapshotPresent ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a15_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a15_m" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a15_e_id" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:relation gmeow:activationSnapshotIdentity ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a15_e_id" ] ] ] ],
+                    [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a15_e_held" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:relation gmeow:activationSnapshotHeld ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a15_e_held" ] ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationVaultIdentity ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a16_vaultId" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termRegex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a16_vaultId" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{32}$" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationSnapshotIdentity ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a17_snapshotId" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termRegex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a17_snapshotId" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{64}$" ] ] ] ] ] ] .
+
+gmeow:FusionActivationAggregateContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation aggregate context law"@x-gmeow-english ;
+    skos:definition "Every reported activation Quantity in one account has exactly the same dimension and applicable frame resources as the other aggregate values in that account."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a coherent declared comparison context for candidate aggregate magnitudes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating contexts because values are equal or forcing aggregate context to match held counts or weighted fusion scores."@x-gmeow-english ;
+    gmeow:howToUse "Join both owned candidate records and their actual reported Quantities, bind their dimensions or frames, then compare the resources."@x-gmeow-english ;
+    skos:scopeNote "Each Quantity requires its own full coordinates locally. The source API supplies no default Dimension or ReferenceFrame; actual source or adapter interpretation must justify them."@x-gmeow-english ;
+    skos:example "Fictional scoped example: Two fictional aggregate values in one account with different stored frames fail even when both magnitudes are zero."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryFusionActivationAccount ;
+    logic:message "Every reported activation Quantity in one account has exactly the same dimension and applicable frame resources as the other aggregate values in that account." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a18_q" ], [ logic:termIndex 2 ; logic:termVariable "a18_r" ], [ logic:termIndex 3 ; logic:termVariable "a18_s" ], [ logic:termIndex 4 ; logic:termVariable "a18_t" ], [ logic:termIndex 5 ; logic:termVariable "a18_u" ], [ logic:termIndex 6 ; logic:termVariable "a18_v" ], [ logic:termIndex 7 ; logic:termVariable "a19_q" ], [ logic:termIndex 8 ; logic:termVariable "a19_r" ], [ logic:termIndex 9 ; logic:termVariable "a19_s" ], [ logic:termIndex 10 ; logic:termVariable "a19_t" ], [ logic:termIndex 11 ; logic:termVariable "a19_u" ], [ logic:termIndex 12 ; logic:termVariable "a19_v" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a18_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a18_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a18_r" ], [ logic:termIndex 1 ; logic:termVariable "a18_q" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a18_s" ], [ logic:termIndex 1 ; logic:termVariable "a18_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:hasDimension ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a18_q" ], [ logic:termIndex 1 ; logic:termVariable "a18_u" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:hasDimension ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a18_t" ], [ logic:termIndex 1 ; logic:termVariable "a18_v" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a18_u" ], [ logic:termIndex 1 ; logic:termVariable "a18_v" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a19_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a19_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a19_r" ], [ logic:termIndex 1 ; logic:termVariable "a19_q" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a19_s" ], [ logic:termIndex 1 ; logic:termVariable "a19_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:hasReferenceFrame ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a19_q" ], [ logic:termIndex 1 ; logic:termVariable "a19_u" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:hasReferenceFrame ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a19_t" ], [ logic:termIndex 1 ; logic:termVariable "a19_v" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a19_u" ], [ logic:termIndex 1 ; logic:termVariable "a19_v" ] ] ] ] ] ] .
+
+gmeow:FusionReportedActivationOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion reported activation owner law"@x-gmeow-english ;
+    skos:definition "Every typed reported activation Quantity has at least one incoming typed candidate activation record."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep observed aggregate carriers attached to complete reported accounts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing unique inverse Quantity ownership or accepting an isolated activation magnitude."@x-gmeow-english ;
+    gmeow:howToUse "Require a typed candidate record with reportedActivationValue pointing to the Quantity."@x-gmeow-english ;
+    skos:scopeNote "Candidate ownership and mode coherence require actual enabled context. Compatible records may share the same fully coordinated Quantity without merging source applications."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional activation Quantity shared by compatible enabled records is permitted; an isolated typed magnitude fails."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryReportedActivation ;
+    logic:message "Every typed reported activation Quantity has at least one incoming typed candidate activation record." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryReportedActivation ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryReportedActivation ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a20_e_r" ] ;
+                logic:exists [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a20_e_r" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a20_e_r" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] ] .
+
+gmeow:FusionSnapshotHeldOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion snapshot held owner law"@x-gmeow-english ;
+    skos:definition "Every typed snapshot held-count Quantity has at least one incoming typed vault snapshot record."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep actual held counts associated with their reported snapshot state."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing unique inverse count ownership or inventing a held count for absent or unavailable snapshots."@x-gmeow-english ;
+    gmeow:howToUse "Require a typed snapshot record with activationSnapshotHeld pointing to the Quantity."@x-gmeow-english ;
+    skos:scopeNote "Snapshot coherence separately requires actual presence. Compatible sharing is legal; neither aggregate activation nor fusion-score context is imposed on held counts."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional typed held-count Quantity with no incoming snapshot record fails even when its value is zero."@x-gmeow-english ;
+    logic:formalizes gmeow:QuerySnapshotHeldCount ;
+    logic:message "Every typed snapshot held-count Quantity has at least one incoming typed vault snapshot record." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QuerySnapshotHeldCount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QuerySnapshotHeldCount ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a21_e_s" ] ;
+                logic:exists [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a21_e_s" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryVaultSnapshotRecord ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationSnapshotHeld ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "a21_e_s" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] ] .
+
+gmeow:FusionActivationAbsentSnapshotZeroLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fusion activation absent snapshot zero law"@x-gmeow-english ;
+    skos:definition "An enabled candidate’s reported aggregate is numeric zero when none of its nonempty actual found-vault subset has a present snapshot and every absence is qualified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the necessary native zero rule for confirmed first-snapshot absence in the actual candidate scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring snapshot absence from zero, using roster-only snapshots as components or treating ambiguous wire absence as qualified evidence."@x-gmeow-english ;
+    gmeow:howToUse "Bind owner, true mode, actual reported Quantity and stored unsigned value; test that no found-vault record is present, then compare the bound value with unsigned-long zero."@x-gmeow-english ;
+    skos:scopeNote "Qualified false states require actual live-at-capture absence proof before import. The law checks one necessary source rule, not saturation arithmetic, per-vault reconstruction or native execution parity."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional candidate found only in confirmed no-first-snapshot vault A has aggregate zero even when another roster-only vault B has a present snapshot."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryCandidateActivationRecord ;
+    logic:message "An enabled candidate’s reported aggregate is numeric zero when none of its nonempty actual found-vault subset has a present snapshot and every absence is qualified." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a22_a" ], [ logic:termIndex 2 ; logic:termVariable "a22_m" ], [ logic:termIndex 3 ; logic:termVariable "a22_q" ], [ logic:termIndex 4 ; logic:termVariable "a22_v" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryCandidateActivationRecord ] ],
+                [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryFusionActivationAccount ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationCandidateRecord ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:activationEnabled ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_a" ], [ logic:termIndex 1 ; logic:termVariable "a22_m" ] ],
+                [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                [ a logic:Formula ;
+                    logic:relation gmeow:reportedActivationValue ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a22_q" ] ],
+                [ a logic:Formula ;
+                    logic:relation math:quantityValue ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_q" ], [ logic:termIndex 1 ; logic:termVariable "a22_v" ] ],
+                [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a22_e_s" ], [ logic:termIndex 1 ; logic:termVariable "a22_e_p" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation gmeow:activationFoundVault ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "a22_e_s" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:activationSnapshotPresent ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_e_s" ], [ logic:termIndex 1 ; logic:termVariable "a22_e_p" ] ],
+                            [ a logic:Formula ;
+                                logic:relation logic:termEqual ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_e_p" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation logic:termEqual ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "a22_v" ], [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:unsignedLong ] ] ] ] ] .
+
+gmeow:QueryWeightedFusionApplication logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionActivationAccount ; logic:allValuesFrom gmeow:QueryFusionActivationAccount ] .
+gmeow:QueryWeightedFusionApplication logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionActivationAccount ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryFusionActivationAccount ] .
+gmeow:QueryFusionActivationAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationEnabled ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionActivationAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationEnabled" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryFusionActivationAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationEnabled ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:QueryFusionActivationAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationCandidateRecord ; logic:allValuesFrom gmeow:QueryCandidateActivationRecord ] .
+gmeow:QueryFusionActivationAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationVaultRecord ; logic:allValuesFrom gmeow:QueryVaultSnapshotRecord ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryFusionActivationAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationVaultRecord" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryCandidateActivationRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationAppliedScore ; logic:allValuesFrom gmeow:QueryAppliedFusionScore ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryCandidateActivationRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationAppliedScore" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryCandidateActivationRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationAppliedScore ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAppliedFusionScore ] .
+gmeow:QueryCandidateActivationRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationFoundVault ; logic:allValuesFrom gmeow:QueryVaultSnapshotRecord ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryCandidateActivationRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationFoundVault" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryCandidateActivationRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reportedActivationValue ; logic:allValuesFrom gmeow:QueryReportedActivation ] .
+gmeow:QueryCandidateActivationRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:reportedActivationValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryReportedActivation ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationVaultIdentity ; logic:allValuesFrom xsd:hexBinary ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVaultSnapshotRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationVaultIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationVaultIdentity ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotPresent ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryVaultSnapshotRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotPresent ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotIdentity ; logic:allValuesFrom xsd:hexBinary ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotIdentity ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotHeld ; logic:allValuesFrom gmeow:QuerySnapshotHeldCount ] .
+gmeow:QueryVaultSnapshotRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:activationSnapshotHeld ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QuerySnapshotHeldCount ] .
+gmeow:QueryReportedActivation logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:unsignedLong ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedActivation ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedActivation logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedLong ] .
+gmeow:QueryReportedActivation logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedActivation ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedActivation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryReportedActivation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryReportedActivation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:unsignedLong ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QuerySnapshotHeldCount ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedLong ] .
+gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QuerySnapshotHeldCount ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QuerySnapshotHeldCount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .

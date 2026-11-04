@@ -7599,3 +7599,731 @@ msgstr "兼容控制步骤可共享同一个总和 Quantity。不施加其与其
 msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional total Quantity shared by two compatible steps is permitted; an isolated typed partial sum fails."
 msgstr "虚构的局部示例：两个兼容步骤共享一个虚构总和 Quantity 是允许的；孤立的类型化部分和不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Activation Account"
+msgstr "查询融合激活报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete reported activation and call-start snapshot account for one actual weighted-fusion application, retaining actual selection, the nonempty selected-vault roster and every original candidate’s found-vault scope."
+msgstr "针对一个实际加权融合应用的完整已报告激活及调用开始快照记录，保留实际选择、非空所选库清单及每个原始候选项的发现库作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual reported activation evidence with the existing weighted application and answer without inventing another source call."
+msgstr "用于将实际报告的激活证据关联至现有加权应用及答案，不虚构另一次来源调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid importing an incomplete roster as empty, reconstructing it from read versions or treating wire snapshot absence as proof that a live vault had no first snapshot."
+msgstr "避免将不完整清单作为空清单导入、从读取版本重建清单，或将传输中的快照缺失视为存活库没有首次快照的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link from the existing application through fusionActivationAccount; supply activationEnabled, the complete nonempty activationVaultRecord collection and one activationCandidateRecord per original applied score."
+msgstr "从现有应用通过 fusionActivationAccount 关联；提供 activationEnabled、完整非空 activationVaultRecord 集合，并为每个原始应用分数提供一个 activationCandidateRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same captured snapshot list feeds native scoring and the returned union. Explicit first-snapshot absence requires actual live-at-capture and absence-reason evidence; missing proof fails this selected import. A successful empty candidate union still has a nonempty roster."
+msgstr "同一个捕获快照列表用于原生评分及返回并集。显式首次快照缺失要求实际捕获时存活及缺失原因证据；缺失证明使此所选导入失败。成功空候选并集仍具有非空清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . The existing application, its original answer and the complete account bindings are omitted."
+msgstr "虚构限定片段：ex:call gmeow:fusionActivationAccount ex:account . 现有应用、其原始答案及完整报告绑定均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Candidate Activation Record"
+msgstr "查询候选激活记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptive record for one original applied score’s nonempty actual found-vault scope and its aggregate activation Quantity exactly when the actual application selected activation."
+msgstr "描述一个原始应用分数的非空实际发现库作用域的记录，且当且仅当实际应用选择激活时具有聚合激活 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the candidate-specific aggregation scope independently of the whole selected-call snapshot roster."
+msgstr "用于保留候选专属聚合作用域，与整个所选调用快照清单分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating the original candidate identity, inventing per-vault activation components or treating a disabled wire zero as measured data."
+msgstr "避免重复原始候选身份、虚构逐库激活组件，或将禁用时传输的零视为测得数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply activationAppliedScore and the complete nonempty activationFoundVault collection; supply reportedActivationValue exactly when the owner account’s activationEnabled is true."
+msgstr "提供 activationAppliedScore 及完整非空 activationFoundVault 集合；当且仅当所属报告的 activationEnabled 为 true 时提供 reportedActivationValue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each record has exactly one account owner, and its score belongs to that account’s existing application. The original candidate follows appliedScoreCandidate. Record identity is descriptive graph identity, not a native serialized identifier."
+msgstr "每个记录恰好有一个所属报告，其分数属于该报告现有应用。原始候选项由 appliedScoreCandidate 确定。记录身份是描述性图身份，不是原生序列化标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryCandidateActivationRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row a gmeow:QueryCandidateActivationRecord ; gmeow:activationAppliedScore ex:score ; gmeow:activationFoundVault ex:vaultRecord . The owner and any enabled reported value are omitted."
+msgstr "虚构限定片段：ex:row a gmeow:QueryCandidateActivationRecord ; gmeow:activationAppliedScore ex:score ; gmeow:activationFoundVault ex:vaultRecord . 所属者及启用时的任何已报告值均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Vault Snapshot Record"
+msgstr "查询库快照记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One actual selected-call vault’s reported call-start snapshot state, retaining its supplied vault identity and either a present snapshot identity with held count or evidenced live-at-capture first-snapshot absence."
+msgstr "一个实际调用所选库报告的调用开始快照状态，保留所提供库身份，以及存在的快照身份和保有计数，或有证据表明捕获时存活而缺失首次快照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve every selected vault, including vaults outside a particular candidate’s found-vault subset."
+msgstr "用于保留每个所选库，包括特定候选发现库子集之外的库。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting raw wire None, a retired service, a budget-skipped read or a later current read as sufficient first-snapshot-absence evidence."
+msgstr "避免将原始传输值 None、已退役服务、因预算跳过的读取或稍后的当前读取，理解为充分的首次快照缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply activationVaultIdentity and activationSnapshotPresent; true requires activationSnapshotIdentity and activationSnapshotHeld, while qualified false forbids both."
+msgstr "提供 activationVaultIdentity 及 activationSnapshotPresent；true 要求 activationSnapshotIdentity 及 activationSnapshotHeld，而具备限定依据的 false 禁止两者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each typed record has one account owner and is unique there by decoded vault bytes. False requires actual capture liveness and absence-reason evidence; unavailable evidence fails import. Present held count zero remains present."
+msgstr "每个类型化记录有一个所属报告，在该报告内按解码库字节唯一。false 要求实际捕获时存活及缺失原因证据；证据不可用导致导入失败。存在的保有计数为零仍表示存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVaultSnapshotRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord a gmeow:QueryVaultSnapshotRecord ; gmeow:activationSnapshotPresent false . The required vault identity, owner and actual live-at-capture absence evidence are omitted."
+msgstr "虚构限定片段：ex:vaultRecord a gmeow:QueryVaultSnapshotRecord ; gmeow:activationSnapshotPresent false . 必需库身份、所属者，以及服务在实际捕获时仍存活且缺失首次快照的证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Reported Activation"
+msgstr "查询已报告激活"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An enabled source-reported aggregate activation ranking-signal Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."
+msgstr "激活已启用时由来源报告的聚合激活排名信号 Quantity，具有无符号长整数量值、显式量纲及完整适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual aggregate returned for a candidate when activation was selected, including a genuinely reported zero."
+msgstr "用于选择激活时为候选项实际返回的聚合值，包括真实报告的零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating disabled wire zero as an observation, using a confidence or probability interpretation, or certifying native saturation from the reported aggregate."
+msgstr "避免将禁用时传输的零视为观察、采用置信度或概率解释，或从报告聚合值认证原生饱和算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame, and link through reportedActivationValue from an owned candidate record."
+msgstr "提供 xsd:unsignedLong 类型的 math:quantityValue、math:hasDimension 及 hasReferenceFrame，并从具有所属者的候选记录通过 reportedActivationValue 关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values within one account share the exact dimension and frame resources. The API supplies neither mathematical context object; source or adapter justification is required. Compatible sharing is legal, and neither the fusion-score nor held-count frame is imposed."
+msgstr "同一报告内的值共享完全相同的量纲及参照系资源。API 不提供这两个数学上下文对象；要求来源或适配器依据。允许相容共享，不施加融合分数或保有计数的参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryReportedActivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:activation a gmeow:QueryReportedActivation ; math:quantityValue \"0\"^^xsd:unsignedLong . Its actual enabled source context, dimension, complete frame and incoming record are omitted."
+msgstr "虚构限定片段：ex:activation a gmeow:QueryReportedActivation ; math:quantityValue \"0\"^^xsd:unsignedLong . 其实际启用来源上下文、量纲、完整参照系及入向记录均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Snapshot Held Count"
+msgstr "查询快照保有激活计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual present activation snapshot’s held-activation count Quantity with an unsigned-long magnitude, explicit dimension and complete applicable reference frame."
+msgstr "实际存在的激活快照所具有的保有激活计数 Quantity，具有无符号长整数量值、显式量纲及完整适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual held count paired with a supplied present snapshot identity."
+msgstr "用于保留与所提供存在快照身份配对的实际保有计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating held count as a candidate activation component, graph watermark, timestamp, candidate cardinality or confidence guarantee."
+msgstr "避免将保有计数视为候选激活组件、图水位标记、时间戳、候选基数或置信度保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply math:quantityValue typed xsd:unsignedLong, math:hasDimension and hasReferenceFrame; reference the Quantity through activationSnapshotHeld from a present owned snapshot record."
+msgstr "提供 xsd:unsignedLong 类型的 math:quantityValue、math:hasDimension 及 hasReferenceFrame；从存在且具有所属者的快照记录通过 activationSnapshotHeld 引用该 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero is legal when actually supplied for a present snapshot. Compatible records may share a coordinated count Quantity. Its interpretation is justified independently of aggregate activation and fusion scores; no cross-vault held-count comparison or common frame is imposed."
+msgstr "确为存在快照提供的零合法。相容记录可以共享完整协调的计数 Quantity。其解释独立于聚合激活及融合分数而获得依据；不施加跨库保有计数比较或共同参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySnapshotHeldCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:held a gmeow:QuerySnapshotHeldCount ; math:quantityValue \"0\"^^xsd:unsignedLong . The present snapshot record, dimension and complete applicable frame are omitted."
+msgstr "虚构限定片段：ex:held a gmeow:QuerySnapshotHeldCount ; math:quantityValue \"0\"^^xsd:unsignedLong . 存在快照记录、量纲及完整适用参照系均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation account"
+msgstr "融合激活报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one complete reported activation and snapshot account selected on an existing actual weighted-fusion application."
+msgstr "在现有实际加权融合应用上选择的、至多一个完整已报告激活及快照记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enrich the same application and answer that already retain weighted scores and original evidence."
+msgstr "用于丰富已保留加权分数及原始证据的同一个应用和答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a second execution or native answer merely to describe activation or later applied order."
+msgstr "避免仅为描述激活或后续已应用顺序就创建第二次执行或原生答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a complete QueryFusionActivationAccount on the actual QueryWeightedFusionApplication."
+msgstr "在实际 QueryWeightedFusionApplication 上引用完整 QueryFusionActivationAccount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing applications need not select this account. Once selected, every account obligation is mandatory; partial evidence cannot populate a weaker success branch."
+msgstr "现有应用无需选择此报告。一经选择，每项报告义务都必需；部分证据不能填入较弱的成功分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:fusionActivationAccount ex:account . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:call gmeow:fusionActivationAccount ex:account . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation selected"
+msgstr "激活选择"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean retaining whether the actual source call selected activation as a comparison key."
+msgstr "必需的类型化布尔值，保留实际来源调用是否选择激活作为比较键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish actual selected aggregate observations from the source’s inactive constant-zero branch."
+msgstr "用于将实际所选聚合观察与来源未激活的恒零分支区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring selection from an aggregate value, a digest alone or missing source input."
+msgstr "避免从聚合值、仅有摘要或缺失来源输入推断选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual call-input xsd:boolean; true requires each candidate record’s reported aggregate and false forbids that Quantity edge."
+msgstr "提供实际调用输入的 xsd:boolean；true 要求每个候选记录的已报告聚合值，false 禁止该 Quantity 边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Legal Boolean lexical variants compare by value. The future applied-policy account must agree with this actual selection; disabling activation does not remove the source snapshot roster."
+msgstr "合法布尔词法变体按值比较。后续已应用策略报告必须与此实际选择一致；禁用激活不移除来源快照清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationEnabled|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationEnabled false . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:account gmeow:activationEnabled false . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation candidate record"
+msgstr "激活候选记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete original-applied-score-indexed candidate record collection of a selected activation account."
+msgstr "所选激活报告中按原始应用分数索引的完整候选记录集合的一个成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain exactly one activation record for every original applied score and no unrelated score."
+msgstr "用于为每个原始应用分数恰好保留一个激活记录，不保留无关分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting candidates, sharing one record across accounts or confusing an empty original union with an empty vault roster."
+msgstr "避免遗漏候选项、跨报告共享一个记录，或将空原始并集与空库清单混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every QueryCandidateActivationRecord and retain its actual applied score and nonempty found-vault scope."
+msgstr "引用每个 QueryCandidateActivationRecord，并保留其实际应用分数及非空发现库作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This collection is empty exactly when the existing application’s score collection is empty. Original query, candidate and loss identities remain governed by the weighted account."
+msgstr "当且仅当现有应用分数集合为空时，此集合为空。原始查询、候选及损失身份仍由加权记录约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationCandidateRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationCandidateRecord ex:row . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:account gmeow:activationCandidateRecord ex:row . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation selected-vault record"
+msgstr "激活所选库记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete nonempty actual selected-call vault roster captured at call start for an activation account."
+msgstr "激活报告中在调用开始时捕获的实际调用所选库完整非空清单的一个成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve selected vaults even when no candidate was found there or a budget prevented their later read."
+msgstr "用于保留所选库，即使未在其中发现候选项，或预算阻止了其后续读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reconstructing this roster from read versions, dropping unavailable records or accepting an empty selected-call roster."
+msgstr "避免从读取版本重建此清单、丢弃不可用记录，或接受空调用所选库清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every actual QueryVaultSnapshotRecord from the same captured list used for scoring and the returned union."
+msgstr "从用于评分及返回并集的同一捕获列表引用每个实际 QueryVaultSnapshotRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every selected account has at least one roster member. Candidate found-vault membership is a separate nonempty subset, not the entire roster. Ambiguous capture absence blocks this complete import."
+msgstr "每个所选报告的清单至少有一个成员。候选发现库成员关系是独立非空子集，不是整个清单。捕获缺失含义不明会阻止此完整导入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation original applied score"
+msgstr "激活原始应用分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing original applied-score resource selected by a candidate activation record."
+msgstr "候选激活记录选择的单个现有原始应用分数资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to recover the original candidate through the score’s existing appliedScoreCandidate link."
+msgstr "用于通过分数现有 appliedScoreCandidate 链接恢复原始候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying candidate identities into a parallel coordinate or selecting a score from another application."
+msgstr "避免将候选身份复制到并行坐标，或从其他应用选择分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryAppliedFusionScore retained by the existing application that owns the activation account."
+msgstr "引用所属激活报告的现有应用保留的 QueryAppliedFusionScore。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Within one account, records selecting the same score are identical. Separate calls retain their existing separate score occurrences."
+msgstr "同一报告内选择相同分数的记录相同。不同调用保留其现有独立分数出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationAppliedScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:activationAppliedScore ex:score . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:row gmeow:activationAppliedScore ex:score . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation candidate-found vault"
+msgstr "激活候选发现库"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the candidate’s complete nonempty actual found-vault set, referencing the same account’s selected-call snapshot roster."
+msgstr "候选项完整非空实际发现库集的一个成员，引用同一报告的调用所选快照清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve exactly the original candidate-found scope used by native aggregate activation."
+msgstr "用于恰好保留原生聚合激活所用的原始候选发现作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid including other selected roster vaults merely because they have snapshots or accepting an unavailable or empty found-vault collection."
+msgstr "避免仅因其他所选清单库具有快照就纳入它们，或接受不可用或空发现库集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the owning account’s roster records matching every actual original Candidate.vaults identity."
+msgstr "引用所属报告中与每个实际原始 Candidate.vaults 身份相符的清单记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each candidate has at least one found vault. Equality with the supplied original native set is an import obligation; graph membership laws cannot reconstruct unavailable external candidate evidence."
+msgstr "每个候选项至少有一个发现库。与所提供原始原生集合精确相等是导入义务；图成员关系定律不能重建不可用的外部候选证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationFoundVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:activationFoundVault ex:vaultA . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:row gmeow:activationFoundVault ex:vaultA . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported aggregate activation value"
+msgstr "已报告聚合激活值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one actual reported aggregate activation Quantity of a candidate record, required exactly when its account selected activation."
+msgstr "候选记录至多一个实际已报告聚合激活 Quantity，当且仅当其报告选择激活时必需。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a true reported zero or positive aggregate without claiming component recomputation."
+msgstr "用于保留真实报告的零或正聚合值，不声称重算了组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid writing the disabled source constant zero as a measured Quantity or summing snapshot held counts as candidate activation."
+msgstr "避免将禁用来源恒零写作测得 Quantity，或将快照保有计数之和视为候选激活。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one fully coordinated QueryReportedActivation when activationEnabled is true; omit this edge when false."
+msgstr "当 activationEnabled 为 true 时引用一个完整协调的 QueryReportedActivation；为 false 时省略此边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "All found vaults with qualified first-snapshot absence imply numeric zero. The converse is false: a real present snapshot may estimate zero. Per-vault candidate components are not exported by the inspected public Fused result."
+msgstr "所有发现库均具有具备限定依据的首次快照缺失时，蕴含数值零。反向不成立：实际存在的快照可估计为零。所检查公共 Fused 结果不导出逐库候选组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedActivationValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:row gmeow:reportedActivationValue ex:activation . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:row gmeow:reportedActivationValue ex:activation . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation vault identity"
+msgstr "激活库身份"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required supplied sixteen-byte native vault identity on one selected-call snapshot record, represented as an unspaced either-case hexBinary literal."
+msgstr "单个调用所选快照记录上必需的所提供 16 字节原生库身份，表示为无空格、大小写均可的 hexBinary 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual candidate-found vaults and the complete source snapshot roster by their supplied bytes."
+msgstr "用于按所提供字节关联实际候选发现库及完整来源快照清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating VaultId as a UUID or thirty-two-byte digest, fabricating an IRI or recomputing a source construction hash."
+msgstr "避免将 VaultId 视为 UUID 或 32 字节摘要、虚构 IRI 或重算来源构造哈希。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary with exactly thirty-two hex digits matching ^[0-9A-Fa-f]{32}$."
+msgstr "提供恰好具有 32 个十六进制数字、匹配 ^[0-9A-Fa-f]{32}$ 的 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The explicit lexical profile is not XSD-canonical normalization. Opposite-case spellings compare by decoded binary value and cannot identify distinct records in one account. Regex dialect projection residue remains explicit."
+msgstr "显式词法配置不是 XSD 规范化。大小写相反的拼写按解码二进制值比较，不能在同一报告内标识不同记录。正则表达式方言投影残差仍显式保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationVaultIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationVaultIdentity \"00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."
+msgstr "虚构限定片段：ex:vaultRecord gmeow:activationVaultIdentity \"00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . 字节为虚构，不是经过认证的原生身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot present"
+msgstr "激活快照存在"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean selecting actual snapshot presence or evidenced absence of a first snapshot in a live service at the original capture."
+msgstr "必需的类型化布尔值，选择实际快照存在，或有证据表明原始捕获时存活服务缺失首次快照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a present snapshot, including a zero held count, from qualified first-snapshot absence."
+msgstr "用于将存在快照（包括保有计数为零）与具备限定依据的首次快照缺失区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting false from raw wire None, retirement, a skipped read, unavailable liveness evidence or a later current read."
+msgstr "避免从原始传输值 None、退役、跳过读取、不可用存活证据或稍后当前读取选择 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply true with actual snapshot identity and held Quantity; supply false only with actual live-at-capture association and absence-reason evidence, and neither conditional edge."
+msgstr "提供 true 时附实际快照身份及保有计数 Quantity；仅在具有实际捕获时存活关联及缺失原因证据时提供 false，并不提供两条条件边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The public Option may be absent because the service was retired. Even a successful budget-cut union cannot establish the absence reason. Missing required proof fails this complete import rather than becoming false or zero."
+msgstr "公共 Option 可能因服务退役而缺失。即使预算截断并集成功，也不能确立缺失原因。必需证明缺失使此完整导入失败，而不是变为 false 或零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotPresent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotPresent false . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:vaultRecord gmeow:activationSnapshotPresent false . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot identity"
+msgstr "激活快照身份"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied thirty-two-byte identity of the actual present call-start snapshot, represented as an unspaced either-case hexBinary literal."
+msgstr "实际存在的调用开始快照所提供的 32 字节身份，表示为无空格、大小写均可的 hexBinary 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact supplied snapshot bytes alongside that snapshot’s actual held count."
+msgstr "用于连同该快照实际保有计数保留其确切所提供快照字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a digest, converting a later current snapshot into historical evidence or populating this edge on qualified absence."
+msgstr "避免虚构摘要、将稍后当前快照转作历史证据，或在具备限定依据的缺失情况下填入此边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary with exactly sixty-four hex digits matching ^[0-9A-Fa-f]{64}$ when activationSnapshotPresent is true."
+msgstr "当 activationSnapshotPresent 为 true 时，提供恰好具有 64 个十六进制数字、匹配 ^[0-9A-Fa-f]{64}$ 的 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge is required for presence and forbidden for absence. Width and lexical-profile checks do not authenticate contents or prove native hashing; regex dialect residue remains explicit."
+msgstr "存在时此边必需，缺失时禁止。宽度及词法配置检查不认证内容，也不证明原生哈希；正则表达式方言残差仍显式保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotIdentity \"00112233445566778899aAbBcCdDeEfF00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . The bytes are fictional and are not an authenticated native identity."
+msgstr "虚构限定片段：ex:vaultRecord gmeow:activationSnapshotIdentity \"00112233445566778899aAbBcCdDeEfF00112233445566778899aAbBcCdDeEfF\"^^xsd:hexBinary . 字节为虚构，不是经过认证的原生身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activation snapshot held count"
+msgstr "激活快照保有计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual held-count Quantity paired with a present activation snapshot, absent on qualified first-snapshot absence."
+msgstr "与存在激活快照配对的单个实际保有计数 Quantity，在具备限定依据的首次快照缺失时不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s supplied count without confusing it with a per-candidate activation estimate."
+msgstr "用于保留来源提供的计数，不与逐候选激活估计混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid populating a default zero for absent or unavailable snapshots, or comparing this count with candidate cardinality."
+msgstr "避免为缺失或不可用快照填入默认零，或将此计数与候选基数比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a fully coordinated QuerySnapshotHeldCount exactly when activationSnapshotPresent is true."
+msgstr "当且仅当 activationSnapshotPresent 为 true 时，引用完整协调的 QuerySnapshotHeldCount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An actual present count can be zero. Compatible sharing is permitted; supplied count interpretation and frame are independent of aggregate activation and fusion-score frames."
+msgstr "实际存在的计数可以为零。允许相容共享；所提供计数的解释及参照系独立于聚合激活及融合分数参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activationSnapshotHeld|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:vaultRecord gmeow:activationSnapshotHeld ex:held . Other required account bindings and source admission evidence are omitted."
+msgstr "虚构限定片段：ex:vaultRecord gmeow:activationSnapshotHeld ex:held . 其他必需报告绑定及来源接纳证据均省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation account owner law"
+msgstr "融合激活报告归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed activation account has exactly one incoming typed existing weighted application owner."
+msgstr "每个类型化激活报告恰好具有一个入向类型化现有加权应用所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind each complete reported account to one actual source occurrence."
+msgstr "用于将每个完整已报告记录绑定至一个实际来源出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated accounts or treating inverse ownership as source authentication."
+msgstr "避免接受孤立报告，或将逆向归属视为来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed incoming weighted application and compare any two such owners by resource equality."
+msgstr "要求类型化入向加权应用，并按资源相等比较任意两个此类所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The application’s at-most-one selected account is a separate local maximum. Existing answer and weighted-score ownership remain unchanged."
+msgstr "应用至多选择一个报告由独立局部最大基数约束。现有答案及加权分数归属保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional account linked from two distinct weighted applications fails ownership."
+msgstr "虚构限定示例：从两个不同加权应用关联的虚构报告违反归属约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate inventory law"
+msgstr "融合激活候选清单定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activation account has exactly one candidate record for each applied score of its owning application and no unrelated selected score."
+msgstr "激活报告为其所属应用的每个应用分数恰好具有一个候选记录，不具有无关所选分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the complete original candidate collection through existing applied-score identities."
+msgstr "用于通过现有应用分数身份保留完整原始候选集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding unrelated scores, omitting original candidates or merging records merely because aggregate values agree."
+msgstr "避免添加无关分数、遗漏原始候选项，或仅因聚合值相同而合并记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require score-to-record coverage, reverse application-score membership and record identity for the same selected score."
+msgstr "要求分数到记录覆盖、反向应用分数成员关系，以及同一所选分数对应的记录身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty original union has no score records, while its selected-call snapshot roster remains nonempty. Candidate identity follows the existing applied score."
+msgstr "成功空原始并集没有分数记录，但其调用所选快照清单仍非空。候选身份由现有应用分数确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-score application with only one activation candidate record fails coverage."
+msgstr "虚构限定示例：具有两个分数却只有一个激活候选记录的虚构应用违反覆盖要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation vault uniqueness law"
+msgstr "融合激活库唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Equal decoded native vault identity bytes identify the same roster record within one activation account."
+msgstr "在同一激活报告内，相同的已解码原生库身份字节标识同一清单记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the complete selected-call roster unique by actual supplied vault identity."
+msgstr "用于按实际所提供库身份保持完整调用所选清单唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using case-sensitive lexical equality or copying one vault into two record identities."
+msgstr "避免使用区分大小写的词法相等，或将一个库复制为两个记录身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both roster records and both actual hexBinary identities, compare the binary values with termEqual and require equal record resources."
+msgstr "绑定两个清单记录及两个实际 hexBinary 身份，通过 termEqual 比较二进制值，并要求记录资源相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The either-case representation profile preserves decoded-byte identity. Width checks do not establish hash authenticity or a generic vault class."
+msgstr "大小写均可的表示配置保留解码字节身份。宽度检查不确立哈希真实性或通用库类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationVaultUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional roster records with upper-case and lower-case spellings of the same vault bytes fail if their record identities differ."
+msgstr "虚构限定示例：两个虚构清单记录若对同一库字节分别采用大写及小写拼写，而记录身份不同，则被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate owner law"
+msgstr "融合激活候选归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed candidate activation record has exactly one incoming typed activation account owner."
+msgstr "每个类型化候选激活记录恰好有一个入向类型化激活报告所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent orphaned records and keep candidate-specific evidence in one actual account."
+msgstr "用于防止孤立记录，并使候选专属证据处于一个实际报告内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a control record across accounts or accepting pairwise uniqueness without owner existence."
+msgstr "避免跨报告共享控制记录，或接受仅有成对唯一性而没有所属者存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed account and compare any two account owners of the same record."
+msgstr "要求入向类型化报告，并比较同一记录的任意两个报告所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantities may still be shared across compatible records. This ownership restriction applies to the descriptive record, not its magnitude carrier."
+msgstr "量仍可以跨相容记录共享。此归属限制适用于描述记录，而非其量值载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional candidate record with no account owner fails even when its score and found-vault links are present."
+msgstr "虚构限定示例：没有所属报告的虚构候选记录被拒绝，即使分数及发现库链接已存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation candidate context law"
+msgstr "融合激活候选上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each candidate record’s found-vault records belong to its own account roster, and its reported aggregate is present exactly when that account selected activation."
+msgstr "每个候选记录的发现库记录属于其自身报告清单，且当且仅当该报告选择激活时存在其已报告聚合值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual aggregation subset and distinguish enabled observations from inactive source constants."
+msgstr "用于保留实际聚合子集，并将启用观察与未激活来源常量区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding roster-only vaults to a candidate’s found scope or importing a disabled wire zero as an observed Quantity."
+msgstr "避免将仅在清单中的库加入候选发现作用域，或将禁用时传输的零作为观察 Quantity 导入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the account owner, require found-record roster membership and compare the bound Boolean mode to true or false before requiring or forbidding the aggregate edge."
+msgstr "连接所属报告，要求发现记录属于清单，并将绑定布尔模式与 true 或 false 比较，再要求或禁止聚合边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonempty found-vault membership is a local required closure. Exact equality with actual Candidate.vaults and actual call-input selection remain strict import obligations."
+msgstr "非空发现库成员关系是局部必需闭包。与实际 Candidate.vaults 精确相等及实际调用输入选择仍是严格导入义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationCandidateContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional disabled account carrying a candidate activation Quantity fails even when its magnitude is zero."
+msgstr "虚构限定示例：禁用的虚构报告若携带候选激活 Quantity，则被拒绝，即使量值为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation snapshot record law"
+msgstr "融合激活快照记录定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each typed vault snapshot record has one account owner, coherent conditional snapshot fields and correctly sized unspaced either-case identity literals."
+msgstr "每个类型化库快照记录具有一个所属报告、一致的条件快照字段，以及宽度正确、无空格且大小写均可的身份字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve actual present snapshots or qualified live-at-capture first-snapshot absence."
+msgstr "用于保留实际存在快照，或捕获时存活服务具备限定依据的首次快照缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving qualified false from wire None, retirement, budget-skipped reads or unavailable capture evidence, or claiming XSD-canonical hex normalization."
+msgstr "避免从传输 None、退役、因预算跳过的读取或不可用捕获证据推导具备限定依据的 false，或声称进行了 XSD 规范十六进制规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require owner existence and uniqueness; true requires identity and held count, false forbids both; apply result-free termRegex to the bound vault and any supplied snapshot identity."
+msgstr "要求所属者存在且唯一；true 要求身份及保有计数，false 禁止两者；对绑定库身份及任何所提供快照身份应用不绑定结果的 termRegex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vault literals use thirty-two hex digits and snapshots sixty-four. Missing capture-liveness and absence-reason evidence fails import. Existing regex lowering retains target-dialect residue and supplies no authentication certificate."
+msgstr "库字面量使用 32 个十六进制数字，快照使用 64 个。捕获存活及缺失原因证据缺失使导入失败。现有正则表达式转译保留目标方言残差，不提供认证证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationSnapshotRecordLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional record with true but no held-count Quantity fails; a raw absent wire field without capture evidence cannot select the qualified false state."
+msgstr "虚构限定示例：具有 true 却没有保有计数 Quantity 的虚构记录被拒绝；没有捕获证据的原始传输缺失字段不能选择具备限定依据的 false 状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation aggregate context law"
+msgstr "融合激活聚合上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported activation Quantity in one account has exactly the same dimension and applicable frame resources as the other aggregate values in that account."
+msgstr "同一报告内的每个已报告激活 Quantity，与该报告其他聚合值具有完全相同的量纲及适用参照系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a coherent declared comparison context for candidate aggregate magnitudes."
+msgstr "用于为候选聚合量值保留一致的声明比较上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating contexts because values are equal or forcing aggregate context to match held counts or weighted fusion scores."
+msgstr "避免因值相等而将上下文视为相同，或强制聚合上下文与保有计数或加权融合分数匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join both owned candidate records and their actual reported Quantities, bind their dimensions or frames, then compare the resources."
+msgstr "连接两个具有所属者的候选记录及其实际报告的 Quantity，绑定量纲或参照系，再比较资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each Quantity requires its own full coordinates locally. The source API supplies no default Dimension or ReferenceFrame; actual source or adapter interpretation must justify them."
+msgstr "每个 Quantity 在局部要求自身完整坐标。来源 API 不提供默认 Dimension 或 ReferenceFrame；实际来源或适配器解释必须为其提供依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAggregateContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional aggregate values in one account with different stored frames fail even when both magnitudes are zero."
+msgstr "虚构限定示例：同一报告内两个虚构聚合值若存储参照系不同，即使两者量值均为零也被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion reported activation owner law"
+msgstr "融合已报告激活归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed reported activation Quantity has at least one incoming typed candidate activation record."
+msgstr "每个类型化已报告激活 Quantity 至少具有一个入向类型化候选激活记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep observed aggregate carriers attached to complete reported accounts."
+msgstr "用于将观察到的聚合载体附于完整已报告记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse Quantity ownership or accepting an isolated activation magnitude."
+msgstr "避免施加逆向唯一 Quantity 归属，或接受孤立激活量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed candidate record with reportedActivationValue pointing to the Quantity."
+msgstr "要求具有 reportedActivationValue 指向该 Quantity 的类型化候选记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate ownership and mode coherence require actual enabled context. Compatible records may share the same fully coordinated Quantity without merging source applications."
+msgstr "候选归属及模式一致性要求实际启用上下文。相容记录可以共享同一个完整协调的 Quantity，不合并来源应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionReportedActivationOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional activation Quantity shared by compatible enabled records is permitted; an isolated typed magnitude fails."
+msgstr "虚构限定示例：相容启用记录共享虚构激活 Quantity 被允许；孤立类型化量值被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion snapshot held owner law"
+msgstr "融合快照保有计数归属定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed snapshot held-count Quantity has at least one incoming typed vault snapshot record."
+msgstr "每个类型化快照保有计数 Quantity 至少具有一个入向类型化库快照记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep actual held counts associated with their reported snapshot state."
+msgstr "用于使实际保有计数与其报告的快照状态关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse count ownership or inventing a held count for absent or unavailable snapshots."
+msgstr "避免施加逆向唯一计数归属，或为缺失或不可用快照虚构保有计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a typed snapshot record with activationSnapshotHeld pointing to the Quantity."
+msgstr "要求具有 activationSnapshotHeld 指向该 Quantity 的类型化快照记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Snapshot coherence separately requires actual presence. Compatible sharing is legal; neither aggregate activation nor fusion-score context is imposed on held counts."
+msgstr "快照一致性单独要求实际存在。允许相容共享；保有计数不被施加聚合激活或融合分数上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionSnapshotHeldOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional typed held-count Quantity with no incoming snapshot record fails even when its value is zero."
+msgstr "虚构限定示例：没有入向快照记录的虚构类型化保有计数 Quantity 被拒绝，即使其值为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion activation absent snapshot zero law"
+msgstr "融合激活快照缺失零值定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An enabled candidate’s reported aggregate is numeric zero when none of its nonempty actual found-vault subset has a present snapshot and every absence is qualified."
+msgstr "在激活已启用时，若候选项的非空实际发现库子集中没有存在的快照，且每项缺失均具备限定依据，则其已报告聚合值为数值零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the necessary native zero rule for confirmed first-snapshot absence in the actual candidate scope."
+msgstr "用于保留实际候选作用域内已确认首次快照缺失所要求的原生零规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring snapshot absence from zero, using roster-only snapshots as components or treating ambiguous wire absence as qualified evidence."
+msgstr "避免从零推断快照缺失、将仅在清单中的快照用作组件，或将含义不明的传输缺失视为具备限定依据的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind owner, true mode, actual reported Quantity and stored unsigned value; test that no found-vault record is present, then compare the bound value with unsigned-long zero."
+msgstr "绑定所属者、true 模式、实际报告 Quantity 及存储无符号值；检查没有发现库记录标示快照存在，再将绑定值与无符号长整数零比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Qualified false states require actual live-at-capture absence proof before import. The law checks one necessary source rule, not saturation arithmetic, per-vault reconstruction or native execution parity."
+msgstr "具备限定依据的 false 状态要求导入前具有实际捕获时存活及缺失证明。此定律检查单向必要来源规则，不检查饱和算术、逐库重建或原生执行等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional candidate found only in confirmed no-first-snapshot vault A has aggregate zero even when another roster-only vault B has a present snapshot."
+msgstr "虚构限定示例：虚构候选项仅在已确认没有首次快照的库 A 中被发现，因此聚合值为零，即使另一个仅在清单中的库 B 具有存在快照。"

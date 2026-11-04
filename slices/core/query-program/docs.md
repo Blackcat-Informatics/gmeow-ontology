@@ -1736,3 +1736,131 @@ weighted scoring and ordering arrive in one result: any applied-order enrichment
 must retain this same application and answer occurrence, with its actual policy
 and comparison evidence. It must not fabricate a second source execution or
 claim complete integration from the reported sum alone.
+
+## Reported activation and qualified call-start snapshots
+
+`QueryFusionActivationAccount` records complete reported activation evidence on
+an existing `QueryWeightedFusionApplication`. `fusionActivationAccount` enriches
+that actual occurrence and its existing answer; it does not create another call,
+execution or native result. Each `QueryCandidateActivationRecord` selects the
+existing `QueryAppliedFusionScore` through `activationAppliedScore`. The original
+candidate follows that score's `appliedScoreCandidate`; the weighted account
+continues to retain original query, candidate and loss identities.
+
+The account requires the actual call-input `activationEnabled` Boolean and the
+complete nonempty `activationVaultRecord` roster. Every original applied score
+has exactly one candidate record, whose `activationFoundVault` collection is
+also nonempty. These found-vault records belong to that same account roster and
+must equal the actual original candidate's supplied found-vault set at import.
+Other selected vaults may be in the roster without entering that candidate's
+aggregate scope. Use the actual captured list that fed scoring and the returned
+union; read versions may omit selected vaults and cannot reconstruct this list.
+
+A successful empty original union has no candidate records. It still retains
+the actual mode and nonempty selected-call roster, alongside the existing
+weighted account's nonempty declared classes and coefficients. Neither an empty
+roster nor an empty found-vault set represents an admitted native account.
+Unavailable collections fail this complete selected import instead of becoming
+empty.
+
+When activation is enabled, every candidate record has one
+`reportedActivationValue` pointing to a `QueryReportedActivation` Quantity. When
+disabled, that edge is forbidden: the source's inactive constant zero is not a
+measured observation. A genuine enabled zero retains its Quantity and context.
+Each magnitude is `math:quantityValue` typed `xsd:unsignedLong`, with an explicit
+`math:hasDimension` and complete applicable `hasReferenceFrame`. The source API
+does not provide those context objects; actual source or adapter interpretation
+must justify them. Aggregate Quantities in one account share the exact dimension
+and frame resources. No default dimensionless interpretation, probability,
+confidence bound or error certificate follows from an unsigned value.
+
+Each `QueryVaultSnapshotRecord` has a supplied `activationVaultIdentity` and an
+explicit `activationSnapshotPresent` Boolean. True requires both
+`activationSnapshotIdentity` and `activationSnapshotHeld`. The latter references
+a `QuerySnapshotHeldCount` Quantity with its own unsigned-long magnitude,
+dimension and complete applicable frame. An actual present held count may be
+zero. Held count describes activations held by that snapshot; it is neither a
+candidate's component estimate nor a graph version, timestamp or candidate count.
+Its interpretation is justified independently of aggregate activation and fusion
+scores, with no common held-count frame imposed across vaults.
+
+False means evidenced absence of a first snapshot in a live service at the
+original capture. It forbids both conditional snapshot links. **Wire None alone
+does not establish that state**: native capture can also return None for a
+retired service, and recall can budget-skip that service while returning a
+successful partial union. This selected account requires actual live-at-capture
+association and absence-reason evidence. Missing proof fails import; it cannot
+become false, measured zero, a fabricated snapshot or a later current read.
+Existing loss evidence remains intact. No service lifecycle action is implied.
+
+Vault identities retain the supplied sixteen bytes as unspaced, either-case
+`xsd:hexBinary` with thirty-two hex digits. Present snapshot identities retain
+their supplied thirty-two bytes with sixty-four digits. The ordinary
+`logic:termRegex` checks use `^[0-9A-Fa-f]{32}$` and `^[0-9A-Fa-f]{64}$` on
+positively bound literals. This explicit representation profile is not
+XSD-canonical normalization; regex projection dialect residue remains explicit.
+Roster uniqueness compares decoded binary values, so case variants do not name
+distinct vaults within one account. No hash is computed or authenticated by
+these checks.
+
+The following fictional scoped fragment distinguishes candidate scope from the
+whole roster. All resource names and identity bytes are fictional. It deliberately
+omits the actual source association, complete application, account mode,
+candidate-score linkage, typed record declarations, full Quantity dimensions
+and complete frames. In this imagined enabled account, separate actual capture
+evidence establishes that vault A's live service had no first snapshot; the false
+literal alone does not supply that proof. This fragment is not a complete valid
+account or a report of a native call.
+
+```turtle
+ex:account gmeow:activationVaultRecord ex:vaultA, ex:vaultB ;
+    gmeow:activationCandidateRecord ex:row .
+ex:row gmeow:activationFoundVault ex:vaultA ;
+    gmeow:reportedActivationValue ex:zeroActivation .
+ex:vaultA gmeow:activationVaultIdentity
+        "00112233445566778899aabbccddeeff"^^xsd:hexBinary ;
+    gmeow:activationSnapshotPresent false .
+ex:vaultB gmeow:activationVaultIdentity
+        "ffeeddccbbaa99887766554433221100"^^xsd:hexBinary ;
+    gmeow:activationSnapshotPresent true ;
+    gmeow:activationSnapshotIdentity
+        "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"^^xsd:hexBinary ;
+    gmeow:activationSnapshotHeld ex:held .
+ex:zeroActivation a gmeow:QueryReportedActivation ;
+    math:quantityValue "0"^^xsd:unsignedLong .
+ex:held a gmeow:QuerySnapshotHeldCount ;
+    math:quantityValue "0"^^xsd:unsignedLong .
+```
+
+Only A belongs to this candidate's found-vault scope, so its confirmed absence
+requires the aggregate numeric zero; B's present snapshot does not enter that
+scope. B's actual zero held count remains a present snapshot. Another candidate
+found in both A and B retains both found-vault records. The graph does not
+fabricate B's unexported candidate component or recompute the aggregate.
+
+| Fictional reported case | Required treatment |
+| --- | --- |
+| Enabled, present snapshot, actual aggregate zero | Retain the observed zero Quantity; do not infer absence. |
+| Enabled, all nonempty found-vault records have qualified no-first-snapshot absence | Require numeric aggregate zero. This is one direction only. |
+| Disabled, nonempty original candidate set | Retain the complete candidate and snapshot evidence, with no aggregate Quantity edges. |
+| Empty original candidate union | No candidate records; keep actual mode and nonempty selected-call roster. |
+| Wire None without capture-liveness and absence-reason evidence | Fail this selected import, even for an otherwise successful budget-cut response. |
+| Present snapshot missing identity or held count; absent snapshot carrying either | Reject incoherent snapshot fields. |
+| Wrong-width or spaced hex; duplicate roster records with opposite-case spellings of identical bytes | Reject the representation or roster identity conflict. |
+| Missing full quantitative context, orphan typed record, unrelated score or wrong owner roster join | Reject the incomplete or incoherent account. |
+
+Compatible records may share fully coordinated activation or held-count
+Quantities. Control records retain unique account owners; Quantities have
+incoming-owner presence without unique inverse ownership. Aggregate activation,
+held-count and fusion-score frames need not be the same resource even when all
+are explicitly dimensionless and their values happen to agree.
+
+The account retains source-reported aggregates and provenance scope. It does not
+certify native saturating arithmetic, expose per-vault candidate components,
+recover historical snapshots, authenticate source bytes or establish consumer
+adoption. Full applied order still requires actual policy and output occurrences,
+original candidate-array coordinates, complete matched-tier evidence and supplied
+subject tie identity. Native activation-before-score and requested
+score-before-activation remain distinct policies on the same actual application
+and answer. The weighted account's exact declared sum is not a substitute for
+native fixed-point admission, truncation or authenticated execution evidence.
