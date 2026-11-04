@@ -8327,3 +8327,787 @@ msgstr "具备限定依据的 false 状态要求导入前具有实际捕获时�
 msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional candidate found only in confirmed no-first-snapshot vault A has aggregate zero even when another roster-only vault B has a present snapshot."
 msgstr "虚构限定示例：虚构候选项仅在已确认没有首次快照的库 A 中被发现，因此聚合值为零，即使另一个仅在清单中的库 B 具有存在快照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Order Account"
+msgstr "查询已应用排序报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete reported account of the inspected native weighted order on one existing weighted application and its answer, retaining the actual policy, output occurrences, original coordinates and qualified key evidence."
+msgstr "针对一个现有加权应用及其答案的完整已报告记录，描述所检查的原生加权顺序，保留实际策略、输出出现项、原始坐标及具备限定依据的键证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enrich the same actual weighted application, answer and applied scores with complete reported order evidence."
+msgstr "用于为同一实际加权应用、答案及已应用分数补充完整的已报告排序证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing another source call or result, labeling requested score-first precedence as inspected native execution or accepting unavailable witnesses as empty."
+msgstr "避免虚构另一次来源调用或另一个结果、将请求的分数优先顺序标作所检查的原生执行，或将不可获得的见证当作空集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link from the existing application through appliedOrderAccount; provide the actual policy, same-application activation account, supplied native policy fields and every actual output entry."
+msgstr "从现有应用通过 appliedOrderAccount 关联；提供实际策略、属于同一应用的激活报告、所提供的原生策略字段及每个实际输出条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected native contract is tier, activation, score, then source subject tie. Exact matching completeness, supplied subject association and terminal byte-order proof remain mandatory import evidence; graph checks alone do not certify whole-sort execution."
+msgstr "所选原生契约依次采用层级、激活、分数及来源主体并列消解键。精确的匹配完整性、所提供的主体关联及末尾全字节顺序证明仍是必需的导入证据；仅凭图检查不能认证完整排序的执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . The actual existing weighted application, answer and complete reported evidence are omitted."
+msgstr "虚构限定片段：ex:call gmeow:appliedOrderAccount ex:order . 此处省略实际现有加权应用、答案及完整已报告证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Order Entry"
+msgstr "查询已应用排序条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One actual output occurrence of a reported native weighted order, selecting an original applied score and retaining its original unsigned input-array coordinate and separate nonnegative output ordinal."
+msgstr "已报告原生加权顺序中的一个实际输出出现项，选择一个原始已应用分数，并保留其在原始输入数组中的无符号坐标及独立的非负输出序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every original candidate exactly once through the existing applied-score identity."
+msgstr "用于通过现有已应用分数身份，使每个原始候选项恰好保留一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying candidates into replacement identities, substituting original class ranks for output position or treating unique ordinals alone as authenticated source arrays."
+msgstr "避免将候选项复制为替代身份、以原始类别排名替代输出位置，或仅凭序号唯一就将数组视为已经认证的来源数组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide appliedOrderScore, appliedOrderInputPosition, entryOrdinal, appliedOrderTierDeclared and supplied appliedOrderSubjectTie; retain the conditional tier and complete applicable matched witnesses."
+msgstr "提供 appliedOrderScore、appliedOrderInputPosition、entryOrdinal、appliedOrderTierDeclared 及所提供的 appliedOrderSubjectTie；保留条件性层级及完整的适用匹配见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both position collections are separately zero-based, gap-free and unique within the owner account. Actual original-slot and output-slot associations still require authentic source evidence. This record is descriptive information, not another native answer."
+msgstr "两个位置集合在所属报告内各自从零开始、无间断且唯一。实际原始槽位及输出槽位关联仍要求真实来源证据。此记录是描述性信息，不是另一个原生答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry a gmeow:QueryAppliedOrderEntry ; gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required fields, owner and source evidence are omitted."
+msgstr "虚构限定片段：ex:entry a gmeow:QueryAppliedOrderEntry ; gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . 此处省略其他必需字段、所属者及来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Matched Literal Witness"
+msgstr "查询匹配字面量见证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptive qualified record of an actual matched content-predicate IRI and exact literal lexical string for one candidate in one selected vault during the actual tier computation."
+msgstr "在实际层级计算期间，为一个候选项在一个所选库中实际匹配的内容谓词 IRI 及精确字面量词法字符串保留的、具备限定依据的描述性记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain complete actual matched-pair evidence from all selected services, including unmapped predicates and vaults outside the candidate-found activation subset."
+msgstr "用于保留所有所选服务提供的完整实际匹配对证据，包括未映射谓词，以及候选项发现库激活子集之外的库。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing source claim identity, original literal datatype or language, asserting affirmative support from a match or treating activation snapshots as graph-read content."
+msgstr "避免虚构来源断言身份、原始字面量数据类型或语言、从匹配断言肯定支持，或将激活快照视为图读取内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide matchedLiteralVault, matchedLiteralPredicate and exact matchedLiteralLexicalForm, and retain the witness under its one actual output entry."
+msgstr "提供 matchedLiteralVault、matchedLiteralPredicate 及精确的 matchedLiteralLexicalForm，并将见证保留在其唯一实际输出条目下。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual matching follows source short circuits: a nonlexical rank-string match is independently sufficient; applicable remaining lexical branches require successful analysis and match decisions. Preserve supplied repeated occurrences without pair-uniqueness assumptions. Missing applicable evidence fails full import."
+msgstr "实际匹配遵循来源短路规则：与非词法排名字符串匹配本身就足够；其余适用的词法分支要求分析及匹配判定成功。保留所提供的重复出现项，不假定匹配对唯一。缺失适用证据使完整导入失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness a gmeow:QueryMatchedLiteralWitness ; gmeow:matchedLiteralPredicate ex:label ; gmeow:matchedLiteralLexicalForm \"  retained text  \" . The selected vault, owning entry and actual matching evidence are omitted."
+msgstr "虚构限定片段：ex:witness a gmeow:QueryMatchedLiteralWitness ; gmeow:matchedLiteralPredicate ex:label ; gmeow:matchedLiteralLexicalForm \"  retained text  \" . 此处省略所选库、所属条目及实际匹配证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported applied order account"
+msgstr "已报告的应用排序记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one complete native-qualified reported order account selected on an existing actual weighted application."
+msgstr "在现有实际加权应用上选择的、按原生契约限定的完整已报告排序记录，至多一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain actual output order beside the same application’s original weighted result."
+msgstr "用于在同一应用的原始加权结果旁保留实际输出顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a second execution or answer because score and ordering vocabulary are separate."
+msgstr "避免因为分数词汇与排序词汇分开，就创建第二次执行或第二个答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a complete QueryAppliedOrderAccount from the actual QueryWeightedFusionApplication."
+msgstr "从实际 QueryWeightedFusionApplication 引用完整的 QueryAppliedOrderAccount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing applications need not select this profile. Selecting it makes all declared evidence and import requirements mandatory; partial data cannot become a weaker successful account."
+msgstr "现有应用无需选择此配置。一旦选择，所有已声明证据及导入要求均为必需；不完整数据不能变成要求更弱的成功报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:call gmeow:appliedOrderAccount ex:order . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual applied order policy"
+msgstr "实际已应用排序策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing complete QueryOrderPolicy interpreting the actual selected source order under this native-qualified account."
+msgstr "唯一现有且完整的 QueryOrderPolicy，用于在此按原生契约限定的报告中解释实际选择的来源顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual selected criterion prescription and unique predicate mappings."
+msgstr "用于保留实际所选准则规定及谓词不重复的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a native digest as criterion precedence or claiming the source serialized ontology criterion occurrences."
+msgstr "避免将原生摘要视为准则优先顺序，或声称来源已序列化本体准则出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual selected existing policy; require represented tier before activation and score, activation before score and the existing terminal tie."
+msgstr "引用实际选择的现有策略；要求所表示的层级先于激活及分数、激活先于分数，并保留现有末尾并列消解准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An optional empty content criterion is adapter interpretation of the inert native key, not a new source flag or serialized occurrence. Native declared status depends on nonempty actual mappings or selected activation."
+msgstr "可选的空内容准则是适配器对不起作用的原生键的解释，不是新的来源标志或已序列化出现项。原生声明状态取决于实际非空映射或所选激活。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderPolicy ex:nativePolicy . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:order gmeow:appliedOrderPolicy ex:nativePolicy . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order activation account"
+msgstr "已应用排序激活报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing complete activation account associated with the same actual weighted application as a reported order."
+msgstr "与已报告顺序属于同一实际加权应用的唯一现有完整激活报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reuse actual mode, snapshot roster, candidate-found scope and coordinated aggregate Quantities."
+msgstr "用于复用实际模式、快照清单、候选项发现库作用域及已协调的聚合量值载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating aggregate values, replacing them with held counts or linking another call’s activation account."
+msgstr "避免重复聚合值、以已保留激活计数替代聚合值，或关联另一次调用的激活报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the QueryFusionActivationAccount retained by the owner application’s fusionActivationAccount edge."
+msgstr "引用所属应用通过 fusionActivationAccount 边保留的 QueryFusionActivationAccount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Activation criterion selection agrees with actual activationEnabled. Qualified snapshot absence and required capture evidence keep their existing meaning; disabled zero is not measured data."
+msgstr "激活准则选择与实际 activationEnabled 一致。具备限定依据的快照缺失及必需捕获证据保留其现有含义；禁用状态的零不是实测数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderActivationAccount ex:activationAccount . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:order gmeow:appliedOrderActivationAccount ex:activationAccount . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied native policy digest"
+msgstr "已应用原生策略摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual supplied thirty-two-byte native policy identity retained separately from the ontology policy resource and fusion-profile digest."
+msgstr "实际提供的三十二字节原生策略身份，与本体策略资源及融合配置摘要分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source-returned policy bytes under an explicit unspaced either-case representation profile."
+msgstr "用于按显式无空格且大小写均可的表示配置，保留来源返回的策略字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing replacement hashes, authenticating call input from a digest alone or encoding arbitrary criterion precedence into the source identity."
+msgstr "避免计算替代哈希、仅凭摘要认证调用输入，或将任意准则优先顺序编码进来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ from the actual result."
+msgstr "从实际结果提供符合 ^[0-9A-Fa-f]{64}$ 的 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native identity covers mappings and activation selection, not arbitrary precedence. Width checks do not certify hashing or source authenticity; regex dialect residue remains explicit."
+msgstr "原生身份涵盖映射及激活选择，不涵盖任意优先顺序。宽度检查不能认证哈希计算或来源真实性；正则表达式方言的残余限制仍显式保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDigest \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."
+msgstr "虚构限定片段：ex:order gmeow:appliedOrderNativePolicyDigest \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary . 这些字节是虚构值，不是经过认证的原生身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied native policy declared"
+msgstr "已应用原生策略声明状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required actual source Boolean indicating a nonempty predicate-tier mapping vector or selected activation."
+msgstr "必需的实际来源布尔值，表示谓词层级映射向量非空或已选择激活。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve native declared status independently of mandatory ontology score and tie criteria."
+msgstr "用于保留原生声明状态，使其独立于本体中必需的分数及并列消解准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every nonempty QueryOrderPolicy as native declared or using an inert empty content criterion as a source selection flag."
+msgstr "避免将所有非空 QueryOrderPolicy 都视为原生已声明，或将不起作用的空内容准则用作来源选择标志。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual typed Boolean and require true exactly when selected nonempty content mappings or an activation criterion exist."
+msgstr "提供实际带类型布尔值，并要求当且仅当存在所选非空内容映射或激活准则时为 true。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean values compare independently of lexical spelling. Empty mappings skip native tier probing; a score-and-tie policy can legitimately have native declared false."
+msgstr "布尔值的比较独立于词法写法。空映射跳过原生层级探查；仅含分数及并列消解的策略，其原生声明状态可以合法地为 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDeclared false . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:order gmeow:appliedOrderNativePolicyDeclared false . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual applied order entry"
+msgstr "实际已应用排序条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete actual output-entry collection corresponding exactly to the owner application’s original applied scores."
+msgstr "完整实际输出条目集合中的成员，与所属应用的原始已应用分数精确对应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every original candidate and actual output occurrence without filtering."
+msgstr "用于不经过滤地保留每个原始候选项及实际输出出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting scores, adding unrelated entries or accepting a terminal-error stream prefix as a complete batch result."
+msgstr "避免遗漏分数、增加无关条目，或将终止错误之前的流前缀当作完整批次结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference exactly one entry per original applied score with its actual input coordinate and output ordinal."
+msgstr "为每个原始已应用分数恰好引用一个条目，并保留其实际输入坐标及输出序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The collection is empty exactly when the original application’s score collection is empty. Existing original union, queries and losses remain preserved by the weighted answer."
+msgstr "当且仅当原始应用的分数集合为空时，此集合为空。现有原始并集、查询及损失仍由加权答案保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderEntry ex:first, ex:second . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:order gmeow:appliedOrderEntry ex:first, ex:second . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order original score"
+msgstr "已应用排序原始分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing original applied-score resource selected by an actual output entry."
+msgstr "实际输出条目选择的唯一现有原始已应用分数资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original candidate identity and exact source score Quantity without recomputation."
+msgstr "用于保留原始候选项身份及精确来源分数 Quantity，不重新计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a rerank float, unweighted integer score, copied candidate or another application’s score."
+msgstr "避免以重排浮点值、未加权整数分数、复制的候选项或另一应用的分数替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryAppliedFusionScore retained by the account’s actual weighted application."
+msgstr "引用该报告的实际加权应用所保留的 QueryAppliedFusionScore。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The original candidate follows appliedScoreCandidate. Activation lookup joins the existing activation account through this same score, without adding a parallel numeric value or context."
+msgstr "原始候选项沿 appliedScoreCandidate 关联取得。激活查找通过同一个分数连接现有激活报告，不增加平行的数值或上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderScore ex:score . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderScore ex:score . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order original input position"
+msgstr "已应用排序原始输入位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual zero-based u32 coordinate of the entry’s original candidate in the returned whole union’s candidate array."
+msgstr "条目原始候选项在所返回完整并集的候选数组中的实际从零开始 u32 坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original source occurrence position independently of actual output position."
+msgstr "用于独立于实际输出位置，保留原始来源出现位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming host pointer width, reusing a class-local rank or deriving the source coordinate from the output ordinal."
+msgstr "避免假定宿主指针宽度、复用类别局部排名，或从输出序号推导来源坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:unsignedInt from the actual source candidate index and retain entryOrdinal separately."
+msgstr "从实际来源候选索引提供一个 xsd:unsignedInt，并独立保留 entryOrdinal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input coordinates are value-unique and gap-free from zero within the account. Those graph checks cannot authenticate the actual candidate-to-slot association; source evidence remains required."
+msgstr "输入坐标在报告内按值唯一且从零开始无间断。这些图检查不能认证实际候选项与槽位的关联；来源证据仍是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order tier declared"
+msgstr "已应用排序层级声明状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required actual source Boolean distinguishing a declared mapped tier from the undeclared state after every declared u32 label."
+msgstr "必需的实际来源布尔值，区分已声明的映射层级与排在所有已声明 u32 标签之后的未声明状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source Option state without fabricating a numeric missing-tier sentinel."
+msgstr "用于保留来源 Option 状态，不虚构表示缺失层级的数值哨兵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating 4294967295 as undeclared or inferring false from unavailable matched evidence."
+msgstr "避免将 4294967295 视为未声明，或从不可获得的匹配证据推断 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual typed Boolean; true requires one appliedOrderTier supported by complete qualified matched bindings and false forbids a tier edge."
+msgstr "提供实际带类型布尔值；true 要求一个由完整且具备限定依据的匹配映射所支持的 appliedOrderTier，false 则禁止层级边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declared maximum u32 still precedes undeclared. Both stored Boolean values are bound independently for comparisons, so true and 1 or false and 0 remain value-equivalent."
+msgstr "已声明的最大 u32 仍先于未声明状态。两个已存储布尔值独立绑定后比较，因此 true 与 1、false 与 0 仍按值等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared false . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderTierDeclared false . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual declared applied tier"
+msgstr "实际已声明应用层级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional actual declared u32 tier label of an output entry, equal to the minimum selected mapping among its complete actual matched predicates."
+msgstr "输出条目的条件性实际已声明 u32 层级标签，等于其完整实际匹配谓词集合中所选映射的最小值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a declared control-tier label, including 4294967295."
+msgstr "用于保留已声明的控制层级标签，包括 4294967295。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing an undeclared sentinel, treating tier as a magnitude or choosing an unrelated subject predicate as evidence."
+msgstr "避免存储未声明哨兵、将层级视为量值，或选择主体的无关谓词充当证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one xsd:unsignedInt when appliedOrderTierDeclared is true and no edge when false."
+msgstr "当 appliedOrderTierDeclared 为 true 时恰好提供一个 xsd:unsignedInt，为 false 时不提供该边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The stored label equals some matched selected binding and is no greater than every matched selected label. Equal labels on different predicates and tied minimum witnesses are legal."
+msgstr "存储标签等于某个已匹配的所选映射，且不大于每个已匹配的所选标签。不同谓词使用相同标签，以及多个见证并列达到最小值，均合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared true ; gmeow:appliedOrderTier \"4294967295\"^^xsd:unsignedInt . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderTierDeclared true ; gmeow:appliedOrderTier \"4294967295\"^^xsd:unsignedInt . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied source subject tie"
+msgstr "已应用来源主体并列消解键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual separately supplied thirty-two-byte native subject tie identity associated with the original candidate IRI."
+msgstr "与原始候选项 IRI 关联的、实际单独提供的三十二字节原生主体并列消解身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the complete source tie bytes under the unspaced either-case profile."
+msgstr "用于按无空格且大小写均可的配置保留完整来源并列消解字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid hashing or inventing missing bytes, replacing them with IRI lexical order or claiming ordinary hexBinary termLess certifies the native comparator."
+msgstr "避免通过哈希或虚构补全缺失字节、用 IRI 词法顺序替代，或声称普通 hexBinary termLess 可以认证原生比较器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ with actual authenticated subject association and source terminal-order evidence."
+msgstr "提供符合 ^[0-9A-Fa-f]{64}$ 的 xsd:hexBinary，以及实际经过认证的主体关联和来源末尾顺序证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Public Fused omits these bytes. Missing required tie evidence fails this complete import. Width and decoded-value equality do not certify whole-byte ordering, hash authenticity or candidate identity from a collision assumption."
+msgstr "公开 Fused 不提供这些字节。缺失必需的并列消解证据使此完整导入失败。宽度及解码值相等不能认证全字节顺序、哈希真实性，或依据碰撞假设认定的候选项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderSubjectTie \"ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderSubjectTie \"ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100\"^^xsd:hexBinary . 这些字节是虚构值，不是经过认证的原生身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order matched literal witness"
+msgstr "已应用排序匹配字面量见证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete qualified actual matched predicate and lexical-string inventory used for this candidate’s tier computation."
+msgstr "用于此候选项层级计算的、完整且具备限定依据的实际匹配谓词及词法字符串清单中的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every actual matched occurrence across selected services, including unmapped predicates."
+msgstr "用于保留所有所选服务中的每个实际匹配出现项，包括未映射谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting all subject predicates, deleting supplied repetitions or treating a missing inventory as empty or undeclared."
+msgstr "避免用主体的所有谓词替代、删除所提供的重复项，或将缺失清单视为空清单或未声明状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each actual QueryMatchedLiteralWitness when nonempty source mappings select tier computation; retain no invented probe inventory when mappings are empty."
+msgstr "当非空来源映射选择层级计算时，引用每个实际 QueryMatchedLiteralWitness；映射为空时不保留虚构的探查清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vector-string equality independently establishes a pair. Otherwise successful lexical analysis and decision are required only for a true applicable lexical-hit branch. Actual applicable failure rejects full import; unused parsing need not succeed."
+msgstr "向量字符串相等本身即可确立一对匹配。否则，只有适用且词法命中条件为真的分支才要求词法分析及判定成功。实际适用失败会拒绝完整导入；未使用的解析无需成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:entry gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal selected vault"
+msgstr "匹配字面量所选库"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual selected vault identified through an existing roster record for a qualified matched-pair witness."
+msgstr "通过现有清单记录标识的唯一实际所选库，用于具备限定依据的匹配对见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain all-selected-service matching scope independently of candidate-found activation scope."
+msgstr "用于独立于候选项发现库激活作用域，保留所有所选服务的匹配作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting that the witness came from activation snapshot contents or requiring the vault to be in the candidate-found subset."
+msgstr "避免断言见证来自激活快照内容，或要求库属于候选项发现库子集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a record in the same account’s existing activation roster and retain actual same-call graph-read association as import evidence."
+msgstr "引用同一报告的现有激活清单中的记录，并保留实际同次调用的图读取关联作为导入证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Activation snapshot and tier graph read are distinct source contexts. A later read or a read-version reconstruction cannot supply missing actual witness association."
+msgstr "激活快照与层级图读取属于不同来源上下文。后续读取或根据读取版本重建不能补足缺失的实际见证关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralVault ex:rosterOnlyVault . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:witness gmeow:matchedLiteralVault ex:rosterOnlyVault . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal content predicate"
+msgstr "匹配字面量内容谓词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual source content-predicate IRI on a qualified matched literal pair for the original candidate."
+msgstr "原始候选项具备限定依据的匹配字面量对上的唯一实际来源内容谓词 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join actual matching evidence to the selected existing predicate-tier declarations."
+msgstr "用于将实际匹配证据连接至所选现有谓词层级声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the predicate with text, an unrelated subject predicate or a claim of affirmative support."
+msgstr "避免用文本、主体的无关谓词或肯定支持声明替代此谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one actual IRI and compare its resource identity with selected tierBindingPredicate values."
+msgstr "保留一个实际 IRI，并将其资源身份与所选 tierBindingPredicate 值比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native probes include framed, superseded and denied held claims. Matching does not authenticate a predicate, assert a new schema or prove that the claim is positive support."
+msgstr "原生探查包括带框架、已被取代及被否定的已保留断言。匹配不认证谓词、不断言新模式，也不证明该断言构成肯定支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralPredicate ex:label . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:witness gmeow:matchedLiteralPredicate ex:label . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal exact lexical form"
+msgstr "匹配字面量精确词法形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied native literal lexical string of a qualified matched pair, retained as an xsd:string carrier rather than a reconstruction of the original RDF literal."
+msgstr "具备限定依据的匹配对中实际提供的精确原生字面量词法字符串，作为 xsd:string 载体保留，不重建原始 RDF 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve actual text, including significant surrounding whitespace and an actually supplied empty string."
+msgstr "用于保留实际文本，包括有意义的首尾空白及实际提供的空字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming, normalizing, inventing original datatype, language, direction or claim identity, or merging equal-text occurrences."
+msgstr "避免去除首尾空白、规范化、虚构原始数据类型、语言、方向或断言身份，或合并文本相同的出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one exact xsd:string lexical carrier through this specialization of lang:literalValue."
+msgstr "通过此 lang:literalValue 特化提供一个精确的 xsd:string 词法载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The internal probe supplies predicate and lexical text only. Distinct actual supplied occurrences can share these fields; retain their separate descriptive records without fabricating native identifiers."
+msgstr "内部探查只提供谓词及词法文本。实际提供的不同出现项可以共享这些字段；保留其各自描述性记录，不虚构原生标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralLexicalForm \"  retained text  \" . Other required account fields and actual source evidence are omitted."
+msgstr "虚构限定片段：ex:witness gmeow:matchedLiteralLexicalForm \"  retained text  \" . 此处省略其他必需报告字段及实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order account owner law"
+msgstr "已应用排序报告所属者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied-order account has exactly one incoming typed existing weighted application owner."
+msgstr "每个带类型的已应用排序报告恰好具有一个带类型的现有加权应用，作为通过传入关联连接的所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep complete reported order evidence on the same actual source occurrence as its weighted answer."
+msgstr "用于将完整已报告排序证据保留在与其加权答案相同的实际来源出现项上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting orphan accounts, sharing an account across calls or treating inverse ownership as source authentication."
+msgstr "避免接纳无所属者的报告、跨调用共享报告，或将反向所属关系视为来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed weighted application and compare any two such owners by resource equality."
+msgstr "要求存在通过传入关联连接的带类型加权应用，并按资源相等比较任意两个这样的所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The application’s at-most-one order account is a separate local maximum. Existing answer, score and activation ownership obligations remain unchanged."
+msgstr "应用至多拥有一个排序报告，这是独立的局部上限。现有答案、分数及激活的所属义务保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional order account referenced by two distinct weighted applications fails ownership."
+msgstr "虚构限定示例：一个被两个不同加权应用引用的虚构排序报告不满足所属约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order policy context law"
+msgstr "已应用排序策略上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected activation account belongs to the same weighted application, actual activation selection and native declared status agree with the selected policy, and criterion positions preserve inspected native precedence."
+msgstr "所选激活报告属于同一加权应用，实际激活选择及原生声明状态与所选策略一致，且准则位置保留所检查的原生优先顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual native tier-before-activation-before-score prescription without changing existing policy-definition semantics."
+msgstr "用于保留实际原生层级先于激活、激活先于分数的规定，不改变现有策略定义语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid labeling requested score-first execution as inspected native order or treating an inert empty content criterion as a serialized source flag."
+msgstr "避免将请求的分数优先执行标为所检查的原生顺序，或将不起作用的空内容准则视为已序列化来源标志。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the existing application and activation account; compare actual mode by Boolean value; require native declared exactly for nonempty mappings or activation, with tier before score and activation and activation before score."
+msgstr "连接现有应用与激活报告；按布尔值比较实际模式；要求当且仅当映射非空或选择激活时原生状态为已声明，并要求层级先于分数及激活、激活先于分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An optional empty content criterion is adapter interpretation of the inert native key. Actual nonempty source mappings select probing; score and terminal tie alone do not make native policy declared true. Missing actual call-input association fails import."
+msgstr "可选的空内容准则是适配器对不起作用的原生键的解释。实际非空来源映射选择探查；仅有分数及末尾并列消解准则不会使原生策略声明为真。缺失实际调用输入关联使导入失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional activation-before-score result cannot be declared an actual score-before-activation native call merely because its values happen to agree."
+msgstr "虚构限定示例：一个激活先于分数的虚构结果，不能仅因其数值碰巧一致，就被声明为分数先于激活的实际原生调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order source identity law"
+msgstr "已应用排序来源身份定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied native policy identity and the owning application’s existing fusion-profile digest use the selected sixty-four-hex-digit unspaced either-case profile."
+msgstr "所提供的原生策略身份及所属应用现有融合配置摘要采用所选无空格、大小写均可的六十四位十六进制数字配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual thirty-two-byte identity forms without duplicating the existing fusion-profile field."
+msgstr "用于保留实际三十二字节身份形式，不重复现有融合配置字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid synthesizing hashes, treating equal bytes as unique RDF interpretation identity or claiming width authenticates source execution."
+msgstr "避免合成哈希、将相等字节视为唯一 RDF 解释身份，或声称宽度能够认证来源执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind each actual policy or existing profile digest, then apply result-free termRegex with ^[0-9A-Fa-f]{64}$."
+msgstr "通过正向关联绑定每个实际策略摘要或现有配置摘要，再应用不产生结果的 termRegex 及 ^[0-9A-Fa-f]{64}$。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The explicit representation profile is not XSD-canonical normalization and retains regex-dialect residue. Full policy/profile content and actual source association remain import evidence."
+msgstr "显式表示配置不是 XSD 规范形式的规范化，且保留正则表达式方言的残余限制。完整策略及配置内容与实际来源关联仍是导入证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional wrong-width policy digest fails this profile even when its selected policy fields are otherwise coherent."
+msgstr "虚构限定示例：一个宽度错误的虚构策略摘要不符合此配置，即使其所选策略字段在其他方面一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry inventory law"
+msgstr "已应用排序条目清单定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each original applied score has exactly one output entry, every entry selects a score from the same application, and original input positions and output ordinals are separately value-unique."
+msgstr "每个原始已应用分数恰好有一个输出条目，每个条目选择同一应用的分数，且原始输入位置与输出序号分别按值唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the complete candidate collection and both actual occurrence coordinates."
+msgstr "用于保留完整候选项集合及两个实际出现坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filtering candidates, adding unrelated scores or equating input position with output position."
+msgstr "避免过滤候选项、增加无关分数，或将输入位置等同于输出位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require score-to-entry coverage and reverse application-score membership; compare selected scores and independently bound coordinate values to require entry identity where they coincide."
+msgstr "要求条目覆盖所有分数，并反向要求所选分数属于该应用；比较所选分数及独立绑定的坐标值，在其相同时要求条目身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty original union has no output entries but keeps its actual policy and nonempty activation roster. These checks preserve identities without authenticating external array-slot association."
+msgstr "成功的原始空并集没有输出条目，但仍保留实际策略及非空激活清单。这些检查保留身份，不认证外部数组槽位关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-score result with only one output entry fails coverage; distinct entries sharing an input or output position fail uniqueness."
+msgstr "虚构限定示例：一个具有两个分数却仅有一个输出条目的虚构结果不满足覆盖要求；共享输入或输出位置的不同条目不满足唯一性要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order position closure law"
+msgstr "已应用排序位置闭包定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original unsigned input coordinates and nonnegative output ordinals independently enumerate their finite entry collections from zero without gaps."
+msgstr "原始无符号输入坐标及非负输出序号，各自从零开始无间断地枚举其有限条目集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain whole original and actual output arrays rather than merely distinct arbitrary indices."
+msgstr "用于保留完整原始数组及实际输出数组，而不仅是彼此不同的任意索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing class ranks, requiring one lexical spelling of numeric zero or rebinding a stored coordinate as an arithmetic result."
+msgstr "避免复用类别排名、要求数值零只能采用一种词法写法，或将已存储坐标重新绑定为算术结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require zero members whenever entries exist; each positive stored coordinate has a same-account predecessor whose index plus one is freshly bound by result-first termSum and then compared with that stored coordinate."
+msgstr "只要存在条目，就要求存在位置为零的成员；每个正的已存储坐标须有同一报告内的前驱，其索引加一通过结果在首位的 termSum 绑定为新值，再与该已存储坐标比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input positions remain xsd:unsignedInt and output entryOrdinal remains xsd:nonNegativeInteger. The exact score-entry bijection and both predecessor closures avoid a new count property or evaluator; actual slot association still needs source evidence."
+msgstr "输入位置仍为 xsd:unsignedInt，输出 entryOrdinal 仍为 xsd:nonNegativeInteger。精确的分数与条目双射及两种前驱闭包避免新增计数属性或求值器；实际槽位关联仍需要来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional output at positions zero and two fails because position one is absent, even when the original input positions are complete."
+msgstr "虚构限定示例：一个输出位置为零及二的虚构输出因缺少位置一而失败，即使原始输入位置完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry owner law"
+msgstr "已应用排序条目所属者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed actual output entry has exactly one incoming typed applied-order account owner."
+msgstr "每个带类型的实际输出条目恰好具有一个带类型的已应用排序报告，作为通过传入关联连接的所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep each descriptive result occurrence in one actual complete account."
+msgstr "用于将每个描述性结果出现项保留在一个实际完整报告中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated entries or sharing a control occurrence between distinct source calls."
+msgstr "避免接纳孤立条目，或在不同来源调用间共享控制出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed account and compare any two incoming account owners of the same entry."
+msgstr "要求存在通过传入关联连接的带类型报告，并比较同一条目的任意两个传入报告所属者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The referenced score, policy and activation carriers retain their existing ownership and compatible-sharing rules. This law creates no new answer or event."
+msgstr "所引用的分数、策略及激活载体保留其现有所属规则及兼容共享规则。此定律不创建新答案或新事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional typed output entry without an account owner fails even when its score and positions are present."
+msgstr "虚构限定示例：一个没有所属报告的虚构带类型输出条目不满足要求，即使其分数及位置存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry identity law"
+msgstr "已应用排序条目身份定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each output entry’s original candidate is an IRI and its actual supplied subject tie identity has the selected thirty-two-byte unspaced either-case representation."
+msgstr "每个输出条目的原始候选项是 IRI，且其实际提供的主体并列消解身份符合所选三十二字节、无空格且大小写均可的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve inspected native subject admission and complete tie bytes."
+msgstr "用于保留所检查的原生主体准入要求及完整并列消解字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a subject hash, asserting hash collision impossibility as candidate identity or claiming ordinary hexBinary termLess proves native tie order."
+msgstr "避免虚构主体哈希、以哈希碰撞不可能发生来断言候选项身份，或声称普通 hexBinary termLess 能证明原生并列消解顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the existing selected score and appliedScoreCandidate before termIsIri; bind supplied tie bytes before termRegex with ^[0-9A-Fa-f]{64}$."
+msgstr "在 termIsIri 之前连接现有所选分数与 appliedScoreCandidate；在 termRegex 及 ^[0-9A-Fa-f]{64}$ 之前绑定所提供的并列消解字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Public Fused omits tie bytes. Actual subject-byte association and terminal whole-byte ordering evidence remain required at import; missing proof fails the complete selected account."
+msgstr "公开 Fused 不提供并列消解字节。实际主体与字节关联及末尾全字节排序证据仍是必需的导入条件；缺失证明使完整所选报告失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional entry with missing actual tie bytes cannot import as a complete native order by substituting an IRI string or output index."
+msgstr "虚构限定示例：一个缺失实际并列消解字节的虚构条目，不能以 IRI 字符串或输出索引替代这些字节而导入为完整原生顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order tier evidence law"
+msgstr "已应用排序层级证据定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declared tier state coheres with a conditional u32 label equal to the minimum selected binding among the complete actual qualified matched predicates; no-probe cases carry no invented matched inventory."
+msgstr "已声明层级状态与条件性 u32 标签一致，该标签等于完整实际、具备限定依据的匹配谓词中所选映射的最小值；未探查情形不携带虚构匹配清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve declared and undeclared behavior, including the maximum declared u32 label."
+msgstr "用于保留已声明及未声明行为，包括最大已声明 u32 标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a missing-label sentinel, importing unavailable matching evidence as empty or choosing unrelated or incompletely qualified subject predicates."
+msgstr "避免使用缺失标签哨兵、将不可获得的匹配证据作为空集合导入，或选择无关或限定依据不完整的主体谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a tier for true and forbid it for false; true selects a retained matched binding with equal stored label, false forbids mapped matches, and the stored declared label is no greater than every matched selected label."
+msgstr "true 要求层级，false 禁止层级；true 选择一个保留的匹配映射，其标签与存储值相等，false 禁止谓词已映射的匹配，且已存储声明标签不大于每个已匹配的所选标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every witness requires a content criterion with nonempty mappings, but its particular predicate may be unmapped. Empty mappings skip probing. Actual applicable lexical failures reject full import; nonlexical string equality independently establishes a pair."
+msgstr "每个见证都要求内容准则具有非空映射，但其具体谓词可以未映射。空映射跳过探查。实际适用词法失败会拒绝完整导入；非词法字符串相等本身即可确立一对匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional declared tier 4294967295 still precedes undeclared, and a stored tier above another actually matched mapped label fails the minimum law."
+msgstr "虚构限定示例：虚构已声明层级 4294967295 仍先于未声明状态；若存储层级高于另一个实际匹配的映射标签，则违反最小值定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order matched witness law"
+msgstr "已应用排序匹配见证定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each typed qualified matched-pair witness has one actual output-entry owner, an IRI predicate and a vault in that account’s selected activation roster."
+msgstr "每个带类型且具备限定依据的匹配对见证，具有一个实际输出条目所属者、一个 IRI 谓词及一个属于该报告所选激活清单的库。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve all-selected-service matching scope and original lexical evidence without inventing claim identities."
+msgstr "用于保留所有所选服务的匹配作用域及原始词法证据，不虚构断言身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring candidate-found vault membership, equating tier graph reads with activation snapshot content or merging supplied repeated lexical pairs."
+msgstr "避免要求属于候选项发现库集合、将层级图读取等同于激活快照内容，或合并所提供的重复词法对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed entry existence and unique ownership, test the bound predicate with termIsIri and join the actual witness vault to the same account’s selected roster."
+msgstr "要求存在通过传入关联连接的带类型条目且所属唯一，用 termIsIri 检验已绑定谓词，并将实际见证库连接至同一报告的所选清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vault link identifies source scope only. Actual same-call graph-read association and complete applicable matching evidence are import requirements; original datatype, language, direction and claim identity are not reconstructed."
+msgstr "库关联仅标识来源作用域。实际同次调用的图读取关联及完整适用匹配证据是导入要求；不重建原始数据类型、语言、方向或断言身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional witness from selected vault B may justify a tier even when the candidate was found only in vault A; B’s activation snapshot is not its graph-read evidence."
+msgstr "虚构限定示例：来自所选库 B 的虚构见证可以证明某个层级，即使候选项仅在库 A 中被发现；B 的激活快照不是其图读取证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order numeric precedence law"
+msgstr "已应用排序数值优先顺序定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Actual output ordinals preserve inspected native decisive tier, selected activation and score comparisons under value-equal preceding native keys."
+msgstr "当先前原生键按值相等时，实际输出序号保留所检查的原生层级、所选激活及分数的决定性比较顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check finite numeric decisiveness while retaining the actual source terminal tie evidence separately."
+msgstr "用于检查有限的数值决定关系，同时独立保留实际来源末尾并列消解证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid introducing a generic earlier-key interpreter, sharing one RDF literal variable across Boolean or numeric edges, or treating numeric checks as whole-sort certification."
+msgstr "避免引入通用先前键解释器、在布尔或数值边之间共用同一个 RDF 字面量变量，或将数值检查视为完整排序认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declared precedes undeclared and lower declared tier precedes higher directly; greater activation follows value-equal tier state, while greater score follows value-equal tier state and equal selected activation values."
+msgstr "已声明直接先于未声明，较低已声明层级直接先于较高层级；层级状态按值相等后，较大激活优先；层级状态按值相等且所选激活值相等后，较大分数优先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bind both stored Booleans and all compared magnitudes independently before termEqual or termLess. Legal Boolean and numeric lexical aliases remain value-equivalent. Disabled activation creates no zero Quantity; exact byte ordering and source authenticity remain strict import evidence."
+msgstr "在 termEqual 或 termLess 之前，独立绑定两个已存储布尔值及所有待比较量值。合法的布尔及数值词法别名仍按值等价。禁用激活不创建零 Quantity；精确字节顺序及来源真实性仍是严格必需的导入证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional same-tier pair with opposed score and activation preferences follows activation first under this native account; the requested score-first definition remains distinct."
+msgstr "虚构限定示例：同层级的虚构候选对若分数与激活偏好相反，在此原生报告下优先依据激活；请求的分数优先定义仍与之不同。"
