@@ -628,3 +628,87 @@ msgstr "不要替换 indexLocator 文本，不要混淆目标块与 indexConcept
 msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."
 msgstr "将条目关联到每个所提供的 ContentBlock，并保留其原始 indexLocator 及 navigationSource。若提供了目标自己的 navigationSource 及修订依据，应予保留；绝不臆造缺失修订。通过每个 indexTarget 断言确切的原生具体化节点记录归属，不要将记录上的元数据传播到其向外断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verbatim recognizer label"
+msgstr "识别器原样标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact label string a recognizer reported for this original source occurrence, retained as a reading under that recognizer's actual vantage."
+msgstr "识别器为此原始来源出现所报告的确切标签字符串，作为该识别器实际视角下的解读予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence may cross block boundaries and need not be a block-local Mention. The code preserves spelling and case without asserting class membership, a resolved referent, a score or a model run. Competing attributed labels may coexist."
+msgstr "此出现可以跨越多个块的边界，不必是限定在单个块内的 Mention。代码保留其拼写和大小写，不断言类成员关系、已解析的指称对象、分数或模型运行。带有归属信息的相互竞争的标签可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "With its actual recognizer vantage retained on the statement, record ex:occ gmeow:recognizerLabel \"PERSON\" ."
+msgstr "在语句上保留识别器的实际视角，并记录 ex:occ gmeow:recognizerLabel \"PERSON\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a recognizer's supplied label for the exact occurrence it recognized."
+msgstr "用于保留识别器为其所识别的确切出现提供的标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the code as an entity name, GMEOW class assertion or resolved identity, or copying the original occurrence's label to fragments as if each were independently recognized."
+msgstr "避免将代码用作实体名称、GMEOW 类断言或已解析的身份，也不要将原始出现的标签复制到片段上，仿佛每个片段都被独立识别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied xsd:string to the original EvidenceSpan occurrence and retain the actual recognizer vantage on that exact RDF 1.2 statement. Keep unavailable metadata absent and preserve separate attributed readings."
+msgstr "将所提供的 xsd:string 附于原始 EvidenceSpan 出现，并在该条确切的 RDF 1.2 语句上保留识别器的实际视角。不可得的元数据保持缺失，并保留彼此独立且带有归属信息的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported parse of occurrence root token"
+msgstr "出现根词元的报告解析"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied TokenParseReport about the parser-selected root token of this original recognized occurrence, under the report's actual analysis context."
+msgstr "所提供的 TokenParseReport，描述解析器为此原始识别出现选择的根词元，并保留报告的实际分析上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence is not equated with its root token. The report can retain supplied syntax without a token identifier, token position, composed form or head slot. Several attributed reports may describe the same occurrence."
+msgstr "此出现不等同于其根词元。报告可以在没有词元标识符、词元位置、组合形式或中心词槽位的情况下保留所提供的句法信息。多个带有归属信息的报告可以描述同一出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+msgstr "记录 ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recognizer supplies syntax for the root token of an occurrence without supplying a composed-form slot tree."
+msgstr "用于识别器提供某个出现的根词元句法信息，却未提供组合形式槽位树的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the occurrence as a token or assuming its original root is the root of every block-local fragment."
+msgstr "避免将出现视为词元，也不要假定其原始根词元是每个块内片段的根词元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original occurrence to the supplied report, retain the report's parseInAnalysis and actual recognizer attribution, and keep competing reports distinct. Do not manufacture token or head identities."
+msgstr "将原始出现链接到所提供的报告，保留报告的 parseInAnalysis 和识别器的实际归属信息，并使相互竞争的报告保持独立。不要虚构词元或中心词的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occurrence in analysis input"
+msgstr "分析输入中的出现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Identifies the Analysis whose selected input text is the context of this reported original occurrence."
+msgstr "标识所选输入文本构成此报告原始出现上下文的 Analysis。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects the input context of the named analysis; it does not make the Analysis result a text carrier. It supplies no input bytes, offset conversion or authentication, and multiple attributed analysis contexts may coexist."
+msgstr "此关系选择所指分析的输入上下文，不会将 Analysis 结果变成文本载体。它不提供输入字节、偏移转换或认证，多个带有归属信息的分析上下文可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:occurrenceInAnalysisInput ex:analysis while retaining the supplied input-context descriptors on ex:analysis."
+msgstr "记录 ex:occ gmeow:occurrenceInAnalysisInput ex:analysis，并在 ex:analysis 上保留所提供的输入上下文描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which analysis input a recognizer's original occurrence report concerns."
+msgstr "用于保留识别器的原始出现报告所涉及的分析输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the containing block for a larger analysis input, treating Analysis as source text, or inferring coordinates in another context."
+msgstr "避免用包含该出现的块替代更大范围的分析输入、将 Analysis 视为来源文本，或推断另一上下文中的坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."
+msgstr "将出现链接到实际提供的 Analysis 上下文，并在该上下文上保留所提供的来源键、构造和粒度描述。为每个关联保留归属信息，不要强制将该出现的所有报告归入同一个分析。"

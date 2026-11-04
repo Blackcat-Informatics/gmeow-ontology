@@ -207,3 +207,35 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## Reported token syntax
+
+`lang:TokenParseReport` retains supplied syntax for one token within one
+`lang:Analysis` when a composed-form slot structure is unavailable.
+It is a descriptive result record, not a token identity, FormSlot, Form,
+denotation-bearing Reading, or AnalysisOutput requiring a canonicalization
+profile.
+
+Each report has one actual `lang:parseInAnalysis`. Its optional fields are:
+
+| Property | Supplied value |
+| --- | --- |
+| `lang:reportedDependencyLabel` | Exact dependency code as `xsd:string`, without an inferred FormRole or Universal Dependencies alignment. |
+| `lang:reportedHeadText` | Complete head-word string literal, including supplied language and direction, without creating a head token or slot. |
+| `lang:reportedSentenceIndex` | Reported integer sentence index in the analysis input, without an assumed origin or sentence convention. |
+
+The three fields are individually at most one per report and may remain
+absent. Distinct analysis contexts use distinct reports, even when their
+values agree. These local constraints do not make the properties globally
+functional.
+
+All three literal fields specialize `lang:literalValue`. The dependency code
+retains spelling and case; the head text admits plain, language-tagged and
+RDF 1.2 directional strings; the sentence index remains the supplied integer.
+It is not converted to `entryOrdinal`, a code-point offset or a sentence
+object.
+
+This report model preserves partial supplied information without weakening
+FormSlot's constituent identity or `lang:inAnalysis`'s existing subject
+contract. It neither constructs a dependency tree nor establishes that input
+bytes or a historical execution have been verified.

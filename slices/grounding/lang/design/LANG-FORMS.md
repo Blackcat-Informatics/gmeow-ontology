@@ -216,3 +216,31 @@ manifesto's grafting posture and the greenfield principle:
 
 The migration is **executed** — with each grafted term passing the affected slices'
 tests and the regenerated bundle, never a big-bang rename.
+
+## Descriptive reports outside the form tree
+
+`lang:TokenParseReport` is a standalone Class and Kind for reported token
+syntax. Its identity is the result record's identity, not the token's or
+form's structural identity. It carries no Form superclass and does not
+inherit a slot index, sibling-head reference, sign system, denotation,
+canonicalization profile or execution event.
+
+One required `lang:parseInAnalysis` scopes each report. Its optional
+dependency label, head wording and sentence index remain paired on that
+record, with local value restrictions and qualified maxima. The dependency
+code is retained as supplied rather than promoted to a FormRole or external
+alignment. Head wording preserves its complete literal without inventing a
+head identity. Unknown sentence conventions remain unknown.
+
+This is descriptive evidence about a parse, not a second form AST.
+The composed-form and FormSlot contracts remain intact, and
+`lang:inAnalysis` is not widened to admit a different subject category.
+Competing analyses use separate report records; no equality law merges them
+because they concern the same occurrence or report equal values
+(Principles 4, 9 and 19).
+
+The required context uses canonical all-values, closure and qualified
+maximum axioms. Optional fields have no required-path closures, and literal
+maxima use datatype qualifiers. The generated validation view follows these
+axioms without a hand-authored shape or global functional-property claim
+(Principle 17).

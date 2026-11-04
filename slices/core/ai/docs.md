@@ -363,3 +363,38 @@ actual RDF 1.2 syntax and explicit reifier evidence through the existing path.
 Use the established type and subproperty closure before inherited facet
 validation, and completed statement-metadata lowering before its component
 binding laws. No execution or authenticity is claimed by the declarations.
+
+## Reported analysis inputs
+
+An existing `lang:Analysis` can retain the supplied context of the unit it
+read without becoming an input text artifact or model invocation.
+
+| Property | Descriptive input context |
+| --- | --- |
+| `analysisFirstChunkKey` | Supplied first source-chunk integer key. |
+| `analysisLastChunkKey` | Supplied last source-chunk integer key. |
+| `analysisChapterKey` | Supplied integer chapter or grouping key affecting selection. |
+| `analysisChunkKeyFrame` | Supplied string describing the source-key namespace or indexing convention. |
+| `analysisInputConstruction` | Supplied string description of assembly conventions, retaining language and direction. |
+| `analysisSourceContext` | An actually identified source InformationObject associated with the keys or selection. |
+
+These fields are optional. The first, last and chapter keys are individually
+at most one per Analysis; frame and construction descriptions and
+source-context links can coexist as supplied. Unknown conventions and missing
+metadata stay absent. The literal properties specialize `lang:literalValue`.
+
+Reuse `hasGranularity` with the open individuals `granularityChunk`,
+`granularityPassage` and `granularityChapter`. These are resolution values,
+not per-level classes, fixed text sizes or a universal `coarserThan` ladder.
+Other attributed granularity values remain coequal.
+
+A source key is not a ChunkingMember's zero-based `entryOrdinal` or a
+`spanStart`/`spanEnd` code-point bound. The descriptors impose no global key
+origin, inclusive or exclusive endpoint convention, continuity or numeric
+ordering. They do not establish that a carried retrieval chunk contains the
+original analyzer input.
+
+Construction prose is not an executable profile or historical-byte witness.
+A source-context link requires no invented artifact or digest. These fields
+retain the reported unit's context; they do not reconstruct input text,
+authenticate its bytes or perform coordinate conversion.

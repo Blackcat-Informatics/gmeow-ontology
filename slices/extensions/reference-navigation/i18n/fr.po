@@ -628,3 +628,87 @@ msgstr "Éviter de remplacer le texte d’indexLocator, de confondre un bloc cib
 msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."
 msgstr "Relier l’entrée à chaque ContentBlock fourni et conserver son indexLocator original et sa navigationSource. Préserver la navigationSource propre à la cible et les éléments probants de sa révision lorsqu’ils sont fournis ; ne jamais fabriquer une révision manquante. Attribuer chaque assertion indexTarget par son réificateur natif exact plutôt que propager les métadonnées d’un enregistrement à ses assertions sortantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verbatim recognizer label"
+msgstr "étiquette du reconnaisseur conservée à l’identique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact label string a recognizer reported for this original source occurrence, retained as a reading under that recognizer's actual vantage."
+msgstr "La chaîne d’étiquette exacte qu’un reconnaisseur a rapportée pour cette occurrence source originale, conservée comme une lecture selon le point de vue réel de ce reconnaisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence may cross block boundaries and need not be a block-local Mention. The code preserves spelling and case without asserting class membership, a resolved referent, a score or a model run. Competing attributed labels may coexist."
+msgstr "L’occurrence peut traverser les limites de plusieurs blocs et ne doit pas nécessairement être une Mention locale à un bloc. Le code conserve son orthographe et sa casse sans affirmer une appartenance à une classe, un référent résolu, un score ou une exécution de modèle. Des étiquettes attribuées concurrentes peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "With its actual recognizer vantage retained on the statement, record ex:occ gmeow:recognizerLabel \"PERSON\" ."
+msgstr "En conservant le point de vue réel du reconnaisseur sur l’énoncé, consigner ex:occ gmeow:recognizerLabel \"PERSON\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a recognizer's supplied label for the exact occurrence it recognized."
+msgstr "Utiliser pour conserver l’étiquette fournie par un reconnaisseur pour l’occurrence exacte qu’il a reconnue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the code as an entity name, GMEOW class assertion or resolved identity, or copying the original occurrence's label to fragments as if each were independently recognized."
+msgstr "Éviter d’utiliser le code comme nom d’entité, affirmation de classe GMEOW ou identité résolue, ou de copier l’étiquette de l’occurrence originale sur des fragments comme si chacun avait été reconnu indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied xsd:string to the original EvidenceSpan occurrence and retain the actual recognizer vantage on that exact RDF 1.2 statement. Keep unavailable metadata absent and preserve separate attributed readings."
+msgstr "Attacher la chaîne xsd:string fournie à l’occurrence EvidenceSpan originale et conserver le point de vue réel du reconnaisseur sur cet énoncé RDF 1.2 exact. Laisser absentes les métadonnées indisponibles et préserver les lectures attribuées distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported parse of occurrence root token"
+msgstr "analyse rapportée du token racine de l’occurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied TokenParseReport about the parser-selected root token of this original recognized occurrence, under the report's actual analysis context."
+msgstr "Un TokenParseReport fourni concernant le token racine sélectionné par l’analyseur pour cette occurrence reconnue originale, dans le contexte d’analyse réel du rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence is not equated with its root token. The report can retain supplied syntax without a token identifier, token position, composed form or head slot. Several attributed reports may describe the same occurrence."
+msgstr "L’occurrence n’est pas assimilée à son token racine. Le rapport peut conserver la syntaxe fournie sans identifiant de token, position de token, forme composée ni emplacement de tête. Plusieurs rapports attribués peuvent décrire la même occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+msgstr "Consigner ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recognizer supplies syntax for the root token of an occurrence without supplying a composed-form slot tree."
+msgstr "Utiliser lorsqu’un reconnaisseur fournit la syntaxe du token racine d’une occurrence sans fournir d’arbre d’emplacements de forme composée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the occurrence as a token or assuming its original root is the root of every block-local fragment."
+msgstr "Éviter de traiter l’occurrence comme un token ou de supposer que sa racine originale est celle de chaque fragment local à un bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original occurrence to the supplied report, retain the report's parseInAnalysis and actual recognizer attribution, and keep competing reports distinct. Do not manufacture token or head identities."
+msgstr "Relier l’occurrence originale au rapport fourni, conserver le parseInAnalysis du rapport et l’attribution réelle au reconnaisseur, et garder distincts les rapports concurrents. Ne pas fabriquer d’identités de token ou de tête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occurrence in analysis input"
+msgstr "occurrence dans l’entrée de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Identifies the Analysis whose selected input text is the context of this reported original occurrence."
+msgstr "Identifie l’Analysis dont le texte d’entrée sélectionné constitue le contexte de cette occurrence originale rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects the input context of the named analysis; it does not make the Analysis result a text carrier. It supplies no input bytes, offset conversion or authentication, and multiple attributed analysis contexts may coexist."
+msgstr "Cette relation sélectionne le contexte d’entrée de l’analyse nommée ; elle ne fait pas du résultat Analysis un support de texte. Elle ne fournit ni octets d’entrée, ni conversion de positions, ni authentification, et plusieurs contextes d’analyse attribués peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:occurrenceInAnalysisInput ex:analysis while retaining the supplied input-context descriptors on ex:analysis."
+msgstr "Consigner ex:occ gmeow:occurrenceInAnalysisInput ex:analysis en conservant les descripteurs de contexte d’entrée fournis sur ex:analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which analysis input a recognizer's original occurrence report concerns."
+msgstr "Utiliser pour conserver l’entrée d’analyse concernée par le rapport d’occurrence originale d’un reconnaisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the containing block for a larger analysis input, treating Analysis as source text, or inferring coordinates in another context."
+msgstr "Éviter de substituer le bloc contenant à une entrée d’analyse plus large, de traiter Analysis comme du texte source ou d’inférer des coordonnées dans un autre contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."
+msgstr "Relier l’occurrence au contexte Analysis réel fourni et y conserver tous les descripteurs de clés source, de construction et de granularité fournis. Attribuer chaque association sans imposer une seule analyse à tous les rapports de l’occurrence."
