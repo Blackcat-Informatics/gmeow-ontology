@@ -166,7 +166,7 @@ fn cardinality_accepts_the_complete_native_count_domain() {
     }
 }
 
-/// Native integer and rational interpretations retain exact cross-datatype equality.
+/// Native numbers retain exact equality while digest values retain algorithm identity.
 #[test]
 fn native_literal_membership_and_equality_preserve_large_exact_values() {
     let integer = TermValue::Literal {
@@ -198,7 +198,11 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
     // rejects malformed lexicals instead of repairing or cross-typing them.
     let sha_hex = crate::obligations::candidate_source_hash("native SHA-256 value");
     let md5_hex = "d41d8cd98f00b204e9800998ecf8427e";
-    for (datatype, hex) in [(SHA256_DIGEST, sha_hex.as_str()), (MD5_DIGEST, md5_hex)] {
+    for (datatype, hex) in [
+        (SHA256_DIGEST, sha_hex.as_str()),
+        (BLAKE3_256_DIGEST, sha_hex.as_str()),
+        (MD5_DIGEST, md5_hex),
+    ] {
         let digest = TermValue::typed_literal(hex, datatype);
         let interpreted = values.literal(&digest);
         assert_eq!(interpreted.named_datatype(datatype), Some(true));
@@ -220,6 +224,8 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
             assert_eq!(interpreted.named_datatype(other_datatype), Some(false));
             assert_eq!(values.literal(&other).named_datatype(datatype), Some(false));
         }
+        let foreign = TermValue::typed_literal(hex, "urn:foreign");
+        assert_eq!(values.same_value(&digest, &foreign), None);
         assert_eq!(interpreted.named_datatype("urn:foreign"), None);
         assert_eq!(interpreted.facet_length(), None);
         assert_eq!(interpreted.facet_order(&interpreted), None);
@@ -247,8 +253,19 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
             assert_eq!(values.literal(&invalid).named_datatype(datatype), None);
         }
     }
-    let sha = TermValue::typed_literal(sha_hex, SHA256_DIGEST);
+    let sha = TermValue::typed_literal(&sha_hex, SHA256_DIGEST);
+    let blake3 = TermValue::typed_literal(&sha_hex, BLAKE3_256_DIGEST);
     let md5 = TermValue::typed_literal(md5_hex, MD5_DIGEST);
+    assert_eq!(values.same_value(&sha, &blake3), Some(false));
+    assert_eq!(values.same_value(&blake3, &sha), Some(false));
+    assert_eq!(
+        values.literal(&sha).named_datatype(BLAKE3_256_DIGEST),
+        Some(false)
+    );
+    assert_eq!(
+        values.literal(&blake3).named_datatype(SHA256_DIGEST),
+        Some(false)
+    );
     assert_eq!(values.same_value(&sha, &md5), Some(false));
     assert_eq!(values.literal(&sha).named_datatype(MD5_DIGEST), Some(false));
     assert_eq!(

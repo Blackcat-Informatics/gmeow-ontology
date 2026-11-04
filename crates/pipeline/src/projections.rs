@@ -64,8 +64,8 @@ impl DigestAlgorithm {
     /// Return the RDF datatype identity owned by the selected digest algorithm.
     pub(crate) fn datatype(self) -> &'static str {
         match self {
-            Self::Blake3 => "https://blackcatinformatics.ca/gmeow/blake3_256Digest",
-            Self::Sha256 => "https://blackcatinformatics.ca/gmeow/sha256Digest",
+            Self::Blake3 => gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
+            Self::Sha256 => gmeow_logic_compile::literal_datatypes::SHA256_DIGEST,
             Self::Md5 => gmeow_logic_compile::literal_datatypes::MD5_DIGEST,
         }
     }
@@ -114,22 +114,25 @@ impl DigestAlgorithm {
     /// Reject noncanonical digest lexicals using the selected algorithm's admission rules.
     pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
         let width = if self == Self::Md5 { 32 } else { 64 };
-        let valid = if self == Self::Sha256 {
-            gmeow_logic_compile::literal_datatypes::Sha256Digest::from_canonical_hex(lexical)
-                .is_some()
-        } else if self == Self::Md5 {
-            gmeow_logic_compile::literal_datatypes::Md5Digest::from_parts(
+        let valid = match self {
+            Self::Blake3 => gmeow_logic_compile::literal_datatypes::Blake3Digest::from_parts(
                 lexical,
                 self.datatype(),
                 None,
                 None,
             )
-            .is_some()
-        } else {
-            lexical.len() == width
-                && lexical
-                    .bytes()
-                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            .is_some(),
+            Self::Sha256 => {
+                gmeow_logic_compile::literal_datatypes::Sha256Digest::from_canonical_hex(lexical)
+                    .is_some()
+            }
+            Self::Md5 => gmeow_logic_compile::literal_datatypes::Md5Digest::from_parts(
+                lexical,
+                self.datatype(),
+                None,
+                None,
+            )
+            .is_some(),
         };
         if !valid {
             return Err(digest_error(format!(
