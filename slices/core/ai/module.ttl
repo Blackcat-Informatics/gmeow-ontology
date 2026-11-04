@@ -2719,3 +2719,15 @@ gmeow:chunkInDivision
     gmeow:useWhen "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."@x-gmeow-english ;
     gmeow:howToUse "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."@x-gmeow-english .
+
+gmeow:granularityWork
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "whole-work input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at whole-work resolution under its source's work convention."@x-gmeow-english ;
+    skos:scopeNote "This resolution value does not create or identify an abstract Work or a particular realization. A whole file or document does not establish whole-work scope. The value does not authenticate complete coverage or imply that every edition, language or realization was read."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityWork only when whole-work input granularity was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."@x-gmeow-english .
