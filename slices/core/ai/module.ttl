@@ -2731,3 +2731,92 @@ gmeow:granularityWork
     gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."@x-gmeow-english ;
     gmeow:howToUse "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."@x-gmeow-english .
+
+gmeow:chunkerName
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker name"@x-gmeow-english ;
+    skos:definition "The exact name supplied for the chunker associated with this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional text preserves a reported label, not an executable identity or proof that a named implementation ran. Equal names do not identify algorithms, rules artifacts or chunkings."@x-gmeow-english ;
+    skos:example "Retain supplied wording: ex:segmentation gmeow:chunkerName \"Outline cutter\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a chunker name for the recorded segmentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a name from the rules artifact, normalizing its spelling or treating it as a callable signature, model run or preferred implementation."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied string with its original lexical form, language and direction on the actual Chunking. Retain exact-statement attribution and leave a missing name absent."@x-gmeow-english .
+
+gmeow:chunkerVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker version"@x-gmeow-english ;
+    skos:definition "The exact version wording supplied for the chunker associated with this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional text imposes no version grammar, ordering or identity rule. It neither replaces the frozen rules-artifact digest nor pairs every reported name with every version or parameter map."@x-gmeow-english ;
+    skos:example "Retain supplied wording: ex:segmentation gmeow:chunkerVersion \"edition amber\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies version wording for the recorded chunker."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a missing version, parsing it as a numeric magnitude or using a name and version as proof of implementation identity or execution."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete supplied string and its exact-statement source and viewpoint. Keep the actual rules artifact and its selected digest pin separately; leave unknown version information absent."@x-gmeow-english .
+
+gmeow:chunkerParameters
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range gmeow:StructuredMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker parameters"@x-gmeow-english ;
+    skos:definition "A supplied map occurrence retaining the descriptive parameter strings reported for this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation selects a StructuredMap of exact string keys and descriptive text values. A typed empty map differs from an absent map. Independent maps remain separate; the relation asserts neither executable arguments nor a complete external inventory."@x-gmeow-english ;
+    skos:example "Link a supplied map: ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each supplied parameter key and its descriptive string as queryable graph content for a Chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an opaque JSON blob, keys turned into predicates, numeric coercion, invented units or order, or replacing the actual rules artifact with these descriptions."@x-gmeow-english ;
+    gmeow:howToUse "Link the Chunking to each supplied StructuredMap. Retain one LabelledFacet per entry with its exact xsd:string facetLabel and complete facetText; preserve attribution, empty strings and any supplied language or direction without inventing ordinals."@x-gmeow-english .
+
+gmeow:ChunkerParameterTextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter descriptive text"@x-gmeow-english ;
+    skos:definition "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText."@x-gmeow-english ;
+    skos:scopeNote "The requirement is scoped to selected chunker maps. Generic label-only facets remain valid elsewhere; an empty parameter map requires no invented entry."@x-gmeow-english ;
+    skos:example "A selected map entry retains ex:entry gmeow:facetText \"Keep headings together.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a selected parameter entry whose descriptive value is missing."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with a null, typed numeric value, nested payload or fabricated empty string."@x-gmeow-english ;
+    gmeow:howToUse "Follow chunkerParameters and hasFacet, then require facetText on each supplied entry. Reuse the existing text range, functionality and payload-exclusion laws without changing generic facet semantics."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:facetText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+gmeow:ChunkerParameterKeyDatatypeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter exact string key"@x-gmeow-english ;
+    skos:definition "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype."@x-gmeow-english ;
+    skos:scopeNote "This checks the original literal datatype without trimming, retyping or interpreting the key. Empty string keys remain valid; generic maps retain their existing key types."@x-gmeow-english ;
+    skos:example "A supplied plain key remains ex:entry gmeow:facetLabel \"section policy\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that selected chunker parameter keys retain the source string datatype."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting token, language-tagged, numeric or resource keys by converting them into strings."@x-gmeow-english ;
+    gmeow:howToUse "Bind each selected entry and its facetLabel, then compare the label's datatype component with xsd:string through termSameComponent. Keep the supplied term unchanged and report a mismatch."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] , [ logic:termIndex 3 ; logic:termVariable "key" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:string ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .
+
+gmeow:ChunkerParameterKeyUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter map key uniqueness"@x-gmeow-english ;
+    skos:definition "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term."@x-gmeow-english ;
+    skos:scopeNote "The comparison is local to one selected map and uses whole-term identity for both keys and entry occurrences. Equal keys in different maps remain independent; no identity merge or preferred value follows."@x-gmeow-english ;
+    skos:example "Two different entries of ex:parameters cannot both carry the same complete facetLabel literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate key occurrences within a supplied chunker parameter map."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid global key uniqueness, key-derived entry identities, sameAs merging, last-value selection or SPARQL value equality in place of RDF term identity."@x-gmeow-english ;
+    gmeow:howToUse "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] , [ logic:termIndex 3 ; logic:termVariable "other" ] , [ logic:termIndex 4 ; logic:termVariable "key" ] , [ logic:termIndex 5 ; logic:termVariable "otherKey" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "key" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "otherKey" ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termVariable "otherKey" ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termVariable "other" ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .

@@ -464,3 +464,46 @@ No fixed text size, source selection, default, required metadata or universal
 `coarserThan` relationship follows from this value. Existing Chunk and Chunking
 carrier, source, extent and digest obligations remain in force (Principles 4,
 9, 11 and 19).
+
+## Reported chunker descriptors
+
+`chunkerName` and `chunkerVersion` retain the exact supplied name and version
+wording on a Chunking. Both are optional and nonfunctional. Preserve each complete
+string and its supplied language or direction; unknown wording stays absent.
+These labels do not identify an executable implementation or define a version
+grammar, and equal names or versions do not identify the same algorithm.
+
+`chunkerParameters` links the result to a supplied `StructuredMap` occurrence.
+Its entries use existing `hasFacet`, `LabelledFacet`, `facetLabel` and
+`facetText`, so keys and complete descriptive strings remain queryable:
+
+```turtle
+ex:segmentation gmeow:chunkerName "Outline cutter" ;
+    gmeow:chunkerVersion "edition amber" ;
+    gmeow:chunkerParameters ex:parameters .
+ex:parameters a gmeow:StructuredMap ; gmeow:hasFacet ex:entry .
+ex:entry a gmeow:LabelledFacet ;
+    gmeow:facetLabel "section policy" ;
+    gmeow:facetText "Keep headings together." .
+```
+
+The snippet illustrates descriptors; the existing result's source, frozen rules
+artifact, digest pins and granularity obligations remain in force. Descriptions
+neither replace that artifact nor certify that a chunker ran or that an external
+parameter inventory was completely imported.
+
+Within each selected map, every entry requires descriptive `facetText` and an
+exact `xsd:string` key. Different entry occurrences cannot share the same complete
+RDF key term in that map. A conflict is retained and reported, never resolved by
+merging entries or choosing a last value. The same key in different maps remains
+independent. Generic maps and label-only facets keep their existing semantics.
+
+Preserve empty keys and strings. A supplied typed empty map has no entries;
+an absent map makes no empty-map assertion. Retain original case, spacing and
+punctuation without token retyping, number extraction, unit assignment or
+invented ordinals. Transport sorting is not source order. Several attributed
+name, version and map claims do not create a cross-product identity or pairing.
+
+The [chunking design](design/CHUNKING.md#reported-chunker-descriptors) records
+the scoped laws and the existing first-class map model (Principles 2, 4, 9, 11,
+12, 17 and 19).
