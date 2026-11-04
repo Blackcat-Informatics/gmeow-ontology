@@ -2302,3 +2302,32 @@ msgstr "Éviter d’inférer l’identité d’un chapitre, l’ordre des chapit
 msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."
 msgstr "Conserver cet individu par hasGranularity avec tous les descripteurs de contexte source et de clé de chapitre fournis. Préserver les autres résolutions attribuées sans fusionner leurs conventions."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk in source division"
+msgstr "fragment dans une division source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source division containing the whole particular occurrence of source content represented by this Chunk under the supplied segmentation."
+msgstr "La division source contenant la totalité de l’occurrence particulière du contenu source représentée par ce Chunk dans la segmentation fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is optional and nonfunctional; nested divisions genuinely containing the whole occurrence can coexist. It specializes broad partOf without changing chunkOf or making a Chunk a structural ContentSegment. Recording containment does not prove it, compute a nearest ancestor or convert coordinates."
+msgstr "La relation est facultative et non fonctionnelle ; des divisions imbriquées contenant réellement toute l’occurrence peuvent coexister. Elle spécialise le partOf général sans modifier chunkOf ni faire d’un Chunk un ContentSegment structurel. Consigner la contenance ne la prouve pas, ne calcule pas l’ancêtre le plus proche et ne convertit aucune coordonnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#example"
+msgid "With actual attribution retained, record ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . The section contains the whole represented source occurrence."
+msgstr "En conservant l’attribution réelle, consigner ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . La section contient toute l’occurrence source représentée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."
+msgstr "Utiliser lorsqu’une source ou une analyse attribuée fournit une division contenant toute l’occurrence de contenu source représentée par un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."
+msgstr "Éviter de l’utiliser pour une division seulement intersectée, une formulation identique ailleurs, une association arbitraire ou la division sur laquelle porte un résumé généré sans contenance réelle de tout le contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."
+msgstr "Relier le Chunk concerné à chaque ContentSegment fourni comme contenant, en conservant la source réelle et l’attribution de l’assertion exacte. Préserver tout contexte inChunking existant et laisser inchangés chunkOf, les bornes d’étendue et les ancrages de source et d’empreinte ; ne pas inventer un conteneur inconnu."

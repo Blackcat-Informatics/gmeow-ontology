@@ -233,3 +233,49 @@ qualified maxima on Analysis; no required-path closure is added for these
 descriptors. Existing literal ranges and canonical logic axioms provide their
 value contracts without a new input class, global functional carrier or
 hand-authored shape (Principle 17).
+
+## Whole-content division containment
+
+`chunkInDivision` directly asserts that a source division contains the
+whole particular occurrence of source content represented by a Chunk. Its
+ContentSegment target is a genuine containing source division, not a convenient
+topic, a merely intersected division or identical wording elsewhere. The
+relation is optional and nonfunctional; supplied nested containers may coexist
+without a unique or nearest choice.
+
+Whole-content containment justifies the broad `partOf` superproperty. That
+information-content parthood leaves the Chunk's retrieval identity intact;
+it does not type the subject as a structural ContentSegment or ContentBlock.
+The relation therefore does not specialize `segmentOf` or `blockOf`. Its
+own declaration has no transitive characteristic or property chain, even
+though generic `partOf` retains its existing transitivity.
+
+`chunkOf` continues to name the actual text carrier and coordinate origin.
+For a ChunkingMember it must still equal the selected `chunkingSource`.
+Source and rules-artifact digest pins, member ordinals, span bounds,
+BlockExtent origins and every existing boundary law remain unchanged.
+If a division genuinely is that carrier, both relations may name it; a
+division link alone never rebinds the carrier or converts coordinates.
+
+When a chunk crosses divisions, a child containing only part of its occurrence
+is not a whole-chunk container. A supplied common ancestor qualifies only
+when it genuinely contains the entire occurrence. The vocabulary chooses no
+ancestor and adds no default when that information is absent. Existing
+covered-block and structural-parent joins can expose candidate divisions,
+but neither those joins nor represented extents supply an exhaustive source
+inventory or a universal nearest-container policy.
+
+The assertion preserves a supplied containment claim with its actual source,
+segmentation and exact-statement attribution. It requires no new division
+extent record merely to state the claim and establishes no solver-verified
+geometry, byte authentication or executed selection algorithm. A separately
+requested containment computation would need its own complete inputs and
+proof contract; the declarative link is not that operation.
+
+A generated summary remains distinct from the source content it summarizes.
+Its original subject division is not automatically a container of the new
+summary-text occurrence. Even when Summary and Chunk genuinely share a node,
+retain derivation or summarized-subject information separately from the
+actual carrier and any actual containing division. No new summary relation,
+identity merger or structural inference follows from this containment term
+(Principles 2, 4, 7, 9, 17 and 19).

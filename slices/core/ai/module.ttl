@@ -2703,3 +2703,19 @@ lang:Analysis logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:analysisLastChunkKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ],
     [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:allValuesFrom xsd:integer ],
     [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+
+gmeow:chunkInDivision
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range gmeow:ContentSegment ;
+    logic:subPropertyOf gmeow:partOf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk in source division"@x-gmeow-english ;
+    skos:definition "The source division containing the whole particular occurrence of source content represented by this Chunk under the supplied segmentation."@x-gmeow-english ;
+    skos:scopeNote "The relation is optional and nonfunctional; nested divisions genuinely containing the whole occurrence can coexist. It specializes broad partOf without changing chunkOf or making a Chunk a structural ContentSegment. Recording containment does not prove it, compute a nearest ancestor or convert coordinates."@x-gmeow-english ;
+    skos:example "With actual attribution retained, record ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . The section contains the whole represented source occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."@x-gmeow-english .
