@@ -280,3 +280,26 @@ retain derivation or summarized-subject information separately from the
 actual carrier and any actual containing division. No new summary relation,
 identity merger or structural inference follows from this containment term
 (Principles 2, 4, 7, 9, 17 and 19).
+
+## Whole-work reported input granularity
+
+The additional `granularityWork` individual reuses `GranularityLevel` and the
+nonfunctional `hasGranularity` relation alongside the existing chunk, passage
+and chapter values. It describes an explicitly reported whole-work input unit
+under the source's own work convention. It adds one resolution value without
+changing the kernel axis, introducing a per-level class or imposing an order
+on text units.
+
+An Analysis retaining this value remains the coherent analysis result. It does
+not become an abstract Work, a realization, a Chunk or an input text carrier.
+The reported unit and the actual source remain separate: a complete file or
+document is not evidence of whole-work resolution, and a Work identity supplies
+no particular language, edition, copy or analyzer-input bytes.
+
+Retain any supplied source context, source-key endpoints, key convention,
+chapter context and input-construction description through the existing
+optional Analysis descriptors. Unknown source conventions stay unknown. The
+whole-work value records a supplied resolution; it does not authenticate
+complete coverage, reconstruct input or imply that all realizations were read.
+It neither requires absent descriptors nor changes source-key interpretation,
+Chunking membership, carrier pins or extent laws (Principles 4, 7, 9 and 19).

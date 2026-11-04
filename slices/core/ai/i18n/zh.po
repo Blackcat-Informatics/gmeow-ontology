@@ -2331,3 +2331,31 @@ msgstr "避免将其用于仅与片段相交的分区、其他位置的相同措
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."
 msgstr "将实际的 Chunk 关联到每个已提供的包含它的 ContentSegment，并保留实际来源和确切断言的归属。保留任何现有的 inChunking 上下文，不改变 chunkOf、跨度边界、来源固定值与散列摘要固定值；容器未知时保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "whole-work input granularity"
+msgstr "整部作品输入粒度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at whole-work resolution under its source's work convention."
+msgstr "一种开放的文本单元粒度值，表示依据来源自身的作品约定按整部作品分辨率报告的输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify an abstract Work or a particular realization. A whole file or document does not establish whole-work scope. The value does not authenticate complete coverage or imply that every edition, language or realization was read."
+msgstr "此分辨率值不创建或标识抽象的 Work 或某个特定实现。完整的文件或文档并不确立整部作品的范围。此值不认证覆盖完整性，也不意味着每个版本、语言或实现都已被读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityWork only when whole-work input granularity was supplied."
+msgstr "仅在已提供整部作品输入粒度时，记录 ex:analysis gmeow:hasGranularity gmeow:granularityWork。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."
+msgstr "用于分析输入或其他文本单元记录被明确描述为整部作品粒度的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."
+msgstr "避免根据完整文件、文档、标题或 Work 身份推断此值，也不要用它声称已重建输入字节或完整覆盖来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."
+msgstr "通过 hasGranularity 引用此个体，并另行保留所提供的来源、来源键和构造描述。让未知的作品约定保持未知，并保留其他带有归属信息的分辨率，不选定优先项。"

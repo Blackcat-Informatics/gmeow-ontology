@@ -2331,3 +2331,31 @@ msgstr "Éviter de l’utiliser pour une division seulement intersectée, une fo
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."
 msgstr "Relier le Chunk concerné à chaque ContentSegment fourni comme contenant, en conservant la source réelle et l’attribution de l’assertion exacte. Préserver tout contexte inChunking existant et laisser inchangés chunkOf, les bornes d’étendue et les ancrages de source et d’empreinte ; ne pas inventer un conteneur inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "whole-work input granularity"
+msgstr "granularité d’entrée à l’échelle de l’œuvre entière"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at whole-work resolution under its source's work convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à l’échelle de l’œuvre entière selon la convention de sa source concernant l’unité « œuvre »."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify an abstract Work or a particular realization. A whole file or document does not establish whole-work scope. The value does not authenticate complete coverage or imply that every edition, language or realization was read."
+msgstr "Cette valeur de résolution ne crée ni n’identifie un Work abstrait ou une réalisation particulière. Un fichier ou document entier n’établit pas une portée couvrant l’œuvre entière. La valeur n’authentifie pas une couverture complète et n’implique pas que chaque édition, langue ou réalisation a été lue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityWork only when whole-work input granularity was supplied."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityWork uniquement lorsqu’une granularité d’entrée à l’échelle de l’œuvre entière a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à l’échelle de l’œuvre entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."
+msgstr "Éviter d’inférer cette valeur à partir d’un fichier entier, d’un document, d’un titre ou de l’identité d’un Work, ou de l’utiliser pour affirmer que les octets d’entrée ont été reconstitués ou que la couverture de la source est complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."
+msgstr "Référencer cet individu par hasGranularity et conserver séparément les descripteurs de source, de clés source et de construction fournis. Laisser inconnues les conventions d’œuvre inconnues et préserver les autres résolutions attribuées sans en privilégier une."

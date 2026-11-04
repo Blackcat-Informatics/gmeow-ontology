@@ -435,3 +435,32 @@ A generated summary's original subject division is not automatically a
 container of the summary's actual text. Keep that subject and derivation
 separate from the actual carrier and any genuine containing division
 (Principles 2, 4, 9, 17 and 19).
+
+## Whole-work analysis input resolution
+
+Use `granularityWork` through the existing `hasGranularity` when a source
+explicitly reports an analysis input at whole-work resolution. It extends the
+open text-unit values already supplied for chunk, passage and chapter input.
+Other attributed resolutions can coexist without a preferred value.
+
+```turtle
+ex:analysis a lang:Analysis ;
+    gmeow:hasGranularity gmeow:granularityWork .
+```
+
+This states the reported resolution of the selected input. It does not identify
+an abstract Work, a particular realization or the text carrier. A Work survives
+changes of language, edition and copy; those are not interchangeable input
+identities. Reading a whole file or document does not by itself establish that
+the input was reported at whole-work resolution.
+
+Keep any supplied `analysisSourceContext`, source-chunk keys, key-frame,
+chapter-key and `analysisInputConstruction` descriptors separately. These
+fields remain optional, and unknown source conventions remain unknown. The
+granularity value neither reconstructs historical input bytes nor authenticates
+complete source coverage or consumption of every realization of the work.
+
+No fixed text size, source selection, default, required metadata or universal
+`coarserThan` relationship follows from this value. Existing Chunk and Chunking
+carrier, source, extent and digest obligations remain in force (Principles 4,
+9, 11 and 19).
