@@ -23,7 +23,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 # The requirement matches the root; every fuzz-selected PurRDF package matches its root identity.
-purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "07f26f5c4da36bc96b0ae9d575761c98289e04cc" }
+purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "ce86fb73f45243eccff131d57748d53f271aff9f" }
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
 
