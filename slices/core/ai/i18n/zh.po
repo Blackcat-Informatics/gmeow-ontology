@@ -3087,3 +3087,171 @@ msgstr "避免通过强制转换项值、丢弃错误值或以空字符串替代
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."
 msgstr "沿 chunkMarkerLines 和 structuredItem 遍历。要求每个所选项具有 structuredTerm，然后通过 termSameComponent 将每个实际提供项值的数据类型分量与 xsd:string 比较。报告失败，不改写源内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mathematical expression finding"
+msgstr "数学表达式发现记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Observation retaining one pass’s reported mathematical-expression occurrence in an actual ContentBlock, with supplied LaTeX wording and displayed status."
+msgstr "一种 Observation，保留某次处理遍次在实际 ContentBlock 中报告的一个数学表达式出现项，以及已提供的 LaTeX 文字和展示状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This finding is neither a mathematical syntax tree nor a Rendering. It requires exactly one actual block, one string and one boolean, an actual method and at least one supplied vantage; raw pass confidence is optional."
+msgstr "此记录既不是数学语法树，也不是 Rendering。它必须具有且仅具有一个实际块、一个字符串和一个布尔值，并具有实际方法和至少一个已提供视角；处理遍次的原始置信值可省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass supplies `ex:finding a gmeow:MathematicalExpressionFinding .` about its actual block."
+msgstr "一个虚构处理遍次为其实际块提供 `ex:finding a gmeow:MathematicalExpressionFinding .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports a mathematical-expression occurrence and supplies its block, LaTeX string, displayed boolean, method and vantage."
+msgstr "当来源报告一个数学表达式出现项，并提供其块、LaTeX 字符串、展示布尔值、方法和视角时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging findings from different passes, interpreting LaTeX as a Math AST, or inventing an Agent, invocation, model revision or time."
+msgstr "避免合并不同处理遍次的发现记录、将 LaTeX 解释为 Math AST，或编造 Agent、调用、模型修订版或时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep a distinct finding for each supplied occurrence and pass. Bind observedFeature to its actual ContentBlock, observationMethod to HOW and vantage to the actual supplied WHO or standpoint context; retain joint vantages."
+msgstr "为每个已提供出现项及其处理遍次保留独立发现记录。将 observedFeature 关联到其实际 ContentBlock，将 observationMethod 关联到方法，将 vantage 关联到实际提供的主体或立场语境；保留共同视角。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding LaTeX"
+msgstr "表达式发现记录的 LaTeX"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact xsd:string LaTeX wording supplied for this mathematical-expression finding, including a blank string."
+msgstr "为此数学表达式发现记录提供的精确 xsd:string 类型 LaTeX 文字，包括空字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one value is required per finding. This literal carrier neither parses nor repairs the wording and does not create a mathematical expression object."
+msgstr "每个发现记录必须具有且仅具有一个值。此字面量载体不解析或修复文字，也不创建数学表达式对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional finding retains `ex:finding gmeow:expressionFindingLatex \"\" .` when a blank string was supplied."
+msgstr "当已提供空字符串时，虚构发现记录保留 `ex:finding gmeow:expressionFindingLatex \"\" .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the supplied LaTeX string of a mathematical-expression finding."
+msgstr "用于保留数学表达式发现记录中已提供的 LaTeX 字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping blank strings, adding language tags, normalizing notation or treating matching strings as finding identity."
+msgstr "避免丢弃空字符串、添加语言标签、规范化记法，或因字符串相同而认定发现记录相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string through this specialization of lang:literalValue and attribute that exact statement to its actual source."
+msgstr "通过此 lang:literalValue 的专门化属性复制已提供的 xsd:string，并将该精确陈述归属于其实际来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding displayed status"
+msgstr "表达式发现记录的展示状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The xsd:boolean displayed-math status supplied for this mathematical-expression finding."
+msgstr "为此数学表达式发现记录提供的 xsd:boolean 类型独立展示公式状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one value is required, including false when supplied. This status has no default and does not determine truth, correctness or general displayability."
+msgstr "必须具有且仅具有一个值，包括已提供的 false。此状态没有默认值，也不决定真值、正确性或一般显示资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass supplies `ex:finding gmeow:expressionFindingDisplayed false .`"
+msgstr "一个虚构处理遍次提供 `ex:finding gmeow:expressionFindingDisplayed false .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual displayed boolean reported for a mathematical-expression occurrence."
+msgstr "用于保留数学表达式出现项实际报告的展示布尔值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing strings or numbers to booleans, replacing false with absence or guessing a value from layout or LaTeX delimiters."
+msgstr "避免将字符串或数字强制转换为布尔值、将 false 替换为缺失，或从布局或 LaTeX 分隔符猜测值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:boolean unchanged. Missing or invalid selected input fails the finding contract without a synthesized default."
+msgstr "原样保留已提供的 xsd:boolean。所选输入缺失或无效时，发现记录契约失败，不合成默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding raw pass confidence"
+msgstr "表达式发现记录的处理遍次原始置信值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw xsd:decimal confidence value supplied by the pass for this mathematical-expression finding."
+msgstr "处理遍次为此数学表达式发现记录提供的 xsd:decimal 类型原始置信值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and locally at most one; zero differs from absence. No bounds, probability, calibration, unit, frame, credence or decision semantics are established."
+msgstr "此值可省略，且在记录内至多一个；零不同于缺失。不确立界限、概率、校准、单位、参照系、信念程度或决策语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass retains `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`"
+msgstr "一个虚构处理遍次保留 `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the pass supplies a valid raw decimal confidence value for this finding."
+msgstr "仅当处理遍次为此发现记录提供有效的原始十进制置信值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring probability, normalizing, bounding, filling an absent value with zero or substituting a value for invalid decimal input."
+msgstr "避免推断概率、规范化、限定范围、以零填补缺失值，或为无效十进制输入替换一个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain a supplied valid xsd:decimal or omit an absent value. Invalid selected decimal input fails; NaN and INF have no decimal representation and never become zero."
+msgstr "保留已提供的有效 xsd:decimal，缺失时省略。所选十进制输入无效时失败；NaN 和 INF 没有十进制表示，绝不转换为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block expression findings"
+msgstr "块的表达式发现记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual ContentBlock to a source-supplied StructuredSequence of mathematical-expression finding occurrences."
+msgstr "将实际 ContentBlock 关联到来源提供的数学表达式发现记录出现项 StructuredSequence。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional nonfunctional relation permits independent source rosters to coexist. An explicitly supplied empty roster differs from a missing roster; no universal list or historical presence is inferred."
+msgstr "此关系可省略且不具有函数性，允许不同来源的列表并存。明确提供的空列表不同于缺失列表；不推断统一列表或历史存在性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:block gmeow:blockExpressionFindings ex:roster .`"
+msgstr "一个虚构来源提供 `ex:block gmeow:blockExpressionFindings ex:roster .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source actually supplies an ordered finding roster for a block, including an explicit empty roster."
+msgstr "当来源实际为块提供有序发现记录列表时使用，包括明确提供的空列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplication, sorting, unioning independent rosters, deriving presence from defaults or inferring provenance on findings from this link."
+msgstr "避免去重、排序、合并独立列表、从默认值推断存在性，或从此关联推断发现记录的溯源信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep distinct scalar StructuredValue items with entryOrdinal and structuredTerm pointing to actual finding resources. Retain order, repetition and exact-statement attribution separately for each roster and finding."
+msgstr "保留独立的标量 StructuredValue 项，使用 entryOrdinal 和指向实际发现记录资源的 structuredTerm。分别为每个列表和发现记录保留顺序、重复以及精确陈述的归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block expression finding sequence constraint"
+msgstr "块表达式发现记录序列约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through blockExpressionFindings has a structuredTerm; every supplied term is typed MathematicalExpressionFinding and has the roster’s actual block as observedFeature."
+msgstr "通过 blockExpressionFindings 选取的每项都具有 structuredTerm；每个已提供项值的类型都是 MathematicalExpressionFinding，且其 observedFeature 是列表对应的实际块。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This scoped law requires scalar finding payloads and block agreement, alongside the generic branch and ordering laws and the finding’s exact-one feature law. Explicit empty rosters remain valid."
+msgstr "此局部规则要求标量发现记录载荷及块的一致性，并与通用分支和顺序规则、发现记录有且仅有一个特征的规则共同适用。明确的空列表仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An item with a valid finding and an extra untyped term fails; a good payload never hides a bad extra payload."
+msgstr "具有有效发现记录以及额外未定类型项值的项违反规则；有效载荷绝不掩盖额外的无效载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every occurrence in each actually supplied block finding roster."
+msgstr "用于验证每份实际提供的块发现记录列表中的每个出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid skipping missing terms, extra bad terms or wrong-block findings, or manufacturing a finding to repair a malformed roster."
+msgstr "避免跳过缺失项值、额外无效项值或指向错误块的发现记录，或编造发现记录以修复格式错误的列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow blockExpressionFindings and structuredItem. Require a scalar payload, check every supplied term’s finding type and observedFeature agreement, and report failure without substitution."
+msgstr "沿 blockExpressionFindings 和 structuredItem 遍历。要求标量载荷，检查每个已提供项值的发现记录类型及 observedFeature 一致性，并报告失败，不替换项值。"

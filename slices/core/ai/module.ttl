@@ -3175,3 +3175,154 @@ gmeow:ChunkMarkerLineTextConstraint
                                 [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
                                 [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
                                 [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] .
+
+gmeow:MathematicalExpressionFinding
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "mathematical expression finding"@x-gmeow-english ;
+    skos:definition "An Observation retaining one pass’s reported mathematical-expression occurrence in an actual ContentBlock, with supplied LaTeX wording and displayed status."@x-gmeow-english ;
+    skos:scopeNote "This finding is neither a mathematical syntax tree nor a Rendering. It requires exactly one actual block, one string and one boolean, an actual method and at least one supplied vantage; raw pass confidence is optional."@x-gmeow-english ;
+    skos:example "A fictional pass supplies `ex:finding a gmeow:MathematicalExpressionFinding .` about its actual block."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source reports a mathematical-expression occurrence and supplies its block, LaTeX string, displayed boolean, method and vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging findings from different passes, interpreting LaTeX as a Math AST, or inventing an Agent, invocation, model revision or time."@x-gmeow-english ;
+    gmeow:howToUse "Keep a distinct finding for each supplied occurrence and pass. Bind observedFeature to its actual ContentBlock, observationMethod to HOW and vantage to the actual supplied WHO or standpoint context; retain joint vantages."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:expressionFindingLatex
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding LaTeX"@x-gmeow-english ;
+    skos:definition "The exact xsd:string LaTeX wording supplied for this mathematical-expression finding, including a blank string."@x-gmeow-english ;
+    skos:scopeNote "Exactly one value is required per finding. This literal carrier neither parses nor repairs the wording and does not create a mathematical expression object."@x-gmeow-english ;
+    skos:example "A fictional finding retains `ex:finding gmeow:expressionFindingLatex \"\" .` when a blank string was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the supplied LaTeX string of a mathematical-expression finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping blank strings, adding language tags, normalizing notation or treating matching strings as finding identity."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string through this specialization of lang:literalValue and attribute that exact statement to its actual source."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:expressionFindingDisplayed
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding displayed status"@x-gmeow-english ;
+    skos:definition "The xsd:boolean displayed-math status supplied for this mathematical-expression finding."@x-gmeow-english ;
+    skos:scopeNote "Exactly one value is required, including false when supplied. This status has no default and does not determine truth, correctness or general displayability."@x-gmeow-english ;
+    skos:example "A fictional pass supplies `ex:finding gmeow:expressionFindingDisplayed false .`"@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual displayed boolean reported for a mathematical-expression occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing strings or numbers to booleans, replacing false with absence or guessing a value from layout or LaTeX delimiters."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied xsd:boolean unchanged. Missing or invalid selected input fails the finding contract without a synthesized default."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:boolean ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:expressionFindingPassConfidence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding raw pass confidence"@x-gmeow-english ;
+    skos:definition "The raw xsd:decimal confidence value supplied by the pass for this mathematical-expression finding."@x-gmeow-english ;
+    skos:scopeNote "Optional and locally at most one; zero differs from absence. No bounds, probability, calibration, unit, frame, credence or decision semantics are established."@x-gmeow-english ;
+    skos:example "A fictional pass retains `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`"@x-gmeow-english ;
+    gmeow:useWhen "Use only when the pass supplies a valid raw decimal confidence value for this finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring probability, normalizing, bounding, filling an absent value with zero or substituting a value for invalid decimal input."@x-gmeow-english ;
+    gmeow:howToUse "Retain a supplied valid xsd:decimal or omit an absent value. Invalid selected decimal input fails; NaN and INF have no decimal representation and never become zero."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:decimal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:blockExpressionFindings
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "block expression findings"@x-gmeow-english ;
+    skos:definition "Relates an actual ContentBlock to a source-supplied StructuredSequence of mathematical-expression finding occurrences."@x-gmeow-english ;
+    skos:scopeNote "This optional nonfunctional relation permits independent source rosters to coexist. An explicitly supplied empty roster differs from a missing roster; no universal list or historical presence is inferred."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:block gmeow:blockExpressionFindings ex:roster .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a source actually supplies an ordered finding roster for a block, including an explicit empty roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deduplication, sorting, unioning independent rosters, deriving presence from defaults or inferring provenance on findings from this link."@x-gmeow-english ;
+    gmeow:howToUse "Keep distinct scalar StructuredValue items with entryOrdinal and structuredTerm pointing to actual finding resources. Retain order, repetition and exact-statement attribution separately for each roster and finding."@x-gmeow-english ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:StructuredSequence .
+
+gmeow:BlockExpressionFindingSequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "block expression finding sequence constraint"@x-gmeow-english ;
+    skos:definition "Every item selected through blockExpressionFindings has a structuredTerm; every supplied term is typed MathematicalExpressionFinding and has the roster’s actual block as observedFeature."@x-gmeow-english ;
+    skos:scopeNote "This scoped law requires scalar finding payloads and block agreement, alongside the generic branch and ordering laws and the finding’s exact-one feature law. Explicit empty rosters remain valid."@x-gmeow-english ;
+    skos:example "An item with a valid finding and an extra untyped term fails; a good payload never hides a bad extra payload."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate every occurrence in each actually supplied block finding roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid skipping missing terms, extra bad terms or wrong-block findings, or manufacturing a finding to repair a malformed roster."@x-gmeow-english ;
+    gmeow:howToUse "Follow blockExpressionFindings and structuredItem. Require a scalar payload, check every supplied term’s finding type and observedFeature agreement, and report failure without substitution."@x-gmeow-english ;
+    logic:formalizes gmeow:blockExpressionFindings ;
+    logic:message "Every selected item must carry a scalar MathematicalExpressionFinding payload whose observedFeature is the roster's actual block; every supplied payload is checked." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "sequence" ] ,
+            [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:blockExpressionFindings ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
+                [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finding" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "finding" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finding" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "finding" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "finding" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:MathematicalExpressionFinding ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "finding" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "block" ] ] ] ] ] ] ] ] .
+
+gmeow:MathematicalExpressionFinding logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ContentBlock ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingLatex ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingLatex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingDisplayed ; logic:allValuesFrom xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingDisplayed ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingPassConfidence ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingPassConfidence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/expressionFindingLatex" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ContentBlock logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:blockExpressionFindings ;
+        logic:allValuesFrom gmeow:StructuredSequence ] .
