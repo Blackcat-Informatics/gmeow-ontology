@@ -154,3 +154,56 @@ these relations perform no coordinate conversion.
 See [reported token syntax](../../grounding/lang/docs.md#reported-token-syntax)
 and [analysis input descriptors](../../core/ai/docs.md#reported-analysis-inputs)
 for the report fields and supplied input context.
+
+## Existing terms for alias text and block-local offsets
+
+Supplied alias wording uses the names slice's existing
+`Entity → hasAppellation → Appellation → fullName` pattern. It adds a co-equal
+name object, not an entity identity link or a preferred name. A fictional
+Character can use this generic Entity route; the person-scoped `hasName`
+would incorrectly type it as Person. Retain actual source and viewpoint on
+the bearing statement. Unknown name language stays unknown; raw wording does
+not authorize language interpretation or locale matching without actual frames.
+See [supplied aliases](../../core/names/docs.md#supplied-aliases-and-unknown-name-language).
+
+A Mention is the occurrence of wording in one exact block and revision,
+independently of whether that wording is supplied as an entity's alias.
+The existing fields already express the requested block-local character offsets:
+
+| Field | Existing obligation |
+| --- | --- |
+| `mentionIn` | One exact containing ContentBlock, whose original decoded text is the coordinate origin. |
+| `navigationSource` | One exact revision artifact on the Mention; the block repeats the same binding and extra revision bindings must agree. The artifact retains its supplied `contentDigest`. |
+| `surfaceForm` | One original wording literal, preserving supplied language and direction. |
+| `spanStart`, `spanEnd` | One nonempty zero-based half-open Unicode-code-point interval in that block: start inclusive, end exclusive. |
+| `mentionOf` | Optional explicitly resolved Entity; competing attributed resolutions may coexist. |
+
+Read the supplied occurrence and origin together:
+
+```sparql
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?mention ?block ?revision ?start ?end ?wording WHERE {
+  ?mention a gmeow:Mention ;
+           gmeow:mentionIn ?block ;
+           gmeow:navigationSource ?revision ;
+           gmeow:spanStart ?start ;
+           gmeow:spanEnd ?end ;
+           gmeow:surfaceForm ?wording .
+  ?block gmeow:navigationSource ?revision .
+}
+```
+
+These coordinates precede normalization or rewriting. Whole-document positions,
+UTF-8 byte counts, grapheme indices and visual positions require an actual
+conversion before they can claim this contract; changing a predicate does not
+convert them. The source digest and agreement laws retain supplied identity and
+consistency evidence, not authenticated bytes or proof of substring equality.
+The query reads recorded links; it neither checks every law nor executes a
+converter or resolver.
+
+Original recognized occurrences and their block-local fragments remain distinct.
+Do not propagate a label, root-token report, resolution or name-bearing claim to
+every fragment merely because the original span has it. Character narrative-frame
+obligations and actual language SurfaceForm obligations remain unchanged. No
+new alias or offset property, coordinate convention or identity rule is required
+by this existing-term mapping (Principles 2, 4, 7, 9, 11, 17 and 19).

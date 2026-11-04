@@ -26,8 +26,8 @@ msgid "nameLanguage is functional"
 msgstr "nameLanguage 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:nameLanguage is functional: an appellation's surface form is in exactly one gmeow:Language, because co-equal multilingual names are modelled as separate co-equal gmeow:Appellation instances (one per language) rather than by multi-tagging a single name — the discipline that keeps naming anti-colonial and symmetric."
-msgstr "在规范载体上断言 gmeow:nameLanguage 是函数式的:一个称谓的表层形式恰好属于一种 gmeow:Language,因为地位平等的多语言名称被建模为各自独立、地位平等的 gmeow:Appellation 实例(每种语言一个),而不是对单一名称进行多重标注——正是这一约束使命名保持反殖民性与对称性。"
+msgid "Asserts on the canonical carrier that nameLanguage is functional: at most one language value per appellation over all asserted and entailed values. This characteristic does not require language presence or identify an unknown language. Co-equal multilingual names remain separate co-equal Appellations rather than multi-tagging one name, preserving anti-colonial and symmetric naming."
+msgstr "在规范载体上断言 nameLanguage 具有函数性：每个称谓在所有已断言和可推导的值中至多有一个语言值。此特征不要求语言值必须存在，也不标识未知语言。地位平等的多语言名称仍是各自独立且地位平等的 Appellation，而不是对一个名称进行多重标注，从而保持命名的反殖民性与对称性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/namePartTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "namePartType is functional"
@@ -134,8 +134,8 @@ msgid "gmeow:honorificPositionFunctionality logic:characterizes gmeow:honorificP
 msgstr "gmeow:honorificPositionFunctionality logic:characterizes gmeow:honorificPosition ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguageFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:nameLanguage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:nameLanguage 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use when the native coherence gate must enforce at most one nameLanguage value per appellation across all asserted and entailed values. This record adds no presence requirement; it is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门须在所有已断言和可推导的值中强制每个称谓至多有一个 nameLanguage 值时使用。此记录不增加存在性要求；它是门所连接的规范载体，因此该义务由推理确立，而非在形状表面另行重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguageFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -380,3 +380,51 @@ msgstr "范围：该记录仅承载关于 gmeow:usageRelationshipScope 的一项
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/names|skos:scopeNote"
 msgid "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."
 msgstr "普通修订通过显示抑制保留被替代记录。独立授权的受治理删除只移除选定命名对象，包括遗忘请求本身，不保留删除回执，也不沿引用级联删除。未选中引用可以悬空并返回“已不存在”。接续保留早期事实时间有效性；纠正仅在纠正立场下拒绝早先声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Appellation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one Appellation per co-equal name and retain its supplied fullName or typed NamePart content. Record nameLanguage and nameScript when actually identified; unknown language or script stays unknown. Bear it with hasAppellation or an applicable subkind property; promote to NameUsage when audience, register or evidence must be first-class. Raw wording alone supplies no interpreted language frame."
+msgstr "为每个地位平等的名称创建一个 Appellation，保留所提供的 fullName 或带类型的 NamePart 内容。仅在语言或文字系统被实际标识时记录 nameLanguage 和 nameScript；未知的语言或文字系统保持未知。通过 hasAppellation 或适用的子类专用属性承载名称；当受众、语域或证据须作为一等对象表示时，使用 NameUsage。原始措辞本身不提供已解释的语言参考框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one NamePart per component, set namePartType, partText with its supplied language/script tagging, and partOrder, add partExpansion for an abbreviated initial, and attach it with hasNamePart. Preserve unknown language or script without inventing a tag."
+msgstr "为每个组成部分创建一个 NamePart，设置 namePartType、保留所提供语言或文字系统标签的 partText 以及 partOrder；为缩写首字母添加 partExpansion，并通过 hasNamePart 连接。未知的语言或文字系统保持未知，不虚构标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OrganizationName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one OrganizationName per co-equal name, retain fullName and any actually identified nameLanguage, distinguish kinds with namePurpose, and bear it with hasOrganizationName."
+msgstr "为每个地位平等的名称创建一个 OrganizationName，保留 fullName 和任何实际标识的 nameLanguage，通过 namePurpose 区分种类，并通过 hasOrganizationName 承载名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one PersonName per co-equal name, retain fullName and any actually identified nameLanguage, decompose supplied components into NamePart with namePartType, tag namePurpose, and bear it with hasName; mark a superseded one displayable false rather than deleting it."
+msgstr "为每个地位平等的姓名创建一个 PersonName，保留 fullName 和任何实际标识的 nameLanguage，将所提供的组成部分分解为带 namePartType 的 NamePart，标注 namePurpose，并通过 hasName 承载姓名；对已被取代的姓名设置 displayable false，而非删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PlaceName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one PlaceName per co-equal toponym, retain fullName and any actually identified nameLanguage, tag endonym/exonym with namePurpose, and bear it with hasPlaceName; carry the toponymic authority and period by promoting to PlaceNaming with usageAuthority and usageInterval."
+msgstr "为每个地位平等的地名创建一个 PlaceName，保留 fullName 和任何实际标识的 nameLanguage，通过 namePurpose 标注本地名或外来名，并通过 hasPlaceName 承载地名；需要表示地名权威与时期时，使用带 usageAuthority 和 usageInterval 的 PlaceNaming。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fullName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete surface form of an appellation as a single string in its original order. Preserve the supplied literal's datatype, language and direction, including actual language/script tags such as \"山田太郎\"@ja or \"Yamada Tarō\"@ja-Latn; unknown source language stays unknown. Authoritative for recorded display wording, without establishing an interpreted language frame. Non-functional: spellings/transliterations from different sources coexist."
+msgstr "称谓的完整表层形式，以单个字符串按原有顺序保留。保留所提供字面量的数据类型、语言和方向，包括实际的语言或文字系统标签，例如 \"山田太郎\"@ja 或 \"Yamada Tarō\"@ja-Latn；未知的来源语言保持未知。它是所记录显示措辞的权威依据，但不确立已解释的语言参考框架。非函数式：不同来源的拼写或转写可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fullName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set fullName on the appellation using the exact supplied literal, retaining actual language/script tagging and direction without inventing missing tags. It may hold several coexisting source spellings/transliterations (non-functional), with the parts kept for matching rather than reassembly."
+msgstr "使用所提供的确切字面量在称谓上设置 fullName，保留实际的语言或文字系统标签及方向，不虚构缺失标签。它可保留多个共存的来源拼写或转写（非函数式）；名称组成部分用于匹配，而非重新拼装。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fullName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the complete source wording of an appellation as one string in its original order, with any actually supplied language/script tagging; it is the authoritative recorded wording for display."
+msgstr "用于以单个字符串按原有顺序保留称谓的完整来源措辞及任何实际提供的语言或文字系统标签；它是所记录显示措辞的权威依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The first-class gmeow:Language actually identified for an appellation's surface form. A Language is registry-independent and may have no code; a bare BCP-47 literal cannot substitute for it, and codes live on the Language through languageCode. Functional means at most one language value per appellation over asserted and entailed values, not required presence. Unknown source language stays unknown. Co-equal multilingual names use separate co-equal Appellations. Language-sensitive interpretation and locale-relative display selection require the actual language frame; no name gains precedence. The writing script is recorded separately through nameScript as a first-class lang:Script."
+msgstr "为称谓表层形式实际标识的一等 gmeow:Language。Language 不依赖注册表，也可以没有代码；裸 BCP-47 字面量不能替代它，代码通过 languageCode 记录在 Language 上。函数性指每个称谓在所有已断言和可推导的值中至多有一个语言值，并不要求必须提供该值。未知的来源语言保持未知。地位平等的多语言名称使用各自独立且地位平等的 Appellation。依赖语言的解释及按区域设置选择显示名称须有实际的语言参考框架；任何名称都不因此获得优先地位。书写文字系统通过 nameScript 另行记录为一等 lang:Script。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record nameLanguage when its actual first-class Language is identified; keep an unknown source language unknown. Functionality applies across all asserted and entailed values and does not require presence. Carry an actually identified script with nameScript. Require the actual language frame before language-sensitive interpretation or locale matching; never rank one name above another."
+msgstr "在实际的一等 Language 被标识时记录 nameLanguage；未知的来源语言保持未知。函数性适用于所有已断言和可推导的值，并不要求该值必须存在。通过 nameScript 承载实际标识的文字系统。在进行依赖语言的解释或区域设置匹配前，必须有实际的语言参考框架；绝不将某个名称置于其他名称之上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an actually identified first-class Language for an appellation's surface form. Language-sensitive interpretation, comparison, denotation and locale-relative display selection require their actual frames, not a guessed language or an unknown-language profile."
+msgstr "用于记录为称谓表层形式实际标识的一等 Language。依赖语言的解释、比较、指称及按区域设置选择显示名称须有各自实际的参考框架，不能使用猜测的语言或未知语言配置档案代替。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set partText on a NamePart, preserving the supplied literal and actual language/script tagging without inventing missing tags; add partExpansion when the text is an abbreviated initial."
+msgstr "在 NamePart 上设置 partText，保留所提供的字面量及实际的语言或文字系统标签，不虚构缺失标签；当文本为缩写首字母时，添加 partExpansion。"
