@@ -676,3 +676,30 @@ gmeow:tenuredContactPointFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenuredContactPoint and nothing else. It is not a definition of gmeow:tenuredContactPoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:tenuredContactPointFunctionality logic:characterizes gmeow:tenuredContactPoint ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:EmailAddressNormalizationPolicy
+    a logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Email Address Normalization Policy"@x-gmeow-english ;
+    skos:definition "An identified specification of the transformation used to produce an email address's normalized addr-spec. A policy individual is named by IRI so a store can retain policy identity together with the resulting gmeow:addressValue when deriving its own address identifier."@x-gmeow-english ;
+    skos:scopeNote "It is an information object, not a contact point, address holder or normalization execution. Its specification must state the actual transformation; a changed transformation requires a distinct policy identity. The class supplies no default case conversion, dot removal, Unicode normalization or domain encoding."@x-gmeow-english ;
+    skos:example "A supplied specification named ex:preserveCaseV1 can be typed as gmeow:EmailAddressNormalizationPolicy and state that its addr-spec transformation preserves the supplied spelling. That name alone does not prove that the policy was applied."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual normalization specification that qualifies an EmailAddress's normalized value in a selected store identity context."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as a default normalizer, an execution receipt, a disclosure policy or an address identity key by itself. Equal-looking values under different policies do not establish comparable address identities or the same person."@x-gmeow-english ;
+    gmeow:howToUse "Name the complete policy specification by IRI, preserve its source and transformation meaning, and link the EmailAddress through gmeow:addressNormalizationPolicy. Retain the original spelling as source evidence. The selected store must obtain an unambiguous policy and normalized-value pair before deriving its own identifier; missing or ambiguous evidence cannot trigger silent normalization."@x-gmeow-english .
+
+gmeow:addressNormalizationPolicy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EmailAddress ;
+    logic:range gmeow:EmailAddressNormalizationPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "address normalization policy"@x-gmeow-english ;
+    skos:definition "Relates an EmailAddress to the identified EmailAddressNormalizationPolicy recorded as producing its normalized gmeow:addressValue. It preserves the policy component of a selected store's policy-and-value identity pair without asserting that normalization was executed or verified."@x-gmeow-english ;
+    skos:scopeNote "The subject is the email address resource, not its literal value, holder, account or message occurrence. No global functional characteristic, identity key or address equality is asserted. Distinct scoped policy assertions may coexist; a selected identity operation must resolve its actual policy and value rather than choose silently."@x-gmeow-english ;
+    skos:example "An EmailAddress ex:address carrying gmeow:addressValue \"Case@example.org\" and gmeow:addressNormalizationPolicy ex:preserveCaseV1 records a supplied policy and value. A separate MessageParticipant can point to that address with gmeow:participantAddress and retain the original occurrence through gmeow:rawAddressValue."@x-gmeow-english ;
+    gmeow:useWhen "Use to state which named normalization policy qualifies this email address's normalized value for store-relative identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach the property to an address literal or person, apply it to other contact-point kinds, infer the same address from value equality alone, or merge source nodes or address holders. The policy edge is not a normalization proof or a permission to discard original spelling."@x-gmeow-english ;
+    gmeow:howToUse "Link the EmailAddress to its supplied policy IRI and retain the existing functional gmeow:addressValue in the same selected identity context. Keep occurrence spelling on MessageParticipant through gmeow:rawAddressValue or retain other exact source evidence. Record any source-to-store correspondence explicitly; do not add transformations or change policy meaning during lookup."@x-gmeow-english .
