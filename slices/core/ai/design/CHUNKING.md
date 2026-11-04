@@ -178,11 +178,12 @@ ex:firstTwo a gmeow:ChunkingMember ;
 
 ## A summary’s carrier is distinct from what it summarizes
 
-A generated summary is a condensed account derived from its division. It is not
-a contiguous cut of that division. `wasDerivedFrom` records the summarized
-division; `chunkOf` records the actual carrier containing retrieved summary text.
-A separate `Summary` artifact and retrieval `Chunk` express both meanings without
-inventing a new summary relation or moving the GraphRAG community boundary.
+A generated summary is a condensed account of an identified source division.
+`summaryOf` identifies that summarized source and specializes the generic
+`wasDerivedFrom` lineage relation. Another derivation input does not automatically
+become a summarized source. `chunkOf` keeps the actual carrier containing the
+retrieved summary text. A separate `Summary` artifact and retrieval `Chunk`
+retain these roles without moving the GraphRAG community boundary.
 
 The next carrier contains `Summary: Alpha and beta.` followed by one newline.
 Its exact UTF-8 content digest is shown. The retrieved account occupies
@@ -190,7 +191,7 @@ Its exact UTF-8 content digest is shown. The retrieved account occupies
 
 ```turtle
 ex:summaryCarrier a gmeow:Summary ;
-    gmeow:wasDerivedFrom ex:division ;
+    gmeow:summaryOf ex:division ;
     lang:literalValue "Summary: Alpha and beta.\n" ;
     gmeow:contentDigest "cb3ad665f702398b477870fae600fe52503aa8f8df79f0195f6746f4ceed64df"^^gmeow:sha256Digest .
 ex:retrievedSummary a gmeow:Chunk ;
@@ -201,7 +202,7 @@ ex:retrievedSummary a gmeow:Chunk ;
 
 One node may also be both `Summary` and `Chunk` when its own text is a condensed
 account and a contiguous cut of its actual carrier. In that case it retains
-`wasDerivedFrom ex:division` separately from `chunkOf ex:summaryCarrier`. Dual
+`summaryOf ex:division` separately from `chunkOf ex:summaryCarrier`. Dual
 typing never licenses `chunkOf ex:division` merely because the text summarizes
 that division. `CommunitySummary` continues to mean a summary of a GraphRAG
 community, not an arbitrary reference-work division (Principles 2 and 9).

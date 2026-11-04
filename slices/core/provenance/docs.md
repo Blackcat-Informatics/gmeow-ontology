@@ -108,3 +108,31 @@ the transaction clock.
 Depends on `kernel`, `documents`, and `events`. Consumed by every attributed fact in the
 graph: the statement-layer attribution axes, import pipelines, and the GTS package
 chain-of-custody (Principle 14).
+
+## The source content a summary condenses
+
+`summaryOf` identifies the particular information object whose content a
+`Summary` condenses. Its range includes a source work, a `ContentSegment`
+division or another `InformationObject`; using a source work does not classify
+that work as a structural division. Multiple identified sources may coexist,
+and no unique target or required path is imposed.
+
+```turtle
+ex:summary gmeow:summaryOf ex:division .
+```
+
+The property specializes `wasDerivedFrom`, so this assertion also supplies the
+generic lineage link. Keep any other actual derivation inputs separately:
+production instructions or context in the lineage do not automatically become
+summarized content. Preserve source, viewpoint and confidence on each exact
+assertion. The relation does not certify fidelity, complete coverage, model
+execution or source-byte identity.
+
+The source role remains distinct from retrieval. `chunkOf` names the carrier of
+the retrieved text; the source a generated summary condenses does not become
+that carrier or a division containing the generated text. A source that actually
+carries text remains a valid summarized source. One object can be both Summary
+and Chunk only when it independently satisfies both existing meanings. Keep the
+actual carrier, source pins, digests and span coordinates unchanged; the
+specialized source role introduces no parthood, contiguous-cut or offset claim
+(Principles 2, 4, 7, 9, 12, 17 and 19).

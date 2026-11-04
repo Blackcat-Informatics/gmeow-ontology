@@ -236,3 +236,18 @@ gmeow:ingestedAtFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ingestedAt and nothing else. It is not a definition of gmeow:ingestedAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:ingestedAtFunctionality logic:characterizes gmeow:ingestedAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:summaryOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Summary ;
+    logic:range gmeow:InformationObject ;
+    logic:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "summarized source"@x-gmeow-english ;
+    skos:definition "The identified source information object whose content this Summary condenses."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation identifies a particular summarization role within the source lineage. A summary may condense several supplied sources; another derivation input is not automatically a summarized source. The link certifies no fidelity, complete coverage, execution or source-byte identity."@x-gmeow-english ;
+    skos:example "Record ex:summary gmeow:summaryOf ex:division while a retrieval Chunk keeps its actual summary-text carrier through chunkOf."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual source work, division or other information object whose content a supplied Summary condenses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting mere topical aboutness, production instructions or the output's retrieval-carrier role for an identified summarized source, inferring the role from every wasDerivedFrom link, or treating generated summary text as a contiguous cut of its original source."@x-gmeow-english ;
+    gmeow:howToUse "Link the Summary to each identified summarized InformationObject and retain actual source, viewpoint and confidence on the exact assertion. Preserve other actual lineage separately; never invent missing source identities, a unique target, source fidelity or original-source offsets."@x-gmeow-english .
