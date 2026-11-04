@@ -171,13 +171,9 @@ pub(crate) fn handle_commitment(
 pub(crate) fn product_digest(
     bundle: &PipelineBundle<PipelineHandle>,
     handles: &BTreeMap<String, HandleCommitment>,
+    control: &mut purrdf::CanonicalizationControl<'_>,
 ) -> Result<String, PipelineBundleError> {
-    let base = bundle
-        .digest(&mut purrdf::CanonicalizationControl::new(
-            purrdf::RDFC_V2_CORPUS_POLICY,
-            None,
-        ))?
-        .to_hex();
+    let base = bundle.digest(control)?.to_hex();
     if handles.is_empty() {
         return Ok(base);
     }
