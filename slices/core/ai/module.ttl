@@ -3021,3 +3021,157 @@ gmeow:NgramSizeValueConstraint
 gmeow:Measurement logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:measuredTerm ;
       logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:blockHtml
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported block HTML"@x-gmeow-english ;
+    skos:definition "The HTML source string reported for this ContentBlock in an extraction or source-presentation context."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional field retains markup as xsd:string. It asserts no parsed DOM, Rendering, sanitization or execution, and does not redefine the block’s structural identity."@x-gmeow-english ;
+    skos:example "A fictional extraction reports the exact string `<p>Amber</p>` for a paragraph block."@x-gmeow-english ;
+    gmeow:useWhen "Use when an extraction or source-presentation report supplies HTML text for an actual ContentBlock."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring HTML from plain text, constructing a Rendering merely to hold markup, or treating reported markup as safe to execute."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string unchanged on the ContentBlock, including blank strings, and retain the assertion’s actual source and viewpoint. Leave unavailable HTML absent."@x-gmeow-english .
+
+gmeow:chunkSectionTag
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk section tag"@x-gmeow-english ;
+    skos:definition "The section-tag string reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional xsd:string retains a source descriptor. It establishes no controlled tag identity, document hierarchy, heading level or source position."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the section tag opening for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies a section-tag string for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the string to a token, a Tag individual, a structural segment type or an inferred heading level."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact xsd:string on the Chunk with its actual attribution. Preserve blank strings and leave missing tags absent without inventing defaults."@x-gmeow-english .
+
+gmeow:chunkChapterHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk chapter heading"@x-gmeow-english ;
+    skos:definition "The chapter-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a chapter entity, nesting, heading depth or membership in a division."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the chapter heading Amber coast for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the chapter-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a chapter from another heading, using this wording as a chapter identifier or inferring document structure from its presence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable chapter heading absent."@x-gmeow-english .
+
+gmeow:chunkSectionHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk section heading"@x-gmeow-english ;
+    skos:definition "The section-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. It is distinct from the section tag and does not establish a structural section, heading level or containing chapter."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the section heading Tidal garden for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the section-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the section tag for the heading, inventing a missing chapter heading or treating equal wording as shared section identity."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable section heading absent."@x-gmeow-english .
+
+gmeow:chunkSubsectionHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk subsection heading"@x-gmeow-english ;
+    skos:definition "The subsection-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a subsection entity, structural nesting or any particular numeric heading level."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the subsection heading Quiet pools for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the subsection-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this heading from indentation, fabricating its parent headings or converting the role into a numeric document depth."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable subsection heading absent."@x-gmeow-english .
+
+gmeow:Chunk logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkChapterHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSectionHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSubsectionHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:chunkMarkerLines
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk marker lines"@x-gmeow-english ;
+    skos:definition "An ordered sequence of marker-line strings reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation selects a StructuredSequence of distinct scalar string occurrences. Repetition, order and blank strings remain intact. An explicitly supplied empty sequence differs from omission; a schema default alone proves no historical presence."@x-gmeow-english ;
+    skos:example "A fictional report supplies two marker occurrences containing the same string, followed by a blank marker occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source report supplies an ordered marker-line sequence for a Chunk, including an explicitly supplied empty sequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing repeated strings, sorting markers, splitting a string at newlines, admitting maps or null items, or inferring field presence from a schema default."@x-gmeow-english ;
+    gmeow:howToUse "Link each supplied sequence to the Chunk. Retain each item as a distinct StructuredValue with its exact xsd:string structuredTerm and zero-based entryOrdinal. Assert an empty sequence only with actual supplied evidence, and retain attribution."@x-gmeow-english .
+
+gmeow:ChunkMarkerLineTextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reported chunk marker string constraint"@x-gmeow-english ;
+    skos:definition "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped constraint reuses the generic scalar-branch, whole-term identity and ordinal laws. An empty selected sequence is valid. It adds no required marker relation and changes no generic structured-value contract."@x-gmeow-english ;
+    skos:example "A selected sequence item with a blank xsd:string term is valid; an item with no term or a language-tagged term fails this constraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the scalar string payload of each supplied chunk marker occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting malformed items by coercing terms, omitting bad values or replacing a missing term with an empty string."@x-gmeow-english ;
+    gmeow:howToUse "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkMarkerLines ;
+    logic:message "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "sequence" ] ,
+            [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:chunkMarkerLines ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
+                [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:relation gmeow:structuredTerm ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "item" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ;
+                            logic:relation gmeow:structuredTerm ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "item" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:relation logic:termSameComponent ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "value" ] ,
+                                [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] .

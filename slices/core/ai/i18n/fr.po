@@ -2891,3 +2891,199 @@ msgstr "Éviter d’accepter comme comptages des chaînes d’apparence numériq
 msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."
 msgstr "Lier chaque quantityValue par sa Quantity sélectionnée par ngramSize. Exiger termIsFiniteNumeric, la disjonction exacte du composant de type pour treize types de la famille XSD des entiers, et termGreater par rapport à zéro de type entier. Garder la présence et le référentiel dans la loi de contexte distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported block HTML"
+msgstr "HTML de bloc rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The HTML source string reported for this ContentBlock in an extraction or source-presentation context."
+msgstr "La chaîne source HTML rapportée pour ce ContentBlock dans un contexte d’extraction ou de présentation de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional field retains markup as xsd:string. It asserts no parsed DOM, Rendering, sanitization or execution, and does not redefine the block’s structural identity."
+msgstr "Ce champ facultatif et non fonctionnel conserve le balisage comme xsd:string. Il n’affirme ni DOM analysé, ni Rendering, ni assainissement, ni exécution, et ne redéfinit pas l’identité structurelle du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional extraction reports the exact string `<p>Amber</p>` for a paragraph block."
+msgstr "Une extraction fictive rapporte la chaîne exacte `<p>Amber</p>` pour un bloc de paragraphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an extraction or source-presentation report supplies HTML text for an actual ContentBlock."
+msgstr "Utiliser lorsqu’un rapport d’extraction ou de présentation de la source fournit du texte HTML pour un ContentBlock réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring HTML from plain text, constructing a Rendering merely to hold markup, or treating reported markup as safe to execute."
+msgstr "Éviter de déduire du HTML à partir de texte brut, de construire un Rendering uniquement pour porter du balisage ou de considérer le balisage rapporté comme sûr à exécuter."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string unchanged on the ContentBlock, including blank strings, and retain the assertion’s actual source and viewpoint. Leave unavailable HTML absent."
+msgstr "Conserver sur le ContentBlock la chaîne xsd:string fournie sans modification, y compris les chaînes vides, et garder la source et le point de vue réels de l’assertion. Ne pas ajouter de HTML indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section tag"
+msgstr "étiquette de section du fragment rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-tag string reported by the chunker for this Chunk."
+msgstr "La chaîne d’étiquette de section rapportée par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional xsd:string retains a source descriptor. It establishes no controlled tag identity, document hierarchy, heading level or source position."
+msgstr "Ce champ xsd:string facultatif et non fonctionnel conserve un descripteur de la source. Il n’établit ni identité d’étiquette contrôlée, ni hiérarchie documentaire, ni niveau de titre, ni position dans la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section tag opening for one Chunk."
+msgstr "Un segmenteur fictif rapporte l’étiquette de section opening pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies a section-tag string for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit une chaîne d’étiquette de section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the string to a token, a Tag individual, a structural segment type or an inferred heading level."
+msgstr "Éviter de convertir la chaîne en jeton, en individu Tag, en type de segment structurel ou en niveau de titre déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact xsd:string on the Chunk with its actual attribution. Preserve blank strings and leave missing tags absent without inventing defaults."
+msgstr "Conserver la chaîne xsd:string exacte sur le Chunk avec son attribution réelle. Préserver les chaînes vides et omettre les étiquettes manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk chapter heading"
+msgstr "titre de chapitre du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The chapter-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de chapitre rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a chapter entity, nesting, heading depth or membership in a division."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Son rôle n’établit ni entité de chapitre, ni imbrication, ni profondeur de titre, ni appartenance à une division."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the chapter heading Amber coast for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de chapitre Amber coast pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the chapter-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de chapitre pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a chapter from another heading, using this wording as a chapter identifier or inferring document structure from its presence."
+msgstr "Éviter de deviner un chapitre à partir d’un autre titre, d’utiliser ce libellé comme identifiant de chapitre ou de déduire la structure du document de sa présence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable chapter heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de chapitre indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section heading"
+msgstr "titre de section du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de section rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. It is distinct from the section tag and does not establish a structural section, heading level or containing chapter."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Il se distingue de l’étiquette de section et n’établit ni section structurelle, ni niveau de titre, ni chapitre contenant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section heading Tidal garden for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de section Tidal garden pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the section-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the section tag for the heading, inventing a missing chapter heading or treating equal wording as shared section identity."
+msgstr "Éviter de substituer l’étiquette de section au titre, d’inventer un titre de chapitre manquant ou de traiter des libellés identiques comme une identité de section commune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable section heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de section indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk subsection heading"
+msgstr "titre de sous-section du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsection-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de sous-section rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a subsection entity, structural nesting or any particular numeric heading level."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Son rôle n’établit ni entité de sous-section, ni imbrication structurelle, ni niveau numérique particulier de titre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the subsection heading Quiet pools for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de sous-section Quiet pools pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the subsection-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de sous-section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this heading from indentation, fabricating its parent headings or converting the role into a numeric document depth."
+msgstr "Éviter de déduire ce titre de l’indentation, de fabriquer ses titres parents ou de convertir ce rôle en profondeur numérique du document."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable subsection heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de sous-section indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker lines"
+msgstr "lignes de marqueur du fragment rapportées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An ordered sequence of marker-line strings reported by the chunker for this Chunk."
+msgstr "Une séquence ordonnée de chaînes de lignes de marqueur rapportée par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredSequence of distinct scalar string occurrences. Repetition, order and blank strings remain intact. An explicitly supplied empty sequence differs from omission; a schema default alone proves no historical presence."
+msgstr "Cette relation facultative et non fonctionnelle sélectionne une StructuredSequence d’occurrences distinctes de chaînes scalaires. Les répétitions, l’ordre et les chaînes vides restent intacts. Une séquence vide explicitement fournie diffère de l’omission ; une valeur par défaut du schéma ne prouve à elle seule aucune présence historique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies two marker occurrences containing the same string, followed by a blank marker occurrence."
+msgstr "Un rapport fictif fournit deux occurrences de marqueur contenant la même chaîne, suivies d’une occurrence de marqueur vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source report supplies an ordered marker-line sequence for a Chunk, including an explicitly supplied empty sequence."
+msgstr "Utiliser lorsqu’un rapport source réel fournit une séquence ordonnée de lignes de marqueur pour un Chunk, y compris une séquence vide explicitement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing repeated strings, sorting markers, splitting a string at newlines, admitting maps or null items, or inferring field presence from a schema default."
+msgstr "Éviter de fusionner les chaînes répétées, de trier les marqueurs, de découper une chaîne aux sauts de ligne, d’admettre des tables ou des éléments nuls, ou de déduire la présence du champ d’une valeur par défaut du schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied sequence to the Chunk. Retain each item as a distinct StructuredValue with its exact xsd:string structuredTerm and zero-based entryOrdinal. Assert an empty sequence only with actual supplied evidence, and retain attribution."
+msgstr "Relier chaque séquence fournie au Chunk. Conserver chaque élément comme une StructuredValue distincte avec son structuredTerm xsd:string exact et son entryOrdinal commençant à zéro. N’affirmer une séquence vide qu’avec des éléments probants réellement fournis, et conserver l’attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker string constraint"
+msgstr "contrainte de chaîne des marqueurs de fragment rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype."
+msgstr "Chaque élément d’une séquence sélectionnée par chunkMarkerLines possède un structuredTerm, et chacun de ces termes a exactement le type de données xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped constraint reuses the generic scalar-branch, whole-term identity and ordinal laws. An empty selected sequence is valid. It adds no required marker relation and changes no generic structured-value contract."
+msgstr "Cette contrainte limitée au rôle réutilise les lois génériques de branche scalaire, d’identité du terme entier et d’ordre. Une séquence sélectionnée vide est valide. Elle n’impose aucune relation de marqueur et ne modifie aucun contrat générique de valeur structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected sequence item with a blank xsd:string term is valid; an item with no term or a language-tagged term fails this constraint."
+msgstr "Un élément de séquence sélectionnée portant un terme xsd:string vide est valide ; un élément sans terme ou portant un terme avec étiquette de langue échoue à cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the scalar string payload of each supplied chunk marker occurrence."
+msgstr "Utiliser pour valider la charge utile scalaire de type chaîne de chaque occurrence de marqueur de fragment fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting malformed items by coercing terms, omitting bad values or replacing a missing term with an empty string."
+msgstr "Éviter d’accepter des éléments mal formés en convertissant les termes, en omettant les valeurs incorrectes ou en remplaçant un terme manquant par une chaîne vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."
+msgstr "Suivre chunkMarkerLines et structuredItem. Exiger un structuredTerm pour chaque élément sélectionné, puis comparer le composant de type de données de chaque terme fourni à xsd:string au moyen de termSameComponent. Signaler les échecs sans réécrire la source."

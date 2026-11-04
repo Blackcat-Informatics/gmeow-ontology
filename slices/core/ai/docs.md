@@ -829,3 +829,70 @@ Declaring the vocabulary does not establish that a producer, generated bundle,
 installed consumer or runtime has been qualified. Structural frame presence
 does not authenticate its historical applicability, and no consumer adoption
 or original-byte witness is implied.
+
+## Reported source presentation
+
+The AI slice records applied extraction and chunker reports alongside its
+existing block extents and source-analysis descriptors. `blockHtml` retains
+the exact reported HTML source string on a ContentBlock. It is machine markup
+stored as `xsd:string`; reporting it makes no DOM, Rendering, sanitization or
+execution claim. The block’s existing structural obligations remain in force.
+
+On an actual Chunk, `chunkSectionTag` retains the reported `xsd:string` section
+tag. `chunkChapterHeading`, `chunkSectionHeading` and `chunkSubsectionHeading`
+retain the three distinct reported heading roles as complete word literals:
+`xsd:string`, `rdf:langString` or `rdf:dirLangString`. Language and direction are
+preserved when supplied; no language is guessed. The roles do not infer heading
+depth, hierarchy, structural divisions, source offsets or containing chapters.
+
+`chunkMarkerLines` selects a StructuredSequence. Each supplied marker has its
+own StructuredValue occurrence, exact `xsd:string` structuredTerm and zero-based
+entryOrdinal. Equal strings at different positions remain separate occurrences.
+Blank strings remain valid. Existing structured-value and ordering laws apply;
+ChunkMarkerLineTextConstraint additionally requires a string scalar for every
+selected item. Its ordinary Formula generates procedural validation; no new
+native failure class or reasoner-discharge claim is added.
+
+All six report roles are optional and nonfunctional. Keep their actual
+exact-statement source and viewpoint. A supplied empty sequence is represented
+explicitly only when actual evidence establishes it. An omitted relation makes
+no empty or null assertion, and a schema default does not prove historical field
+presence. These descriptors leave the Chunk’s carrier, extent, digest and
+chunking contracts unchanged (Principles 4, 9, 17 and 19).
+
+The following fictional reports explicitly supply the shown descriptors. The
+first supplies repeated markers and a blank marker. A second explicitly reports
+an empty marker sequence. A third supplies no marker information. The example
+shows descriptors only: paragraph is already a valid ContentBlock, and chunkA,
+chunkB and chunkC are already valid Chunks in the surrounding graph. These
+additions do not replace their existing complete source contracts.
+
+```turtle
+@prefix ex: <https://example.org/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:paragraph gmeow:blockHtml "<p>Amber</p>" .
+
+ex:chunkA
+    gmeow:chunkSectionTag "opening" ;
+    gmeow:chunkChapterHeading "Amber coast" ;
+    gmeow:chunkSectionHeading "Tidal garden" ;
+    gmeow:chunkSubsectionHeading "Quiet pools" ;
+    gmeow:chunkMarkerLines ex:markersA .
+ex:markersA a gmeow:StructuredSequence ;
+    gmeow:structuredItem ex:markerA0 , ex:markerA1 , ex:markerA2 .
+ex:markerA0 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "***" .
+ex:markerA1 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "***" .
+ex:markerA2 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "" .
+
+# The fictional second report explicitly supplies an empty sequence.
+ex:chunkB gmeow:chunkMarkerLines ex:markersB .
+ex:markersB a gmeow:StructuredSequence .
+
+# The fictional third report supplies a section tag and no marker information.
+ex:chunkC gmeow:chunkSectionTag "closing" .
+```
