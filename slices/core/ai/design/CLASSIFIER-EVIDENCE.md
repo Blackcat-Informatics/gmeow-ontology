@@ -131,3 +131,34 @@ interpretation without replacing this evidence. The affect producer continues to
 emit affect-specialized classes and apply its existing registry checks. EmotionML
 continues to enumerate affect categories and axes with its declared losses;
 general genre evidence does not broaden that projection.
+
+## Scalar regression interpretation
+
+`scoreRegression` is one additional individual of the existing open
+`ScoreSemantics` vocabulary, which is grounded in `logic:QualityValue`. It
+declares a model-predicted scalar for the named output dimension represented
+by the output's actual ClassifierLabel. The existing one-output, one-target,
+one-label, one-raw-decimal and one-declared-meaning obligations remain unchanged.
+Model identity, exact revision, run record, inputs and source attribution stay
+on their existing paths.
+
+The declared model output dimension is not a physical or mathematical dimension.
+`classifierScore` remains the established raw decimal carrier, with no
+`math:quantityValue` specialization or new quantity subject. Actual measured
+quantities and tool/formula measurements retain their own modeling obligations.
+
+No `impliesLabelSetDecision` edge is added. The existing decision-consistency
+law is guarded by an actual such edge and does not infer one from the name of
+this individual or its model task. The calibration-presence law selects exactly
+`scoreCalibratedProbability`, and the hypothesis-template law selects exactly
+`scoreEntailment`; neither is selected merely by declaring regression semantics.
+Registered label-set requirements and explicit run-label membership remain
+unchanged. No probability bound, normalization, decision rule, threshold,
+default, calibration or confidence conversion follows (Principles 4, 9, 11,
+12, 17 and 19).
+
+The current native affect adapter has a finite supported-semantics capture
+model. Its recovery path rejects an unrecognized semantics IRI; it does not
+substitute probability, a threshold or another meaning. This source value does
+not extend that API. No native admission, producer, generated, installed or
+runtime result is established by the ontology declaration.

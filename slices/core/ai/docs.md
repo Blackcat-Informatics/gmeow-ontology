@@ -507,3 +507,30 @@ name, version and map claims do not create a cross-product identity or pairing.
 The [chunking design](design/CHUNKING.md#reported-chunker-descriptors) records
 the scoped laws and the existing first-class map model (Principles 2, 4, 9, 11,
 12, 17 and 19).
+
+## Regression output semantics
+
+Use `scoreRegression` through the existing `scoreSemantics` when a model emits
+a scalar regression prediction for the output dimension identified by its
+actual `emittedLabel`. Retain that exact ClassifierLabel and its label-set
+membership; it is an external output identity, not a canonical category or
+mathematical dimension.
+
+Keep the raw `classifierScore` as the existing decimal carrier, with the actual
+`classifiedTarget`, `producedBy` ModelInferenceRun, model identifier and revision,
+recorded input and source attribution. The new semantics adds no universal
+range, scale, unit, unit interval, calibration, confidence or evidence-strength
+interpretation. A value between zero and one does not establish probability.
+Comparison or interpretation under a particular scale still needs its actual
+source and frame; do not invent missing context (Principles 9, 11 and 19).
+
+This individual implies no argmax, threshold, activation function or workflow.
+Any actually supplied decision policy remains separate; existing label-set and
+run obligations remain in force. A model score is not an actual quantity
+measurement, and this value does not turn the score or its output into a
+`math:Quantity`.
+
+The current native affect capture/recovery API does not admit `scoreRegression`.
+This vocabulary value does not extend that adapter or enable model execution.
+It supplies the canonical score meaning; runtime support requires its own
+implementation and qualification.

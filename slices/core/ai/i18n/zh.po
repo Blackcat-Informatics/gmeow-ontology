@@ -2527,3 +2527,31 @@ msgstr "避免全局键唯一性、由键派生条目身份、sameAs 合并、�
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."
 msgstr "通过同一个选取的映射绑定两个条目及其两个键。使用 termSameComponent 比较完整键项；匹配的键要求同一个完整条目项，否则保留记录并报告冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "regression score"
+msgstr "回归分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model-predicted scalar for the output dimension identified by the emitted ClassifierLabel, rather than a probability."
+msgstr "模型为已发出的 ClassifierLabel 所标识的输出维度预测的标量，而非概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declares regression meaning for the raw decimal classifierScore. It supplies no universal range, scale, unit, calibration, epistemic confidence, evidence strength or decision policy. The named output dimension is a model output identity, not an invented mathematical dimension."
+msgstr "此值声明原始十进制 classifierScore 的回归语义。它不提供通用的范围、尺度、单位、校准、认识论置信度、证据强度或决策策略。所命名的输出维度是模型输出的身份，而非虚构的数学维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Retain the actual run and source attribution separately."
+msgstr "记录 ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . 另行保留实际运行及来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a model emits a scalar regression prediction for an explicitly identified output dimension."
+msgstr "用于模型为明确标识的输出维度发出标量回归预测的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the score as a probability, calibration, confidence or evidence strength, assuming a unit interval, argmax or threshold, or replacing actual quantity measurements with this raw model score."
+msgstr "避免将该分数视为概率、校准、置信度或证据强度，假定单位区间、argmax 或阈值，或用此原始模型分数替代实际的量值测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."
+msgstr "通过输出上的 scoreSemantics 声明此个体，保留确切的 classifierScore 和 emittedLabel，并通过 producedBy 保留实际的 ModelInferenceRun、模型修订、输入和来源溯源。保留任何另行提供的解释上下文，不虚构尺度、单位或决策规则。"

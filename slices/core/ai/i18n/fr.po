@@ -2527,3 +2527,31 @@ msgstr "Éviter l’unicité globale des clés, les identités d’entrée déri
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."
 msgstr "Lier deux entrées et leurs deux clés par la même table sélectionnée. Comparer les termes de clé complets avec termSameComponent ; des clés identiques exigent le même terme d’entrée complet ; sinon, conserver les enregistrements et signaler le conflit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "regression score"
+msgstr "score de régression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model-predicted scalar for the output dimension identified by the emitted ClassifierLabel, rather than a probability."
+msgstr "Un scalaire prédit par un modèle pour la dimension de sortie identifiée par le ClassifierLabel émis, et non une probabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declares regression meaning for the raw decimal classifierScore. It supplies no universal range, scale, unit, calibration, epistemic confidence, evidence strength or decision policy. The named output dimension is a model output identity, not an invented mathematical dimension."
+msgstr "Cette valeur déclare le sens de régression du classifierScore décimal brut. Elle ne fournit aucune plage, échelle ou unité universelle, ni étalonnage, confiance épistémique, force probante ou politique de décision. La dimension de sortie nommée est une identité de sortie du modèle, et non une dimension mathématique inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Retain the actual run and source attribution separately."
+msgstr "Consigner ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Conserver séparément l’exécution réelle et l’attribution à la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a model emits a scalar regression prediction for an explicitly identified output dimension."
+msgstr "Utiliser lorsqu’un modèle émet une prédiction scalaire de régression pour une dimension de sortie explicitement identifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the score as a probability, calibration, confidence or evidence strength, assuming a unit interval, argmax or threshold, or replacing actual quantity measurements with this raw model score."
+msgstr "Éviter de traiter le score comme une probabilité, un étalonnage, une confiance ou une force probante, de supposer un intervalle unité, un argmax ou un seuil, ou de remplacer des mesures réelles de quantités par ce score brut du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."
+msgstr "Déclarer cet individu par scoreSemantics sur la sortie, conserver ses classifierScore et emittedLabel exacts et préserver producedBy avec le ModelInferenceRun réel, la révision du modèle, l’entrée et la provenance de la source. Conserver tout contexte d’interprétation fourni séparément sans inventer d’échelle, d’unité ou de règle de décision."
