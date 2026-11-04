@@ -393,3 +393,33 @@ it does not claim executed inference, reconstruction or byte authentication.
 
 No new dependency, runtime mechanism, mathematical quantity alias or generated
 authoring surface is introduced (Principles 2, 4, 7, 9, 11, 12, 15, 17 and 19).
+
+## Reported source-presentation descriptors
+
+These descriptors report how source content was presented during processing.
+They are AI-owned applied reporting roles, following BlockExtent and reported
+chunker descriptors. Their ownership does not transfer structural document
+identity or general HTML semantics into AI.
+
+Use `blockHtml` on the actual ContentBlock for a supplied HTML source string.
+Use the five chunk descriptor roles on the actual Chunk, rather than on
+Chunking, Analysis or ContentBlock. `chunkSectionTag` is an exact `xsd:string`;
+the three heading roles admit the complete word-literal union. The fixed roles
+do not require a new tuple carrier, and one missing role supplies no value for
+another role. No tag or heading derives a structural division or coordinate.
+
+Use StructuredSequence for `chunkMarkerLines`, preserving each string occurrence
+with structuredTerm and entryOrdinal. Preserve order, repetitions and blank
+strings. Do not sort, deduplicate, split strings, invent keys or admit map,
+nested-sequence or null marker items. The role-scoped Formula requires a
+structuredTerm for each selected item and checks the exact `xsd:string` datatype
+of every such term. Generic branch, whole-term identity and order laws continue
+to apply without changes.
+
+An actually supplied empty sequence is valid; no marker relation is required.
+Only evidence that a source actually supplied the empty sequence supports that
+assertion. A default empty tuple in a source schema does not establish historical
+presence. Leave unavailable report values absent and retain actual attribution.
+No descriptor verifies execution, authenticates bytes, parses HTML or changes
+the existing chunking, atomic-boundary or source-carrier laws (Principles 4, 9,
+17 and 19).

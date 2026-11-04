@@ -2891,3 +2891,199 @@ msgstr "避免把看似数字的字符串、十进制数、浮点数、非有限
 msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."
 msgstr "通过 ngramSize 选定的 Quantity 绑定每个 quantityValue。要求 termIsFiniteNumeric、十三种 XSD 整数族数据类型的精确类型分量析取，以及相对于带整数类型的零的 termGreater 比较。存在性和框架义务由独立的上下文规则承担。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported block HTML"
+msgstr "报告的内容块 HTML"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The HTML source string reported for this ContentBlock in an extraction or source-presentation context."
+msgstr "在抽取或源内容呈现语境中为此 ContentBlock 报告的 HTML 源字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional field retains markup as xsd:string. It asserts no parsed DOM, Rendering, sanitization or execution, and does not redefine the block’s structural identity."
+msgstr "此字段可省略且不具有函数性，以 xsd:string 保留标记文本。它不断言已解析的 DOM、Rendering、净化或执行，也不重新定义内容块的结构身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional extraction reports the exact string `<p>Amber</p>` for a paragraph block."
+msgstr "一个虚构抽取过程为某段落内容块报告原样字符串 `<p>Amber</p>`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an extraction or source-presentation report supplies HTML text for an actual ContentBlock."
+msgstr "当抽取或源内容呈现报告为实际 ContentBlock 提供 HTML 文本时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring HTML from plain text, constructing a Rendering merely to hold markup, or treating reported markup as safe to execute."
+msgstr "避免从纯文本推断 HTML、仅为承载标记文本而构造 Rendering，或将报告的标记文本视为可安全执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string unchanged on the ContentBlock, including blank strings, and retain the assertion’s actual source and viewpoint. Leave unavailable HTML absent."
+msgstr "在 ContentBlock 上原样保留所提供的 xsd:string，包括空字符串，并保留断言的实际来源和视角。未提供 HTML 时省略该字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section tag"
+msgstr "报告的分块节标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-tag string reported by the chunker for this Chunk."
+msgstr "分块器为此 Chunk 报告的节标签字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional xsd:string retains a source descriptor. It establishes no controlled tag identity, document hierarchy, heading level or source position."
+msgstr "此 xsd:string 字段可省略且不具有函数性，用于保留源描述符。它不确立受控标签身份、文档层级、标题级别或源位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section tag opening for one Chunk."
+msgstr "一个虚构分块器为某个 Chunk 报告节标签 opening。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies a section-tag string for an actual Chunk."
+msgstr "当分块器报告为实际 Chunk 提供节标签字符串时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the string to a token, a Tag individual, a structural segment type or an inferred heading level."
+msgstr "避免将字符串转换为 token、Tag 个体、结构片段类型或推断的标题级别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact xsd:string on the Chunk with its actual attribution. Preserve blank strings and leave missing tags absent without inventing defaults."
+msgstr "在 Chunk 上保留原样 xsd:string 及其实际归属信息。保留空字符串；缺少标签时省略，不编造默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk chapter heading"
+msgstr "报告的分块章标题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The chapter-heading wording reported by the chunker for this Chunk."
+msgstr "分块器为此 Chunk 报告的章标题文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a chapter entity, nesting, heading depth or membership in a division."
+msgstr "此文字字段可省略且不具有函数性，保留实际提供的语言和方向。其角色不确立章实体、嵌套关系、标题深度或所属篇章。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the chapter heading Amber coast for one Chunk."
+msgstr "一个虚构分块器为某个 Chunk 报告章标题 Amber coast。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the chapter-heading role for an actual Chunk."
+msgstr "当分块器报告为实际 Chunk 提供章标题角色的文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a chapter from another heading, using this wording as a chapter identifier or inferring document structure from its presence."
+msgstr "避免从其他标题猜测章、将此文字作为章标识符，或因其存在而推断文档结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable chapter heading absent."
+msgstr "在 Chunk 上保留所提供的完整文字字面量及其实际语言、方向和归属信息。保留空字符串；未提供章标题时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section heading"
+msgstr "报告的分块节标题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-heading wording reported by the chunker for this Chunk."
+msgstr "分块器为此 Chunk 报告的节标题文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. It is distinct from the section tag and does not establish a structural section, heading level or containing chapter."
+msgstr "此文字字段可省略且不具有函数性，保留实际提供的语言和方向。它与节标签不同，不确立结构性节、标题级别或所属章。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section heading Tidal garden for one Chunk."
+msgstr "一个虚构分块器为某个 Chunk 报告节标题 Tidal garden。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the section-heading role for an actual Chunk."
+msgstr "当分块器报告为实际 Chunk 提供节标题角色的文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the section tag for the heading, inventing a missing chapter heading or treating equal wording as shared section identity."
+msgstr "避免用节标签代替标题、编造缺失的章标题，或将相同文字视为同一节身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable section heading absent."
+msgstr "在 Chunk 上保留所提供的完整文字字面量及其实际语言、方向和归属信息。保留空字符串；未提供节标题时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk subsection heading"
+msgstr "报告的分块小节标题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsection-heading wording reported by the chunker for this Chunk."
+msgstr "分块器为此 Chunk 报告的小节标题文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a subsection entity, structural nesting or any particular numeric heading level."
+msgstr "此文字字段可省略且不具有函数性，保留实际提供的语言和方向。其角色不确立小节实体、结构嵌套或任何特定的数字标题级别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the subsection heading Quiet pools for one Chunk."
+msgstr "一个虚构分块器为某个 Chunk 报告小节标题 Quiet pools。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the subsection-heading role for an actual Chunk."
+msgstr "当分块器报告为实际 Chunk 提供小节标题角色的文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this heading from indentation, fabricating its parent headings or converting the role into a numeric document depth."
+msgstr "避免从缩进推导此标题、编造其父标题，或将此角色转换为数字文档深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable subsection heading absent."
+msgstr "在 Chunk 上保留所提供的完整文字字面量及其实际语言、方向和归属信息。保留空字符串；未提供小节标题时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker lines"
+msgstr "报告的分块标记行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An ordered sequence of marker-line strings reported by the chunker for this Chunk."
+msgstr "分块器为此 Chunk 报告的标记行字符串有序序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredSequence of distinct scalar string occurrences. Repetition, order and blank strings remain intact. An explicitly supplied empty sequence differs from omission; a schema default alone proves no historical presence."
+msgstr "此关系可省略且不具有函数性，选择由独立标量字符串出现项构成的 StructuredSequence。保留重复、顺序和空字符串。明确提供的空序列不同于省略；仅有模式默认值不能证明历史上实际提供过该字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies two marker occurrences containing the same string, followed by a blank marker occurrence."
+msgstr "一个虚构报告提供两个内容相同的标记出现项，随后提供一个空标记出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source report supplies an ordered marker-line sequence for a Chunk, including an explicitly supplied empty sequence."
+msgstr "当实际源报告为 Chunk 提供有序标记行序列时使用，包括明确提供的空序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing repeated strings, sorting markers, splitting a string at newlines, admitting maps or null items, or inferring field presence from a schema default."
+msgstr "避免合并重复字符串、对标记排序、按换行拆分字符串、接纳映射或空值项，或从模式默认值推断字段存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied sequence to the Chunk. Retain each item as a distinct StructuredValue with its exact xsd:string structuredTerm and zero-based entryOrdinal. Assert an empty sequence only with actual supplied evidence, and retain attribution."
+msgstr "将每个实际提供的序列关联到 Chunk。将每项保留为独立 StructuredValue，并保留其原样 xsd:string structuredTerm 和从零开始的 entryOrdinal。仅在有实际提供的证据时断言空序列，并保留归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker string constraint"
+msgstr "报告的分块标记字符串约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype."
+msgstr "chunkMarkerLines 所选择序列的每个项都具有 structuredTerm，且每个这样的项值都恰好具有 xsd:string 数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped constraint reuses the generic scalar-branch, whole-term identity and ordinal laws. An empty selected sequence is valid. It adds no required marker relation and changes no generic structured-value contract."
+msgstr "此约束仅适用于该角色，复用通用标量分支、完整项身份和序位规则。所选序列为空时有效。它不要求必须存在标记关系，也不改变通用结构化值契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected sequence item with a blank xsd:string term is valid; an item with no term or a language-tagged term fails this constraint."
+msgstr "所选序列项包含空 xsd:string 项值时有效；缺少项值或项值带语言标签时违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the scalar string payload of each supplied chunk marker occurrence."
+msgstr "用于验证每个实际提供的分块标记出现项的标量字符串载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting malformed items by coercing terms, omitting bad values or replacing a missing term with an empty string."
+msgstr "避免通过强制转换项值、丢弃错误值或以空字符串替代缺失项值来接纳格式错误的项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."
+msgstr "沿 chunkMarkerLines 和 structuredItem 遍历。要求每个所选项具有 structuredTerm，然后通过 termSameComponent 将每个实际提供项值的数据类型分量与 xsd:string 比较。报告失败，不改写源内容。"
