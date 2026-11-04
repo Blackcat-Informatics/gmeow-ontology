@@ -712,3 +712,339 @@ msgstr "Éviter de substituer le bloc contenant à une entrée d’analyse plus 
 msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."
 msgstr "Relier l’occurrence au contexte Analysis réel fourni et y conserver tous les descripteurs de clés source, de construction et de granularité fournis. Attribuer chaque association sans imposer une seule analyse à tous les rapports de l’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curated bibliographic description"
+msgstr "description bibliographique issue de la curation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object retaining one coherent source-supplied bibliographic account as independent title, author and authority-reference sequences and reported descriptive wording."
+msgstr "Un objet informationnel conservant un compte rendu bibliographique cohérent fourni par la source sous forme de séquences indépendantes de titres, d’auteurs et de références à des autorités, ainsi que de libellés descriptifs rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This record groups supplied fields without interpreting title objects, Agents, authorship, kinds or dates. Its sequence and scalar roles are optional and locally single-valued; separate coherent accounts remain separate records."
+msgstr "Cette notice regroupe les champs fournis sans interpréter d’objets de titre, d’Agents, de paternité, de catégories ni de dates. Ses rôles de séquence et de valeur scalaire sont facultatifs et localement monovalués ; les comptes rendus cohérents distincts restent des notices distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional curation supplies `ex:description a gmeow:CuratedBibliographicDescription .` with two title occurrences and one author-wording occurrence."
+msgstr "Une curation fictive fournit `ex:description a gmeow:CuratedBibliographicDescription .` avec deux occurrences de titre et une occurrence de libellé d’auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when supplied bibliographic fields must remain together as one curation account without inventing interpreted entities or relationships."
+msgstr "Utiliser lorsque les champs bibliographiques fournis doivent rester regroupés comme un compte rendu de curation sans inventer d’entités ni de relations interprétées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the described work, its title or its author as this record, or merging different accounts because their words agree."
+msgstr "Éviter de typer l’œuvre décrite, son titre ou son auteur comme cette notice, ou de fusionner des comptes rendus différents parce que leurs mots concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain a distinct description for each coherent supplied account and its actual subject. Preserve each sequence independently, the supplied wording and exact-statement attribution."
+msgstr "Conserver une description distincte pour chaque compte rendu cohérent fourni et son sujet réel. Préserver chaque séquence indépendamment, les libellés fournis et l’attribution de chaque énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curated bibliographic description"
+msgstr "description bibliographique issue de la curation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual InformationObject to a CuratedBibliographicDescription supplied for it in a curation context."
+msgstr "Relie un InformationObject réel à une CuratedBibliographicDescription fournie à son propos dans un contexte de curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional association preserves independent accounts. It does not turn the subject into a CreativeWork, collection, title, author or authority target."
+msgstr "Cette association facultative et non fonctionnelle préserve les comptes rendus indépendants. Elle ne transforme pas le sujet en CreativeWork, collection, titre, auteur ni cible d’autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source associates `ex:subject gmeow:curatedBibliographicDescription ex:description .`"
+msgstr "Une source fictive associe `ex:subject gmeow:curatedBibliographicDescription ex:description .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a curation explicitly supplies a bibliographic description for an actual information object."
+msgstr "Utiliser lorsqu’une curation fournit explicitement une description bibliographique pour un objet informationnel réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this association from matching words or treating it as hasTitle, hasAuthor, authorityReference or an identity assertion."
+msgstr "Éviter de déduire cette association de mots concordants ou de la traiter comme hasTitle, hasAuthor, authorityReference ou une assertion d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the subject to each actual supplied description and attribute each association separately. Do not propagate the description’s provenance to its fields or subject."
+msgstr "Relier le sujet à chaque description réellement fournie et attribuer chaque association séparément. Ne pas propager la provenance de la description à ses champs ni à son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic title wording"
+msgstr "libellés de titre bibliographiques rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete title-wording strings supplied in this curated bibliographic description."
+msgstr "La séquence ordonnée indépendante de chaînes complètes de libellés de titre fournies dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Each item is a complete supplied title variant, not a word token; positions establish no pairing with author wording or title identity."
+msgstr "Cette séquence facultative est localement limitée à une seule valeur. Chaque élément est une variante de titre complète fournie, pas un jeton de mot ; les positions n’établissent ni appariement avec les libellés d’auteur ni identité de titre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicTitleWords ex:titles .` and retains two equal strings as distinct occurrences."
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicTitleWords ex:titles .` et conserve deux chaînes égales comme des occurrences distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered title-wording sequence, including an explicitly supplied empty sequence."
+msgstr "Utiliser lorsqu’une curation fournit une séquence ordonnée de libellés de titre, y compris une séquence vide explicitement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplication, sorting, tokenization, title-object fabrication or pairing title and author items by index."
+msgstr "Éviter la déduplication, le tri, la segmentation en jetons, la fabrication d’objets de titre ou l’appariement des éléments de titre et d’auteur par indice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied StructuredSequence and retain distinct scalar StructuredValue items with complete word literals and entryOrdinal. Preserve repetitions, blank strings, language, direction and actual attribution."
+msgstr "Relier la StructuredSequence fournie et conserver des éléments scalaires StructuredValue distincts avec des littéraux textuels complets et entryOrdinal. Préserver les répétitions, les chaînes vides, la langue, la direction et l’attribution réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic author wording"
+msgstr "libellés d’auteur bibliographiques rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete author-wording strings supplied in this curated bibliographic description."
+msgstr "La séquence ordonnée indépendante de chaînes complètes de libellés d’auteur fournies dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Each item is complete supplied wording, not a resolved Agent, Appellation or author paired with the title at the same position."
+msgstr "Cette séquence facultative est localement limitée à une seule valeur. Chaque élément est un libellé complet fourni, pas un Agent résolu, une Appellation ni un auteur apparié au titre à la même position."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicAuthorWords ex:authors .` with one author-wording item and two title-wording items."
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicAuthorWords ex:authors .` avec un élément de libellé d’auteur et deux éléments de libellé de titre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered sequence of author variants as wording, with no interpreted author identity required."
+msgstr "Utiliser lorsqu’une curation fournit une séquence ordonnée de variantes d’auteur sous forme de libellés, sans exiger d’identité d’auteur interprétée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring hasAuthor, person identity, translation, transliteration or title/author pairing from the strings or their positions."
+msgstr "Éviter de déduire hasAuthor, une identité de personne, une traduction, une translittération ou un appariement titre/auteur des chaînes ou de leurs positions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied StructuredSequence independently of the title sequence. Retain each complete word literal on a distinct scalar item with entryOrdinal and actual attribution; leave unavailable sequences absent."
+msgstr "Préserver la StructuredSequence fournie indépendamment de la séquence de titres. Conserver chaque littéral textuel complet sur un élément scalaire distinct avec entryOrdinal et son attribution réelle ; omettre les séquences indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic authority references"
+msgstr "références à des autorités bibliographiques rapportées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered sequence of actual AuthorityReferenceRecord resources supplied with this curated bibliographic description."
+msgstr "La séquence ordonnée de ressources AuthorityReferenceRecord réelles fournies avec cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Distinct item occurrences preserve repeated references to the same record; sequence membership asserts no direct authorityReference or identity link on the described subject."
+msgstr "Cette séquence facultative est localement limitée à une seule valeur. Des occurrences d’élément distinctes préservent les références répétées à la même notice ; l’appartenance à la séquence n’affirme aucun lien direct authorityReference ni d’identité sur le sujet décrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicAuthorityReferences ex:references .` whose scalar terms point to two distinct authority-reference records."
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicAuthorityReferences ex:references .` dont les termes scalaires pointent vers deux notices de référence à une autorité distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered authority-reference inventory associated with its bibliographic account."
+msgstr "Utiliser lorsqu’une curation fournit un inventaire ordonné de références à des autorités associé à son compte rendu bibliographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid literal IRI strings, opaque serialized records, invented record fields, identity merges or an inferred authorityReference property chain."
+msgstr "Éviter les chaînes littérales d’IRI, les notices sérialisées opaques, les champs de notice inventés, les fusions d’identités ou une chaîne de propriétés authorityReference déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual record resource through structuredTerm on a distinct StructuredValue occurrence with entryOrdinal. Keep every record’s own required target, source wording and exact-statement attribution; do not propagate provenance."
+msgstr "Conserver chaque ressource de notice réelle par structuredTerm sur une occurrence StructuredValue distincte avec entryOrdinal. Garder pour chaque notice sa cible obligatoire, son libellé de source et l’attribution de chaque énoncé exact ; ne pas propager la provenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic work kind"
+msgstr "catégorie d’œuvre bibliographique rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The work-kind wording supplied in this curated bibliographic description."
+msgstr "Le libellé de catégorie d’œuvre fourni dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a reported classification without assigning a type to the subject or description."
+msgstr "Ce littéral textuel facultatif et localement monovalué conserve une classification rapportée sans attribuer de type au sujet ni à la description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional curation supplies `ex:description gmeow:bibliographicWorkKind \"reference volume\"@en .`"
+msgstr "Une curation fictive fournit `ex:description gmeow:bibliographicWorkKind \"reference volume\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation explicitly supplies wording for a work’s kind."
+msgstr "Utiliser lorsqu’une curation fournit explicitement un libellé pour la catégorie d’une œuvre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the wording into rdf:type, a controlled concept or a CreativeWork assertion without separate evidence."
+msgstr "Éviter de transformer le libellé en rdf:type, en concept contrôlé ou en assertion CreativeWork sans preuve distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal with its actual language, direction and attribution. Preserve blank wording; leave an unavailable kind absent."
+msgstr "Conserver un littéral textuel fourni complet avec sa langue, sa direction et son attribution réelles. Préserver un libellé vide et omettre une catégorie indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported original author wording"
+msgstr "libellé d’auteur original rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original-author wording supplied as a distinct field in this curated bibliographic description."
+msgstr "Le libellé d’auteur original fourni comme champ distinct dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued wording can retain original script without establishing a name object, Agent, original-language analysis or relation to any author-sequence item."
+msgstr "Ce libellé facultatif et localement monovalué peut conserver l’écriture d’origine sans établir d’objet de nom, d’Agent, d’analyse de langue originale ni de relation avec un élément de la séquence d’auteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicOriginalAuthorWording \"ソラ\"@ja .`"
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicOriginalAuthorWording \"ソラ\"@ja .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies its distinct original-author wording field."
+msgstr "Utiliser lorsqu’une curation fournit son champ distinct de libellé d’auteur original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting an original author from the sequence, guessing script or language, or deriving transliteration and authorship from matching text."
+msgstr "Éviter de sélectionner un auteur original dans la séquence, de deviner l’écriture ou la langue, ou de déduire une translittération et la paternité d’un texte concordant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied word literal and actual attribution. Retain supplied language and direction, keep untagged wording untagged, and omit unavailable wording."
+msgstr "Préserver le littéral textuel fourni complet et son attribution réelle. Conserver la langue et la direction fournies, garder les libellés sans étiquette tels quels et omettre les libellés indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic collection kind"
+msgstr "catégorie de collection bibliographique rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The collection-kind wording supplied in this curated bibliographic description."
+msgstr "Le libellé de catégorie de collection fourni dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a source classification without creating a Collection, membership relation or controlled kind. It is distinct from the music slice’s collectionKind."
+msgstr "Ce littéral textuel facultatif et localement monovalué conserve une classification de la source sans créer de Collection, de relation d’appartenance ni de catégorie contrôlée. Il est distinct de collectionKind dans la tranche music."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicCollectionKind \"coastal studies\"@en .`"
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicCollectionKind \"coastal studies\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation explicitly supplies collection-kind wording with its bibliographic account."
+msgstr "Utiliser lorsqu’une curation fournit explicitement un libellé de catégorie de collection avec son compte rendu bibliographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing collectionKind, interpreting the words as collection identity or inferring that the subject belongs to a collection."
+msgstr "Éviter de réutiliser collectionKind, d’interpréter les mots comme une identité de collection ou de déduire que le sujet appartient à une collection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal with its actual language, direction and attribution. Do not invent a collection resource or fill missing wording."
+msgstr "Conserver un littéral textuel fourni complet avec sa langue, sa direction et son attribution réelles. Ne pas inventer de ressource de collection ni compléter un libellé manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic collection note"
+msgstr "note de collection bibliographique rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The collection-note wording supplied in this curated bibliographic description."
+msgstr "Le libellé de note de collection fourni dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued note preserves source commentary without endorsing it or asserting a collection, membership or relationship to another note."
+msgstr "Cette note facultative et localement monovaluée préserve le commentaire de la source sans l’approuver ni affirmer de collection, d’appartenance ou de relation avec une autre note."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicCollectionNote \"Retain the catalogue grouping.\"@en .`"
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicCollectionNote \"Retain the catalogue grouping.\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies a collection note as part of its bibliographic account."
+msgstr "Utiliser lorsqu’une curation fournit une note de collection dans son compte rendu bibliographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the note as a membership rule, inferred classification, authority-reference note or proof that its content is true."
+msgstr "Éviter d’interpréter la note comme une règle d’appartenance, une classification déduite, une note de référence à une autorité ou une preuve de véracité de son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve one complete supplied word literal, including blank text, language, direction and actual attribution. Keep separate notes on separate coherent accounts."
+msgstr "Préserver un littéral textuel fourni complet, y compris le texte vide, la langue, la direction et l’attribution réelle. Garder les notes distinctes sur des comptes rendus cohérents distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic publication-date text"
+msgstr "texte de date de publication bibliographique rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The publication-date wording supplied in this curated bibliographic description."
+msgstr "Le libellé de date de publication fourni dans cette description bibliographique issue de la curation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal preserves the source’s precision and wording. It asserts no dateTime, midnight, season boundary, timezone or temporal object."
+msgstr "Ce littéral textuel facultatif et localement monovalué préserve la précision et le libellé de la source. Il n’affirme ni dateTime, ni minuit, ni limite de saison, ni fuseau horaire, ni objet temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicPublicationDateText \"Spring, year of the amber tide\"@en .`"
+msgstr "Une source fictive fournit `ex:description gmeow:bibliographicPublicationDateText \"Spring, year of the amber tide\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies publication-date wording that must remain intact independently of any later temporal interpretation."
+msgstr "Utiliser lorsqu’une curation fournit un libellé de date de publication qui doit rester intact indépendamment de toute interprétation temporelle ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting datePublished, parsing an instant, assigning seasonal boundaries or inventing missing calendar and timezone context."
+msgstr "Éviter de substituer datePublished, d’analyser un instant, d’attribuer des limites saisonnières ou d’inventer un contexte de calendrier et de fuseau horaire manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied word literal with actual language, direction and attribution. Preserve blank wording and leave an unavailable date absent; model justified temporal interpretation separately."
+msgstr "Conserver le littéral textuel fourni complet avec sa langue, sa direction et son attribution réelles. Préserver un libellé vide et omettre une date indisponible ; modéliser séparément toute interprétation temporelle justifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bibliographic word-sequence constraint"
+msgstr "contrainte des séquences de libellés bibliographiques"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through bibliographicTitleWords or bibliographicAuthorWords has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal."
+msgstr "Chaque élément sélectionné par bibliographicTitleWords ou bibliographicAuthorWords possède un structuredTerm, et chacun de ces termes est un littéral xsd:string, rdf:langString ou rdf:dirLangString."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law checks each supplied scalar independently and permits blank strings. Empty selected sequences are valid; generic branch, whole-term identity and ordinal laws remain unchanged."
+msgstr "Cette loi limitée aux rôles vérifie chaque valeur scalaire fournie indépendamment et admet les chaînes vides. Les séquences sélectionnées vides sont valides ; les lois génériques de branche, d’identité du terme entier et d’ordre restent inchangées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A title item carrying an empty xsd:string is valid; an item without structuredTerm or with a numeric term fails this law."
+msgstr "Un élément de titre portant un xsd:string vide est valide ; un élément sans structuredTerm ou avec un terme numérique enfreint cette loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every supplied title-wording and author-wording occurrence without pairing the sequences."
+msgstr "Utiliser pour valider chaque occurrence fournie de libellé de titre et d’auteur sans apparier les séquences."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an extra malformed term, coercing resources or numbers into wording, or interpreting strings as analyzed names."
+msgstr "Éviter d’accepter un terme mal formé supplémentaire, de convertir des ressources ou des nombres en libellés, ou d’interpréter des chaînes comme des noms analysés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow each selected sequence and structuredItem. Require a term, then compare every supplied term’s datatype with the three admitted word datatypes through termSameComponent; report failures without rewriting input."
+msgstr "Suivre chaque séquence sélectionnée et structuredItem. Exiger un terme, puis comparer le type de données de chaque terme fourni aux trois types textuels admis au moyen de termSameComponent ; signaler les échecs sans réécrire l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bibliographic authority-sequence constraint"
+msgstr "contrainte des séquences de références à des autorités bibliographiques"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through bibliographicAuthorityReferences has a structuredTerm, and every such term is an actual resource typed AuthorityReferenceRecord."
+msgstr "Chaque élément sélectionné par bibliographicAuthorityReferences possède un structuredTerm, et chacun de ces termes est une ressource réelle typée AuthorityReferenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law requires record resources rather than literal locators or nested payloads. Each record keeps its own target and source contract; empty selected sequences remain valid."
+msgstr "Cette loi limitée au rôle exige des ressources de notice plutôt que des localisateurs littéraux ou des charges utiles imbriquées. Chaque notice conserve son propre contrat de cible et de source ; les séquences sélectionnées vides restent valides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scalar term pointing to an actual AuthorityReferenceRecord is valid; an IRI-shaped string or item without a term fails this law."
+msgstr "Un terme scalaire pointant vers une AuthorityReferenceRecord réelle est valide ; une chaîne ayant la forme d’une IRI ou un élément sans terme enfreint cette loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the actual record resource carried by every supplied bibliographic authority-reference occurrence."
+msgstr "Utiliser pour valider la ressource de notice réelle portée par chaque occurrence fournie de référence à une autorité bibliographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a literal locator as a record, discarding extra bad terms or inferring authorityReference, match strength or identity from sequence membership."
+msgstr "Éviter de traiter un localisateur littéral comme une notice, d’écarter des termes incorrects supplémentaires ou de déduire authorityReference, une force de correspondance ou une identité de l’appartenance à la séquence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow bibliographicAuthorityReferences and structuredItem. Require a structuredTerm and check every supplied term’s AuthorityReferenceRecord type; retain generic scalar and ordering laws and report failure without substitution."
+msgstr "Suivre bibliographicAuthorityReferences et structuredItem. Exiger un structuredTerm et vérifier le type AuthorityReferenceRecord de chaque terme fourni ; conserver les lois génériques de valeur scalaire et d’ordre et signaler l’échec sans substitution."

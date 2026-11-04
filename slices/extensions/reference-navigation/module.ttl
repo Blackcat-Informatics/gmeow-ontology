@@ -630,3 +630,231 @@ gmeow:occurrenceInAnalysisInput
     gmeow:useWhen "Use to preserve which analysis input a recognizer's original occurrence report concerns."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting the containing block for a larger analysis input, treating Analysis as source text, or inferring coordinates in another context."@x-gmeow-english ;
     gmeow:howToUse "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."@x-gmeow-english .
+
+gmeow:CuratedBibliographicDescription
+    a logic:Kind , logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "curated bibliographic description"@x-gmeow-english ;
+    skos:definition "An information object retaining one coherent source-supplied bibliographic account as independent title, author and authority-reference sequences and reported descriptive wording."@x-gmeow-english ;
+    skos:scopeNote "This record groups supplied fields without interpreting title objects, Agents, authorship, kinds or dates. Its sequence and scalar roles are optional and locally single-valued; separate coherent accounts remain separate records."@x-gmeow-english ;
+    skos:example "A fictional curation supplies `ex:description a gmeow:CuratedBibliographicDescription .` with two title occurrences and one author-wording occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use when supplied bibliographic fields must remain together as one curation account without inventing interpreted entities or relationships."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the described work, its title or its author as this record, or merging different accounts because their words agree."@x-gmeow-english ;
+    gmeow:howToUse "Retain a distinct description for each coherent supplied account and its actual subject. Preserve each sequence independently, the supplied wording and exact-statement attribution."@x-gmeow-english .
+
+gmeow:curatedBibliographicDescription
+    a logic:ObjectProperty ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:CuratedBibliographicDescription ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "curated bibliographic description"@x-gmeow-english ;
+    skos:definition "Relates an actual InformationObject to a CuratedBibliographicDescription supplied for it in a curation context."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional association preserves independent accounts. It does not turn the subject into a CreativeWork, collection, title, author or authority target."@x-gmeow-english ;
+    skos:example "A fictional source associates `ex:subject gmeow:curatedBibliographicDescription ex:description .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a curation explicitly supplies a bibliographic description for an actual information object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this association from matching words or treating it as hasTitle, hasAuthor, authorityReference or an identity assertion."@x-gmeow-english ;
+    gmeow:howToUse "Link the subject to each actual supplied description and attribute each association separately. Do not propagate the description’s provenance to its fields or subject."@x-gmeow-english .
+
+gmeow:bibliographicTitleWords
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic title wording"@x-gmeow-english ;
+    skos:definition "The independently ordered sequence of complete title-wording strings supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional sequence is locally at most one. Each item is a complete supplied title variant, not a word token; positions establish no pairing with author wording or title identity."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicTitleWords ex:titles .` and retains two equal strings as distinct occurrences."@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies an ordered title-wording sequence, including an explicitly supplied empty sequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deduplication, sorting, tokenization, title-object fabrication or pairing title and author items by index."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied StructuredSequence and retain distinct scalar StructuredValue items with complete word literals and entryOrdinal. Preserve repetitions, blank strings, language, direction and actual attribution."@x-gmeow-english .
+
+gmeow:bibliographicAuthorWords
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic author wording"@x-gmeow-english ;
+    skos:definition "The independently ordered sequence of complete author-wording strings supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional sequence is locally at most one. Each item is complete supplied wording, not a resolved Agent, Appellation or author paired with the title at the same position."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicAuthorWords ex:authors .` with one author-wording item and two title-wording items."@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies an ordered sequence of author variants as wording, with no interpreted author identity required."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring hasAuthor, person identity, translation, transliteration or title/author pairing from the strings or their positions."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied StructuredSequence independently of the title sequence. Retain each complete word literal on a distinct scalar item with entryOrdinal and actual attribution; leave unavailable sequences absent."@x-gmeow-english .
+
+gmeow:bibliographicAuthorityReferences
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic authority references"@x-gmeow-english ;
+    skos:definition "The ordered sequence of actual AuthorityReferenceRecord resources supplied with this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional sequence is locally at most one. Distinct item occurrences preserve repeated references to the same record; sequence membership asserts no direct authorityReference or identity link on the described subject."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicAuthorityReferences ex:references .` whose scalar terms point to two distinct authority-reference records."@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies an ordered authority-reference inventory associated with its bibliographic account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid literal IRI strings, opaque serialized records, invented record fields, identity merges or an inferred authorityReference property chain."@x-gmeow-english ;
+    gmeow:howToUse "Retain each actual record resource through structuredTerm on a distinct StructuredValue occurrence with entryOrdinal. Keep every record’s own required target, source wording and exact-statement attribution; do not propagate provenance."@x-gmeow-english .
+
+gmeow:bibliographicWorkKind
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic work kind"@x-gmeow-english ;
+    skos:definition "The work-kind wording supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains a reported classification without assigning a type to the subject or description."@x-gmeow-english ;
+    skos:example "A fictional curation supplies `ex:description gmeow:bibliographicWorkKind \"reference volume\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation explicitly supplies wording for a work’s kind."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning the wording into rdf:type, a controlled concept or a CreativeWork assertion without separate evidence."@x-gmeow-english ;
+    gmeow:howToUse "Keep one complete supplied word literal with its actual language, direction and attribution. Preserve blank wording; leave an unavailable kind absent."@x-gmeow-english .
+
+gmeow:bibliographicOriginalAuthorWording
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported original author wording"@x-gmeow-english ;
+    skos:definition "The original-author wording supplied as a distinct field in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued wording can retain original script without establishing a name object, Agent, original-language analysis or relation to any author-sequence item."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicOriginalAuthorWording \"ソラ\"@ja .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies its distinct original-author wording field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting an original author from the sequence, guessing script or language, or deriving transliteration and authorship from matching text."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete supplied word literal and actual attribution. Retain supplied language and direction, keep untagged wording untagged, and omit unavailable wording."@x-gmeow-english .
+
+gmeow:bibliographicCollectionKind
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic collection kind"@x-gmeow-english ;
+    skos:definition "The collection-kind wording supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains a source classification without creating a Collection, membership relation or controlled kind. It is distinct from the music slice’s collectionKind."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicCollectionKind \"coastal studies\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation explicitly supplies collection-kind wording with its bibliographic account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing collectionKind, interpreting the words as collection identity or inferring that the subject belongs to a collection."@x-gmeow-english ;
+    gmeow:howToUse "Keep one complete supplied word literal with its actual language, direction and attribution. Do not invent a collection resource or fill missing wording."@x-gmeow-english .
+
+gmeow:bibliographicCollectionNote
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic collection note"@x-gmeow-english ;
+    skos:definition "The collection-note wording supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued note preserves source commentary without endorsing it or asserting a collection, membership or relationship to another note."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicCollectionNote \"Retain the catalogue grouping.\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies a collection note as part of its bibliographic account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the note as a membership rule, inferred classification, authority-reference note or proof that its content is true."@x-gmeow-english ;
+    gmeow:howToUse "Preserve one complete supplied word literal, including blank text, language, direction and actual attribution. Keep separate notes on separate coherent accounts."@x-gmeow-english .
+
+gmeow:bibliographicPublicationDateText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CuratedBibliographicDescription ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported bibliographic publication-date text"@x-gmeow-english ;
+    skos:definition "The publication-date wording supplied in this curated bibliographic description."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal preserves the source’s precision and wording. It asserts no dateTime, midnight, season boundary, timezone or temporal object."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:description gmeow:bibliographicPublicationDateText \"Spring, year of the amber tide\"@en .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when curation supplies publication-date wording that must remain intact independently of any later temporal interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting datePublished, parsing an instant, assigning seasonal boundaries or inventing missing calendar and timezone context."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete supplied word literal with actual language, direction and attribution. Preserve blank wording and leave an unavailable date absent; model justified temporal interpretation separately."@x-gmeow-english .
+
+gmeow:CuratedBibliographicDescription logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicTitleWords ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicTitleWords ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicAuthorWords ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicAuthorWords ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicAuthorityReferences ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicAuthorityReferences ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicWorkKind ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicWorkKind ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicOriginalAuthorWording ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicOriginalAuthorWording ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicCollectionKind ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicCollectionKind ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicCollectionNote ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicCollectionNote ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicPublicationDateText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:bibliographicPublicationDateText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:BibliographicWordSequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "bibliographic word-sequence constraint"@x-gmeow-english ;
+    skos:definition "Every item selected through bibliographicTitleWords or bibliographicAuthorWords has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped law checks each supplied scalar independently and permits blank strings. Empty selected sequences are valid; generic branch, whole-term identity and ordinal laws remain unchanged."@x-gmeow-english ;
+    skos:example "A title item carrying an empty xsd:string is valid; an item without structuredTerm or with a numeric term fails this law."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate every supplied title-wording and author-wording occurrence without pairing the sequences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting an extra malformed term, coercing resources or numbers into wording, or interpreting strings as analyzed names."@x-gmeow-english ;
+    gmeow:howToUse "Follow each selected sequence and structuredItem. Require a term, then compare every supplied term’s datatype with the three admitted word datatypes through termSameComponent; report failures without rewriting input."@x-gmeow-english ;
+    logic:formalizes gmeow:bibliographicTitleWords , gmeow:bibliographicAuthorWords ;
+    logic:message "Every selected title or author item has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] , [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+    [ a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:bibliographicTitleWords ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:bibliographicAuthorWords ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] , [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
+    logic:consequent [ a logic:Formula ; logic:and
+    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
+    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+    logic:consequent [ a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation logic:termSameComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:string ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
+    [ a logic:Formula ; logic:relation logic:termSameComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri rdf:langString ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
+    [ a logic:Formula ; logic:relation logic:termSameComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] ] .
+
+gmeow:BibliographicAuthoritySequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "bibliographic authority-sequence constraint"@x-gmeow-english ;
+    skos:definition "Every item selected through bibliographicAuthorityReferences has a structuredTerm, and every such term is an actual resource typed AuthorityReferenceRecord."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped law requires record resources rather than literal locators or nested payloads. Each record keeps its own target and source contract; empty selected sequences remain valid."@x-gmeow-english ;
+    skos:example "A scalar term pointing to an actual AuthorityReferenceRecord is valid; an IRI-shaped string or item without a term fails this law."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the actual record resource carried by every supplied bibliographic authority-reference occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a literal locator as a record, discarding extra bad terms or inferring authorityReference, match strength or identity from sequence membership."@x-gmeow-english ;
+    gmeow:howToUse "Follow bibliographicAuthorityReferences and structuredItem. Require a structuredTerm and check every supplied term’s AuthorityReferenceRecord type; retain generic scalar and ordering laws and report failure without substitution."@x-gmeow-english ;
+    logic:formalizes gmeow:bibliographicAuthorityReferences ;
+    logic:message "Every selected authority-reference item has a structuredTerm, and every such term is an actual resource typed AuthorityReferenceRecord." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] , [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+    [ a logic:Formula ; logic:relation gmeow:bibliographicAuthorityReferences ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] , [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
+    logic:consequent [ a logic:Formula ; logic:and
+    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
+    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+    logic:consequent [ a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityReferenceRecord ] ] ] ] ] ] ] .
