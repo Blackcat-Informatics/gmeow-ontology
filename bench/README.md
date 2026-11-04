@@ -215,9 +215,17 @@ is priming with. The fix for a drift failure is always `make maint-medium-sweep`
 the moved corpus — never editing the recorded digest, which would assert an identity
 nothing measured.
 
-Because the schema changed, the artifact's schema token is
-`gmeow.medium-baseline.v2`. A `v1` table has no way to say which corpus its numbers
-describe, so it is **refused**, not read leniently.
+The current reader requires `gmeow.medium-baseline.v3`. Its top-level
+`engine_identity` records every selected PurRDF package in ascending name order,
+with its exact version, complete Cargo source and registry checksum. Git sources
+carry their full revision and an empty checksum. `sweep::load` compares these
+identities with the validated Cargo resolution before grading or training.
+The same corpus measured by a different trainer or codec therefore requires a
+fresh sweep. Missing, duplicate, reordered or stale identities fail closed.
+
+The sweep writes the engine identity together with its measurements. Existing
+measurements must never be relabeled with a new identity. A `v1` or `v2` table
+does not bind both corpus and engine, so the reader refuses it actionably.
 
 ## Where the "does it pay for itself?" refusal lives, and why not at the emitter
 
@@ -391,9 +399,16 @@ There is **one** producer — the admitted `gmeow-dev medium-sweep` command:
 
 ```sh
 make maint-medium-sweep     # runs the real DAG, then the full grid
-make check-sync SYNC_MODE=update   # re-projects generated/medium/dictionary-effect.ttl
-git add bench/medium-baseline.json generated/medium/dictionary-effect.ttl
+make check                 # materializes and gates the new evidence
+git add bench/medium-baseline.json
 ```
+
+For a hosted refresh, select `maint_medium_sweep` in the CI workflow's manual
+dispatch. This isolated profile builds and admits the exact producer, runs the
+sweep, and uploads the table, producer receipt and run provenance. Review the
+source commit, sweep outcome and table SHA-256 before accepting the artifact.
+Evidence uploaded after a failed or cancelled run remains unqualified. Ordinary
+pull requests retain their complete required quality gate.
 
 The lane exits **non-zero** on the one declared stop-and-ask condition — a dictionary
 does not pay for itself at its best cell — and writes the artifact first, because the

@@ -355,21 +355,41 @@ fn object_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
 /// N-Quads allocation and immediate parser round trip. Canonicalization refusals remain
 /// hard compiler errors; there is no weaker labeling fallback.
 pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    canonical_relabel(
-        ds,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-    )
-    .map(Arc::new)
-    .map_err(canonicalization_failure)
+    let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+    canonical_relabel(ds, &mut control)
+        .map(Arc::new)
+        .map_err(|error| canonicalization_failure(error, &control))
 }
 
 /// Preserve the native refusal and its charged search breakdown at both compiler
 /// canonicalization boundaries. The counts describe admitted work, not elapsed
 /// time, completed frames, or the structure responsible for exhausting the limit.
-pub(crate) fn canonicalization_failure(error: purrdf::CanonError) -> Diag {
+pub(crate) fn canonicalization_failure(
+    error: purrdf::CanonError,
+    control: &purrdf::CanonicalizationControl<'_>,
+) -> Diag {
     let detail = if let purrdf::CanonError::BudgetExceeded(budget) = &error {
+        let Some((_, observation)) = control.last_rdfc_refusal().filter(|(position, observation)| {
+            observation.first_degree_group.is_some()
+                && matches!(
+                    control.since(*position),
+                    Some([receipt])
+                        if !receipt.completed
+                            && receipt.observed_refusal == Some(purrdf::SearchRefusal::Limit)
+                            && receipt.policy == purrdf::SearchPolicy::Finite(budget.limit)
+                            && receipt.work == budget.work
+                            && matches!(&receipt.configuration, purrdf::SearchConfiguration::Rdfc { .. })
+                )
+        }) else {
+            return Diag::of_kind(crate::error::Graph::caused_by(
+                format!(
+                    "native blank-node canonicalization: {error}; required last-run RDFC refusal observation is absent or does not match the native receipt"
+                ),
+                error,
+            ));
+        };
         format!(
-            "native blank-node canonicalization: {error}; recursive frames={}, permutation attempts={}",
+            "native blank-node canonicalization: {error}; recursive frames={}, permutation attempts={}; {observation}",
             budget.work.count(purrdf::SearchEvent::RdfcFrame),
             budget.work.count(purrdf::SearchEvent::RdfcPermutation),
         )
