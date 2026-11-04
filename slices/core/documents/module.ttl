@@ -1527,3 +1527,79 @@ gmeow:channelLayout
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/identifier" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/charset" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+
+gmeow:ContentMode
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Content Mode"@x-gmeow-english ;
+    skos:definition "An open category of values describing how the content of a source block is expressed, independently of its structural segment type."@x-gmeow-english ;
+    skos:scopeNote "Prose, verse, dialogue and code are initial values, not an exhaustive inventory or mutually exclusive classes. Content mode is separate from structural kind, media format, language, genre and analysis status."@x-gmeow-english ;
+    skos:example "Record a supplied mode: ex:block gmeow:contentMode gmeow:contentModeVerse ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value category for an explicitly supplied content-mode classification of a ContentBlock."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating a ContentBlock subclass for each mode, closing the value set or equating mode with structural segmentType or a language analysis result."@x-gmeow-english ;
+    gmeow:howToUse "Represent each mode as an individual of ContentMode and link the actual block through contentMode. Retain actual source and viewpoint on the exact statements and preserve other supplied modes."@x-gmeow-english .
+
+gmeow:contentMode
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:ContentMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "content mode"@x-gmeow-english ;
+    skos:definition "A supplied mode describing how this ContentBlock's content is expressed, separately from the block's structural segmentType."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation permits coexisting attributed classifications and mixed content. It supplies no default, exclusive winner, structural boundary or classification of every internal fragment."@x-gmeow-english ;
+    skos:example "With the actual attribution retained, record ex:block gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source or attributed analysis supplies a content mode for the block actually being described."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting mode for structural kind or inferring a mode solely from layout, markup, a missing value or another mode."@x-gmeow-english ;
+    gmeow:howToUse "Link the ContentBlock to each supplied ContentMode individual. Retain its existing segmentType and exact-statement attribution without requiring a mode on every block or selecting one preferred value."@x-gmeow-english .
+
+gmeow:contentModeProse
+    a logic:NamedIndividual, gmeow:ContentMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "prose content mode"@x-gmeow-english ;
+    skos:definition "The content mode for a block presented as prose, without imposing a paragraph shape or language-analysis status."@x-gmeow-english ;
+    skos:scopeNote "A prose classification does not establish a paragraph boundary, a particular language or an unanalyzed surface. Other supplied modes may coexist on the same block."@x-gmeow-english ;
+    skos:example "Record supplied prose classification: ex:block gmeow:contentMode gmeow:contentModeProse ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected block's content is explicitly presented or classified as prose."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning prose by default to an unclassified block or treating it as lang:UnanalyzedProse or lang:renderingProse."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contentMode on the actual ContentBlock and retain the supplied classification's source and viewpoint. Keep structural and analysis-status assertions separate."@x-gmeow-english .
+
+gmeow:contentModeVerse
+    a logic:NamedIndividual, gmeow:ContentMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "verse content mode"@x-gmeow-english ;
+    skos:definition "The content mode for content presented as verse, independently of the block's structural boundaries."@x-gmeow-english ;
+    skos:scopeNote "This value does not require a line or stanza boundary, rhyme, meter or a parsed poetic structure. Verse may coexist with a supplied dialogue or other mode classification."@x-gmeow-english ;
+    skos:example "Record supplied verse classification: ex:block gmeow:contentMode gmeow:contentModeVerse ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected block's content is explicitly presented or classified as verse."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving verse from typography alone or replacing segmentTypeVerse, whose role is structural."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contentMode and retain the actual attribution. Preserve any independently supplied structural segment type and other modes without imposing metrical or boundary rules."@x-gmeow-english .
+
+gmeow:contentModeDialogue
+    a logic:NamedIndividual, gmeow:ContentMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "dialogue content mode"@x-gmeow-english ;
+    skos:definition "The content mode for content presented as dialogue, independently of structural segmentation and speaker attribution."@x-gmeow-english ;
+    skos:scopeNote "Dialogue classification supplies no actual speaker, turn count, fictional or real participant identity, or occurrence of a real conversation. It may coexist with prose or verse classification."@x-gmeow-english ;
+    skos:example "Record supplied dialogue classification: ex:block gmeow:contentMode gmeow:contentModeDialogue ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected block's content is explicitly presented or classified as dialogue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a speaker, conversation event or turn structure, or substituting this value for structural segmentTypeDialogue."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contentMode and retain the actual classification's source and viewpoint. Record independently supplied speaker and structural information through their existing properties."@x-gmeow-english .
+
+gmeow:contentModeCode
+    a logic:NamedIndividual, gmeow:ContentMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "code content mode"@x-gmeow-english ;
+    skos:definition "The content mode for content presented as code, independently of the block's structural layout or programming-language attribution."@x-gmeow-english ;
+    skos:scopeNote "This value supplies no programming-language identity, syntactic validity, execution, successful result or security judgment. Code classification may coexist with other supplied modes."@x-gmeow-english ;
+    skos:example "Record supplied code classification: ex:block gmeow:contentMode gmeow:contentModeCode ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected block's content is explicitly presented or classified as code."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid executing the content or inferring a programming language, validity or safety from this value, or substituting it for structural segmentTypeCodeListing."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."@x-gmeow-english .

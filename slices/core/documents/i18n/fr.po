@@ -1229,3 +1229,172 @@ msgstr "Par exemple : ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\
 msgctxt "https://blackcatinformatics.ca/gmeow/identifier|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A formal external identifier of a creative work, such as a DOI or patent number, retained as the supplied xsd:string or xsd:token literal. Its scheme and spelling remain unchanged; a work may carry several identifiers."
 msgstr "Identifiant externe formel d’une œuvre, tel qu’un DOI ou un numéro de brevet, conservé sous la forme du littéral xsd:string ou xsd:token fourni. Son schéma et sa graphie restent inchangés ; une œuvre peut porter plusieurs identifiants."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Content Mode"
+msgstr "Mode de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open category of values describing how the content of a source block is expressed, independently of its structural segment type."
+msgstr "Une catégorie ouverte de valeurs décrivant la manière dont le contenu d’un bloc source est exprimé, indépendamment de son type de segment structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Prose, verse, dialogue and code are initial values, not an exhaustive inventory or mutually exclusive classes. Content mode is separate from structural kind, media format, language, genre and analysis status."
+msgstr "La prose, les vers, le dialogue et le code sont des valeurs initiales, et non un inventaire exhaustif ou des classes mutuellement exclusives. Le mode de contenu est distinct du type structurel, du format de média, de la langue, du genre et de l’état d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record a supplied mode: ex:block gmeow:contentMode gmeow:contentModeVerse ."
+msgstr "Consigner un mode fourni : ex:block gmeow:contentMode gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value category for an explicitly supplied content-mode classification of a ContentBlock."
+msgstr "Utiliser comme catégorie de valeurs pour une classification du mode de contenu explicitement fournie pour un ContentBlock."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a ContentBlock subclass for each mode, closing the value set or equating mode with structural segmentType or a language analysis result."
+msgstr "Éviter de créer une sous-classe de ContentBlock pour chaque mode, de fermer l’ensemble des valeurs ou d’assimiler le mode au segmentType structurel ou à un résultat d’analyse linguistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Represent each mode as an individual of ContentMode and link the actual block through contentMode. Retain actual source and viewpoint on the exact statements and preserve other supplied modes."
+msgstr "Représenter chaque mode par un individu de ContentMode et relier le bloc concerné par contentMode. Conserver la source et le point de vue réels sur les assertions exactes, ainsi que les autres modes fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content mode"
+msgstr "mode de contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied mode describing how this ContentBlock's content is expressed, separately from the block's structural segmentType."
+msgstr "Un mode fourni décrivant la manière dont le contenu de ce ContentBlock est exprimé, distinct du segmentType structurel du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation permits coexisting attributed classifications and mixed content. It supplies no default, exclusive winner, structural boundary or classification of every internal fragment."
+msgstr "Cette relation facultative et non fonctionnelle permet la coexistence de classifications attribuées et de contenus mixtes. Elle ne fournit ni valeur par défaut, ni valeur exclusivement retenue, ni limite structurelle, ni classification de chaque fragment interne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "With the actual attribution retained, record ex:block gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse ."
+msgstr "En conservant l’attribution réelle, consigner ex:block gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or attributed analysis supplies a content mode for the block actually being described."
+msgstr "Utiliser lorsqu’une source ou une analyse attribuée fournit un mode de contenu pour le bloc effectivement décrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting mode for structural kind or inferring a mode solely from layout, markup, a missing value or another mode."
+msgstr "Éviter de remplacer le type structurel par le mode ou de déduire un mode uniquement de la mise en page, du balisage, d’une valeur absente ou d’un autre mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ContentBlock to each supplied ContentMode individual. Retain its existing segmentType and exact-statement attribution without requiring a mode on every block or selecting one preferred value."
+msgstr "Relier le ContentBlock à chaque individu de ContentMode fourni. Conserver son segmentType existant et l’attribution de l’assertion exacte, sans exiger un mode pour chaque bloc ni choisir une valeur privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prose content mode"
+msgstr "mode de contenu en prose"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for a block presented as prose, without imposing a paragraph shape or language-analysis status."
+msgstr "Le mode de contenu d’un bloc présenté comme de la prose, sans imposer une forme de paragraphe ni un état d’analyse linguistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A prose classification does not establish a paragraph boundary, a particular language or an unanalyzed surface. Other supplied modes may coexist on the same block."
+msgstr "Une classification en prose n’établit ni limite de paragraphe, ni langue particulière, ni surface non analysée. D’autres modes fournis peuvent coexister sur le même bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied prose classification: ex:block gmeow:contentMode gmeow:contentModeProse ."
+msgstr "Consigner la classification en prose fournie : ex:block gmeow:contentMode gmeow:contentModeProse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as prose."
+msgstr "Utiliser lorsque le contenu du bloc sélectionné est explicitement présenté ou classé comme de la prose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning prose by default to an unclassified block or treating it as lang:UnanalyzedProse or lang:renderingProse."
+msgstr "Éviter d’attribuer la prose par défaut à un bloc non classé ou de l’assimiler à lang:UnanalyzedProse ou lang:renderingProse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeProse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode on the actual ContentBlock and retain the supplied classification's source and viewpoint. Keep structural and analysis-status assertions separate."
+msgstr "Référencer cette valeur par contentMode sur le ContentBlock concerné et conserver la source et le point de vue de la classification fournie. Garder distinctes les assertions structurelles et celles sur l’état d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verse content mode"
+msgstr "mode de contenu en vers"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as verse, independently of the block's structural boundaries."
+msgstr "Le mode pour un contenu présenté en vers, indépendamment des limites structurelles du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value does not require a line or stanza boundary, rhyme, meter or a parsed poetic structure. Verse may coexist with a supplied dialogue or other mode classification."
+msgstr "Cette valeur n’exige ni limite de vers ou de strophe, ni rime, ni mètre, ni structure poétique analysée. Les vers peuvent coexister avec une classification fournie en dialogue ou selon un autre mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied verse classification: ex:block gmeow:contentMode gmeow:contentModeVerse ."
+msgstr "Consigner la classification en vers fournie : ex:block gmeow:contentMode gmeow:contentModeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as verse."
+msgstr "Utiliser lorsque le contenu du bloc sélectionné est explicitement présenté ou classé comme des vers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving verse from typography alone or replacing segmentTypeVerse, whose role is structural."
+msgstr "Éviter de déduire les vers de la seule typographie ou de remplacer segmentTypeVerse, dont le rôle est structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeVerse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual attribution. Preserve any independently supplied structural segment type and other modes without imposing metrical or boundary rules."
+msgstr "Référencer cette valeur par contentMode et conserver l’attribution réelle. Préserver tout type de segment structurel fourni indépendamment et les autres modes, sans imposer de règles métriques ou de limites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dialogue content mode"
+msgstr "mode de contenu dialogué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as dialogue, independently of structural segmentation and speaker attribution."
+msgstr "Le mode pour un contenu présenté comme un dialogue, indépendamment de la segmentation structurelle et de l’attribution des locuteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Dialogue classification supplies no actual speaker, turn count, fictional or real participant identity, or occurrence of a real conversation. It may coexist with prose or verse classification."
+msgstr "La classification en dialogue ne fournit ni locuteur effectivement identifié, ni nombre de tours de parole, ni identité de participant fictif ou réel, ni occurrence d’une conversation réelle. Elle peut coexister avec une classification en prose ou en vers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied dialogue classification: ex:block gmeow:contentMode gmeow:contentModeDialogue ."
+msgstr "Consigner la classification en dialogue fournie : ex:block gmeow:contentMode gmeow:contentModeDialogue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as dialogue."
+msgstr "Utiliser lorsque le contenu du bloc sélectionné est explicitement présenté ou classé comme un dialogue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a speaker, conversation event or turn structure, or substituting this value for structural segmentTypeDialogue."
+msgstr "Éviter d’inventer un locuteur, un événement de conversation ou une structure de tours de parole, ou de substituer cette valeur au segmentTypeDialogue structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeDialogue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual classification's source and viewpoint. Record independently supplied speaker and structural information through their existing properties."
+msgstr "Référencer cette valeur par contentMode et conserver la source et le point de vue de la classification réelle. Consigner les informations de locuteur et de structure fournies indépendamment à l’aide de leurs propriétés existantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "code content mode"
+msgstr "mode de contenu en code"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The content mode for content presented as code, independently of the block's structural layout or programming-language attribution."
+msgstr "Le mode pour un contenu présenté comme du code, indépendamment de la disposition structurelle du bloc ou de l’attribution d’un langage de programmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value supplies no programming-language identity, syntactic validity, execution, successful result or security judgment. Code classification may coexist with other supplied modes."
+msgstr "Cette valeur ne fournit ni identité de langage de programmation, ni validité syntaxique, ni exécution, ni résultat réussi, ni jugement de sécurité. La classification en code peut coexister avec d’autres modes fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record supplied code classification: ex:block gmeow:contentMode gmeow:contentModeCode ."
+msgstr "Consigner la classification en code fournie : ex:block gmeow:contentMode gmeow:contentModeCode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected block's content is explicitly presented or classified as code."
+msgstr "Utiliser lorsque le contenu du bloc sélectionné est explicitement présenté ou classé comme du code."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid executing the content or inferring a programming language, validity or safety from this value, or substituting it for structural segmentTypeCodeListing."
+msgstr "Éviter d’exécuter le contenu ou de déduire de cette valeur un langage de programmation, une validité ou une sûreté, ou de la substituer au segmentTypeCodeListing structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."
+msgstr "Référencer cette valeur par contentMode et conserver l’attribution réelle. Garder distincts le type structurel fourni indépendamment et la désignation du langage de programmation."
