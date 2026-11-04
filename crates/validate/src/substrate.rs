@@ -8,6 +8,10 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_errors::{Diag, Result};
+use purrdf_lex::json::{
+    Value,
+    record::{DecodeError, FromJson, Record},
+};
 
 /// The lowest PurRDF major release any declared requirement or locked package may name.
 ///
@@ -64,14 +68,40 @@ pub struct PurrdfResolution {
     pub requirement: String,
     /// The exact resolved release, never a compatibility range.
     pub version: String,
+    /// Complete source identities, uniquely named and sorted by package name.
+    pub packages: Vec<PurrdfPackageIdentity>,
 }
 
 /// The complete Cargo source identity of one locked PurRDF package.
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct PackageIdentity {
-    version: String,
-    source: String,
-    checksum: String,
+pub struct PurrdfPackageIdentity {
+    /// Cargo package name, including every selected PurRDF component.
+    pub name: String,
+    /// Exact resolved release.
+    pub version: String,
+    /// Complete Cargo source, including the exact revision for Git sources.
+    pub source: String,
+    /// Registry release checksum, or the empty string for an exact Git source.
+    pub checksum: String,
+}
+
+::purrdf_lex::json_record!(impl ToJson for PurrdfPackageIdentity {
+    "name" => name,
+    "version" => version,
+    "source" => source,
+    "checksum" => checksum,
+});
+
+impl FromJson for PurrdfPackageIdentity {
+    fn from_json(value: &Value) -> std::result::Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "PurRDF package identity object")?;
+        Ok(Self {
+            name: fields.required("name")?,
+            version: fields.required("version")?,
+            source: fields.required("source")?,
+            checksum: fields.required("checksum")?,
+        })
+    }
 }
 
 fn invalid(detail: impl Into<String>) -> Diag {
@@ -91,7 +121,7 @@ fn read_toml(path: &Path) -> Result<toml::Value> {
 }
 
 /// Read every PurRDF package, rejecting missing or ambiguous source identities.
-fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentity>> {
+fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PurrdfPackageIdentity>> {
     let lock = read_toml(path)?;
     let packages = lock
         .get("package")
@@ -114,7 +144,8 @@ fn locked_purrdf_packages(path: &Path) -> Result<BTreeMap<String, PackageIdentit
                 .map(str::to_owned)
                 .ok_or_else(|| invalid(format!("{}: {name} has no {key}", path.display())))
         };
-        let identity = PackageIdentity {
+        let identity = PurrdfPackageIdentity {
+            name: name.to_owned(),
             version: field("version")?,
             source: field("source")?,
             checksum: package
@@ -335,6 +366,7 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
     Ok(PurrdfResolution {
         requirement: requirement.to_string(),
         version: version.clone(),
+        packages: packages.into_values().collect(),
     })
 }
 

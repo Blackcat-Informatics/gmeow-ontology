@@ -10900,3 +10900,1589 @@ gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onPr
 gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QuerySnapshotHeldCount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QuerySnapshotHeldCount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:ReferenceFrame ] .
+
+gmeow:QueryAppliedOrderAccount
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Applied Order Account"@x-gmeow-english ;
+    skos:definition "A complete reported account of the inspected native weighted order on one existing weighted application and its answer, retaining the actual policy, output occurrences, original coordinates and qualified key evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to enrich the same actual weighted application, answer and applied scores with complete reported order evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing another source call or result, labeling requested score-first precedence as inspected native execution or accepting unavailable witnesses as empty."@x-gmeow-english ;
+    gmeow:howToUse "Link from the existing application through appliedOrderAccount; provide the actual policy, same-application activation account, supplied native policy fields and every actual output entry."@x-gmeow-english ;
+    skos:scopeNote "The selected native contract is tier, activation, score, then source subject tie. Exact matching completeness, supplied subject association and terminal byte-order proof remain mandatory import evidence; graph checks alone do not certify whole-sort execution."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . The actual existing weighted application, answer and complete reported evidence are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryAppliedOrderEntry
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Applied Order Entry"@x-gmeow-english ;
+    skos:definition "One actual output occurrence of a reported native weighted order, selecting an original applied score and retaining its original unsigned input-array coordinate and separate nonnegative output ordinal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every original candidate exactly once through the existing applied-score identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying candidates into replacement identities, substituting original class ranks for output position or treating unique ordinals alone as authenticated source arrays."@x-gmeow-english ;
+    gmeow:howToUse "Provide appliedOrderScore, appliedOrderInputPosition, entryOrdinal, appliedOrderTierDeclared and supplied appliedOrderSubjectTie; retain the conditional tier and complete applicable matched witnesses."@x-gmeow-english ;
+    skos:scopeNote "Both position collections are separately zero-based, gap-free and unique within the owner account. Actual original-slot and output-slot associations still require authentic source evidence. This record is descriptive information, not another native answer."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry a gmeow:QueryAppliedOrderEntry ; gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required fields, owner and source evidence are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:QueryMatchedLiteralWitness
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Query Matched Literal Witness"@x-gmeow-english ;
+    skos:definition "A descriptive qualified record of an actual matched content-predicate IRI and exact literal lexical string for one candidate in one selected vault during the actual tier computation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain complete actual matched-pair evidence from all selected services, including unmapped predicates and vaults outside the candidate-found activation subset."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing source claim identity, original literal datatype or language, asserting affirmative support from a match or treating activation snapshots as graph-read content."@x-gmeow-english ;
+    gmeow:howToUse "Provide matchedLiteralVault, matchedLiteralPredicate and exact matchedLiteralLexicalForm, and retain the witness under its one actual output entry."@x-gmeow-english ;
+    skos:scopeNote "Actual matching follows source short circuits: a nonlexical rank-string match is independently sufficient; applicable remaining lexical branches require successful analysis and match decisions. Preserve supplied repeated occurrences without pair-uniqueness assumptions. Missing applicable evidence fails full import."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:witness a gmeow:QueryMatchedLiteralWitness ; gmeow:matchedLiteralPredicate ex:label ; gmeow:matchedLiteralLexicalForm \"  retained text  \" . The selected vault, owning entry and actual matching evidence are omitted."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:appliedOrderAccount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported applied order account"@x-gmeow-english ;
+    skos:definition "The at-most-one complete native-qualified reported order account selected on an existing actual weighted application."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain actual output order beside the same application’s original weighted result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating a second execution or answer because score and ordering vocabulary are separate."@x-gmeow-english ;
+    gmeow:howToUse "Reference a complete QueryAppliedOrderAccount from the actual QueryWeightedFusionApplication."@x-gmeow-english ;
+    skos:scopeNote "Existing applications need not select this profile. Selecting it makes all declared evidence and import requirements mandatory; partial data cannot become a weaker successful account."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryWeightedFusionApplication ; logic:range gmeow:QueryAppliedOrderAccount .
+
+gmeow:appliedOrderPolicy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "actual applied order policy"@x-gmeow-english ;
+    skos:definition "The one existing complete QueryOrderPolicy interpreting the actual selected source order under this native-qualified account."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual selected criterion prescription and unique predicate mappings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a native digest as criterion precedence or claiming the source serialized ontology criterion occurrences."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual selected existing policy; require represented tier before activation and score, activation before score and the existing terminal tie."@x-gmeow-english ;
+    skos:scopeNote "An optional empty content criterion is adapter interpretation of the inert native key, not a new source flag or serialized occurrence. Native declared status depends on nonempty actual mappings or selected activation."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:order gmeow:appliedOrderPolicy ex:nativePolicy . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderAccount ; logic:range gmeow:QueryOrderPolicy .
+
+gmeow:appliedOrderActivationAccount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied order activation account"@x-gmeow-english ;
+    skos:definition "The one existing complete activation account associated with the same actual weighted application as a reported order."@x-gmeow-english ;
+    gmeow:useWhen "Use to reuse actual mode, snapshot roster, candidate-found scope and coordinated aggregate Quantities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating aggregate values, replacing them with held counts or linking another call’s activation account."@x-gmeow-english ;
+    gmeow:howToUse "Reference the QueryFusionActivationAccount retained by the owner application’s fusionActivationAccount edge."@x-gmeow-english ;
+    skos:scopeNote "Activation criterion selection agrees with actual activationEnabled. Qualified snapshot absence and required capture evidence keep their existing meaning; disabled zero is not measured data."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:order gmeow:appliedOrderActivationAccount ex:activationAccount . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderAccount ; logic:range gmeow:QueryFusionActivationAccount .
+
+gmeow:appliedOrderNativePolicyDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied native policy digest"@x-gmeow-english ;
+    skos:definition "The actual supplied thirty-two-byte native policy identity retained separately from the ontology policy resource and fusion-profile digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source-returned policy bytes under an explicit unspaced either-case representation profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid computing replacement hashes, authenticating call input from a digest alone or encoding arbitrary criterion precedence into the source identity."@x-gmeow-english ;
+    gmeow:howToUse "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ from the actual result."@x-gmeow-english ;
+    skos:scopeNote "Native identity covers mappings and activation selection, not arbitrary precedence. Width checks do not certify hashing or source authenticity; regex dialect residue remains explicit."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDigest \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderAccount ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:appliedOrderNativePolicyDeclared
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied native policy declared"@x-gmeow-english ;
+    skos:definition "The required actual source Boolean indicating a nonempty predicate-tier mapping vector or selected activation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve native declared status independently of mandatory ontology score and tie criteria."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every nonempty QueryOrderPolicy as native declared or using an inert empty content criterion as a source selection flag."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual typed Boolean and require true exactly when selected nonempty content mappings or an activation criterion exist."@x-gmeow-english ;
+    skos:scopeNote "Boolean values compare independently of lexical spelling. Empty mappings skip native tier probing; a score-and-tie policy can legitimately have native declared false."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDeclared false . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderAccount ; logic:range xsd:boolean .
+
+gmeow:appliedOrderEntry
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "actual applied order entry"@x-gmeow-english ;
+    skos:definition "A member of the complete actual output-entry collection corresponding exactly to the owner application’s original applied scores."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every original candidate and actual output occurrence without filtering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting scores, adding unrelated entries or accepting a terminal-error stream prefix as a complete batch result."@x-gmeow-english ;
+    gmeow:howToUse "Reference exactly one entry per original applied score with its actual input coordinate and output ordinal."@x-gmeow-english ;
+    skos:scopeNote "The collection is empty exactly when the original application’s score collection is empty. Existing original union, queries and losses remain preserved by the weighted answer."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:order gmeow:appliedOrderEntry ex:first, ex:second . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderAccount ; logic:range gmeow:QueryAppliedOrderEntry .
+
+gmeow:appliedOrderScore
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied order original score"@x-gmeow-english ;
+    skos:definition "The one existing original applied-score resource selected by an actual output entry."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain original candidate identity and exact source score Quantity without recomputation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a rerank float, unweighted integer score, copied candidate or another application’s score."@x-gmeow-english ;
+    gmeow:howToUse "Reference a QueryAppliedFusionScore retained by the account’s actual weighted application."@x-gmeow-english ;
+    skos:scopeNote "The original candidate follows appliedScoreCandidate. Activation lookup joins the existing activation account through this same score, without adding a parallel numeric value or context."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderScore ex:score . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range gmeow:QueryAppliedFusionScore .
+
+gmeow:appliedOrderInputPosition
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied order original input position"@x-gmeow-english ;
+    skos:definition "The actual zero-based u32 coordinate of the entry’s original candidate in the returned whole union’s candidate array."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve original source occurrence position independently of actual output position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming host pointer width, reusing a class-local rank or deriving the source coordinate from the output ordinal."@x-gmeow-english ;
+    gmeow:howToUse "Supply one xsd:unsignedInt from the actual source candidate index and retain entryOrdinal separately."@x-gmeow-english ;
+    skos:scopeNote "Input coordinates are value-unique and gap-free from zero within the account. Those graph checks cannot authenticate the actual candidate-to-slot association; source evidence remains required."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range xsd:unsignedInt .
+
+gmeow:appliedOrderTierDeclared
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied order tier declared"@x-gmeow-english ;
+    skos:definition "The required actual source Boolean distinguishing a declared mapped tier from the undeclared state after every declared u32 label."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source Option state without fabricating a numeric missing-tier sentinel."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating 4294967295 as undeclared or inferring false from unavailable matched evidence."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual typed Boolean; true requires one appliedOrderTier supported by complete qualified matched bindings and false forbids a tier edge."@x-gmeow-english ;
+    skos:scopeNote "Declared maximum u32 still precedes undeclared. Both stored Boolean values are bound independently for comparisons, so true and 1 or false and 0 remain value-equivalent."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared false . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range xsd:boolean .
+
+gmeow:appliedOrderTier
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "actual declared applied tier"@x-gmeow-english ;
+    skos:definition "The conditional actual declared u32 tier label of an output entry, equal to the minimum selected mapping among its complete actual matched predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a declared control-tier label, including 4294967295."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing an undeclared sentinel, treating tier as a magnitude or choosing an unrelated subject predicate as evidence."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one xsd:unsignedInt when appliedOrderTierDeclared is true and no edge when false."@x-gmeow-english ;
+    skos:scopeNote "The stored label equals some matched selected binding and is no greater than every matched selected label. Equal labels on different predicates and tied minimum witnesses are legal."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared true ; gmeow:appliedOrderTier \"4294967295\"^^xsd:unsignedInt . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range xsd:unsignedInt .
+
+gmeow:appliedOrderSubjectTie
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied source subject tie"@x-gmeow-english ;
+    skos:definition "The actual separately supplied thirty-two-byte native subject tie identity associated with the original candidate IRI."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the complete source tie bytes under the unspaced either-case profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hashing or inventing missing bytes, replacing them with IRI lexical order or claiming ordinary hexBinary termLess certifies the native comparator."@x-gmeow-english ;
+    gmeow:howToUse "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ with actual authenticated subject association and source terminal-order evidence."@x-gmeow-english ;
+    skos:scopeNote "Public Fused omits these bytes. Missing required tie evidence fails this complete import. Width and decoded-value equality do not certify whole-byte ordering, hash authenticity or candidate identity from a collision assumption."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderSubjectTie \"ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range xsd:hexBinary ; logic:subPropertyOf lang:literalValue .
+
+gmeow:appliedOrderMatchedLiteral
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "applied order matched literal witness"@x-gmeow-english ;
+    skos:definition "A member of the complete qualified actual matched predicate and lexical-string inventory used for this candidate’s tier computation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every actual matched occurrence across selected services, including unmapped predicates."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting all subject predicates, deleting supplied repetitions or treating a missing inventory as empty or undeclared."@x-gmeow-english ;
+    gmeow:howToUse "Reference each actual QueryMatchedLiteralWitness when nonempty source mappings select tier computation; retain no invented probe inventory when mappings are empty."@x-gmeow-english ;
+    skos:scopeNote "Vector-string equality independently establishes a pair. Otherwise successful lexical analysis and decision are required only for a true applicable lexical-hit branch. Actual applicable failure rejects full import; unused parsing need not succeed."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:entry gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryAppliedOrderEntry ; logic:range gmeow:QueryMatchedLiteralWitness .
+
+gmeow:matchedLiteralVault
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "matched literal selected vault"@x-gmeow-english ;
+    skos:definition "The one actual selected vault identified through an existing roster record for a qualified matched-pair witness."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain all-selected-service matching scope independently of candidate-found activation scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting that the witness came from activation snapshot contents or requiring the vault to be in the candidate-found subset."@x-gmeow-english ;
+    gmeow:howToUse "Reference a record in the same account’s existing activation roster and retain actual same-call graph-read association as import evidence."@x-gmeow-english ;
+    skos:scopeNote "Activation snapshot and tier graph read are distinct source contexts. A later read or a read-version reconstruction cannot supply missing actual witness association."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:witness gmeow:matchedLiteralVault ex:rosterOnlyVault . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryMatchedLiteralWitness ; logic:range gmeow:QueryVaultSnapshotRecord .
+
+gmeow:matchedLiteralPredicate
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "matched literal content predicate"@x-gmeow-english ;
+    skos:definition "The one actual source content-predicate IRI on a qualified matched literal pair for the original candidate."@x-gmeow-english ;
+    gmeow:useWhen "Use to join actual matching evidence to the selected existing predicate-tier declarations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the predicate with text, an unrelated subject predicate or a claim of affirmative support."@x-gmeow-english ;
+    gmeow:howToUse "Retain one actual IRI and compare its resource identity with selected tierBindingPredicate values."@x-gmeow-english ;
+    skos:scopeNote "Native probes include framed, superseded and denied held claims. Matching does not authenticate a predicate, assert a new schema or prove that the claim is positive support."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:witness gmeow:matchedLiteralPredicate ex:label . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryMatchedLiteralWitness ; logic:range logic:Thing .
+
+gmeow:matchedLiteralLexicalForm
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "matched literal exact lexical form"@x-gmeow-english ;
+    skos:definition "The exact supplied native literal lexical string of a qualified matched pair, retained as an xsd:string carrier rather than a reconstruction of the original RDF literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve actual text, including significant surrounding whitespace and an actually supplied empty string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid trimming, normalizing, inventing original datatype, language, direction or claim identity, or merging equal-text occurrences."@x-gmeow-english ;
+    gmeow:howToUse "Supply one exact xsd:string lexical carrier through this specialization of lang:literalValue."@x-gmeow-english ;
+    skos:scopeNote "The internal probe supplies predicate and lexical text only. Distinct actual supplied occurrences can share these fields; retain their separate descriptive records without fabricating native identifiers."@x-gmeow-english ;
+    skos:example "Fictional scoped fragment: ex:witness gmeow:matchedLiteralLexicalForm \"  retained text  \" . Other required account fields and actual source evidence are omitted."@x-gmeow-english ;
+    logic:domain gmeow:QueryMatchedLiteralWitness ; logic:range xsd:string ; logic:subPropertyOf lang:literalValue .
+
+gmeow:AppliedOrderAccountOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order account owner law"@x-gmeow-english ;
+    skos:definition "Every typed applied-order account has exactly one incoming typed existing weighted application owner."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep complete reported order evidence on the same actual source occurrence as its weighted answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting orphan accounts, sharing an account across calls or treating inverse ownership as source authentication."@x-gmeow-english ;
+    gmeow:howToUse "Require an incoming typed weighted application and compare any two such owners by resource equality."@x-gmeow-english ;
+    skos:scopeNote "The application’s at-most-one order account is a separate local maximum. Existing answer, score and activation ownership obligations remain unchanged."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional order account referenced by two distinct weighted applications fails ownership."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "Every typed applied-order account has exactly one incoming typed existing weighted application owner." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o02_a" ], [ logic:termIndex 2 ; logic:termVariable "o02_b" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o01_e_a" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o01_e_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderAccount ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o01_e_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o02_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o02_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o02_b" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o02_b" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o02_a" ], [ logic:termIndex 1 ; logic:termVariable "o02_b" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderPolicyContextLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order policy context law"@x-gmeow-english ;
+    skos:definition "The selected activation account belongs to the same weighted application, actual activation selection and native declared status agree with the selected policy, and criterion positions preserve inspected native precedence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual native tier-before-activation-before-score prescription without changing existing policy-definition semantics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid labeling requested score-first execution as inspected native order or treating an inert empty content criterion as a serialized source flag."@x-gmeow-english ;
+    gmeow:howToUse "Join the existing application and activation account; compare actual mode by Boolean value; require native declared exactly for nonempty mappings or activation, with tier before score and activation and activation before score."@x-gmeow-english ;
+    skos:scopeNote "An optional empty content criterion is adapter interpretation of the inert native key. Actual nonempty source mappings select probing; score and terminal tie alone do not make native policy declared true. Missing actual call-input association fails import."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional activation-before-score result cannot be declared an actual score-before-activation native call merely because its values happen to agree."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "The selected activation account belongs to the same weighted application, actual activation selection and native declared status agree with the selected policy, and criterion positions preserve inspected native precedence." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o03_a" ], [ logic:termIndex 2 ; logic:termVariable "o03_c" ], [ logic:termIndex 3 ; logic:termVariable "o04_a" ], [ logic:termIndex 4 ; logic:termVariable "o04_c" ], [ logic:termIndex 5 ; logic:termVariable "o04_m" ], [ logic:termIndex 6 ; logic:termVariable "o04_p" ], [ logic:termIndex 7 ; logic:termVariable "o05_a" ], [ logic:termIndex 8 ; logic:termVariable "o05_m" ], [ logic:termIndex 9 ; logic:termVariable "o05_p" ], [ logic:termIndex 10 ; logic:termVariable "o06_d" ], [ logic:termIndex 11 ; logic:termVariable "o07_d" ], [ logic:termIndex 12 ; logic:termVariable "o07_p" ], [ logic:termIndex 13 ; logic:termVariable "o08_c" ], [ logic:termIndex 14 ; logic:termVariable "o08_d" ], [ logic:termIndex 15 ; logic:termVariable "o08_i" ], [ logic:termIndex 16 ; logic:termVariable "o08_j" ], [ logic:termIndex 17 ; logic:termVariable "o08_p" ], [ logic:termIndex 18 ; logic:termVariable "o09_c" ], [ logic:termIndex 19 ; logic:termVariable "o09_d" ], [ logic:termIndex 20 ; logic:termVariable "o09_i" ], [ logic:termIndex 21 ; logic:termVariable "o09_j" ], [ logic:termIndex 22 ; logic:termVariable "o09_p" ], [ logic:termIndex 23 ; logic:termVariable "o10_c" ], [ logic:termIndex 24 ; logic:termVariable "o10_d" ], [ logic:termIndex 25 ; logic:termVariable "o10_i" ], [ logic:termIndex 26 ; logic:termVariable "o10_j" ], [ logic:termIndex 27 ; logic:termVariable "o10_p" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o03_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o03_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o03_c" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation gmeow:fusionActivationAccount ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o03_a" ], [ logic:termIndex 1 ; logic:termVariable "o03_c" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o04_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o04_p" ], [ logic:termIndex 1 ; logic:termVariable "o04_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o04_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o04_a" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationEnabled ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o04_a" ], [ logic:termIndex 1 ; logic:termVariable "o04_m" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o04_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o05_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o05_a" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationEnabled ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o05_a" ], [ logic:termIndex 1 ; logic:termVariable "o05_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o05_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o05_e_c" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterion ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o05_p" ], [ logic:termIndex 1 ; logic:termVariable "o05_e_c" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterionKind ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o05_e_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderNativePolicyDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o06_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_d" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:or [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o06_e_ap" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_ac" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:appliedOrderPolicy ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_ap" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterion ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_e_ap" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_ac" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterionKind ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_e_ac" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ] ] ],
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o06_e_tp" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_tc" ], [ logic:termIndex 2 ; logic:termVariable "o06_e_b" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:appliedOrderPolicy ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_tp" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterion ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_e_tp" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_tc" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterionKind ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_e_tc" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:contentTierBinding ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o06_e_tc" ], [ logic:termIndex 1 ; logic:termVariable "o06_e_b" ] ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o07_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderNativePolicyDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o07_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_d" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o07_e_a" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterion ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_p" ], [ logic:termIndex 1 ; logic:termVariable "o07_e_a" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterionKind ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_e_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ] ] ] ],
+                    [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o07_e_t" ], [ logic:termIndex 1 ; logic:termVariable "o07_e_b" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterion ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_p" ], [ logic:termIndex 1 ; logic:termVariable "o07_e_t" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterionKind ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_e_t" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:contentTierBinding ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o07_e_t" ], [ logic:termIndex 1 ; logic:termVariable "o07_e_b" ] ] ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o08_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_p" ], [ logic:termIndex 1 ; logic:termVariable "o08_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_p" ], [ logic:termIndex 1 ; logic:termVariable "o08_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_d" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderFusedScore ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_c" ], [ logic:termIndex 1 ; logic:termVariable "o08_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_d" ], [ logic:termIndex 1 ; logic:termVariable "o08_j" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o08_i" ], [ logic:termIndex 1 ; logic:termVariable "o08_j" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o09_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_p" ], [ logic:termIndex 1 ; logic:termVariable "o09_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_p" ], [ logic:termIndex 1 ; logic:termVariable "o09_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_d" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderFusedScore ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_c" ], [ logic:termIndex 1 ; logic:termVariable "o09_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_d" ], [ logic:termIndex 1 ; logic:termVariable "o09_j" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o09_i" ], [ logic:termIndex 1 ; logic:termVariable "o09_j" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o10_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_p" ], [ logic:termIndex 1 ; logic:termVariable "o10_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_p" ], [ logic:termIndex 1 ; logic:termVariable "o10_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_d" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_c" ], [ logic:termIndex 1 ; logic:termVariable "o10_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_d" ], [ logic:termIndex 1 ; logic:termVariable "o10_j" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o10_i" ], [ logic:termIndex 1 ; logic:termVariable "o10_j" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderSourceIdentityLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order source identity law"@x-gmeow-english ;
+    skos:definition "The supplied native policy identity and the owning application’s existing fusion-profile digest use the selected sixty-four-hex-digit unspaced either-case profile."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual thirty-two-byte identity forms without duplicating the existing fusion-profile field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid synthesizing hashes, treating equal bytes as unique RDF interpretation identity or claiming width authenticates source execution."@x-gmeow-english ;
+    gmeow:howToUse "Positively bind each actual policy or existing profile digest, then apply result-free termRegex with ^[0-9A-Fa-f]{64}$."@x-gmeow-english ;
+    skos:scopeNote "The explicit representation profile is not XSD-canonical normalization and retains regex-dialect residue. Full policy/profile content and actual source association remain import evidence."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional wrong-width policy digest fails this profile even when its selected policy fields are otherwise coherent."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "The supplied native policy identity and the owning application’s existing fusion-profile digest use the selected sixty-four-hex-digit unspaced either-case profile." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o11_d" ], [ logic:termIndex 2 ; logic:termVariable "o12_a" ], [ logic:termIndex 3 ; logic:termVariable "o12_d" ], [ logic:termIndex 4 ; logic:termVariable "o12_p" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderNativePolicyDigest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o11_d" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termRegex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o11_d" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{64}$" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o12_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o12_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:weightedFusionProfile ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o12_a" ], [ logic:termIndex 1 ; logic:termVariable "o12_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:fusionProfileDigest ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o12_p" ], [ logic:termIndex 1 ; logic:termVariable "o12_d" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termRegex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o12_d" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{64}$" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderEntryInventoryLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order entry inventory law"@x-gmeow-english ;
+    skos:definition "Each original applied score has exactly one output entry, every entry selects a score from the same application, and original input positions and output ordinals are separately value-unique."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the complete candidate collection and both actual occurrence coordinates."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filtering candidates, adding unrelated scores or equating input position with output position."@x-gmeow-english ;
+    gmeow:howToUse "Require score-to-entry coverage and reverse application-score membership; compare selected scores and independently bound coordinate values to require entry identity where they coincide."@x-gmeow-english ;
+    skos:scopeNote "A successful empty original union has no output entries but keeps its actual policy and nonempty activation roster. These checks preserve identities without authenticating external array-slot association."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional two-score result with only one output entry fails coverage; distinct entries sharing an input or output position fail uniqueness."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "Each original applied score has exactly one output entry, every entry selects a score from the same application, and original input positions and output ordinals are separately value-unique." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o13_a" ], [ logic:termIndex 2 ; logic:termVariable "o13_s" ], [ logic:termIndex 3 ; logic:termVariable "o14_a" ], [ logic:termIndex 4 ; logic:termVariable "o14_r" ], [ logic:termIndex 5 ; logic:termVariable "o14_s" ], [ logic:termIndex 6 ; logic:termVariable "o15_r" ], [ logic:termIndex 7 ; logic:termVariable "o15_s" ], [ logic:termIndex 8 ; logic:termVariable "o15_t" ], [ logic:termIndex 9 ; logic:termVariable "o16_i" ], [ logic:termIndex 10 ; logic:termVariable "o16_j" ], [ logic:termIndex 11 ; logic:termVariable "o16_r" ], [ logic:termIndex 12 ; logic:termVariable "o16_t" ], [ logic:termIndex 13 ; logic:termVariable "o17_i" ], [ logic:termIndex 14 ; logic:termVariable "o17_j" ], [ logic:termIndex 15 ; logic:termVariable "o17_r" ], [ logic:termIndex 16 ; logic:termVariable "o17_t" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o13_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o13_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:weightedFusionScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o13_a" ], [ logic:termIndex 1 ; logic:termVariable "o13_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o13_e_r" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o13_e_r" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderScore ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o13_e_r" ], [ logic:termIndex 1 ; logic:termVariable "o13_s" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o14_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryWeightedFusionApplication ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o14_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o14_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o14_r" ], [ logic:termIndex 1 ; logic:termVariable "o14_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation gmeow:weightedFusionScore ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o14_a" ], [ logic:termIndex 1 ; logic:termVariable "o14_s" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o15_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o15_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o15_r" ], [ logic:termIndex 1 ; logic:termVariable "o15_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o15_t" ], [ logic:termIndex 1 ; logic:termVariable "o15_s" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o15_r" ], [ logic:termIndex 1 ; logic:termVariable "o15_t" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o16_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o16_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderInputPosition ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o16_r" ], [ logic:termIndex 1 ; logic:termVariable "o16_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderInputPosition ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o16_t" ], [ logic:termIndex 1 ; logic:termVariable "o16_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o16_i" ], [ logic:termIndex 1 ; logic:termVariable "o16_j" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o16_r" ], [ logic:termIndex 1 ; logic:termVariable "o16_t" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o17_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o17_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o17_r" ], [ logic:termIndex 1 ; logic:termVariable "o17_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o17_t" ], [ logic:termIndex 1 ; logic:termVariable "o17_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o17_i" ], [ logic:termIndex 1 ; logic:termVariable "o17_j" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o17_r" ], [ logic:termIndex 1 ; logic:termVariable "o17_t" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderPositionClosureLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order position closure law"@x-gmeow-english ;
+    skos:definition "The original unsigned input coordinates and nonnegative output ordinals independently enumerate their finite entry collections from zero without gaps."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain whole original and actual output arrays rather than merely distinct arbitrary indices."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing class ranks, requiring one lexical spelling of numeric zero or rebinding a stored coordinate as an arithmetic result."@x-gmeow-english ;
+    gmeow:howToUse "Require zero members whenever entries exist; each positive stored coordinate has a same-account predecessor whose index plus one is freshly bound by result-first termSum and then compared with that stored coordinate."@x-gmeow-english ;
+    skos:scopeNote "Input positions remain xsd:unsignedInt and output entryOrdinal remains xsd:nonNegativeInteger. The exact score-entry bijection and both predecessor closures avoid a new count property or evaluator; actual slot association still needs source evidence."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional output at positions zero and two fails because position one is absent, even when the original input positions are complete."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "The original unsigned input coordinates and nonnegative output ordinals independently enumerate their finite entry collections from zero without gaps." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o18_r" ], [ logic:termIndex 2 ; logic:termVariable "o19_r" ], [ logic:termIndex 3 ; logic:termVariable "o20_i" ], [ logic:termIndex 4 ; logic:termVariable "o20_r" ], [ logic:termIndex 5 ; logic:termVariable "o21_i" ], [ logic:termIndex 6 ; logic:termVariable "o21_r" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o18_r" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o18_e_zero" ], [ logic:termIndex 1 ; logic:termVariable "o18_e_i" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o18_e_zero" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:entryOrdinal ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o18_e_zero" ], [ logic:termIndex 1 ; logic:termVariable "o18_e_i" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o18_e_i" ], [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:nonNegativeInteger ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o19_r" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o19_e_zero" ], [ logic:termIndex 1 ; logic:termVariable "o19_e_i" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o19_e_zero" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderInputPosition ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o19_e_zero" ], [ logic:termIndex 1 ; logic:termVariable "o19_e_i" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o19_e_i" ], [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:unsignedInt ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o20_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o20_r" ], [ logic:termIndex 1 ; logic:termVariable "o20_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termLess ;
+                        logic:argument [ logic:termIndex 0 ; logic:termLiteral "0"^^xsd:nonNegativeInteger ], [ logic:termIndex 1 ; logic:termVariable "o20_i" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o20_e_prev" ], [ logic:termIndex 1 ; logic:termVariable "o20_e_j" ], [ logic:termIndex 2 ; logic:termVariable "o20_e_next" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o20_e_prev" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:entryOrdinal ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o20_e_prev" ], [ logic:termIndex 1 ; logic:termVariable "o20_e_j" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termSum ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o20_e_next" ], [ logic:termIndex 1 ; logic:termVariable "o20_e_j" ], [ logic:termIndex 2 ; logic:termLiteral "1"^^xsd:nonNegativeInteger ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o20_e_next" ], [ logic:termIndex 1 ; logic:termVariable "o20_i" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o21_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderInputPosition ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o21_r" ], [ logic:termIndex 1 ; logic:termVariable "o21_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termLess ;
+                        logic:argument [ logic:termIndex 0 ; logic:termLiteral "0"^^xsd:unsignedInt ], [ logic:termIndex 1 ; logic:termVariable "o21_i" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o21_e_prev" ], [ logic:termIndex 1 ; logic:termVariable "o21_e_j" ], [ logic:termIndex 2 ; logic:termVariable "o21_e_next" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o21_e_prev" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderInputPosition ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o21_e_prev" ], [ logic:termIndex 1 ; logic:termVariable "o21_e_j" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termSum ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o21_e_next" ], [ logic:termIndex 1 ; logic:termVariable "o21_e_j" ], [ logic:termIndex 2 ; logic:termLiteral "1"^^xsd:unsignedInt ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o21_e_next" ], [ logic:termIndex 1 ; logic:termVariable "o21_i" ] ] ] ] ] ] ] ] .
+
+gmeow:AppliedOrderEntryOwnerLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order entry owner law"@x-gmeow-english ;
+    skos:definition "Every typed actual output entry has exactly one incoming typed applied-order account owner."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep each descriptive result occurrence in one actual complete account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting isolated entries or sharing a control occurrence between distinct source calls."@x-gmeow-english ;
+    gmeow:howToUse "Require an incoming typed account and compare any two incoming account owners of the same entry."@x-gmeow-english ;
+    skos:scopeNote "The referenced score, policy and activation carriers retain their existing ownership and compatible-sharing rules. This law creates no new answer or event."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional typed output entry without an account owner fails even when its score and positions are present."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderEntry ;
+    logic:message "Every typed actual output entry has exactly one incoming typed applied-order account owner." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o23_a" ], [ logic:termIndex 2 ; logic:termVariable "o23_b" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o22_e_a" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o22_e_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderEntry ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o22_e_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o23_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o23_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o23_b" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o23_b" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o23_a" ], [ logic:termIndex 1 ; logic:termVariable "o23_b" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderEntryIdentityLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order entry identity law"@x-gmeow-english ;
+    skos:definition "Each output entry’s original candidate is an IRI and its actual supplied subject tie identity has the selected thirty-two-byte unspaced either-case representation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve inspected native subject admission and complete tie bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a subject hash, asserting hash collision impossibility as candidate identity or claiming ordinary hexBinary termLess proves native tie order."@x-gmeow-english ;
+    gmeow:howToUse "Join the existing selected score and appliedScoreCandidate before termIsIri; bind supplied tie bytes before termRegex with ^[0-9A-Fa-f]{64}$."@x-gmeow-english ;
+    skos:scopeNote "Public Fused omits tie bytes. Actual subject-byte association and terminal whole-byte ordering evidence remain required at import; missing proof fails the complete selected account."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional entry with missing actual tie bytes cannot import as a complete native order by substituting an IRI string or output index."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderEntry ;
+    logic:message "Each output entry’s original candidate is an IRI and its actual supplied subject tie identity has the selected thirty-two-byte unspaced either-case representation." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o24_c" ], [ logic:termIndex 2 ; logic:termVariable "o24_s" ], [ logic:termIndex 3 ; logic:termVariable "o25_t" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o24_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedScoreCandidate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o24_s" ], [ logic:termIndex 1 ; logic:termVariable "o24_c" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termIsIri ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o24_c" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderSubjectTie ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o25_t" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termRegex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o25_t" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{64}$" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderTierEvidenceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order tier evidence law"@x-gmeow-english ;
+    skos:definition "Declared tier state coheres with a conditional u32 label equal to the minimum selected binding among the complete actual qualified matched predicates; no-probe cases carry no invented matched inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve declared and undeclared behavior, including the maximum declared u32 label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a missing-label sentinel, importing unavailable matching evidence as empty or choosing unrelated or incompletely qualified subject predicates."@x-gmeow-english ;
+    gmeow:howToUse "Require a tier for true and forbid it for false; true selects a retained matched binding with equal stored label, false forbids mapped matches, and the stored declared label is no greater than every matched selected label."@x-gmeow-english ;
+    skos:scopeNote "Every witness requires a content criterion with nonempty mappings, but its particular predicate may be unmapped. Empty mappings skip probing. Actual applicable lexical failures reject full import; nonlexical string equality independently establishes a pair."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional declared tier 4294967295 still precedes undeclared, and a stored tier above another actually matched mapped label fails the minimum law."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderEntry ;
+    logic:message "Declared tier state coheres with a conditional u32 label equal to the minimum selected binding among the complete actual qualified matched predicates; no-probe cases carry no invented matched inventory." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o26_d" ], [ logic:termIndex 2 ; logic:termVariable "o27_d" ], [ logic:termIndex 3 ; logic:termVariable "o28_a" ], [ logic:termIndex 4 ; logic:termVariable "o28_d" ], [ logic:termIndex 5 ; logic:termVariable "o28_p" ], [ logic:termIndex 6 ; logic:termVariable "o28_t" ], [ logic:termIndex 7 ; logic:termVariable "o29_a" ], [ logic:termIndex 8 ; logic:termVariable "o29_d" ], [ logic:termIndex 9 ; logic:termVariable "o29_p" ], [ logic:termIndex 10 ; logic:termVariable "o30_a" ], [ logic:termIndex 11 ; logic:termVariable "o30_b" ], [ logic:termIndex 12 ; logic:termVariable "o30_c" ], [ logic:termIndex 13 ; logic:termVariable "o30_d" ], [ logic:termIndex 14 ; logic:termVariable "o30_p" ], [ logic:termIndex 15 ; logic:termVariable "o30_q" ], [ logic:termIndex 16 ; logic:termVariable "o30_t" ], [ logic:termIndex 17 ; logic:termVariable "o30_v" ], [ logic:termIndex 18 ; logic:termVariable "o30_w" ], [ logic:termIndex 19 ; logic:termVariable "o31_a" ], [ logic:termIndex 20 ; logic:termVariable "o31_p" ], [ logic:termIndex 21 ; logic:termVariable "o31_w" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o26_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o26_d" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o26_e_t" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTier ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o26_e_t" ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o27_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o27_d" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o27_e_t" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderTier ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o27_e_t" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_a" ], [ logic:termIndex 1 ; logic:termVariable "o28_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o28_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_d" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTier ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o28_t" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o28_e_w" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_q" ], [ logic:termIndex 2 ; logic:termVariable "o28_e_c" ], [ logic:termIndex 3 ; logic:termVariable "o28_e_b" ], [ logic:termIndex 4 ; logic:termVariable "o28_e_v" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderMatchedLiteral ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_w" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:matchedLiteralPredicate ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_w" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_q" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterion ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_p" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_c" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterionKind ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:contentTierBinding ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_c" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_b" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:tierBindingPredicate ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_b" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_q" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:tierBindingOrdinal ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_b" ], [ logic:termIndex 1 ; logic:termVariable "o28_e_v" ] ],
+                        [ a logic:Formula ;
+                            logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o28_e_v" ], [ logic:termIndex 1 ; logic:termVariable "o28_t" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_a" ], [ logic:termIndex 1 ; logic:termVariable "o29_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o29_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_d" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o29_e_w" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_q" ], [ logic:termIndex 2 ; logic:termVariable "o29_e_c" ], [ logic:termIndex 3 ; logic:termVariable "o29_e_b" ], [ logic:termIndex 4 ; logic:termVariable "o29_e_v" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ;
+                                logic:relation gmeow:appliedOrderMatchedLiteral ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_w" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:matchedLiteralPredicate ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_e_w" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_q" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterion ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_p" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_c" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:orderCriterionKind ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_e_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:contentTierBinding ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_e_c" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_b" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:tierBindingPredicate ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_e_b" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_q" ] ],
+                            [ a logic:Formula ;
+                                logic:relation gmeow:tierBindingOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "o29_e_b" ], [ logic:termIndex 1 ; logic:termVariable "o29_e_v" ] ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_a" ], [ logic:termIndex 1 ; logic:termVariable "o30_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o30_d" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_d" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTier ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o30_t" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderMatchedLiteral ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o30_w" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:matchedLiteralPredicate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_w" ], [ logic:termIndex 1 ; logic:termVariable "o30_q" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterion ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_p" ], [ logic:termIndex 1 ; logic:termVariable "o30_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:orderCriterionKind ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:contentTierBinding ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_c" ], [ logic:termIndex 1 ; logic:termVariable "o30_b" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:tierBindingPredicate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_b" ], [ logic:termIndex 1 ; logic:termVariable "o30_q" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:tierBindingOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_b" ], [ logic:termIndex 1 ; logic:termVariable "o30_v" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLessEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o30_t" ], [ logic:termIndex 1 ; logic:termVariable "o30_v" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_a" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_a" ], [ logic:termIndex 1 ; logic:termVariable "o31_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderMatchedLiteral ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o31_w" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o31_e_c" ], [ logic:termIndex 1 ; logic:termVariable "o31_e_b" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterion ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_p" ], [ logic:termIndex 1 ; logic:termVariable "o31_e_c" ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:orderCriterionKind ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_e_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderContentTier ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:contentTierBinding ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o31_e_c" ], [ logic:termIndex 1 ; logic:termVariable "o31_e_b" ] ] ] ] ] ] ] ] .
+
+gmeow:AppliedOrderMatchedWitnessLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order matched witness law"@x-gmeow-english ;
+    skos:definition "Each typed qualified matched-pair witness has one actual output-entry owner, an IRI predicate and a vault in that account’s selected activation roster."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve all-selected-service matching scope and original lexical evidence without inventing claim identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring candidate-found vault membership, equating tier graph reads with activation snapshot content or merging supplied repeated lexical pairs."@x-gmeow-english ;
+    gmeow:howToUse "Require incoming typed entry existence and unique ownership, test the bound predicate with termIsIri and join the actual witness vault to the same account’s selected roster."@x-gmeow-english ;
+    skos:scopeNote "The vault link identifies source scope only. Actual same-call graph-read association and complete applicable matching evidence are import requirements; original datatype, language, direction and claim identity are not reconstructed."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional witness from selected vault B may justify a tier even when the candidate was found only in vault A; B’s activation snapshot is not its graph-read evidence."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryMatchedLiteralWitness ;
+    logic:message "Each typed qualified matched-pair witness has one actual output-entry owner, an IRI predicate and a vault in that account’s selected activation roster." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o33_r" ], [ logic:termIndex 2 ; logic:termVariable "o33_s" ], [ logic:termIndex 3 ; logic:termVariable "o34_p" ], [ logic:termIndex 4 ; logic:termVariable "o35_a" ], [ logic:termIndex 5 ; logic:termVariable "o35_c" ], [ logic:termIndex 6 ; logic:termVariable "o35_r" ], [ logic:termIndex 7 ; logic:termVariable "o35_v" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryMatchedLiteralWitness ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryMatchedLiteralWitness ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o32_e_r" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o32_e_r" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                        [ a logic:Formula ;
+                            logic:relation gmeow:appliedOrderMatchedLiteral ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "o32_e_r" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryMatchedLiteralWitness ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o33_r" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderMatchedLiteral ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o33_r" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o33_s" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderMatchedLiteral ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o33_s" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termEqual ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o33_r" ], [ logic:termIndex 1 ; logic:termVariable "o33_s" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryMatchedLiteralWitness ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:matchedLiteralPredicate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o34_p" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termIsIri ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o34_p" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryMatchedLiteralWitness ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_r" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderEntry ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderMatchedLiteral ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_r" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                    [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_a" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_a" ], [ logic:termIndex 1 ; logic:termVariable "o35_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_a" ], [ logic:termIndex 1 ; logic:termVariable "o35_c" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:matchedLiteralVault ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o35_v" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation gmeow:activationVaultRecord ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o35_c" ], [ logic:termIndex 1 ; logic:termVariable "o35_v" ] ] ] ] ] ] .
+
+gmeow:AppliedOrderNumericPrecedenceLaw
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "applied order numeric precedence law"@x-gmeow-english ;
+    skos:definition "Actual output ordinals preserve inspected native decisive tier, selected activation and score comparisons under value-equal preceding native keys."@x-gmeow-english ;
+    gmeow:useWhen "Use to check finite numeric decisiveness while retaining the actual source terminal tie evidence separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid introducing a generic earlier-key interpreter, sharing one RDF literal variable across Boolean or numeric edges, or treating numeric checks as whole-sort certification."@x-gmeow-english ;
+    gmeow:howToUse "Declared precedes undeclared and lower declared tier precedes higher directly; greater activation follows value-equal tier state, while greater score follows value-equal tier state and equal selected activation values."@x-gmeow-english ;
+    skos:scopeNote "Bind both stored Booleans and all compared magnitudes independently before termEqual or termLess. Legal Boolean and numeric lexical aliases remain value-equivalent. Disabled activation creates no zero Quantity; exact byte ordering and source authenticity remain strict import evidence."@x-gmeow-english ;
+    skos:example "Fictional scoped example: A fictional same-tier pair with opposed score and activation preferences follows activation first under this native account; the requested score-first definition remains distinct."@x-gmeow-english ;
+    logic:formalizes gmeow:QueryAppliedOrderAccount ;
+    logic:message "Actual output ordinals preserve inspected native decisive tier, selected activation and score comparisons under value-equal preceding native keys." ;
+    logic:integrity [ a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o36_dr" ], [ logic:termIndex 2 ; logic:termVariable "o36_ds" ], [ logic:termIndex 3 ; logic:termVariable "o36_i" ], [ logic:termIndex 4 ; logic:termVariable "o36_j" ], [ logic:termIndex 5 ; logic:termVariable "o36_r" ], [ logic:termIndex 6 ; logic:termVariable "o36_s" ], [ logic:termIndex 7 ; logic:termVariable "o37_dr" ], [ logic:termIndex 8 ; logic:termVariable "o37_ds" ], [ logic:termIndex 9 ; logic:termVariable "o37_i" ], [ logic:termIndex 10 ; logic:termVariable "o37_j" ], [ logic:termIndex 11 ; logic:termVariable "o37_r" ], [ logic:termIndex 12 ; logic:termVariable "o37_s" ], [ logic:termIndex 13 ; logic:termVariable "o37_tr" ], [ logic:termIndex 14 ; logic:termVariable "o37_ts" ], [ logic:termIndex 15 ; logic:termVariable "o38_a" ], [ logic:termIndex 16 ; logic:termVariable "o38_dr" ], [ logic:termIndex 17 ; logic:termVariable "o38_ds" ], [ logic:termIndex 18 ; logic:termVariable "o38_i" ], [ logic:termIndex 19 ; logic:termVariable "o38_j" ], [ logic:termIndex 20 ; logic:termVariable "o38_p" ], [ logic:termIndex 21 ; logic:termVariable "o38_r" ], [ logic:termIndex 22 ; logic:termVariable "o38_s" ], [ logic:termIndex 23 ; logic:termVariable "o38_sr" ], [ logic:termIndex 24 ; logic:termVariable "o38_ss" ], [ logic:termIndex 25 ; logic:termVariable "o38_vr" ], [ logic:termIndex 26 ; logic:termVariable "o38_vs" ], [ logic:termIndex 27 ; logic:termVariable "o39_a" ], [ logic:termIndex 28 ; logic:termVariable "o39_dr" ], [ logic:termIndex 29 ; logic:termVariable "o39_ds" ], [ logic:termIndex 30 ; logic:termVariable "o39_i" ], [ logic:termIndex 31 ; logic:termVariable "o39_j" ], [ logic:termIndex 32 ; logic:termVariable "o39_m" ], [ logic:termIndex 33 ; logic:termVariable "o39_qr" ], [ logic:termIndex 34 ; logic:termVariable "o39_qs" ], [ logic:termIndex 35 ; logic:termVariable "o39_r" ], [ logic:termIndex 36 ; logic:termVariable "o39_rr" ], [ logic:termIndex 37 ; logic:termVariable "o39_rs" ], [ logic:termIndex 38 ; logic:termVariable "o39_s" ], [ logic:termIndex 39 ; logic:termVariable "o39_sr" ], [ logic:termIndex 40 ; logic:termVariable "o39_ss" ], [ logic:termIndex 41 ; logic:termVariable "o39_vr" ], [ logic:termIndex 42 ; logic:termVariable "o39_vs" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o36_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o36_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_r" ], [ logic:termIndex 1 ; logic:termVariable "o36_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_s" ], [ logic:termIndex 1 ; logic:termVariable "o36_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_r" ], [ logic:termIndex 1 ; logic:termVariable "o36_dr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_s" ], [ logic:termIndex 1 ; logic:termVariable "o36_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_dr" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_ds" ], [ logic:termIndex 1 ; logic:termLiteral "false"^^xsd:boolean ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o36_i" ], [ logic:termIndex 1 ; logic:termVariable "o36_j" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o37_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o37_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_r" ], [ logic:termIndex 1 ; logic:termVariable "o37_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_s" ], [ logic:termIndex 1 ; logic:termVariable "o37_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_r" ], [ logic:termIndex 1 ; logic:termVariable "o37_dr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_s" ], [ logic:termIndex 1 ; logic:termVariable "o37_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_dr" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_ds" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTier ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_r" ], [ logic:termIndex 1 ; logic:termVariable "o37_tr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTier ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_s" ], [ logic:termIndex 1 ; logic:termVariable "o37_ts" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termLess ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_tr" ], [ logic:termIndex 1 ; logic:termVariable "o37_ts" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o37_i" ], [ logic:termIndex 1 ; logic:termVariable "o37_j" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o38_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o38_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_r" ], [ logic:termIndex 1 ; logic:termVariable "o38_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_s" ], [ logic:termIndex 1 ; logic:termVariable "o38_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_r" ], [ logic:termIndex 1 ; logic:termVariable "o38_sr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_s" ], [ logic:termIndex 1 ; logic:termVariable "o38_ss" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:quantityValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_sr" ], [ logic:termIndex 1 ; logic:termVariable "o38_vr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:quantityValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_ss" ], [ logic:termIndex 1 ; logic:termVariable "o38_vs" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termLess ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_vs" ], [ logic:termIndex 1 ; logic:termVariable "o38_vr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_r" ], [ logic:termIndex 1 ; logic:termVariable "o38_dr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_s" ], [ logic:termIndex 1 ; logic:termVariable "o38_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_dr" ], [ logic:termIndex 1 ; logic:termVariable "o38_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o38_e_tr" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_ts" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ;
+                                    logic:relation gmeow:appliedOrderTier ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_r" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_tr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:appliedOrderTier ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_s" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_ts" ] ],
+                                [ a logic:Formula ;
+                                    logic:not [ a logic:Formula ;
+                                        logic:relation logic:termEqual ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_tr" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_ts" ] ] ] ] ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderPolicy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o38_p" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o38_a" ] ],
+                    [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o38_e_c" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_rr" ], [ logic:termIndex 2 ; logic:termVariable "o38_e_rs" ], [ logic:termIndex 3 ; logic:termVariable "o38_e_qr" ], [ logic:termIndex 4 ; logic:termVariable "o38_e_qs" ], [ logic:termIndex 5 ; logic:termVariable "o38_e_vr" ], [ logic:termIndex 6 ; logic:termVariable "o38_e_vs" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterion ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_p" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_c" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:orderCriterionKind ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_c" ], [ logic:termIndex 1 ; logic:termIri gmeow:orderActivation ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:activationCandidateRecord ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_a" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_rr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:activationCandidateRecord ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_a" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_rs" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:activationAppliedScore ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_rr" ], [ logic:termIndex 1 ; logic:termVariable "o38_sr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:activationAppliedScore ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_rs" ], [ logic:termIndex 1 ; logic:termVariable "o38_ss" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:reportedActivationValue ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_rr" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_qr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:reportedActivationValue ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_rs" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_qs" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation math:quantityValue ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_qr" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_vr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation math:quantityValue ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_qs" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_vs" ] ],
+                                [ a logic:Formula ;
+                                    logic:not [ a logic:Formula ;
+                                        logic:relation logic:termEqual ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_e_vr" ], [ logic:termIndex 1 ; logic:termVariable "o38_e_vs" ] ] ] ] ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o38_i" ], [ logic:termIndex 1 ; logic:termVariable "o38_j" ] ] ],
+            [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ;
+                    logic:and [ a logic:Formula ;
+                        logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:QueryAppliedOrderAccount ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o39_r" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderEntry ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o39_s" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_r" ], [ logic:termIndex 1 ; logic:termVariable "o39_i" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:entryOrdinal ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_s" ], [ logic:termIndex 1 ; logic:termVariable "o39_j" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_r" ], [ logic:termIndex 1 ; logic:termVariable "o39_sr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_s" ], [ logic:termIndex 1 ; logic:termVariable "o39_ss" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_r" ], [ logic:termIndex 1 ; logic:termVariable "o39_dr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderTierDeclared ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_s" ], [ logic:termIndex 1 ; logic:termVariable "o39_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_dr" ], [ logic:termIndex 1 ; logic:termVariable "o39_ds" ] ],
+                    [ a logic:Formula ;
+                        logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o39_e_tr" ], [ logic:termIndex 1 ; logic:termVariable "o39_e_ts" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ;
+                                    logic:relation gmeow:appliedOrderTier ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_r" ], [ logic:termIndex 1 ; logic:termVariable "o39_e_tr" ] ],
+                                [ a logic:Formula ;
+                                    logic:relation gmeow:appliedOrderTier ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_s" ], [ logic:termIndex 1 ; logic:termVariable "o39_e_ts" ] ],
+                                [ a logic:Formula ;
+                                    logic:not [ a logic:Formula ;
+                                        logic:relation logic:termEqual ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_e_tr" ], [ logic:termIndex 1 ; logic:termVariable "o39_e_ts" ] ] ] ] ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:appliedOrderActivationAccount ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "o39_a" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationEnabled ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_a" ], [ logic:termIndex 1 ; logic:termVariable "o39_m" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_m" ], [ logic:termIndex 1 ; logic:termLiteral "true"^^xsd:boolean ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_a" ], [ logic:termIndex 1 ; logic:termVariable "o39_rr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationCandidateRecord ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_a" ], [ logic:termIndex 1 ; logic:termVariable "o39_rs" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationAppliedScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_rr" ], [ logic:termIndex 1 ; logic:termVariable "o39_sr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:activationAppliedScore ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_rs" ], [ logic:termIndex 1 ; logic:termVariable "o39_ss" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_rr" ], [ logic:termIndex 1 ; logic:termVariable "o39_qr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation gmeow:reportedActivationValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_rs" ], [ logic:termIndex 1 ; logic:termVariable "o39_qs" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:quantityValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_qr" ], [ logic:termIndex 1 ; logic:termVariable "o39_vr" ] ],
+                    [ a logic:Formula ;
+                        logic:relation math:quantityValue ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_qs" ], [ logic:termIndex 1 ; logic:termVariable "o39_vs" ] ],
+                    [ a logic:Formula ;
+                        logic:relation logic:termLess ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_vs" ], [ logic:termIndex 1 ; logic:termVariable "o39_vr" ] ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:relation logic:termLess ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "o39_i" ], [ logic:termIndex 1 ; logic:termVariable "o39_j" ] ] ] ] ] ] .
+
+gmeow:QueryWeightedFusionApplication logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderAccount ; logic:allValuesFrom gmeow:QueryAppliedOrderAccount ] .
+gmeow:QueryWeightedFusionApplication logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderAccount ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAppliedOrderAccount ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderPolicy ; logic:allValuesFrom gmeow:QueryOrderPolicy ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderPolicy ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryOrderPolicy ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderActivationAccount ; logic:allValuesFrom gmeow:QueryFusionActivationAccount ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderActivationAccount ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryFusionActivationAccount ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderNativePolicyDigest ; logic:allValuesFrom xsd:hexBinary ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderNativePolicyDigest ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderNativePolicyDeclared ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderAccount ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderNativePolicyDeclared ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:QueryAppliedOrderAccount logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderEntry ; logic:allValuesFrom gmeow:QueryAppliedOrderEntry ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderScore ; logic:allValuesFrom gmeow:QueryAppliedFusionScore ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderScore" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderScore ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryAppliedFusionScore ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderInputPosition ; logic:allValuesFrom xsd:unsignedInt ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderInputPosition ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedInt ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderTierDeclared ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderTierDeclared ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderTier ; logic:allValuesFrom xsd:unsignedInt ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderTier ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:unsignedInt ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderSubjectTie ; logic:allValuesFrom xsd:hexBinary ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderSubjectTie ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:hexBinary ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:appliedOrderMatchedLiteral ; logic:allValuesFrom gmeow:QueryMatchedLiteralWitness ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralVault ; logic:allValuesFrom gmeow:QueryVaultSnapshotRecord ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryMatchedLiteralWitness ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchedLiteralVault" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralVault ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:QueryVaultSnapshotRecord ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralPredicate ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryMatchedLiteralWitness ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralPredicate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralLexicalForm ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryMatchedLiteralWitness ; logic:closureKey "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:matchedLiteralLexicalForm ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:string ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .

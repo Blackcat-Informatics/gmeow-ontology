@@ -35,6 +35,7 @@ fn row(id: &str) -> DictionaryBaseline {
 fn baseline(ids: &[&str]) -> MediumBaseline {
     MediumBaseline {
         schema: MEDIUM_BASELINE_SCHEMA.to_string(),
+        engine_identity: Vec::new(),
         codec_sweep: CodecSweep {
             mandated_codec: "zstd-rsyncable".to_string(),
             mandated_level: 12,
@@ -119,6 +120,63 @@ fn the_artifact_round_trips_and_refuses_an_unknown_schema() {
     let skewed = json.replace(MEDIUM_BASELINE_SCHEMA, "gmeow.medium-baseline.v99");
     let diag = MediumBaseline::from_json(&skewed).expect_err("an unknown schema must hard-fail");
     assert!(diag.to_string().contains("maint-medium-sweep"), "{diag}");
+    let legacy = json.replace(MEDIUM_BASELINE_SCHEMA, "gmeow.medium-baseline.v2");
+    assert!(MediumBaseline::from_json(&legacy).is_err());
+}
+
+/// Unchanged corpus evidence cannot authenticate a different trainer or codec.
+#[test]
+fn loading_the_table_requires_the_exact_unique_sorted_engine_identity() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    std::fs::create_dir(root.join("bench")).unwrap();
+    std::fs::write(
+        root.join("Cargo.toml"),
+        "[workspace.dependencies]\npurrdf = '3'\npurrdf-core = '3'\n",
+    )
+    .unwrap();
+    let checksum = "a".repeat(64);
+    let package = |name: &str| {
+        format!(
+            "[[package]]\nname = '{name}'\nversion = '3.0.1'\nsource = \
+             'registry+https://github.com/rust-lang/crates.io-index'\nchecksum = '{checksum}'\n"
+        )
+    };
+    std::fs::write(
+        root.join("Cargo.lock"),
+        format!(
+            "version = 4\n{}{}",
+            package("purrdf"),
+            package("purrdf-core")
+        ),
+    )
+    .unwrap();
+    let mut original = baseline(&["gmeow-core-v1"]);
+    original.engine_identity = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock"))
+        .unwrap()
+        .packages;
+    let save = |table: &MediumBaseline| {
+        std::fs::write(root.join(MEDIUM_BASELINE_PATH), table.to_json().unwrap()).unwrap();
+    };
+    save(&original);
+    assert_eq!(load(root).unwrap(), original);
+
+    let mut stale = original.clone();
+    stale.engine_identity[1].checksum = "b".repeat(64);
+    let mut duplicate = original.clone();
+    duplicate
+        .engine_identity
+        .push(duplicate.engine_identity[0].clone());
+    let mut reordered = original.clone();
+    reordered.engine_identity.reverse();
+    let mut missing = original.clone();
+    missing.engine_identity.clear();
+    for table in [stale, duplicate, reordered, missing] {
+        save(&table);
+        let error = load(root).unwrap_err().to_string();
+        assert!(error.contains("trainer/codec identity"), "{error}");
+        assert!(error.contains("maint-medium-sweep"), "{error}");
+    }
 }
 
 /// The strategy wire tokens round-trip against `DictionaryStrategy`'s own

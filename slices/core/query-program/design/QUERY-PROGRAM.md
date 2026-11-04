@@ -951,3 +951,144 @@ weighted application and answer must be enriched, with original candidate,
 query and loss context retained. Exact declared weighted sum, native fixed-point
 grid and truncation, authenticated execution, generated behavior and consumer
 adoption remain separate claims requiring evidence.
+
+## Native-qualified reported order evidence
+
+The applied-order surface is one complete reported account on the existing
+weighted application and answer. Three InformationObject subtypes describe the
+account, actual output entries and qualified matched-pair witnesses. Fifteen
+new roles retain selected policy, same-application activation context, actual
+native policy identity and status, original coordinates, conditional tiers,
+supplied subject tie bytes and exact matched evidence. No second event, answer,
+candidate copy, generic vault class or new numerical carrier is introduced.
+
+The existing policy owns criterion kinds, explicit directions, terminal tie and
+unique predicate bindings. Native admission adds tier before activation and
+score, and activation before score, without altering the existing validity of
+requested score-first descriptions. An optional empty content criterion is an
+adapter interpretation of the inert native tier key. It is not a serialized
+source criterion occurrence or an additional selection flag. Actual nonempty
+mappings select probing; native declared status is exactly nonempty mappings or
+selected activation. A digest cannot identify arbitrary precedence. Arbitrary
+native duplicate last-wins predicates cannot be silently normalized into the
+selected unique-predicate contract.
+
+Every original application score has one output entry and every entry selects
+that application's score. Both original unsigned input position and nonnegative
+output ordinal are separately unique, zero-origin and gap-free. Nonempty
+collections require a zero member for each coordinate. Every positive stored
+coordinate has a same-account predecessor, with the existing result-first
+`termSum` binding a fresh next value from the stored predecessor plus one before
+comparison with the separately bound current value. No predecessor property,
+count helper, integer magnitude carrier or new evaluator is required. On finite
+source data, those closures and the exact score/entry bijection enumerate both
+whole arrays. Actual candidate-to-slot and source output-slot association remain
+authenticated import requirements, not consequences of ordinal uniqueness.
+
+Entries select existing applied scores. Original candidates follow the existing
+score link; existing activation records are joined through that same score.
+All magnitudes remain on the original Quantity/value/dimension/frame carriers.
+No shadow scalar or recomputed score is authored. Existing category-local context
+laws apply, with no cross-category frame equality or default mathematical
+interpretation. Original union, class ranks, ties, queries and attributed losses
+remain preserved by the weighted answer. Ordering does not filter, repair recall
+or manufacture a successful answer from a failed call or terminal-error prefix.
+
+Tier state uses an independently supplied typed Boolean and conditional u32
+label. True requires a label equal to one retained matched selected binding and
+no greater than every such binding. False forbids the label and any retained
+mapped match. Every declared u32 label, including 4294967295, precedes undeclared.
+No numeric missing-label sentinel is authored. Witnesses require a selected
+content criterion with nonempty mappings, while unmapped actual matched
+predicates remain in the complete inventory. Empty mappings skip probing and
+carry no invented matching inventory.
+
+Witness scope is all selected services. An existing activation roster record
+identifies its vault without claiming that an activation snapshot contains the
+tier graph-read evidence or restricting it to candidate-found vaults. Actual
+same-call/read association remains required evidence. Probe results supply
+predicate IRI and lexical string, including framed, superseded and denied held
+claims. Exact lexical strings specialize `lang:literalValue`; they do not
+reconstruct original RDF datatype, language, direction or claim identity.
+Preserve supplied repeated occurrences without pair uniqueness or invented
+native record IDs. Matching is not affirmative support.
+
+Full matching success follows source short circuits precisely. Nonempty mappings
+invoke the tier probe. An actual nonlexical rank-string equality independently
+establishes the pair; only a remaining pair with a true lexical-hit condition
+needs successful query analysis and a successful lexical decision. A false
+decision is legitimate. An actual applicable parse or match failure rejects this
+full import. Empty mappings, vector-only candidates, already matched pairs and
+no-applicable-pair cases do not require success of unused parsing. Raw source
+undeclared output does not prove successful applicable matching or inventory
+completeness. The vocabulary does not repair the native implementation.
+
+Actual subject tie and native policy identity are supplied thirty-two-byte
+hexBinary literals. Existing fusion-profile identity is reused and checked
+locally, not duplicated. Bound two-argument `termRegex` enforces an unspaced
+either-case sixty-four-digit profile, with explicit regex-dialect residue. It
+binds no result and introduces no datatype, facet, intrinsic, hash recipe or
+XSD-canonical normalization. Decoded binary equality is distinct from relational
+ordering and supplies no cryptographic subject-identity or whole-sort proof.
+
+Ten grouped ordinary Formula laws cover thirty-nine branches:
+
+| Law | Branch ledger |
+| --- | --- |
+| Account owner | Incoming weighted application exists; any two owners are identical. |
+| Policy context | Same-application activation account; activation selection agreement in both directions; actual native declared status in both directions; three native criterion-precedence comparisons. |
+| Source identity | Bound supplied native policy and existing fusion-profile digest width checks. |
+| Entry inventory | Score-to-entry coverage, reverse score membership, uniqueness by score, input position and output ordinal. |
+| Position closure | Separate zero witnesses and predecessor increments for both stored coordinates. |
+| Entry owner | Incoming account exists; any two owners are identical. |
+| Entry identity | Original candidate IRI admission and bound supplied tie-byte representation. |
+| Tier evidence | Conditional label presence, mapped match existence/absence, minimum, and actual nonempty tier-probe selection for witnesses. |
+| Matched witness | Incoming entry existence and uniqueness, predicate IRI and actual selected roster scope. |
+| Numeric precedence | Declared before undeclared, lower declared tier first, greater score after equal tier and selected activation, greater activation after equal tier. |
+
+Every actual tree has one root forall with a typed focus guard and same-focus
+guarded branches. Universal nonfocus names are branch-specific. Every positive
+or negative existential has fresh local binders. Stored values precede intrinsic
+comparisons and regex tests; arithmetic increment outputs are fresh. Native
+declared true's two existential alternatives each contain positive focus,
+policy and criterion joins. There is no Iff, positive nested forall, unguarded
+filter union, reflected comparator or speculative interpreter.
+
+Fixed native precedence permits simple numeric guards. Tier comparisons are
+direct. Activation compares after value-equal tier state; score compares after
+value-equal tier state and equal selected activation values. Bind both stored
+Booleans independently and compare with `termEqual`; true versus 1 and false
+versus 0 remain legal value aliases rather than requiring identical RDF literals.
+Likewise bind every stored tier and magnitude independently before comparison.
+Tier equality excludes independently bound unequal labels after Boolean-value
+agreement. Conditional activation equality excludes a fully joined selected
+activation criterion with unequal actual aggregate values. Missing required
+selected values fail the existing account; disabled activation introduces no
+zero Quantity. No impossible earlier-score condition or criterion interpreter
+is needed for this native-qualified profile.
+
+The flat declarative tail contains sixteen allValuesFrom restrictions, twelve
+required ClosureEntry pairs and fourteen qualified maxima. The fifteen new role
+paths plus entry/entryOrdinal account for the ranges. Required fields are four
+on account, five on entry and three on witness. Conditional tier has an
+at-most-one maximum but no unconditional closure. Entry and matching collections
+can be empty. There is no global required application field, unqualified
+cardinality, global functionality, shape authoring or new numeric framework.
+
+Whole terminal byte ordering is an explicit strict source/import obligation.
+Ordinary numeric `termLess` on hexBinary is not asserted to implement native
+whole-byte comparison. Public Fused supplies neither complete matched witnesses
+nor tie bytes; authenticated additional same-call evidence is needed. Qualified
+activation absence independently requires actual live-at-capture and absence
+reason proof; raw wire None, retirement, budget skipping, read versions or later
+current reads do not supply it. Missing required evidence rejects the full
+selected account instead of inventing empty witnesses, undeclared tier, zero,
+hashes, Boolean proof fields or another source call.
+
+This complete reported account checks structural identity, arrays, tier evidence
+and decisive numeric order. It is not executable whole-sort certification.
+Actual byte-order qualification, matching completeness, authenticated execution,
+native fixed-point admission/truncation/checked sums/saturation, requested-policy
+adoption and end-to-end consumer integration retain their own evidence
+requirements. No generated, runtime or native parity result follows merely from
+the presence of these canonical laws.

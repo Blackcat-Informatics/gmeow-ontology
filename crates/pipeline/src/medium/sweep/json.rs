@@ -36,6 +36,7 @@ impl FromJson for SweepLevel {
 
 ::purrdf_lex::json_record!(impl ToJson for MediumBaseline {
     "schema" => schema,
+    "engine_identity" => engine_identity,
     "codec_sweep" => codec_sweep,
     "dictionaries" => dictionaries,
 });
@@ -45,6 +46,7 @@ impl FromJson for MediumBaseline {
         let mut fields = Record::new(value, "MediumBaseline object")?;
         Ok(Self {
             schema: fields.required("schema")?,
+            engine_identity: fields.required("engine_identity")?,
             codec_sweep: fields.required("codec_sweep")?,
             dictionaries: fields.required("dictionaries")?,
         })

@@ -56,6 +56,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
+use gmeow_validate::substrate::{PurrdfPackageIdentity, resolve_purrdf};
 use purrdf_lex::json::{
     self,
     record::{FromJson, Record, ToJson},
@@ -78,11 +79,10 @@ pub const MEDIUM_BASELINE_PATH: &str = "bench/medium-baseline.json";
 
 /// The artifact's schema token, carried in band so a reader never has to guess which
 /// shape it holds.
-/// v2 added `corpus_digest` to every dictionary row — the identity of the corpus the
-/// sweep actually grid-searched over. A v1 table has no way to say which corpus its
-/// numbers describe, so it is REFUSED rather than read leniently: reading it would put
-/// the build back in the state this field exists to remove.
-pub const MEDIUM_BASELINE_SCHEMA: &str = "gmeow.medium-baseline.v2";
+/// v3 binds every measurement to the exact PurRDF package sources and checksums.
+/// Older tables do not identify their trainer and codec, so they are refused rather
+/// than accepting measurements made by a different engine over the same corpus.
+pub const MEDIUM_BASELINE_SCHEMA: &str = "gmeow.medium-baseline.v3";
 
 /// The DECLARED target-length grid, in bytes.
 ///
@@ -133,6 +133,10 @@ pub const SWEEP_LEVELS: [i32; 4] = [3, 9, 12, 19];
 pub struct MediumBaseline {
     /// [`MEDIUM_BASELINE_SCHEMA`].
     pub schema: String,
+    /// Unique package identities in ascending name order, as emitted by the resolver.
+    /// Exact comparison rejects missing, duplicate, reordered or stale identities.
+    /// An unmeasured bootstrap seed carries an empty list.
+    pub engine_identity: Vec<PurrdfPackageIdentity>,
     /// The global codec × level evidence behind the mandated Rule 6 chain.
     pub codec_sweep: CodecSweep,
     /// One row per MEASURABLE dictionary, sorted by id.
@@ -334,7 +338,10 @@ impl MediumBaseline {
             )));
         }
         let parsed = <Self as FromJson>::from_json(&value).map_err(|error| {
-            invalid_declaration(format!("parse {MEDIUM_BASELINE_PATH}: {error}"))
+            invalid_declaration(format!(
+                "parse {MEDIUM_BASELINE_PATH}: {error} — re-run `make maint-medium-sweep` \
+                 to regenerate measured evidence"
+            ))
         })?;
         Ok(parsed)
     }
@@ -363,7 +370,7 @@ impl MediumBaseline {
 /// # Errors
 /// The file is missing (the build consumes committed winners, so its absence is a
 /// HARD FAIL rather than permission to fall back to the authored declaration),
-/// unreadable, or malformed.
+/// unreadable, malformed, or measured with a different trainer/codec identity.
 pub fn load(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
     let path = root.join(MEDIUM_BASELINE_PATH);
     let text = std::fs::read_to_string(&path).map_err(|e| {
@@ -374,7 +381,17 @@ pub fn load(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
             path.display()
         ))
     })?;
-    MediumBaseline::from_json(&text)
+    let baseline = MediumBaseline::from_json(&text)?;
+    let current = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock"))?;
+    if baseline.engine_identity != current.packages {
+        return Err(invalid_declaration(format!(
+            "{MEDIUM_BASELINE_PATH} trainer/codec identity differs from the current PurRDF \
+             resolution: recorded {:?}, current {:?}. Re-run `make maint-medium-sweep`; \
+             existing measurements must not be relabeled",
+            baseline.engine_identity, current.packages,
+        )));
+    }
+    Ok(baseline)
 }
 
 /// Every declared dictionary the sweep is required to measure: ALL of them.
@@ -720,6 +737,7 @@ pub fn seed_from_registry(registry: &MediumRegistry) -> MediumBaseline {
         .collect();
     MediumBaseline {
         schema: MEDIUM_BASELINE_SCHEMA.to_string(),
+        engine_identity: Vec::new(),
         codec_sweep: CodecSweep {
             mandated_codec: "zstd-rsyncable".to_string(),
             mandated_level: 12,
@@ -1164,6 +1182,8 @@ pub const CODEC_SWEEP_EXCLUDED_REPS: [&str; 4] =
 /// Any DAG failure, a corpus that resolves to nothing, a trainer or encoder refusal,
 /// or a dictionary whose grid has no buildable cell.
 pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
+    let engine_identity =
+        resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock"))?.packages;
     let spec = crate::full_spec();
     let graph = spec.validate()?;
     let bound = crate::bind(&spec, &graph, &crate::default_registry())?;
@@ -1259,6 +1279,7 @@ pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
 
     Ok(MediumBaseline {
         schema: MEDIUM_BASELINE_SCHEMA.to_string(),
+        engine_identity,
         codec_sweep,
         dictionaries: rows,
     })
