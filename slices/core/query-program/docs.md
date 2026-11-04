@@ -1617,3 +1617,122 @@ ordering result or execution is asserted by these records. Existing unweighted
 integer fusion, measured fit evidence and rerank float contracts keep their
 own meanings. Full application, complete arithmetic qualification and final
 integration remain separate requirements.
+
+## Reported weighted application and exact declared sum
+
+`QueryWeightedFusion` describes the selected weighted operation separately from
+the old unweighted integer operator. A `QueryWeightedFusionApplication` is one
+consumer-reported successful occurrence under `QueryNodeExecution`. It names
+the actual node through `executesQueryNode`, the original `QueryUnionAnswer`
+through `weightedFusionInput`, one `QueryWeightedFusionAnswer` through
+`weightedFusionOutput`, and one declared profile through `weightedFusionProfile`.
+This selected account uses `fusionWeightedScale18Convention` and an explicitly
+justified dimensionless interpretation. Native APIs do not supply mathematical
+dimension or reference-frame objects; those coordinates require actual source
+or adapter justification.
+
+The original union, lists, entries, candidates, classes, queries and loss ledgers
+keep their original resource identities. The answer retains exactly the original
+query, candidate and loss links. Its `weightedOriginalUnion` agrees with the
+application input. The selected union's candidate membership agrees with its
+retained lists, whose existing entry-membership and ownership laws still apply.
+Several lists may name the same original retrieval class. Each distinct class
+has one applied coefficient, and source class ordinals remain distinct within
+the application without inventing an ordinal origin or a digest recipe.
+
+An applied coefficient is a `QueryAppliedFusionCoefficient`, with a positive
+decimal magnitude, explicit dimensionless dimension, applicable frame, original
+`appliedCoefficientClass` and `entryOrdinal` typed as `xsd:nonNegativeInteger`.
+It is an applied Quantity, including in unmeasured mode; it is not automatically
+the measured-fit Quantity `QueryFusionClassWeight`.
+
+`weightedFusionMeasured` retains the actual typed Boolean source selection.
+True requires every actual selected full `QueryFusionWeightFit`, including its
+original judged set and fitted quantities. A fit-in-force summary identifier
+does not supply those fields. Missing full evidence must fail this selected
+measured import rather than become false or an invented fit. Each full fit has
+exactly the applied class set and matching numeric coefficients. Every actually
+supplied fitted-weight frame must equal the selected profile frame; absent fit
+frames remain legal. Supplied unit metadata must retain a compatible native
+raw-scalar interpretation without silent conversion. The graph does not supply
+generic unit equivalence or conversion. False forbids fits and requires every
+applied coefficient to equal exact decimal one. Measured fits may also report
+unit values, so values alone do not determine the Boolean.
+
+Every original candidate has one `QueryAppliedFusionScore`, and each score has
+one `QueryWeightedFusionContribution` for every applied coefficient. Contributions
+retain their actual coefficient links and exact decimal magnitudes. A delivered
+class/candidate pair requires an original minimum-rank entry witness; all matching
+original lists remain retained. Ties do not merge entries, and ranks are neither
+renumbered nor allowed beyond the source's positive unsigned rank capacity.
+An absent pair has no witness and contributes exact zero. A witnessed contribution
+may also be zero: zero alone does not establish absence.
+
+The declared decimal sum is explicit. `QueryWeightedScoreFoldStep` is an
+InformationObject carrying a witness index and `weightedStepTotal`, whose value
+is a `QueryWeightedPartialSum` Quantity. A zero base, immediate predecessors,
+unique bounded indices, exact decimal recurrence, complete contribution bijection
+and final equality account for every component exactly once. The total carries
+its own decimal magnitude, dimension and frame. Its context follows the owning
+score and application; witness use alone adds no `reportedFusionScoreProfile`
+link or source-reporting claim. An actually source-reported Quantity may also
+serve as a compatible final witness total. Quantity identity between total and
+score is neither required nor forbidden. Compatible steps may share total
+Quantities, while control steps have unique score owners.
+
+The following fictional scoped fragment illustrates two equal contributions and
+their sum. It deliberately omits original lists and rank witnesses, coefficient
+coordinates, the complete profile and frame, inherited node/answer obligations
+and other application bindings. It is not a complete valid account or a report
+of an actual native call. In the imagined original input, both classes deliver
+this candidate at rank forty with unit coefficients.
+
+```turtle
+ex:call a gmeow:QueryWeightedFusionApplication ;
+    gmeow:weightedFusionMeasured false ;
+    gmeow:weightedFusionScore ex:score .
+ex:score a gmeow:QueryAppliedFusionScore ;
+    math:quantityValue "0.02"^^xsd:decimal ;
+    gmeow:weightedScoreContribution ex:leftPart, ex:rightPart ;
+    gmeow:weightedScoreFoldStep ex:base, ex:firstStep, ex:lastStep ;
+    gmeow:weightedScoreFinalStep ex:lastStep .
+ex:leftPart a gmeow:QueryWeightedFusionContribution ;
+    math:quantityValue "0.01"^^xsd:decimal .
+ex:rightPart a gmeow:QueryWeightedFusionContribution ;
+    math:quantityValue "0.01"^^xsd:decimal .
+ex:base a gmeow:QueryWeightedScoreFoldStep ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:weightedStepTotal ex:zeroTotal .
+ex:firstStep a gmeow:QueryWeightedScoreFoldStep ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:weightedPreviousStep ex:base ;
+    gmeow:weightedStepContribution ex:leftPart ;
+    gmeow:weightedStepTotal ex:firstTotal .
+ex:lastStep a gmeow:QueryWeightedScoreFoldStep ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:weightedPreviousStep ex:firstStep ;
+    gmeow:weightedStepContribution ex:rightPart ;
+    gmeow:weightedStepTotal ex:finalTotal .
+ex:zeroTotal a gmeow:QueryWeightedPartialSum ;
+    math:quantityValue "0.0"^^xsd:decimal .
+ex:firstTotal a gmeow:QueryWeightedPartialSum ;
+    math:quantityValue "0.01"^^xsd:decimal .
+ex:finalTotal a gmeow:QueryWeightedPartialSum ;
+    math:quantityValue "0.02"^^xsd:decimal .
+```
+
+Equal component values retain two contribution identities and two positive steps;
+they are not reduced with distinct-value summation. A successful empty union has
+no candidates, scores, contributions or fold steps, but still retains its actual
+nonempty declared class set, coefficients, mode, profile and answer occurrence.
+An all-zero nonempty score still has its base and one positive step per class.
+A failed call is not an empty successful occurrence, and a budget-cut union keeps
+its original incomplete recall evidence.
+
+The account enforces the exact sum of reported decimal components. It does not
+certify fixed-point grid membership, the source's floor-division contribution
+equation, native admission, digest recomputation or source authenticity. Native
+weighted scoring and ordering arrive in one result: any applied-order enrichment
+must retain this same application and answer occurrence, with its actual policy
+and comparison evidence. It must not fabricate a second source execution or
+claim complete integration from the reported sum alone.
