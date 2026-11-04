@@ -2555,3 +2555,199 @@ msgstr "避免将该分数视为概率、校准、置信度或证据强度，假
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."
 msgstr "通过输出上的 scoreSemantics 声明此个体，保留确切的 classifierScore 和 emittedLabel，并通过 producedBy 保留实际的 ModelInferenceRun、模型修订、输入和来源溯源。保留任何另行提供的解释上下文，不虚构尺度、单位或决策规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunk Span"
+msgstr "块跨度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified source-text input unit reported as a range of source chunks under its supplied selection context."
+msgstr "在所提供的选择上下文中，作为来源块范围报告的已标识来源文本输入单元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This EvidenceSpan specialization identifies the selected content unit and inherits InformationObject. Its supplied identity is not determined by endpoint integers, wording or granularity alone, and it need not be a contiguous retrieval Chunk."
+msgstr "此 EvidenceSpan 特化标识所选内容单元，并继承 InformationObject。仅凭端点整数、措辞或粒度不能确定其所提供的标识；它不一定是连续的检索 Chunk。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a classifier or Measurement reports an input unit spanning source chunks under a supplied selection context."
+msgstr "用于分类器或 Measurement 报告在所提供的选择上下文中跨越来源块的输入单元时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing an output or an input descriptor as the selected content, wrapping every existing Chunk, or adding a second ultimate Kind to a Chunk or ContentSegment."
+msgstr "不要将输出或输入描述符定型为所选内容，不要为每个已有 Chunk 创建包装，也不要为 Chunk 或 ContentSegment 添加第二个最终 Kind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point classifiedTarget or observedFeature to the actual supplied unit identity. Keep granularity and supplied descriptors on that unit; keep outputs, runs and results separate. Reuse an actual existing Chunk with its complete contract."
+msgstr "将 classifiedTarget 或 observedFeature 指向实际提供的单元标识。将粒度和所提供的描述信息保留在该单元上；输出、运行记录和结果保持分离。若实际输入是已有 Chunk，则复用其标识及完整契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the selected content: ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+msgstr "标识所选内容：ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span first source-chunk key"
+msgstr "块跨度的首个来源块键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this ChunkSpan."
+msgstr "为此 ChunkSpan 报告的首个来源块的已提供整数键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It is a source identifier, not an ordinal, code-point coordinate, count or numeric magnitude."
+msgstr "每个一致的 ChunkSpan 至多具有一个此类可选键。它是来源标识符，不是序号、码点坐标、计数或数值量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key supplied for the selected input unit."
+msgstr "用于保留为所选输入单元提供的首个来源块键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into entryOrdinal or spanStart, inventing a key origin or inferring continuity from endpoint values."
+msgstr "不要将该键转换为 entryOrdinal 或 spanStart，不要虚构键的起点，也不要根据端点值推断连续性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the ChunkSpan with any supplied last key, chapter key, key frame, construction and source context. Leave an unavailable first key absent."
+msgstr "将提供的整数保留在 ChunkSpan 上，同时保留已提供的末键、章节键、键框架、构造描述和来源上下文。未提供首键时保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported first key: ex:unit gmeow:chunkSpanFirstKey 12 ."
+msgstr "保留报告的首键：ex:unit gmeow:chunkSpanFirstKey 12 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span last source-chunk key"
+msgstr "块跨度的末个来源块键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this ChunkSpan."
+msgstr "为此 ChunkSpan 报告的末个来源块的已提供整数键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It establishes no inclusive or exclusive convention, numeric order, consecutive membership or equality with the first key."
+msgstr "每个一致的 ChunkSpan 至多具有一个此类可选键。它不确立端点包含或排除约定、数值顺序、连续成员关系，也不确立与首键相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the selected input unit."
+msgstr "用于保留为所选输入单元提供的末个来源块键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to form a half-open bound, treating the key as spanEnd or claiming every intervening chunk was selected."
+msgstr "不要加一以构造半开边界，不要将该键视为 spanEnd，也不要声称已选择所有中间块。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the ChunkSpan and keep any supplied first key and selection context. Interpret endpoint inclusion only under an actually supplied convention."
+msgstr "将整数原样保留在 ChunkSpan 上，并保留已提供的首键和选择上下文。仅依据实际提供的约定解释端点是否包含。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported last key: ex:unit gmeow:chunkSpanLastKey 18 ."
+msgstr "保留报告的末键：ex:unit gmeow:chunkSpanLastKey 18 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source chapter key"
+msgstr "块跨度的来源章节键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this ChunkSpan."
+msgstr "影响此 ChunkSpan 来源选择的已提供整数章节键或章节分组键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It retains grouping context without creating a ContentSegment, chapter ordinal or numbering convention."
+msgstr "每个一致的 ChunkSpan 至多具有一个此类可选键。它保留分组上下文，不创建 ContentSegment、章节序号或编号约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks the input selects."
+msgstr "用于已提供的章节或分组键影响输入选择哪些来源块时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a structural chapter position or inferring chapter granularity solely from its presence."
+msgstr "不要将该键转换为结构性章节位置，也不要仅因其存在就推断章节粒度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the integer with the ChunkSpan's supplied endpoint and source descriptors. A different grouping selection uses its own actual unit identity."
+msgstr "将整数与为 ChunkSpan 提供的端点和来源描述信息一起保留。不同分组下的选择使用其各自的实际单元标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied grouping key: ex:unit gmeow:chunkSpanChapterKey 4 ."
+msgstr "保留提供的分组键：ex:unit gmeow:chunkSpanChapterKey 4 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source-key frame descriptor"
+msgstr "块跨度的来源键框架描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this ChunkSpan's reported chunk keys."
+msgstr "描述此 ChunkSpan 所报告块键的来源键命名空间或索引约定的已提供字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptor preserves stated context without authenticating a coordinate system or complete key inventory. Several attributed descriptions may coexist."
+msgstr "此可选描述符保留已陈述的上下文，不认证坐标系或完整键清单。多个带有归属信息的描述可以并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for a selected chunk span."
+msgstr "用于来源为所选块跨度提供文本形式的键命名空间或索引约定描述时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, computing a key mapping from prose or treating equal descriptions as shared source identity."
+msgstr "不要虚构从零开始的方案，不要根据文字描述计算键映射，也不要将相同描述视为共享来源标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the ChunkSpan alongside its reported keys. Keep an unknown key frame unknown and retain exact-statement attribution."
+msgstr "将提供的 xsd:string 复制到 ChunkSpan 上，与其报告的键一起保留。未知的键框架保持未知，并保留精确陈述的归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied key descriptor: ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+msgstr "保留提供的键描述符：ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input construction description"
+msgstr "块跨度输入构造描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this ChunkSpan's selected input text was assembled, including stated trimming, omission or separator conventions."
+msgstr "描述此 ChunkSpan 的所选输入文本如何组装的已提供说明，包括已陈述的空白修剪、省略或分隔约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptive field preserves the complete literal, including actual language and direction. It is not an executable profile, structured parameter blob or historical-byte witness."
+msgstr "此可选描述字段保留完整字面量，包括其实际语言和方向。它不是可执行配置、结构化参数块或历史字节凭证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing the assembly of a reported chunk-span input."
+msgstr "用于保留描述所报告块跨度输入如何组装的已提供文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable text or assembly rules, interpreting the prose as execution evidence or normalizing its supplied literal."
+msgstr "不要虚构未提供的文本或组装规则，不要将文字描述解释为执行证据，也不要规范化所提供的字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied string and any actual language tag and direction on the ChunkSpan. Retain competing attributed descriptions separately; leave unknown construction details absent."
+msgstr "将提供的字符串及其实际已有的语言标签和方向保留在 ChunkSpan 上。分别保留相互竞争且带有归属信息的描述；未知的构造细节保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied assembly description: ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+msgstr "保留提供的组装描述：ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input source context"
+msgstr "块跨度输入的来源上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source InformationObject supplied as context for this ChunkSpan's reported keys or source selection."
+msgstr "作为此 ChunkSpan 所报告键或来源选择的上下文而提供的、实际已标识的来源 InformationObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional link records supplied source context without certifying an immutable source revision, historical input bytes or derivation. Several attributed source-context links may coexist."
+msgstr "此可选链接记录所提供的来源上下文，不证明不可变来源版本、历史输入字节或派生关系。多个带有归属信息的来源上下文链接可以并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for a selected chunk span."
+msgstr "用于保留作为所选块跨度上下文而提供的已标识来源对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence or using chunkOf, navigationSource, segmentOf or wasDerivedFrom for a merely contextual link."
+msgstr "不要为了填补缺失证据而创建来源对象，也不要将 chunkOf、navigationSource、segmentOf 或 wasDerivedFrom 用于仅表示上下文的链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only an actual supplied InformationObject and retain its stated contextual role. Keep absent source identity absent; this relation reconstructs no text and requires no invented digest."
+msgstr "仅链接实际提供的 InformationObject，并保留其已陈述的上下文角色。未提供来源标识时保持缺失；此关系不重建文本，也不要求虚构摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."
+msgstr "保留已标识的来源上下文：ex:unit gmeow:chunkSpanSourceContext ex:source ."

@@ -2832,3 +2832,113 @@ gmeow:scoreRegression
     gmeow:useWhen "Use when a model emits a scalar regression prediction for an explicitly identified output dimension."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating the score as a probability, calibration, confidence or evidence strength, assuming a unit interval, argmax or threshold, or replacing actual quantity measurements with this raw model score."@x-gmeow-english ;
     gmeow:howToUse "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."@x-gmeow-english .
+
+gmeow:ChunkSpan
+    a logic:Kind, logic:Class ;
+    logic:subClassOf gmeow:EvidenceSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chunk Span"@x-gmeow-english ;
+    skos:definition "An identified source-text input unit reported as a range of source chunks under its supplied selection context."@x-gmeow-english ;
+    skos:scopeNote "This EvidenceSpan specialization identifies the selected content unit and inherits InformationObject. Its supplied identity is not determined by endpoint integers, wording or granularity alone, and it need not be a contiguous retrieval Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a classifier or Measurement reports an input unit spanning source chunks under a supplied selection context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing an output or an input descriptor as the selected content, wrapping every existing Chunk, or adding a second ultimate Kind to a Chunk or ContentSegment."@x-gmeow-english ;
+    gmeow:howToUse "Point classifiedTarget or observedFeature to the actual supplied unit identity. Keep granularity and supplied descriptors on that unit; keep outputs, runs and results separate. Reuse an actual existing Chunk with its complete contract."@x-gmeow-english ;
+    skos:example "Identify the selected content: ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."@x-gmeow-english .
+
+gmeow:chunkSpanFirstKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span first source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the first source chunk reported for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It is a source identifier, not an ordinal, code-point coordinate, count or numeric magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the first source-chunk key supplied for the selected input unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into entryOrdinal or spanStart, inventing a key origin or inferring continuity from endpoint values."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied integer on the ChunkSpan with any supplied last key, chapter key, key frame, construction and source context. Leave an unavailable first key absent."@x-gmeow-english ;
+    skos:example "Retain the reported first key: ex:unit gmeow:chunkSpanFirstKey 12 ."@x-gmeow-english .
+
+gmeow:chunkSpanLastKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span last source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the last source chunk reported for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It establishes no inclusive or exclusive convention, numeric order, consecutive membership or equality with the first key."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the last source-chunk key supplied for the selected input unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding one to form a half-open bound, treating the key as spanEnd or claiming every intervening chunk was selected."@x-gmeow-english ;
+    gmeow:howToUse "Retain the integer unchanged on the ChunkSpan and keep any supplied first key and selection context. Interpret endpoint inclusion only under an actually supplied convention."@x-gmeow-english ;
+    skos:example "Retain the reported last key: ex:unit gmeow:chunkSpanLastKey 18 ."@x-gmeow-english .
+
+gmeow:chunkSpanChapterKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span source chapter key"@x-gmeow-english ;
+    skos:definition "The supplied integer chapter or chapter-group key affecting the source selection for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It retains grouping context without creating a ContentSegment, chapter ordinal or numbering convention."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied chapter or group key affects which source chunks the input selects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a structural chapter position or inferring chapter granularity solely from its presence."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the integer with the ChunkSpan's supplied endpoint and source descriptors. A different grouping selection uses its own actual unit identity."@x-gmeow-english ;
+    skos:example "Retain the supplied grouping key: ex:unit gmeow:chunkSpanChapterKey 4 ."@x-gmeow-english .
+
+gmeow:chunkSpanKeyFrame
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span source-key frame descriptor"@x-gmeow-english ;
+    skos:definition "A supplied string describing the source-key namespace or indexing convention of this ChunkSpan's reported chunk keys."@x-gmeow-english ;
+    skos:scopeNote "This optional descriptor preserves stated context without authenticating a coordinate system or complete key inventory. Several attributed descriptions may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a textual key namespace or indexing-convention descriptor for a selected chunk span."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a zero-origin scheme, computing a key mapping from prose or treating equal descriptions as shared source identity."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string onto the ChunkSpan alongside its reported keys. Keep an unknown key frame unknown and retain exact-statement attribution."@x-gmeow-english ;
+    skos:example "Retain a supplied key descriptor: ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."@x-gmeow-english .
+
+gmeow:chunkSpanConstruction
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span input construction description"@x-gmeow-english ;
+    skos:definition "A supplied description of how this ChunkSpan's selected input text was assembled, including stated trimming, omission or separator conventions."@x-gmeow-english ;
+    skos:scopeNote "This optional descriptive field preserves the complete literal, including actual language and direction. It is not an executable profile, structured parameter blob or historical-byte witness."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve supplied prose describing the assembly of a reported chunk-span input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing unavailable text or assembly rules, interpreting the prose as execution evidence or normalizing its supplied literal."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied string and any actual language tag and direction on the ChunkSpan. Retain competing attributed descriptions separately; leave unknown construction details absent."@x-gmeow-english ;
+    skos:example "Retain the supplied assembly description: ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."@x-gmeow-english .
+
+gmeow:chunkSpanSourceContext
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span input source context"@x-gmeow-english ;
+    skos:definition "An actually identified source InformationObject supplied as context for this ChunkSpan's reported keys or source selection."@x-gmeow-english ;
+    skos:scopeNote "This optional link records supplied source context without certifying an immutable source revision, historical input bytes or derivation. Several attributed source-context links may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an identified source object supplied as context for a selected chunk span."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a source object to fill missing evidence or using chunkOf, navigationSource, segmentOf or wasDerivedFrom for a merely contextual link."@x-gmeow-english ;
+    gmeow:howToUse "Link only an actual supplied InformationObject and retain its stated contextual role. Keep absent source identity absent; this relation reconstructs no text and requires no invented digest."@x-gmeow-english ;
+    skos:example "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."@x-gmeow-english .
+
+gmeow:ChunkSpan logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanFirstKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanFirstKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanLastKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanLastKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .

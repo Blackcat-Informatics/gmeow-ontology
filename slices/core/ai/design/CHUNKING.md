@@ -340,3 +340,56 @@ source artifact, selected digest pins, granularity and all member, carrier,
 extent and span laws remain unchanged. Descriptive metadata neither executes
 the rules nor authenticates bytes or proves an exhaustive external inventory
 (Principles 2, 4, 7, 9, 11, 12, 17 and 19).
+
+## Chunk-span input content
+
+ChunkSpan is the identified selected source-text content unit reported across
+source chunks, owned by the AI slice. It specializes the existing EvidenceSpan category, inherits InformationObject
+and is the target of existing classifiedTarget or observedFeature links. This keeps a
+classifier output or Measurement distinct from its actual input, with run,
+vantage, method, metric, label, score and Quantity result on their existing
+records. The Analysis-only input descriptors retain their original domains and
+constraints.
+
+EvidenceSpan is the existing anchored-target owner, so this specialization
+avoids a parallel span model. Its category classification adds no second
+ultimate Kind. Existing selector properties retain their actual domains and
+constraints; the subclass declaration itself requires no citation selector,
+retrieval-chunk pin, polarity, offsets or digests.
+
+The six optional chunkSpan roles preserve supplied first and last source keys,
+chapter or grouping key, key-frame description, construction description and
+source context. All roles are globally nonfunctional. Only the three integer
+keys receive local allValuesFrom and datatype-qualified maxima of one on
+ChunkSpan, using onDataRange xsd:integer. No required-path closure is added.
+The five literal roles specialize the existing domain-free lang:literalValue.
+
+Supplied unit identity is not an endpoint tuple, label or granularity match.
+Selections differing by source, grouping, assembly or producer context retain
+their actual distinct unit identities and separate output records. Unknown
+descriptors remain unknown; a mapper retaining a supplied field uses its
+specific role rather than silently discarding it. Several attributed descriptive
+or source-context statements can coexist without forming an inferred tuple.
+
+Source keys are not ChunkingMember ordinals or Unicode-code-point coordinates.
+No key origin, ordering, continuity, endpoint inclusion or intervening membership
+is imposed. Source context names only an actually identified InformationObject;
+it does not assert structural parthood, actual carrier identity, derivation,
+digest pins or an immutable revision. Construction prose is descriptive and
+supplies no executable profile, authenticated input artifact or reconstruction.
+
+Existing Chunk and ChunkingMember identities, carrier relations, source and rules
+pins, ordinals and all extent laws remain unchanged. Reuse a genuine existing
+Chunk as the target with its complete contract. Do not wrap each Chunk or infer
+a second ultimate Kind for a Chunk or ContentSegment from input use. An
+endpoint-only range is insufficient evidence for Chunk typing.
+
+The existing open granularityChunk, granularityPassage, granularityChapter and
+granularityWork individuals describe explicitly supplied resolution through
+hasGranularity. They impose no per-level class, fixed size, universal order,
+structural division or complete-source coverage. The focused AI guide's
+fictional scene supplies selection descriptors and separate output records;
+it does not claim executed inference, reconstruction or byte authentication.
+
+No new dependency, runtime mechanism, mathematical quantity alias or generated
+authoring surface is introduced (Principles 2, 4, 7, 9, 11, 12, 15, 17 and 19).
