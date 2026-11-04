@@ -36,7 +36,7 @@ impl PreparedLogicSource {
             dataset,
             &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
-        .map_err(|error| Diag::from(error).with_context("native blank-node canonicalization"))?;
+        .map_err(crate::graphutil::canonicalization_failure)?;
         let source_graph = super::StructuralSourceGraph::new(canonical.dataset());
         Ok(Self {
             canonical,

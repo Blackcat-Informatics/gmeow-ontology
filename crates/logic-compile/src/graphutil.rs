@@ -360,11 +360,23 @@ pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map(Arc::new)
-    .map_err(|e| {
-        Diag::of_kind(crate::error::Graph {
-            detail: format!("native blank-node canonicalization: {e}"),
-        })
-    })
+    .map_err(canonicalization_failure)
+}
+
+/// Preserve the native refusal and its charged search breakdown at both compiler
+/// canonicalization boundaries. The counts describe admitted work, not elapsed
+/// time, completed frames, or the structure responsible for exhausting the limit.
+pub(crate) fn canonicalization_failure(error: purrdf::CanonError) -> Diag {
+    let detail = if let purrdf::CanonError::BudgetExceeded(budget) = &error {
+        format!(
+            "native blank-node canonicalization: {error}; recursive frames={}, permutation attempts={}",
+            budget.work.count(purrdf::SearchEvent::RdfcFrame),
+            budget.work.count(purrdf::SearchEvent::RdfcPermutation),
+        )
+    } else {
+        format!("native blank-node canonicalization: {error}")
+    };
+    Diag::of_kind(crate::error::Graph::caused_by(detail, error))
 }
 
 // --------------------------------------------------------------------------- //
