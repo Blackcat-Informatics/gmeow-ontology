@@ -20,7 +20,7 @@ gmeow:Appellation
     skos:example "ex:gennyAunt a gmeow:Appellation ; gmeow:fullName \"Aunt Genny\" ; gmeow:hasNamePart ex:gennyGiven ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing a name-bearing fact's CONTEXT here (audience, register, period live on gmeow:NameUsage) and avoid bare gmeow:Appellation when a specific subkind fits; never treat one of an entity's many appellations as canonical or primary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one Appellation per co-equal name, give it gmeow:fullName plus gmeow:nameLanguage, decompose into typed gmeow:NamePart, and bear it with gmeow:hasAppellation (or a subkind property); promote to a gmeow:NameUsage only when audience, register, or evidence must be first-class."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Appellation per co-equal name and retain its supplied fullName or typed NamePart content. Record nameLanguage and nameScript when actually identified; unknown language or script stays unknown. Bear it with hasAppellation or an applicable subkind property; promote to NameUsage when audience, register or evidence must be first-class. Raw wording alone supplies no interpreted language frame."@x-gmeow-english ;
     gmeow:useWhen "Use as the universal name-object umbrella when bearing a name on any entity and a more specific kind (PersonName, PlaceName, Filename) does not apply, or when modelling a name's surface form and structured parts independently of who uses it."@x-gmeow-english .
 
 gmeow:Filename
@@ -85,7 +85,7 @@ gmeow:NamePart
     skos:example "ex:yamadaPart a gmeow:NamePart ; gmeow:namePartType gmeow:namePartSurname ; gmeow:partText \"山田\" ; gmeow:partOrder 0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using gmeow:partOrder to encode a given-before-family default (it records the culture's actual surface order, so East-Asian family-first is simply order 0 = surname) and avoid reassembling the display form from parts — gmeow:fullName is authoritative for that."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one NamePart per component, set gmeow:namePartType, gmeow:partText (language-/script-tagged), and gmeow:partOrder, add gmeow:partExpansion for an abbreviated initial, and attach it with gmeow:hasNamePart."@x-gmeow-english ;
+    gmeow:howToUse "Mint one NamePart per component, set namePartType, partText with its supplied language/script tagging, and partOrder, add partExpansion for an abbreviated initial, and attach it with hasNamePart. Preserve unknown language or script without inventing a tag."@x-gmeow-english ;
     gmeow:useWhen "Use to decompose an appellation into its typed, ordered components when parts must be matched, expanded, or rendered separately — a given name, surname, patronymic, particle, Arabic nisba, or filename extension."@x-gmeow-english .
 
 gmeow:NamePartType
@@ -169,7 +169,7 @@ gmeow:OrganizationName
     skos:example "ex:dbaName a gmeow:OrganizationName ; gmeow:fullName \"Acme Widgets\" ; gmeow:namePurpose gmeow:namePurposeProfessional ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for person or place bearers (use gmeow:PersonName, gmeow:PlaceName) and avoid privileging the legal name as primary — co-equal trading and former names coexist; superseded ones set gmeow:displayable false."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one OrganizationName per co-equal name, set gmeow:fullName and gmeow:nameLanguage, distinguish kinds with gmeow:namePurpose, and bear it with gmeow:hasOrganizationName."@x-gmeow-english ;
+    gmeow:howToUse "Mint one OrganizationName per co-equal name, retain fullName and any actually identified nameLanguage, distinguish kinds with namePurpose, and bear it with hasOrganizationName."@x-gmeow-english ;
     gmeow:useWhen "Use for a structured name borne by an organization — a legal name, a trading or doing-business-as name, a former name, or a multilingual variant."@x-gmeow-english .
 
 gmeow:PersonName
@@ -182,7 +182,7 @@ gmeow:PersonName
     skos:example "ex:patrickHan a gmeow:PersonName ; gmeow:fullName \"欧德理\"@zh ; gmeow:nameLanguage ex:mandarin ; gmeow:namePurpose gmeow:namePurposeLegal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for non-person bearers (use gmeow:PlaceName, gmeow:OrganizationName, gmeow:Filename), and avoid multi-tagging one PersonName with several languages — a Latin-script and a Han-script name are SEPARATE co-equal PersonNames, never one alternate-of-the-other."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one PersonName per co-equal name, set gmeow:fullName and gmeow:nameLanguage, decompose into gmeow:NamePart with gmeow:namePartType, tag gmeow:namePurpose, and bear it with gmeow:hasName; mark a superseded one gmeow:displayable false rather than deleting it."@x-gmeow-english ;
+    gmeow:howToUse "Mint one PersonName per co-equal name, retain fullName and any actually identified nameLanguage, decompose supplied components into NamePart with namePartType, tag namePurpose, and bear it with hasName; mark a superseded one displayable false rather than deleting it."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerFoafExport ,
         gmeow:consumerPublicSite ,
         gmeow:consumerSchemaOrgJsonLd ,
@@ -199,7 +199,7 @@ gmeow:PlaceName
     skos:example "ex:istanbulName a gmeow:PlaceName ; gmeow:fullName \"İstanbul\"@tr ; gmeow:namePurpose gmeow:namePurposeEndonym ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid the retired flat gmeow:alternateName literal and avoid ranking endonym above exonym — competing and historical place names are co-equal PlaceNamings; superseded ones set gmeow:displayable false, never deletion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one PlaceName per co-equal toponym, set gmeow:fullName and gmeow:nameLanguage, tag endonym/exonym with gmeow:namePurpose, and bear it with gmeow:hasPlaceName; carry the toponymic authority and period by promoting to a gmeow:PlaceNaming with gmeow:usageAuthority and gmeow:usageInterval."@x-gmeow-english ;
+    gmeow:howToUse "Mint one PlaceName per co-equal toponym, retain fullName and any actually identified nameLanguage, tag endonym/exonym with namePurpose, and bear it with hasPlaceName; carry the toponymic authority and period by promoting to PlaceNaming with usageAuthority and usageInterval."@x-gmeow-english ;
     gmeow:useWhen "Use for a structured toponym borne by a geographic place — an endonym, exonym, multilingual, or historical name — when gazetteer matching or co-equal place naming is needed."@x-gmeow-english .
 
 gmeow:PlaceNaming
@@ -322,12 +322,12 @@ gmeow:fullName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "full name"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. \"山田太郎\"@ja, \"Yamada Tarō\"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist."@x-gmeow-english ;
+    skos:definition "The complete surface form of an appellation as a single string in its original order. Preserve the supplied literal's datatype, language and direction, including actual language/script tags such as \"山田太郎\"@ja or \"Yamada Tarō\"@ja-Latn; unknown source language stays unknown. Authoritative for recorded display wording, without establishing an interpreted language frame. Non-functional: spellings/transliterations from different sources coexist."@x-gmeow-english ;
     skos:example "ex:yamadaName gmeow:fullName \"山田太郎\"@ja ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reconstructing the display form from gmeow:NamePart order (this property is authoritative) and avoid multi-tagging one fullName with several languages — distinct-language names are separate co-equal appellations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:fullName on the appellation, language-/script-tagging the literal; it may hold several coexisting source spellings/transliterations (non-functional), with the parts kept for matching rather than reassembly."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the complete surface form of an appellation as a single language-/script-tagged string in the natural order of its culture — the authoritative source for display."@x-gmeow-english .
+    gmeow:howToUse "Set fullName on the appellation using the exact supplied literal, retaining actual language/script tagging and direction without inventing missing tags. It may hold several coexisting source spellings/transliterations (non-functional), with the parts kept for matching rather than reassembly."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the complete source wording of an appellation as one string in its original order, with any actually supplied language/script tagging; it is the authoritative recorded wording for display."@x-gmeow-english .
 
 gmeow:hasAgreementName
     a logic:ObjectProperty ;
@@ -687,12 +687,12 @@ gmeow:nameLanguage
     rdfs:label "name language"@x-gmeow-english ;
     rdfs:range gmeow:Language ;
     skos:closeMatch lime:language ;
-    skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class lang:Script)."@x-gmeow-english ;
+    skos:definition "The first-class gmeow:Language actually identified for an appellation's surface form. A Language is registry-independent and may have no code; a bare BCP-47 literal cannot substitute for it, and codes live on the Language through languageCode. Functional means at most one language value per appellation over asserted and entailed values, not required presence. Unknown source language stays unknown. Co-equal multilingual names use separate co-equal Appellations. Language-sensitive interpretation and locale-relative display selection require the actual language frame; no name gains precedence. The writing script is recorded separately through nameScript as a first-class lang:Script."@x-gmeow-english ;
     skos:example "ex:yamadaName gmeow:nameLanguage ex:japanese ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a bare BCP-47 literal (language is always a first-class gmeow:Language carrying its own code) and avoid multi-tagging one appellation with several languages — it is functional, so co-equal multilingual names are separate appellations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:nameLanguage once per appellation (functional) to a gmeow:Language individual; carry the script with gmeow:nameScript, and never use the language to rank one name above another."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the single first-class gmeow:Language an appellation's surface form is in — driving locale-relative, symmetric display selection."@x-gmeow-english .
+    gmeow:howToUse "Record nameLanguage when its actual first-class Language is identified; keep an unknown source language unknown. Functionality applies across all asserted and entailed values and does not require presence. Carry an actually identified script with nameScript. Require the actual language frame before language-sensitive interpretation or locale matching; never rank one name above another."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an actually identified first-class Language for an appellation's surface form. Language-sensitive interpretation, comparison, denotation and locale-relative display selection require their actual frames, not a guessed language or an unknown-language profile."@x-gmeow-english .
 
 gmeow:namePartAgnomen
     a gmeow:NamePartType ;
@@ -1112,7 +1112,7 @@ gmeow:partText
     skos:example "ex:audleySurname gmeow:partText \"Audley\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid carrying the whole name here (that is gmeow:fullName on the appellation) and avoid an untagged literal where a language or script is known — tag it for correct matching and rendering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:partText on a gmeow:NamePart, language-/script-tagging the literal; add gmeow:partExpansion when the text is an abbreviated initial."@x-gmeow-english ;
+    gmeow:howToUse "Set partText on a NamePart, preserving the supplied literal and actual language/script tagging without inventing missing tags; add partExpansion when the text is an abbreviated initial."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the literal text of a gmeow:NamePart — the actual string of a given name, surname, particle, or initial."@x-gmeow-english .
 
 gmeow:pronounAeAer
@@ -1756,11 +1756,11 @@ gmeow:nameLanguageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "nameLanguage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:nameLanguage is functional: an appellation's surface form is in exactly one gmeow:Language, because co-equal multilingual names are modelled as separate co-equal gmeow:Appellation instances (one per language) rather than by multi-tagging a single name — the discipline that keeps naming anti-colonial and symmetric."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that nameLanguage is functional: at most one language value per appellation over all asserted and entailed values. This characteristic does not require language presence or identify an unknown language. Co-equal multilingual names remain separate co-equal Appellations rather than multi-tagging one name, preserving anti-colonial and symmetric naming."@x-gmeow-english ;
     logic:characterizes gmeow:nameLanguage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:nameLanguage ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:nameLanguage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce at most one nameLanguage value per appellation across all asserted and entailed values. This record adds no presence requirement; it is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:nameLanguage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:nameLanguage and nothing else. It is not a definition of gmeow:nameLanguage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
