@@ -1864,3 +1864,213 @@ subject tie identity. Native activation-before-score and requested
 score-before-activation remain distinct policies on the same actual application
 and answer. The weighted account's exact declared sum is not a substitute for
 native fixed-point admission, truncation or authenticated execution evidence.
+
+## Complete reported native order on the weighted result
+
+`QueryAppliedOrderAccount` enriches one existing `QueryWeightedFusionApplication`
+and its existing `QueryWeightedFusionAnswer`. It retains actual selected policy,
+complete output occurrences, original candidate-array positions and the keys
+used by the inspected native weighted order. It creates no second execution,
+RPC, native answer, candidate or score. Existing original union, ranked-list
+evidence, query links and attributed loss resources remain unchanged.
+
+The application selects the account through `appliedOrderAccount`. The account
+requires one `appliedOrderPolicy`, one `appliedOrderActivationAccount` belonging
+to that same application, the actual supplied `appliedOrderNativePolicyDigest`
+and `appliedOrderNativePolicyDeclared`, and the complete `appliedOrderEntry`
+collection. Each `QueryAppliedOrderEntry` selects the existing
+`QueryAppliedFusionScore` through `appliedOrderScore`. Its original candidate
+follows the score's existing `appliedScoreCandidate`; its activation magnitude
+is found through the existing activation account's candidate record for that
+same score. There is no new scalar key or duplicate Quantity.
+
+Native precedence is content tier ascending, activation descending, score
+descending, then whole source subject tie bytes ascending. The existing
+`QueryOrderPolicy` can describe requested score-before-activation too, but this
+native-qualified actual account cannot claim that the inspected source executed
+it. An optional empty content criterion is adapter interpretation of an inert
+native tier key, not a source-serialized criterion occurrence or a new selection
+flag. Actual nonempty source mappings select tier probing; native declared means
+nonempty mappings or selected activation. The mandatory score and tie criteria
+alone do not make that flag true. Native duplicate last-wins predicate mappings
+cannot be silently normalized into the existing unique-predicate policy profile.
+The native digest does not identify arbitrary criterion precedence.
+
+`appliedOrderInputPosition` retains the actual original zero-based `u32` index
+as `xsd:unsignedInt`. The separate `entryOrdinal` retains actual zero-based
+output position as `xsd:nonNegativeInteger`. Each coordinate is value-unique
+and gap-free from zero within the account. Every original score has exactly
+one entry and every entry selects a score from the owner application. These
+checks preserve complete array structure without authenticating an external
+candidate-to-slot association: import must still match both coordinates to the
+actual source arrays. Original class ranks are never renumbered into either
+coordinate.
+
+`appliedOrderTierDeclared` retains the actual typed Boolean. True requires one
+`appliedOrderTier` typed `xsd:unsignedInt`; false forbids that edge. Declared
+4294967295 remains a real label and precedes every undeclared candidate. There
+is no fake missing-label sentinel. A declared label equals a selected binding
+on some actual retained matched predicate and is no greater than every such
+matched selected label. Equal labels on distinct predicates and tied minimum
+witnesses remain legal.
+
+The complete applicable matching inventory is retained through
+`appliedOrderMatchedLiteral`. Each `QueryMatchedLiteralWitness` requires its
+actual `matchedLiteralVault`, `matchedLiteralPredicate` IRI and exact
+`matchedLiteralLexicalForm` string. Vault scope is the whole selected roster,
+including vaults outside that candidate's found-vault activation subset.
+The roster link identifies a vault only: tier graph reads are not activation
+snapshot contents. Actual same-call/read association remains required source
+evidence, with no later re-query or read-version reconstruction as a substitute.
+
+Matching follows the actual short circuits. Empty mappings skip the tier probe.
+With nonempty mappings, a pair equal to an actual nonlexical rank literal is
+matched independently. Otherwise a false lexical-hit condition needs no lexical
+decision. Only a remaining applicable lexical-hit branch requires successful
+query analysis and a successful match decision, whose result can be true or
+false. An actual applicable parse or match failure rejects this complete import;
+unused parsing need not succeed for vector-only or already matched cases, or
+when no pair is applicable. A source undeclared label alone does not prove complete evidence or
+failure-free applicable matching.
+
+The witness's `xsd:string` is the native lexical text itself, retained through a
+specialization of `lang:literalValue`. Preserve surrounding whitespace and an
+actually supplied empty string. Do not reconstruct original RDF datatype,
+language, base direction or claim identity. Native probes include framed,
+superseded and denied held claims; a match does not become affirmative support.
+Preserve separately supplied repeated occurrences even when vault, predicate
+and lexical text agree. These are descriptive witness nodes, not fabricated
+native claim identifiers, and there is no pair-uniqueness or witness-count law.
+
+`appliedOrderSubjectTie` retains actual separately supplied thirty-two-byte
+subject tie identity. The original candidate must be an IRI. Policy and subject
+identities use the explicit unspaced either-case `xsd:hexBinary` profile
+`^[0-9A-Fa-f]{64}$`; the same width is checked locally on the existing source
+fusion-profile digest. These are representation checks, not XSD-canonical
+normalization, hashing or authentication, and regex projection dialect residue
+remains explicit. Public Fused does not export subject tie bytes or the complete
+matching inventory. Full import requires authenticated additional evidence;
+missing input cannot become an empty list, inferred tie, undeclared tier or zero.
+
+The following worked fictional comparison preserves one original candidate set
+under two different prescriptions. The reported score and activation numbers
+are illustrative existing Quantity magnitudes, not a native execution report,
+floor-division certificate or recomputed activation sum. Assume both policies
+select tier, activation and score with the same predicate mappings and complete
+source contexts, differing only in score/activation precedence.
+
+| Candidate | Original input position | Declared tier | Existing score magnitude | Existing activation magnitude | Actual native output ordinal | Requested score-first output ordinal |
+| --- | --- | --- | --- | --- | --- | --- |
+| A | 0 | 0 | 0.02 | 1 | 1 | 0 |
+| B | 1 | 0 | 0.01 | 9 | 0 | 1 |
+| C | 2 | 4294967295 | 0.005 | 5 | 2 | 2 |
+| D | 3 | undeclared | 0.025 | 99 | 3 | 3 |
+
+B precedes A in the inspected native order because their tiers agree and B's
+activation is greater. The requested score-first prescription would place A
+before B. C precedes D because every declared tier, including the maximum `u32`,
+precedes undeclared; D's larger score and activation cannot override that tier
+decision. Only the native column is this actual-source account. The requested
+column is a descriptive comparison, not another native answer or claimed source
+execution.
+
+This fictional scoped fragment retains A's original input position and different
+native output position on the same application and answer. All names and any
+identity bytes used in the examples are fictional. The fragment deliberately
+omits actual call association, complete policies, supplied native identities,
+complete entry collections, typed account declarations, actual matching proof,
+full Quantity contexts and complete reference frames. It is not a complete valid
+account or an authenticated source report.
+
+```turtle
+ex:call a gmeow:QueryWeightedFusionApplication ;
+    gmeow:weightedFusionOutput ex:answer ;
+    gmeow:weightedFusionScore ex:scoreA, ex:scoreB, ex:scoreC, ex:scoreD ;
+    gmeow:fusionActivationAccount ex:activationAccount ;
+    gmeow:appliedOrderAccount ex:nativeOrder .
+ex:nativeOrder gmeow:appliedOrderPolicy ex:activationFirstPolicy ;
+    gmeow:appliedOrderActivationAccount ex:activationAccount ;
+    gmeow:appliedOrderNativePolicyDeclared true ;
+    gmeow:appliedOrderEntry ex:entryA, ex:entryB, ex:entryC, ex:entryD .
+ex:entryA a gmeow:QueryAppliedOrderEntry ;
+    gmeow:appliedOrderScore ex:scoreA ;
+    gmeow:appliedOrderInputPosition "0"^^xsd:unsignedInt ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:appliedOrderTierDeclared true ;
+    gmeow:appliedOrderTier "0"^^xsd:unsignedInt .
+ex:entryB gmeow:appliedOrderScore ex:scoreB ;
+    gmeow:appliedOrderInputPosition "1"^^xsd:unsignedInt ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:entryC gmeow:appliedOrderScore ex:scoreC ;
+    gmeow:appliedOrderInputPosition "2"^^xsd:unsignedInt ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:appliedOrderTierDeclared true ;
+    gmeow:appliedOrderTier "4294967295"^^xsd:unsignedInt .
+ex:entryD gmeow:appliedOrderScore ex:scoreD ;
+    gmeow:appliedOrderInputPosition "3"^^xsd:unsignedInt ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger ;
+    gmeow:appliedOrderTierDeclared false .
+```
+
+For a separate fictional matching case, suppose A was found only in selected
+vault A, while the selected roster contains both A and B. A qualified matched
+pair from B can justify A's tier. The following partial graph retains two
+actually supplied repeated lexical occurrences without inventing claim IDs:
+
+```turtle
+ex:activationAccount gmeow:activationVaultRecord ex:vaultA, ex:vaultB .
+ex:activationRowA gmeow:activationAppliedScore ex:scoreA ;
+    gmeow:activationFoundVault ex:vaultA .
+ex:entryA gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo .
+ex:witnessOne a gmeow:QueryMatchedLiteralWitness ;
+    gmeow:matchedLiteralVault ex:vaultB ;
+    gmeow:matchedLiteralPredicate ex:label ;
+    gmeow:matchedLiteralLexicalForm "  retained text  " .
+ex:witnessTwo a gmeow:QueryMatchedLiteralWitness ;
+    gmeow:matchedLiteralVault ex:vaultB ;
+    gmeow:matchedLiteralPredicate ex:label ;
+    gmeow:matchedLiteralLexicalForm "  retained text  " .
+```
+
+The source predicate `ex:label` must have an actual selected binding to justify
+a declared tier. The source matching context must justify the retained text;
+its whitespace is not normalized away. B need not join A's activation subset,
+and B's activation snapshot proves nothing about those graph-read statements.
+The original literal's datatype, language and claim identity remain unknown from
+these native lexical pairs. The records' distinct identities preserve supplied
+occurrence evidence, not invented native claim identities.
+
+If A also has an actual matched predicate with selected label two while another
+actual matched predicate selects label zero, its stored tier must be zero.
+Two different predicates can both select zero without merging bindings or
+witnesses. A subject's unrelated predicate cannot replace an actual matched
+pair. A complete actual inventory with no selected mapped match is undeclared;
+an unavailable inventory cannot be imported as that empty result.
+
+| Additional fictional case | Required treatment |
+| --- | --- |
+| Selected activation, present snapshot, actually reported aggregate zero | Retain the existing observed zero Quantity; do not infer snapshot absence. |
+| All nonempty actual found-vault records have qualified first-snapshot absence | Retain the existing activation account's numeric-zero implication, never its converse. |
+| Disabled activation | No aggregate activation Quantity or default zero; policy has no activation criterion. |
+| Successful empty original candidates | No order entries or matching witnesses; retain actual policy and nonempty selected activation roster. |
+| Missing original input slot or output slot between zero and a positive position | Reject the coordinate gap even if remaining ordinals are unique. |
+| Raw snapshot None without actual capture-liveness and absence-reason evidence | Fail the selected complete account; a retired or budget-skipped service cannot select qualified false. |
+| Nonempty mappings, vector match already sufficient | Retain the pair without demanding success of unused lexical analysis. |
+| Remaining applicable lexical branch fails parsing or match evaluation | Reject full import, even if native fallback would report undeclared. |
+| Missing actual tie bytes, whole-byte ordering proof, subject association or matching inventory | Fail full import; do not fabricate hashes, empty witnesses or a successful order certificate. |
+
+All score, activation and held-count magnitudes remain existing
+`math:Quantity` carriers with explicit dimensions and complete applicable
+ReferenceFrames. The API supplies no default frame. Category-local context
+agreement does not force score, aggregate activation and held-count frames to be
+the same resource, even when all are explicitly dimensionless. Native fixed-point
+admission, truncation, checked sums, saturation and source authentication are
+separate evidence requirements.
+
+The ordinary laws check retained identity, array completeness, tier evidence and
+decisive numeric order. They do not implement or certify the terminal native
+byte comparator. Exact subject/tie association, complete applicable matching,
+actual whole-byte order and authenticated source execution remain strict import
+requirements. Executable whole-sort qualification, requested-policy adoption and
+end-to-end integration need their own evidence; this reported account is not a
+Boolean proof field, generic sort engine or runtime parity claim.

@@ -8327,3 +8327,787 @@ msgstr "Les états false qualifiés exigent une preuve effective d’activité �
 msgctxt "https://blackcatinformatics.ca/gmeow/FusionActivationAbsentSnapshotZeroLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional candidate found only in confirmed no-first-snapshot vault A has aggregate zero even when another roster-only vault B has a present snapshot."
 msgstr "Exemple fictif à portée limitée : Un candidat fictif trouvé uniquement dans le coffre A dont l’absence de premier instantané est confirmée a un agrégat nul, même si un autre coffre B présent seulement dans la liste sélectionnée possède un instantané présent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Order Account"
+msgstr "Compte rendu d’ordre appliqué de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete reported account of the inspected native weighted order on one existing weighted application and its answer, retaining the actual policy, output occurrences, original coordinates and qualified key evidence."
+msgstr "Un compte rendu complet de l’ordre pondéré natif inspecté sur une application pondérée existante et sa réponse, conservant la politique effective, les occurrences de sortie, les coordonnées originales et les preuves de clés dûment qualifiées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enrich the same actual weighted application, answer and applied scores with complete reported order evidence."
+msgstr "Utiliser pour enrichir la même application pondérée effective, sa réponse et ses scores appliqués avec des preuves complètes de l’ordre rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing another source call or result, labeling requested score-first precedence as inspected native execution or accepting unavailable witnesses as empty."
+msgstr "Éviter d’inventer un autre appel source ou résultat, de présenter la précédence demandée du score comme une exécution native inspectée ou de traiter des témoins indisponibles comme une collection vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link from the existing application through appliedOrderAccount; provide the actual policy, same-application activation account, supplied native policy fields and every actual output entry."
+msgstr "Relier depuis l’application existante par appliedOrderAccount ; fournir la politique effective, le compte rendu d’activation de cette même application, les champs natifs de politique fournis et chaque entrée de sortie effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected native contract is tier, activation, score, then source subject tie. Exact matching completeness, supplied subject association and terminal byte-order proof remain mandatory import evidence; graph checks alone do not certify whole-sort execution."
+msgstr "Le contrat natif sélectionné impose le palier, l’activation, le score, puis le départage des sujets selon la source. L’exhaustivité exacte des correspondances, l’association fournie au sujet et la preuve de l’ordre terminal des octets restent des preuves obligatoires à l’importation ; les seuls contrôles de graphe ne certifient pas l’exécution du tri complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . The actual existing weighted application, answer and complete reported evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:appliedOrderAccount ex:order . L’application pondérée effective existante, la réponse et les preuves complètes rapportées sont omises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Order Entry"
+msgstr "Entrée d’ordre appliqué de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One actual output occurrence of a reported native weighted order, selecting an original applied score and retaining its original unsigned input-array coordinate and separate nonnegative output ordinal."
+msgstr "Une occurrence de sortie effective d’un ordre pondéré natif rapporté, sélectionnant un score appliqué original et conservant sa coordonnée non signée dans le tableau d’entrée original et son ordinal de sortie non négatif distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every original candidate exactly once through the existing applied-score identity."
+msgstr "Utiliser pour conserver chaque candidat original exactement une fois au moyen de l’identité existante du score appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying candidates into replacement identities, substituting original class ranks for output position or treating unique ordinals alone as authenticated source arrays."
+msgstr "Éviter de copier les candidats sous des identités de remplacement, de substituer les rangs originaux de classe à la position de sortie ou de traiter des ordinaux uniques comme des tableaux source authentifiés à eux seuls."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide appliedOrderScore, appliedOrderInputPosition, entryOrdinal, appliedOrderTierDeclared and supplied appliedOrderSubjectTie; retain the conditional tier and complete applicable matched witnesses."
+msgstr "Fournir appliedOrderScore, appliedOrderInputPosition, entryOrdinal, appliedOrderTierDeclared et la valeur fournie de appliedOrderSubjectTie ; conserver le palier conditionnel et tous les témoins de correspondance applicables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both position collections are separately zero-based, gap-free and unique within the owner account. Actual original-slot and output-slot associations still require authentic source evidence. This record is descriptive information, not another native answer."
+msgstr "Les deux collections de positions commencent séparément à zéro, sans lacunes ni doublons dans le compte rendu propriétaire. Les associations effectives aux emplacements originaux et de sortie exigent toujours des preuves source authentiques. Cet enregistrement est une information descriptive, pas une autre réponse native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedOrderEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry a gmeow:QueryAppliedOrderEntry ; gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required fields, owner and source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry a gmeow:QueryAppliedOrderEntry ; gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Les autres champs obligatoires, le propriétaire et les preuves source sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Matched Literal Witness"
+msgstr "Témoin de littéral correspondant de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptive qualified record of an actual matched content-predicate IRI and exact literal lexical string for one candidate in one selected vault during the actual tier computation."
+msgstr "Un enregistrement descriptif dûment qualifié d’un IRI effectif de prédicat de contenu correspondant et de la chaîne lexicale exacte du littéral pour un candidat dans un coffre sélectionné lors du calcul effectif du palier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain complete actual matched-pair evidence from all selected services, including unmapped predicates and vaults outside the candidate-found activation subset."
+msgstr "Utiliser pour conserver toutes les preuves effectives de paires correspondantes provenant de tous les services sélectionnés, y compris les prédicats sans correspondance déclarée et les coffres hors du sous-ensemble d’activation où le candidat a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing source claim identity, original literal datatype or language, asserting affirmative support from a match or treating activation snapshots as graph-read content."
+msgstr "Éviter d’inventer l’identité d’une assertion source, le type de données ou la langue du littéral original, d’affirmer un soutien positif à partir d’une correspondance ou de traiter les instantanés d’activation comme le contenu des lectures de graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Provide matchedLiteralVault, matchedLiteralPredicate and exact matchedLiteralLexicalForm, and retain the witness under its one actual output entry."
+msgstr "Fournir matchedLiteralVault, matchedLiteralPredicate et la valeur exacte de matchedLiteralLexicalForm, puis conserver le témoin sous son unique entrée de sortie effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual matching follows source short circuits: a nonlexical rank-string match is independently sufficient; applicable remaining lexical branches require successful analysis and match decisions. Preserve supplied repeated occurrences without pair-uniqueness assumptions. Missing applicable evidence fails full import."
+msgstr "La mise en correspondance effective suit les courts-circuits de la source : une correspondance avec la chaîne d’un rang non lexical suffit à elle seule ; les branches lexicales restantes applicables exigent une analyse et des décisions de correspondance réussies. Conserver les occurrences répétées fournies sans supposer l’unicité des paires. L’absence de preuves applicables fait échouer l’importation complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMatchedLiteralWitness|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness a gmeow:QueryMatchedLiteralWitness ; gmeow:matchedLiteralPredicate ex:label ; gmeow:matchedLiteralLexicalForm \"  retained text  \" . The selected vault, owning entry and actual matching evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:witness a gmeow:QueryMatchedLiteralWitness ; gmeow:matchedLiteralPredicate ex:label ; gmeow:matchedLiteralLexicalForm \"  retained text  \" . Le coffre sélectionné, l’entrée propriétaire et les preuves effectives de correspondance sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported applied order account"
+msgstr "compte rendu rapporté d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The at-most-one complete native-qualified reported order account selected on an existing actual weighted application."
+msgstr "Le compte rendu complet rapporté d’ordre, qualifié selon le contrat natif, sélectionné sur une application pondérée effective existante, avec au plus un tel compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain actual output order beside the same application’s original weighted result."
+msgstr "Utiliser pour conserver l’ordre de sortie effectif à côté du résultat pondéré original de la même application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a second execution or answer because score and ordering vocabulary are separate."
+msgstr "Éviter de créer une seconde exécution ou réponse parce que les vocabulaires du score et de l’ordre sont distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a complete QueryAppliedOrderAccount from the actual QueryWeightedFusionApplication."
+msgstr "Référencer un QueryAppliedOrderAccount complet depuis le QueryWeightedFusionApplication effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing applications need not select this profile. Selecting it makes all declared evidence and import requirements mandatory; partial data cannot become a weaker successful account."
+msgstr "Les applications existantes ne sont pas tenues de sélectionner ce profil. Le sélectionner rend obligatoires toutes les preuves déclarées et exigences d’importation ; des données partielles ne peuvent devenir un compte rendu réussi aux exigences affaiblies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:appliedOrderAccount ex:order . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:appliedOrderAccount ex:order . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual applied order policy"
+msgstr "politique effective d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing complete QueryOrderPolicy interpreting the actual selected source order under this native-qualified account."
+msgstr "L’unique QueryOrderPolicy existante complète interprétant l’ordre source effectivement sélectionné dans ce compte rendu qualifié selon le contrat natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual selected criterion prescription and unique predicate mappings."
+msgstr "Utiliser pour conserver la prescription de critères effectivement sélectionnée et les correspondances de prédicats sans doublons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a native digest as criterion precedence or claiming the source serialized ontology criterion occurrences."
+msgstr "Éviter de traiter une empreinte native comme la précédence des critères ou d’affirmer que la source a sérialisé des occurrences de critères de l’ontologie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual selected existing policy; require represented tier before activation and score, activation before score and the existing terminal tie."
+msgstr "Référencer la politique existante effectivement sélectionnée ; exiger que le palier représenté précède l’activation et le score, que l’activation précède le score et que le départage terminal existant soit conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An optional empty content criterion is adapter interpretation of the inert native key, not a new source flag or serialized occurrence. Native declared status depends on nonempty actual mappings or selected activation."
+msgstr "Un critère de contenu vide facultatif est l’interprétation, par l’adaptateur, de la clé native inerte, pas un nouvel indicateur source ni une occurrence sérialisée. Le statut natif de déclaration dépend de correspondances effectives non vides ou de l’activation sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderPolicy ex:nativePolicy . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:order gmeow:appliedOrderPolicy ex:nativePolicy . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order activation account"
+msgstr "compte rendu d’activation d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing complete activation account associated with the same actual weighted application as a reported order."
+msgstr "L’unique compte rendu d’activation existant complet associé à la même application pondérée effective qu’un ordre rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reuse actual mode, snapshot roster, candidate-found scope and coordinated aggregate Quantities."
+msgstr "Utiliser pour réemployer le mode effectif, la liste d’instantanés, le périmètre des coffres où le candidat a été trouvé et les grandeurs agrégées coordonnées de type Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating aggregate values, replacing them with held counts or linking another call’s activation account."
+msgstr "Éviter de dupliquer les valeurs agrégées, de les remplacer par les comptes d’activations conservées ou de relier le compte rendu d’activation d’un autre appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the QueryFusionActivationAccount retained by the owner application’s fusionActivationAccount edge."
+msgstr "Référencer le QueryFusionActivationAccount conservé par l’arête fusionActivationAccount de l’application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Activation criterion selection agrees with actual activationEnabled. Qualified snapshot absence and required capture evidence keep their existing meaning; disabled zero is not measured data."
+msgstr "La sélection du critère d’activation concorde avec la valeur effective de activationEnabled. L’absence qualifiée d’instantané et les preuves de capture obligatoires gardent leur sens existant ; le zéro d’une activation désactivée n’est pas une donnée mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderActivationAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderActivationAccount ex:activationAccount . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:order gmeow:appliedOrderActivationAccount ex:activationAccount . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied native policy digest"
+msgstr "empreinte de politique native appliquée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual supplied thirty-two-byte native policy identity retained separately from the ontology policy resource and fusion-profile digest."
+msgstr "L’identité native de politique effective fournie, sur trente-deux octets, conservée séparément de la ressource de politique ontologique et de l’empreinte du profil de fusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source-returned policy bytes under an explicit unspaced either-case representation profile."
+msgstr "Utiliser pour préserver les octets de politique renvoyés par la source selon un profil explicite sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing replacement hashes, authenticating call input from a digest alone or encoding arbitrary criterion precedence into the source identity."
+msgstr "Éviter de calculer des empreintes de remplacement, d’authentifier l’entrée d’appel par une empreinte seule ou d’encoder une précédence arbitraire de critères dans l’identité source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ from the actual result."
+msgstr "Fournir un xsd:hexBinary conforme à ^[0-9A-Fa-f]{64}$ provenant du résultat effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native identity covers mappings and activation selection, not arbitrary precedence. Width checks do not certify hashing or source authenticity; regex dialect residue remains explicit."
+msgstr "L’identité native couvre les correspondances et la sélection de l’activation, pas une précédence arbitraire. Les contrôles de largeur ne certifient ni le hachage ni l’authenticité source ; les limites résiduelles des dialectes d’expressions régulières restent explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDigest \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."
+msgstr "Fragment fictif à portée limitée : ex:order gmeow:appliedOrderNativePolicyDigest \"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff\"^^xsd:hexBinary . Ces octets sont fictifs et ne sont pas des identités natives authentifiées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied native policy declared"
+msgstr "déclaration de politique native appliquée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required actual source Boolean indicating a nonempty predicate-tier mapping vector or selected activation."
+msgstr "Le booléen source effectif obligatoire indiquant un vecteur non vide de correspondances entre prédicats et paliers ou l’activation sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve native declared status independently of mandatory ontology score and tie criteria."
+msgstr "Utiliser pour préserver le statut natif de déclaration indépendamment des critères ontologiques obligatoires de score et de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every nonempty QueryOrderPolicy as native declared or using an inert empty content criterion as a source selection flag."
+msgstr "Éviter de traiter toute QueryOrderPolicy non vide comme déclarée nativement ou d’utiliser un critère de contenu vide inerte comme indicateur de sélection source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual typed Boolean and require true exactly when selected nonempty content mappings or an activation criterion exist."
+msgstr "Fournir le booléen typé effectif et exiger true exactement lorsqu’il existe des correspondances de contenu sélectionnées non vides ou un critère d’activation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean values compare independently of lexical spelling. Empty mappings skip native tier probing; a score-and-tie policy can legitimately have native declared false."
+msgstr "Les valeurs booléennes sont comparées indépendamment de leur graphie lexicale. Des correspondances vides évitent le sondage natif des paliers ; une politique de score et de départage peut légitimement avoir un statut natif de déclaration false."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderNativePolicyDeclared|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderNativePolicyDeclared false . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:order gmeow:appliedOrderNativePolicyDeclared false . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual applied order entry"
+msgstr "entrée effective d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete actual output-entry collection corresponding exactly to the owner application’s original applied scores."
+msgstr "Un membre de la collection complète d’entrées de sortie effectives correspondant exactement aux scores appliqués originaux de l’application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every original candidate and actual output occurrence without filtering."
+msgstr "Utiliser pour conserver chaque candidat original et chaque occurrence de sortie effective sans filtrage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting scores, adding unrelated entries or accepting a terminal-error stream prefix as a complete batch result."
+msgstr "Éviter d’omettre des scores, d’ajouter des entrées sans rapport ou d’accepter un préfixe de flux terminé par une erreur comme résultat complet de traitement par lot."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference exactly one entry per original applied score with its actual input coordinate and output ordinal."
+msgstr "Référencer exactement une entrée par score appliqué original avec sa coordonnée d’entrée effective et son ordinal de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The collection is empty exactly when the original application’s score collection is empty. Existing original union, queries and losses remain preserved by the weighted answer."
+msgstr "La collection est vide exactement lorsque la collection de scores de l’application originale est vide. L’union originale, les requêtes et les pertes existantes restent conservées par la réponse pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:order gmeow:appliedOrderEntry ex:first, ex:second . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:order gmeow:appliedOrderEntry ex:first, ex:second . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order original score"
+msgstr "score original d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one existing original applied-score resource selected by an actual output entry."
+msgstr "L’unique ressource existante de score appliqué original sélectionnée par une entrée de sortie effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original candidate identity and exact source score Quantity without recomputation."
+msgstr "Utiliser pour conserver l’identité originale du candidat et la Quantity exacte de score source sans recalcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a rerank float, unweighted integer score, copied candidate or another application’s score."
+msgstr "Éviter de substituer un flottant de reclassement, un score entier non pondéré, une copie du candidat ou le score d’une autre application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryAppliedFusionScore retained by the account’s actual weighted application."
+msgstr "Référencer un QueryAppliedFusionScore conservé par l’application pondérée effective du compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The original candidate follows appliedScoreCandidate. Activation lookup joins the existing activation account through this same score, without adding a parallel numeric value or context."
+msgstr "Le candidat original est obtenu par appliedScoreCandidate. La recherche d’activation rejoint le compte rendu d’activation existant par ce même score, sans ajouter de valeur ni de contexte numériques parallèles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderScore ex:score . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderScore ex:score . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order original input position"
+msgstr "position d’entrée originale d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual zero-based u32 coordinate of the entry’s original candidate in the returned whole union’s candidate array."
+msgstr "La coordonnée u32 effective, à partir de zéro, du candidat original de l’entrée dans le tableau de candidats de l’union entière renvoyée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original source occurrence position independently of actual output position."
+msgstr "Utiliser pour préserver la position de l’occurrence source originale indépendamment de la position de sortie effective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming host pointer width, reusing a class-local rank or deriving the source coordinate from the output ordinal."
+msgstr "Éviter de supposer la largeur des pointeurs de l’hôte, de réutiliser un rang local à une classe ou de déduire la coordonnée source de l’ordinal de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:unsignedInt from the actual source candidate index and retain entryOrdinal separately."
+msgstr "Fournir un xsd:unsignedInt provenant de l’indice effectif du candidat source et conserver entryOrdinal séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input coordinates are value-unique and gap-free from zero within the account. Those graph checks cannot authenticate the actual candidate-to-slot association; source evidence remains required."
+msgstr "Les coordonnées d’entrée sont uniques en valeur et sans lacunes à partir de zéro dans le compte rendu. Ces contrôles de graphe ne peuvent authentifier l’association effective entre candidat et emplacement ; les preuves source restent obligatoires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderInputPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderInputPosition \"1\"^^xsd:unsignedInt ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order tier declared"
+msgstr "déclaration de palier d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required actual source Boolean distinguishing a declared mapped tier from the undeclared state after every declared u32 label."
+msgstr "Le booléen source effectif obligatoire distinguant un palier déclaré par correspondance de l’état non déclaré, placé après toute étiquette u32 déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source Option state without fabricating a numeric missing-tier sentinel."
+msgstr "Utiliser pour conserver l’état Option de la source sans fabriquer de sentinelle numérique de palier manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating 4294967295 as undeclared or inferring false from unavailable matched evidence."
+msgstr "Éviter de traiter 4294967295 comme non déclaré ou de déduire false de preuves de correspondance indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual typed Boolean; true requires one appliedOrderTier supported by complete qualified matched bindings and false forbids a tier edge."
+msgstr "Fournir le booléen typé effectif ; true exige un appliedOrderTier étayé par des correspondances complètes dûment qualifiées, et false interdit une arête de palier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declared maximum u32 still precedes undeclared. Both stored Boolean values are bound independently for comparisons, so true and 1 or false and 0 remain value-equivalent."
+msgstr "Le maximum u32 déclaré précède toujours l’état non déclaré. Les deux valeurs booléennes stockées sont liées indépendamment pour les comparaisons, afin que true et 1 ou false et 0 restent équivalents en valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTierDeclared|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared false . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderTierDeclared false . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual declared applied tier"
+msgstr "palier appliqué effectivement déclaré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional actual declared u32 tier label of an output entry, equal to the minimum selected mapping among its complete actual matched predicates."
+msgstr "L’étiquette u32 conditionnelle de palier effectivement déclaré d’une entrée de sortie, égale au minimum des correspondances sélectionnées parmi tous ses prédicats effectivement correspondants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a declared control-tier label, including 4294967295."
+msgstr "Utiliser pour conserver une étiquette déclarée de palier de contrôle, y compris 4294967295."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing an undeclared sentinel, treating tier as a magnitude or choosing an unrelated subject predicate as evidence."
+msgstr "Éviter de stocker une sentinelle d’état non déclaré, de traiter le palier comme une grandeur ou de choisir comme preuve un prédicat du sujet sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one xsd:unsignedInt when appliedOrderTierDeclared is true and no edge when false."
+msgstr "Fournir exactement un xsd:unsignedInt lorsque appliedOrderTierDeclared vaut true, et aucune arête lorsque cette valeur est false."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The stored label equals some matched selected binding and is no greater than every matched selected label. Equal labels on different predicates and tied minimum witnesses are legal."
+msgstr "L’étiquette stockée égale une correspondance sélectionnée effectivement rencontrée et n’est supérieure à aucune étiquette sélectionnée effectivement rencontrée. Des étiquettes égales sur des prédicats différents et des témoins ex æquo du minimum sont autorisés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderTier|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderTierDeclared true ; gmeow:appliedOrderTier \"4294967295\"^^xsd:unsignedInt . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderTierDeclared true ; gmeow:appliedOrderTier \"4294967295\"^^xsd:unsignedInt . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied source subject tie"
+msgstr "départage appliqué des sujets selon la source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual separately supplied thirty-two-byte native subject tie identity associated with the original candidate IRI."
+msgstr "L’identité native effective de départage des sujets sur trente-deux octets, fournie séparément et associée à l’IRI du candidat original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the complete source tie bytes under the unspaced either-case profile."
+msgstr "Utiliser pour conserver tous les octets source de départage selon le profil sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid hashing or inventing missing bytes, replacing them with IRI lexical order or claiming ordinary hexBinary termLess certifies the native comparator."
+msgstr "Éviter de hacher ou d’inventer les octets manquants, de les remplacer par l’ordre lexical des IRI ou d’affirmer que le termLess ordinaire sur hexBinary certifie le comparateur natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply xsd:hexBinary matching ^[0-9A-Fa-f]{64}$ with actual authenticated subject association and source terminal-order evidence."
+msgstr "Fournir un xsd:hexBinary conforme à ^[0-9A-Fa-f]{64}$ avec une association effective authentifiée au sujet et des preuves de l’ordre terminal source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Public Fused omits these bytes. Missing required tie evidence fails this complete import. Width and decoded-value equality do not certify whole-byte ordering, hash authenticity or candidate identity from a collision assumption."
+msgstr "Le Fused public omet ces octets. L’absence des preuves de départage obligatoires fait échouer cette importation complète. La largeur et l’égalité des valeurs décodées ne certifient ni l’ordre sur l’intégralité des octets, ni l’authenticité du hachage, ni l’identité du candidat fondée sur une hypothèse de collision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderSubjectTie|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderSubjectTie \"ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100\"^^xsd:hexBinary . These bytes are fictional, not authenticated native identities."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderSubjectTie \"ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100\"^^xsd:hexBinary . Ces octets sont fictifs et ne sont pas des identités natives authentifiées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order matched literal witness"
+msgstr "témoin de littéral correspondant d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete qualified actual matched predicate and lexical-string inventory used for this candidate’s tier computation."
+msgstr "Un membre de l’inventaire complet dûment qualifié des prédicats et chaînes lexicales effectivement correspondants utilisés pour calculer le palier de ce candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every actual matched occurrence across selected services, including unmapped predicates."
+msgstr "Utiliser pour conserver chaque occurrence effectivement correspondante dans l’ensemble des services sélectionnés, y compris les prédicats sans correspondance déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting all subject predicates, deleting supplied repetitions or treating a missing inventory as empty or undeclared."
+msgstr "Éviter de substituer tous les prédicats du sujet, de supprimer les répétitions fournies ou de traiter un inventaire manquant comme vide ou non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each actual QueryMatchedLiteralWitness when nonempty source mappings select tier computation; retain no invented probe inventory when mappings are empty."
+msgstr "Référencer chaque QueryMatchedLiteralWitness effectif lorsque des correspondances source non vides sélectionnent le calcul du palier ; ne conserver aucun inventaire de sondage inventé lorsque les correspondances sont vides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Vector-string equality independently establishes a pair. Otherwise successful lexical analysis and decision are required only for a true applicable lexical-hit branch. Actual applicable failure rejects full import; unused parsing need not succeed."
+msgstr "L’égalité avec une chaîne vectorielle établit une paire à elle seule. Sinon, une analyse lexicale et une décision réussies ne sont exigées que pour une branche applicable dont la condition de présence lexicale est vraie. Un échec effectif applicable fait rejeter l’importation complète ; l’analyse inutilisée n’a pas à réussir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedOrderMatchedLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:entry gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:entry gmeow:appliedOrderMatchedLiteral ex:witnessOne, ex:witnessTwo . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal selected vault"
+msgstr "coffre sélectionné du littéral correspondant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual selected vault identified through an existing roster record for a qualified matched-pair witness."
+msgstr "L’unique coffre effectivement sélectionné, identifié au moyen d’un enregistrement de liste existant pour un témoin de paire correspondante dûment qualifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain all-selected-service matching scope independently of candidate-found activation scope."
+msgstr "Utiliser pour conserver le périmètre de correspondance de tous les services sélectionnés indépendamment du périmètre d’activation où le candidat a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting that the witness came from activation snapshot contents or requiring the vault to be in the candidate-found subset."
+msgstr "Éviter d’affirmer que le témoin provient du contenu d’un instantané d’activation ou d’exiger que le coffre appartienne au sous-ensemble où le candidat a été trouvé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a record in the same account’s existing activation roster and retain actual same-call graph-read association as import evidence."
+msgstr "Référencer un enregistrement de la liste d’activation existante du même compte rendu et conserver l’association effective à la lecture de graphe du même appel comme preuve d’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Activation snapshot and tier graph read are distinct source contexts. A later read or a read-version reconstruction cannot supply missing actual witness association."
+msgstr "L’instantané d’activation et la lecture de graphe des paliers sont des contextes source distincts. Une lecture ultérieure ou une reconstruction à partir de versions lues ne peut fournir une association effective manquante au témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralVault ex:rosterOnlyVault . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:witness gmeow:matchedLiteralVault ex:rosterOnlyVault . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal content predicate"
+msgstr "prédicat de contenu du littéral correspondant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual source content-predicate IRI on a qualified matched literal pair for the original candidate."
+msgstr "L’unique IRI effectif de prédicat de contenu source sur une paire de littéral correspondante dûment qualifiée pour le candidat original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join actual matching evidence to the selected existing predicate-tier declarations."
+msgstr "Utiliser pour joindre les preuves effectives de correspondance aux déclarations existantes sélectionnées entre prédicats et paliers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the predicate with text, an unrelated subject predicate or a claim of affirmative support."
+msgstr "Éviter de remplacer le prédicat par du texte, par un prédicat du sujet sans rapport ou par une affirmation de soutien positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one actual IRI and compare its resource identity with selected tierBindingPredicate values."
+msgstr "Conserver un IRI effectif et comparer son identité de ressource aux valeurs sélectionnées de tierBindingPredicate."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native probes include framed, superseded and denied held claims. Matching does not authenticate a predicate, assert a new schema or prove that the claim is positive support."
+msgstr "Les sondages natifs incluent les assertions conservées munies d’un cadre, remplacées et niées. Une correspondance n’authentifie pas un prédicat, n’affirme pas un nouveau schéma et ne prouve pas que l’assertion constitue un soutien positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralPredicate ex:label . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:witness gmeow:matchedLiteralPredicate ex:label . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched literal exact lexical form"
+msgstr "forme lexicale exacte du littéral correspondant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied native literal lexical string of a qualified matched pair, retained as an xsd:string carrier rather than a reconstruction of the original RDF literal."
+msgstr "La chaîne lexicale native exacte fournie du littéral d’une paire correspondante dûment qualifiée, conservée comme porteur xsd:string plutôt que comme reconstruction du littéral RDF original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve actual text, including significant surrounding whitespace and an actually supplied empty string."
+msgstr "Utiliser pour préserver le texte effectif, y compris les espaces significatifs qui l’entourent et une chaîne vide effectivement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming, normalizing, inventing original datatype, language, direction or claim identity, or merging equal-text occurrences."
+msgstr "Éviter de rogner les espaces, de normaliser, d’inventer le type de données, la langue, la direction ou l’identité d’assertion d’origine, ou de fusionner les occurrences de texte égal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one exact xsd:string lexical carrier through this specialization of lang:literalValue."
+msgstr "Fournir un porteur lexical xsd:string exact par cette spécialisation de lang:literalValue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The internal probe supplies predicate and lexical text only. Distinct actual supplied occurrences can share these fields; retain their separate descriptive records without fabricating native identifiers."
+msgstr "Le sondage interne ne fournit que le prédicat et le texte lexical. Des occurrences effectives fournies distinctes peuvent partager ces champs ; conserver leurs enregistrements descriptifs séparés sans fabriquer d’identifiants natifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedLiteralLexicalForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:witness gmeow:matchedLiteralLexicalForm \"  retained text  \" . Other required account fields and actual source evidence are omitted."
+msgstr "Fragment fictif à portée limitée : ex:witness gmeow:matchedLiteralLexicalForm \"  retained text  \" . Les autres champs obligatoires du compte rendu et les preuves source effectives sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order account owner law"
+msgstr "loi du propriétaire du compte rendu d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied-order account has exactly one incoming typed existing weighted application owner."
+msgstr "Tout compte rendu typé d’ordre appliqué possède exactement un propriétaire entrant typé qui est une application pondérée existante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep complete reported order evidence on the same actual source occurrence as its weighted answer."
+msgstr "Utiliser pour conserver les preuves complètes de l’ordre rapporté sur la même occurrence source effective que sa réponse pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting orphan accounts, sharing an account across calls or treating inverse ownership as source authentication."
+msgstr "Éviter d’accepter des comptes rendus orphelins, de partager un compte rendu entre appels ou de traiter la propriété inverse comme une authentification source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed weighted application and compare any two such owners by resource equality."
+msgstr "Exiger une application pondérée entrante typée et comparer deux propriétaires quelconques de ce type par égalité des ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The application’s at-most-one order account is a separate local maximum. Existing answer, score and activation ownership obligations remain unchanged."
+msgstr "La limite d’un seul compte rendu d’ordre par application constitue un maximum local distinct. Les obligations existantes de propriété de la réponse, du score et de l’activation restent inchangées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderAccountOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional order account referenced by two distinct weighted applications fails ownership."
+msgstr "Exemple fictif à portée limitée : un compte rendu d’ordre fictif référencé par deux applications pondérées distinctes viole la contrainte de propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order policy context law"
+msgstr "loi du contexte de politique d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected activation account belongs to the same weighted application, actual activation selection and native declared status agree with the selected policy, and criterion positions preserve inspected native precedence."
+msgstr "Le compte rendu d’activation sélectionné appartient à la même application pondérée, la sélection effective de l’activation et le statut natif de déclaration concordent avec la politique sélectionnée, et les positions des critères préservent la précédence native inspectée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual native tier-before-activation-before-score prescription without changing existing policy-definition semantics."
+msgstr "Utiliser pour conserver la prescription native effective du palier avant l’activation avant le score sans modifier la sémantique existante des définitions de politique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid labeling requested score-first execution as inspected native order or treating an inert empty content criterion as a serialized source flag."
+msgstr "Éviter de présenter une exécution demandée donnant priorité au score comme l’ordre natif inspecté ou de traiter un critère de contenu vide inerte comme un indicateur source sérialisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the existing application and activation account; compare actual mode by Boolean value; require native declared exactly for nonempty mappings or activation, with tier before score and activation and activation before score."
+msgstr "Joindre l’application et le compte rendu d’activation existants ; comparer le mode effectif par valeur booléenne ; exiger le statut natif déclaré exactement pour des correspondances non vides ou l’activation, avec le palier avant le score et l’activation, et l’activation avant le score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An optional empty content criterion is adapter interpretation of the inert native key. Actual nonempty source mappings select probing; score and terminal tie alone do not make native policy declared true. Missing actual call-input association fails import."
+msgstr "Un critère de contenu vide facultatif est l’interprétation, par l’adaptateur, de la clé native inerte. Les correspondances source effectives non vides sélectionnent le sondage ; le score et le départage terminal seuls ne rendent pas vraie la déclaration de politique native. L’absence de l’association effective aux entrées d’appel fait échouer l’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPolicyContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional activation-before-score result cannot be declared an actual score-before-activation native call merely because its values happen to agree."
+msgstr "Exemple fictif à portée limitée : un résultat fictif donnant priorité à l’activation sur le score ne peut être déclaré comme un appel natif effectif donnant priorité au score sur l’activation au seul motif que ses valeurs concordent par hasard."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order source identity law"
+msgstr "loi de l’identité source d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied native policy identity and the owning application’s existing fusion-profile digest use the selected sixty-four-hex-digit unspaced either-case profile."
+msgstr "L’identité native de politique fournie et l’empreinte existante du profil de fusion de l’application propriétaire utilisent le profil sélectionné de soixante-quatre chiffres hexadécimaux sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual thirty-two-byte identity forms without duplicating the existing fusion-profile field."
+msgstr "Utiliser pour conserver les formes effectives d’identité sur trente-deux octets sans dupliquer le champ existant du profil de fusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid synthesizing hashes, treating equal bytes as unique RDF interpretation identity or claiming width authenticates source execution."
+msgstr "Éviter de synthétiser des empreintes, de traiter des octets égaux comme une identité unique d’interprétation RDF ou d’affirmer que la largeur authentifie l’exécution source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind each actual policy or existing profile digest, then apply result-free termRegex with ^[0-9A-Fa-f]{64}$."
+msgstr "Lier positivement chaque empreinte effective de politique ou empreinte existante de profil, puis appliquer termRegex sans résultat avec ^[0-9A-Fa-f]{64}$."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The explicit representation profile is not XSD-canonical normalization and retains regex-dialect residue. Full policy/profile content and actual source association remain import evidence."
+msgstr "Le profil explicite de représentation n’est pas une normalisation canonique XSD et conserve les limites résiduelles des dialectes d’expressions régulières. Le contenu complet de la politique et du profil ainsi que l’association source effective restent des preuves d’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderSourceIdentityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional wrong-width policy digest fails this profile even when its selected policy fields are otherwise coherent."
+msgstr "Exemple fictif à portée limitée : une empreinte fictive de politique de largeur incorrecte échoue à ce profil même lorsque les champs de la politique sélectionnée sont par ailleurs cohérents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry inventory law"
+msgstr "loi de l’inventaire des entrées d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each original applied score has exactly one output entry, every entry selects a score from the same application, and original input positions and output ordinals are separately value-unique."
+msgstr "Chaque score appliqué original possède exactement une entrée de sortie, chaque entrée sélectionne un score de la même application, et les positions d’entrée originales et ordinaux de sortie sont séparément uniques en valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the complete candidate collection and both actual occurrence coordinates."
+msgstr "Utiliser pour préserver la collection complète de candidats et les deux coordonnées effectives d’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filtering candidates, adding unrelated scores or equating input position with output position."
+msgstr "Éviter de filtrer les candidats, d’ajouter des scores sans rapport ou d’assimiler la position d’entrée à la position de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require score-to-entry coverage and reverse application-score membership; compare selected scores and independently bound coordinate values to require entry identity where they coincide."
+msgstr "Exiger la couverture des scores par les entrées et, en sens inverse, l’appartenance des scores à l’application ; comparer les scores sélectionnés et les valeurs de coordonnées liées indépendamment pour exiger l’identité des entrées lorsqu’elles coïncident."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty original union has no output entries but keeps its actual policy and nonempty activation roster. These checks preserve identities without authenticating external array-slot association."
+msgstr "Une union originale vide réussie n’a aucune entrée de sortie mais garde sa politique effective et sa liste d’activation non vide. Ces contrôles préservent les identités sans authentifier l’association externe aux emplacements du tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-score result with only one output entry fails coverage; distinct entries sharing an input or output position fail uniqueness."
+msgstr "Exemple fictif à portée limitée : un résultat fictif à deux scores avec une seule entrée de sortie échoue à la couverture ; des entrées distinctes partageant une position d’entrée ou de sortie échouent à l’unicité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order position closure law"
+msgstr "loi de clôture des positions d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original unsigned input coordinates and nonnegative output ordinals independently enumerate their finite entry collections from zero without gaps."
+msgstr "Les coordonnées d’entrée originales non signées et les ordinaux de sortie non négatifs énumèrent indépendamment leurs collections finies d’entrées à partir de zéro, sans lacunes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain whole original and actual output arrays rather than merely distinct arbitrary indices."
+msgstr "Utiliser pour conserver les tableaux originaux et de sortie effective entiers plutôt que de simples indices arbitraires distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing class ranks, requiring one lexical spelling of numeric zero or rebinding a stored coordinate as an arithmetic result."
+msgstr "Éviter de réutiliser des rangs de classe, d’exiger une seule graphie lexicale du zéro numérique ou de relier une coordonnée stockée comme résultat arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require zero members whenever entries exist; each positive stored coordinate has a same-account predecessor whose index plus one is freshly bound by result-first termSum and then compared with that stored coordinate."
+msgstr "Exiger des membres à la position zéro dès que des entrées existent ; chaque coordonnée stockée positive possède un prédécesseur dans le même compte rendu dont l’indice augmenté de un est lié comme valeur fraîche par termSum avec le résultat en premier, puis comparé à cette coordonnée stockée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input positions remain xsd:unsignedInt and output entryOrdinal remains xsd:nonNegativeInteger. The exact score-entry bijection and both predecessor closures avoid a new count property or evaluator; actual slot association still needs source evidence."
+msgstr "Les positions d’entrée restent xsd:unsignedInt et l’entryOrdinal de sortie reste xsd:nonNegativeInteger. La bijection exacte entre scores et entrées et les deux clôtures par prédécesseur évitent une nouvelle propriété de comptage ou un nouvel évaluateur ; l’association effective aux emplacements exige toujours des preuves source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderPositionClosureLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional output at positions zero and two fails because position one is absent, even when the original input positions are complete."
+msgstr "Exemple fictif à portée limitée : une sortie fictive aux positions zéro et deux échoue parce que la position un manque, même lorsque les positions d’entrée originales sont complètes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry owner law"
+msgstr "loi du propriétaire d’entrée d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed actual output entry has exactly one incoming typed applied-order account owner."
+msgstr "Toute entrée de sortie effective typée possède exactement un compte rendu d’ordre appliqué entrant typé comme propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep each descriptive result occurrence in one actual complete account."
+msgstr "Utiliser pour conserver chaque occurrence descriptive de résultat dans un seul compte rendu effectif complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated entries or sharing a control occurrence between distinct source calls."
+msgstr "Éviter d’accepter des entrées isolées ou de partager une occurrence de contrôle entre des appels source distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming typed account and compare any two incoming account owners of the same entry."
+msgstr "Exiger un compte rendu entrant typé et comparer deux comptes rendus propriétaires entrants quelconques de la même entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The referenced score, policy and activation carriers retain their existing ownership and compatible-sharing rules. This law creates no new answer or event."
+msgstr "Les porteurs référencés de score, de politique et d’activation conservent leurs règles existantes de propriété et de partage compatible. Cette loi ne crée aucune nouvelle réponse ni aucun événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional typed output entry without an account owner fails even when its score and positions are present."
+msgstr "Exemple fictif à portée limitée : une entrée de sortie typée fictive sans compte rendu propriétaire échoue même lorsque son score et ses positions sont présents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order entry identity law"
+msgstr "loi de l’identité d’entrée d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each output entry’s original candidate is an IRI and its actual supplied subject tie identity has the selected thirty-two-byte unspaced either-case representation."
+msgstr "Le candidat original de chaque entrée de sortie est un IRI et son identité effective fournie de départage des sujets possède la représentation sélectionnée de trente-deux octets sans espaces acceptant les deux casses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve inspected native subject admission and complete tie bytes."
+msgstr "Utiliser pour préserver l’admission native inspectée des sujets et l’intégralité des octets de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a subject hash, asserting hash collision impossibility as candidate identity or claiming ordinary hexBinary termLess proves native tie order."
+msgstr "Éviter de fabriquer une empreinte de sujet, d’affirmer l’impossibilité de collisions de hachage comme identité du candidat ou d’affirmer que le termLess ordinaire sur hexBinary prouve l’ordre natif de départage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the existing selected score and appliedScoreCandidate before termIsIri; bind supplied tie bytes before termRegex with ^[0-9A-Fa-f]{64}$."
+msgstr "Joindre le score existant sélectionné et appliedScoreCandidate avant termIsIri ; lier les octets fournis de départage avant termRegex avec ^[0-9A-Fa-f]{64}$."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Public Fused omits tie bytes. Actual subject-byte association and terminal whole-byte ordering evidence remain required at import; missing proof fails the complete selected account."
+msgstr "Le Fused public omet les octets de départage. L’association effective entre sujet et octets et les preuves de l’ordre terminal sur l’intégralité des octets restent obligatoires à l’importation ; l’absence de preuve fait échouer le compte rendu complet sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderEntryIdentityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional entry with missing actual tie bytes cannot import as a complete native order by substituting an IRI string or output index."
+msgstr "Exemple fictif à portée limitée : une entrée fictive dont les octets effectifs de départage manquent ne peut être importée comme ordre natif complet en leur substituant une chaîne IRI ou un indice de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order tier evidence law"
+msgstr "loi des preuves de palier d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declared tier state coheres with a conditional u32 label equal to the minimum selected binding among the complete actual qualified matched predicates; no-probe cases carry no invented matched inventory."
+msgstr "L’état déclaré du palier concorde avec une étiquette u32 conditionnelle égale à la correspondance sélectionnée minimale parmi tous les prédicats effectivement correspondants dûment qualifiés ; les cas sans sondage ne portent aucun inventaire inventé de correspondances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve declared and undeclared behavior, including the maximum declared u32 label."
+msgstr "Utiliser pour préserver les comportements déclaré et non déclaré, y compris l’étiquette u32 maximale déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a missing-label sentinel, importing unavailable matching evidence as empty or choosing unrelated or incompletely qualified subject predicates."
+msgstr "Éviter d’utiliser une sentinelle d’étiquette manquante, d’importer des preuves de correspondance indisponibles comme vides ou de choisir des prédicats du sujet sans rapport ou insuffisamment qualifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a tier for true and forbid it for false; true selects a retained matched binding with equal stored label, false forbids mapped matches, and the stored declared label is no greater than every matched selected label."
+msgstr "Exiger un palier pour true et l’interdire pour false ; true sélectionne une correspondance rencontrée conservée dont l’étiquette égale celle stockée, false interdit les paires correspondantes dont le prédicat possède une correspondance déclarée, et l’étiquette déclarée stockée n’est supérieure à aucune étiquette sélectionnée rencontrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every witness requires a content criterion with nonempty mappings, but its particular predicate may be unmapped. Empty mappings skip probing. Actual applicable lexical failures reject full import; nonlexical string equality independently establishes a pair."
+msgstr "Chaque témoin exige un critère de contenu avec des correspondances non vides, mais son prédicat particulier peut ne pas avoir de correspondance déclarée. Des correspondances vides évitent le sondage. Les échecs lexicaux effectifs applicables font rejeter l’importation complète ; l’égalité de chaînes non lexicales établit une paire à elle seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderTierEvidenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional declared tier 4294967295 still precedes undeclared, and a stored tier above another actually matched mapped label fails the minimum law."
+msgstr "Exemple fictif à portée limitée : un palier fictif déclaré 4294967295 précède toujours l’état non déclaré, et un palier stocké supérieur à une autre étiquette déclarée effectivement rencontrée viole la loi du minimum."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order matched witness law"
+msgstr "loi des témoins correspondants d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each typed qualified matched-pair witness has one actual output-entry owner, an IRI predicate and a vault in that account’s selected activation roster."
+msgstr "Chaque témoin typé de paire correspondante dûment qualifiée possède une entrée de sortie effective propriétaire, un prédicat IRI et un coffre dans la liste d’activation sélectionnée de ce compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve all-selected-service matching scope and original lexical evidence without inventing claim identities."
+msgstr "Utiliser pour préserver le périmètre de correspondance de tous les services sélectionnés et les preuves lexicales originales sans inventer d’identités d’assertions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring candidate-found vault membership, equating tier graph reads with activation snapshot content or merging supplied repeated lexical pairs."
+msgstr "Éviter d’exiger l’appartenance aux coffres où le candidat a été trouvé, d’assimiler les lectures de graphe des paliers au contenu des instantanés d’activation ou de fusionner les paires lexicales répétées fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed entry existence and unique ownership, test the bound predicate with termIsIri and join the actual witness vault to the same account’s selected roster."
+msgstr "Exiger l’existence d’une entrée entrante typée et l’unicité du propriétaire, tester le prédicat lié avec termIsIri et joindre le coffre effectif du témoin à la liste sélectionnée du même compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vault link identifies source scope only. Actual same-call graph-read association and complete applicable matching evidence are import requirements; original datatype, language, direction and claim identity are not reconstructed."
+msgstr "Le lien au coffre n’identifie que le périmètre source. L’association effective à la lecture de graphe du même appel et toutes les preuves applicables de correspondance sont des exigences d’importation ; le type de données, la langue, la direction et l’identité d’assertion d’origine ne sont pas reconstruits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderMatchedWitnessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional witness from selected vault B may justify a tier even when the candidate was found only in vault A; B’s activation snapshot is not its graph-read evidence."
+msgstr "Exemple fictif à portée limitée : un témoin fictif provenant du coffre sélectionné B peut justifier un palier même lorsque le candidat n’a été trouvé que dans le coffre A ; l’instantané d’activation de B n’est pas sa preuve de lecture de graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied order numeric precedence law"
+msgstr "loi de précédence numérique d’ordre appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Actual output ordinals preserve inspected native decisive tier, selected activation and score comparisons under value-equal preceding native keys."
+msgstr "Les ordinaux de sortie effectifs préservent les comparaisons natives inspectées décisives de palier, d’activation sélectionnée et de score lorsque les clés natives précédentes sont égales en valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check finite numeric decisiveness while retaining the actual source terminal tie evidence separately."
+msgstr "Utiliser pour contrôler les décisions numériques finies tout en conservant séparément les preuves effectives de départage terminal source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid introducing a generic earlier-key interpreter, sharing one RDF literal variable across Boolean or numeric edges, or treating numeric checks as whole-sort certification."
+msgstr "Éviter d’introduire un interpréteur générique des clés précédentes, de partager une variable de littéral RDF entre des arêtes booléennes ou numériques, ou de traiter les contrôles numériques comme une certification du tri complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declared precedes undeclared and lower declared tier precedes higher directly; greater activation follows value-equal tier state, while greater score follows value-equal tier state and equal selected activation values."
+msgstr "L’état déclaré précède l’état non déclaré, et un palier déclaré inférieur précède directement un palier supérieur ; une activation supérieure est prioritaire après égalité en valeur de l’état de palier, tandis qu’un score supérieur est prioritaire après égalité en valeur de l’état de palier et égalité des valeurs d’activation sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bind both stored Booleans and all compared magnitudes independently before termEqual or termLess. Legal Boolean and numeric lexical aliases remain value-equivalent. Disabled activation creates no zero Quantity; exact byte ordering and source authenticity remain strict import evidence."
+msgstr "Lier indépendamment les deux booléens stockés et toutes les grandeurs comparées avant termEqual ou termLess. Les variantes lexicales booléennes et numériques autorisées restent équivalentes en valeur. L’activation désactivée ne crée aucune Quantity de zéro ; l’ordre exact des octets et l’authenticité source restent des preuves strictement obligatoires à l’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional same-tier pair with opposed score and activation preferences follows activation first under this native account; the requested score-first definition remains distinct."
+msgstr "Exemple fictif à portée limitée : une paire fictive de même palier dont le score et l’activation donnent des préférences opposées suit d’abord l’activation dans ce compte rendu natif ; la définition demandée donnant priorité au score reste distincte."
