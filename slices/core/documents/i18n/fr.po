@@ -1398,3 +1398,31 @@ msgstr "Éviter d’exécuter le contenu ou de déduire de cette valeur un langa
 msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."
 msgstr "Référencer cette valeur par contentMode et conserver l’attribution réelle. Garder distincts le type structurel fourni indépendamment et la désignation du langage de programmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source heading level"
+msgstr "niveau de titre dans la source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer reported by a source or attributed analysis as the heading-level code for this ContentBlock."
+msgstr "L’entier qu’une source ou une analyse attribuée rapporte comme code de niveau de titre pour ce ContentBlock."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interpret this reported code only under the actual source convention. It supplies no universal level origin, bound or ordering, computed containment depth or segment position. Distinct attributed readings may coexist."
+msgstr "Interpréter ce code rapporté uniquement selon la convention réelle de la source. Il n’indique aucune origine, borne ou ordre universels des niveaux, aucune profondeur de contenance calculée ni aucune position de segment. Des lectures distinctes et attribuées peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied level: ex:heading gmeow:headingLevel 2 . Preserve the actual source convention and statement attribution when supplied."
+msgstr "Conserver un niveau fourni : ex:heading gmeow:headingLevel 2 . Conserver la convention réelle de la source et l’attribution de l’assertion lorsqu’elles sont fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an explicit integer heading level supplied for the source block being described."
+msgstr "Utiliser pour conserver un niveau de titre entier explicitement fourni pour le bloc source décrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a level from typography, segmentIndex, printedLabel or containment, assuming an unreported numbering convention, or converting an unknown code into a globally comparable rank."
+msgstr "Éviter d’inventer un niveau à partir de la typographie, de segmentIndex, de printedLabel ou de la contenance, de supposer une convention de numérotation non rapportée ou de convertir un code inconnu en rang comparable globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:integer on the actual ContentBlock with its existing segmentType. Retain source, viewpoint and any supplied convention on the exact assertion; keep missing context unknown without selecting a preferred level or changing other readings."
+msgstr "Conserver le xsd:integer fourni sur le ContentBlock réel avec son segmentType existant. Conserver la source, le point de vue et toute convention fournie sur l’assertion exacte ; laisser inconnu le contexte manquant, sans choisir un niveau privilégié ni modifier les autres lectures."

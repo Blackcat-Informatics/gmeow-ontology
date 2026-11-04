@@ -1603,3 +1603,17 @@ gmeow:contentModeCode
     gmeow:useWhen "Use when the selected block's content is explicitly presented or classified as code."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid executing the content or inferring a programming language, validity or safety from this value, or substituting it for structural segmentTypeCodeListing."@x-gmeow-english ;
     gmeow:howToUse "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."@x-gmeow-english .
+
+gmeow:headingLevel
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source heading level"@x-gmeow-english ;
+    skos:definition "The integer reported by a source or attributed analysis as the heading-level code for this ContentBlock."@x-gmeow-english ;
+    skos:scopeNote "Interpret this reported code only under the actual source convention. It supplies no universal level origin, bound or ordering, computed containment depth or segment position. Distinct attributed readings may coexist."@x-gmeow-english ;
+    skos:example "Retain a supplied level: ex:heading gmeow:headingLevel 2 . Preserve the actual source convention and statement attribution when supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an explicit integer heading level supplied for the source block being described."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a level from typography, segmentIndex, printedLabel or containment, assuming an unreported numbering convention, or converting an unknown code into a globally comparable rank."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:integer on the actual ContentBlock with its existing segmentType. Retain source, viewpoint and any supplied convention on the exact assertion; keep missing context unknown without selecting a preferred level or changing other readings."@x-gmeow-english .
