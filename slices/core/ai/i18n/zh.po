@@ -2359,3 +2359,171 @@ msgstr "避免根据完整文件、文档、标题或 Work 身份推断此值，
 msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."
 msgstr "通过 hasGranularity 引用此个体，并另行保留所提供的来源、来源键和构造描述。让未知的作品约定保持未知，并保留其他带有归属信息的分辨率，不选定优先项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker name"
+msgstr "报告的分块器名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact name supplied for the chunker associated with this Chunking."
+msgstr "为与此 Chunking 关联的分块器提供的确切名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text preserves a reported label, not an executable identity or proof that a named implementation ran. Equal names do not identify algorithms, rules artifacts or chunkings."
+msgstr "此可省略、非函数式文本保留报告的标签，不代表可执行身份，也不证明某个具名实现已运行。名称相同不确立算法、规则制品或分块结果的同一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+msgstr "保留提供的措辞：ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a chunker name for the recorded segmentation."
+msgstr "当来源为所记录的分块结果提供分块器名称时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a name from the rules artifact, normalizing its spelling or treating it as a callable signature, model run or preferred implementation."
+msgstr "避免从规则制品推导名称、规范化其拼写，或将其视为可调用签名、模型运行或首选实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied string with its original lexical form, language and direction on the actual Chunking. Retain exact-statement attribution and leave a missing name absent."
+msgstr "在实际的 Chunking 上保留每个提供的字符串及其原始词法形式、语言和方向。保留确切断言的归属；名称缺失时保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker version"
+msgstr "报告的分块器版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact version wording supplied for the chunker associated with this Chunking."
+msgstr "为与此 Chunking 关联的分块器提供的确切版本措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text imposes no version grammar, ordering or identity rule. It neither replaces the frozen rules-artifact digest nor pairs every reported name with every version or parameter map."
+msgstr "此可省略、非函数式文本不强加版本语法、排序或身份规则。它既不替代冻结规则制品的摘要，也不将每个报告的名称与每个版本或参数映射配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+msgstr "保留提供的措辞：ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies version wording for the recorded chunker."
+msgstr "当来源为所记录的分块器提供版本措辞时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing version, parsing it as a numeric magnitude or using a name and version as proof of implementation identity or execution."
+msgstr "避免编造缺失版本、将其解析为数值量，或用名称和版本证明实现身份或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied string and its exact-statement source and viewpoint. Keep the actual rules artifact and its selected digest pin separately; leave unknown version information absent."
+msgstr "保留完整的提供字符串及其确切断言的来源和视角。另行保留实际规则制品及其选定摘要固定值；未知版本信息保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker parameters"
+msgstr "报告的分块器参数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied map occurrence retaining the descriptive parameter strings reported for this Chunking."
+msgstr "所提供的映射出现实例，保留为此 Chunking 报告的描述性参数字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredMap of exact string keys and descriptive text values. A typed empty map differs from an absent map. Independent maps remain separate; the relation asserts neither executable arguments nor a complete external inventory."
+msgstr "此可省略、非函数式关系选取由确切字符串键和描述性文本值组成的 StructuredMap。已注明类型的空映射不同于缺失的映射。独立映射保持分离；此关系既不声明可执行实参，也不声明外部清单完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link a supplied map: ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+msgstr "关联所提供的映射：ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each supplied parameter key and its descriptive string as queryable graph content for a Chunking."
+msgstr "用于将每个提供的参数键及其描述性字符串保留为 Chunking 的可查询图内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an opaque JSON blob, keys turned into predicates, numeric coercion, invented units or order, or replacing the actual rules artifact with these descriptions."
+msgstr "避免使用不透明 JSON 块、将键转为谓词、进行数值强制转换、编造单位或顺序，或用这些描述替代实际规则制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Chunking to each supplied StructuredMap. Retain one LabelledFacet per entry with its exact xsd:string facetLabel and complete facetText; preserve attribution, empty strings and any supplied language or direction without inventing ordinals."
+msgstr "将 Chunking 关联到每个提供的 StructuredMap。每个条目保留一个 LabelledFacet，带有确切的 xsd:string facetLabel 和完整的 facetText；保留归属、空字符串及任何提供的语言或方向，不编造序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter descriptive text"
+msgstr "分块器参数描述文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText."
+msgstr "由 chunkerParameters 选取的映射中的每个分面条目都通过 facetText 携带其描述文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The requirement is scoped to selected chunker maps. Generic label-only facets remain valid elsewhere; an empty parameter map requires no invented entry."
+msgstr "此要求仅限于选取的分块器映射。其他位置仍允许只有标签的通用分面；空参数映射不要求编造条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected map entry retains ex:entry gmeow:facetText \"Keep headings together.\" ."
+msgstr "选取的映射条目保留 ex:entry gmeow:facetText \"Keep headings together.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a selected parameter entry whose descriptive value is missing."
+msgstr "用于拒绝缺少描述性值的已选参数条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with a null, typed numeric value, nested payload or fabricated empty string."
+msgstr "避免用空值、带类型的数值、嵌套载荷或编造的空字符串满足此规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkerParameters and hasFacet, then require facetText on each supplied entry. Reuse the existing text range, functionality and payload-exclusion laws without changing generic facet semantics."
+msgstr "沿 chunkerParameters 和 hasFacet 查找，并要求每个提供的条目具有 facetText。复用现有文本值域、函数性和载荷互斥规则，不改变通用分面语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter exact string key"
+msgstr "分块器参数确切字符串键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype."
+msgstr "由 chunkerParameters 选取的映射中的每个已提供 facetLabel 的数据类型都必须恰为 xsd:string。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks the original literal datatype without trimming, retyping or interpreting the key. Empty string keys remain valid; generic maps retain their existing key types."
+msgstr "此检查核对原始字面量的数据类型，不修剪空白、不重设类型，也不解释键。空字符串键仍然有效；通用映射保留其现有键类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied plain key remains ex:entry gmeow:facetLabel \"section policy\" ."
+msgstr "提供的普通键仍为 ex:entry gmeow:facetLabel \"section policy\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that selected chunker parameter keys retain the source string datatype."
+msgstr "用于检查选取的分块器参数键是否保留来源字符串数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting token, language-tagged, numeric or resource keys by converting them into strings."
+msgstr "避免将 token、带语言标签、数值或资源键转换为字符串后予以接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each selected entry and its facetLabel, then compare the label's datatype component with xsd:string through termSameComponent. Keep the supplied term unchanged and report a mismatch."
+msgstr "绑定每个选取的条目及其 facetLabel，然后通过 termSameComponent 将标签的数据类型分量与 xsd:string 比较。保持所提供的项不变，并报告不匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter map key uniqueness"
+msgstr "分块器参数映射键唯一性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term."
+msgstr "由 chunkerParameters 选取的同一映射中的不同条目出现实例不得共享同一个完整 RDF 键项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The comparison is local to one selected map and uses whole-term identity for both keys and entry occurrences. Equal keys in different maps remain independent; no identity merge or preferred value follows."
+msgstr "比较仅限于一个选取的映射，并对键和条目出现实例都使用完整项同一性。不同映射中的相同键保持独立；不会导出身份合并或首选值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two different entries of ex:parameters cannot both carry the same complete facetLabel literal."
+msgstr "ex:parameters 的两个不同条目不能同时携带同一个完整 facetLabel 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate key occurrences within a supplied chunker parameter map."
+msgstr "用于拒绝所提供分块器参数映射内部重复的键出现实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid global key uniqueness, key-derived entry identities, sameAs merging, last-value selection or SPARQL value equality in place of RDF term identity."
+msgstr "避免全局键唯一性、由键派生条目身份、sameAs 合并、选择最后一个值，或用 SPARQL 值相等替代 RDF 项同一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."
+msgstr "通过同一个选取的映射绑定两个条目及其两个键。使用 termSameComponent 比较完整键项；匹配的键要求同一个完整条目项，否则保留记录并报告冲突。"

@@ -2359,3 +2359,171 @@ msgstr "Éviter d’inférer cette valeur à partir d’un fichier entier, d’u
 msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."
 msgstr "Référencer cet individu par hasGranularity et conserver séparément les descripteurs de source, de clés source et de construction fournis. Laisser inconnues les conventions d’œuvre inconnues et préserver les autres résolutions attribuées sans en privilégier une."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker name"
+msgstr "nom du segmenteur rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact name supplied for the chunker associated with this Chunking."
+msgstr "Le nom exact fourni pour le segmenteur associé à ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text preserves a reported label, not an executable identity or proof that a named implementation ran. Equal names do not identify algorithms, rules artifacts or chunkings."
+msgstr "Ce texte facultatif et non fonctionnel conserve une étiquette rapportée, non une identité exécutable ni la preuve qu’une implémentation nommée a été exécutée. Des noms identiques n’identifient pas des algorithmes, des artefacts de règles ou des segmentations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+msgstr "Conserver le libellé fourni : ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a chunker name for the recorded segmentation."
+msgstr "Utiliser lorsqu’une source fournit un nom de segmenteur pour la segmentation consignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a name from the rules artifact, normalizing its spelling or treating it as a callable signature, model run or preferred implementation."
+msgstr "Éviter de déduire un nom de l’artefact de règles, de normaliser sa graphie ou de le traiter comme une signature appelable, une exécution de modèle ou une implémentation privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied string with its original lexical form, language and direction on the actual Chunking. Retain exact-statement attribution and leave a missing name absent."
+msgstr "Conserver chaque chaîne fournie, avec sa forme lexicale, sa langue et sa direction originales, sur le Chunking concerné. Conserver l’attribution de l’assertion exacte et laisser absent un nom manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker version"
+msgstr "version du segmenteur rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact version wording supplied for the chunker associated with this Chunking."
+msgstr "Le libellé exact de version fourni pour le segmenteur associé à ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text imposes no version grammar, ordering or identity rule. It neither replaces the frozen rules-artifact digest nor pairs every reported name with every version or parameter map."
+msgstr "Ce texte facultatif et non fonctionnel n’impose ni grammaire de version, ni ordre, ni règle d’identité. Il ne remplace pas l’empreinte de l’artefact de règles figé et n’associe pas chaque nom rapporté à chaque version ou table de paramètres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+msgstr "Conserver le libellé fourni : ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies version wording for the recorded chunker."
+msgstr "Utiliser lorsqu’une source fournit un libellé de version pour le segmenteur consigné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing version, parsing it as a numeric magnitude or using a name and version as proof of implementation identity or execution."
+msgstr "Éviter d’inventer une version manquante, de l’analyser comme une grandeur numérique ou d’utiliser un nom et une version comme preuve d’identité d’implémentation ou d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied string and its exact-statement source and viewpoint. Keep the actual rules artifact and its selected digest pin separately; leave unknown version information absent."
+msgstr "Conserver la chaîne fournie complète ainsi que la source et le point de vue de son assertion exacte. Garder séparément l’artefact de règles réel et son empreinte sélectionnée ; laisser absentes les informations de version inconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker parameters"
+msgstr "paramètres du segmenteur rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied map occurrence retaining the descriptive parameter strings reported for this Chunking."
+msgstr "Une occurrence de table fournie conservant les chaînes descriptives de paramètres rapportées pour ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredMap of exact string keys and descriptive text values. A typed empty map differs from an absent map. Independent maps remain separate; the relation asserts neither executable arguments nor a complete external inventory."
+msgstr "Cette relation facultative et non fonctionnelle sélectionne un StructuredMap de clés textuelles exactes et de valeurs textuelles descriptives. Une table vide typée diffère d’une table absente. Les tables indépendantes restent distinctes ; la relation n’affirme ni arguments exécutables ni inventaire externe complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link a supplied map: ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+msgstr "Relier une table fournie : ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each supplied parameter key and its descriptive string as queryable graph content for a Chunking."
+msgstr "Utiliser pour conserver chaque clé de paramètre fournie et sa chaîne descriptive comme contenu de graphe interrogeable pour un Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an opaque JSON blob, keys turned into predicates, numeric coercion, invented units or order, or replacing the actual rules artifact with these descriptions."
+msgstr "Éviter un bloc JSON opaque, la transformation des clés en prédicats, la coercition numérique, des unités ou un ordre inventés, ou le remplacement de l’artefact de règles réel par ces descriptions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Chunking to each supplied StructuredMap. Retain one LabelledFacet per entry with its exact xsd:string facetLabel and complete facetText; preserve attribution, empty strings and any supplied language or direction without inventing ordinals."
+msgstr "Relier le Chunking à chaque StructuredMap fourni. Conserver un LabelledFacet par entrée avec son facetLabel xsd:string exact et son facetText complet ; préserver l’attribution, les chaînes vides et toute langue ou direction fournie, sans inventer d’ordinaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter descriptive text"
+msgstr "texte descriptif des paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText."
+msgstr "Chaque entrée de facette d’une table sélectionnée par chunkerParameters porte son texte descriptif par facetText."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The requirement is scoped to selected chunker maps. Generic label-only facets remain valid elsewhere; an empty parameter map requires no invented entry."
+msgstr "L’exigence est limitée aux tables de segmenteur sélectionnées. Les facettes génériques ne portant qu’une étiquette restent valides ailleurs ; une table de paramètres vide n’exige aucune entrée inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected map entry retains ex:entry gmeow:facetText \"Keep headings together.\" ."
+msgstr "Une entrée de table sélectionnée conserve ex:entry gmeow:facetText \"Keep headings together.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a selected parameter entry whose descriptive value is missing."
+msgstr "Utiliser pour rejeter une entrée de paramètre sélectionnée dont la valeur descriptive manque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with a null, typed numeric value, nested payload or fabricated empty string."
+msgstr "Éviter de satisfaire cette loi par une valeur nulle, une valeur numérique typée, un contenu imbriqué ou une chaîne vide fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkerParameters and hasFacet, then require facetText on each supplied entry. Reuse the existing text range, functionality and payload-exclusion laws without changing generic facet semantics."
+msgstr "Suivre chunkerParameters et hasFacet, puis exiger facetText sur chaque entrée fournie. Réutiliser la plage de texte, la fonctionnalité et les lois d’exclusion de contenu existantes sans modifier la sémantique générique des facettes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter exact string key"
+msgstr "clé textuelle exacte des paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype."
+msgstr "Chaque facetLabel fourni dans une table sélectionnée par chunkerParameters possède exactement le type de données xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks the original literal datatype without trimming, retyping or interpreting the key. Empty string keys remain valid; generic maps retain their existing key types."
+msgstr "Ce contrôle vérifie le type de données du littéral original sans supprimer d’espaces, changer son type ou interpréter la clé. Les clés vides restent valides ; les tables génériques conservent leurs types de clés existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied plain key remains ex:entry gmeow:facetLabel \"section policy\" ."
+msgstr "Une clé simple fournie reste ex:entry gmeow:facetLabel \"section policy\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that selected chunker parameter keys retain the source string datatype."
+msgstr "Utiliser pour vérifier que les clés de paramètres du segmenteur sélectionnées conservent le type textuel de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting token, language-tagged, numeric or resource keys by converting them into strings."
+msgstr "Éviter d’accepter des clés token, marquées d’une langue, numériques ou ressources en les convertissant en chaînes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each selected entry and its facetLabel, then compare the label's datatype component with xsd:string through termSameComponent. Keep the supplied term unchanged and report a mismatch."
+msgstr "Lier chaque entrée sélectionnée et son facetLabel, puis comparer le composant de type de données de l’étiquette à xsd:string par termSameComponent. Garder inchangé le terme fourni et signaler toute différence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter map key uniqueness"
+msgstr "unicité des clés de table de paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term."
+msgstr "Des occurrences d’entrée distinctes dans une même table sélectionnée par chunkerParameters ne partagent pas le même terme RDF complet comme clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The comparison is local to one selected map and uses whole-term identity for both keys and entry occurrences. Equal keys in different maps remain independent; no identity merge or preferred value follows."
+msgstr "La comparaison est locale à une table sélectionnée et utilise l’identité du terme entier pour les clés comme pour les occurrences d’entrée. Des clés identiques dans des tables différentes restent indépendantes ; il n’en découle ni fusion d’identité ni valeur privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two different entries of ex:parameters cannot both carry the same complete facetLabel literal."
+msgstr "Deux entrées différentes de ex:parameters ne peuvent pas porter toutes deux le même littéral facetLabel complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate key occurrences within a supplied chunker parameter map."
+msgstr "Utiliser pour rejeter les occurrences de clé en double dans une table de paramètres de segmenteur fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid global key uniqueness, key-derived entry identities, sameAs merging, last-value selection or SPARQL value equality in place of RDF term identity."
+msgstr "Éviter l’unicité globale des clés, les identités d’entrée dérivées des clés, la fusion sameAs, la sélection de la dernière valeur ou l’égalité de valeurs SPARQL à la place de l’identité des termes RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."
+msgstr "Lier deux entrées et leurs deux clés par la même table sélectionnée. Comparer les termes de clé complets avec termSameComponent ; des clés identiques exigent le même terme d’entrée complet ; sinon, conserver les enregistrements et signaler le conflit."

@@ -303,3 +303,40 @@ whole-work value records a supplied resolution; it does not authenticate
 complete coverage, reconstruct input or imply that all realizations were read.
 It neither requires absent descriptors nor changes source-key interpretation,
 Chunking membership, carrier pins or extent laws (Principles 4, 7, 9 and 19).
+
+## Reported chunker descriptors
+
+The optional `chunkerName`, `chunkerVersion` and `chunkerParameters` roles
+preserve supplied descriptions of a Chunking. Names and versions are complete
+text literals specialized through `lang:literalValue`; they provide no version
+grammar, executable identity or evidence of a model run. Independent attributed
+claims do not form an inferred name/version/map tuple.
+
+Parameters use the existing [record-metadata map model](../../record-metadata/docs.md#preserve-payload-structure-and-native-terms).
+The selected `StructuredMap` is a particular supplied map occurrence, with one
+`LabelledFacet` per entry linked by `hasFacet`. Its `facetLabel` preserves the
+exact source string key and `facetText` preserves the complete descriptive value,
+including any supplied language and direction. Keys remain data; they do not
+become ontology predicates, declared API slots, units or quantities.
+
+Three AI-owned Formula contracts apply only to maps selected by
+`chunkerParameters`. Every selected entry requires `facetText`. Each supplied
+key's datatype component must be exactly `xsd:string`. Two entries of the same
+selected map with identical whole RDF key terms must be the same whole RDF
+entry term. Both comparisons use `logic:termSameComponent` with positively bound
+operands. They test the recorded terms and report conflicts; they never infer
+`sameAs`, merge entries or choose an overriding value. Existing generic facet
+key requiredness, payload exclusion and at-most-one slots are reused unchanged.
+
+A typed map without entries records an explicit empty map. A missing relation
+does not. Empty keys and descriptive strings are valid supplied data. No source
+order follows from sorted transport, and no ordinal or key grammar is imposed.
+Distinct map occurrences keep their own entries and may reuse the same keys;
+the uniqueness law is local to each selected map, not to every Chunking or map.
+
+The map relation does not specialize `contextIncluded` and therefore introduces
+no additional digest-bearing context artifact. The actual `chunkingRulesArtifact`,
+source artifact, selected digest pins, granularity and all member, carrier,
+extent and span laws remain unchanged. Descriptive metadata neither executes
+the rules nor authenticates bytes or proves an exhaustive external inventory
+(Principles 2, 4, 7, 9, 11, 12, 17 and 19).
