@@ -1398,3 +1398,31 @@ msgstr "避免执行该内容，或根据此值推断编程语言、有效性或
 msgctxt "https://blackcatinformatics.ca/gmeow/contentModeCode|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this value through contentMode and retain the actual attribution. Keep the independently supplied structural kind and programming-language wording separate."
 msgstr "通过 contentMode 引用此值并保留实际归属。将独立提供的结构类别与编程语言表述分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source heading level"
+msgstr "源标题层级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer reported by a source or attributed analysis as the heading-level code for this ContentBlock."
+msgstr "源或有明确归属的分析所报告的整数，用作此 ContentBlock 的标题层级代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interpret this reported code only under the actual source convention. It supplies no universal level origin, bound or ordering, computed containment depth or segment position. Distinct attributed readings may coexist."
+msgstr "仅依据源的实际约定解释此报告的代码。它不提供通用的层级起点、界限或排序，也不提供计算所得的包含深度或分段位置。具有各自归属的不同解读可以并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied level: ex:heading gmeow:headingLevel 2 . Preserve the actual source convention and statement attribution when supplied."
+msgstr "保留提供的层级：ex:heading gmeow:headingLevel 2 . 若提供了源的实际约定和陈述归属，也应一并保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an explicit integer heading level supplied for the source block being described."
+msgstr "用于保留为所描述的源块明确提供的整数标题层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a level from typography, segmentIndex, printedLabel or containment, assuming an unreported numbering convention, or converting an unknown code into a globally comparable rank."
+msgstr "避免根据排版、segmentIndex、printedLabel 或包含关系编造层级，假定未报告的编号约定，或将未知代码转换为可全局比较的等级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:integer on the actual ContentBlock with its existing segmentType. Retain source, viewpoint and any supplied convention on the exact assertion; keep missing context unknown without selecting a preferred level or changing other readings."
+msgstr "将提供的 xsd:integer 保留在实际的 ContentBlock 上，并保留其现有 segmentType。在确切的断言上保留源、视点及任何已提供的约定；缺失的上下文应保持未知，不选择优先层级，也不改变其他解读。"

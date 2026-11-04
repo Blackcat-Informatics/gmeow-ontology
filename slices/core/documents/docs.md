@@ -315,3 +315,28 @@ Media format, language and genre remain separate axes. In particular,
 prose mode. Retain independently supplied speaker and programming-language
 wording through their existing apparatus properties (Principles 2, 4, 9, 17
 and 19).
+
+## Source heading levels
+
+Use `headingLevel` for the integer a source or attributed analysis actually
+reports as a heading block's level code. The property is optional and
+nonfunctional: distinct attributed readings can coexist. Preserve the supplied
+integer on the actual `ContentBlock`, retaining its existing `segmentType` and
+the exact assertion's source, viewpoint and supplied convention.
+
+```turtle
+ex:heading gmeow:segmentType gmeow:segmentTypeHeading ;
+    gmeow:segmentIndex 7 ;
+    gmeow:headingLevel 2 .
+```
+
+Here the supplied heading-level code is independent of the block's structural
+position. Neither value computes containment depth. This field supplies no
+numbering origin, positivity requirement, bound, universal ordering or default;
+it does not infer a heading kind or propagate a level to other blocks.
+
+An unknown convention stays unknown. An actual explicit reference frame is
+required before interpreting these codes as ranks, depths, conversions or
+comparable values. Recording a supplied integer alone provides no such frame.
+Retain an actually supplied convention and attribution without inventing missing
+context or choosing a preferred reading (Principles 2, 4, 9, 11, 12, 17 and 19).
