@@ -162,8 +162,8 @@ msgid "The external authority-record IRI targeted by this source-supplied Author
 msgstr "L’IRI de la notice d’autorité externe visée par cette AuthorityReferenceRecord fournie par la source."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Each coherent record requires one IRI target. The open Individual range supplies no author type, coreference strength, identity merge or retrieval claim."
-msgstr "Chaque notice cohérente exige une cible IRI. La portée ouverte Individual ne fournit ni type d’auteur, ni force de coréférence, ni fusion d’identités, ni affirmation de récupération."
+msgid "Each coherent record requires one IRI target. The universal logic:Thing range adds no domain-specific target type, coreference strength, identity merge or retrieval claim."
+msgstr "Chaque notice cohérente exige une cible IRI. Le domaine de valeurs universel logic:Thing n’ajoute aucun type de cible propre au domaine, aucune force de coréférence, aucune fusion d’identités ni affirmation de récupération."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#example"
 msgid "A fictional supplied link is `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"

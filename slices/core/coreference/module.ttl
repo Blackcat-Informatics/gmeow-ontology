@@ -222,14 +222,14 @@ gmeow:authorityReferenceTarget
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "authority reference target"@x-gmeow-english ;
     skos:definition "The external authority-record IRI targeted by this source-supplied AuthorityReferenceRecord."@x-gmeow-english ;
-    skos:scopeNote "Each coherent record requires one IRI target. The open Individual range supplies no author type, coreference strength, identity merge or retrieval claim."@x-gmeow-english ;
+    skos:scopeNote "Each coherent record requires one IRI target. The universal logic:Thing range adds no domain-specific target type, coreference strength, identity merge or retrieval claim."@x-gmeow-english ;
     skos:example "A fictional supplied link is `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"@x-gmeow-english ;
     gmeow:useWhen "Use for the actual external IRI selected from the supplied authority locator."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a literal or blank-node target, guessed resolution, normalization, dereferencing or a fallback that conceals an invalid locator."@x-gmeow-english ;
     gmeow:howToUse "Validate the supplied locator for the selected IRI link and retain its spelling. Fail the operation on missing or invalid input; do not substitute locator text."@x-gmeow-english ;
     a logic:ObjectProperty ;
     logic:domain gmeow:AuthorityReferenceRecord ;
-    logic:range logic:Individual .
+    logic:range logic:Thing .
 
 gmeow:authorityReferenceSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
@@ -323,9 +323,9 @@ gmeow:authorityReferenceNote
 
 gmeow:AuthorityReferenceRecord logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceTarget ;
-      logic:allValuesFrom logic:Individual ] ,
+      logic:allValuesFrom logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceTarget ;
-      logic:maxQualifiedCardinality 1 ; logic:onClass logic:Individual ] ,
+      logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:authorityReferenceSource ;
       logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
           ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,

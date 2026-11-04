@@ -162,8 +162,8 @@ msgid "The external authority-record IRI targeted by this source-supplied Author
 msgstr "此源提供的 AuthorityReferenceRecord 所指向的外部权威记录 IRI。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Each coherent record requires one IRI target. The open Individual range supplies no author type, coreference strength, identity merge or retrieval claim."
-msgstr "每个内容一致的条目要求一个 IRI 目标。开放的 Individual 值域不提供作者类型、共指强度、身份合并或检索成功断言。"
+msgid "Each coherent record requires one IRI target. The universal logic:Thing range adds no domain-specific target type, coreference strength, identity merge or retrieval claim."
+msgstr "每个内容一致的条目要求一个 IRI 目标。通用 logic:Thing 值域不增加特定领域的目标类型、共指强度、身份合并或检索成功断言。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorityReferenceTarget|http://www.w3.org/2004/02/skos/core#example"
 msgid "A fictional supplied link is `ex:ref gmeow:authorityReferenceTarget <https://example.org/authority/amber> .`"
