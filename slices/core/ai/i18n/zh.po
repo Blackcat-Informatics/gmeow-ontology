@@ -2302,3 +2302,32 @@ msgstr "避免推断章节身份、章节顺序、输入字节，或其与篇段
 msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."
 msgstr "通过 hasGranularity 保留此个体及所提供的来源上下文和章节键描述。保留其他带有归属信息的分辨率，不合并它们的约定。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk in source division"
+msgstr "片段所在的来源分区"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source division containing the whole particular occurrence of source content represented by this Chunk under the supplied segmentation."
+msgstr "在所提供的分段中，完整包含此 Chunk 所对应的那一处来源内容的来源分区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is optional and nonfunctional; nested divisions genuinely containing the whole occurrence can coexist. It specializes broad partOf without changing chunkOf or making a Chunk a structural ContentSegment. Recording containment does not prove it, compute a nearest ancestor or convert coordinates."
+msgstr "该关系可省略且非函数式；真正完整包含该处内容的嵌套分区可以共存。它细化广义 partOf，但不改变 chunkOf，也不将 Chunk 视为结构性 ContentSegment。记录包含关系不等于证明该关系、计算最近祖先或转换坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#example"
+msgid "With actual attribution retained, record ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . The section contains the whole represented source occurrence."
+msgstr "保留实际归属，并记录 ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . 该节完整包含所表示的那一处来源内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."
+msgstr "当来源或有归属的分析提供了完整包含某个 Chunk 所对应的那一处来源内容的分区时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."
+msgstr "避免将其用于仅与片段相交的分区、其他位置的相同措辞或任意关联。若生成摘要所概述的原始分区并未实际包含片段表示的全部内容，也不要将其作为目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."
+msgstr "将实际的 Chunk 关联到每个已提供的包含它的 ContentSegment，并保留实际来源和确切断言的归属。保留任何现有的 inChunking 上下文，不改变 chunkOf、跨度边界、来源固定值与散列摘要固定值；容器未知时保持缺失。"

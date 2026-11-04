@@ -398,3 +398,40 @@ Construction prose is not an executable profile or historical-byte witness.
 A source-context link requires no invented artifact or digest. These fields
 retain the reported unit's context; they do not reconstruct input text,
 authenticate its bytes or perform coordinate conversion.
+
+## Containing source divisions
+
+`chunkInDivision` names a supplied ContentSegment containing the whole
+particular occurrence of source content represented by a Chunk. It records
+an attributed containment claim, rather than an arbitrary association or a
+division that contributes only some of the chunk's content. Identical wording
+elsewhere is a different occurrence.
+
+The relation is optional and nonfunctional. Genuinely containing nested
+divisions may coexist without a unique or nearest choice. When the supplied
+section and chapter both contain the whole occurrence, retain both claims:
+
+```turtle
+ex:chunk a gmeow:Chunk ;
+    gmeow:chunkOf ex:source ;
+    gmeow:chunkInDivision ex:section, ex:chapter .
+```
+
+Keep the actual source, segmentation context and each assertion's actual
+viewpoint. The snippet shows the division links alongside the unchanged
+carrier relation; the chunk's existing span and source obligations still
+apply. A chunk crossing two child divisions may name a supplied common
+container only when it contains the whole occurrence. Neither merely
+intersected child qualifies. Keep an unknown container absent.
+
+`chunkInDivision` specializes broad `partOf` for this containment of source
+content. It does not specialize `chunkOf`, `segmentOf` or `blockOf`, change
+the coordinate origin, or infer a structural segment type for the Chunk.
+The specialized relation has no transitive characteristic or ancestor-selection
+chain. Recorded containment neither proves geometry nor selects a nearest
+ancestor, converts coordinates or authenticates bytes.
+
+A generated summary's original subject division is not automatically a
+container of the summary's actual text. Keep that subject and derivation
+separate from the actual carrier and any genuine containing division
+(Principles 2, 4, 9, 17 and 19).
