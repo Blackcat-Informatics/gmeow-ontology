@@ -399,8 +399,10 @@ There is **one** producer — the admitted `gmeow-dev medium-sweep` command:
 
 ```sh
 make maint-medium-sweep     # runs the real DAG, then the full grid
+# If a winner changed, reconcile gmeow:dictionaryStrategy and
+# gmeow:dictionaryTargetLength in slices/core/gts/module.ttl first.
 make check                 # materializes and gates the new evidence
-git add bench/medium-baseline.json
+git add bench/medium-baseline.json slices/core/gts/module.ttl
 ```
 
 For a hosted refresh, select `maint_medium_sweep` in the CI workflow's manual
