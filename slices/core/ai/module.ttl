@@ -5,6 +5,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Chunk
@@ -2942,3 +2943,81 @@ gmeow:ChunkSpan logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanLastKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:allValuesFrom xsd:integer ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+gmeow:measuredTerm
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:Measurement ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "measured keyword wording"@x-gmeow-english ;
+    skos:definition "The keyword wording supplied for this Measurement, retaining its complete string literal."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Preserve lexical form, datatype and supplied language and direction; infer no Form, concept, entity, name, tokenization, occurrence identity or source span."@x-gmeow-english ;
+    skos:example "Retain ex:reading gmeow:measuredTerm \"silver river\" when that untagged wording was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep supplied keyword wording beside the separate size, source rank and weight of the actual Measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalization, translation, guessed language, referent resolution from equal spelling or replacement of the observed unit or weight result."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete supplied literal on the source row's Measurement with observedFeature, measurementMetric, vantage, observationMethod and the separate observationResult. Use distinct records for different rows or conventions."@x-gmeow-english .
+
+gmeow:ngramSize
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Measurement ;
+    logic:range math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "n-gram size"@x-gmeow-english ;
+    skos:definition "The dimensionless positive integral count of gram positions for this keyword Measurement under its actual segmentation and counting convention, carried by a math:Quantity."@x-gmeow-english ;
+    skos:scopeNote "The count Quantity is separate from the keyword weight observationResult. Each selected count requires a positive integer-family magnitude, math:dimensionless and an actual applicable reference frame. Repeated positions remain counted."@x-gmeow-english ;
+    skos:example "Link ex:reading gmeow:ngramSize ex:count, retaining quantityValue 2, dimension math:dimensionless and the supplied counting frame on ex:count."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual keyword gram size and its segmentation/counting convention are available as a positive integral count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a raw code or sentinel as size, deriving size from whitespace, substituting character length or keyword-row count, deduplicating positions or inventing a missing frame."@x-gmeow-english ;
+    gmeow:howToUse "Point the Measurement to its count Quantity with original integer-family quantityValue, dimensionless dimension and actual hasReferenceFrame. Keep wording, source rank and weight separate, preserving distinct rows and conventions without inferring execution."@x-gmeow-english .
+
+gmeow:termRank
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:Measurement ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported keyword rank"@x-gmeow-english ;
+    skos:definition "The source-reported integer ordering position or rank of this keyword Measurement within its actual observed unit and producing context."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Unknown origin, direction, gaps and tie conventions stay unknown. An integer datatype does not turn an unrelated code into a rank or equate source order with relevance rank."@x-gmeow-english ;
+    skos:example "Retain ex:reading gmeow:termRank 4 when the source reported that keyword rank, without shifting it to an assumed origin."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source's stated keyword ordering position or rank within the Measurement's actual unit and source context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing rank from weight or row order, assuming zero or one origin, imposing bounds, continuity, uniqueness or tie rules, treating rank as confidence or copying it unchanged into entryOrdinal."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied xsd:integer ordering descriptor on its source row's Measurement with actual observedFeature, method, vantage and attribution. Preserve supplied ranking conventions; comparison, renumbering and list reconstruction require the actual convention."@x-gmeow-english .
+
+gmeow:NgramSizeContextConstraint
+    a logic:Constraint ;
+    logic:formalizes gmeow:ngramSize ;
+    logic:message "Each ngramSize count needs a magnitude, only math:dimensionless, a reference frame and numerically agreeing magnitudes." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-gram size context constraint"@x-gmeow-english ;
+    skos:definition "Every count selected by ngramSize has a magnitude, only the dimensionless dimension, a reference-frame witness and numerically agreeing magnitude values."@x-gmeow-english ;
+    skos:scopeNote "The condition follows each supplied ngramSize edge. It neither requires size on every Measurement nor constrains unrelated Quantities, merges rows or authenticates a frame's actual applicability."@x-gmeow-english ;
+    skos:example "A selected gram-count Quantity with no quantityValue or hasReferenceFrame violates this context condition; an unrelated weight Quantity is outside its guard."@x-gmeow-english ;
+    gmeow:useWhen "Use to require explicit context for an actual count supplied through ngramSize."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."@x-gmeow-english ;
+    gmeow:howToUse "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:ngramSize ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextMagnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextMagnitude" ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextFrame" ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextDimension" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextDimension" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "contextDimension" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termIri math:dimensionless ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextLeft" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextLeft" ] ] , [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "contextLeft" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ] ] ] ] ] ] .
+
+gmeow:NgramSizeValueConstraint
+    a logic:Constraint ;
+    logic:formalizes gmeow:ngramSize ;
+    logic:message "Every magnitude of a selected ngramSize count must be a valid finite RDF integer-family literal strictly greater than zero." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-gram size value constraint"@x-gmeow-english ;
+    skos:definition "Every magnitude of every Quantity selected by ngramSize is a valid finite RDF integer-family literal whose numeric value is strictly greater than zero."@x-gmeow-english ;
+    skos:scopeNote "Datatype-component identity, shared numeric lexical/value admission and strict positivity are all required. Every supplied magnitude is checked with its original lexical form and datatype, without coercion."@x-gmeow-english ;
+    skos:example "A valid positive xsd:integer is admitted without retyping. Zero, negative zero, negative sentinels, malformed integers and decimal or floating literals do not satisfy this count condition."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate actual positive gram counts while retaining supplied RDF integer-family representations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting numeric-looking strings, decimals, floats, nonfinite values or sentinels as counts, checking only one of several magnitudes or normalizing a rejected value into apparent validity."@x-gmeow-english ;
+    gmeow:howToUse "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:ngramSize ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ] , [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] , [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:integer ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:nonPositiveInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:negativeInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:long ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:int ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:short ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:byte ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedLong ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedInt ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedShort ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedByte ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:positiveInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] , [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:integer ] ] ] ] ] .
+
+gmeow:Measurement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredTerm ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

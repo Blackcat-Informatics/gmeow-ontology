@@ -2751,3 +2751,143 @@ msgstr "Reliez uniquement un InformationObject réellement fourni et conservez s
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."
 msgstr "Conservez le contexte source identifié : ex:unit gmeow:chunkSpanSourceContext ex:source ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measured keyword wording"
+msgstr "formulation du mot-clé mesuré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The keyword wording supplied for this Measurement, retaining its complete string literal."
+msgstr "La formulation du mot-clé fournie pour cette Measurement, en conservant son littéral textuel complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Preserve lexical form, datatype and supplied language and direction; infer no Form, concept, entity, name, tokenization, occurrence identity or source span."
+msgstr "Facultatif et non fonctionnel. Conserver la forme lexicale, le type de données, la langue et la direction fournies ; ne déduire aucune Form, concept, entité, nom, segmentation en tokens, identité d’occurrence ou intervalle source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:measuredTerm \"silver river\" when that untagged wording was supplied."
+msgstr "Conserver ex:reading gmeow:measuredTerm \"silver river\" lorsque cette formulation sans étiquette de langue a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep supplied keyword wording beside the separate size, source rank and weight of the actual Measurement."
+msgstr "Utiliser pour conserver la formulation fournie du mot-clé avec la taille, le rang source et le poids distincts de la Measurement réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalization, translation, guessed language, referent resolution from equal spelling or replacement of the observed unit or weight result."
+msgstr "Éviter la normalisation, la traduction, la langue devinée, la résolution du référent à partir d’une graphie identique ou le remplacement de l’unité observée ou du résultat de poids."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied literal on the source row's Measurement with observedFeature, measurementMetric, vantage, observationMethod and the separate observationResult. Use distinct records for different rows or conventions."
+msgstr "Conserver le littéral complet fourni sur la Measurement de la ligne source avec observedFeature, measurementMetric, vantage, observationMethod et l’observationResult distinct. Utiliser des enregistrements distincts pour des lignes ou conventions différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size"
+msgstr "taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimensionless positive integral count of gram positions for this keyword Measurement under its actual segmentation and counting convention, carried by a math:Quantity."
+msgstr "Le nombre entier strictement positif et sans dimension des positions du gramme pour cette Measurement de mot-clé, selon sa convention réelle de segmentation et de comptage, porté par une math:Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The count Quantity is separate from the keyword weight observationResult. Each selected count requires a positive integer-family magnitude, math:dimensionless and an actual applicable reference frame. Repeated positions remain counted."
+msgstr "La Quantity de comptage est distincte de l’observationResult du poids du mot-clé. Chaque comptage sélectionné exige une grandeur strictement positive d’un type de la famille des entiers, math:dimensionless et un référentiel réellement applicable. Les positions répétées restent comptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link ex:reading gmeow:ngramSize ex:count, retaining quantityValue 2, dimension math:dimensionless and the supplied counting frame on ex:count."
+msgstr "Lier ex:reading gmeow:ngramSize ex:count, en conservant quantityValue 2, la dimension math:dimensionless et le référentiel de comptage fourni sur ex:count."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual keyword gram size and its segmentation/counting convention are available as a positive integral count."
+msgstr "Utiliser lorsque la taille réelle du gramme du mot-clé et sa convention de segmentation et de comptage sont disponibles sous forme de comptage entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting a raw code or sentinel as size, deriving size from whitespace, substituting character length or keyword-row count, deduplicating positions or inventing a missing frame."
+msgstr "Éviter d’affirmer qu’un code brut ou une sentinelle est une taille, de déduire la taille des espaces, de lui substituer la longueur en caractères ou le nombre de lignes de mots-clés, de dédupliquer les positions ou d’inventer un référentiel manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the Measurement to its count Quantity with original integer-family quantityValue, dimensionless dimension and actual hasReferenceFrame. Keep wording, source rank and weight separate, preserving distinct rows and conventions without inferring execution."
+msgstr "Relier la Measurement à sa Quantity de comptage avec le quantityValue original d’un type de la famille des entiers, la dimension sans dimension et le hasReferenceFrame réel. Garder formulation, rang source et poids séparés, en conservant des lignes et conventions distinctes sans déduire d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported keyword rank"
+msgstr "rang rapporté du mot-clé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported integer ordering position or rank of this keyword Measurement within its actual observed unit and producing context."
+msgstr "La position d’ordre ou le rang entier rapporté par la source pour cette Measurement de mot-clé dans son unité réellement observée et son contexte de production."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Unknown origin, direction, gaps and tie conventions stay unknown. An integer datatype does not turn an unrelated code into a rank or equate source order with relevance rank."
+msgstr "Facultatif et non fonctionnel. L’origine, la direction, les lacunes et les conventions d’ex æquo inconnues restent inconnues. Un type entier ne transforme pas un code sans rapport en rang et n’assimile pas l’ordre source au rang de pertinence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:termRank 4 when the source reported that keyword rank, without shifting it to an assumed origin."
+msgstr "Conserver ex:reading gmeow:termRank 4 lorsque la source a rapporté ce rang du mot-clé, sans le décaler vers une origine supposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's stated keyword ordering position or rank within the Measurement's actual unit and source context."
+msgstr "Utiliser pour la position d’ordre ou le rang du mot-clé déclaré par la source dans l’unité réelle et le contexte source de la Measurement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing rank from weight or row order, assuming zero or one origin, imposing bounds, continuity, uniqueness or tie rules, treating rank as confidence or copying it unchanged into entryOrdinal."
+msgstr "Éviter d’inventer un rang à partir du poids ou de l’ordre des lignes, de supposer une origine zéro ou un, d’imposer des bornes, une continuité, une unicité ou des règles d’ex æquo, de traiter le rang comme une confiance ou de le copier sans conversion dans entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:integer ordering descriptor on its source row's Measurement with actual observedFeature, method, vantage and attribution. Preserve supplied ranking conventions; comparison, renumbering and list reconstruction require the actual convention."
+msgstr "Conserver le descripteur d’ordre xsd:integer fourni sur la Measurement de sa ligne source avec observedFeature, méthode, vantage et attribution réels. Préserver les conventions de classement fournies ; comparaison, renumérotation et reconstruction de liste exigent la convention réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size context constraint"
+msgstr "contrainte de contexte de la taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every count selected by ngramSize has a magnitude, only the dimensionless dimension, a reference-frame witness and numerically agreeing magnitude values."
+msgstr "Tout comptage sélectionné par ngramSize possède une grandeur, uniquement la dimension sans dimension, un témoin de référentiel et des valeurs de grandeur numériquement concordantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The condition follows each supplied ngramSize edge. It neither requires size on every Measurement nor constrains unrelated Quantities, merges rows or authenticates a frame's actual applicability."
+msgstr "La condition suit chaque lien ngramSize fourni. Elle n’exige pas de taille sur chaque Measurement, ne contraint pas les Quantities sans rapport, ne fusionne pas les lignes et n’authentifie pas l’applicabilité réelle d’un référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected gram-count Quantity with no quantityValue or hasReferenceFrame violates this context condition; an unrelated weight Quantity is outside its guard."
+msgstr "Une Quantity de comptage de gramme sélectionnée sans quantityValue ou hasReferenceFrame viole cette condition de contexte ; une Quantity de poids sans rapport est hors de sa garde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require explicit context for an actual count supplied through ngramSize."
+msgstr "Utiliser pour exiger le contexte explicite d’un comptage réel fourni par ngramSize."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."
+msgstr "Éviter de considérer un lien de référentiel comme une preuve de segmentation historique, d’inventer un référentiel par défaut, d’exiger une ligne unique de mot-clé globalement ou de remplacer le résultat de poids distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."
+msgstr "Lier chaque comptage par ngramSize ; exiger quantityValue, math:dimensionless et hasReferenceFrame. Comparer chaque dimension par identité RDF complète et chaque paire de grandeurs par égalité numérique, en conservant des lignes sources et conventions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size value constraint"
+msgstr "contrainte de valeur de la taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every magnitude of every Quantity selected by ngramSize is a valid finite RDF integer-family literal whose numeric value is strictly greater than zero."
+msgstr "Toute grandeur de toute Quantity sélectionnée par ngramSize est un littéral RDF valide et fini d’un type de la famille des entiers, dont la valeur numérique est strictement supérieure à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Datatype-component identity, shared numeric lexical/value admission and strict positivity are all required. Every supplied magnitude is checked with its original lexical form and datatype, without coercion."
+msgstr "L’identité du composant de type de données, l’admission lexicale et numérique partagée et la positivité stricte sont toutes requises. Chaque grandeur fournie est vérifiée avec sa forme lexicale et son type de données d’origine, sans coercition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A valid positive xsd:integer is admitted without retyping. Zero, negative zero, negative sentinels, malformed integers and decimal or floating literals do not satisfy this count condition."
+msgstr "Un xsd:integer valide et strictement positif est admis sans changement de type. Zéro, zéro négatif, les sentinelles négatives, les entiers mal formés et les littéraux décimaux ou flottants ne satisfont pas cette condition de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual positive gram counts while retaining supplied RDF integer-family representations."
+msgstr "Utiliser pour valider des comptages réels et strictement positifs de grammes tout en conservant les représentations RDF fournies de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting numeric-looking strings, decimals, floats, nonfinite values or sentinels as counts, checking only one of several magnitudes or normalizing a rejected value into apparent validity."
+msgstr "Éviter d’accepter comme comptages des chaînes d’apparence numérique, des décimaux, des flottants, des valeurs non finies ou des sentinelles, de vérifier une seule grandeur parmi plusieurs ou de normaliser une valeur rejetée pour lui donner une validité apparente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."
+msgstr "Lier chaque quantityValue par sa Quantity sélectionnée par ngramSize. Exiger termIsFiniteNumeric, la disjonction exacte du composant de type pour treize types de la famille XSD des entiers, et termGreater par rapport à zéro de type entier. Garder la présence et le référentiel dans la loi de contexte distincte."

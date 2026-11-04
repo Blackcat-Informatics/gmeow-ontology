@@ -24222,3 +24222,31 @@ msgstr "不要从此边推断真实性、信任、规则触发证明、前提列
 msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
 msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。当前编译器拒绝同一所选作用域上的多个来源坐标；必须显式转换为编译器支持的表示，不得静默选择来源。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term greater than"
+msgstr "项数值严格大于"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bound integrity predicate that holds when the first finite RDF numeric literal's value is strictly greater than the second under the shared scalar numeric comparison."
+msgstr "一种操作数已绑定的完整性谓词：在共享标量数值比较下，第一个有限 RDF 数值字面量的值严格大于第二个时成立。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two ordered operands are original RDF terms. Variables must be positively bound; literal constants need no binding. Native malformed, nonnumeric, unsupported or nonfinite operands make the predicate false. It creates no value or output binding and is never a stored tuple."
+msgstr "两个有序操作数均为原始 RDF 项。变量必须由正向关系绑定；字面量常量无需绑定。原生路径中格式错误、非数值、不受支持或非有限的操作数使谓词为假。它不创建值或输出绑定，也绝不是存储元组。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#example"
+msgid "A bound integrity atom termGreater(value, 0) tests strict positivity; zero is an xsd:integer literal constant."
+msgstr "已绑定的完整性原子 termGreater(value, 0) 检查严格正值；零是 xsd:integer 字面量常量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use in an integrity Formula to compare bound finite numeric values without lexical ordering, RDF term-identity comparison or value creation."
+msgstr "用于在完整性 Formula 中比较已绑定的有限数值，不进行词法排序、RDF 项身份比较或值创建。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this predicate as data, binding an operand with it, coercing invalid literals, treating it as ordinary-rule rdfNumericGreater or claiming identical projected semantics for every RDF datatype."
+msgstr "避免将此谓词作为数据断言、用它绑定操作数、强制转换无效字面量、将其当作普通规则的 rdfNumericGreater，或声称投影对所有 RDF 数据类型都保持相同语义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly two ordered operands and bind every variable through positive stored relations. Native evaluation compares shared finite numeric values; procedural projection emits greater-than or its less-than-or-equal negation. Retain explicit numeric admission for equivalence within a finite numeric profile."
+msgstr "提供恰好两个有序操作数，并通过正向存储关系绑定每个变量。原生求值比较共享的有限数值；过程式投影生成大于比较或其小于等于否定。保留显式数值准入，以在有限数值配置内保持等价。"

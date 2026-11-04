@@ -24721,3 +24721,16 @@ logic:provenance
     gmeow:useWhen "Use to retain an explicitly supplied origin on the exact rule or statement carrier whose scope it qualifies. Preserve the kind and identity of the actual source without requiring every source to be a firing rule."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer truth, trust, a firing proof, a premise list or a complete derivation certificate from this edge. Do not restrict all sources to rules, equate distinct sources, or propagate metadata from a record to its outgoing assertions."@x-gmeow-english ;
     gmeow:howToUse "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."@x-gmeow-english .
+
+logic:termGreater
+    a logic:ObjectProperty ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "term greater than"@x-gmeow-english ;
+    skos:definition "A bound integrity predicate that holds when the first finite RDF numeric literal's value is strictly greater than the second under the shared scalar numeric comparison."@x-gmeow-english ;
+    skos:scopeNote "The two ordered operands are original RDF terms. Variables must be positively bound; literal constants need no binding. Native malformed, nonnumeric, unsupported or nonfinite operands make the predicate false. It creates no value or output binding and is never a stored tuple."@x-gmeow-english ;
+    skos:example "A bound integrity atom termGreater(value, 0) tests strict positivity; zero is an xsd:integer literal constant."@x-gmeow-english ;
+    gmeow:useWhen "Use in an integrity Formula to compare bound finite numeric values without lexical ordering, RDF term-identity comparison or value creation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this predicate as data, binding an operand with it, coercing invalid literals, treating it as ordinary-rule rdfNumericGreater or claiming identical projected semantics for every RDF datatype."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly two ordered operands and bind every variable through positive stored relations. Native evaluation compares shared finite numeric values; procedural projection emits greater-than or its less-than-or-equal negation. Retain explicit numeric admission for equivalence within a finite numeric profile."@x-gmeow-english .
