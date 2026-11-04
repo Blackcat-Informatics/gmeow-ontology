@@ -1176,3 +1176,59 @@ msgstr "Ne pas utiliser pour une exigence absente, un contrôleur indisponible, 
 msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."
 msgstr "Référencer cet individu par observationResult et conserver la valeur soumise exacte, l’exigence de forme déclarée, le résultat du contrôle achevé et le vantage de politique. Conserver séparément un résultat véritable de validation native lorsqu’il est fourni ; le type n’effectue aucune validation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement metric"
+msgstr "métrique de mesure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the identified metric, formula or weighting whose value this Measurement reports."
+msgstr "Désigne la métrique, la formule ou la pondération identifiée dont cette Measurement rapporte la valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, non-functional role preserves the supplied metric IRI without declaring its internal representation or execution."
+msgstr "Ce rôle facultatif et non fonctionnel conserve l'IRI fourni de la métrique sans déclarer sa représentation interne ni son exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a Measurement reports a value for an identified metric, formula or weighting."
+msgstr "À utiliser lorsqu'une Measurement rapporte une valeur pour une métrique, une formule ou une pondération identifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing observedFeature, observationMethod or observationResult, or inferring a metric's mathematical structure from its label."
+msgstr "Ne remplacez pas observedFeature, observationMethod ou observationResult et ne déduisez pas la structure mathématique d'une métrique de son libellé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Measurement to the exact supplied metric IRI. Preserve supplied labels, including any language tag and direction; absent labels remain absent."
+msgstr "Reliez la Measurement à l'IRI exact fourni pour la métrique. Conservez les libellés fournis, y compris leur éventuelle étiquette de langue et leur direction ; les libellés absents restent absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied metric identity: ex:reading gmeow:measurementMetric ex:metricA ."
+msgstr "Consignez l'identité fournie de la métrique : ex:reading gmeow:measurementMetric ex:metricA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement metric IRI constraint"
+msgstr "contrainte d'IRI de métrique de mesure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied gmeow:measurementMetric value must be an IRI."
+msgstr "Toute valeur fournie pour gmeow:measurementMetric doit être un IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The positive measurementMetric relation binds both variables. Missing measurementMetric values create no violation under this constraint."
+msgstr "La relation positive measurementMetric lie les deux variables. L'absence de valeur measurementMetric ne constitue pas une violation de cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the named identity of a supplied measurement metric."
+msgstr "À utiliser pour vérifier l'identité nommée d'une métrique de mesure fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this check as metric presence, uniqueness, label, formula or execution validation."
+msgstr "Ne considérez pas ce contrôle comme une validation de la présence, de l'unicité, du libellé, de la formule ou de l'exécution de la métrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Author the condition as an ordinary logic:Formula with measurementMetric(this, metric) implying termIsIri(metric)."
+msgstr "Exprimez la condition par une logic:Formula ordinaire où measurementMetric(this, metric) implique termIsIri(metric)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:measurementMetric ex:metricA satisfies the IRI condition; a blank node or literal value does not."
+msgstr "ex:reading gmeow:measurementMetric ex:metricA satisfait la condition d'IRI ; une valeur nœud anonyme ou littérale ne la satisfait pas."

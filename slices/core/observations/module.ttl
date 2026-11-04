@@ -1618,3 +1618,53 @@ gmeow:policyFindingValueOutsideDeclaredForm
     gmeow:useWhen "Use when the named policy has an actual failed form check for the exact value and declared requirement under evaluation."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use for an absent requirement, an unavailable checker, an unchecked value or an unknown result. Do not normalize or replace the submitted value, assert a stronger ontology constraint or infer rejection from the kind alone."@x-gmeow-english ;
     gmeow:howToUse "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."@x-gmeow-english .
+
+gmeow:measurementMetric
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Measurement ;
+    logic:range logic:Individual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "measurement metric"@x-gmeow-english ;
+    skos:definition "Names the identified metric, formula or weighting whose value this Measurement reports."@x-gmeow-english ;
+    skos:scopeNote "This optional, non-functional role preserves the supplied metric IRI without declaring its internal representation or execution."@x-gmeow-english ;
+    gmeow:useWhen "Use when a Measurement reports a value for an identified metric, formula or weighting."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing observedFeature, observationMethod or observationResult, or inferring a metric's mathematical structure from its label."@x-gmeow-english ;
+    gmeow:howToUse "Link the Measurement to the exact supplied metric IRI. Preserve supplied labels, including any language tag and direction; absent labels remain absent."@x-gmeow-english ;
+    skos:example "Record the supplied metric identity: ex:reading gmeow:measurementMetric ex:metricA ."@x-gmeow-english .
+
+gmeow:MeasurementMetricIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "measurement metric IRI constraint"@x-gmeow-english ;
+    skos:definition "Every supplied gmeow:measurementMetric value must be an IRI."@x-gmeow-english ;
+    skos:scopeNote "The positive measurementMetric relation binds both variables. Missing measurementMetric values create no violation under this constraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the named identity of a supplied measurement metric."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this check as metric presence, uniqueness, label, formula or execution validation."@x-gmeow-english ;
+    gmeow:howToUse "Author the condition as an ordinary logic:Formula with measurementMetric(this, metric) implying termIsIri(metric)."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:measurementMetric ex:metricA satisfies the IRI condition; a blank node or literal value does not."@x-gmeow-english ;
+    logic:formalizes gmeow:measurementMetric ;
+    logic:message "A supplied measurementMetric value must be an IRI." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "metric" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ;
+                logic:relation gmeow:measurementMetric ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "metric" ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ;
+                logic:relation logic:termIsIri ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "metric" ]
+            ]
+        ]
+    ] .
