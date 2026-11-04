@@ -739,3 +739,109 @@ linkage, actual coefficients and fits, all contributions, complete candidate
 and loss/query retention, source authentication and final integration retain
 their independent acceptance obligations. These records assert no provider
 execution, consumer adoption, calibration, confidence or arithmetic change.
+
+## Weighted reported accounts and finite decimal witnesses
+
+The weighted account is a sibling of the unweighted integer fusion contract.
+`QueryWeightedFusionApplication` specializes the existing execution occurrence,
+and `QueryWeightedFusionAnswer` specializes the existing attributed answer.
+Actual node, original union, selected profile and result links belong to that
+one occurrence. Reusable operation descriptions do not acquire measured results.
+Native scoring and ordering share one source result, so separate vocabulary
+surfaces must enrich the same occurrence rather than invent another native call.
+
+Source class identity is an original family or space resource, not an RDF Class.
+Original lists retain their own entry identities, ranks, tie keys and evidence;
+several lists may name the same class. The selected application checks both
+directions of union/list candidate membership without imposing new global
+requirements on standalone `QueryUnionAnswer`. Existing ranked-list membership,
+entry uniqueness and entry ownership laws remain the authority for those lists.
+The applied coefficient collection is nonempty and exactly class-indexed, with
+distinct actual source ordinals. Every original candidate has one score, and
+every score has one contribution per coefficient. Empty candidate membership
+removes scores and folds, not the declared class inventory.
+
+The actual measured flag separates full measured evidence from explicit source
+unmeasured units. Full fit records retain original judged-set and fitted-quantity
+identities, with exact class and decimal-value agreement in both directions.
+Every actually supplied fitted-weight frame agrees with the selected profile
+frame, while a missing fit frame remains legal. No global frame requirement is
+added to measured-fit quantities. Actual supplied unit metadata is preserved and
+must be compatible with the native raw-scalar interpretation at import, without
+silent conversion. Graph equality of magnitudes is not a generic unit-equivalence
+claim. Fit-in-force summaries do not provide missing full fit fields, and their
+absence cannot silently select unmeasured mode. Unit-valued measured fits remain
+legal.
+
+For each class/candidate pair, a delivered original entry requires a legitimate
+minimum-rank witness. The minimum comparison ranges over every original matching
+entry, without choosing a privileged resource among tied minima or renumbering
+truncated ranks. The selected positive rank has the native unsigned upper bound.
+When no original entry matches, witness legitimacy forbids a fabricated link and
+the unwitnessed-zero law requires exact decimal zero. Delivered ranks can also
+contribute zero. The graph preserves this evidence distinction without claiming
+the floor-division equation was checked.
+
+The complete reported-decimal sum uses domain-owned control steps and existing
+Quantity authority. `QueryWeightedScoreFoldStep` is an InformationObject;
+`QueryWeightedPartialSum` is a `math:Quantity` subtype with flat local exact
+decimal, required-value, dimensionless and reference-frame restrictions.
+Generic `math:Quantity` already owns exactly-one Dimension, but does not require
+this selected magnitude datatype, magnitude presence or frame. Those requirements
+are added locally rather than narrowing the generic class or relying on a nested
+filler evaluator. `entryOrdinal` keeps its existing `xsd:nonNegativeInteger`
+datatype for both applied class ordinals and separate mathematical witness indices.
+
+Every typed answer and score has one application owner, each contribution one
+score owner and each control step one score owner. Presence is required as well
+as pairwise uniqueness so isolated typed records cannot satisfy context laws
+vacuously. Applied coefficients require some application owner without unique
+inverse ownership. Partial-sum Quantities require some incoming owned step and
+remain shareable across compatible steps. No artificial disjointness or forced
+Quantity resource equality is added. The total context follows its owning score
+and application. Do not add `reportedFusionScoreProfile` merely to inherit witness
+context: its domain asserts source reporting, which witness use alone does not
+establish. An actually source-reported Quantity may also serve as a compatible
+final witness total. Identity between total and reported score is neither required
+nor forbidden.
+
+The finite witness jointly requires a zero base with no predecessor/component,
+an immediate predecessor and actual component for every positive index, unique
+natural indices bounded by the final member, exact decimal recurrence, a complete
+contribution/positive-step bijection and final-total equality to the reported
+score magnitude. Each numerical value is positively joined from its Quantity
+before arithmetic. The exact existing `logic:termSum` signature is result-first:
+its output is a fresh variable, followed by comparison with the separately bound
+stored index or total. It never rebinds a stored value. The old unweighted fold's
+integer fields and `rdfNumericAdd` atoms are not reused.
+
+Equal-valued components retain their multiplicity; zero components still receive
+positive steps. Zero base and nonnegative contributions imply nonnegative totals.
+Completeness, final equality and the foundation's bounded score imply the upper
+bounds of every component and partial total. Redundant independent component and
+partial-sum capacity laws are therefore unnecessary. This is exact declared
+decimal addition, not source fixed-point admission, integer quantum membership,
+floor division or native checked-accumulator provenance.
+
+All procedural obligations remain realized ordinary `logic:Constraint` Formula
+trees with one root forall, a typed focus guard and same-focus guarded conjunct
+branches. Branch variables are independently renamed, every existential has a
+fresh local binder and arithmetic operands are stored bindings before fresh
+result BINDs and comparisons. Collection equality includes both directions.
+No unguarded UNION/filter arm, positive nested forall, Iff, new intrinsic,
+generic mathematical framework or hand-authored shape surface is introduced.
+
+The direct aggregate helper does not follow contribution Quantity values, and
+the join aggregate's product legs and fixed threshold do not express this score
+comparison. Double-entry balance has its own debit/credit and currency semantics
+and is not repurposed as a score account. The finite witness uses an existing
+ordinary expression path with concrete control structure. It is declared
+mathematical evidence, not metadata claimed to be serialized by the native API.
+
+Original artifact association, complete actual selected-fit membership, native
+source order, compatible supplied unit interpretation, profile-content identity
+and source authentication remain explicit import requirements. Equal profile
+bytes do not merge declared context resources. No guessed call identifier,
+synthetic actual fit, automatic weaker mode or substitute native arithmetic
+certificate is provided. Applied-order integration must preserve the actual
+source policy and comparison evidence on the same reported result.

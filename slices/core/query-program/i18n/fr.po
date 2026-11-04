@@ -5975,3 +5975,1627 @@ msgstr "Ce sont uniquement des vérifications d’intervalle du support. Un déc
 msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A reported zero remains valid: ex:score math:quantityValue \"0\"^^xsd:decimal ."
 msgstr "Un zéro rapporté reste valide : ex:score math:quantityValue \"0\"^^xsd:decimal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion"
+msgstr "Fusion pondérée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description for the selected weighted reciprocal-rank application contract, retaining its original union evidence and declared source interpretation through application occurrences."
+msgstr "Description de nœud de requête pour le contrat sélectionné d’application pondérée des rangs réciproques, conservant ses preuves d’union originale et son interprétation source déclarée par des occurrences d’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe weighted fusion separately from the existing unweighted integer operator."
+msgstr "Utiliser pour décrire la fusion pondérée séparément de l’opérateur entier non pondéré existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the node description as an execution, fitting procedure, ordering policy or permission to broaden ReciprocalRankFusion."
+msgstr "Éviter de traiter la description du nœud comme une exécution, une procédure d’ajustement, une politique d’ordre ou une permission d’élargir ReciprocalRankFusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual reported application through executesQueryNode and retain the complete coefficient, contribution, score and declared-sum account on that occurrence."
+msgstr "Relier l’application effective rapportée par executesQueryNode et conserver sur cette occurrence le compte rendu complet des coefficients, contributions, scores et sommes déclarées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected application uses the weighted scale-eighteen source convention. Declared decimal summation does not certify raw fixed-point admission, rank truncation or native execution."
+msgstr "L’application sélectionnée utilise la convention source pondérée à dix-huit décimales. La sommation décimale déclarée ne certifie ni l’admission brute en virgule fixe, ni la troncature des rangs, ni l’exécution native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:weightedNode a gmeow:QueryWeightedFusion . Its inherited effect and stratum bindings are omitted here."
+msgstr "Fragment fictif à portée limitée : ex:weightedNode a gmeow:QueryWeightedFusion . Ses liens hérités d’effets et de strate sont omis ici."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Application"
+msgstr "Application de fusion pondérée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer-reported successful weighted-fusion occurrence joining one original union, one answer occurrence, one selected profile interpretation, explicit measured status and complete applied quantitative evidence."
+msgstr "Une occurrence réussie de fusion pondérée rapportée par le consommateur, joignant une union originale, une occurrence de réponse, une interprétation sélectionnée de profil, un statut explicite de mesure et des preuves quantitatives appliquées complètes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate an actual reported call and result with the selected source-profile interpretation and original evidence identities."
+msgstr "Utiliser pour associer un appel effectif rapporté et son résultat à l’interprétation sélectionnée du profil source et aux identités originales de preuves."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating an empty successful answer for a failed call, authenticating a source by declaration or inventing a second execution for the ordering returned by the same native result."
+msgstr "Éviter de fabriquer une réponse vide réussie pour un appel en échec, d’authentifier une source par déclaration ou d’inventer une seconde exécution pour l’ordre renvoyé par le même résultat natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply executesQueryNode, weightedFusionInput, weightedFusionOutput, weightedFusionProfile, weightedFusionMeasured and every actual coefficient, score and applicable full fit."
+msgstr "Fournir executesQueryNode, weightedFusionInput, weightedFusionOutput, weightedFusionProfile, weightedFusionMeasured et chaque coefficient, score et ajustement complet applicable effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty union retains its nonempty declared class set and coefficients. Partial recall retains its original loss and completeness evidence. Source authentication and native arithmetic remain separate requirements."
+msgstr "Une union vide réussie conserve son ensemble déclaré non vide de classes et ses coefficients. Un rappel partiel conserve ses preuves originales de pertes et de complétude. L’authentification source et l’arithmétique native restent des exigences distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call a gmeow:QueryWeightedFusionApplication ; gmeow:executesQueryNode ex:weightedNode . Other required occurrence bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call a gmeow:QueryWeightedFusionApplication ; gmeow:executesQueryNode ex:weightedNode . Les autres liens obligatoires de l’occurrence sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Answer"
+msgstr "Réponse de fusion pondérée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed answer occurrence of one reported weighted-fusion application, retaining its original union and exactly the same query, candidate and loss-ledger identities."
+msgstr "L’occurrence de réponse attribuée d’une application rapportée de fusion pondérée, conservant son union originale et exactement les mêmes identités de requêtes, candidats et registres de pertes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the one result occurrence whose reported scores and any applied-order enrichment belong to the same native call."
+msgstr "Utiliser pour l’unique occurrence de résultat dont les scores rapportés et les éventuels enrichissements d’ordre appliqué appartiennent au même appel natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a separate native result for ordering, copying original evidence identities or inferring complete recall from successful fusion."
+msgstr "Éviter de créer un résultat natif distinct pour l’ordre, de copier les identités de preuves originales ou de déduire un rappel complet d’une fusion réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain weightedOriginalUnion and the original queryAnswerFor, queryCandidate and queryLossLedger links, and identify the unique incoming application owner."
+msgstr "Conserver weightedOriginalUnion et les liens originaux queryAnswerFor, queryCandidate et queryLossLedger, et identifier l’unique application propriétaire entrante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty successful answer has no candidates or scores. Its classes, mode and profile remain on the owning application; inherited answer attribution and verdict obligations still apply."
+msgstr "Une réponse vide réussie n’a ni candidats ni scores. Ses classes, mode et profil restent sur l’application propriétaire ; les obligations héritées d’attribution et de verdict de réponse continuent de s’appliquer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:answer a gmeow:QueryWeightedFusionAnswer ; gmeow:weightedOriginalUnion ex:union . Inherited answer obligations and the application owner are omitted."
+msgstr "Fragment fictif à portée limitée : ex:answer a gmeow:QueryWeightedFusionAnswer ; gmeow:weightedOriginalUnion ex:union . Les obligations héritées de réponse et l’application propriétaire sont omises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Fusion Coefficient"
+msgstr "Coefficient de fusion appliqué de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A positive exact-decimal dimensionless Quantity applied for one original retrieval class at its source class ordinal in a reported weighted-fusion application."
+msgstr "Une Quantity positive sans dimension en décimal exact appliquée à une classe originale de recherche à son ordinal source de classe dans une application rapportée de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual applied coefficients in both measured mode and explicitly reported unmeasured unit mode."
+msgstr "Utiliser pour les coefficients effectivement appliqués en mode mesuré comme en mode unitaire non mesuré explicitement rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying an unmeasured unit as QueryFusionClassWeight, normalizing coefficients to probabilities or adding a parallel scalar weight property."
+msgstr "Éviter de classer un coefficient unitaire non mesuré comme QueryFusionClassWeight, de normaliser les coefficients en probabilités ou d’ajouter une propriété parallèle de poids scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply appliedCoefficientClass, entryOrdinal as xsd:nonNegativeInteger, decimal math:quantityValue, explicit dimensionless dimension and the selected applicable reference frame."
+msgstr "Fournir appliedCoefficientClass, entryOrdinal comme xsd:nonNegativeInteger, une math:quantityValue décimale, une dimension explicitement sans dimension et le repère de référence applicable sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible applications may share a fully coordinated coefficient. Source class order and native raw-scalar interpretation remain import evidence; numeric positivity and capacity do not certify the fixed-point grid."
+msgstr "Des applications compatibles peuvent partager un coefficient entièrement coordonné. L’ordre source des classes et l’interprétation native de scalaire brut restent des preuves d’importation ; la positivité numérique et la capacité ne certifient pas la grille en virgule fixe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:coefficient a gmeow:QueryAppliedFusionCoefficient ; math:quantityValue \"1.0\"^^xsd:decimal ; gmeow:appliedCoefficientClass ex:lexical ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Dimension, frame and application are omitted."
+msgstr "Fragment fictif à portée limitée : ex:coefficient a gmeow:QueryAppliedFusionCoefficient ; math:quantityValue \"1.0\"^^xsd:decimal ; gmeow:appliedCoefficientClass ex:lexical ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . La dimension, le repère et l’application sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Contribution"
+msgstr "Contribution de fusion pondérée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported nonnegative exact-decimal dimensionless contribution Quantity for one applied coefficient in one candidate score, with an original minimum-rank witness when that class delivered the candidate."
+msgstr "Une Quantity rapportée de contribution non négative sans dimension en décimal exact pour un coefficient appliqué dans un score de candidat, avec un témoin original de rang minimal lorsque cette classe a livré le candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every declared class contribution, including absent-class zeros and zero-valued contributions from present ranks."
+msgstr "Utiliser pour conserver chaque contribution de classe déclarée, y compris les zéros de classes absentes et les contributions nulles issues de rangs présents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating zero as proof of class absence, creating an entry for an undelivered candidate or equating a reported contribution with verified truncation arithmetic."
+msgstr "Éviter de traiter zéro comme une preuve d’absence de classe, de créer une entrée pour un candidat non livré ou d’assimiler une contribution rapportée à une arithmétique de troncature vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply contributionCoefficient, decimal math:quantityValue, explicit dimensionless dimension and applicable frame; retain at most one original contributionRankEntry and the unique score owner."
+msgstr "Fournir contributionCoefficient, une math:quantityValue décimale, une dimension explicitement sans dimension et un repère applicable ; conserver au plus une contributionRankEntry originale et l’unique score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every score retains one contribution per actual coefficient. A missing original class/candidate entry requires an unwitnessed zero; a present rank can also contribute zero. Candidate identity follows the owning score."
+msgstr "Chaque score conserve une contribution par coefficient effectif. Une entrée originale de classe/candidat absente exige un zéro sans témoin ; un rang présent peut aussi contribuer zéro. L’identité du candidat suit le score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:absentPart a gmeow:QueryWeightedFusionContribution ; math:quantityValue \"0.0\"^^xsd:decimal ; gmeow:contributionCoefficient ex:coefficient . Missing owner and context must be supplied in a complete account."
+msgstr "Fragment fictif à portée limitée : ex:absentPart a gmeow:QueryWeightedFusionContribution ; math:quantityValue \"0.0\"^^xsd:decimal ; gmeow:contributionCoefficient ex:coefficient . Le propriétaire et le contexte absents doivent être fournis dans un compte rendu complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Fusion Score"
+msgstr "Score de fusion appliqué de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fused-score Quantity for one original candidate in one weighted application, retaining a complete class-contribution account and an explicit finite decimal-sum witness."
+msgstr "Une Quantity rapportée de score fusionné pour un candidat original dans une application pondérée, conservant un compte rendu complet des contributions de classes et un témoin explicite de somme décimale finie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect the reported-score foundation to an actual reported candidate and application occurrence."
+msgstr "Utiliser pour relier le socle de scores rapportés à un candidat effectif rapporté et à une occurrence d’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing old integer QueryFusionScore fields, merging scores across calls because magnitudes match or calling a declared exact sum a native arithmetic certificate."
+msgstr "Éviter de réutiliser les anciens champs entiers de QueryFusionScore, de fusionner les scores entre appels parce que leurs valeurs numériques correspondent ou d’appeler une somme exacte déclarée un certificat d’arithmétique native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply appliedScoreCandidate, every weightedScoreContribution, weightedScoreFoldStep and weightedScoreFinalStep, plus the inherited decimal magnitude, dimension, frame and selected reportedFusionScoreProfile."
+msgstr "Fournir appliedScoreCandidate, chaque weightedScoreContribution, weightedScoreFoldStep et weightedScoreFinalStep, ainsi que la valeur numérique décimale héritée, la dimension, le repère et le reportedFusionScoreProfile sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every typed score has exactly one application owner. The declared contribution sum equals its decimal magnitude; fixed-point grid, floor division, authentic source execution and applied order are separate acceptance boundaries."
+msgstr "Chaque score typé a exactement une application propriétaire. La somme déclarée des contributions égale sa valeur numérique décimale ; la grille en virgule fixe, la division avec arrondi inférieur, l’exécution source authentique et l’ordre appliqué sont des limites d’acceptation distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score a gmeow:QueryAppliedFusionScore ; gmeow:appliedScoreCandidate ex:candidate . Its inherited quantitative coordinates, owner, contributions and complete fold are omitted."
+msgstr "Fragment fictif à portée limitée : ex:score a gmeow:QueryAppliedFusionScore ; gmeow:appliedScoreCandidate ex:candidate . Ses coordonnées quantitatives héritées, son propriétaire, ses contributions et son repli complet sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Score Fold Step"
+msgstr "Étape de repli pondéré du score de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One declared control step in a finite mathematical witness summing all reported contributions of an applied fusion score, distinct from the Quantity carrying its partial total."
+msgstr "Une étape déclarée de contrôle dans un témoin mathématique fini sommant toutes les contributions rapportées d’un score de fusion appliqué, distincte de la Quantity portant son total partiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to express complete decimal summation through zero base, immediate predecessors, unique natural indices and a final bound."
+msgstr "Utiliser pour exprimer une sommation décimale complète par une base nulle, des prédécesseurs immédiats, des indices naturels uniques et une borne finale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming that these witness steps were serialized by the native API, represent a second source execution or carry their magnitude directly as a scalar control field."
+msgstr "Éviter d’affirmer que ces étapes témoins ont été sérialisées par l’API native, représentent une seconde exécution source ou portent directement leur valeur numérique dans un champ scalaire de contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply entryOrdinal and weightedStepTotal; each positive step supplies weightedPreviousStep and weightedStepContribution under one unique score owner."
+msgstr "Fournir entryOrdinal et weightedStepTotal ; chaque étape positive fournit weightedPreviousStep et weightedStepContribution sous un unique score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Witness indices start at mathematical zero and are independent of native class ordinals. Every actual contribution is used exactly once, including equal-valued and zero contributions."
+msgstr "Les indices témoins commencent au zéro mathématique et sont indépendants des ordinaux natifs de classes. Chaque contribution effective est utilisée exactement une fois, y compris les contributions égales ou nulles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:base a gmeow:QueryWeightedScoreFoldStep ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:weightedStepTotal ex:zeroTotal . The score owner and total Quantity context are omitted."
+msgstr "Fragment fictif à portée limitée : ex:base a gmeow:QueryWeightedScoreFoldStep ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:weightedStepTotal ex:zeroTotal . Le score propriétaire et le contexte de la Quantity de total sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Partial Sum"
+msgstr "Somme partielle pondérée de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dimensionless exact-decimal Quantity carrying one partial total in a declared weighted-score sum witness, with one applicable reference frame."
+msgstr "Une Quantity sans dimension en décimal exact portant un total partiel dans un témoin déclaré de somme de score pondéré, avec un repère de référence applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require local decimal magnitude and quantitative context on mathematical witness totals without narrowing generic math:Quantity."
+msgstr "Utiliser pour exiger une valeur numérique décimale locale et un contexte quantitatif sur les totaux mathématiques témoins sans restreindre la classe générique math:Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding reportedFusionScoreProfile merely to inherit witness context, inferring source reporting from witness use alone or forcing distinct Quantity identities for compatible steps."
+msgstr "Éviter d’ajouter reportedFusionScoreProfile simplement pour hériter du contexte témoin, de déduire un rapport source du seul usage comme témoin ou d’imposer des identités distinctes de Quantity pour des étapes compatibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:decimal math:quantityValue, math:hasDimension math:dimensionless and hasReferenceFrame; connect the Quantity through weightedStepTotal from an owned fold step."
+msgstr "Fournir une math:quantityValue de type xsd:decimal, math:hasDimension math:dimensionless et hasReferenceFrame ; relier la Quantity par weightedStepTotal depuis une étape de repli possédée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The owning score and application supply the profile context, and the exact frame resources agree. Compatible steps may share the same total Quantity. Its range follows from the complete nonnegative fold and bounded final score. An actually source-reported Quantity may also serve as a compatible total; witness use alone does not assert reporting."
+msgstr "Le score et l’application propriétaires fournissent le contexte de profil, et les ressources exactes de repère concordent. Des étapes compatibles peuvent partager la même Quantity de total. Son intervalle découle du repli complet non négatif et du score final borné. Une Quantity effectivement rapportée par la source peut aussi servir de total compatible ; son seul usage comme témoin n’affirme pas de rapport source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:zeroTotal a gmeow:QueryWeightedPartialSum ; math:quantityValue \"0.0\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame . Its incoming step is omitted."
+msgstr "Fragment fictif à portée limitée : ex:zeroTotal a gmeow:QueryWeightedPartialSum ; math:quantityValue \"0.0\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame . Son étape entrante est omise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion original input"
+msgstr "entrée originale de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original unranked union consumed by a reported weighted-fusion application."
+msgstr "L’unique union originale non classée consommée par une application rapportée de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual original union and all its selected class-list evidence."
+msgstr "Utiliser pour conserver l’union originale effective et toutes ses preuves sélectionnées de listes de classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a reconstructed union or deriving aggregate input ranks from serialization order."
+msgstr "Éviter de substituer une union reconstruite ou de déduire des rangs agrégés d’entrée de l’ordre de sérialisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the original QueryUnionAnswer and preserve its query, candidate, loss and class-list resources."
+msgstr "Référencer la QueryUnionAnswer originale et préserver ses ressources de requêtes, candidats, pertes et listes de classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected application checks its candidate set against the retained lists. It does not invent a prior union execution."
+msgstr "L’application sélectionnée vérifie son ensemble de candidats par rapport aux listes conservées. Elle n’invente pas d’exécution préalable de l’union."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionInput ex:union . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionInput ex:union . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion answer occurrence"
+msgstr "occurrence de réponse de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one attributed answer occurrence of a reported weighted-fusion application."
+msgstr "L’unique occurrence de réponse attribuée d’une application rapportée de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind the reported result and any later applied-order enrichment to the same call."
+msgstr "Utiliser pour lier le résultat rapporté et tout enrichissement ultérieur d’ordre appliqué au même appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a second native result or omitting the unique application owner."
+msgstr "Éviter de fabriquer un second résultat natif ou d’omettre l’unique application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryWeightedFusionAnswer whose weightedOriginalUnion agrees with the application input."
+msgstr "Référencer une QueryWeightedFusionAnswer dont weightedOriginalUnion concorde avec l’entrée de l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The answer preserves original query, candidate and loss identities in both directions."
+msgstr "La réponse préserve les identités originales de requêtes, candidats et pertes dans les deux sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionOutput ex:answer . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionOutput ex:answer . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion selected profile context"
+msgstr "contexte de profil sélectionné de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one declared source-profile interpretation selected by a reported weighted-fusion application."
+msgstr "L’unique interprétation déclarée de profil source sélectionnée par une application rapportée de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual reported use with the retained profile resource independently of its partial native identity metadata."
+msgstr "Utiliser pour associer l’utilisation effective rapportée à la ressource de profil conservée indépendamment de ses métadonnées partielles d’identité native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal digests as content-unique profiles, authenticating a call or manufacturing missing interpretation coordinates."
+msgstr "Éviter de traiter des empreintes égales comme des profils uniques par contenu, d’authentifier un appel ou de fabriquer des coordonnées absentes d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual selected interpretation record with the weighted scale-eighteen convention, explicit dimensionless dimension and complete applicable frame."
+msgstr "Référencer l’enregistrement effectif d’interprétation sélectionnée avec la convention pondérée à dix-huit décimales, une dimension explicitement sans dimension et un repère applicable complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source full profile supplies components; the record alone does not serialize or authenticate them. All applied scores select this exact resource."
+msgstr "Le profil source complet fournit les composants ; l’enregistrement seul ne les sérialise ni ne les authentifie. Tous les scores appliqués sélectionnent cette ressource exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionProfile ex:profile . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionProfile ex:profile . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion measured mode"
+msgstr "mode mesuré de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean reporting whether the actual application selected measured fitted coefficients or explicit unmeasured unit coefficients."
+msgstr "Le booléen typé obligatoire rapportant si l’application effective a sélectionné des coefficients mesurés ajustés ou des coefficients unitaires explicitement non mesurés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual source branch without interpreting missing fit evidence as an unmeasured result."
+msgstr "Utiliser pour conserver la branche source effective sans interpréter des preuves d’ajustement absentes comme un résultat non mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing true to false when full fits are unavailable or requiring measured coefficients to differ from one."
+msgstr "Éviter de changer true en false lorsque les ajustements complets sont indisponibles ou d’exiger que les coefficients mesurés diffèrent de un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:boolean; true requires the actual full fit collection, while false forbids fits and requires every applied coefficient to equal decimal one."
+msgstr "Fournir un xsd:boolean ; true exige la collection effective complète d’ajustements, tandis que false interdit les ajustements et exige que chaque coefficient appliqué égale exactement un en décimal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison handles its legal lexical forms. Unit coefficients can be genuinely measured, so their numeric value alone does not determine mode."
+msgstr "La comparaison de valeurs booléennes gère leurs formes lexicales licites. Des coefficients unitaires peuvent être réellement mesurés ; leur seule valeur numérique ne détermine donc pas le mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionMeasured \"false\"^^xsd:boolean . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionMeasured \"false\"^^xsd:boolean . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied coefficient"
+msgstr "coefficient appliqué de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One member of the complete nonempty class-indexed coefficient collection actually applied by a reported weighted-fusion occurrence."
+msgstr "Un membre de la collection complète non vide de coefficients indexée par classes effectivement appliquée par une occurrence rapportée de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every declared class coefficient even when that class delivers no candidate."
+msgstr "Utiliser pour conserver chaque coefficient déclaré de classe même si cette classe ne livre aucun candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping unavailable classes, silently normalizing values or treating an unmeasured unit as fit evidence."
+msgstr "Éviter d’éliminer des classes indisponibles, de normaliser silencieusement les valeurs ou de traiter un coefficient unitaire non mesuré comme une preuve d’ajustement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one fully coordinated applied coefficient per original retrieval class and preserve its actual distinct source ordinal."
+msgstr "Référencer un coefficient appliqué entièrement coordonné par classe originale de recherche et préserver son ordinal source effectif distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible calls may share coefficient quantities. Every typed coefficient must have an actual reported application owner, without unique inverse ownership."
+msgstr "Des appels compatibles peuvent partager les grandeurs de coefficients. Chaque coefficient typé doit avoir une application propriétaire effective rapportée, sans propriété inverse unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionCoefficient ex:lexicalCoefficient, ex:spaceCoefficient . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionCoefficient ex:lexicalCoefficient, ex:spaceCoefficient . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied full fit"
+msgstr "ajustement complet appliqué de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual full measured fit selected by the reported application, retaining its original judged-set and fitted class-weight quantities."
+msgstr "Un ajustement mesuré complet effectif sélectionné par l’application rapportée, conservant son ensemble évalué original et ses grandeurs ajustées de poids de classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record every selected full fit in measured mode."
+msgstr "Utiliser pour enregistrer chaque ajustement complet sélectionné en mode mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fit-in-force summaries, inventing judged sets or silently falling back to unmeasured mode."
+msgstr "Éviter de substituer des résumés d’ajustement en vigueur, d’inventer des ensembles évalués ou de basculer silencieusement vers un mode non mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied QueryFusionWeightFit; require exact class-set and numeric agreement with applied coefficients and compatibility of every supplied fitted-weight frame."
+msgstr "Référencer chaque QueryFusionWeightFit fourni ; exiger l’ensemble exact de classes et la concordance numérique avec les coefficients appliqués ainsi que la compatibilité de chaque repère fourni de poids ajusté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An absent fitted-weight frame stays legal. Supplied unit metadata must preserve compatible native raw-scalar interpretation without silent conversion; no generic unit-equivalence check is claimed."
+msgstr "Un repère absent de poids ajusté reste licite. Les métadonnées d’unité fournies doivent préserver une interprétation native compatible de scalaire brut sans conversion silencieuse ; aucune vérification générique d’équivalence d’unités n’est revendiquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionFit ex:actualFullFit . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionFit ex:actualFullFit . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied score"
+msgstr "score appliqué de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One reported score in the complete original-candidate-indexed account of a weighted-fusion application."
+msgstr "Un score rapporté dans le compte rendu complet d’une application de fusion pondérée indexé par candidats originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain exactly one score for every original candidate and none for unrelated candidates."
+msgstr "Utiliser pour conserver exactement un score par candidat original et aucun pour des candidats sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a score to an empty union or merging separate call occurrences because their scores agree."
+msgstr "Éviter d’ajouter un score à une union vide ou de fusionner des occurrences d’appels distinctes parce que leurs scores concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every QueryAppliedFusionScore and retain its original appliedScoreCandidate and exact selected profile."
+msgstr "Référencer chaque QueryAppliedFusionScore et conserver son appliedScoreCandidate original et son profil exact sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The collection is empty exactly when the original candidate union is empty. Each typed score has one application owner."
+msgstr "La collection est vide exactement lorsque l’union originale de candidats est vide. Chaque score typé a une application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionScore ex:firstScore, ex:secondScore . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:call gmeow:weightedFusionScore ex:firstScore, ex:secondScore . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted answer original union"
+msgstr "union originale de la réponse pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original union retained by a weighted-fusion answer occurrence."
+msgstr "L’unique union originale conservée par une occurrence de réponse de fusion pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original evidence identity alongside reported weighted results."
+msgstr "Utiliser pour préserver l’identité originale des preuves aux côtés des résultats pondérés rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying lists, candidates or losses into replacement identities or claiming the union has an aggregate input score."
+msgstr "Éviter de copier les listes, candidats ou pertes vers des identités de remplacement ou d’affirmer que l’union possède un score agrégé d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the same QueryUnionAnswer as the owning application weightedFusionInput."
+msgstr "Référencer la même QueryUnionAnswer que le weightedFusionInput de l’application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Original query, candidate and loss-ledger memberships agree exactly between union and answer."
+msgstr "Les appartenances originales de requêtes, candidats et registres de pertes concordent exactement entre l’union et la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:answer gmeow:weightedOriginalUnion ex:union . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:answer gmeow:weightedOriginalUnion ex:union . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied coefficient original class"
+msgstr "classe originale du coefficient appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original retrieval-family or space resource to which an applied coefficient belongs."
+msgstr "La ressource originale exacte de famille ou d’espace de recherche à laquelle appartient un coefficient appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain class identity separately from numeric coefficient and source ordinal."
+msgstr "Utiliser pour conserver l’identité de classe séparément du coefficient numérique et de l’ordinal source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing a retrieval class into an RDF Class or merging classes by display label."
+msgstr "Éviter de convertir de force une classe de recherche en Class RDF ou de fusionner les classes par étiquette d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the original rankedListClass resource from a retained input list."
+msgstr "Référencer la ressource rankedListClass originale d’une liste d’entrée conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One coefficient per distinct class is required within an application; distinct original lists may name the same class."
+msgstr "Un coefficient par classe distincte est exigé dans une application ; des listes originales distinctes peuvent nommer la même classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:coefficient gmeow:appliedCoefficientClass ex:lexical . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:coefficient gmeow:appliedCoefficientClass ex:lexical . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score class contribution"
+msgstr "contribution de classe au score pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One reported class contribution in the complete coefficient-indexed contribution collection of an applied score."
+msgstr "Une contribution de classe rapportée dans la collection complète de contributions d’un score appliqué indexée par coefficients."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every contribution including zero and equal-valued components."
+msgstr "Utiliser pour conserver chaque contribution, y compris les composantes nulles ou de même valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing components by magnitude, omitting absent-class zeros or sharing a contribution across distinct score owners."
+msgstr "Éviter de réduire les composantes selon leur valeur numérique, d’omettre les zéros de classes absentes ou de partager une contribution entre scores propriétaires distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference exactly one contribution per applied coefficient and include each in the declared finite fold exactly once."
+msgstr "Référencer exactement une contribution par coefficient appliqué et inclure chacune exactement une fois dans le repli fini déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiplicity is by contribution resource and coefficient, not distinct decimal value. The class set is nonempty for every selected source application."
+msgstr "La multiplicité dépend de la ressource de contribution et du coefficient, pas de valeurs décimales distinctes. L’ensemble de classes est non vide pour chaque application source sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreContribution ex:leftPart, ex:rightPart . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:score gmeow:weightedScoreContribution ex:leftPart, ex:rightPart . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted contribution applied coefficient"
+msgstr "coefficient appliqué de contribution pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual applied class coefficient indexing a weighted contribution."
+msgstr "L’unique coefficient effectif appliqué de classe indexant une contribution pondérée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a reported contribution to its original retrieval class through the actual coefficient."
+msgstr "Utiliser pour relier une contribution rapportée à sa classe originale de recherche par le coefficient effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an unrelated coefficient or copying class identity into a second contribution coordinate."
+msgstr "Éviter de substituer un coefficient sans rapport ou de copier l’identité de classe dans une seconde coordonnée de contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a coefficient retained by the application of the unique owning score."
+msgstr "Référencer un coefficient conservé par l’application de l’unique score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate identity follows the score owner. The coefficient must be represented exactly once in that score’s contribution set."
+msgstr "L’identité du candidat suit le score propriétaire. Le coefficient doit être représenté exactement une fois dans l’ensemble des contributions de ce score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:part gmeow:contributionCoefficient ex:coefficient . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:part gmeow:contributionCoefficient ex:coefficient . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted contribution minimum-rank witness"
+msgstr "témoin de rang minimal de contribution pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "At most one original ranked entry witnessing the minimum delivered rank for the class and candidate of this contribution."
+msgstr "Au plus une entrée originale classée témoignant du rang minimal livré pour la classe et le candidat de cette contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original source rank evidence without replacing its occurrence identity."
+msgstr "Utiliser pour conserver les preuves originales de rang source sans remplacer leur identité d’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a witness for an absent class/candidate or requiring distinct tied minimum entries to merge."
+msgstr "Éviter de fabriquer un témoin pour un couple classe/candidat absent ou d’exiger la fusion d’entrées distinctes ex æquo au minimum."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an entry in an original retained list with the applied class and score candidate, and preserve its supplied rank no greater than every matching original rank."
+msgstr "Référencer une entrée dans une liste originale conservée avec la classe appliquée et le candidat du score, et préserver son rang fourni inférieur ou égal à chaque rang original correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A present delivery requires a witness even for a zero contribution. Without an original match no witness is permitted and the contribution is decimal zero."
+msgstr "Une livraison présente exige un témoin même pour une contribution nulle. Sans correspondance originale, aucun témoin n’est permis et la contribution est un zéro décimal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:part gmeow:contributionRankEntry ex:originalEntry . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:part gmeow:contributionRankEntry ex:originalEntry . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied fusion score original candidate"
+msgstr "candidat original du score de fusion appliqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original candidate resource identified by an applied fusion score."
+msgstr "L’unique ressource originale de candidat identifiée par un score de fusion appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve candidate identity across original union, answer and quantitative account."
+msgstr "Utiliser pour préserver l’identité du candidat entre l’union originale, la réponse et le compte rendu quantitatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving identity from score equality, output position or a display label."
+msgstr "Éviter de déduire l’identité de l’égalité des scores, de la position de sortie ou d’une étiquette d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a queryCandidate of the original union of the owning application."
+msgstr "Référencer un queryCandidate de l’union originale de l’application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each original candidate has exactly one applied score in an application; separate calls retain separate score occurrences."
+msgstr "Chaque candidat original possède exactement un score appliqué dans une application ; des appels distincts conservent des occurrences de scores distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:appliedScoreCandidate ex:candidate . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:score gmeow:appliedScoreCandidate ex:candidate . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score declared fold step"
+msgstr "étape déclarée de repli du score pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete finite set of declared mathematical witness steps for an applied score."
+msgstr "Un membre de l’ensemble complet fini d’étapes déclarées de témoins mathématiques pour un score appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the zero base and every positive contribution step."
+msgstr "Utiliser pour conserver la base nulle et chaque étape positive de contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming native serialized accumulator metadata or leaving a predecessor gap."
+msgstr "Éviter de revendiquer des métadonnées sérialisées d’accumulateur natif ou de laisser une lacune de prédécesseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the base and all uniquely indexed steps bounded by weightedScoreFinalStep; each typed step has one score owner."
+msgstr "Référencer la base et toutes les étapes à indices uniques bornées par weightedScoreFinalStep ; chaque étape typée a un score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every original score contribution is used exactly once, including equal and zero values. These steps are declared arithmetic witnesses."
+msgstr "Chaque contribution originale de score est utilisée exactement une fois, y compris les valeurs égales et nulles. Ces étapes sont des témoins arithmétiques déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreFoldStep ex:base, ex:stepOne, ex:stepTwo . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:score gmeow:weightedScoreFoldStep ex:base, ex:stepOne, ex:stepTwo . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score final witness step"
+msgstr "étape témoin finale du score pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one final step of the declared finite-sum witness for an applied score, carrying a total equal to the reported decimal score."
+msgstr "L’unique étape finale du témoin déclaré de somme finie pour un score appliqué, portant un total égal au score décimal rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bound the complete witness and compare its final Quantity magnitude to the reported score."
+msgstr "Utiliser pour borner le témoin complet et comparer la valeur numérique de sa Quantity finale au score rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring total and score Quantity resources to be identical or certifying native admission from declared sum equality."
+msgstr "Éviter d’exiger l’identité des ressources Quantity de total et de score ou de certifier l’admission native par l’égalité de somme déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one retained fold step whose index bounds every step and whose total decimal value equals the score value."
+msgstr "Référencer une étape de repli conservée dont l’indice borne chaque étape et dont la valeur décimale totale égale celle du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The final step is a member of the same score fold. With nonempty source classes every score has at least one positive step after its base."
+msgstr "L’étape finale est un membre du repli du même score. Avec un ensemble non vide de classes sources, chaque score possède au moins une étape positive après sa base."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreFinalStep ex:stepTwo . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:score gmeow:weightedScoreFinalStep ex:stepTwo . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness partial total"
+msgstr "total partiel du témoin pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one coordinated partial-sum Quantity carrying the decimal total of a declared fold step."
+msgstr "L’unique Quantity coordonnée de somme partielle portant le total décimal d’une étape déclarée de repli."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to separate control-step identity from its dimensioned mathematical magnitude."
+msgstr "Utiliser pour séparer l’identité d’étape de contrôle de sa valeur numérique mathématique dimensionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a shadow scalar total on the step or adding a source-reported profile link merely to inherit witness context."
+msgstr "Éviter de placer un total scalaire parallèle sur l’étape ou d’ajouter un lien de profil rapporté par la source simplement pour hériter du contexte témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryWeightedPartialSum with required decimal value, explicit dimensionless dimension and the exact frame of the owning score."
+msgstr "Référencer une QueryWeightedPartialSum avec valeur décimale obligatoire, dimension explicitement sans dimension et repère exact du score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible steps may share the total resource; no unique inverse owner or forced Quantity disjointness is introduced."
+msgstr "Des étapes compatibles peuvent partager la ressource de total ; aucun propriétaire inverse unique ni aucune déclaration imposée de ressources Quantity disjointes n’est introduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepOne gmeow:weightedStepTotal ex:partialTotal . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:stepOne gmeow:weightedStepTotal ex:partialTotal . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness previous step"
+msgstr "étape précédente du témoin pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The unique same-score immediate predecessor of a positive-index declared fold step, absent on the zero base."
+msgstr "L’unique prédécesseur immédiat appartenant au même score d’une étape déclarée de repli à indice positif, absent sur la base nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to express a gap-free finite mathematical sum witness."
+msgstr "Utiliser pour exprimer un témoin mathématique fini de somme sans lacunes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a predecessor on the base, crossing score owners or inventing a native execution trace."
+msgstr "Éviter de créer un prédécesseur sur la base, de franchir les limites des scores propriétaires ou d’inventer une trace d’exécution native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each positive step reference a retained step whose natural index plus one equals the current index."
+msgstr "Pour chaque étape positive, référencer une étape conservée dont l’indice naturel plus un égale l’indice courant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The maximum is one, positive steps require it and base steps forbid it. The actual index equation uses the existing result-first termSum signature."
+msgstr "La cardinalité maximale est un ; les étapes positives exigent le lien et les étapes de base l’interdisent. L’équation effective des indices utilise la signature existante termSum avec résultat en premier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepTwo gmeow:weightedPreviousStep ex:stepOne . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:stepTwo gmeow:weightedPreviousStep ex:stepOne . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness added contribution"
+msgstr "contribution ajoutée du témoin pondéré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual score contribution added by a positive-index declared fold step, absent on the zero base."
+msgstr "L’unique contribution effective de score ajoutée par une étape déclarée de repli à indice positif, absente sur la base nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to account for every reported component exactly once in the finite sum."
+msgstr "Utiliser pour rendre compte de chaque composante rapportée exactement une fois dans la somme finie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding unrelated contributions, counting a component twice or deduplicating equal-valued components."
+msgstr "Éviter d’ajouter des contributions sans rapport, de compter deux fois une composante ou de dédupliquer les composantes de même valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an actual contribution of the score that owns the step; the current total equals the preceding total plus the exact decimal value of that contribution."
+msgstr "Référencer une contribution effective du score propriétaire de l’étape ; le total courant égale le total précédent plus la valeur décimale exacte de cette contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every contribution has one positive step in its score and every positive step has one contribution. This checks declared summation without validating native floor division."
+msgstr "Chaque contribution possède une étape positive dans son score et chaque étape positive possède une contribution. Cela vérifie la sommation déclarée sans valider la division native avec arrondi inférieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepTwo gmeow:weightedStepContribution ex:rightPart . Other required account bindings are omitted."
+msgstr "Fragment fictif à portée limitée : ex:stepTwo gmeow:weightedStepContribution ex:rightPart . Les autres liens obligatoires du compte rendu sont omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion profile context law"
+msgstr "loi du contexte de profil de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected application profile declares the weighted scale-eighteen convention and the dimensionless interpretation."
+msgstr "Le profil sélectionné de l’application déclare la convention pondérée à dix-huit décimales et l’interprétation sans dimension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the chosen source convention and quantitative interpretation explicit."
+msgstr "Utiliser pour garder explicites la convention source choisie et l’interprétation quantitative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a different convention merely because decimal values agree."
+msgstr "Éviter d’accepter une autre convention au seul motif que les valeurs décimales concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the supplied convention and dimension on the selected profile and compare them with the selected weighted convention and math:dimensionless."
+msgstr "Lier la convention et la dimension fournies sur le profil sélectionné et les comparer à la convention pondérée sélectionnée et à math:dimensionless."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks declared context, not native profile content, digest authenticity or arithmetic execution."
+msgstr "Cela vérifie le contexte déclaré, pas le contenu natif du profil, l’authenticité de l’empreinte ou l’exécution arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional profile selecting the unit scale-twelve convention cannot serve this selected weighted application."
+msgstr "Exemple fictif à portée limitée : Un profil fictif sélectionnant la convention unitaire à douze décimales ne peut pas servir à cette application pondérée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion output preservation law"
+msgstr "loi de préservation de sortie de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The weighted answer retains the original input union and exactly the same query, candidate and loss-ledger resources in both directions."
+msgstr "La réponse pondérée conserve l’union d’entrée originale et exactement les mêmes ressources de requêtes, candidats et registres de pertes dans les deux sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original evidence across the reported answer occurrence."
+msgstr "Utiliser pour préserver les preuves originales à travers l’occurrence de réponse rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying identities, omitting original links or adding unrelated output membership."
+msgstr "Éviter de copier les identités, d’omettre les liens originaux ou d’ajouter une appartenance de sortie sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under one application guard require original-union agreement and both directions for queryAnswerFor, queryCandidate and queryLossLedger."
+msgstr "Sous une garde unique d’application, exiger la concordance de l’union originale et les deux sens pour queryAnswerFor, queryCandidate et queryLossLedger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No rule creates verdicts from losses or promotes a successful fusion into complete recall."
+msgstr "Aucune règle ne crée de verdicts à partir des pertes ni ne transforme une fusion réussie en rappel complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional answer that adds an unrelated candidate fails even if it retains every original candidate."
+msgstr "Exemple fictif à portée limitée : Une réponse fictive qui ajoute un candidat sans rapport est rejetée même si elle conserve chaque candidat original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion input inventory law"
+msgstr "loi de l’inventaire d’entrée de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected original list has its supplied class, and original-union candidate membership equals the membership of its retained lists."
+msgstr "Chaque liste originale sélectionnée possède sa classe fournie, et l’appartenance des candidats à l’union originale égale l’appartenance à ses listes conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the original input inventory in the selected application context."
+msgstr "Utiliser pour valider l’inventaire original d’entrée dans le contexte de l’application sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a prior union execution or duplicating existing ranked-entry ownership and list-membership laws."
+msgstr "Éviter d’inventer une exécution préalable de l’union ou de dupliquer les lois existantes de propriété des entrées classées et d’appartenance aux listes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require each retained list class, retain each list candidate in the union and require every union candidate in an original retained list."
+msgstr "Exiger la classe de chaque liste conservée, conserver chaque candidat de liste dans l’union et exiger chaque candidat d’union dans une liste originale conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing ranked-list laws already equate list membership with original entry identities. Standalone unions acquire no new global restrictions."
+msgstr "Les lois existantes de listes classées assimilent déjà l’appartenance aux listes aux identités originales d’entrées. Les unions autonomes n’acquièrent pas de nouvelles restrictions globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional union cannot retain a candidate that occurs in none of its original retained lists."
+msgstr "Exemple fictif à portée limitée : Une union fictive ne peut pas conserver un candidat qui ne figure dans aucune de ses listes originales conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient inventory law"
+msgstr "loi de l’inventaire des coefficients de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Applied coefficients cover exactly the original retrieval classes and are unique by class and numeric source ordinal within the application."
+msgstr "Les coefficients appliqués couvrent exactement les classes originales de recherche et sont uniques par classe et par ordinal numérique source dans l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete class-indexed coefficient inventory."
+msgstr "Utiliser pour conserver un inventaire complet de coefficients indexé par classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging original lists by class label or treating ordinal uniqueness as authenticated source order."
+msgstr "Éviter de fusionner les listes originales par étiquette de classe ou de traiter l’unicité des ordinaux comme un ordre source authentifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check both class-coverage directions and pairwise coefficient identity when class resources or numeric ordinal values agree."
+msgstr "Vérifier les deux sens de couverture des classes et l’identité des coefficients par paires lorsque les ressources de classes ou les valeurs numériques d’ordinaux concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct original lists may name the same class. Actual source order and profile digest coverage remain import evidence."
+msgstr "Des listes originales distinctes peuvent nommer la même classe. L’ordre source effectif et la couverture de l’empreinte du profil restent des preuves d’importation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional coefficient resources naming the same original class fail within one application."
+msgstr "Exemple fictif à portée limitée : Deux ressources fictives de coefficients nommant la même classe originale sont rejetées dans une même application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient context law"
+msgstr "loi du contexte des coefficients de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied coefficient uses the exact reference-frame resource selected by its owning application profile."
+msgstr "Chaque coefficient appliqué utilise la ressource exacte de repère de référence sélectionnée par le profil de son application propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain compatible quantitative context on actual applied coefficients."
+msgstr "Utiliser pour conserver un contexte quantitatif compatible sur les coefficients effectivement appliqués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal coefficient values as context equivalence."
+msgstr "Éviter de traiter des valeurs égales de coefficients comme une équivalence de contextes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the selected profile frame and coefficient frame before exact resource comparison."
+msgstr "Lier le repère du profil sélectionné et celui du coefficient avant la comparaison exacte des ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Dimensionless dimension and required frame completeness are separate local restrictions. Compatible applications may share a coordinated coefficient."
+msgstr "La dimension sans dimension et la complétude du repère obligatoire relèvent de restrictions locales distinctes. Des applications compatibles peuvent partager un coefficient coordonné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional coefficient with a different stored frame fails even when its decimal value is one."
+msgstr "Exemple fictif à portée limitée : Un coefficient fictif dont le repère stocké diffère est rejeté même lorsque sa valeur décimale est un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion measured mode law"
+msgstr "loi du mode mesuré de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Boolean mode requires full fits when measured, and forbids fits while requiring unit applied coefficients when unmeasured."
+msgstr "Le mode booléen effectif exige des ajustements complets lorsqu’il est mesuré, et interdit les ajustements tout en exigeant des coefficients appliqués unitaires lorsqu’il est non mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the selected source measured or unmeasured branch."
+msgstr "Utiliser pour préserver la branche source sélectionnée mesurée ou non mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing mode to hide missing full fits or deriving measurement status from unit values."
+msgstr "Éviter de changer le mode pour masquer des ajustements complets absents ou de déduire le statut de mesure de valeurs unitaires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare the bound typed Boolean by value; true requires a fit, false forbids fits and requires every applied coefficient to equal exact decimal one."
+msgstr "Comparer par valeur le booléen typé lié ; true exige un ajustement, false interdit les ajustements et exige que chaque coefficient appliqué égale exactement un en décimal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A measured fit may legitimately contain units. Missing fit evidence never authorizes changing true to false."
+msgstr "Un ajustement mesuré peut légitimement contenir des coefficients unitaires. Des preuves d’ajustement absentes n’autorisent jamais à changer true en false."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional unmeasured report with a nonunit coefficient fails; a measured unit coefficient remains permitted."
+msgstr "Exemple fictif à portée limitée : Un rapport fictif non mesuré avec un coefficient non unitaire est rejeté ; un coefficient unitaire mesuré reste permis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fit agreement law"
+msgstr "loi de concordance des ajustements de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each actual selected full fit has exactly the applied coefficient class set with equal decimal values, and every actually supplied fit-weight frame equals the selected profile frame."
+msgstr "Chaque ajustement complet effectif sélectionné possède exactement l’ensemble des classes de coefficients appliqués avec des valeurs décimales égales, et chaque repère effectivement fourni de poids ajusté égale celui du profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect applied coefficients to complete original measured evidence without dropping contradictory context."
+msgstr "Utiliser pour relier les coefficients appliqués aux preuves originales complètes de mesure sans éliminer un contexte contradictoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fit summaries, inventing judged sets or silently converting supplied unit metadata."
+msgstr "Éviter de substituer des résumés d’ajustements, d’inventer des ensembles évalués ou de convertir silencieusement les métadonnées d’unité fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check both class/value directions; when a fitted weight actually has a frame, compare each such frame with the selected profile frame."
+msgstr "Vérifier les deux sens de classes et de valeurs ; lorsqu’un poids ajusté possède effectivement un repère, comparer chaque repère ainsi fourni à celui du profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Absent fitted-weight frames remain legal. Supplied unit metadata must preserve compatible native raw-scalar interpretation at import; this law supplies no generic unit equivalence or conversion."
+msgstr "Les repères absents de poids ajustés restent licites. Les métadonnées d’unité fournies doivent préserver à l’importation une interprétation native compatible de scalaire brut ; cette loi ne fournit aucune équivalence ou conversion générique d’unités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional fitted weight with the correct class and decimal value still fails when its supplied frame differs from the selected frame."
+msgstr "Exemple fictif à portée limitée : Un poids ajusté fictif dont la classe et la valeur décimale sont correctes est néanmoins rejeté lorsque son repère fourni diffère du repère sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score account law"
+msgstr "loi du compte rendu des scores de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported application has exactly one applied score for every original candidate and no unrelated score candidate."
+msgstr "L’application rapportée possède exactement un score appliqué par candidat original et aucun candidat de score sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete candidate-indexed quantitative account."
+msgstr "Utiliser pour conserver un compte rendu quantitatif complet indexé par candidats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a score to an empty union or merging score occurrences across calls."
+msgstr "Éviter d’ajouter un score à une union vide ou de fusionner des occurrences de scores entre appels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require candidate-to-score coverage, score-to-original-candidate inclusion and pairwise score identity for equal candidates within the application."
+msgstr "Exiger la couverture des candidats vers les scores, l’inclusion des scores dans les candidats originaux et l’identité des scores par paires pour des candidats égaux dans l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate identity remains the original resource. Equal score magnitudes do not equate candidates or calls."
+msgstr "L’identité du candidat reste la ressource originale. Des valeurs numériques de scores égales n’identifient pas des candidats ou appels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-candidate union with only one applied score fails."
+msgstr "Exemple fictif à portée limitée : Une union fictive de deux candidats avec un seul score appliqué est rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion answer owner law"
+msgstr "loi de propriété des réponses de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed weighted answer has one and only one typed incoming weighted application owner."
+msgstr "Chaque réponse pondérée typée possède une et une seule application pondérée propriétaire entrante typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep answer occurrences tied to actual reported applications."
+msgstr "Utiliser pour garder les occurrences de réponses liées aux applications effectivement rapportées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated typed answers or treating inverse ownership as source authentication."
+msgstr "Éviter d’accepter des réponses typées isolées ou de traiter la propriété inverse comme une authentification source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming application and compare any two typed application owners of the same answer."
+msgstr "Exiger une application entrante et comparer deux applications propriétaires typées quelconques de la même réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same native result supplies scores and ordering; later order enrichment belongs to this answer occurrence."
+msgstr "Le même résultat natif fournit les scores et l’ordre ; un enrichissement ultérieur d’ordre appartient à cette occurrence de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional answer referenced by two distinct application occurrences fails unique ownership."
+msgstr "Exemple fictif à portée limitée : Une réponse fictive référencée par deux occurrences distinctes d’applications enfreint la propriété unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score owner law"
+msgstr "loi de propriété des scores de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied score has one and only one typed incoming weighted application owner."
+msgstr "Chaque score appliqué typé possède une et une seule application pondérée propriétaire entrante typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to give each applied score an unambiguous occurrence context."
+msgstr "Utiliser pour donner à chaque score appliqué un contexte d’occurrence sans ambiguïté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an isolated score or sharing one score occurrence across distinct calls."
+msgstr "Éviter d’accepter un score isolé ou de partager une occurrence de score entre appels distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming application ownership and exact equality of any two typed owners."
+msgstr "Exiger une propriété entrante d’application et l’égalité exacte de deux propriétaires typés quelconques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantitative equality does not merge score resources. The inherited foundation still requires magnitude, dimension, frame and selected profile."
+msgstr "L’égalité quantitative ne fusionne pas les ressources de scores. Le socle hérité exige toujours la valeur numérique, la dimension, le repère et le profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional score with no application owner fails even when all its quantitative coordinates are present."
+msgstr "Exemple fictif à portée limitée : Un score fictif sans application propriétaire est rejeté même lorsque toutes ses coordonnées quantitatives sont présentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution owner law"
+msgstr "loi de propriété des contributions de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed weighted contribution has one and only one typed incoming applied-score owner."
+msgstr "Chaque contribution pondérée typée possède un et un seul score appliqué propriétaire entrant typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to derive candidate and application context through one score occurrence."
+msgstr "Utiliser pour déduire le contexte de candidat et d’application par une seule occurrence de score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a contribution occurrence across distinct scores or duplicating its candidate coordinate."
+msgstr "Éviter de partager une occurrence de contribution entre scores distincts ou de dupliquer sa coordonnée de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed score ownership and compare any two typed owners of the same contribution."
+msgstr "Exiger une propriété entrante de score typé et comparer deux propriétaires typés quelconques de la même contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal-valued components remain distinct contribution occurrences where their coefficient or score context differs."
+msgstr "Les composantes de même valeur restent des occurrences distinctes de contributions lorsque leur coefficient ou contexte de score diffère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional contribution linked by two distinct scores fails even when those scores have equal values."
+msgstr "Exemple fictif à portée limitée : Une contribution fictive reliée par deux scores distincts est rejetée même lorsque ces scores ont des valeurs égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score profile law"
+msgstr "loi du profil des scores de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each applied score selects the exact profile resource selected by its owning weighted application."
+msgstr "Chaque score appliqué sélectionne la ressource exacte de profil sélectionnée par son application pondérée propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join reported magnitudes to the application declared interpretation."
+msgstr "Utiliser pour joindre les valeurs numériques rapportées à l’interprétation déclarée de l’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing profile resource agreement with equal native bytes or name/version metadata."
+msgstr "Éviter de remplacer la concordance des ressources de profils par des octets natifs égaux ou des métadonnées de nom et version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind weightedFusionProfile and each score reportedFusionScoreProfile, then compare the actual resources."
+msgstr "Lier weightedFusionProfile et le reportedFusionScoreProfile de chaque score, puis comparer les ressources effectives."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The foundation separately enforces score/profile dimension and frame agreement. This law authenticates no source call."
+msgstr "Le socle impose séparément la concordance de dimension et de repère entre score et profil. Cette loi n’authentifie aucun appel source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional profile records with equal digest literals cannot be substituted for one another in this application link."
+msgstr "Exemple fictif à portée limitée : Deux enregistrements fictifs de profils avec des littéraux d’empreinte égaux ne peuvent pas être substitués l’un à l’autre dans ce lien d’application."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution account law"
+msgstr "loi du compte rendu des contributions de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied score has exactly one reported contribution per actual applied coefficient and no contribution for an unrelated coefficient."
+msgstr "Chaque score appliqué possède exactement une contribution rapportée par coefficient effectivement appliqué et aucune contribution pour un coefficient sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the complete coefficient-indexed component account."
+msgstr "Utiliser pour conserver le compte rendu complet des composantes indexé par coefficients."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid discarding zero components or deduplicating equal decimal values."
+msgstr "Éviter d’éliminer les composantes nulles ou de dédupliquer des valeurs décimales égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require contribution coverage for each coefficient, reverse coefficient inclusion and pairwise contribution uniqueness for the same score and coefficient."
+msgstr "Exiger la couverture des contributions pour chaque coefficient, l’inclusion inverse des coefficients et l’unicité des contributions par paires pour un même score et coefficient."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiplicity follows resource and coefficient identity, not distinct magnitude. Native contribution arithmetic remains separately unqualified."
+msgstr "La multiplicité suit l’identité de ressource et de coefficient, pas une valeur numérique distincte. L’arithmétique native des contributions n’est pas qualifiée par ce compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional score with two equal-valued contributions for different coefficients retains both components."
+msgstr "Exemple fictif à portée limitée : Un score fictif possédant deux contributions de même valeur pour des coefficients différents conserve les deux composantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution context law"
+msgstr "loi du contexte des contributions de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported contribution uses the exact selected application-profile frame."
+msgstr "Chaque contribution rapportée utilise le repère exact du profil d’application sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep component magnitudes in the same declared quantitative context."
+msgstr "Utiliser pour garder les valeurs numériques des composantes dans le même contexte quantitatif déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining values from different stored frames because their decimals agree."
+msgstr "Éviter de combiner des valeurs de repères stockés différents parce que leurs décimaux concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the contribution through its score and application, bind both frames and compare their resources."
+msgstr "Suivre la contribution par son score et son application, lier les deux repères et comparer leurs ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Explicit dimensionless dimension is required locally. No native frame metadata is invented."
+msgstr "Une dimension explicitement sans dimension est exigée localement. Aucune métadonnée native de repère n’est inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional zero contribution with a different supplied frame still fails."
+msgstr "Exemple fictif à portée limitée : Une contribution fictive nulle avec un repère fourni différent est néanmoins rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion rank witness legitimacy law"
+msgstr "loi de légitimité des témoins de rang de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each linked rank witness is an original entry of a retained input list with the contribution coefficient class and score candidate."
+msgstr "Chaque témoin de rang relié est une entrée originale d’une liste d’entrée conservée avec la classe du coefficient de contribution et le candidat du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual original rank evidence identity."
+msgstr "Utiliser pour préserver l’identité effective des preuves originales de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a witness or substituting a copied entry from another union."
+msgstr "Éviter de fabriquer un témoin ou de substituer une entrée copiée depuis une autre union."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a retained original list with the matching class, linked original entry and original candidate."
+msgstr "Exiger une liste originale conservée avec la classe correspondante, l’entrée originale reliée et le candidat original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The witness rank and unique list ownership remain governed by the existing ranked-entry contract."
+msgstr "Le rang témoin et la propriété unique par la liste restent régis par le contrat existant d’entrées classées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional witness from an unrelated list fails despite carrying the same numeric rank."
+msgstr "Exemple fictif à portée limitée : Un témoin fictif provenant d’une liste sans rapport est rejeté bien qu’il porte le même rang numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion rank witness presence law"
+msgstr "loi de présence des témoins de rang de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A class and candidate delivered by any original retained list require a rank-entry witness on the corresponding contribution."
+msgstr "Une classe et un candidat livrés par une liste originale conservée quelconque exigent un témoin d’entrée de rang sur la contribution correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain evidence for every delivered class/candidate pair."
+msgstr "Utiliser pour conserver les preuves de chaque couple livré de classe et de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a zero value as permission to omit an actual rank witness."
+msgstr "Éviter de traiter une valeur nulle comme une permission d’omettre un témoin effectif de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each original matching entry require some contributionRankEntry; legitimacy and minimum laws constrain that witness."
+msgstr "Pour chaque entrée originale correspondante, exiger une contributionRankEntry ; les lois de légitimité et de minimum contraignent ce témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal minimum original entries need not merge and the witness need not be every tied entry."
+msgstr "Les entrées originales égales au minimum n’ont pas à fusionner et le témoin n’a pas à être chaque entrée ex æquo."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional delivered candidate with a zero contribution still requires its original rank witness."
+msgstr "Exemple fictif à portée limitée : Un candidat fictif livré avec une contribution nulle exige toujours son témoin original de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion minimum rank law"
+msgstr "loi de rang minimal de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained contribution witness rank is no greater than every original rank for the same class and candidate."
+msgstr "Le rang témoin conservé de contribution est inférieur ou égal à chaque rang original pour la même classe et le même candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve source minimum-rank selection across original retained lists."
+msgstr "Utiliser pour préserver la sélection source de rang minimal entre les listes originales conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid renumbering tied or truncated ranks or inventing a preferred entry among equal minima."
+msgstr "Éviter de renuméroter les rangs ex æquo ou tronqués ou d’inventer une entrée privilégiée parmi des minima égaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the witness rank and every original matching entry rank before exact integer comparison."
+msgstr "Lier le rang témoin et le rang de chaque entrée originale correspondante avant comparaison entière exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Minimum rank is validated; authenticity of source delivery and native admission is not established."
+msgstr "Le rang minimal est validé ; l’authenticité de la livraison source et l’admission native ne sont pas établies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: For fictional matching ranks forty and fifty, a witness at fifty fails the minimum condition."
+msgstr "Exemple fictif à portée limitée : Pour des rangs correspondants fictifs de quarante et cinquante, un témoin au rang cinquante enfreint la condition de minimum."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion source rank range law"
+msgstr "loi de l’intervalle des rangs sources de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every original input entry selected by this weighted account has a rank within the positive unsigned native rank capacity."
+msgstr "Chaque entrée originale d’entrée sélectionnée par ce compte rendu pondéré possède un rang dans la capacité native positive non signée des rangs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source positive u64 rank boundary in the selected application context."
+msgstr "Utiliser pour conserver la limite source de rang positif u64 dans le contexte de l’application sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid narrowing all ranked-query entries globally or accepting a larger positive rank here."
+msgstr "Éviter de restreindre globalement toutes les entrées de requêtes classées ou d’accepter ici un rang positif plus grand."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind original selected entry ranks and compare them with exact positive integer 18446744073709551615."
+msgstr "Lier les rangs des entrées originales sélectionnées et les comparer à l’entier positif exact 18446744073709551615."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing entry restrictions require a positive integer; this law adds only the selected source upper bound and does not authenticate admission."
+msgstr "Les restrictions existantes d’entrées exigent un entier positif ; cette loi ajoute uniquement la borne supérieure source sélectionnée et n’authentifie pas l’admission."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional selected rank above the unsigned capacity fails before any native arithmetic claim."
+msgstr "Exemple fictif à portée limitée : Un rang fictif sélectionné dépassant la capacité non signée est rejeté avant toute assertion d’arithmétique native."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion unwitnessed zero law"
+msgstr "loi de zéro sans témoin de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported contribution without a rank-entry witness has exact decimal value zero."
+msgstr "Une contribution rapportée sans témoin d’entrée de rang possède la valeur décimale exacte zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the absent-class zero boundary."
+msgstr "Utiliser pour préserver la limite du zéro des classes absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring absence merely from zero or fabricating an entry to justify a nonzero value."
+msgstr "Éviter de déduire l’absence du seul zéro ou de fabriquer une entrée pour justifier une valeur non nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under a contribution guard bind its value and test the absence of a rank-entry witness before exact zero comparison."
+msgstr "Sous une garde de contribution, lier sa valeur et tester l’absence de témoin d’entrée de rang avant comparaison exacte à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Witness presence and legitimacy distinguish absent classes from delivered ranks that truncate to zero."
+msgstr "La présence et la légitimité des témoins distinguent les classes absentes des rangs livrés qui sont tronqués à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional unwitnessed nonzero contribution fails; a witnessed zero can remain valid."
+msgstr "Exemple fictif à portée limitée : Une contribution fictive non nulle sans témoin est rejetée ; un zéro avec témoin peut rester valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient range law"
+msgstr "loi de l’intervalle des coefficients de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied coefficient is greater than decimal zero and no greater than the exact weighted unsigned carrier capacity."
+msgstr "Chaque coefficient appliqué est supérieur au zéro décimal et inférieur ou égal à la capacité exacte du support pondéré non signé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the necessary selected-source coefficient range."
+msgstr "Utiliser pour valider l’intervalle nécessaire des coefficients de la source sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming fixed-point quantum membership or native admission from a range check."
+msgstr "Éviter de revendiquer le respect du pas de quantification fixe ou l’admission native à partir d’une vérification d’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the coefficient decimal value and compare it with zero and exact decimal 340282366920938463463.374607431768211455."
+msgstr "Lier la valeur décimale du coefficient et la comparer à zéro et au décimal exact 340282366920938463463.374607431768211455."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finer-quantum decimals within range are not rejected by this range law. No normalization or probability interpretation is imposed."
+msgstr "Les décimaux plus fins que le pas de quantification mais dans l’intervalle ne sont pas rejetés par cette loi d’intervalle. Aucune normalisation ni interprétation probabiliste n’est imposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional zero applied coefficient fails even in measured mode."
+msgstr "Exemple fictif à portée limitée : Un coefficient appliqué fictif nul est rejeté même en mode mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution nonnegative law"
+msgstr "loi de non-négativité des contributions de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported weighted contribution has a nonnegative exact decimal magnitude."
+msgstr "Chaque contribution pondérée rapportée possède une valeur numérique décimale exacte non négative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the complete declared sum monotone from its zero base."
+msgstr "Utiliser pour garder la somme complète déclarée monotone depuis sa base nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a redundant independent component upper bound or treating nonnegativity as the native rank equation."
+msgstr "Éviter d’ajouter une borne supérieure indépendante redondante des composantes ou de traiter la non-négativité comme l’équation native de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each contribution decimal value and compare it with exact decimal zero."
+msgstr "Lier la valeur décimale de chaque contribution et la comparer au zéro décimal exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complete finite summation and the foundation final-score bound imply the component upper bound without another range law."
+msgstr "La sommation finie complète et la borne du score final du socle impliquent la borne supérieure des composantes sans autre loi d’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional negative component fails even when another component would compensate its value."
+msgstr "Exemple fictif à portée limitée : Une composante fictive négative est rejetée même lorsqu’une autre composante compenserait sa valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold step owner law"
+msgstr "loi de propriété des étapes de repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed declared fold step has one and only one typed incoming applied-score owner."
+msgstr "Chaque étape typée déclarée de repli possède un et un seul score appliqué propriétaire entrant typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep witness control steps within one candidate-score occurrence."
+msgstr "Utiliser pour garder les étapes témoins de contrôle dans une seule occurrence de score de candidat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a control-step identity across scores or accepting isolated typed steps."
+msgstr "Éviter de partager une identité d’étape de contrôle entre scores ou d’accepter des étapes typées isolées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed score membership and exact equality of any two score owners."
+msgstr "Exiger l’appartenance entrante d’un score typé et l’égalité exacte de deux scores propriétaires quelconques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Total Quantity resources may be shared across compatible steps; this ownership law applies to control steps only."
+msgstr "Les ressources Quantity de total peuvent être partagées entre étapes compatibles ; cette loi de propriété s’applique uniquement aux étapes de contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional step reused as a member of two distinct score folds fails."
+msgstr "Exemple fictif à portée limitée : Une étape fictive réutilisée comme membre des replis de deux scores distincts est rejetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold base law"
+msgstr "loi de base du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied score has a zero-index base with total zero and no predecessor or added contribution."
+msgstr "Chaque score appliqué possède une base d’indice zéro avec total zéro et sans prédécesseur ni contribution ajoutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to establish the complete finite-sum witness base."
+msgstr "Utiliser pour établir la base du témoin complet de somme finie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary initial total or attaching native accumulator provenance to the witness."
+msgstr "Éviter d’utiliser un total initial arbitraire ou de rattacher au témoin une provenance d’accumulateur natif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a zero-valued natural index member; on every zero-index step require decimal-zero total and absence of predecessor and contribution links."
+msgstr "Exiger un membre à indice naturel de valeur zéro ; sur chaque étape d’indice zéro, exiger un total décimal nul et l’absence de liens de prédécesseur et de contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Index uniqueness gives one base. Boolean and numeric value comparisons do not rely on canonical lexical spelling."
+msgstr "L’unicité des indices donne une base unique. Les comparaisons de valeurs booléennes et numériques ne reposent pas sur une graphie lexicale canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional base with decimal total one fails even if later totals match the reported score."
+msgstr "Exemple fictif à portée limitée : Une base fictive de total décimal un est rejetée même si les totaux ultérieurs correspondent au score rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold positive step law"
+msgstr "loi des étapes positives du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each positive-index declared fold step has one predecessor in the same score and one added contribution."
+msgstr "Chaque étape déclarée de repli à indice positif possède un prédécesseur dans le même score et une contribution ajoutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent missing control links in the complete witness."
+msgstr "Utiliser pour empêcher des liens de contrôle absents dans le témoin complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid crossing score ownership or leaving a positive step without a component."
+msgstr "Éviter de franchir les limites de propriété des scores ou de laisser une étape positive sans composante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a same-score predecessor and contribution under the bound positive index; local maxima make both links single."
+msgstr "Exiger un prédécesseur du même score et une contribution sous l’indice positif lié ; les maxima locaux de cardinalité rendent les deux liens uniques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The contribution-account law separately requires the component to be an actual contribution of that score."
+msgstr "La loi de compte rendu des contributions exige séparément que la composante soit une contribution effective de ce score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional positive step with no predecessor fails regardless of its stored total."
+msgstr "Exemple fictif à portée limitée : Une étape fictive positive sans prédécesseur est rejetée quel que soit son total stocké."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold index law"
+msgstr "loi des indices du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each declared predecessor index plus one equals the current step index."
+msgstr "Chaque indice de prédécesseur déclaré plus un égale l’indice de l’étape courante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce immediate natural-index succession without gaps."
+msgstr "Utiliser pour imposer une succession immédiate d’indices naturels sans lacunes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a stored current index as the result binding of termSum; its result-first output must be fresh."
+msgstr "Éviter de traiter un indice courant stocké comme la liaison de résultat de termSum ; sa variable de sortie placée en premier doit être nouvelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both stored indices, use result-first termSum with a fresh result variable and compare that result with the already-bound current index."
+msgstr "Lier les deux indices stockés, utiliser termSum avec résultat en premier et une nouvelle variable de résultat, puis comparer ce résultat à l’indice courant déjà lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is declared mathematical control structure, not a source-native class ordinal or serialized execution trace."
+msgstr "C’est une structure déclarée de contrôle mathématique, pas un ordinal natif de classe source ni une trace sérialisée d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional step at index two cannot directly follow the base at index zero."
+msgstr "Exemple fictif à portée limitée : Une étape fictive d’indice deux ne peut pas suivre directement la base d’indice zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold recurrence law"
+msgstr "loi de récurrence du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each declared step total equals its preceding total plus the exact decimal magnitude of its added contribution."
+msgstr "Chaque total déclaré d’étape égale son total précédent plus la valeur numérique décimale exacte de sa contribution ajoutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the actual finite reported-decimal recurrence."
+msgstr "Utiliser pour imposer la récurrence finie effective des décimaux rapportés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding scalar shadow totals, rebinding an existing total variable or claiming native floor-division parity."
+msgstr "Éviter d’ajouter des totaux scalaires parallèles, de réaffecter une variable de total existante ou de revendiquer la parité avec la division native à arrondi inférieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind stored previous-total, component and current-total magnitudes before result-first termSum binds a fresh result; compare that result with the current stored magnitude."
+msgstr "Lier les valeurs numériques stockées du total précédent, de la composante et du total courant, puis utiliser termSum avec résultat en premier pour lier une nouvelle variable de résultat ; comparer ce résultat à la valeur numérique courante stockée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantity context follows the owning score. The ordinary addition signature is reused without a new intrinsic or generic arithmetic framework."
+msgstr "Le contexte de Quantity suit le score propriétaire. La signature ordinaire d’addition est réutilisée sans nouvel intrinsèque ni cadre arithmétique générique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Fictional equal components of decimal 0.01 yield successive totals 0.01 and 0.02 from a zero base."
+msgstr "Exemple fictif à portée limitée : Des composantes fictives égales de valeur décimale 0.01 donnent les totaux successifs 0.01 et 0.02 à partir d’une base nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold index uniqueness law"
+msgstr "loi d’unicité des indices du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No two declared steps of one applied score have the same numeric natural index."
+msgstr "Aucune paire d’étapes déclarées d’un même score appliqué ne possède le même indice naturel numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the finite witness unambiguous."
+msgstr "Utiliser pour garder le témoin fini sans ambiguïté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating different lexical spellings of the same numeric index as different positions."
+msgstr "Éviter de traiter des graphies lexicales différentes du même indice numérique comme des positions différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both stored indices independently, compare their numeric values and require identical step resources when equal."
+msgstr "Lier indépendamment les deux indices stockés, comparer leurs valeurs numériques et exiger des ressources d’étapes identiques lorsqu’elles sont égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Indices are scoped to one score; separate score witnesses may use the same natural indices."
+msgstr "Les indices sont délimités à un score ; des témoins de scores distincts peuvent utiliser les mêmes indices naturels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional step resources with the same numeric index in one fold fail uniqueness."
+msgstr "Exemple fictif à portée limitée : Deux ressources fictives d’étapes ayant le même indice numérique dans un repli enfreignent l’unicité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold final law"
+msgstr "loi de fin du repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The final declared step belongs to the score fold, bounds every step index and has a decimal total equal to the reported score value."
+msgstr "L’étape finale déclarée appartient au repli du score, borne chaque indice d’étape et possède un total décimal égal à la valeur du score rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to close the complete finite witness against the reported magnitude."
+msgstr "Utiliser pour clore le témoin complet fini par rapport à la valeur numérique rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaving extra steps above the final index or forcing final-total and reported-score resource identity."
+msgstr "Éviter de laisser des étapes supplémentaires au-delà de l’indice final ou d’imposer l’identité des ressources de total final et de score rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require final membership, compare every member index with the final index and compare the stored final Quantity value with the inherited score value."
+msgstr "Exiger l’appartenance finale, comparer chaque indice de membre à l’indice final et comparer la valeur stockée de la Quantity finale à la valeur héritée du score."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The foundation bounds the score. Nonnegative recurrence therefore bounds all owned partial sums without a separate range law."
+msgstr "Le socle borne le score. La récurrence non négative borne donc toutes les sommes partielles possédées sans loi d’intervalle distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional reported score of decimal 0.03 fails when its complete final witness total is decimal 0.02."
+msgstr "Exemple fictif à portée limitée : Un score fictif rapporté de valeur décimale 0.03 est rejeté lorsque le total de son témoin final complet est le décimal 0.02."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold contribution account law"
+msgstr "loi de compte rendu des contributions au repli de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared fold uses every actual score contribution in exactly one positive step and no unrelated contribution."
+msgstr "Le repli déclaré utilise chaque contribution effective du score dans exactement une étape positive et aucune contribution sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve complete contribution multiplicity in finite summation."
+msgstr "Utiliser pour préserver la multiplicité complète des contributions dans la sommation finie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using SUM DISTINCT semantics, skipping zeros or counting equal-valued components only once."
+msgstr "Éviter d’utiliser la sémantique SUM DISTINCT, d’omettre les zéros ou de compter une seule fois les composantes de même valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a positive step for every score contribution, reverse membership for every step contribution and step identity for repeated use of one component."
+msgstr "Exiger une étape positive pour chaque contribution du score, l’appartenance inverse pour chaque contribution d’étape et l’identité des étapes pour l’utilisation répétée d’une même composante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The base has no contribution and positive steps have one. Together with index and final laws this is a complete finite bijection."
+msgstr "La base n’a aucune contribution et les étapes positives en ont une. Avec les lois d’indices et de fin, cela constitue une bijection finie complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional equal-valued contributions require two positive steps, while one contribution cannot be added twice."
+msgstr "Exemple fictif à portée limitée : Deux contributions fictives de même valeur exigent deux étapes positives, tandis qu’une contribution ne peut pas être ajoutée deux fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion partial sum context law"
+msgstr "loi du contexte des sommes partielles de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every partial-total Quantity linked by an owned step has the exact frame of its owning applied score."
+msgstr "Chaque Quantity de total partiel reliée par une étape possédée a le repère exact de son score appliqué propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to carry the selected quantitative context onto derived mathematical witnesses."
+msgstr "Utiliser pour transmettre le contexte quantitatif sélectionné aux témoins mathématiques dérivés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding reportedFusionScoreProfile merely for witness context, inferring reporting from witness use alone or treating equal values as frame equivalence."
+msgstr "Éviter d’ajouter reportedFusionScoreProfile simplement pour le contexte témoin, de déduire un rapport source du seul usage comme témoin ou de traiter des valeurs égales comme une équivalence de repères."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the application, applied score and owned step to its total, bind both frames and compare the resources."
+msgstr "Suivre l’application, le score appliqué et l’étape possédée jusqu’à son total, lier les deux repères et comparer les ressources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Explicit dimensionless dimension is local to QueryWeightedPartialSum. Its profile context follows the score and application without deriving a source-reported profile edge from witness use."
+msgstr "La dimension explicitement sans dimension est locale à QueryWeightedPartialSum. Son contexte de profil suit le score et l’application sans déduire d’arête de profil rapporté par la source du seul usage comme témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional shared total can serve compatible steps with the same frame, but fails when one owning score has a different frame."
+msgstr "Exemple fictif à portée limitée : Un total fictif partagé peut servir à des étapes compatibles avec le même repère, mais est rejeté lorsque l’un des scores propriétaires possède un repère différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient owner presence law"
+msgstr "loi de présence de propriétaire des coefficients de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied coefficient has at least one typed incoming weighted application owner."
+msgstr "Chaque coefficient appliqué typé possède au moins une application pondérée propriétaire entrante typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent context-free applied coefficient records without forbidding compatible sharing."
+msgstr "Utiliser pour empêcher des enregistrements de coefficients appliqués sans contexte sans interdire un partage compatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse coefficient ownership or accepting an isolated applied carrier."
+msgstr "Éviter d’imposer une propriété inverse unique des coefficients ou d’accepter un support appliqué isolé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming weightedFusionCoefficient edge from a typed reported application."
+msgstr "Exiger une arête entrante weightedFusionCoefficient depuis une application rapportée typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every owning application separately enforces class, ordinal, mode, fit and frame compatibility; sharing does not merge applications."
+msgstr "Chaque application propriétaire impose séparément la compatibilité de classe, d’ordinal, de mode, d’ajustement et de repère ; le partage ne fusionne pas les applications."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional fully coordinated coefficient with no application owner fails this applied-account contract."
+msgstr "Exemple fictif à portée limitée : Un coefficient fictif entièrement coordonné sans application propriétaire est rejeté par ce contrat de compte rendu appliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion partial sum owner presence law"
+msgstr "loi de présence de propriétaire des sommes partielles de fusion pondérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed partial-sum Quantity has at least one typed incoming declared fold step."
+msgstr "Chaque Quantity typée de somme partielle possède au moins une étape déclarée de repli entrante typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep derived sum carriers within actual declared witness accounts."
+msgstr "Utiliser pour garder les supports dérivés de sommes dans des comptes rendus effectifs déclarés de témoins."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse total ownership or inferring source reporting solely from the witness role."
+msgstr "Éviter d’imposer une propriété inverse unique des totaux ou de déduire un rapport source du seul rôle de témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require weightedStepTotal from a typed QueryWeightedScoreFoldStep; that step separately requires its unique score owner."
+msgstr "Exiger weightedStepTotal depuis une QueryWeightedScoreFoldStep typée ; cette étape exige séparément son unique score propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible control steps may share the same total Quantity. No artificial disjointness from other compatible Quantity roles is imposed."
+msgstr "Des étapes de contrôle compatibles peuvent partager la même Quantity de total. Aucune déclaration artificielle de classes disjointes ne la sépare d’autres rôles compatibles de Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional total Quantity shared by two compatible steps is permitted; an isolated typed partial sum fails."
+msgstr "Exemple fictif à portée limitée : Une Quantity fictive de total partagée par deux étapes compatibles est permise ; une somme partielle typée isolée est rejetée."

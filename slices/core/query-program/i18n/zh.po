@@ -5975,3 +5975,1627 @@ msgstr "这些仅是载体范围检查。比所选量化步长更细的范围内
 msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCarrierRangeLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "A reported zero remains valid: ex:score math:quantityValue \"0\"^^xsd:decimal ."
 msgstr "报告零仍有效：ex:score math:quantityValue \"0\"^^xsd:decimal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion"
+msgstr "查询加权融合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description for the selected weighted reciprocal-rank application contract, retaining its original union evidence and declared source interpretation through application occurrences."
+msgstr "描述所选加权倒数名次应用契约的查询节点；通过应用出现保留原始并集证据及声明的来源解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe weighted fusion separately from the existing unweighted integer operator."
+msgstr "用于将加权融合与现有的非加权整数算子分开描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the node description as an execution, fitting procedure, ordering policy or permission to broaden ReciprocalRankFusion."
+msgstr "避免将节点描述视为执行、拟合过程、排序策略或扩大 ReciprocalRankFusion 契约的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual reported application through executesQueryNode and retain the complete coefficient, contribution, score and declared-sum account on that occurrence."
+msgstr "通过 executesQueryNode 关联实际报告的应用，并在该出现上保留完整的系数、贡献、分数及声明求和记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected application uses the weighted scale-eighteen source convention. Declared decimal summation does not certify raw fixed-point admission, rank truncation or native execution."
+msgstr "所选应用使用 18 位小数加权来源约定。声明的十进制求和不认证原始定点接纳、名次截断或原生执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:weightedNode a gmeow:QueryWeightedFusion . Its inherited effect and stratum bindings are omitted here."
+msgstr "虚构的局部片段：ex:weightedNode a gmeow:QueryWeightedFusion . 此处省略继承的效果及层级绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Application"
+msgstr "查询加权融合应用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer-reported successful weighted-fusion occurrence joining one original union, one answer occurrence, one selected profile interpretation, explicit measured status and complete applied quantitative evidence."
+msgstr "消费者报告的一次成功加权融合出现，将一个原始并集、一个答案出现、一个所选配置解释、显式实测状态及完整的已应用定量证据关联起来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate an actual reported call and result with the selected source-profile interpretation and original evidence identities."
+msgstr "用于将实际报告的调用及结果与所选来源配置解释和原始证据身份关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating an empty successful answer for a failed call, authenticating a source by declaration or inventing a second execution for the ordering returned by the same native result."
+msgstr "避免为失败调用虚构空的成功答案、凭声明认证来源，或为同一原生结果返回的排序虚构第二次执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply executesQueryNode, weightedFusionInput, weightedFusionOutput, weightedFusionProfile, weightedFusionMeasured and every actual coefficient, score and applicable full fit."
+msgstr "提供 executesQueryNode、weightedFusionInput、weightedFusionOutput、weightedFusionProfile、weightedFusionMeasured，以及每个实际系数、分数和适用的完整拟合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A successful empty union retains its nonempty declared class set and coefficients. Partial recall retains its original loss and completeness evidence. Source authentication and native arithmetic remain separate requirements."
+msgstr "成功的空并集仍保留实际声明的非空类别集及系数。部分召回保留原始损失及完整性证据。来源认证与原生算术仍是独立要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call a gmeow:QueryWeightedFusionApplication ; gmeow:executesQueryNode ex:weightedNode . Other required occurrence bindings are omitted."
+msgstr "虚构的局部片段：ex:call a gmeow:QueryWeightedFusionApplication ; gmeow:executesQueryNode ex:weightedNode . 此处省略其他必需的出现绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Answer"
+msgstr "查询加权融合答案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed answer occurrence of one reported weighted-fusion application, retaining its original union and exactly the same query, candidate and loss-ledger identities."
+msgstr "一次已报告加权融合应用的归属答案出现，保留原始并集以及完全相同的查询、候选项及损失账本身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the one result occurrence whose reported scores and any applied-order enrichment belong to the same native call."
+msgstr "用于同一次原生调用的已报告分数及任何已应用排序扩充共同所属的那个结果出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a separate native result for ordering, copying original evidence identities or inferring complete recall from successful fusion."
+msgstr "避免为排序另造原生结果、复制原始证据身份，或从成功融合推断召回完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain weightedOriginalUnion and the original queryAnswerFor, queryCandidate and queryLossLedger links, and identify the unique incoming application owner."
+msgstr "保留 weightedOriginalUnion 及原始 queryAnswerFor、queryCandidate 和 queryLossLedger 链接，并标识唯一的传入应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An empty successful answer has no candidates or scores. Its classes, mode and profile remain on the owning application; inherited answer attribution and verdict obligations still apply."
+msgstr "成功的空答案没有候选项或分数。类别、模式和配置仍属于所属应用；继承的答案归属及判定义务仍然适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:answer a gmeow:QueryWeightedFusionAnswer ; gmeow:weightedOriginalUnion ex:union . Inherited answer obligations and the application owner are omitted."
+msgstr "虚构的局部片段：ex:answer a gmeow:QueryWeightedFusionAnswer ; gmeow:weightedOriginalUnion ex:union . 此处省略继承的答案义务及应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Fusion Coefficient"
+msgstr "查询已应用融合系数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A positive exact-decimal dimensionless Quantity applied for one original retrieval class at its source class ordinal in a reported weighted-fusion application."
+msgstr "已报告加权融合应用中，按来源类别序号为一个原始检索类别应用的正精确十进制无量纲 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual applied coefficients in both measured mode and explicitly reported unmeasured unit mode."
+msgstr "用于实际应用的系数，包括实测模式及来源明确报告的未实测单位权重模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying an unmeasured unit as QueryFusionClassWeight, normalizing coefficients to probabilities or adding a parallel scalar weight property."
+msgstr "避免将未实测单位权重归类为 QueryFusionClassWeight、把系数归一化为概率，或增设并行标量权重属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply appliedCoefficientClass, entryOrdinal as xsd:nonNegativeInteger, decimal math:quantityValue, explicit dimensionless dimension and the selected applicable reference frame."
+msgstr "提供 appliedCoefficientClass、类型为 xsd:nonNegativeInteger 的 entryOrdinal、十进制 math:quantityValue、显式无量纲量纲及选定的适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible applications may share a fully coordinated coefficient. Source class order and native raw-scalar interpretation remain import evidence; numeric positivity and capacity do not certify the fixed-point grid."
+msgstr "兼容的应用可以共享具有完整坐标的系数。来源类别顺序及原生原始标量解释仍由导入证据负责；数值正性及容量不认证定点量化网格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:coefficient a gmeow:QueryAppliedFusionCoefficient ; math:quantityValue \"1.0\"^^xsd:decimal ; gmeow:appliedCoefficientClass ex:lexical ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . Dimension, frame and application are omitted."
+msgstr "虚构的局部片段：ex:coefficient a gmeow:QueryAppliedFusionCoefficient ; math:quantityValue \"1.0\"^^xsd:decimal ; gmeow:appliedCoefficientClass ex:lexical ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger . 此处省略量纲、参照系及应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Fusion Contribution"
+msgstr "查询加权融合贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported nonnegative exact-decimal dimensionless contribution Quantity for one applied coefficient in one candidate score, with an original minimum-rank witness when that class delivered the candidate."
+msgstr "一个候选项分数中，针对一个已应用系数报告的非负精确十进制无量纲贡献 Quantity；若该类别交付了此候选项，则带有原始最小名次见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every declared class contribution, including absent-class zeros and zero-valued contributions from present ranks."
+msgstr "用于保留每个声明类别的贡献，包括缺失类别的零贡献，以及具有实际名次的零值贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating zero as proof of class absence, creating an entry for an undelivered candidate or equating a reported contribution with verified truncation arithmetic."
+msgstr "避免将零视为类别缺失的证明、为未交付候选项创建条目，或将报告贡献等同于已验证的截断算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply contributionCoefficient, decimal math:quantityValue, explicit dimensionless dimension and applicable frame; retain at most one original contributionRankEntry and the unique score owner."
+msgstr "提供 contributionCoefficient、十进制 math:quantityValue、显式无量纲量纲及适用参照系；保留至多一个原始 contributionRankEntry 及唯一的分数所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every score retains one contribution per actual coefficient. A missing original class/candidate entry requires an unwitnessed zero; a present rank can also contribute zero. Candidate identity follows the owning score."
+msgstr "每个分数为每个实际系数保留一个贡献。缺少原始类别/候选项条目时必须是无见证零贡献；存在名次时也可能贡献零。候选项身份由所属分数确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedFusionContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:absentPart a gmeow:QueryWeightedFusionContribution ; math:quantityValue \"0.0\"^^xsd:decimal ; gmeow:contributionCoefficient ex:coefficient . Missing owner and context must be supplied in a complete account."
+msgstr "虚构的局部片段：ex:absentPart a gmeow:QueryWeightedFusionContribution ; math:quantityValue \"0.0\"^^xsd:decimal ; gmeow:contributionCoefficient ex:coefficient . 完整记录中必须补充缺失的所有者及上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Applied Fusion Score"
+msgstr "查询已应用融合分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported fused-score Quantity for one original candidate in one weighted application, retaining a complete class-contribution account and an explicit finite decimal-sum witness."
+msgstr "一次加权应用中，为一个原始候选项报告的融合分数 Quantity，保留完整的类别贡献记录及显式有限十进制求和见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect the reported-score foundation to an actual reported candidate and application occurrence."
+msgstr "用于将已报告分数基础与实际报告的候选项及应用出现关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing old integer QueryFusionScore fields, merging scores across calls because magnitudes match or calling a declared exact sum a native arithmetic certificate."
+msgstr "避免复用旧的整数 QueryFusionScore 字段、因量值相等而合并不同调用的分数出现，或将声明的精确和称为原生算术证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply appliedScoreCandidate, every weightedScoreContribution, weightedScoreFoldStep and weightedScoreFinalStep, plus the inherited decimal magnitude, dimension, frame and selected reportedFusionScoreProfile."
+msgstr "提供 appliedScoreCandidate、每个 weightedScoreContribution、weightedScoreFoldStep 及 weightedScoreFinalStep，以及继承的十进制量值、量纲、参照系及所选 reportedFusionScoreProfile。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every typed score has exactly one application owner. The declared contribution sum equals its decimal magnitude; fixed-point grid, floor division, authentic source execution and applied order are separate acceptance boundaries."
+msgstr "每个具有此类型的分数恰有一个应用所有者。声明的贡献和等于其十进制量值；定点网格、向下取整除法、真实来源执行及已应用排序是独立的验收边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAppliedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score a gmeow:QueryAppliedFusionScore ; gmeow:appliedScoreCandidate ex:candidate . Its inherited quantitative coordinates, owner, contributions and complete fold are omitted."
+msgstr "虚构的局部片段：ex:score a gmeow:QueryAppliedFusionScore ; gmeow:appliedScoreCandidate ex:candidate . 此处省略继承的定量坐标、所有者、贡献及完整折叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Score Fold Step"
+msgstr "查询加权分数折叠步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One declared control step in a finite mathematical witness summing all reported contributions of an applied fusion score, distinct from the Quantity carrying its partial total."
+msgstr "有限数学见证中的一个声明控制步骤，用于累加已应用融合分数的所有报告贡献；它与承载部分总和的 Quantity 不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to express complete decimal summation through zero base, immediate predecessors, unique natural indices and a final bound."
+msgstr "用于通过零基步、直接前驱、唯一自然数索引及最终界限表达完整十进制求和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming that these witness steps were serialized by the native API, represent a second source execution or carry their magnitude directly as a scalar control field."
+msgstr "避免声称这些见证步骤由原生 API 序列化、代表第二次来源执行，或将量值直接放在标量控制字段上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply entryOrdinal and weightedStepTotal; each positive step supplies weightedPreviousStep and weightedStepContribution under one unique score owner."
+msgstr "提供 entryOrdinal 及 weightedStepTotal；每个正索引步骤在唯一分数所有者之下提供 weightedPreviousStep 及 weightedStepContribution。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Witness indices start at mathematical zero and are independent of native class ordinals. Every actual contribution is used exactly once, including equal-valued and zero contributions."
+msgstr "见证索引从数学上的零开始，与原生类别序号无关。每个实际贡献恰好使用一次，包括相等值贡献及零贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:base a gmeow:QueryWeightedScoreFoldStep ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:weightedStepTotal ex:zeroTotal . The score owner and total Quantity context are omitted."
+msgstr "虚构的局部片段：ex:base a gmeow:QueryWeightedScoreFoldStep ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ; gmeow:weightedStepTotal ex:zeroTotal . 此处省略分数所有者及总和 Quantity 的上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Weighted Partial Sum"
+msgstr "查询加权部分和"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dimensionless exact-decimal Quantity carrying one partial total in a declared weighted-score sum witness, with one applicable reference frame."
+msgstr "承载声明的加权分数求和见证中一个部分总和的无量纲精确十进制 Quantity，具有一个适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require local decimal magnitude and quantitative context on mathematical witness totals without narrowing generic math:Quantity."
+msgstr "用于在数学见证总和上局部要求十进制量值及定量上下文，而不收窄通用 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding reportedFusionScoreProfile merely to inherit witness context, inferring source reporting from witness use alone or forcing distinct Quantity identities for compatible steps."
+msgstr "避免仅为继承见证上下文而添加 reportedFusionScoreProfile、仅从见证用途推断来源报告，或强制兼容步骤使用不同的 Quantity 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:decimal math:quantityValue, math:hasDimension math:dimensionless and hasReferenceFrame; connect the Quantity through weightedStepTotal from an owned fold step."
+msgstr "提供一个 xsd:decimal 类型的 math:quantityValue、math:hasDimension math:dimensionless 及 hasReferenceFrame；通过所属折叠步骤上的 weightedStepTotal 关联该 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The owning score and application supply the profile context, and the exact frame resources agree. Compatible steps may share the same total Quantity. Its range follows from the complete nonnegative fold and bounded final score. An actually source-reported Quantity may also serve as a compatible total; witness use alone does not assert reporting."
+msgstr "所属分数及应用提供配置上下文，且参照系资源完全相同。兼容步骤可共享同一个总和 Quantity。其范围由完整非负折叠及有界最终分数推出。实际由来源报告的 Quantity 也可兼任兼容的总和；仅有见证用途不声明来源报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryWeightedPartialSum|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:zeroTotal a gmeow:QueryWeightedPartialSum ; math:quantityValue \"0.0\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame . Its incoming step is omitted."
+msgstr "虚构的局部片段：ex:zeroTotal a gmeow:QueryWeightedPartialSum ; math:quantityValue \"0.0\"^^xsd:decimal ; math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:frame . 此处省略传入步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion original input"
+msgstr "加权融合原始输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original unranked union consumed by a reported weighted-fusion application."
+msgstr "已报告加权融合应用所消费的唯一原始无序并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual original union and all its selected class-list evidence."
+msgstr "用于保留实际原始并集及其全部选定类别列表证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a reconstructed union or deriving aggregate input ranks from serialization order."
+msgstr "避免替换为重建并集，或从序列化顺序推导聚合输入名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the original QueryUnionAnswer and preserve its query, candidate, loss and class-list resources."
+msgstr "引用原始 QueryUnionAnswer，并保留其查询、候选项、损失及类别列表资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected application checks its candidate set against the retained lists. It does not invent a prior union execution."
+msgstr "所选应用对照保留列表检查其候选集，不虚构先前的并集执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionInput ex:union . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionInput ex:union . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion answer occurrence"
+msgstr "加权融合答案出现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one attributed answer occurrence of a reported weighted-fusion application."
+msgstr "已报告加权融合应用的唯一归属答案出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind the reported result and any later applied-order enrichment to the same call."
+msgstr "用于将已报告结果及任何后续已应用排序扩充绑定到同一次调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a second native result or omitting the unique application owner."
+msgstr "避免虚构第二个原生结果或省略唯一应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one QueryWeightedFusionAnswer whose weightedOriginalUnion agrees with the application input."
+msgstr "引用一个 QueryWeightedFusionAnswer，其 weightedOriginalUnion 须与应用输入一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The answer preserves original query, candidate and loss identities in both directions."
+msgstr "答案双向保留原始查询、候选项及损失身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionOutput ex:answer . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionOutput ex:answer . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion selected profile context"
+msgstr "加权融合所选配置上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one declared source-profile interpretation selected by a reported weighted-fusion application."
+msgstr "已报告加权融合应用选择的唯一声明来源配置解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to associate actual reported use with the retained profile resource independently of its partial native identity metadata."
+msgstr "用于将实际报告的使用与保留的配置资源关联，且不依赖其不完整的原生身份元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal digests as content-unique profiles, authenticating a call or manufacturing missing interpretation coordinates."
+msgstr "避免将相等摘要视为内容唯一配置、认证调用，或制造缺失的解释坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual selected interpretation record with the weighted scale-eighteen convention, explicit dimensionless dimension and complete applicable frame."
+msgstr "引用实际选定的解释记录，带有 18 位小数加权约定、明确的无量纲量纲及完整适用参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source full profile supplies components; the record alone does not serialize or authenticate them. All applied scores select this exact resource."
+msgstr "来源完整配置提供组件；此记录本身不序列化或认证这些组件。所有已应用分数选择同一个确切资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionProfile ex:profile . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionProfile ex:profile . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion measured mode"
+msgstr "加权融合实测模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required typed Boolean reporting whether the actual application selected measured fitted coefficients or explicit unmeasured unit coefficients."
+msgstr "必需的类型化布尔值，报告实际应用选择了实测拟合系数，还是显式未实测单位系数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual source branch without interpreting missing fit evidence as an unmeasured result."
+msgstr "用于保留实际来源分支，而不将缺少拟合证据解释为未实测结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing true to false when full fits are unavailable or requiring measured coefficients to differ from one."
+msgstr "避免在完整拟合不可用时将 true 改为 false，或要求实测系数必须不同于一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:boolean; true requires the actual full fit collection, while false forbids fits and requires every applied coefficient to equal decimal one."
+msgstr "提供一个 xsd:boolean；true 要求实际完整拟合集，false 禁止拟合且要求每个已应用系数等于十进制一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison handles its legal lexical forms. Unit coefficients can be genuinely measured, so their numeric value alone does not determine mode."
+msgstr "按布尔值比较可处理合法词法形式。单位系数也可以确实经过实测，因此仅凭数值不能确定模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionMeasured|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionMeasured \"false\"^^xsd:boolean . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionMeasured \"false\"^^xsd:boolean . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied coefficient"
+msgstr "加权融合已应用系数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One member of the complete nonempty class-indexed coefficient collection actually applied by a reported weighted-fusion occurrence."
+msgstr "已报告加权融合出现实际应用的、完整非空类别索引系数集中的一个成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every declared class coefficient even when that class delivers no candidate."
+msgstr "用于保留每个声明类别的系数，即使该类别没有交付候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping unavailable classes, silently normalizing values or treating an unmeasured unit as fit evidence."
+msgstr "避免丢弃不可用类别、静默归一化数值，或将未实测单位系数视为拟合证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one fully coordinated applied coefficient per original retrieval class and preserve its actual distinct source ordinal."
+msgstr "为每个原始检索类别引用一个具有完整坐标的已应用系数，并保留其实际且互异的来源序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible calls may share coefficient quantities. Every typed coefficient must have an actual reported application owner, without unique inverse ownership."
+msgstr "兼容调用可以共享系数 Quantity。每个具有此类型的系数必须具有实际报告的应用所有者，但不要求逆向所有权唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionCoefficient ex:lexicalCoefficient, ex:spaceCoefficient . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionCoefficient ex:lexicalCoefficient, ex:spaceCoefficient . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied full fit"
+msgstr "加权融合所应用完整拟合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual full measured fit selected by the reported application, retaining its original judged-set and fitted class-weight quantities."
+msgstr "已报告应用选择的一个实际完整实测拟合，保留原始已评判集及拟合类别权重 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record every selected full fit in measured mode."
+msgstr "用于在实测模式下记录每个选定完整拟合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fit-in-force summaries, inventing judged sets or silently falling back to unmeasured mode."
+msgstr "避免用生效拟合摘要替代、虚构已评判集，或静默退回未实测模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each supplied QueryFusionWeightFit; require exact class-set and numeric agreement with applied coefficients and compatibility of every supplied fitted-weight frame."
+msgstr "引用每个所提供的 QueryFusionWeightFit；要求其与已应用系数的类别集及数值完全一致，并要求每个所提供拟合权重参照系兼容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An absent fitted-weight frame stays legal. Supplied unit metadata must preserve compatible native raw-scalar interpretation without silent conversion; no generic unit-equivalence check is claimed."
+msgstr "缺少拟合权重参照系仍然合法。所提供单位元数据必须保留兼容的原生原始标量解释，不能静默转换；此处不声称通用单位等价检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionFit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionFit ex:actualFullFit . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionFit ex:actualFullFit . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion applied score"
+msgstr "加权融合已应用分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One reported score in the complete original-candidate-indexed account of a weighted-fusion application."
+msgstr "加权融合应用中，按原始候选项索引的完整记录中的一个报告分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain exactly one score for every original candidate and none for unrelated candidates."
+msgstr "用于为每个原始候选项保留恰好一个分数，且不为无关候选项保留分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a score to an empty union or merging separate call occurrences because their scores agree."
+msgstr "避免向空并集添加分数，或因分数相等而合并不同调用出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every QueryAppliedFusionScore and retain its original appliedScoreCandidate and exact selected profile."
+msgstr "引用每个 QueryAppliedFusionScore，并保留其原始 appliedScoreCandidate 及确切的所选配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The collection is empty exactly when the original candidate union is empty. Each typed score has one application owner."
+msgstr "当且仅当原始候选并集为空时，该集合为空。每个具有此类型的分数有一个应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:call gmeow:weightedFusionScore ex:firstScore, ex:secondScore . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:call gmeow:weightedFusionScore ex:firstScore, ex:secondScore . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted answer original union"
+msgstr "加权答案原始并集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original union retained by a weighted-fusion answer occurrence."
+msgstr "加权融合答案出现保留的唯一原始并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original evidence identity alongside reported weighted results."
+msgstr "用于在报告的加权结果旁保留原始证据身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying lists, candidates or losses into replacement identities or claiming the union has an aggregate input score."
+msgstr "避免将列表、候选项或损失复制为替代身份，或声称并集具有聚合输入分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the same QueryUnionAnswer as the owning application weightedFusionInput."
+msgstr "引用与所属应用 weightedFusionInput 相同的 QueryUnionAnswer。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Original query, candidate and loss-ledger memberships agree exactly between union and answer."
+msgstr "并集与答案之间的原始查询、候选项及损失账本成员完全一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedOriginalUnion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:answer gmeow:weightedOriginalUnion ex:union . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:answer gmeow:weightedOriginalUnion ex:union . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied coefficient original class"
+msgstr "已应用系数原始类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original retrieval-family or space resource to which an applied coefficient belongs."
+msgstr "已应用系数所属的确切原始检索族或空间资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain class identity separately from numeric coefficient and source ordinal."
+msgstr "用于将类别身份与数值系数及来源序号分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing a retrieval class into an RDF Class or merging classes by display label."
+msgstr "避免将检索类别强制转换为 RDF Class，或按显示标签合并类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the original rankedListClass resource from a retained input list."
+msgstr "引用保留输入列表的原始 rankedListClass 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One coefficient per distinct class is required within an application; distinct original lists may name the same class."
+msgstr "一次应用内每个不同类别须有一个系数；不同原始列表可以命名相同类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedCoefficientClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:coefficient gmeow:appliedCoefficientClass ex:lexical . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:coefficient gmeow:appliedCoefficientClass ex:lexical . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score class contribution"
+msgstr "加权分数类别贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One reported class contribution in the complete coefficient-indexed contribution collection of an applied score."
+msgstr "已应用分数的完整系数索引贡献集合中的一个报告类别贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every contribution including zero and equal-valued components."
+msgstr "用于保留每个贡献，包括零贡献及相等值组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing components by magnitude, omitting absent-class zeros or sharing a contribution across distinct score owners."
+msgstr "避免按量值合并组件、省略缺失类别的零贡献，或在不同分数所有者之间共享贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference exactly one contribution per applied coefficient and include each in the declared finite fold exactly once."
+msgstr "为每个已应用系数引用恰好一个贡献，并在声明的有限折叠中将每个贡献纳入恰好一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiplicity is by contribution resource and coefficient, not distinct decimal value. The class set is nonempty for every selected source application."
+msgstr "重数取决于贡献资源及系数，而不是不同的十进制值。每个选定来源应用的类别集均非空。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreContribution ex:leftPart, ex:rightPart . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:score gmeow:weightedScoreContribution ex:leftPart, ex:rightPart . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted contribution applied coefficient"
+msgstr "加权贡献已应用系数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual applied class coefficient indexing a weighted contribution."
+msgstr "为加权贡献建立索引的唯一实际已应用类别系数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a reported contribution to its original retrieval class through the actual coefficient."
+msgstr "用于通过实际系数将报告贡献关联到其原始检索类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an unrelated coefficient or copying class identity into a second contribution coordinate."
+msgstr "避免替换为无关系数，或将类别身份复制到第二个贡献坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a coefficient retained by the application of the unique owning score."
+msgstr "引用由唯一所属分数的应用所保留的系数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate identity follows the score owner. The coefficient must be represented exactly once in that score’s contribution set."
+msgstr "候选项身份由分数所有者确定。该系数在该分数的贡献集中必须恰好表示一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionCoefficient|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:part gmeow:contributionCoefficient ex:coefficient . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:part gmeow:contributionCoefficient ex:coefficient . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted contribution minimum-rank witness"
+msgstr "加权贡献最小名次见证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "At most one original ranked entry witnessing the minimum delivered rank for the class and candidate of this contribution."
+msgstr "至多一个原始有序条目，见证该贡献的类别及候选项的最小交付名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain original source rank evidence without replacing its occurrence identity."
+msgstr "用于保留原始来源名次证据，而不替换其出现身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a witness for an absent class/candidate or requiring distinct tied minimum entries to merge."
+msgstr "避免为缺失的类别/候选项虚构见证，或要求不同的并列最小条目合并。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an entry in an original retained list with the applied class and score candidate, and preserve its supplied rank no greater than every matching original rank."
+msgstr "引用原始保留列表中、具有已应用类别及分数候选项的条目，并保留其来源名次；该名次不得大于任何匹配原始名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A present delivery requires a witness even for a zero contribution. Without an original match no witness is permitted and the contribution is decimal zero."
+msgstr "有交付时，即使贡献为零也需要见证。没有原始匹配时，不允许见证且贡献为十进制零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRankEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:part gmeow:contributionRankEntry ex:originalEntry . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:part gmeow:contributionRankEntry ex:originalEntry . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied fusion score original candidate"
+msgstr "已应用融合分数原始候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one original candidate resource identified by an applied fusion score."
+msgstr "已应用融合分数标识的唯一原始候选项资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve candidate identity across original union, answer and quantitative account."
+msgstr "用于在原始并集、答案及定量记录之间保留候选项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving identity from score equality, output position or a display label."
+msgstr "避免从分数相等、输出位置或显示标签推导身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a queryCandidate of the original union of the owning application."
+msgstr "引用所属应用原始并集中的一个 queryCandidate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each original candidate has exactly one applied score in an application; separate calls retain separate score occurrences."
+msgstr "一次应用中，每个原始候选项恰有一个已应用分数；不同调用保留各自的分数出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedScoreCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:appliedScoreCandidate ex:candidate . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:score gmeow:appliedScoreCandidate ex:candidate . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score declared fold step"
+msgstr "加权分数声明折叠步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A member of the complete finite set of declared mathematical witness steps for an applied score."
+msgstr "已应用分数的完整有限声明数学见证步骤集中的一个成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the zero base and every positive contribution step."
+msgstr "用于保留零基步及每个正索引贡献步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming native serialized accumulator metadata or leaving a predecessor gap."
+msgstr "避免声称存在原生序列化累加器元数据，或留下前驱空缺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the base and all uniquely indexed steps bounded by weightedScoreFinalStep; each typed step has one score owner."
+msgstr "引用基步及所有唯一索引且受 weightedScoreFinalStep 界定的步骤；每个具有此类型的步骤有一个分数所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every original score contribution is used exactly once, including equal and zero values. These steps are declared arithmetic witnesses."
+msgstr "每个原始分数贡献恰好使用一次，包括相等值和零值。这些步骤是声明的算术见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreFoldStep ex:base, ex:stepOne, ex:stepTwo . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:score gmeow:weightedScoreFoldStep ex:base, ex:stepOne, ex:stepTwo . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted score final witness step"
+msgstr "加权分数最终见证步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one final step of the declared finite-sum witness for an applied score, carrying a total equal to the reported decimal score."
+msgstr "已应用分数的声明有限求和见证的唯一最终步骤，承载等于报告十进制分数的总和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bound the complete witness and compare its final Quantity magnitude to the reported score."
+msgstr "用于界定完整见证，并比较其最终 Quantity 量值与报告分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring total and score Quantity resources to be identical or certifying native admission from declared sum equality."
+msgstr "避免要求总和与分数 Quantity 资源必须是同一个资源，或从声明的和相等认证原生接纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one retained fold step whose index bounds every step and whose total decimal value equals the score value."
+msgstr "引用一个保留的折叠步骤，其索引界定所有步骤，且总和十进制值等于分数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The final step is a member of the same score fold. With nonempty source classes every score has at least one positive step after its base."
+msgstr "最终步骤属于同一分数的折叠。来源类别非空时，每个分数在基步之后至少具有一个正索引步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedScoreFinalStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:score gmeow:weightedScoreFinalStep ex:stepTwo . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:score gmeow:weightedScoreFinalStep ex:stepTwo . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness partial total"
+msgstr "加权见证部分总和"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one coordinated partial-sum Quantity carrying the decimal total of a declared fold step."
+msgstr "承载声明折叠步骤十进制总和的唯一具有协调坐标的部分和 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to separate control-step identity from its dimensioned mathematical magnitude."
+msgstr "用于将控制步骤身份与其带量纲数学量值分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a shadow scalar total on the step or adding a source-reported profile link merely to inherit witness context."
+msgstr "避免在步骤上放置影子标量总和，或仅为继承见证上下文而添加来源报告配置链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a QueryWeightedPartialSum with required decimal value, explicit dimensionless dimension and the exact frame of the owning score."
+msgstr "引用一个 QueryWeightedPartialSum，具有必需十进制值、显式无量纲量纲及与所属分数完全相同的参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible steps may share the total resource; no unique inverse owner or forced Quantity disjointness is introduced."
+msgstr "兼容步骤可以共享总和资源；不引入逆向唯一所有者或强制的 Quantity 不相交性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepTotal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepOne gmeow:weightedStepTotal ex:partialTotal . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:stepOne gmeow:weightedStepTotal ex:partialTotal . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness previous step"
+msgstr "加权见证前一步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The unique same-score immediate predecessor of a positive-index declared fold step, absent on the zero base."
+msgstr "正索引声明折叠步骤在同一分数内的唯一直接前驱；零基步上不存在此链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to express a gap-free finite mathematical sum witness."
+msgstr "用于表达无空缺的有限数学求和见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a predecessor on the base, crossing score owners or inventing a native execution trace."
+msgstr "避免在基步上创建前驱、跨越分数所有者，或虚构原生执行轨迹。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each positive step reference a retained step whose natural index plus one equals the current index."
+msgstr "为每个正索引步骤引用一个保留步骤，其自然数索引加一等于当前索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The maximum is one, positive steps require it and base steps forbid it. The actual index equation uses the existing result-first termSum signature."
+msgstr "该链接的最大基数为一；正索引步骤要求此链接，基步禁止此链接。实际索引等式使用现有的结果优先 termSum 签名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedPreviousStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepTwo gmeow:weightedPreviousStep ex:stepOne . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:stepTwo gmeow:weightedPreviousStep ex:stepOne . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted witness added contribution"
+msgstr "加权见证所加贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual score contribution added by a positive-index declared fold step, absent on the zero base."
+msgstr "正索引声明折叠步骤所加的唯一实际分数贡献；零基步上不存在此链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to account for every reported component exactly once in the finite sum."
+msgstr "用于在有限和中恰好计入每个报告组件一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding unrelated contributions, counting a component twice or deduplicating equal-valued components."
+msgstr "避免添加无关贡献、重复计算组件，或对相等值组件去重。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an actual contribution of the score that owns the step; the current total equals the preceding total plus the exact decimal value of that contribution."
+msgstr "引用所属步骤分数的实际贡献；当前总和等于前一总和加上该贡献的精确十进制值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every contribution has one positive step in its score and every positive step has one contribution. This checks declared summation without validating native floor division."
+msgstr "每个贡献在其分数中有一个正索引步骤，且每个正索引步骤有一个贡献。此检查验证声明的求和，而不验证原生向下取整除法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/weightedStepContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped fragment: ex:stepTwo gmeow:weightedStepContribution ex:rightPart . Other required account bindings are omitted."
+msgstr "虚构的局部片段：ex:stepTwo gmeow:weightedStepContribution ex:rightPart . 此处省略其他必需的记录绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion profile context law"
+msgstr "加权融合配置上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected application profile declares the weighted scale-eighteen convention and the dimensionless interpretation."
+msgstr "所选应用配置声明 18 位小数加权约定及无量纲解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the chosen source convention and quantitative interpretation explicit."
+msgstr "用于保持所选来源约定及定量解释明确。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a different convention merely because decimal values agree."
+msgstr "避免仅因十进制值相等而接受不同约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the supplied convention and dimension on the selected profile and compare them with the selected weighted convention and math:dimensionless."
+msgstr "绑定所选配置上提供的约定及量纲，并与选定加权约定及 math:dimensionless 比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks declared context, not native profile content, digest authenticity or arithmetic execution."
+msgstr "此检查验证声明上下文，不验证原生配置内容、摘要真实性或算术执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionProfileContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional profile selecting the unit scale-twelve convention cannot serve this selected weighted application."
+msgstr "虚构的局部示例：选择 12 位小数单位权重约定的虚构配置不能用于此选定加权应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion output preservation law"
+msgstr "加权融合输出保留定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The weighted answer retains the original input union and exactly the same query, candidate and loss-ledger resources in both directions."
+msgstr "加权答案保留原始输入并集，并双向保留完全相同的查询、候选项及损失账本资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve original evidence across the reported answer occurrence."
+msgstr "用于跨报告答案出现保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying identities, omitting original links or adding unrelated output membership."
+msgstr "避免复制身份、省略原始链接或添加无关输出成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under one application guard require original-union agreement and both directions for queryAnswerFor, queryCandidate and queryLossLedger."
+msgstr "在同一个应用守卫下，要求原始并集一致，并要求 queryAnswerFor、queryCandidate 及 queryLossLedger 的双向保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No rule creates verdicts from losses or promotes a successful fusion into complete recall."
+msgstr "没有规则根据损失创建判定，或将成功融合提升为完整召回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionOutputPreservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional answer that adds an unrelated candidate fails even if it retains every original candidate."
+msgstr "虚构的局部示例：即使保留了每个原始候选项，添加无关候选项的虚构答案仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion input inventory law"
+msgstr "加权融合输入清单定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every selected original list has its supplied class, and original-union candidate membership equals the membership of its retained lists."
+msgstr "每个选定原始列表都有其所提供类别，且原始并集候选成员等于其保留列表的候选成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the original input inventory in the selected application context."
+msgstr "用于在选定应用上下文中验证原始输入清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a prior union execution or duplicating existing ranked-entry ownership and list-membership laws."
+msgstr "避免虚构先前的并集执行，或重复现有有序条目所有权及列表成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require each retained list class, retain each list candidate in the union and require every union candidate in an original retained list."
+msgstr "要求每个保留列表具有类别，将每个列表候选项保留在并集中，并要求每个并集候选项位于某个原始保留列表中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing ranked-list laws already equate list membership with original entry identities. Standalone unions acquire no new global restrictions."
+msgstr "现有有序列表定律已将列表成员与原始条目身份对应。独立并集不增加新的全局限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionInputInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional union cannot retain a candidate that occurs in none of its original retained lists."
+msgstr "虚构的局部示例：虚构并集不能保留其所有原始保留列表中均不存在的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient inventory law"
+msgstr "加权融合系数清单定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Applied coefficients cover exactly the original retrieval classes and are unique by class and numeric source ordinal within the application."
+msgstr "已应用系数精确覆盖原始检索类别，并在应用内按类别及数值来源序号唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete class-indexed coefficient inventory."
+msgstr "用于保留完整的类别索引系数清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging original lists by class label or treating ordinal uniqueness as authenticated source order."
+msgstr "避免按类别标签合并原始列表，或将序号唯一性视为经过认证的来源顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check both class-coverage directions and pairwise coefficient identity when class resources or numeric ordinal values agree."
+msgstr "检查类别覆盖的两个方向；当类别资源相同或序号数值相等时，要求对应系数具有相同身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct original lists may name the same class. Actual source order and profile digest coverage remain import evidence."
+msgstr "不同原始列表可以命名同一类别。实际来源顺序及配置摘要覆盖仍由导入证据负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientInventoryLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional coefficient resources naming the same original class fail within one application."
+msgstr "虚构的局部示例：一次虚构应用中，两个系数资源命名同一个原始类别时不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient context law"
+msgstr "加权融合系数上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied coefficient uses the exact reference-frame resource selected by its owning application profile."
+msgstr "每个已应用系数使用所属应用配置选择的完全相同参照系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain compatible quantitative context on actual applied coefficients."
+msgstr "用于在实际已应用系数上保留兼容定量上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal coefficient values as context equivalence."
+msgstr "避免将相等系数值视为上下文等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the selected profile frame and coefficient frame before exact resource comparison."
+msgstr "在进行确切资源比较前，绑定所选配置参照系及系数参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Dimensionless dimension and required frame completeness are separate local restrictions. Compatible applications may share a coordinated coefficient."
+msgstr "无量纲量纲及必需参照系的完整性是独立的局部限制。兼容应用可以共享具有协调坐标的系数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional coefficient with a different stored frame fails even when its decimal value is one."
+msgstr "虚构的局部示例：即使十进制值为一，存储了不同参照系的虚构系数仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion measured mode law"
+msgstr "加权融合实测模式定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Boolean mode requires full fits when measured, and forbids fits while requiring unit applied coefficients when unmeasured."
+msgstr "实际布尔模式在实测时要求完整拟合；未实测时禁止拟合，并要求已应用系数为单位值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the selected source measured or unmeasured branch."
+msgstr "用于保留所选来源的实测或未实测分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing mode to hide missing full fits or deriving measurement status from unit values."
+msgstr "避免通过改变模式掩盖完整拟合缺失，或从单位值推导实测状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare the bound typed Boolean by value; true requires a fit, false forbids fits and requires every applied coefficient to equal exact decimal one."
+msgstr "按值比较绑定的类型化布尔值；true 要求拟合，false 禁止拟合且要求每个已应用系数等于精确十进制一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A measured fit may legitimately contain units. Missing fit evidence never authorizes changing true to false."
+msgstr "实测拟合可以合法包含单位值。缺失拟合证据绝不授权将 true 改为 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMeasuredModeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional unmeasured report with a nonunit coefficient fails; a measured unit coefficient remains permitted."
+msgstr "虚构的局部示例：含非单位系数的虚构未实测报告不符合要求；实测单位系数仍然允许。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fit agreement law"
+msgstr "加权融合拟合一致性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each actual selected full fit has exactly the applied coefficient class set with equal decimal values, and every actually supplied fit-weight frame equals the selected profile frame."
+msgstr "每个实际选定完整拟合的类别集与已应用系数类别集完全相同，十进制值相等，且每个实际提供的拟合权重参照系等于所选配置参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect applied coefficients to complete original measured evidence without dropping contradictory context."
+msgstr "用于将已应用系数关联到完整原始实测证据，而不丢弃矛盾上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting fit summaries, inventing judged sets or silently converting supplied unit metadata."
+msgstr "避免用拟合摘要替代、虚构已评判集，或静默转换所提供单位元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check both class/value directions; when a fitted weight actually has a frame, compare each such frame with the selected profile frame."
+msgstr "检查类别/数值的两个方向；拟合权重实际具有参照系时，将每个该参照系与所选配置参照系比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Absent fitted-weight frames remain legal. Supplied unit metadata must preserve compatible native raw-scalar interpretation at import; this law supplies no generic unit equivalence or conversion."
+msgstr "缺少拟合权重参照系仍然合法。所提供单位元数据必须在导入时保留兼容的原生原始标量解释；此定律不提供通用单位等价或转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFitAgreementLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional fitted weight with the correct class and decimal value still fails when its supplied frame differs from the selected frame."
+msgstr "虚构的局部示例：即使类别及十进制值正确，提供的参照系不同于所选参照系的虚构拟合权重仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score account law"
+msgstr "加权融合分数记录定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported application has exactly one applied score for every original candidate and no unrelated score candidate."
+msgstr "报告的应用为每个原始候选项保留恰好一个已应用分数，且不含无关的分数候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a complete candidate-indexed quantitative account."
+msgstr "用于保留完整的候选项索引定量记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a score to an empty union or merging score occurrences across calls."
+msgstr "避免向空并集添加分数，或跨调用合并分数出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require candidate-to-score coverage, score-to-original-candidate inclusion and pairwise score identity for equal candidates within the application."
+msgstr "要求候选项到分数的覆盖、分数到原始候选项的包含关系，以及应用内相同候选项的分数身份两两相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate identity remains the original resource. Equal score magnitudes do not equate candidates or calls."
+msgstr "候选项身份仍是原始资源。相等分数量值不会使候选项或调用等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional two-candidate union with only one applied score fails."
+msgstr "虚构的局部示例：具有两个候选项却只有一个已应用分数的虚构并集不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion answer owner law"
+msgstr "加权融合答案所有者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed weighted answer has one and only one typed incoming weighted application owner."
+msgstr "每个具有加权答案类型的资源有且仅有一个具有类型的传入加权应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep answer occurrences tied to actual reported applications."
+msgstr "用于将答案出现关联到实际报告的应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting isolated typed answers or treating inverse ownership as source authentication."
+msgstr "避免接受孤立的类型化答案，或将逆向所有权视为来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming application and compare any two typed application owners of the same answer."
+msgstr "要求一个传入应用，并比较同一答案的任意两个类型化应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same native result supplies scores and ordering; later order enrichment belongs to this answer occurrence."
+msgstr "同一个原生结果提供分数及排序；后续排序扩充属于此答案出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionAnswerOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional answer referenced by two distinct application occurrences fails unique ownership."
+msgstr "虚构的局部示例：由两个不同应用出现引用的虚构答案不符合唯一所有权要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score owner law"
+msgstr "加权融合分数所有者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied score has one and only one typed incoming weighted application owner."
+msgstr "每个具有已应用分数类型的资源有且仅有一个具有类型的传入加权应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to give each applied score an unambiguous occurrence context."
+msgstr "用于为每个已应用分数提供无歧义的出现上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an isolated score or sharing one score occurrence across distinct calls."
+msgstr "避免接受孤立分数，或在不同调用之间共享同一分数出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming application ownership and exact equality of any two typed owners."
+msgstr "要求传入应用所有权，并要求任意两个类型化所有者完全相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantitative equality does not merge score resources. The inherited foundation still requires magnitude, dimension, frame and selected profile."
+msgstr "定量相等不会合并分数资源。继承的基础仍要求量值、量纲、参照系及所选配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional score with no application owner fails even when all its quantitative coordinates are present."
+msgstr "虚构的局部示例：即使所有定量坐标齐全，没有应用所有者的虚构分数仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution owner law"
+msgstr "加权融合贡献所有者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed weighted contribution has one and only one typed incoming applied-score owner."
+msgstr "每个具有加权贡献类型的资源有且仅有一个具有类型的传入已应用分数所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to derive candidate and application context through one score occurrence."
+msgstr "用于通过一个分数出现推导候选项及应用上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a contribution occurrence across distinct scores or duplicating its candidate coordinate."
+msgstr "避免在不同分数之间共享同一贡献出现，或重复其候选项坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed score ownership and compare any two typed owners of the same contribution."
+msgstr "要求传入的类型化分数所有权，并比较同一贡献的任意两个类型化所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal-valued components remain distinct contribution occurrences where their coefficient or score context differs."
+msgstr "当系数或分数上下文不同时，即使组件数值相等，也保留不同贡献出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional contribution linked by two distinct scores fails even when those scores have equal values."
+msgstr "虚构的局部示例：由两个不同分数关联的虚构贡献不符合要求，即使这些分数的值相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion score profile law"
+msgstr "加权融合分数配置定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each applied score selects the exact profile resource selected by its owning weighted application."
+msgstr "每个已应用分数选择所属加权应用选择的完全相同配置资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to join reported magnitudes to the application declared interpretation."
+msgstr "用于将报告量值关联到应用的声明解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing profile resource agreement with equal native bytes or name/version metadata."
+msgstr "避免用相等原生字节或名称/版本元数据替代配置资源一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind weightedFusionProfile and each score reportedFusionScoreProfile, then compare the actual resources."
+msgstr "绑定 weightedFusionProfile 及每个分数的 reportedFusionScoreProfile，再比较实际资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The foundation separately enforces score/profile dimension and frame agreement. This law authenticates no source call."
+msgstr "基础另行要求分数/配置的量纲及参照系一致。此定律不认证来源调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionScoreProfileLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional profile records with equal digest literals cannot be substituted for one another in this application link."
+msgstr "虚构的局部示例：在此应用链接中，两个摘要字面量相等的虚构配置记录不能互相替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution account law"
+msgstr "加权融合贡献记录定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied score has exactly one reported contribution per actual applied coefficient and no contribution for an unrelated coefficient."
+msgstr "每个已应用分数为每个实际已应用系数保留恰好一个报告贡献，且不含无关系数的贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the complete coefficient-indexed component account."
+msgstr "用于保留完整的系数索引组件记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid discarding zero components or deduplicating equal decimal values."
+msgstr "避免丢弃零组件，或对相等十进制值去重。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require contribution coverage for each coefficient, reverse coefficient inclusion and pairwise contribution uniqueness for the same score and coefficient."
+msgstr "要求每个系数的贡献覆盖、反向系数包含关系，以及同一分数和系数的贡献身份两两唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiplicity follows resource and coefficient identity, not distinct magnitude. Native contribution arithmetic remains separately unqualified."
+msgstr "重数取决于资源及系数身份，不取决于不同量值。原生贡献算术仍需另行确认。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional score with two equal-valued contributions for different coefficients retains both components."
+msgstr "虚构的局部示例：虚构分数中，针对不同系数的两个相等值贡献都应保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution context law"
+msgstr "加权融合贡献上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported contribution uses the exact selected application-profile frame."
+msgstr "每个报告贡献使用完全相同的所选应用配置参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep component magnitudes in the same declared quantitative context."
+msgstr "用于使组件量值保持同一声明定量上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining values from different stored frames because their decimals agree."
+msgstr "避免因十进制值相等而组合不同存储参照系的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the contribution through its score and application, bind both frames and compare their resources."
+msgstr "通过贡献所属分数及应用追踪上下文，绑定两个参照系并比较其资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Explicit dimensionless dimension is required locally. No native frame metadata is invented."
+msgstr "局部要求显式无量纲量纲。不虚构原生参照系元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional zero contribution with a different supplied frame still fails."
+msgstr "虚构的局部示例：提供了不同参照系的虚构零贡献仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion rank witness legitimacy law"
+msgstr "加权融合名次见证合法性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each linked rank witness is an original entry of a retained input list with the contribution coefficient class and score candidate."
+msgstr "每个关联名次见证均是保留输入列表中的原始条目，具有贡献系数类别及分数候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual original rank evidence identity."
+msgstr "用于保留实际原始名次证据身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a witness or substituting a copied entry from another union."
+msgstr "避免虚构见证，或用从另一个并集复制的条目替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a retained original list with the matching class, linked original entry and original candidate."
+msgstr "要求一个保留的原始列表，具有匹配类别、关联的原始条目及原始候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The witness rank and unique list ownership remain governed by the existing ranked-entry contract."
+msgstr "见证名次及唯一列表所有权仍由现有有序条目契约约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessLegitimacyLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional witness from an unrelated list fails despite carrying the same numeric rank."
+msgstr "虚构的局部示例：即使数值名次相同，来自无关列表的虚构见证仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion rank witness presence law"
+msgstr "加权融合名次见证存在定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A class and candidate delivered by any original retained list require a rank-entry witness on the corresponding contribution."
+msgstr "任一原始保留列表交付的类别及候选项，要求对应贡献具有名次条目见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain evidence for every delivered class/candidate pair."
+msgstr "用于为每个已交付类别/候选项对保留证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a zero value as permission to omit an actual rank witness."
+msgstr "避免将零值视为可以省略实际名次见证的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each original matching entry require some contributionRankEntry; legitimacy and minimum laws constrain that witness."
+msgstr "为每个原始匹配条目要求某个 contributionRankEntry；合法性及最小名次定律约束该见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal minimum original entries need not merge and the witness need not be every tied entry."
+msgstr "相等的最小原始条目无需合并，且见证不必是每个并列条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionRankWitnessPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional delivered candidate with a zero contribution still requires its original rank witness."
+msgstr "虚构的局部示例：已交付但贡献为零的虚构候选项仍需原始名次见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion minimum rank law"
+msgstr "加权融合最小名次定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained contribution witness rank is no greater than every original rank for the same class and candidate."
+msgstr "保留贡献见证的名次不得大于同一类别及候选项的任何原始名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve source minimum-rank selection across original retained lists."
+msgstr "用于在原始保留列表之间保留来源的最小名次选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid renumbering tied or truncated ranks or inventing a preferred entry among equal minima."
+msgstr "避免对并列或截断名次重编号，或在相等最小名次中虚构优先条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the witness rank and every original matching entry rank before exact integer comparison."
+msgstr "绑定见证名次及每个原始匹配条目名次，再进行精确整数比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Minimum rank is validated; authenticity of source delivery and native admission is not established."
+msgstr "验证最小名次；不确立来源交付的真实性或原生接纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionMinimumRankLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: For fictional matching ranks forty and fifty, a witness at fifty fails the minimum condition."
+msgstr "虚构的局部示例：原始匹配名次为四十和五十的虚构记录中，名次五十的见证不符合最小名次条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion source rank range law"
+msgstr "加权融合来源名次范围定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every original input entry selected by this weighted account has a rank within the positive unsigned native rank capacity."
+msgstr "此加权记录选择的每个原始输入条目的名次均在正的原生无符号名次容量以内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source positive u64 rank boundary in the selected application context."
+msgstr "用于在选定应用上下文中保留来源的正 u64 名次边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid narrowing all ranked-query entries globally or accepting a larger positive rank here."
+msgstr "避免全局收窄所有有序查询条目，或在此接受更大的正名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind original selected entry ranks and compare them with exact positive integer 18446744073709551615."
+msgstr "绑定原始选定条目的名次，并与精确正整数 18446744073709551615 比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing entry restrictions require a positive integer; this law adds only the selected source upper bound and does not authenticate admission."
+msgstr "现有条目限制要求正整数；此定律仅添加所选来源上界，不认证接纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionSourceRankRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional selected rank above the unsigned capacity fails before any native arithmetic claim."
+msgstr "虚构的局部示例：所选名次超出无符号容量的虚构记录，在任何原生算术主张之前即不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion unwitnessed zero law"
+msgstr "加权融合无见证零值定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported contribution without a rank-entry witness has exact decimal value zero."
+msgstr "没有名次条目见证的报告贡献具有精确十进制零值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the absent-class zero boundary."
+msgstr "用于保留缺失类别的零值边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring absence merely from zero or fabricating an entry to justify a nonzero value."
+msgstr "避免仅从零推断缺失，或虚构条目为非零值提供依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Under a contribution guard bind its value and test the absence of a rank-entry witness before exact zero comparison."
+msgstr "在贡献守卫下绑定其值，并在精确零值比较前检验名次条目见证是否不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Witness presence and legitimacy distinguish absent classes from delivered ranks that truncate to zero."
+msgstr "见证存在性及合法性区分缺失类别与截断后为零的已交付名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionUnwitnessedZeroLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional unwitnessed nonzero contribution fails; a witnessed zero can remain valid."
+msgstr "虚构的局部示例：无见证的虚构非零贡献不符合要求；有见证的零贡献仍可符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient range law"
+msgstr "加权融合系数范围定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied coefficient is greater than decimal zero and no greater than the exact weighted unsigned carrier capacity."
+msgstr "每个已应用系数都大于十进制零，且不大于精确的加权无符号载体容量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the necessary selected-source coefficient range."
+msgstr "用于验证必需的所选来源系数范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming fixed-point quantum membership or native admission from a range check."
+msgstr "避免从范围检查声称定点量化步长符合性或原生接纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the coefficient decimal value and compare it with zero and exact decimal 340282366920938463463.374607431768211455."
+msgstr "绑定系数十进制值，并与零及精确十进制 340282366920938463463.374607431768211455 比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Finer-quantum decimals within range are not rejected by this range law. No normalization or probability interpretation is imposed."
+msgstr "此范围定律不会拒绝范围内具有更细量化步长的十进制值。不施加归一化或概率解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientRangeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional zero applied coefficient fails even in measured mode."
+msgstr "虚构的局部示例：即使在实测模式下，虚构的零已应用系数仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion contribution nonnegative law"
+msgstr "加权融合贡献非负定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every reported weighted contribution has a nonnegative exact decimal magnitude."
+msgstr "每个报告的加权贡献具有非负精确十进制量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the complete declared sum monotone from its zero base."
+msgstr "用于使完整声明和从零基步开始保持单调。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a redundant independent component upper bound or treating nonnegativity as the native rank equation."
+msgstr "避免添加冗余的独立组件上界，或将非负性视为原生名次等式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each contribution decimal value and compare it with exact decimal zero."
+msgstr "绑定每个贡献十进制值，并与精确十进制零比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complete finite summation and the foundation final-score bound imply the component upper bound without another range law."
+msgstr "完整有限求和及基础的最终分数界限推出组件上界，无需另一条范围定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionContributionNonnegativeLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional negative component fails even when another component would compensate its value."
+msgstr "虚构的局部示例：即使另一个组件会补偿其值，虚构的负组件仍不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold step owner law"
+msgstr "加权融合折叠步骤所有者定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed declared fold step has one and only one typed incoming applied-score owner."
+msgstr "每个具有声明折叠步骤类型的资源有且仅有一个具有类型的传入已应用分数所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep witness control steps within one candidate-score occurrence."
+msgstr "用于将见证控制步骤限制在一个候选项分数出现内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sharing a control-step identity across scores or accepting isolated typed steps."
+msgstr "避免跨分数共享控制步骤身份，或接受孤立的类型化步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require incoming typed score membership and exact equality of any two score owners."
+msgstr "要求传入的类型化分数成员关系，并要求任意两个分数所有者完全相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Total Quantity resources may be shared across compatible steps; this ownership law applies to control steps only."
+msgstr "总和 Quantity 资源可以在兼容步骤之间共享；此所有权定律仅适用于控制步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldStepOwnerLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional step reused as a member of two distinct score folds fails."
+msgstr "虚构的局部示例：被两个不同分数折叠作为成员复用的虚构步骤不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold base law"
+msgstr "加权融合折叠基步定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every applied score has a zero-index base with total zero and no predecessor or added contribution."
+msgstr "每个已应用分数都有一个零索引基步，其总和为零，且没有前驱或所加贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to establish the complete finite-sum witness base."
+msgstr "用于确立完整有限求和见证的基步。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary initial total or attaching native accumulator provenance to the witness."
+msgstr "避免使用任意初始总和，或为见证附加原生累加器来源主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a zero-valued natural index member; on every zero-index step require decimal-zero total and absence of predecessor and contribution links."
+msgstr "要求一个自然数索引值为零的成员；每个零索引步骤须具有十进制零总和，且无前驱及贡献链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Index uniqueness gives one base. Boolean and numeric value comparisons do not rely on canonical lexical spelling."
+msgstr "索引唯一性保证只有一个基步。布尔值及数值比较不依赖规范词法拼写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldBaseLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional base with decimal total one fails even if later totals match the reported score."
+msgstr "虚构的局部示例：总和为十进制一的虚构基步不符合要求，即使后续总和匹配报告分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold positive step law"
+msgstr "加权融合折叠正索引步骤定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each positive-index declared fold step has one predecessor in the same score and one added contribution."
+msgstr "每个正索引声明折叠步骤有一个同一分数内的前驱及一个所加贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent missing control links in the complete witness."
+msgstr "用于防止完整见证中缺少控制链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid crossing score ownership or leaving a positive step without a component."
+msgstr "避免跨越分数所有权，或使正索引步骤没有组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a same-score predecessor and contribution under the bound positive index; local maxima make both links single."
+msgstr "在绑定的正索引守卫下要求同一分数内的前驱及贡献；局部最大基数限制使两个链接均为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The contribution-account law separately requires the component to be an actual contribution of that score."
+msgstr "贡献记录定律另行要求该组件是此分数的实际贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldPositiveStepLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional positive step with no predecessor fails regardless of its stored total."
+msgstr "虚构的局部示例：没有前驱的虚构正索引步骤不符合要求，与其存储总和无关。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold index law"
+msgstr "加权融合折叠索引定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each declared predecessor index plus one equals the current step index."
+msgstr "每个声明前驱的索引加一等于当前步骤索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce immediate natural-index succession without gaps."
+msgstr "用于强制自然数索引直接连续、没有空缺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a stored current index as the result binding of termSum; its result-first output must be fresh."
+msgstr "避免将存储的当前索引视为 termSum 的结果绑定；其结果优先输出必须是全新变量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both stored indices, use result-first termSum with a fresh result variable and compare that result with the already-bound current index."
+msgstr "绑定两个存储索引，使用结果优先 termSum 绑定全新结果变量，并将该结果与已绑定当前索引比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is declared mathematical control structure, not a source-native class ordinal or serialized execution trace."
+msgstr "这是声明的数学控制结构，不是来源原生类别序号或序列化执行轨迹。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional step at index two cannot directly follow the base at index zero."
+msgstr "虚构的局部示例：索引为二的虚构步骤不能直接以前驱索引为零的基步相接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold recurrence law"
+msgstr "加权融合折叠递推定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each declared step total equals its preceding total plus the exact decimal magnitude of its added contribution."
+msgstr "每个声明步骤总和等于其前一总和加上所加贡献的精确十进制量值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the actual finite reported-decimal recurrence."
+msgstr "用于强制实际的有限报告十进制递推关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding scalar shadow totals, rebinding an existing total variable or claiming native floor-division parity."
+msgstr "避免添加影子标量总和、重新绑定现有总和变量，或声称与原生向下取整除法相符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind stored previous-total, component and current-total magnitudes before result-first termSum binds a fresh result; compare that result with the current stored magnitude."
+msgstr "在结果优先 termSum 绑定全新结果前，绑定存储的前一总和、组件及当前总和量值；将该结果与当前存储量值比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Quantity context follows the owning score. The ordinary addition signature is reused without a new intrinsic or generic arithmetic framework."
+msgstr "Quantity 上下文由所属分数确定。复用普通加法签名，不引入新内在算子或通用算术框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldRecurrenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Fictional equal components of decimal 0.01 yield successive totals 0.01 and 0.02 from a zero base."
+msgstr "虚构的局部示例：两个值均为十进制 0.01 的虚构组件，从零基步产生依次为 0.01 和 0.02 的总和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold index uniqueness law"
+msgstr "加权融合折叠索引唯一性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No two declared steps of one applied score have the same numeric natural index."
+msgstr "一个已应用分数的任意两个声明步骤都不能具有相同数值的自然数索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the finite witness unambiguous."
+msgstr "用于使有限见证保持无歧义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating different lexical spellings of the same numeric index as different positions."
+msgstr "避免将相同数值索引的不同词法拼写视为不同位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind both stored indices independently, compare their numeric values and require identical step resources when equal."
+msgstr "分别绑定两个存储索引，比较其数值；相等时要求步骤资源相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Indices are scoped to one score; separate score witnesses may use the same natural indices."
+msgstr "索引以单个分数为作用域；不同分数见证可以使用相同自然数索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldIndexUniquenessLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional step resources with the same numeric index in one fold fail uniqueness."
+msgstr "虚构的局部示例：同一折叠中具有相同数值索引的两个虚构步骤资源不符合唯一性要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold final law"
+msgstr "加权融合折叠最终步骤定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The final declared step belongs to the score fold, bounds every step index and has a decimal total equal to the reported score value."
+msgstr "最终声明步骤属于分数折叠、界定每个步骤索引，且其十进制总和等于报告分数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to close the complete finite witness against the reported magnitude."
+msgstr "用于使完整有限见证与报告量值闭合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaving extra steps above the final index or forcing final-total and reported-score resource identity."
+msgstr "避免在最终索引以上保留额外步骤，或强制最终总和与报告分数具有相同资源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require final membership, compare every member index with the final index and compare the stored final Quantity value with the inherited score value."
+msgstr "要求最终步骤为成员，将每个成员索引与最终索引比较，并比较存储的最终 Quantity 值与继承的分数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The foundation bounds the score. Nonnegative recurrence therefore bounds all owned partial sums without a separate range law."
+msgstr "基础界定分数。因此非负递推关系界定所有所属部分和，无需独立范围定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldFinalLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional reported score of decimal 0.03 fails when its complete final witness total is decimal 0.02."
+msgstr "虚构的局部示例：完整最终见证总和为十进制 0.02 时，报告分数为十进制 0.03 的虚构记录不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion fold contribution account law"
+msgstr "加权融合折叠贡献记录定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared fold uses every actual score contribution in exactly one positive step and no unrelated contribution."
+msgstr "声明折叠在正索引步骤中恰好使用每个实际分数贡献一次，且不使用无关贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve complete contribution multiplicity in finite summation."
+msgstr "用于在有限求和中保留完整的贡献重数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using SUM DISTINCT semantics, skipping zeros or counting equal-valued components only once."
+msgstr "避免采用 SUM DISTINCT 语义、跳过零，或只计入相等值组件一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a positive step for every score contribution, reverse membership for every step contribution and step identity for repeated use of one component."
+msgstr "要求每个分数贡献对应一个正索引步骤、每个步骤贡献反向属于该分数，并要求复用同一组件的步骤具有相同身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The base has no contribution and positive steps have one. Together with index and final laws this is a complete finite bijection."
+msgstr "基步没有贡献，正索引步骤有一个贡献。与索引及最终步骤定律共同形成完整有限双射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionFoldContributionAccountLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: Two fictional equal-valued contributions require two positive steps, while one contribution cannot be added twice."
+msgstr "虚构的局部示例：两个相等值的虚构贡献需要两个正索引步骤；一个贡献不能被累加两次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion partial sum context law"
+msgstr "加权融合部分和上下文定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every partial-total Quantity linked by an owned step has the exact frame of its owning applied score."
+msgstr "由所属步骤关联的每个部分总和 Quantity，具有与所属已应用分数完全相同的参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to carry the selected quantitative context onto derived mathematical witnesses."
+msgstr "用于将所选定量上下文传递给派生数学见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding reportedFusionScoreProfile merely for witness context, inferring reporting from witness use alone or treating equal values as frame equivalence."
+msgstr "避免仅为见证上下文而添加 reportedFusionScoreProfile、仅从见证用途推断报告，或将相等值视为参照系等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the application, applied score and owned step to its total, bind both frames and compare the resources."
+msgstr "通过应用、已应用分数及所属步骤追踪到总和，绑定两个参照系并比较其资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Explicit dimensionless dimension is local to QueryWeightedPartialSum. Its profile context follows the score and application without deriving a source-reported profile edge from witness use."
+msgstr "在 QueryWeightedPartialSum 上局部明确要求无量纲量纲。其配置上下文由分数及应用确定，而不从见证用途推导来源报告配置链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumContextLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional shared total can serve compatible steps with the same frame, but fails when one owning score has a different frame."
+msgstr "虚构的局部示例：虚构的共享总和可供参照系相同的兼容步骤使用，但当某个所属分数具有不同参照系时不符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion coefficient owner presence law"
+msgstr "加权融合系数所有者存在定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed applied coefficient has at least one typed incoming weighted application owner."
+msgstr "每个具有已应用系数类型的资源至少有一个具有类型的传入加权应用所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent context-free applied coefficient records without forbidding compatible sharing."
+msgstr "用于防止已应用系数记录脱离上下文，同时不禁止兼容共享。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse coefficient ownership or accepting an isolated applied carrier."
+msgstr "避免施加逆向唯一系数所有权，或接受孤立的已应用载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an incoming weightedFusionCoefficient edge from a typed reported application."
+msgstr "要求从具有类型的报告应用传入 weightedFusionCoefficient 链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every owning application separately enforces class, ordinal, mode, fit and frame compatibility; sharing does not merge applications."
+msgstr "每个所属应用分别强制类别、序号、模式、拟合及参照系兼容性；共享不会合并应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionCoefficientOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional fully coordinated coefficient with no application owner fails this applied-account contract."
+msgstr "虚构的局部示例：没有应用所有者的虚构系数，即使坐标完整，也不符合此已应用记录契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weighted fusion partial sum owner presence law"
+msgstr "加权融合部分和所有者存在定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed partial-sum Quantity has at least one typed incoming declared fold step."
+msgstr "每个具有部分和 Quantity 类型的资源至少有一个具有类型的传入声明折叠步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep derived sum carriers within actual declared witness accounts."
+msgstr "用于将派生求和载体保留在实际声明见证记录内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing unique inverse total ownership or inferring source reporting solely from the witness role."
+msgstr "避免施加逆向唯一总和所有权，或仅根据见证角色推断来源报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require weightedStepTotal from a typed QueryWeightedScoreFoldStep; that step separately requires its unique score owner."
+msgstr "要求从具有类型的 QueryWeightedScoreFoldStep 传入 weightedStepTotal；该步骤另行要求唯一分数所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Compatible control steps may share the same total Quantity. No artificial disjointness from other compatible Quantity roles is imposed."
+msgstr "兼容控制步骤可共享同一个总和 Quantity。不施加其与其他兼容 Quantity 角色之间的人为不相交性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WeightedFusionPartialSumOwnerPresenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fictional scoped example: A fictional total Quantity shared by two compatible steps is permitted; an isolated typed partial sum fails."
+msgstr "虚构的局部示例：两个兼容步骤共享一个虚构总和 Quantity 是允许的；孤立的类型化部分和不符合要求。"
