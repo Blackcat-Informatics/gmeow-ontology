@@ -159,9 +159,10 @@ pub(super) fn named(iri: &str) -> ValueSpaceBounds {
     if matches!(
         iri,
         gmeow_logic_compile::literal_datatypes::SHA256_DIGEST
+            | gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST
             | gmeow_logic_compile::literal_datatypes::MD5_DIGEST
     ) {
-        // These finite spaces have 2^256 and 2^128 values. Each exact count exceeds u128,
+        // The 256-bit and 128-bit finite spaces each exceed the exact u128 count domain,
         // but every representable cardinality demand is provably satisfiable.
         return ValueSpaceBounds {
             lower: u128::MAX,

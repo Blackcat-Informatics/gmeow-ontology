@@ -217,6 +217,10 @@ fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
 
     for (datatype, width) in [
         (gmeow_logic_compile::literal_datatypes::SHA256_DIGEST, 64),
+        (
+            gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
+            64,
+        ),
         (gmeow_logic_compile::literal_datatypes::MD5_DIGEST, 32),
     ] {
         edge(&mut rel, "urn:digest", "urn:range", datatype);
@@ -230,7 +234,7 @@ fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
             Some(false)
         );
         assert_eq!(plan.contains(&literal("0", datatype), &mut values), None);
-        // Both finite capacities exceed u128; neither becomes an exact saturated count.
+        // All three finite capacities exceed u128; no count is an exact saturation.
         assert_eq!(extent::named(datatype).admits(u128::MAX), Some(true));
         assert_eq!(extent::named(datatype).exact_count(), None);
         assert_eq!(
