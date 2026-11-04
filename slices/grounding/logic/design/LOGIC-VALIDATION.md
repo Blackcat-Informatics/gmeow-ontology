@@ -422,3 +422,37 @@ it uses the same focus, operand and binder admission as native lowering,
 without requiring or fabricating a failure class. This adds no general
 expression evaluator, endpoint index, new Formula syntax or alternate engine
 (Principles 4, 17 and 19).
+
+## Bound finite numeric greater-than comparison
+
+`logic:termGreater` is a bound integrity predicate with exactly two ordered
+operands. It compares the first finite RDF numeric literal's value with the
+second through the existing scalar numeric comparison. Variable operands must
+already be bound by positive stored relations; explicit literal constants need
+no binding. It neither creates a value nor binds an output, and it never
+becomes a stored relation. No domain or range declaration turns its literal
+operands into mathematical Quantity resources.
+
+The native integrity path preserves each original RDF term while admitting its
+value through the shared finite-numeric reader. Malformed, nonnumeric,
+unsupported or nonfinite operands make the comparison false. An unbound
+operand is a binding failure; it does not request a relation lookup or weaker
+numeric interpretation. Integer comparison remains exact rather than passing
+through a floating-point rendering. RDF term identity and lexical ordering
+are separate operations.
+
+The procedural projection lowers the comparison to `>` and its logical
+negation to `<=`. SPARQL has other typed comparison domains, so this is not a
+claim of identical unrestricted semantics for every RDF datatype. A law that
+needs a finite numeric profile carries explicit admission alongside the bound
+comparison. For a positive gram count, the selected law combines finite
+numeric admission, exact integer-family datatype-component identity and
+strict positivity; every supplied magnitude is checked.
+
+This predicate is distinct from the typed `rdfNumericGreater` instruction in
+positive ordinary-rule antecedents. Its declaration describes the existing
+integrity-comparison path and adds no new evaluator, arithmetic producer,
+comparison sibling or grounding seam (Principles 4, 12, 17 and 19).
+Ordinary constraints without an authored failure-class binding retain their
+generated procedural-validation role; this declaration does not select native
+violation-marker production or establish runtime qualification.

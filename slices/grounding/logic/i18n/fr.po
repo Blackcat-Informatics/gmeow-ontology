@@ -24222,3 +24222,31 @@ msgstr "Ne pas déduire de cette arête la vérité, la confiance, une preuve de
 msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
 msgstr "Rattacher la ressource source au réificateur d’énoncé exact ou à la règle contextualisée déclarée. Le compilateur actuel refuse plusieurs coordonnées de provenance dans un même contexte sélectionné ; un abaissement explicite est requis, plutôt qu’un choix silencieux de source. Conserver séparément les éléments probants. Une règle qui se nomme elle-même enregistre sa source déclarée, et non un reçu d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term greater than"
+msgstr "terme strictement supérieur à"
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bound integrity predicate that holds when the first finite RDF numeric literal's value is strictly greater than the second under the shared scalar numeric comparison."
+msgstr "Un prédicat d’intégrité à opérandes liées qui est vrai lorsque la valeur du premier littéral numérique RDF fini est strictement supérieure à celle du second selon la comparaison numérique scalaire partagée."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two ordered operands are original RDF terms. Variables must be positively bound; literal constants need no binding. Native malformed, nonnumeric, unsupported or nonfinite operands make the predicate false. It creates no value or output binding and is never a stored tuple."
+msgstr "Les deux opérandes ordonnées sont les termes RDF d’origine. Les variables doivent être liées positivement ; les constantes littérales n’exigent aucune liaison. Des opérandes natives mal formées, non numériques, non prises en charge ou non finies rendent le prédicat faux. Il ne crée aucune valeur ni liaison de sortie et n’est jamais un tuple stocké."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2004/02/skos/core#example"
+msgid "A bound integrity atom termGreater(value, 0) tests strict positivity; zero is an xsd:integer literal constant."
+msgstr "Un atome d’intégrité à opérande liée termGreater(value, 0) teste la positivité stricte ; zéro est une constante littérale xsd:integer."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use in an integrity Formula to compare bound finite numeric values without lexical ordering, RDF term-identity comparison or value creation."
+msgstr "Utiliser dans une Formula d’intégrité pour comparer des valeurs numériques finies liées sans ordre lexical, comparaison d’identité des termes RDF ni création de valeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this predicate as data, binding an operand with it, coercing invalid literals, treating it as ordinary-rule rdfNumericGreater or claiming identical projected semantics for every RDF datatype."
+msgstr "Éviter d’affirmer ce prédicat comme donnée, de l’utiliser pour lier une opérande, de convertir de force des littéraux invalides, de le traiter comme rdfNumericGreater des règles ordinaires ou de prétendre à une sémantique projetée identique pour tous les types de données RDF."
+
+msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly two ordered operands and bind every variable through positive stored relations. Native evaluation compares shared finite numeric values; procedural projection emits greater-than or its less-than-or-equal negation. Retain explicit numeric admission for equivalence within a finite numeric profile."
+msgstr "Fournir exactement deux opérandes ordonnées et lier chaque variable par des relations stockées positives. L’évaluation native compare les valeurs numériques finies partagées ; la projection procédurale émet une comparaison strictement supérieure ou sa négation inférieure ou égale. Conserver l’admission numérique explicite pour l’équivalence dans un profil numérique fini."

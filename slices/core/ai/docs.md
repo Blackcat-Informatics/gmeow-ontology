@@ -681,3 +681,151 @@ ex:resultFrame a gmeow:ReferenceFrame ;
 ex:metricAxis a gmeow:Axis ;
     rdfs:label "Example metric scalar axis"@en .
 ```
+
+## Keyword measurement evidence
+
+Keep each supplied keyword row on its actual `Measurement`. Its
+`observedFeature` is the unit the source analyzed; `measurementMetric` names
+the reported metric or weighting, `vantage` identifies the observer and
+`observationMethod` retains the constitutive protocol. Preserve attribution
+on the exact assertions. Equal wording, size, rank, weight or target never
+merges separate source rows or creates a tuple across their values.
+
+`measuredTerm` retains the supplied keyword wording as a complete string
+literal. Preserve lexical form, datatype and any supplied language and
+direction; an untagged string still has unspecified language. The wording
+does not establish a Form, concept, entity, name, referent, tokenization or
+source span. Interpreted language structure needs its actual Lang context.
+
+`ngramSize` points to a separate `math:Quantity` for the actual positive
+integral number of gram positions under the actual segmentation/counting
+convention. The count carries its original integer-family `math:quantityValue`,
+`math:hasDimension math:dimensionless` and an actual applicable
+`hasReferenceFrame`. It counts positions, including repeated positions, rather
+than distinct word values. It is neither character length nor a count of
+keyword rows; do not derive it by splitting the wording on whitespace or
+reinterpret a raw code, zero or negative sentinel as a gram size. A source
+integer without its required counting context does not qualify the actual
+count. An actual-count mapping must fail when the required counting context is unavailable. Retain the original supplied source record and its provenance without coercing its value or inventing a frame.
+
+The weight remains the existing `observationResult` Quantity. The size edge
+does not replace it or specialize `observationResult`, and a positive count
+does not give the weight a probability, unit interval or confidence meaning.
+Different source rows and counting conventions use distinct Measurement
+records; no default tokenizer or universal counting frame is supplied.
+
+`termRank` retains the integer ordering position or rank the source actually
+reports within that unit and producing context. It is an ordering descriptor,
+not an arbitrary integer code. Unknown origin, direction, gaps and tie rules
+remain unknown. Do not infer rank from weight or row order, renumber retained
+rows, infer comparisons across conventions or copy an unconverted rank into
+the strictly zero-based `entryOrdinal`.
+
+These three roles are optional and nonfunctional. A selected mapping still
+preserves every supplied field it handles; vocabulary optionality does not
+authorize silent information loss. Actual use of the size role requires its
+count profile. The context law requires a magnitude, only the dimensionless
+dimension, a frame witness and numeric agreement among magnitudes. The value
+law checks every magnitude for its original integer-family datatype, valid
+finite numeric admission and strict positivity. A valid value cannot conceal
+another malformed value on the same selected Quantity. Generic weights and
+unselected Quantities retain their existing contracts (Principles 4, 9, 11,
+12, 17 and 19).
+
+The following is an invented source report. This source explicitly states
+that its gram has two word positions in the supplied wording `echo echo`,
+counting the repeated word twice. The frame describes that supplied convention;
+the example performs no tokenization or inference from whitespace. Its rank
+four is source-reported, with no assumed origin or tie policy. The two rows
+remain distinct even though the reported values agree. Their dimensionless
+weight and weight frame are separately supplied fictional context and imply
+no probability interpretation.
+
+```turtle
+@prefix ex: <https://example.org/keyword/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:unit a gmeow:InformationObject .
+ex:observer a gmeow:Agent .
+ex:protocol a gmeow:ObservationMethod .
+ex:metric rdfs:label "Fictional keyword weight" .
+
+ex:countFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Supplied word-position count convention" ;
+    skos:definition "Count each source-declared word position in the reported gram, retaining repetitions. This fictional source explicitly declares two positions for echo echo." ;
+    gmeow:frameRealm gmeow:frameRealmLinguistic ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false .
+
+ex:weightFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Supplied fictional keyword-weight scale" ;
+    skos:definition "The dimensionless weight scale explicitly supplied by this fictional report; it is separate from the gram-position counting convention and has no probability meaning." ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false .
+
+ex:rowA
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:unit ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measuredTerm "echo echo" ;
+    gmeow:ngramSize ex:countA ;
+    gmeow:termRank 4 ;
+    gmeow:observationResult ex:weightA .
+
+ex:rowB
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:unit ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measuredTerm "echo echo" ;
+    gmeow:ngramSize ex:countB ;
+    gmeow:termRank 4 ;
+    gmeow:observationResult ex:weightB .
+
+ex:countA
+    a math:Quantity ;
+    math:quantityValue "2"^^xsd:integer ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:countFrame .
+
+ex:countB
+    a math:Quantity ;
+    math:quantityValue "2"^^xsd:int ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:countFrame .
+
+ex:weightA
+    a math:Quantity ;
+    math:quantityValue 0.75 ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:weightFrame .
+
+ex:weightB
+    a math:Quantity ;
+    math:quantityValue 0.75 ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:weightFrame .
+```
+
+The count laws use the ordinary `logic:Constraint` and generated procedural
+validation pattern. They do not select a native violation-marker class.
+Declaring the vocabulary does not establish that a producer, generated bundle,
+installed consumer or runtime has been qualified. Structural frame presence
+does not authenticate its historical applicability, and no consumer adoption
+or original-byte witness is implied.

@@ -2751,3 +2751,143 @@ msgstr "仅链接实际提供的 InformationObject，并保留其已陈述的上
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."
 msgstr "保留已标识的来源上下文：ex:unit gmeow:chunkSpanSourceContext ex:source ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measured keyword wording"
+msgstr "测量关键词的原始措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The keyword wording supplied for this Measurement, retaining its complete string literal."
+msgstr "为此 Measurement 提供的关键词措辞，保留其完整字符串字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Preserve lexical form, datatype and supplied language and direction; infer no Form, concept, entity, name, tokenization, occurrence identity or source span."
+msgstr "可省略且非函数式。保留词法形式、数据类型及实际提供的语言和方向；不推断 Form、概念、实体、名称、分词、出现身份或来源跨度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:measuredTerm \"silver river\" when that untagged wording was supplied."
+msgstr "当来源提供了此无语言标签的措辞时，保留 ex:reading gmeow:measuredTerm \"silver river\"。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep supplied keyword wording beside the separate size, source rank and weight of the actual Measurement."
+msgstr "用于在实际 Measurement 上保留所提供的关键词措辞，并分别保留大小、来源排名及权重。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalization, translation, guessed language, referent resolution from equal spelling or replacement of the observed unit or weight result."
+msgstr "避免规范化、翻译、猜测语言、根据相同拼写解析指称对象，或替换被观察单元或权重结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied literal on the source row's Measurement with observedFeature, measurementMetric, vantage, observationMethod and the separate observationResult. Use distinct records for different rows or conventions."
+msgstr "在来源行的 Measurement 上保留完整的已提供字面量，以及 observedFeature、measurementMetric、vantage、observationMethod 和独立的 observationResult。不同来源行或约定使用不同记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size"
+msgstr "n-gram 大小"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimensionless positive integral count of gram positions for this keyword Measurement under its actual segmentation and counting convention, carried by a math:Quantity."
+msgstr "此关键词 Measurement 在实际切分与计数约定下的 n-gram 位置数，由 math:Quantity 承载，是无量纲的正整数计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The count Quantity is separate from the keyword weight observationResult. Each selected count requires a positive integer-family magnitude, math:dimensionless and an actual applicable reference frame. Repeated positions remain counted."
+msgstr "计数 Quantity 与关键词权重的 observationResult 分开。每个选定计数都需要正的整数族数值、math:dimensionless 和实际适用的参考框架。重复位置仍计入数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link ex:reading gmeow:ngramSize ex:count, retaining quantityValue 2, dimension math:dimensionless and the supplied counting frame on ex:count."
+msgstr "通过 ex:reading gmeow:ngramSize ex:count 建立关联，在 ex:count 上保留 quantityValue 2、math:dimensionless 维度及所提供的计数框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual keyword gram size and its segmentation/counting convention are available as a positive integral count."
+msgstr "用于实际关键词的 n-gram 大小及其切分与计数约定已作为正整数计数提供的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting a raw code or sentinel as size, deriving size from whitespace, substituting character length or keyword-row count, deduplicating positions or inventing a missing frame."
+msgstr "避免把原始代码或哨兵值断言为大小、根据空白推导大小、用字符长度或关键词行数替代大小、对位置去重，或虚构缺失的框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the Measurement to its count Quantity with original integer-family quantityValue, dimensionless dimension and actual hasReferenceFrame. Keep wording, source rank and weight separate, preserving distinct rows and conventions without inferring execution."
+msgstr "将 Measurement 指向其计数 Quantity，并保留原始整数族 quantityValue、无量纲维度和实际的 hasReferenceFrame。分别保留措辞、来源排名和权重，保留不同来源行及约定，不推断执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported keyword rank"
+msgstr "来源报告的关键词排名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported integer ordering position or rank of this keyword Measurement within its actual observed unit and producing context."
+msgstr "来源报告的此关键词 Measurement 在实际被观察单元和生成上下文中的整数顺序位置或排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Unknown origin, direction, gaps and tie conventions stay unknown. An integer datatype does not turn an unrelated code into a rank or equate source order with relevance rank."
+msgstr "可省略且非函数式。未知的起点、方向、间隔及并列约定仍保持未知。整数数据类型不会把无关代码变为排名，也不会使来源顺序等同于相关性排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:termRank 4 when the source reported that keyword rank, without shifting it to an assumed origin."
+msgstr "当来源报告了此关键词排名时，保留 ex:reading gmeow:termRank 4，不将其平移为假定的起点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's stated keyword ordering position or rank within the Measurement's actual unit and source context."
+msgstr "用于来源在 Measurement 的实际单元和来源上下文中声明的关键词顺序位置或排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing rank from weight or row order, assuming zero or one origin, imposing bounds, continuity, uniqueness or tie rules, treating rank as confidence or copying it unchanged into entryOrdinal."
+msgstr "避免根据权重或行顺序虚构排名、假定从零或一开始、强加边界、连续性、唯一性或并列规则、把排名当作置信度，或原样复制到 entryOrdinal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:integer ordering descriptor on its source row's Measurement with actual observedFeature, method, vantage and attribution. Preserve supplied ranking conventions; comparison, renumbering and list reconstruction require the actual convention."
+msgstr "在来源行的 Measurement 上保留所提供的 xsd:integer 顺序描述，以及实际的 observedFeature、方法、vantage 和归属。保留来源提供的排名约定；比较、重新编号及列表重建需要实际约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size context constraint"
+msgstr "n-gram 大小上下文约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every count selected by ngramSize has a magnitude, only the dimensionless dimension, a reference-frame witness and numerically agreeing magnitude values."
+msgstr "由 ngramSize 选定的每个计数都具有数值、仅有无量纲维度和参考框架见证，且其各数值在数值意义上一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The condition follows each supplied ngramSize edge. It neither requires size on every Measurement nor constrains unrelated Quantities, merges rows or authenticates a frame's actual applicability."
+msgstr "此条件沿每条已提供的 ngramSize 边检查。它不要求每个 Measurement 都有大小，不约束无关 Quantity，不合并行，也不认证框架的实际适用性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected gram-count Quantity with no quantityValue or hasReferenceFrame violates this context condition; an unrelated weight Quantity is outside its guard."
+msgstr "选定的 n-gram 位置计数 Quantity 若缺少 quantityValue 或 hasReferenceFrame，就违反此上下文条件；无关权重 Quantity 不在其前置条件的范围内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require explicit context for an actual count supplied through ngramSize."
+msgstr "用于要求通过 ngramSize 提供的实际计数具有显式上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."
+msgstr "避免将框架边当作历史切分的证明、虚构默认框架、要求全局只有一条关键词行，或替换独立的权重结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."
+msgstr "通过 ngramSize 绑定每个计数；要求 quantityValue、math:dimensionless 和 hasReferenceFrame。按完整 RDF 身份比较每个维度，按数值相等比较每对数值，保留不同来源行和约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size value constraint"
+msgstr "n-gram 大小数值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every magnitude of every Quantity selected by ngramSize is a valid finite RDF integer-family literal whose numeric value is strictly greater than zero."
+msgstr "由 ngramSize 选定的每个 Quantity 的所有数值都必须是有效且有限的 RDF 整数族字面量，其数值严格大于零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Datatype-component identity, shared numeric lexical/value admission and strict positivity are all required. Every supplied magnitude is checked with its original lexical form and datatype, without coercion."
+msgstr "数据类型分量身份、共享的数值词法与值准入以及严格正值都不可缺少。每个已提供数值都以其原始词法形式和数据类型接受检查，不作强制转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A valid positive xsd:integer is admitted without retyping. Zero, negative zero, negative sentinels, malformed integers and decimal or floating literals do not satisfy this count condition."
+msgstr "有效的正 xsd:integer 无需重新标注类型即可准入。零、负零、负哨兵值、格式错误的整数以及十进制或浮点字面量均不满足此计数条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual positive gram counts while retaining supplied RDF integer-family representations."
+msgstr "用于验证实际的 n-gram 正整数位置计数，同时保留所提供的 RDF 整数族表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting numeric-looking strings, decimals, floats, nonfinite values or sentinels as counts, checking only one of several magnitudes or normalizing a rejected value into apparent validity."
+msgstr "避免把看似数字的字符串、十进制数、浮点数、非有限值或哨兵值当作计数，避免只检查多个数值中的一个，或通过规范化使被拒绝的值显得有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."
+msgstr "通过 ngramSize 选定的 Quantity 绑定每个 quantityValue。要求 termIsFiniteNumeric、十三种 XSD 整数族数据类型的精确类型分量析取，以及相对于带整数类型的零的 termGreater 比较。存在性和框架义务由独立的上下文规则承担。"
