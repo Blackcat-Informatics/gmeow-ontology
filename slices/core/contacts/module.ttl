@@ -12,7 +12,7 @@ gmeow:AcquaintanceRelationship
     rdfs:label "Acquaintance Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     skos:definition "An interpersonal relationship of social acquaintance — agents who have met and know one another (the reified form of hasMet)."@x-gmeow-english ;
-    skos:example "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."@x-gmeow-english ;
+    skos:example "ex:acq a gmeow:AcquaintanceRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasMet) and for a working tie (use gmeow:ProfessionalRelationship)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the relator for the low-tie social acquaintance, bind its agents with gmeow:relationshipParty, and carry the span since they met with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
@@ -25,7 +25,7 @@ gmeow:AddressTenure
     rdfs:label "Address Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     skos:definition "The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval."@x-gmeow-english ;
-    skos:example "ex:tenure a gmeow:AddressTenure ; gmeow:addressHolder ex:person ; gmeow:tenuredContactPoint ex:oldEmail ."@x-gmeow-english ;
+    skos:example "ex:tenure a gmeow:AddressTenure ; gmeow:addressHolder ex:lillith ; gmeow:tenuredContactPoint ex:oldEmail ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for a current channel that needs no history (attach the contact point directly with gmeow:hasContactPoint) and avoid deleting a lapsed channel — close its tenure instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the situation, bind it with gmeow:addressHolder and gmeow:tenuredContactPoint, and scope it on the temporal slice's time-scoped-relation interval; a past end-date retires the channel without erasing it."@x-gmeow-english ;
@@ -39,7 +39,7 @@ gmeow:ContactPoint
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A means of reaching an agent: an email address, telephone number, postal address, or instant-messaging handle."@x-gmeow-english ;
-    skos:example "ex:personEmail a gmeow:ContactPoint ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail a gmeow:ContactPoint ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ,
         gmeow:consumerWikipedia ;
@@ -70,7 +70,7 @@ gmeow:EmailAddress
     rdfs:label "Email Address"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
     skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@x-gmeow-english ;
-    skos:example "ex:personEmail a gmeow:EmailAddress ; gmeow:addressValue \"person@example.org\" ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail a gmeow:EmailAddress ; gmeow:addressValue \"lillith@example.org\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ;
     gmeow:avoidWhen "Avoid for the plain string convenience (use the gmeow:email datatype property on the agent) and for the mailbox the address delivers into (that is gmeow:OnlineAccount, reached via gmeow:deliversToAccount)."@x-gmeow-english ;
@@ -87,7 +87,7 @@ gmeow:InstantMessageAddress
     rdfs:label "Instant Message Address"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
     skos:definition "A contact point reachable through an instant-messaging or chat service — a handle, channel, or service-scheme URI (xmpp:, weixin:, matrix:, …)."@x-gmeow-english ;
-    skos:example "ex:personMatrix a gmeow:InstantMessageAddress ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
+    skos:example "ex:lillithMatrix a gmeow:InstantMessageAddress ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ,
         gmeow:consumerWikipedia ;
@@ -112,7 +112,7 @@ gmeow:InterpersonalRelationship
             logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence."@x-gmeow-english ;
-    skos:example "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."@x-gmeow-english ;
+    skos:example "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the bare symmetric fact (use the flat shortcuts) and avoid using it for a contact channel or an address tenure (those are gmeow:ContactPoint and gmeow:AddressTenure)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the relator, bind its agents with gmeow:relationshipParty (at least one is required by axiom), and carry its span with gmeow:relationshipInterval; specialize to Professional or Acquaintance where the kind is known."@x-gmeow-english ;
@@ -143,7 +143,7 @@ gmeow:ProfessionalRelationship
     rdfs:label "Professional Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     skos:definition "An interpersonal relationship arising from work — colleagues, collaborators, a client and a provider (the reified form of hasWorkedWith)."@x-gmeow-english ;
-    skos:example "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:person, ex:morgan ."@x-gmeow-english ;
+    skos:example "ex:collab a gmeow:ProfessionalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the bare symmetric fact (use gmeow:hasWorkedWith) and for a purely social tie (use gmeow:AcquaintanceRelationship)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the relator for the work-context tie between colleagues, collaborators, or a client and provider, bind its agents with gmeow:relationshipParty, and carry the span of the working arrangement with gmeow:relationshipInterval; it inherits the at-least-one-party axiom from gmeow:InterpersonalRelationship."@x-gmeow-english ;
@@ -156,7 +156,7 @@ gmeow:TelephoneNumber
     rdfs:label "Telephone Number"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
     skos:definition "A contact point reachable by telephone."@x-gmeow-english ;
-    skos:example "ex:personMobile a gmeow:TelephoneNumber ; gmeow:contactPointType gmeow:contactPointTypePersonal ."@x-gmeow-english ;
+    skos:example "ex:lillithMobile a gmeow:TelephoneNumber ; gmeow:contactPointType gmeow:contactPointTypePersonal ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ;
     gmeow:avoidWhen "Avoid for the plain string convenience (use the gmeow:telephone datatype property on the agent) and for messaging handles that merely resemble phone numbers but reach a separate account."@x-gmeow-english ;
@@ -173,7 +173,7 @@ gmeow:addressHolder
     rdfs:label "address holder"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "The agent who held the contact point over the tenure's interval."@x-gmeow-english ;
-    skos:example "ex:tenure gmeow:addressHolder ex:person ."@x-gmeow-english ;
+    skos:example "ex:tenure gmeow:addressHolder ex:lillith ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting more than one holder per tenure (it is functional) and avoid using it for the channel itself (that is gmeow:tenuredContactPoint)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the tenure at its single gmeow:Agent; pair with gmeow:tenuredContactPoint and the time-scoped interval to complete the situation."@x-gmeow-english ;
@@ -227,7 +227,7 @@ gmeow:addressValue
     rdfs:label "address value"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
     skos:definition "The normalized addr-spec of an email address."@x-gmeow-english ;
-    skos:example "ex:personEmail gmeow:addressValue \"person@example.org\" ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:addressValue \"lillith@example.org\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ;
     gmeow:avoidWhen "Avoid asserting more than one value per address (it is functional) and avoid using it for the bare agent-level shortcut (that is gmeow:email); an email value is sensitive personal data, never for public projection."@x-gmeow-english ;
@@ -244,7 +244,7 @@ gmeow:contactPointProvider
     rdfs:label "contact point provider"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "The agent (typically an organization) that issues or scopes a contact point — the employer behind a work address, the provider behind an email's domain. Range is gmeow:Agent to avoid a contacts→organization dependency while admitting organizations. Non-functional. The context that distinguishes 'my work email at ACME' from a personal one."@x-gmeow-english ;
-    skos:example "ex:personWorkEmail gmeow:contactPointProvider ex:acmeCorp ."@x-gmeow-english ;
+    skos:example "ex:lillithWorkEmail gmeow:contactPointProvider ex:acmeCorp ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the contact point's usage role (that is gmeow:contactPointType) and avoid forcing a single provider (it is non-functional)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Link the contact point to the providing gmeow:Agent; the range is left broad to admit organizations without a contacts→organization slice dependency."@x-gmeow-english ;
@@ -257,7 +257,7 @@ gmeow:contactPointType
     rdfs:label "contact point type"@x-gmeow-english ;
     rdfs:range gmeow:ContactPointType ;
     skos:definition "The usage role(s) of a contact point — one or more gmeow:ContactPointType values (personal, work, …). Non-functional: a contact point may serve several roles, and competing standpoint-indexed classifications coexist (P9)."@x-gmeow-english ;
-    skos:example "ex:personEmail gmeow:contactPointType gmeow:contactPointTypeWork ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:contactPointType gmeow:contactPointTypeWork ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid forcing a single role (it is non-functional — a channel may be both personal and work, and competing classifications coexist) and avoid encoding the provider organization here (use gmeow:contactPointProvider)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the contact point at one or more gmeow:ContactPointType individuals; the projection layer reads them to select or label channels per consumer."@x-gmeow-english ;
@@ -311,7 +311,7 @@ gmeow:deliversToAccount
     rdfs:label "delivers to account"@x-gmeow-english ;
     rdfs:range gmeow:OnlineAccount ;
     skos:definition "Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in."@x-gmeow-english ;
-    skos:example "ex:personEmail gmeow:deliversToAccount ex:personMailbox ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:deliversToAccount ex:lillithMailbox ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating the address with the account it delivers to (the address is a contact point, the account is where messages reside) and avoid using it for non-email channels."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Link the gmeow:EmailAddress to its delivery gmeow:OnlineAccount; the address carries the agent's tenure while the account anchors the stored messages."@x-gmeow-english ;
@@ -324,7 +324,7 @@ gmeow:domainPart
     rdfs:label "domain part"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
     skos:definition "The domain part of an email address."@x-gmeow-english ;
-    skos:example "ex:personEmail gmeow:domainPart \"example.org\" ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:domainPart \"example.org\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting more than one domain part per address (it is functional) and avoid treating it as fully public — paired with the local part it re-forms sensitive personal data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Derive the domain part from gmeow:addressValue; read it to infer the provider or a personal-domain classification, and keep it under the address's sensitivity when projecting."@x-gmeow-english ;
@@ -337,7 +337,7 @@ gmeow:email
     rdfs:label "email"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
     skos:definition "An email address at which an agent can be reached."@x-gmeow-english ;
-    skos:example "ex:person gmeow:email \"person@example.org\" ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:email \"lillith@example.org\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ,
         gmeow:consumerWikipedia ;
@@ -370,7 +370,7 @@ gmeow:hasAgreement
     rdfs:label "has agreement"@x-gmeow-english ;
     rdfs:range gmeow:Agreement ;
     skos:definition "Relates an agent to an agreement it is party to. The party-ship period is carried with gmeow:validFrom/validUntil on this statement; the agreement's own term/effective dates live on the gmeow:Agreement individual (no double-modelling)."@x-gmeow-english ;
-    skos:example "ex:person gmeow:hasAgreement ex:ndaWithAcme ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasAgreement ex:ndaWithAcme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid restating the agreement's own term or effective dates here (those live on the gmeow:Agreement, no double-modelling) and avoid using it for ties that are not agreements (use the interpersonal-relationship constructs)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Link the gmeow:Agent to its gmeow:Agreement; carry the party-ship period with gmeow:validFrom/validUntil on this statement and leave the agreement's term on the agreement individual."@x-gmeow-english ;
@@ -383,7 +383,7 @@ gmeow:hasContactPoint
     rdfs:label "has contact point"@x-gmeow-english ;
     rdfs:range gmeow:ContactPoint ;
     skos:definition "Relates an agent to a means of contacting it."@x-gmeow-english ;
-    skos:example "ex:person gmeow:hasContactPoint ex:personEmail ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasContactPoint ex:lillithEmail ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerWikidata ,
         gmeow:consumerWikipedia ;
     gmeow:avoidWhen "Avoid it when a bare string suffices (use gmeow:email or gmeow:telephone) and avoid using it for ownership of an online account (that is the accounts slice)."@x-gmeow-english ;
@@ -401,7 +401,7 @@ gmeow:hasMet
     rdfs:label "has met"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    skos:example "ex:person gmeow:hasMet ex:morgan ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasMet ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it when the tie must bear its own confidence, evidence, or interval — reify it as a gmeow:AcquaintanceRelationship instead — and avoid asserting it in both directions (it is symmetric)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert the symmetric edge between two gmeow:Agent instances; carry the occasion with gmeow:validFrom/validUntil on the statement, or promote to the relator when the tie needs first-class structure."@x-gmeow-english ;
@@ -414,7 +414,7 @@ gmeow:hasUsed
     rdfs:label "has used"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
     skos:definition "Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    skos:example "ex:person gmeow:hasUsed ex:someTool ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasUsed ex:someTool ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it when the usage is itself an occurrent that needs participants, instruments, or outcome — model that as an event — and do not treat it as symmetric (the agent uses the entity, not vice versa)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert the directed edge from the gmeow:Agent to the used gmeow:Entity; carry the period with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
@@ -428,7 +428,7 @@ gmeow:hasWorkedWith
     rdfs:label "has worked with"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "Records that two agents have worked together; symmetric. The period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:ProfessionalRelationship."@x-gmeow-english ;
-    skos:example "ex:person gmeow:hasWorkedWith ex:morgan ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasWorkedWith ex:morgan ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it when the collaboration must bear its own interval, confidence, or evidence — reify it as a gmeow:ProfessionalRelationship — and avoid asserting it in both directions (it is symmetric)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert the symmetric edge between two gmeow:Agent instances; carry the period with gmeow:validFrom/validUntil on the statement, or promote to gmeow:ProfessionalRelationship when first-class structure is needed."@x-gmeow-english ;
@@ -441,7 +441,7 @@ gmeow:localPart
     rdfs:label "local part"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
     skos:definition "The local part of an email address."@x-gmeow-english ;
-    skos:example "ex:personEmail gmeow:localPart \"person\" ."@x-gmeow-english ;
+    skos:example "ex:lillithEmail gmeow:localPart \"lillith\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ;
     gmeow:avoidWhen "Avoid asserting more than one local part per address (it is functional) and avoid publishing it to public consumers — the local part still identifies a person and is sensitive personal data."@x-gmeow-english ;
@@ -513,7 +513,7 @@ gmeow:relationshipParty
     rdfs:label "relationship party"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "An agent who is one of the parties to an interpersonal relationship. Non-functional: a relationship typically binds two parties (and is left open for group ties)."@x-gmeow-english ;
-    skos:example "ex:tie gmeow:relationshipParty ex:person ."@x-gmeow-english ;
+    skos:example "ex:tie gmeow:relationshipParty ex:lillith ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid forcing exactly two parties at the OWL level (it is non-functional and left open for group ties; the two-party constraint is a SHACL closure concern) and avoid using it on the flat shortcut edges, which bind their agents directly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach each participating gmeow:Agent to the relator with this property; pair with gmeow:relationshipInterval to scope the tie in time."@x-gmeow-english ;
@@ -541,7 +541,7 @@ gmeow:telephone
     rdfs:label "telephone"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
     skos:definition "A telephone number at which an agent can be reached."@x-gmeow-english ;
-    skos:example "ex:person gmeow:telephone \"+1-403-555-0100\" ."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:telephone \"+1-403-555-0100\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ,
         gmeow:consumerWikidata ,
         gmeow:consumerWikipedia ;
