@@ -205,3 +205,31 @@ account and a contiguous cut of its actual carrier. In that case it retains
 typing never licenses `chunkOf ex:division` merely because the text summarizes
 that division. `CommunitySummary` continues to mean a summary of a GraphRAG
 community, not an arbitrary reference-work division (Principles 2 and 9).
+
+## Analysis input descriptors and chunk identities
+
+Reported Analysis inputs and contract-bound retrieval chunkings have
+different roles. An Analysis can carry its supplied first and last source
+keys, chapter key, source-key frame description, construction description
+and actual source context directly. Those optional fields do not make it a
+Chunk, Chunking, text carrier or execution event.
+
+The integer descriptors preserve source values. Do not reuse `entryOrdinal`
+without its zero-based sequence-position meaning or reinterpret keys as
+half-open code-point bounds. Different source-key and text-assembly
+conventions may describe inputs that cannot be compared or reconstructed from
+their endpoints alone. Construction descriptions and identified source
+contexts retain what was supplied without requiring a profile, digest or
+input artifact.
+
+The three text-unit granularity individuals reuse the kernel's open
+GranularityLevel category and nonfunctional `hasGranularity`. They imply no
+fixed size, endpoint equality or universal resolution order. Existing Chunk
+and ChunkingMember source, rules, carrier, ordinal and extent obligations
+remain unchanged (Principles 4, 9 and 19).
+
+Only the optional first, last and chapter integer fields receive local
+qualified maxima on Analysis; no required-path closure is added for these
+descriptors. Existing literal ranges and canonical logic axioms provide their
+value contracts without a new input class, global functional carrier or
+hand-authored shape (Principle 17).

@@ -2050,3 +2050,255 @@ msgstr "避免将整个源文档声明为 Chunk（源本身是普通 gmeow:Infor
 msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."
 msgstr "用于从更大来源中切取的检索片段：检索器返回、模型读取、证据范围锚定的单元；它补足 Source → Chunk → EvidenceSpan → 声明节点链中缺少的信息对象种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis first source-chunk key"
+msgstr "分析的首个来源块键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this Analysis's selected input unit."
+msgstr "所提供的整数键，标识此 Analysis 所选输入单元的报告首个来源块。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interpret the key only under the supplied source context and key convention. It is not entryOrdinal or spanStart and imposes no global key origin, numeric ordering, continuity or input-byte identity."
+msgstr "仅依据已提供的来源上下文和键约定解释此键。它不是 entryOrdinal 或 spanStart，也不强加全局键起点、数值顺序、连续性或输入字节身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 when those endpoint keys were supplied."
+msgstr "在已提供这些端点键时，记录 ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key reported for the unit an analysis read."
+msgstr "用于保留分析所读取单元的报告首个来源块键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a canonical chunk ordinal, treating it as a code-point start, or assuming the emitted retrieval chunk has the original input text."
+msgstr "避免将该键转换为规范的块序号、将其视为码点起始位置，或假定输出的检索块包含原始输入文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the Analysis with any supplied last key, source-key frame, construction, chapter and source context. Leave unavailable endpoints and conventions absent rather than inventing them."
+msgstr "在 Analysis 上保留所提供的整数，以及已提供的末尾键、来源键框架、构造、章节和来源上下文。不可得的端点和约定保持缺失，不要虚构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis last source-chunk key"
+msgstr "分析的末个来源块键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this Analysis's selected input unit."
+msgstr "所提供的整数键，标识此 Analysis 所选输入单元的报告末个来源块。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reported endpoint does not impose a universal inclusive or exclusive convention, consecutive membership, numeric ordering or equality with the first key at chunk granularity. It is not spanEnd."
+msgstr "报告端点不强加通用的包含或排除端点约定、连续成员关系、数值顺序，也不要求在块粒度下与首个键相等。它不是 spanEnd。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisLastChunkKey 18 while retaining the separately supplied first key and source convention."
+msgstr "记录 ex:analysis gmeow:analysisLastChunkKey 18，同时保留另行提供的首个键及来源约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the unit an analysis read."
+msgstr "用于保留为分析所读取单元提供的末个来源块键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to obtain a half-open endpoint, equating the key with a code-point bound, or claiming all intervening chunks were present."
+msgstr "避免通过加一得到半开端点、将该键等同于码点边界，或断言所有中间块都存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the Analysis and preserve any supplied input-context descriptors. Interpret endpoint inclusion or source membership only when the source convention actually supplies it."
+msgstr "在 Analysis 上原样保留该整数，并保留所提供的输入上下文描述。仅在来源约定实际提供相应含义时，才解释端点是否包含或来源成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source-chunk key frame descriptor"
+msgstr "分析的来源块键框架描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this Analysis's reported chunk keys."
+msgstr "所提供的字符串，描述此 Analysis 所报告块键的来源键命名空间或索引约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptor preserves stated context; it is not an authenticated coordinate system, complete key inventory or mandatory source artifact. Multiple supplied descriptions may coexist without making the keys globally comparable."
+msgstr "此描述保留已声明的上下文；它不是经过认证的坐标系统、完整键清单或必需的来源制品。多个已提供的描述可以共存，但不会因此使这些键具有全局可比性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" when that descriptor is supplied."
+msgstr "在已提供该描述时，保留 ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\"。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for an analysis input."
+msgstr "用于来源为分析输入提供键命名空间或索引约定的文本描述的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, treating descriptive text as an executable frame or requiring an artifact when only a descriptor was supplied."
+msgstr "避免虚构零起点方案、将描述文本视为可执行框架，或在仅提供描述时要求制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the Analysis alongside its reported keys. Keep an unknown frame unknown; the descriptor does not authenticate a source or compute a key mapping."
+msgstr "将所提供的 xsd:string 复制到 Analysis 上，与其报告键一并保留。未知框架保持未知；此描述不认证来源，也不计算键映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input construction description"
+msgstr "分析输入构造描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this Analysis's input text was assembled, such as its trimming, omission or separator conventions."
+msgstr "所提供的描述，说明此 Analysis 的输入文本如何组装，例如其去除首尾空白、略去内容或分隔符约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specifically named descriptive field preserves its complete string literal. It is not a structured parameter blob, executable profile, frozen artifact, historical-byte witness or claim that a construction was executed."
+msgstr "此具有专门名称的描述字段保留其完整字符串字面量。它不是结构化参数数据块、可执行配置、冻结制品、历史字节见证，也不是某次构造已被执行的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en when that description is supplied."
+msgstr "在已提供该描述时，保留 ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing how the selected analysis input was assembled."
+msgstr "用于保留已提供的文字描述，说明所选分析输入如何组装。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable input text or assembly rules, or treating this description as proof that historical input bytes match."
+msgstr "避免虚构不可得的输入文本或组装规则，也不要将此描述视为历史输入字节相符的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied description and its language and direction on the Analysis. Retain distinct attributed descriptions as given and leave unknown construction details absent."
+msgstr "在 Analysis 上保留所提供的描述及其语言和书写方向。原样保留彼此独立且带有归属信息的描述，未知构造细节保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source chapter key"
+msgstr "分析的来源章节键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this Analysis's input."
+msgstr "所提供的整数章节键或章节组键，它影响此 Analysis 输入的来源选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The key retains the source's grouping context without creating a ContentSegment, chapter ordinal or universal numbering scheme. It need not describe a chapter-granularity analysis; another input unit may also be selected within a chapter."
+msgstr "此键保留来源的分组上下文，不创建 ContentSegment、章节序号或通用编号方案。它不一定描述章节粒度的分析；其他输入单元也可以在章节内选取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChapterKey 4 when that source chapter key accompanies the selected input."
+msgstr "在该来源章节键随所选输入提供时，保留 ex:analysis gmeow:analysisChapterKey 4。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks an analysis input selects."
+msgstr "用于已提供的章节键或组键影响分析输入所选择来源块的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a chapter position, inferring a structural chapter object or assuming it is independent of the source-key frame."
+msgstr "避免将该键转换为章节位置、推断结构性章节对象，或假定它独立于来源键框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied integer with any reported chunk endpoints and source context. Do not add a missing chapter key or change the analysis granularity merely because this descriptor is present."
+msgstr "将所提供的整数与报告的块端点和来源上下文一并保留。不要仅因该描述存在就添加缺失的章节键或改变分析粒度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input source context"
+msgstr "分析输入的来源上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source information object associated with the reported input keys or source selection of this Analysis."
+msgstr "实际已标识的来源信息对象，与此 Analysis 所报告的输入键或来源选择相关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link records supplied source context. It does not by itself identify immutable analyzer-input bytes, certify an exact source revision or turn the Analysis result into a text carrier. Several attributed source-context links may coexist."
+msgstr "此链接记录已提供的来源上下文。它本身不标识不可变的分析器输入字节，不证明确切来源修订，也不将 Analysis 结果变成文本载体。多个带有归属信息的来源上下文链接可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisSourceContext ex:sourceRecord when that source information object is actually identified."
+msgstr "在实际已标识该来源信息对象时，记录 ex:analysis gmeow:analysisSourceContext ex:sourceRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for an analysis input's chunk keys or selection."
+msgstr "用于保留已标识且作为分析输入块键或选择上下文提供的来源对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence, treating a mutable source identity as authenticated input bytes or requiring an unsupported digest."
+msgstr "避免为填补缺失证据而创建来源对象、将可变来源身份视为经过认证的输入字节，或要求缺乏依据的摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied InformationObject and retain its stated role alongside any input descriptors. Omit the relation when no source object is supplied; this property neither reconstructs nor authenticates text."
+msgstr "仅链接实际提供的 InformationObject，并与输入描述一并保留其已声明角色。未提供来源对象时省略此关系；此属性既不重构也不认证文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk input granularity"
+msgstr "块输入粒度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chunk resolution under its source's chunk convention."
+msgstr "一种开放的文本单元粒度值，表示依据来源自身的块约定按块分辨率报告的输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a resolution individual, not a class of chunks or a fixed text length. It does not equate source keys with retrieval chunks, require equal endpoint keys or establish a universal granularity ordering."
+msgstr "这是分辨率个体，不是块类或固定文本长度。它不将来源键等同于检索块，不要求端点键相等，也不建立通用粒度顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChunk when chunk input granularity was supplied."
+msgstr "在已提供块输入粒度时，记录 ex:analysis gmeow:hasGranularity gmeow:granularityChunk。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chunk granularity."
+msgstr "用于分析输入或其他文本单元记录被明确描述为块粒度的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chunk size, source coordinates, key conventions or a specific chunking solely from this value."
+msgstr "避免仅凭此值推断块大小、来源坐标、键约定或特定分块方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and preserve the supplied source and input descriptors separately. Keep other attributed granularity values without selecting a winner."
+msgstr "通过 hasGranularity 引用此个体，并另行保留所提供的来源和输入描述。保留其他带有归属信息的粒度值，不选择唯一胜出者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "passage input granularity"
+msgstr "篇段输入粒度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at passage resolution under its source's passage convention."
+msgstr "一种开放的文本单元粒度值，表示依据来源自身的篇段约定按篇段分辨率报告的输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A passage has no universal size, chunk count or required position in a granularity ladder. This individual supplies no assembly rule, contiguous-source-cut claim or identity with a structural ContentSegment."
+msgstr "篇段没有通用大小、块数量或在粒度层级中的必需位置。此个体不提供组装规则、连续来源截段断言或与结构性 ContentSegment 的同一身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityPassage while retaining any supplied first and last source-chunk keys."
+msgstr "记录 ex:analysis gmeow:hasGranularity gmeow:granularityPassage，同时保留已提供的首个和末个来源块键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly describes the selected input unit as a passage."
+msgstr "用于来源明确将所选输入单元描述为篇段的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a passage's text, boundaries, size or relation to chapter granularity from this value alone."
+msgstr "避免仅凭此值推导篇段的文本、边界、大小或其与章节粒度的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use hasGranularity to retain this supplied resolution and keep source-key, construction and grouping descriptors separately. Do not invent a fixed passage segmentation or a coarserThan edge."
+msgstr "使用 hasGranularity 保留所提供的分辨率，并另行保留来源键、构造和分组描述。不要虚构固定的篇段划分或 coarserThan 边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chapter input granularity"
+msgstr "章节输入粒度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chapter resolution under its source's chapter convention."
+msgstr "一种开放的文本单元粒度值，表示依据来源自身的章节约定按章节分辨率报告的输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify a chapter ContentSegment, select a numbering origin or prove that the input equals a structural chapter's exact text. Chapter grouping and input construction remain separate supplied context."
+msgstr "此分辨率值不创建或标识章节 ContentSegment，不选择编号起点，也不证明输入等于某个结构性章节的确切文本。章节分组和输入构造仍是另行提供的上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChapter and retain a supplied analysisChapterKey separately."
+msgstr "记录 ex:analysis gmeow:hasGranularity gmeow:granularityChapter，并另行保留已提供的 analysisChapterKey。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chapter granularity."
+msgstr "用于分析输入或其他文本单元记录被明确描述为章节粒度的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chapter identity, chapter order, input bytes or a universal relation to passage or chunk granularity."
+msgstr "避免推断章节身份、章节顺序、输入字节，或其与篇段或块粒度的通用关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."
+msgstr "通过 hasGranularity 保留此个体及所提供的来源上下文和章节键描述。保留其他带有归属信息的分辨率，不合并它们的约定。"

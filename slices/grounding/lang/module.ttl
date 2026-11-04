@@ -12802,3 +12802,90 @@ gmeow:linearRegex
     skos:example "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."@x-gmeow-english .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/lang/stageDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+lang:TokenParseReport
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Token Parse Report"@x-gmeow-english ;
+    skos:definition "A descriptive result record grouping the supplied dependency label, head wording and sentence index reported for one token within one Analysis."@x-gmeow-english ;
+    skos:scopeNote "This record is not the token, a FormSlot, a Form, a denotation-bearing Reading or an AnalysisOutput requiring a canonicalization profile. Its three reported fields may be absent; its one actual Analysis context keeps separate reports from collapsing."@x-gmeow-english ;
+    skos:example "Record ex:parse a lang:TokenParseReport ; lang:parseInAnalysis ex:analysis ; lang:reportedDependencyLabel \"nsubj\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve supplied syntax for a token when no composed-form slot structure or head-token identity is supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the report as proof of a complete parse, model execution, token position, denotation or dependency tree."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual Analysis through parseInAnalysis and retain only the dependency label, head wording and sentence index that were supplied. Use separate report records for distinct analysis contexts and retain actual attribution."@x-gmeow-english .
+
+lang:parseInAnalysis
+    a logic:ObjectProperty ;
+    logic:domain lang:TokenParseReport ;
+    logic:range lang:Analysis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "token parse report in analysis"@x-gmeow-english ;
+    skos:definition "The one actual Analysis context to which this TokenParseReport belongs."@x-gmeow-english ;
+    skos:scopeNote "This required report-local context does not widen inAnalysis, whose existing subjects are slots or constituent forms. Analysis remains a result grouping rather than a fabricated execution event or input artifact."@x-gmeow-english ;
+    skos:example "Record ex:parse lang:parseInAnalysis ex:analysis ."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep one token's reported syntax within the coherent analysis that supplied its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning one report to several analyses or inventing a composed-form slot, profile or model run to provide this relation."@x-gmeow-english ;
+    gmeow:howToUse "Link each TokenParseReport to its one actual Analysis. Keep reports from other analysis contexts separate, even when they concern the same occurrence or supply equal field values."@x-gmeow-english .
+
+lang:reportedDependencyLabel
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:TokenParseReport ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported dependency label"@x-gmeow-english ;
+    skos:definition "The exact dependency-relation code supplied for the token described by this TokenParseReport."@x-gmeow-english ;
+    skos:scopeNote "This is a parser-supplied string, preserving spelling and case. It does not identify a FormRole, assert a Universal Dependencies alignment or create a dependsOn edge between sibling slots."@x-gmeow-english ;
+    skos:example "Record ex:parse lang:reportedDependencyLabel \"nsubj\" without inferring a FormRole identity from the string."@x-gmeow-english ;
+    gmeow:useWhen "Use when the supplied token parse identifies its dependency relation by a code string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalizing the code, inventing a relation individual, or using dependencyRelation on a report as though it were a FormSlot."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied xsd:string on the report in its actual analysis context. Keep the field absent when no dependency label was supplied and preserve any later explicit alignment separately."@x-gmeow-english .
+
+lang:reportedHeadText
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:TokenParseReport ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported head wording"@x-gmeow-english ;
+    skos:definition "The head-word text supplied for the token described by this TokenParseReport, retaining its complete string literal."@x-gmeow-english ;
+    skos:scopeNote "Preserve supplied lexical form, language and direction. Head wording alone identifies no head token, Form, source position, occurrence identity or resolved referent."@x-gmeow-english ;
+    skos:example "Record ex:parse lang:reportedHeadText \"walked\"@en when that head wording and language were supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when a token parse supplies its head only as word text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid constructing a head slot, token identity or dependency endpoint merely from equal spelling."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied string literal to the report without changing its language or direction. Leave unknown metadata and missing head wording absent rather than reconstructing a token."@x-gmeow-english .
+
+lang:reportedSentenceIndex
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:TokenParseReport ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported sentence index"@x-gmeow-english ;
+    skos:definition "The integer supplied as the sentence index of the token described by this TokenParseReport within its analysis input."@x-gmeow-english ;
+    skos:scopeNote "The source's index origin and sentence convention remain unknown unless supplied. This reported value is not a canonical entryOrdinal, a code-point offset or a guarantee that a sentence can be recovered or compared across analyses."@x-gmeow-english ;
+    skos:example "Retain a supplied value as ex:parse lang:reportedSentenceIndex 3 without shifting it to an assumed index origin."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a supplied sentence index alongside the token parse report's actual Analysis context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming zero origin, one origin, a nonnegative bound, contiguous numbering or a correspondence to another text's sentences."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied integer unchanged and keep it scoped through parseInAnalysis. Do not create a sentence object, coordinate conversion or index convention to fill missing information."@x-gmeow-english .
+
+
+lang:TokenParseReport logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty lang:parseInAnalysis ; logic:allValuesFrom lang:Analysis ],
+    [ a logic:Restriction ; logic:onProperty lang:parseInAnalysis ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:Analysis ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedDependencyLabel ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedDependencyLabel ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedHeadText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedHeadText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedSentenceIndex ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty lang:reportedSentenceIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+[ a logic:ClosureEntry ;
+    logic:onClass lang:TokenParseReport ;
+    logic:closureKey "https://blackcatinformatics.ca/lang/parseInAnalysis" ;
+    logic:closureValue logic:ClosedWorldClosure ] .

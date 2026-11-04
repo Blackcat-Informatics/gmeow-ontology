@@ -124,3 +124,33 @@ raw language surface, index fields and attributed prerequisites.
 [The design](design/REFERENCE-NAVIGATION.md) explains identity and grounding.
 These are canonical source obligations and supported query paths, not claims
 that extraction, resolution, hashing or contextual reasoning has run.
+
+## Original recognized occurrences
+
+`recognizerLabel` preserves a recognizer's verbatim string on the original
+`EvidenceSpan` occurrence. Its domain is broader than `Mention`: a recognized
+occurrence may cross block boundaries, while a Mention keeps its required
+block-local origin. The code is a reported label, not class membership,
+resolved identity, a score or evidence of a model run.
+
+`rootTokenParse` links that original occurrence to a supplied
+`lang:TokenParseReport`. The report describes the parser-selected root without
+equating the occurrence with a token or manufacturing a token identifier,
+head slot or composed-form tree. `occurrenceInAnalysisInput` identifies the
+`lang:Analysis` whose selected input concerns the occurrence; it does not
+turn the Analysis result into a text carrier.
+
+Keep the actual recognizer vantage on each exact RDF 1.2 assertion. Several
+labels, reports and analysis-input associations may coexist. Each parse report
+retains its own `lang:parseInAnalysis`; do not join every report to every
+occurrence input and require their contexts all to be equal.
+
+A block-local projection is a separate occurrence description. Copying an
+original span's label or root report onto each fragment does not establish that
+each fragment was independently recognized or has the same root token.
+Supplied offsets retain their own origin and existing code-point semantics;
+these relations perform no coordinate conversion.
+
+See [reported token syntax](../../grounding/lang/docs.md#reported-token-syntax)
+and [analysis input descriptors](../../core/ai/docs.md#reported-analysis-inputs)
+for the report fields and supplied input context.

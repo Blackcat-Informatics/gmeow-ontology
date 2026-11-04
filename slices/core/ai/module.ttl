@@ -2569,3 +2569,137 @@ gmeow:HeldRecord logic:subClassOf
 
 # Explicit property-range validation; no required path on unrelated records.
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/textHeldRecord" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:analysisFirstChunkKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis first source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the first source chunk reported for this Analysis's selected input unit."@x-gmeow-english ;
+    skos:scopeNote "Interpret the key only under the supplied source context and key convention. It is not entryOrdinal or spanStart and imposes no global key origin, numeric ordering, continuity or input-byte identity."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 when those endpoint keys were supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the first source-chunk key reported for the unit an analysis read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a canonical chunk ordinal, treating it as a code-point start, or assuming the emitted retrieval chunk has the original input text."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied integer on the Analysis with any supplied last key, source-key frame, construction, chapter and source context. Leave unavailable endpoints and conventions absent rather than inventing them."@x-gmeow-english .
+
+gmeow:analysisLastChunkKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis last source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the last source chunk reported for this Analysis's selected input unit."@x-gmeow-english ;
+    skos:scopeNote "The reported endpoint does not impose a universal inclusive or exclusive convention, consecutive membership, numeric ordering or equality with the first key at chunk granularity. It is not spanEnd."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisLastChunkKey 18 while retaining the separately supplied first key and source convention."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the last source-chunk key supplied for the unit an analysis read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding one to obtain a half-open endpoint, equating the key with a code-point bound, or claiming all intervening chunks were present."@x-gmeow-english ;
+    gmeow:howToUse "Retain the integer unchanged on the Analysis and preserve any supplied input-context descriptors. Interpret endpoint inclusion or source membership only when the source convention actually supplies it."@x-gmeow-english .
+
+gmeow:analysisChunkKeyFrame
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis source-chunk key frame descriptor"@x-gmeow-english ;
+    skos:definition "A supplied string describing the source-key namespace or indexing convention of this Analysis's reported chunk keys."@x-gmeow-english ;
+    skos:scopeNote "This descriptor preserves stated context; it is not an authenticated coordinate system, complete key inventory or mandatory source artifact. Multiple supplied descriptions may coexist without making the keys globally comparable."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" when that descriptor is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a textual key namespace or indexing-convention descriptor for an analysis input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a zero-origin scheme, treating descriptive text as an executable frame or requiring an artifact when only a descriptor was supplied."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string onto the Analysis alongside its reported keys. Keep an unknown frame unknown; the descriptor does not authenticate a source or compute a key mapping."@x-gmeow-english .
+
+gmeow:analysisInputConstruction
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis input construction description"@x-gmeow-english ;
+    skos:definition "A supplied description of how this Analysis's input text was assembled, such as its trimming, omission or separator conventions."@x-gmeow-english ;
+    skos:scopeNote "This specifically named descriptive field preserves its complete string literal. It is not a structured parameter blob, executable profile, frozen artifact, historical-byte witness or claim that a construction was executed."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en when that description is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve supplied prose describing how the selected analysis input was assembled."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing unavailable input text or assembly rules, or treating this description as proof that historical input bytes match."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied description and its language and direction on the Analysis. Retain distinct attributed descriptions as given and leave unknown construction details absent."@x-gmeow-english .
+
+gmeow:analysisChapterKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis source chapter key"@x-gmeow-english ;
+    skos:definition "The supplied integer chapter or chapter-group key affecting the source selection for this Analysis's input."@x-gmeow-english ;
+    skos:scopeNote "The key retains the source's grouping context without creating a ContentSegment, chapter ordinal or universal numbering scheme. It need not describe a chapter-granularity analysis; another input unit may also be selected within a chapter."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisChapterKey 4 when that source chapter key accompanies the selected input."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied chapter or group key affects which source chunks an analysis input selects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a chapter position, inferring a structural chapter object or assuming it is independent of the source-key frame."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied integer with any reported chunk endpoints and source context. Do not add a missing chapter key or change the analysis granularity merely because this descriptor is present."@x-gmeow-english .
+
+gmeow:analysisSourceContext
+    a logic:ObjectProperty ;
+    logic:domain lang:Analysis ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis input source context"@x-gmeow-english ;
+    skos:definition "An actually identified source information object associated with the reported input keys or source selection of this Analysis."@x-gmeow-english ;
+    skos:scopeNote "The link records supplied source context. It does not by itself identify immutable analyzer-input bytes, certify an exact source revision or turn the Analysis result into a text carrier. Several attributed source-context links may coexist."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisSourceContext ex:sourceRecord when that source information object is actually identified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an identified source object supplied as context for an analysis input's chunk keys or selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a source object to fill missing evidence, treating a mutable source identity as authenticated input bytes or requiring an unsupported digest."@x-gmeow-english ;
+    gmeow:howToUse "Link only the actual supplied InformationObject and retain its stated role alongside any input descriptors. Omit the relation when no source object is supplied; this property neither reconstructs nor authenticates text."@x-gmeow-english .
+
+gmeow:granularityChunk
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "chunk input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at chunk resolution under its source's chunk convention."@x-gmeow-english ;
+    skos:scopeNote "This is a resolution individual, not a class of chunks or a fixed text length. It does not equate source keys with retrieval chunks, require equal endpoint keys or establish a universal granularity ordering."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityChunk when chunk input granularity was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at chunk granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring chunk size, source coordinates, key conventions or a specific chunking solely from this value."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through hasGranularity and preserve the supplied source and input descriptors separately. Keep other attributed granularity values without selecting a winner."@x-gmeow-english .
+
+gmeow:granularityPassage
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "passage input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at passage resolution under its source's passage convention."@x-gmeow-english ;
+    skos:scopeNote "A passage has no universal size, chunk count or required position in a granularity ladder. This individual supplies no assembly rule, contiguous-source-cut claim or identity with a structural ContentSegment."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityPassage while retaining any supplied first and last source-chunk keys."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly describes the selected input unit as a passage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a passage's text, boundaries, size or relation to chapter granularity from this value alone."@x-gmeow-english ;
+    gmeow:howToUse "Use hasGranularity to retain this supplied resolution and keep source-key, construction and grouping descriptors separately. Do not invent a fixed passage segmentation or a coarserThan edge."@x-gmeow-english .
+
+gmeow:granularityChapter
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "chapter input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at chapter resolution under its source's chapter convention."@x-gmeow-english ;
+    skos:scopeNote "This resolution value does not create or identify a chapter ContentSegment, select a numbering origin or prove that the input equals a structural chapter's exact text. Chapter grouping and input construction remain separate supplied context."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityChapter and retain a supplied analysisChapterKey separately."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at chapter granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring chapter identity, chapter order, input bytes or a universal relation to passage or chunk granularity."@x-gmeow-english ;
+    gmeow:howToUse "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."@x-gmeow-english .
+
+
+lang:Analysis logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisFirstChunkKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisFirstChunkKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisLastChunkKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisLastChunkKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .

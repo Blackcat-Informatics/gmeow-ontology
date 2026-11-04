@@ -2563,3 +2563,143 @@ msgstr "Le nom de surface stable vers lequel une gmeow:GmnNotationView se projet
 msgctxt "https://blackcatinformatics.ca/lang/stageDigest|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The supplied scheme identifier pinning a profile stage's declared implementation and data. Retain its complete xsd:string or xsd:token literal and spelling. The source declares no byte-preimage encoding or digest algorithm, so this identifier alone neither proves identical artifact bytes nor verifies reproducible output."
 msgstr "Identifiant de schéma fourni qui fixe l’implémentation et les données déclarées d’une étape de profil. Conserver son littéral xsd:string ou xsd:token complet et sa graphie. La source ne déclare ni encodage de préimage en octets ni algorithme de condensat ; cet identifiant seul ne prouve donc ni l’identité des octets d’artefact ni la reproductibilité du résultat."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Token Parse Report"
+msgstr "Rapport d’analyse syntaxique de token"
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptive result record grouping the supplied dependency label, head wording and sentence index reported for one token within one Analysis."
+msgstr "Un enregistrement de résultat descriptif regroupant l’étiquette de dépendance, la formulation de la tête et l’indice de phrase fournis pour un token au sein d’une Analysis."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This record is not the token, a FormSlot, a Form, a denotation-bearing Reading or an AnalysisOutput requiring a canonicalization profile. Its three reported fields may be absent; its one actual Analysis context keeps separate reports from collapsing."
+msgstr "Cet enregistrement n’est ni le token, ni un FormSlot, ni une Form, ni une Reading portant une dénotation, ni un AnalysisOutput exigeant un profil de canonicalisation. Ses trois champs rapportés peuvent être absents ; son unique contexte Analysis réel empêche la fusion de rapports distincts."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:parse a lang:TokenParseReport ; lang:parseInAnalysis ex:analysis ; lang:reportedDependencyLabel \"nsubj\" ."
+msgstr "Consigner ex:parse a lang:TokenParseReport ; lang:parseInAnalysis ex:analysis ; lang:reportedDependencyLabel \"nsubj\" ."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied syntax for a token when no composed-form slot structure or head-token identity is supplied."
+msgstr "Utiliser pour conserver la syntaxe fournie pour un token lorsqu’aucune structure d’emplacements de forme composée ni identité de token tête n’est fournie."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the report as proof of a complete parse, model execution, token position, denotation or dependency tree."
+msgstr "Éviter de traiter le rapport comme preuve d’une analyse syntaxique complète, d’une exécution de modèle, d’une position de token, d’une dénotation ou d’un arbre de dépendances."
+
+msgctxt "https://blackcatinformatics.ca/lang/TokenParseReport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual Analysis through parseInAnalysis and retain only the dependency label, head wording and sentence index that were supplied. Use separate report records for distinct analysis contexts and retain actual attribution."
+msgstr "Nommer l’Analysis réelle avec parseInAnalysis et ne conserver que l’étiquette de dépendance, la formulation de la tête et l’indice de phrase fournis. Utiliser des enregistrements de rapport séparés pour les contextes d’analyse distincts et conserver l’attribution réelle."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "token parse report in analysis"
+msgstr "rapport d’analyse de token dans l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual Analysis context to which this TokenParseReport belongs."
+msgstr "L’unique contexte Analysis réel auquel appartient ce TokenParseReport."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This required report-local context does not widen inAnalysis, whose existing subjects are slots or constituent forms. Analysis remains a result grouping rather than a fabricated execution event or input artifact."
+msgstr "Ce contexte obligatoire, local au rapport, n’élargit pas inAnalysis, dont les sujets existants sont des emplacements ou des formes constituantes. Analysis reste un regroupement de résultats plutôt qu’un événement d’exécution ou un artefact d’entrée fabriqué."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:parse lang:parseInAnalysis ex:analysis ."
+msgstr "Consigner ex:parse lang:parseInAnalysis ex:analysis ."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep one token's reported syntax within the coherent analysis that supplied its context."
+msgstr "Utiliser pour maintenir la syntaxe rapportée d’un token dans l’analyse cohérente qui en a fourni le contexte."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning one report to several analyses or inventing a composed-form slot, profile or model run to provide this relation."
+msgstr "Éviter d’affecter un rapport à plusieurs analyses ou d’inventer un emplacement de forme composée, un profil ou une exécution de modèle pour fournir cette relation."
+
+msgctxt "https://blackcatinformatics.ca/lang/parseInAnalysis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each TokenParseReport to its one actual Analysis. Keep reports from other analysis contexts separate, even when they concern the same occurrence or supply equal field values."
+msgstr "Relier chaque TokenParseReport à son unique Analysis réelle. Garder séparés les rapports d’autres contextes d’analyse, même s’ils concernent la même occurrence ou fournissent des valeurs de champs égales."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported dependency label"
+msgstr "étiquette de dépendance rapportée"
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact dependency-relation code supplied for the token described by this TokenParseReport."
+msgstr "Le code exact de relation de dépendance fourni pour le token décrit par ce TokenParseReport."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a parser-supplied string, preserving spelling and case. It does not identify a FormRole, assert a Universal Dependencies alignment or create a dependsOn edge between sibling slots."
+msgstr "Il s’agit d’une chaîne fournie par l’analyseur, dont l’orthographe et la casse sont conservées. Elle n’identifie pas un FormRole, n’affirme pas un alignement Universal Dependencies et ne crée pas d’arête dependsOn entre emplacements frères."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:parse lang:reportedDependencyLabel \"nsubj\" without inferring a FormRole identity from the string."
+msgstr "Consigner ex:parse lang:reportedDependencyLabel \"nsubj\" sans inférer d’identité FormRole à partir de la chaîne."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the supplied token parse identifies its dependency relation by a code string."
+msgstr "Utiliser lorsque l’analyse syntaxique fournie pour le token identifie sa relation de dépendance par une chaîne de code."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing the code, inventing a relation individual, or using dependencyRelation on a report as though it were a FormSlot."
+msgstr "Éviter de normaliser le code, d’inventer un individu de relation ou d’utiliser dependencyRelation sur un rapport comme s’il s’agissait d’un FormSlot."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedDependencyLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:string on the report in its actual analysis context. Keep the field absent when no dependency label was supplied and preserve any later explicit alignment separately."
+msgstr "Conserver la chaîne xsd:string fournie sur le rapport dans son contexte d’analyse réel. Laisser le champ absent lorsqu’aucune étiquette de dépendance n’a été fournie et préserver séparément tout alignement explicite ultérieur."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported head wording"
+msgstr "formulation de la tête rapportée"
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The head-word text supplied for the token described by this TokenParseReport, retaining its complete string literal."
+msgstr "Le texte du mot tête fourni pour le token décrit par ce TokenParseReport, conservé sous la forme de son littéral chaîne complet."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve supplied lexical form, language and direction. Head wording alone identifies no head token, Form, source position, occurrence identity or resolved referent."
+msgstr "Préserver la forme lexicale, la langue et la direction fournies. La formulation de la tête seule n’identifie ni token tête, ni Form, ni position source, ni identité d’occurrence, ni référent résolu."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:parse lang:reportedHeadText \"walked\"@en when that head wording and language were supplied."
+msgstr "Consigner ex:parse lang:reportedHeadText \"walked\"@en lorsque cette formulation de tête et cette langue ont été fournies."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a token parse supplies its head only as word text."
+msgstr "Utiliser lorsqu’une analyse de token fournit sa tête uniquement sous forme de texte de mot."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid constructing a head slot, token identity or dependency endpoint merely from equal spelling."
+msgstr "Éviter de construire un emplacement de tête, une identité de token ou une extrémité de dépendance à partir de la seule égalité orthographique."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedHeadText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied string literal to the report without changing its language or direction. Leave unknown metadata and missing head wording absent rather than reconstructing a token."
+msgstr "Copier le littéral chaîne fourni dans le rapport sans modifier sa langue ni sa direction. Laisser absentes les métadonnées inconnues et la formulation de tête manquante plutôt que de reconstruire un token."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported sentence index"
+msgstr "indice de phrase rapporté"
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer supplied as the sentence index of the token described by this TokenParseReport within its analysis input."
+msgstr "L’entier fourni comme indice de phrase du token décrit par ce TokenParseReport dans son entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source's index origin and sentence convention remain unknown unless supplied. This reported value is not a canonical entryOrdinal, a code-point offset or a guarantee that a sentence can be recovered or compared across analyses."
+msgstr "L’origine de l’indice et la convention de phrase de la source restent inconnues si elles ne sont pas fournies. Cette valeur rapportée n’est ni un entryOrdinal canonique, ni une position en points de code, ni une garantie qu’une phrase peut être retrouvée ou comparée entre analyses."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied value as ex:parse lang:reportedSentenceIndex 3 without shifting it to an assumed index origin."
+msgstr "Conserver une valeur fournie sous la forme ex:parse lang:reportedSentenceIndex 3 sans la décaler vers une origine d’indice supposée."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a supplied sentence index alongside the token parse report's actual Analysis context."
+msgstr "Utiliser pour préserver un indice de phrase fourni avec le contexte Analysis réel du rapport d’analyse de token."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming zero origin, one origin, a nonnegative bound, contiguous numbering or a correspondence to another text's sentences."
+msgstr "Éviter de supposer une origine à zéro, une origine à un, une borne non négative, une numérotation contiguë ou une correspondance avec les phrases d’un autre texte."
+
+msgctxt "https://blackcatinformatics.ca/lang/reportedSentenceIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied integer unchanged and keep it scoped through parseInAnalysis. Do not create a sentence object, coordinate conversion or index convention to fill missing information."
+msgstr "Conserver l’entier fourni sans modification et maintenir sa portée par parseInAnalysis. Ne pas créer d’objet phrase, de conversion de coordonnées ou de convention d’indice pour combler une information manquante."

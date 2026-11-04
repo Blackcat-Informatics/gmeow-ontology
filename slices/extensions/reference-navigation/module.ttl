@@ -587,3 +587,46 @@ gmeow:indexTarget
     gmeow:useWhen "Use when a source or interpretation supplies an actual target block for an index entry while the printed page, range or other locator wording must remain intact."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid replacing indexLocator text, confusing a target block with an indexConcept, inferring a unique resolution or shared revision, or treating the link as a resolver result verified by the vocabulary. Unresolved and competing readings remain explicit."@x-gmeow-english ;
     gmeow:howToUse "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."@x-gmeow-english .
+
+gmeow:recognizerLabel
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verbatim recognizer label"@x-gmeow-english ;
+    skos:definition "The exact label string a recognizer reported for this original source occurrence, retained as a reading under that recognizer's actual vantage."@x-gmeow-english ;
+    skos:scopeNote "The occurrence may cross block boundaries and need not be a block-local Mention. The code preserves spelling and case without asserting class membership, a resolved referent, a score or a model run. Competing attributed labels may coexist."@x-gmeow-english ;
+    skos:example "With its actual recognizer vantage retained on the statement, record ex:occ gmeow:recognizerLabel \"PERSON\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a recognizer's supplied label for the exact occurrence it recognized."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the code as an entity name, GMEOW class assertion or resolved identity, or copying the original occurrence's label to fragments as if each were independently recognized."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied xsd:string to the original EvidenceSpan occurrence and retain the actual recognizer vantage on that exact RDF 1.2 statement. Keep unavailable metadata absent and preserve separate attributed readings."@x-gmeow-english .
+
+gmeow:rootTokenParse
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range lang:TokenParseReport ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported parse of occurrence root token"@x-gmeow-english ;
+    skos:definition "A supplied TokenParseReport about the parser-selected root token of this original recognized occurrence, under the report's actual analysis context."@x-gmeow-english ;
+    skos:scopeNote "The occurrence is not equated with its root token. The report can retain supplied syntax without a token identifier, token position, composed form or head slot. Several attributed reports may describe the same occurrence."@x-gmeow-english ;
+    skos:example "Record ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a recognizer supplies syntax for the root token of an occurrence without supplying a composed-form slot tree."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the occurrence as a token or assuming its original root is the root of every block-local fragment."@x-gmeow-english ;
+    gmeow:howToUse "Link the original occurrence to the supplied report, retain the report's parseInAnalysis and actual recognizer attribution, and keep competing reports distinct. Do not manufacture token or head identities."@x-gmeow-english .
+
+gmeow:occurrenceInAnalysisInput
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range lang:Analysis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "occurrence in analysis input"@x-gmeow-english ;
+    skos:definition "Identifies the Analysis whose selected input text is the context of this reported original occurrence."@x-gmeow-english ;
+    skos:scopeNote "This relation selects the input context of the named analysis; it does not make the Analysis result a text carrier. It supplies no input bytes, offset conversion or authentication, and multiple attributed analysis contexts may coexist."@x-gmeow-english ;
+    skos:example "Record ex:occ gmeow:occurrenceInAnalysisInput ex:analysis while retaining the supplied input-context descriptors on ex:analysis."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve which analysis input a recognizer's original occurrence report concerns."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the containing block for a larger analysis input, treating Analysis as source text, or inferring coordinates in another context."@x-gmeow-english ;
+    gmeow:howToUse "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."@x-gmeow-english .

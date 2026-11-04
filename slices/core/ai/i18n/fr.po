@@ -2050,3 +2050,255 @@ msgstr "Éviter de typer le document source entier comme Chunk (la source est un
 msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."
 msgstr "Utiliser pour un segment adapté à la recherche, découpé dans une source plus grande : l’unité renvoyée par la recherche, lue par un modèle et ancrée par une plage de preuve ; le type d’objet informationnel manquant dans la chaîne Source → Chunk → EvidenceSpan → nœud d’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis first source-chunk key"
+msgstr "clé du premier fragment source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this Analysis's selected input unit."
+msgstr "La clé entière fournie identifiant le premier fragment source rapporté pour l’unité d’entrée sélectionnée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interpret the key only under the supplied source context and key convention. It is not entryOrdinal or spanStart and imposes no global key origin, numeric ordering, continuity or input-byte identity."
+msgstr "N’interpréter la clé que selon le contexte source et la convention de clés fournis. Elle n’est ni entryOrdinal ni spanStart et n’impose aucune origine globale des clés, aucun ordre numérique, aucune continuité ni identité des octets d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 when those endpoint keys were supplied."
+msgstr "Consigner ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 lorsque ces clés d’extrémité ont été fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key reported for the unit an analysis read."
+msgstr "Utiliser pour conserver la clé du premier fragment source rapportée pour l’unité lue par une analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a canonical chunk ordinal, treating it as a code-point start, or assuming the emitted retrieval chunk has the original input text."
+msgstr "Éviter de convertir la clé en ordinal canonique de fragment, de la traiter comme une position initiale en points de code ou de supposer que le fragment de recherche émis contient le texte d’entrée original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the Analysis with any supplied last key, source-key frame, construction, chapter and source context. Leave unavailable endpoints and conventions absent rather than inventing them."
+msgstr "Garder l’entier fourni sur l’Analysis avec toute clé de fin, tout repère de clés source et tout contexte de construction, de chapitre ou de source fournis. Laisser absentes les extrémités et conventions indisponibles plutôt que de les inventer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis last source-chunk key"
+msgstr "clé du dernier fragment source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this Analysis's selected input unit."
+msgstr "La clé entière fournie identifiant le dernier fragment source rapporté pour l’unité d’entrée sélectionnée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reported endpoint does not impose a universal inclusive or exclusive convention, consecutive membership, numeric ordering or equality with the first key at chunk granularity. It is not spanEnd."
+msgstr "L’extrémité rapportée n’impose aucune convention universelle inclusive ou exclusive, appartenance consécutive, ordre numérique ni égalité avec la première clé à la granularité fragment. Elle n’est pas spanEnd."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisLastChunkKey 18 while retaining the separately supplied first key and source convention."
+msgstr "Consigner ex:analysis gmeow:analysisLastChunkKey 18 en conservant la première clé et la convention source fournies séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the unit an analysis read."
+msgstr "Utiliser pour préserver la clé du dernier fragment source fournie pour l’unité lue par une analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to obtain a half-open endpoint, equating the key with a code-point bound, or claiming all intervening chunks were present."
+msgstr "Éviter d’ajouter un pour obtenir une extrémité semi-ouverte, d’assimiler la clé à une borne en points de code ou d’affirmer la présence de tous les fragments intermédiaires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the Analysis and preserve any supplied input-context descriptors. Interpret endpoint inclusion or source membership only when the source convention actually supplies it."
+msgstr "Conserver l’entier sans modification sur l’Analysis et préserver tous les descripteurs de contexte d’entrée fournis. N’interpréter l’inclusion d’extrémité ou l’appartenance source que lorsque la convention source les fournit réellement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source-chunk key frame descriptor"
+msgstr "descripteur du repère des clés de fragments source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this Analysis's reported chunk keys."
+msgstr "Une chaîne fournie décrivant l’espace de noms des clés source ou la convention d’indexation des clés de fragments rapportées de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptor preserves stated context; it is not an authenticated coordinate system, complete key inventory or mandatory source artifact. Multiple supplied descriptions may coexist without making the keys globally comparable."
+msgstr "Ce descripteur conserve le contexte énoncé ; il n’est ni un système de coordonnées authentifié, ni un inventaire complet des clés, ni un artefact source obligatoire. Plusieurs descriptions fournies peuvent coexister sans rendre les clés globalement comparables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" when that descriptor is supplied."
+msgstr "Conserver ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" lorsque ce descripteur est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for an analysis input."
+msgstr "Utiliser lorsqu’une source fournit un descripteur textuel d’espace de noms des clés ou de convention d’indexation pour une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, treating descriptive text as an executable frame or requiring an artifact when only a descriptor was supplied."
+msgstr "Éviter d’inventer un schéma d’origine zéro, de traiter du texte descriptif comme un repère exécutable ou d’exiger un artefact lorsque seul un descripteur a été fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the Analysis alongside its reported keys. Keep an unknown frame unknown; the descriptor does not authenticate a source or compute a key mapping."
+msgstr "Copier la chaîne xsd:string fournie sur l’Analysis à côté de ses clés rapportées. Laisser inconnu un repère inconnu ; le descripteur n’authentifie pas une source et ne calcule pas une correspondance de clés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input construction description"
+msgstr "description de construction de l’entrée d’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this Analysis's input text was assembled, such as its trimming, omission or separator conventions."
+msgstr "Une description fournie de la façon dont le texte d’entrée de cette Analysis a été assemblé, par exemple ses conventions de suppression des espaces en début et en fin de texte, d’omission ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specifically named descriptive field preserves its complete string literal. It is not a structured parameter blob, executable profile, frozen artifact, historical-byte witness or claim that a construction was executed."
+msgstr "Ce champ descriptif explicitement nommé conserve son littéral chaîne complet. Il n’est ni un bloc de paramètres structurés, ni un profil exécutable, ni un artefact figé, ni un témoin d’octets historiques, ni une affirmation qu’une construction a été exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en when that description is supplied."
+msgstr "Conserver ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en lorsque cette description est fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing how the selected analysis input was assembled."
+msgstr "Utiliser pour conserver la prose fournie décrivant comment l’entrée d’analyse sélectionnée a été assemblée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable input text or assembly rules, or treating this description as proof that historical input bytes match."
+msgstr "Éviter d’inventer du texte d’entrée ou des règles d’assemblage indisponibles, ou de traiter cette description comme preuve que les octets d’entrée historiques concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied description and its language and direction on the Analysis. Retain distinct attributed descriptions as given and leave unknown construction details absent."
+msgstr "Conserver la description fournie ainsi que sa langue et sa direction sur l’Analysis. Retenir les descriptions attribuées distinctes telles quelles et laisser absents les détails de construction inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source chapter key"
+msgstr "clé de chapitre source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this Analysis's input."
+msgstr "La clé entière de chapitre ou de groupe de chapitres fournie qui influe sur la sélection source pour l’entrée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The key retains the source's grouping context without creating a ContentSegment, chapter ordinal or universal numbering scheme. It need not describe a chapter-granularity analysis; another input unit may also be selected within a chapter."
+msgstr "La clé conserve le contexte de regroupement de la source sans créer de ContentSegment, d’ordinal de chapitre ni de schéma de numérotation universel. Elle ne décrit pas nécessairement une analyse à granularité chapitre ; une autre unité d’entrée peut aussi être sélectionnée dans un chapitre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChapterKey 4 when that source chapter key accompanies the selected input."
+msgstr "Conserver ex:analysis gmeow:analysisChapterKey 4 lorsque cette clé de chapitre source accompagne l’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks an analysis input selects."
+msgstr "Utiliser lorsqu’une clé de chapitre ou de groupe fournie influe sur les fragments source sélectionnés par une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a chapter position, inferring a structural chapter object or assuming it is independent of the source-key frame."
+msgstr "Éviter de convertir la clé en position de chapitre, d’inférer un objet chapitre structurel ou de supposer son indépendance vis-à-vis du repère des clés source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied integer with any reported chunk endpoints and source context. Do not add a missing chapter key or change the analysis granularity merely because this descriptor is present."
+msgstr "Préserver l’entier fourni avec toutes les extrémités de fragments et le contexte source rapportés. Ne pas ajouter de clé de chapitre manquante ni changer la granularité de l’analyse du seul fait que ce descripteur est présent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input source context"
+msgstr "contexte source de l’entrée d’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source information object associated with the reported input keys or source selection of this Analysis."
+msgstr "Un objet informationnel source réellement identifié, associé aux clés d’entrée ou à la sélection source rapportées de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link records supplied source context. It does not by itself identify immutable analyzer-input bytes, certify an exact source revision or turn the Analysis result into a text carrier. Several attributed source-context links may coexist."
+msgstr "Le lien enregistre le contexte source fourni. À lui seul, il n’identifie pas des octets d’entrée immuables de l’analyseur, ne certifie pas une révision source exacte et ne transforme pas le résultat Analysis en support de texte. Plusieurs liens de contexte source attribués peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisSourceContext ex:sourceRecord when that source information object is actually identified."
+msgstr "Consigner ex:analysis gmeow:analysisSourceContext ex:sourceRecord lorsque cet objet informationnel source est réellement identifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for an analysis input's chunk keys or selection."
+msgstr "Utiliser pour conserver un objet source identifié fourni comme contexte des clés de fragments ou de la sélection d’une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence, treating a mutable source identity as authenticated input bytes or requiring an unsupported digest."
+msgstr "Éviter de créer un objet source pour combler une preuve manquante, de traiter une identité source mutable comme des octets d’entrée authentifiés ou d’exiger une empreinte non étayée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied InformationObject and retain its stated role alongside any input descriptors. Omit the relation when no source object is supplied; this property neither reconstructs nor authenticates text."
+msgstr "Ne relier que l’InformationObject réellement fourni et conserver son rôle déclaré avec tous les descripteurs d’entrée. Omettre la relation lorsqu’aucun objet source n’est fourni ; cette propriété ne reconstruit ni n’authentifie le texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk input granularity"
+msgstr "granularité d’entrée par fragment"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chunk resolution under its source's chunk convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution fragment selon la convention de fragments de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a resolution individual, not a class of chunks or a fixed text length. It does not equate source keys with retrieval chunks, require equal endpoint keys or establish a universal granularity ordering."
+msgstr "Il s’agit d’un individu de résolution, non d’une classe de fragments ni d’une longueur de texte fixe. Il n’assimile pas les clés source aux fragments de recherche, n’exige pas de clés d’extrémité égales et n’établit pas d’ordre universel de granularité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChunk when chunk input granularity was supplied."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityChunk lorsque la granularité d’entrée par fragment a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chunk granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à la granularité fragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chunk size, source coordinates, key conventions or a specific chunking solely from this value."
+msgstr "Éviter d’inférer la taille des fragments, des coordonnées source, des conventions de clés ou un découpage particulier à partir de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and preserve the supplied source and input descriptors separately. Keep other attributed granularity values without selecting a winner."
+msgstr "Référencer cet individu par hasGranularity et conserver séparément les descripteurs de source et d’entrée fournis. Garder les autres valeurs de granularité attribuées sans désigner de gagnant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "passage input granularity"
+msgstr "granularité d’entrée par passage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at passage resolution under its source's passage convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution passage selon la convention de passages de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A passage has no universal size, chunk count or required position in a granularity ladder. This individual supplies no assembly rule, contiguous-source-cut claim or identity with a structural ContentSegment."
+msgstr "Un passage n’a ni taille universelle, ni nombre universel de fragments, ni position obligatoire dans une échelle de granularité. Cet individu ne fournit ni règle d’assemblage, ni affirmation de découpe source contiguë, ni identité avec un ContentSegment structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityPassage while retaining any supplied first and last source-chunk keys."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityPassage en conservant toutes les clés de premier et dernier fragments source fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly describes the selected input unit as a passage."
+msgstr "Utiliser lorsque la source décrit explicitement l’unité d’entrée sélectionnée comme un passage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a passage's text, boundaries, size or relation to chapter granularity from this value alone."
+msgstr "Éviter de déduire le texte, les limites, la taille ou le rapport d’un passage à la granularité chapitre à partir de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use hasGranularity to retain this supplied resolution and keep source-key, construction and grouping descriptors separately. Do not invent a fixed passage segmentation or a coarserThan edge."
+msgstr "Utiliser hasGranularity pour conserver cette résolution fournie et garder séparément les descripteurs de clés source, de construction et de regroupement. Ne pas inventer de segmentation fixe des passages ni d’arête coarserThan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chapter input granularity"
+msgstr "granularité d’entrée par chapitre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chapter resolution under its source's chapter convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution chapitre selon la convention de chapitres de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify a chapter ContentSegment, select a numbering origin or prove that the input equals a structural chapter's exact text. Chapter grouping and input construction remain separate supplied context."
+msgstr "Cette valeur de résolution ne crée ni n’identifie un ContentSegment de chapitre, ne sélectionne pas d’origine de numérotation et ne prouve pas que l’entrée est égale au texte exact d’un chapitre structurel. Le regroupement en chapitres et la construction de l’entrée restent des contextes fournis distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChapter and retain a supplied analysisChapterKey separately."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityChapter et conserver séparément un analysisChapterKey fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chapter granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à la granularité chapitre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chapter identity, chapter order, input bytes or a universal relation to passage or chunk granularity."
+msgstr "Éviter d’inférer l’identité d’un chapitre, l’ordre des chapitres, les octets d’entrée ou un rapport universel à la granularité passage ou fragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."
+msgstr "Conserver cet individu par hasGranularity avec tous les descripteurs de contexte source et de clé de chapitre fournis. Préserver les autres résolutions attribuées sans fusionner leurs conventions."
