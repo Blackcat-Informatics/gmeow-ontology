@@ -534,3 +534,150 @@ The current native affect capture/recovery API does not admit `scoreRegression`.
 This vocabulary value does not extend that adapter or enable model execution.
 It supplies the canonical score meaning; runtime support requires its own
 implementation and qualification.
+
+## Reported classifier and measurement inputs
+
+### gmeow:ChunkSpan
+
+A ChunkSpan identifies the selected source-text content unit reported as input
+across source chunks. The classifier's classifiedTarget and a Measurement's
+observedFeature can name that unit when both records actually concern the same
+input. The unit is separate from each output, the model-run record, the metric
+and the resulting Quantity. Do not put descriptors on an output and then name
+that output as the content that was read.
+
+Use the actual supplied unit identity. Endpoint integers, equal wording and
+granularity do not establish identity across source, grouping, assembly or
+producer contexts. ChunkSpan specializes the existing EvidenceSpan category and inherits
+InformationObject, reusing the common anchored-target model without requiring
+historical input bytes. It does not classify an input descriptor, a structural
+division, a mathematical set or an execution event.
+
+This category reuse does not assert Selector typing or require citation
+selectors, spanOfChunk, code-point offsets, support polarity or digests.
+Separately supplied anchoring facts retain their existing domain and validation
+contracts; a source key is not automatically a citation selector or offset.
+
+If the actual input already is a Chunk, reuse that identity and its complete
+existing contract. Do not wrap every Chunk or add ChunkSpan as a second ultimate
+Kind to a Chunk or ContentSegment. A reported source-key range alone does not
+establish the contiguous cut, carrier and coordinate facts required by Chunk.
+
+The optional domain-specific roles preserve supplied selection context:
+
+| Property | Supplied descriptor |
+| --- | --- |
+| chunkSpanFirstKey | First source-chunk integer key. |
+| chunkSpanLastKey | Last source-chunk integer key. |
+| chunkSpanChapterKey | Integer chapter or chapter-group key affecting selection. |
+| chunkSpanKeyFrame | String describing the source-key namespace or indexing convention. |
+| chunkSpanConstruction | Assembly description retaining its complete literal, language and direction. |
+| chunkSpanSourceContext | Actually identified source InformationObject associated with the selection. |
+
+Only first, last and chapter keys are locally at most one per coherent ChunkSpan.
+The roles remain globally nonfunctional. Attributed frame descriptions,
+construction descriptions and source-context links may coexist. Retain every
+supplied field; an absent field remains unknown. Competing selections use their
+own actual unit identities and separate output records so endpoint tuples do not
+lose their pairing.
+
+The five literal roles specialize lang:literalValue. The integer keys are
+identifiers, not quantities, zero-based entryOrdinal positions or half-open
+spanStart/spanEnd code-point coordinates. No origin, numeric ordering,
+continuity, endpoint inclusion or membership enumeration is inferred.
+Source context is descriptive: the link does not assert chunkOf, navigationSource,
+segmentOf, wasDerivedFrom or authenticated source bytes. Construction prose
+neither executes assembly nor proves historical input identity.
+
+Reuse hasGranularity with the existing open granularityChunk,
+granularityPassage, granularityChapter and granularityWork individuals when
+those resolutions are supplied. They provide no fixed size, universal order or
+automatic structural identity. Unknown granularity remains unknown.
+
+### A fictional shared input
+
+This invented scene supplies one passage input with its source, grouping,
+endpoint keys and assembly description. The classifier output and Measurement
+are separate records sharing that actual supplied unit. Their target links do
+not arise from matching key integers. A second supplied unit changes the source
+and grouping while retaining equal endpoints; its identity is independently
+given, not computed from a universal tuple rule.
+
+The classifier keeps its label-set membership, raw score interpretation and
+pinned run record. The Measurement keeps its own vantage, method, metric IRI and
+Quantity result. The fictional dimensionless result, unit and scalar reference
+frame are explicitly supplied context, not defaults inferred from the metric,
+key values or granularity. The frame follows the existing
+[Places profile](../places/docs.md#gmeowreferenceframe): one declared axis agrees
+with dimensionCount, and the realm, kind, determinacy and host requirement are
+supplied example facts. Keep actual reported units, frames and provenance
+through existing roles.
+No classifier execution, measurement computation, reconstruction or byte
+authentication was performed for this scene.
+
+```turtle
+@prefix ex: <https://example.org/chunk-span/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:sourceA a gmeow:InformationObject .
+ex:sourceB a gmeow:InformationObject .
+
+ex:unitA a gmeow:ChunkSpan ;
+    gmeow:hasGranularity gmeow:granularityPassage ;
+    gmeow:chunkSpanFirstKey 12 ;
+    gmeow:chunkSpanLastKey 18 ;
+    gmeow:chunkSpanChapterKey 4 ;
+    gmeow:chunkSpanKeyFrame "example source keys" ;
+    gmeow:chunkSpanConstruction "Join the supplied texts without trimming."@en ;
+    gmeow:chunkSpanSourceContext ex:sourceA .
+
+ex:unitB a gmeow:ChunkSpan ;
+    gmeow:hasGranularity gmeow:granularityPassage ;
+    gmeow:chunkSpanFirstKey 12 ;
+    gmeow:chunkSpanLastKey 18 ;
+    gmeow:chunkSpanChapterKey 5 ;
+    gmeow:chunkSpanSourceContext ex:sourceB .
+
+ex:labels a gmeow:ClassifierLabelSet .
+ex:label a gmeow:ClassifierLabel ;
+    rdfs:label "Fictional label" ;
+    gmeow:memberOfLabelSet ex:labels .
+ex:run a gmeow:ModelInferenceRun ;
+    gmeow:modelIdentifier "example/classifier"^^xsd:token ;
+    gmeow:modelRevision "revision-a"^^xsd:token ;
+    gmeow:runLabelSet ex:labels ;
+    gmeow:usedInput ex:unitA .
+ex:output a gmeow:ClassifierOutput ;
+    gmeow:classifiedTarget ex:unitA ;
+    gmeow:vantage ex:run ;
+    gmeow:producedBy ex:run ;
+    gmeow:emittedLabel ex:label ;
+    gmeow:classifierScore 0.25 ;
+    gmeow:scoreSemantics gmeow:scoreLogit .
+
+ex:reader a gmeow:Agent .
+ex:reading a gmeow:Measurement ;
+    gmeow:observedFeature ex:unitA ;
+    gmeow:vantage ex:reader ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:observationResult ex:value .
+ex:value a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 3.0 ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> ;
+    gmeow:hasReferenceFrame ex:resultFrame .
+
+ex:resultFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis ex:metricAxis ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:requiresHost false .
+ex:metricAxis a gmeow:Axis ;
+    rdfs:label "Example metric scalar axis"@en .
+```

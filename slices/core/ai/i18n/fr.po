@@ -2555,3 +2555,199 @@ msgstr "Éviter de traiter le score comme une probabilité, un étalonnage, une 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."
 msgstr "Déclarer cet individu par scoreSemantics sur la sortie, conserver ses classifierScore et emittedLabel exacts et préserver producedBy avec le ModelInferenceRun réel, la révision du modèle, l’entrée et la provenance de la source. Conserver tout contexte d’interprétation fourni séparément sans inventer d’échelle, d’unité ou de règle de décision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunk Span"
+msgstr "Plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified source-text input unit reported as a range of source chunks under its supplied selection context."
+msgstr "Une unité d’entrée de texte source identifiée, rapportée comme une plage de fragments source dans son contexte de sélection fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This EvidenceSpan specialization identifies the selected content unit and inherits InformationObject. Its supplied identity is not determined by endpoint integers, wording or granularity alone, and it need not be a contiguous retrieval Chunk."
+msgstr "Cette spécialisation d’EvidenceSpan identifie l’unité de contenu sélectionnée et hérite d’InformationObject. Son identité fournie n’est pas déterminée par les seuls entiers de bornes, le texte ou la granularité ; il ne s’agit pas nécessairement d’un Chunk de récupération contigu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a classifier or Measurement reports an input unit spanning source chunks under a supplied selection context."
+msgstr "À utiliser lorsqu’un classifieur ou une Measurement rapporte une unité d’entrée couvrant des fragments source dans un contexte de sélection fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing an output or an input descriptor as the selected content, wrapping every existing Chunk, or adding a second ultimate Kind to a Chunk or ContentSegment."
+msgstr "Ne typez pas une sortie ou un descripteur d’entrée comme le contenu sélectionné, n’enveloppez pas chaque Chunk existant et n’ajoutez pas un second Kind ultime à un Chunk ou ContentSegment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point classifiedTarget or observedFeature to the actual supplied unit identity. Keep granularity and supplied descriptors on that unit; keep outputs, runs and results separate. Reuse an actual existing Chunk with its complete contract."
+msgstr "Faites pointer classifiedTarget ou observedFeature vers l’identité réellement fournie de l’unité. Conservez sur cette unité la granularité et les descripteurs fournis ; séparez sorties, exécutions et résultats. Réutilisez un véritable Chunk existant avec son contrat complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the selected content: ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+msgstr "Identifiez le contenu sélectionné : ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span first source-chunk key"
+msgstr "clé du premier fragment source de la plage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this ChunkSpan."
+msgstr "La clé entière fournie identifiant le premier fragment source rapporté pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It is a source identifier, not an ordinal, code-point coordinate, count or numeric magnitude."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. C’est un identifiant source, pas un ordinal, une coordonnée de point de code, un compte ou une grandeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key supplied for the selected input unit."
+msgstr "À utiliser pour conserver la clé fournie du premier fragment source de l’unité d’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into entryOrdinal or spanStart, inventing a key origin or inferring continuity from endpoint values."
+msgstr "Ne convertissez pas la clé en entryOrdinal ou spanStart, n’inventez pas d’origine des clés et ne déduisez pas la continuité des valeurs des bornes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the ChunkSpan with any supplied last key, chapter key, key frame, construction and source context. Leave an unavailable first key absent."
+msgstr "Conservez l’entier fourni sur la ChunkSpan avec les autres éléments fournis : dernière clé, clé de chapitre, repère des clés, construction et contexte source. Laissez absente une première clé indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported first key: ex:unit gmeow:chunkSpanFirstKey 12 ."
+msgstr "Conservez la première clé rapportée : ex:unit gmeow:chunkSpanFirstKey 12 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span last source-chunk key"
+msgstr "clé du dernier fragment source de la plage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this ChunkSpan."
+msgstr "La clé entière fournie identifiant le dernier fragment source rapporté pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It establishes no inclusive or exclusive convention, numeric order, consecutive membership or equality with the first key."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. Elle n’établit ni convention inclusive ou exclusive, ni ordre numérique, ni appartenance consécutive, ni égalité avec la première clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the selected input unit."
+msgstr "À utiliser pour conserver la clé fournie du dernier fragment source de l’unité d’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to form a half-open bound, treating the key as spanEnd or claiming every intervening chunk was selected."
+msgstr "N’ajoutez pas un pour former une borne semi-ouverte, ne traitez pas la clé comme spanEnd et n’affirmez pas que chaque fragment intermédiaire a été sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the ChunkSpan and keep any supplied first key and selection context. Interpret endpoint inclusion only under an actually supplied convention."
+msgstr "Conservez l’entier inchangé sur la ChunkSpan avec l’éventuelle première clé et le contexte de sélection fournis. N’interprétez l’inclusion de la borne que selon une convention réellement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported last key: ex:unit gmeow:chunkSpanLastKey 18 ."
+msgstr "Conservez la dernière clé rapportée : ex:unit gmeow:chunkSpanLastKey 18 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source chapter key"
+msgstr "clé de chapitre source de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this ChunkSpan."
+msgstr "La clé entière fournie de chapitre ou de groupe de chapitres qui intervient dans la sélection source de cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It retains grouping context without creating a ContentSegment, chapter ordinal or numbering convention."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. Elle conserve le contexte de regroupement sans créer de ContentSegment, d’ordinal de chapitre ou de convention de numérotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks the input selects."
+msgstr "À utiliser lorsqu’une clé fournie de chapitre ou de groupe intervient dans le choix des fragments source de l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a structural chapter position or inferring chapter granularity solely from its presence."
+msgstr "Ne convertissez pas la clé en position structurelle de chapitre et ne déduisez pas la granularité de chapitre de sa seule présence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the integer with the ChunkSpan's supplied endpoint and source descriptors. A different grouping selection uses its own actual unit identity."
+msgstr "Conservez l’entier avec les descripteurs de bornes et de source fournis pour la ChunkSpan. Une sélection dans un autre regroupement utilise sa propre identité réelle d’unité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied grouping key: ex:unit gmeow:chunkSpanChapterKey 4 ."
+msgstr "Conservez la clé de regroupement fournie : ex:unit gmeow:chunkSpanChapterKey 4 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source-key frame descriptor"
+msgstr "descripteur du repère des clés source de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this ChunkSpan's reported chunk keys."
+msgstr "Une chaîne fournie décrivant l’espace de noms des clés source ou la convention d’indexation des clés de fragments rapportées pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptor preserves stated context without authenticating a coordinate system or complete key inventory. Several attributed descriptions may coexist."
+msgstr "Ce descripteur facultatif conserve le contexte énoncé sans authentifier un système de coordonnées ou un inventaire complet des clés. Plusieurs descriptions attribuées peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for a selected chunk span."
+msgstr "À utiliser lorsqu’une source fournit une description textuelle de l’espace de noms des clés ou de la convention d’indexation d’une plage de fragments sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, computing a key mapping from prose or treating equal descriptions as shared source identity."
+msgstr "N’inventez pas de schéma commençant à zéro, ne calculez pas de correspondance des clés à partir de prose et ne traitez pas des descriptions égales comme une identité source commune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the ChunkSpan alongside its reported keys. Keep an unknown key frame unknown and retain exact-statement attribution."
+msgstr "Copiez le xsd:string fourni sur la ChunkSpan avec ses clés rapportées. Laissez inconnu un repère de clés inconnu et conservez l’attribution de l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied key descriptor: ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+msgstr "Conservez un descripteur de clés fourni : ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input construction description"
+msgstr "description de construction de l’entrée de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this ChunkSpan's selected input text was assembled, including stated trimming, omission or separator conventions."
+msgstr "Une description fournie de l’assemblage du texte d’entrée sélectionné de cette ChunkSpan, notamment les conventions déclarées de suppression d’espaces, d’omission ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptive field preserves the complete literal, including actual language and direction. It is not an executable profile, structured parameter blob or historical-byte witness."
+msgstr "Ce champ descriptif facultatif conserve le littéral complet, y compris sa langue et sa direction réelles. Ce n’est ni un profil exécutable, ni un bloc de paramètres structurés, ni un témoin des octets historiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing the assembly of a reported chunk-span input."
+msgstr "À utiliser pour conserver la prose fournie décrivant l’assemblage d’une entrée rapportée comme plage de fragments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable text or assembly rules, interpreting the prose as execution evidence or normalizing its supplied literal."
+msgstr "N’inventez pas de texte ou de règles d’assemblage indisponibles, n’interprétez pas cette prose comme une preuve d’exécution et ne normalisez pas le littéral fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied string and any actual language tag and direction on the ChunkSpan. Retain competing attributed descriptions separately; leave unknown construction details absent."
+msgstr "Conservez sur la ChunkSpan la chaîne fournie ainsi que son éventuelle étiquette de langue et sa direction réelles. Conservez séparément les descriptions attribuées concurrentes ; laissez absents les détails de construction inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied assembly description: ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+msgstr "Conservez la description d’assemblage fournie : ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input source context"
+msgstr "contexte source de l’entrée de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source InformationObject supplied as context for this ChunkSpan's reported keys or source selection."
+msgstr "Un InformationObject source réellement identifié, fourni comme contexte des clés rapportées ou de la sélection source de cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional link records supplied source context without certifying an immutable source revision, historical input bytes or derivation. Several attributed source-context links may coexist."
+msgstr "Ce lien facultatif consigne le contexte source fourni sans certifier une révision source immuable, les octets historiques d’entrée ou une dérivation. Plusieurs liens de contexte source attribués peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for a selected chunk span."
+msgstr "À utiliser pour conserver un objet source identifié fourni comme contexte d’une plage de fragments sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence or using chunkOf, navigationSource, segmentOf or wasDerivedFrom for a merely contextual link."
+msgstr "Ne créez pas d’objet source pour combler une preuve manquante et n’utilisez pas chunkOf, navigationSource, segmentOf ou wasDerivedFrom pour un lien simplement contextuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only an actual supplied InformationObject and retain its stated contextual role. Keep absent source identity absent; this relation reconstructs no text and requires no invented digest."
+msgstr "Reliez uniquement un InformationObject réellement fourni et conservez son rôle contextuel déclaré. Laissez absente une identité source absente ; cette relation ne reconstruit aucun texte et n’exige aucun condensat inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."
+msgstr "Conservez le contexte source identifié : ex:unit gmeow:chunkSpanSourceContext ex:source ."
