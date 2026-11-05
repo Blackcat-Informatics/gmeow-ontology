@@ -815,3 +815,40 @@ Math retains dimension authority; SourceRegion retains coordinate authority.
 These source checks do not authenticate the image, index interpretation, source
 history or any execution. Missing required data fails rather than receiving a
 synthetic image, source, zero or frame.
+
+## Source artifact file type
+
+Documents owns the format of an actually identified documentary source artifact.
+For a block with a supplied source locus, follow `sourceLocus` to its
+`EvidenceSpan`, then `locusSource` to that actual `InformationObject` artifact.
+Assert the source artifact's supplied format through its existing `mediaType`
+relation to a `MediaType` value. This is the same
+[media identity contract](design/MEDIA-TYPES.md), with no source-file-type alias
+(Principles 4, 7, 11 and 17).
+
+The format belongs to the artifact it describes. A derived ContentBlock, its
+EvidenceSpan and an abstract work do not acquire the source file's format from
+this path. A converted held artifact or stored figure image has its own supplied
+media identity; it is not automatically the original source artifact. Neither a
+filename nor a page, href, extension or format code creates an artifact identity,
+revision or `locusSource` link. If artifact identity or format identity is
+unavailable, leave that assertion absent; do not supply a default format or
+manufacture an artifact to carry it.
+
+Keep optional `mediaTypeName` on the MediaType value as the exact parameter-free
+MIME type/subtype literal under its existing datatype and lexical contract.
+Actual filename-extension text, parameter-bearing source headers and extractor
+codes remain separately attributed source-record evidence. Existing
+[RecordMetadata](../record-metadata/docs.md) facets can retain actual run-time
+keys and literal payloads; its structured carriers preserve actual nested
+values, repeated keys, native terms and explicit null. Preserve supplied case,
+spacing, datatype, language and direction under the selected carrier's contract.
+Invent no facet key, null or source association. These raw records do not assert
+that an extension, header or extractor code denotes a particular MediaType.
+
+`originalMediaTypeText` remains restricted to reported format text before
+reencoding on an actual stored MediaObject. It is not a general raw source-type
+field. This guidance introduces no MIME parser, header-parameter extraction,
+normalization, registration lookup or conversion. It establishes no mapping of
+an unknown local field, importer execution, byte authentication or completed
+migration. Source page, region, FigurePart and EPUB order contracts are unchanged.

@@ -3423,3 +3423,179 @@ msgstr "避免以 modelRevision、modelIdentifier、modelAlias 或某制品的 c
 msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied xsd:hexBinary lexical form and datatype on the ModelInvocation. Preserve the provider receipt, source attribution and its actual weights, quantization and runtime context without inventing missing fields. Do not infer cross-scheme identity, hash verification or a whole weights-byte preimage from the digest alone."
 msgstr "在 ModelInvocation 上保留来源提供的 xsd:hexBinary 词法形式和数据类型。保留提供者回执、来源归属及其实际权重、量化和运行时语境，不编造缺失字段。不得仅凭摘要推断跨方案身份相同、哈希已验证，或原像为全部权重字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Extraction reclassification reading"
+msgstr "提取重分类解读"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Refinement retaining one extraction pass's reported prior and resulting ContentSegmentType identities for an actual ContentBlock, separately from the block's structural segmentType."
+msgstr "为实际 ContentBlock 保留一次提取过程所报先前及结果 ContentSegmentType 身份的 Refinement，与块本身的结构性 segmentType 分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One actual block, prior kind, resulting kind and method are required, with at least one real source and supplied vantage. Joint vantages coexist. Outcome, input scope and raw pass confidence are optional; no current global kind, chronology or successful execution is inferred."
+msgstr "必须有一个实际块、先前类型、结果类型和方法，以及至少一个真实来源和所提供视角。联合视角可以共存。定性结果、输入范围及过程原始置信数值可省略；不推断全局当前类型、时序或成功执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-recorded extraction pass retains its actual prior and resulting kind identities on a separate reading while the original block and competing readings remain unchanged."
+msgstr "来源记录的提取过程在独立解读上保留实际先前及结果类型身份，原始块与其他并存解读保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual block, kind identities, method, source derivation and named versioned process or standpoint context are supplied for an extraction reclassification reading."
+msgstr "用于提取重分类解读确实提供实际块、类型身份、方法、来源派生，以及具名版本化过程或立场上下文的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving a label into a kind identity, overwriting segmentType, requiring the prior and resulting identities to differ, inventing a model run, or defaulting an absent outcome, scope or chronology."
+msgstr "避免将标签解析成类型身份、覆盖 segmentType、要求先前与结果身份不同、虚构模型运行，或为缺失的定性结果、范围或时序填入默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual ContentBlock, reclassifiedFrom to the reported prior kind and observationResult to the supplied resulting kind. Retain the actual source records through wasDerivedFrom, HOW through observationMethod and actual versioned WHO or standpoint context through vantage; preserve exact-statement attribution separately."
+msgstr "将 observedFeature 关联到实际 ContentBlock，将 reclassifiedFrom 关联到所报先前类型，将 observationResult 关联到所提供结果类型。通过 wasDerivedFrom 保留真实来源记录，通过 observationMethod 保留方法，通过 vantage 保留实际版本化过程主体或立场上下文；分别保留各具体断言的归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reclassified from"
+msgstr "所报先前类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual ContentSegmentType identity reported as the prior kind in an ExtractionReclassificationReading, rather than a mutable kind field on its ContentBlock."
+msgstr "ExtractionReclassificationReading 中报告为先前类型的实际 ContentSegmentType 身份，而不是其 ContentBlock 上可变的类型字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one prior identity is required per coherent reading. Its label spelling establishes no identity, historical chronology, difference from the resulting kind or globally preferred interpretation. This relation does not specialize segmentType."
+msgstr "每个完整一致解读恰好需要一个先前类型身份。标签拼写不确立身份、历史时序、与结果类型的差异或全局优先解释。此关系不特化 segmentType。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "An attributed reading names the prior kind actually supplied by its source without changing the block's structural type or resolving an unresolved source label."
+msgstr "带归属的解读命名来源实际提供的先前类型，不改变块的结构类型，也不解析尚未确定身份的来源标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source-supported prior kind identity of an extraction reclassification reading."
+msgstr "用于提取重分类解读中由来源支持的先前类型身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a prior kind from current segmentType, a stage name or matching text, minting a kind to repair a missing identity, or asserting that an earlier reading was false."
+msgstr "避免从当前 segmentType、阶段名称或相同文字猜测先前类型，避免为补足缺失身份而创建类型，也不要断言较早解读为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual ContentSegmentType individual on the reading and retain the supplied resulting kind through existing observationResult. Preserve unresolved raw labels in the source record instead of silently converting them to vocabulary identities."
+msgstr "在解读上保留实际 ContentSegmentType 个体，通过现有 observationResult 保留所提供结果类型。将未解析的原始标签保留在来源记录中，不静默转换为词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reclassification raw pass confidence"
+msgstr "重分类过程原始置信数值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied raw pass-confidence math:Quantity of an ExtractionReclassificationReading, preserving its original finite numeric magnitudes and actual declared dimension and frame interpretation."
+msgstr "ExtractionReclassificationReading 所提供的过程原始置信数值 math:Quantity，保留原始有限数值及实际声明的维度和参考系解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and at most one Quantity per coherent reading. A supplied zero, negative value or value above one is retained when valid and finite; absence is not zero. No source numeric datatype, dimensionless dimension, bounds, probability, calibration or confidence conversion is inferred."
+msgstr "此项可省略，每个完整一致解读至多关联一个 Quantity。提供的零、负值或大于一的值只要有效有限就予以保留；缺失不是零。不推断来源数值类型、无量纲维度、范围、概率、校准或置信度转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A pass's supplied raw score retains its original numeric literal and actual interpretation; no score is fabricated for a reading that supplied none."
+msgstr "过程提供的原始分数保留其原始数值字面量及实际解释；解读未提供分数时不补造分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the pass supplies an original valid finite numeric confidence value with its actual mathematical dimension and frame interpretation."
+msgstr "仅用于过程提供原始有效有限置信数值及其实际数学维度和参考系解释的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing bounded statement confidence, classifierScore or expressionFindingPassConfidence, guessing xsd:decimal, clamping values, substituting zero or inventing dimensions and frames to hide incomplete interpretation."
+msgstr "避免复用有界语句置信度、classifierScore 或 expressionFindingPassConfidence，避免猜定 xsd:decimal、截断数值、替换为零，或虚构维度和参考系来掩盖解释不完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity and retain original finite numeric literals unchanged on math:quantityValue, allowing equal numeric lexical aliases. Reuse Quantity's inherited dimension obligations and keep one actual complete ReferenceFrame. Retain the pass-specific interpretation without asserting probability, rank, calibration or a decision threshold."
+msgstr "关联实际 Quantity，在 math:quantityValue 上原样保留原始有限数值字面量，允许数值相等的词法形式。复用 Quantity 继承的维度要求，并保留一个实际完整 ReferenceFrame。保留过程专属解释，不断言概率、排名、校准或决策阈值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reclassification pass confidence constraint"
+msgstr "重分类过程原始置信数值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."
+msgstr "每个已提供的重分类过程原始置信数值 Quantity 都至少具有一个原始有效有限数值、唯一数值及恰好一个具有类型的完整 ReferenceFrame；继续继承 Quantity 现有维度要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Six independent positive magnitude/frame obligations preserve original numeric identity and equal lexical aliases. No dimension law is duplicated, and these structural checks establish no probability bounds, calibration, source truth, execution or applicability of the declared interpretation."
+msgstr "六项独立正向数值与参考系要求保留原始数值身份及相等词法形式。不重复维度定律；这些结构检查不确立概率范围、校准、来源真实性、执行情况或所声明解释的适用性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied finite score is checked in its actual frame while a reading with no raw score acquires neither a default value nor a probability interpretation."
+msgstr "在实际参考系中检查已提供有限分数；未提供原始分数的解读不获得默认值或概率解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the supplied raw pass-confidence quantities of extraction reclassification readings without requiring a score on every reading."
+msgstr "用于验证提取重分类解读提供的过程原始置信数值量，不要求每个解读都提供分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a passing structural result as source authentication, normalized confidence, successful reclassification, evidence of a model run or permission to invent missing dimension and frame context."
+msgstr "避免将结构检查通过视为来源认证、归一化置信度、成功重分类、模型运行证据，或允许虚构缺失维度与参考系上下文的依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the reading type guard and six independently positive score guards with fresh local variables and atomic existence probes. Check every original magnitude for finite numeric validity and numeric equality, require one actual typed frame, and leave exact dimension presence, type and uniqueness to the existing Math Quantity owner."
+msgstr "应用解读类型守卫及六个独立正向分数守卫，使用互不冲突的局部变量和原子存在性探测。检查每个原始数值的有限有效性及数值相等，要求一个实际具型参考系，并由现有 Math Quantity 所属模型约束维度的存在、类型及唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."
+msgstr "每个已提供的重分类过程原始置信数值 Quantity 都至少具有一个原始有效有限数值、唯一数值及恰好一个具有类型的完整 ReferenceFrame；继续继承 Quantity 现有维度要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OCR source-image digest"
+msgstr "OCR 来源图像摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied algorithm-typed digest of the exact identified image byte representation from which this ContentBlock’s text was read by OCR, retained as the source’s attributed claim."
+msgstr "来源提供的、以算法为数据类型的摘要，其原像为通过 OCR 读取此 ContentBlock 文本所依据图像的确切已标明字节表示；该摘要作为归属于来源的声明保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Its preimage belongs to the OCR source image representation, not this block’s own bytes. Several source claims and algorithms may coexist without creating or identifying image resources or pairing their values."
+msgstr "此属性可选且非函数式。其原像属于 OCR 来源图像表示，而非此块自身的字节。多项来源声明及多种算法可以共存，但不会创建或识别图像资源，也不会将各值相互配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports a SHA-256 digest of the exact cropped image file used to read one block’s text; retain that supplied sha256Digest literal and the source’s crop and encoding evidence."
+msgstr "来源报告了用于读取某块文本的确切裁剪图像文件的 SHA-256 摘要；保留所提供的 sha256Digest 字面量，以及来源关于裁剪和编码的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source establishes the block’s OCR-input relation and supplies a digest with its actual algorithm construction and exact identified image byte preimage."
+msgstr "用于来源确立块与 OCR 输入的关系，并提供摘要、实际算法构造及确切已标明图像字节原像时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the block’s own contentDigest, an unknown algorithm or preimage, a perceptual or scheme identifier, inferred image identity, or a claim that OCR or byte verification has been independently established."
+msgstr "避免用于块自身的 contentDigest、算法或原像不明的值、感知标识符或方案标识符、推断出的图像身份，或声称 OCR 及字节验证已获独立证实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied complete blake3_256Digest, sha256Digest or md5Digest term and its exact lowercase spelling on the actual ContentBlock. Retain the actual algorithm construction, byte representation, OCR-input evidence and exact-statement attribution; reject missing or invalid selected evidence without normalization, retyping, defaults or a weaker string."
+msgstr "在实际 ContentBlock 上保留来源提供的完整 blake3_256Digest、sha256Digest 或 md5Digest 项及其确切小写拼写。保留实际算法构造、字节表示、OCR 输入证据及确切语句的归属；若所选证据缺失或无效，须予以拒绝，不得规范化、改换类型、采用默认值或退为较弱的字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OCR source-image digest admission"
+msgstr "OCR 来源图像摘要准入校验"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."
+msgstr "每个来源提供的 ocrSourceImageDigest 均须采用确切的算法数据类型及规定长度的无前缀小写十六进制形式：blake3_256Digest 或 sha256Digest 含 64 个数字，md5Digest 含 32 个数字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is supplied-value datatype and lexical admission. It computes no hash and certifies neither source content, the image preimage, OCR execution nor digest agreement. The provided-value endpoint checks independently require an actual ContentBlock subject."
+msgstr "此约束只校验来源提供值的数据类型及词法形式，不计算哈希，也不认证来源内容、图像原像、OCR 执行或摘要一致性。提供值的端点校验另行要求主体为实际 ContentBlock。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An xsd:string of 64 lowercase hexadecimal digits fails the algorithm contract; a sha256Digest value with uppercase digits fails the lexical contract."
+msgstr "由 64 个小写十六进制数字组成的 xsd:string 不符合算法契约；含大写数字的 sha256Digest 值不符合词法契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to admit each supplied OCR source-image digest only under its explicitly supplied algorithm datatype and exact hexadecimal width."
+msgstr "用于仅按明确提供的算法数据类型及确切十六进制长度，准入校验每个来源提供的 OCR 来源图像摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating lexical acceptance as source verification, using an untyped fallback, normalizing invalid values, deriving an algorithm from width or requiring a digest on every block."
+msgstr "避免将词法通过视为来源已验证、采用无算法类型的回退、规范化无效值、根据长度推导算法，或要求每个块都带摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the actual ocrSourceImageDigest relation, bind its subject and value positively, and require one complete datatype-and-width branch using termSameComponent and termRegex. Reject a failed branch union without replacing the supplied term; keep the actual byte and OCR-source evidence separately."
+msgstr "选择实际 ocrSourceImageDigest 关系，通过正向关系绑定其主体和值，并以 termSameComponent 和 termRegex 要求满足一个完整的数据类型及长度分支。若分支并集不成立，须予以拒绝，不替换来源项；另行保留实际字节及 OCR 来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."
+msgstr "每个来源提供的 ocrSourceImageDigest 均须采用确切的算法数据类型及规定长度的无前缀小写十六进制形式：blake3_256Digest 或 sha256Digest 含 64 个数字，md5Digest 含 32 个数字。"

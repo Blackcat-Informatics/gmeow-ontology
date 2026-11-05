@@ -3687,3 +3687,196 @@ gmeow:modelExecutionIdentity
     logic:range xsd:hexBinary .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ExtractionReclassificationReading
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Extraction reclassification reading"@x-gmeow-english ;
+    skos:definition "A Refinement retaining one extraction pass's reported prior and resulting ContentSegmentType identities for an actual ContentBlock, separately from the block's structural segmentType."@x-gmeow-english ;
+    skos:scopeNote "One actual block, prior kind, resulting kind and method are required, with at least one real source and supplied vantage. Joint vantages coexist. Outcome, input scope and raw pass confidence are optional; no current global kind, chronology or successful execution is inferred."@x-gmeow-english ;
+    skos:example "A source-recorded extraction pass retains its actual prior and resulting kind identities on a separate reading while the original block and competing readings remain unchanged."@x-gmeow-english ;
+    gmeow:useWhen "Use when actual block, kind identities, method, source derivation and named versioned process or standpoint context are supplied for an extraction reclassification reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving a label into a kind identity, overwriting segmentType, requiring the prior and resulting identities to differ, inventing a model run, or defaulting an absent outcome, scope or chronology."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual ContentBlock, reclassifiedFrom to the reported prior kind and observationResult to the supplied resulting kind. Retain the actual source records through wasDerivedFrom, HOW through observationMethod and actual versioned WHO or standpoint context through vantage; preserve exact-statement attribution separately."@x-gmeow-english ;
+    logic:subClassOf gmeow:Refinement .
+
+gmeow:reclassifiedFrom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reclassified from"@x-gmeow-english ;
+    skos:definition "The actual ContentSegmentType identity reported as the prior kind in an ExtractionReclassificationReading, rather than a mutable kind field on its ContentBlock."@x-gmeow-english ;
+    skos:scopeNote "Exactly one prior identity is required per coherent reading. Its label spelling establishes no identity, historical chronology, difference from the resulting kind or globally preferred interpretation. This relation does not specialize segmentType."@x-gmeow-english ;
+    skos:example "An attributed reading names the prior kind actually supplied by its source without changing the block's structural type or resolving an unresolved source label."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source-supported prior kind identity of an extraction reclassification reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a prior kind from current segmentType, a stage name or matching text, minting a kind to repair a missing identity, or asserting that an earlier reading was false."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual ContentSegmentType individual on the reading and retain the supplied resulting kind through existing observationResult. Preserve unresolved raw labels in the source record instead of silently converting them to vocabulary identities."@x-gmeow-english ;
+    logic:domain gmeow:ExtractionReclassificationReading ;
+    logic:range gmeow:ContentSegmentType .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reclassifiedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:reclassificationPassConfidence
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reclassification raw pass confidence"@x-gmeow-english ;
+    skos:definition "The supplied raw pass-confidence math:Quantity of an ExtractionReclassificationReading, preserving its original finite numeric magnitudes and actual declared dimension and frame interpretation."@x-gmeow-english ;
+    skos:scopeNote "Optional and at most one Quantity per coherent reading. A supplied zero, negative value or value above one is retained when valid and finite; absence is not zero. No source numeric datatype, dimensionless dimension, bounds, probability, calibration or confidence conversion is inferred."@x-gmeow-english ;
+    skos:example "A pass's supplied raw score retains its original numeric literal and actual interpretation; no score is fabricated for a reading that supplied none."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the pass supplies an original valid finite numeric confidence value with its actual mathematical dimension and frame interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing bounded statement confidence, classifierScore or expressionFindingPassConfidence, guessing xsd:decimal, clamping values, substituting zero or inventing dimensions and frames to hide incomplete interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity and retain original finite numeric literals unchanged on math:quantityValue, allowing equal numeric lexical aliases. Reuse Quantity's inherited dimension obligations and keep one actual complete ReferenceFrame. Retain the pass-specific interpretation without asserting probability, rank, calibration or a decision threshold."@x-gmeow-english ;
+    logic:domain gmeow:ExtractionReclassificationReading ;
+    logic:range math:Quantity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ExtractionReclassificationReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ContentBlock ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reclassifiedFrom ; logic:allValuesFrom gmeow:ContentSegmentType ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reclassifiedFrom ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:ContentSegmentType ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:allValuesFrom gmeow:RefinementOutcome ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reclassificationPassConfidence ; logic:allValuesFrom math:Quantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reclassificationPassConfidence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reclassifiedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ExtractionReclassificationReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReclassificationPassConfidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reclassification pass confidence constraint"@x-gmeow-english ;
+    skos:definition "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."@x-gmeow-english ;
+    skos:scopeNote "Six independent positive magnitude/frame obligations preserve original numeric identity and equal lexical aliases. No dimension law is duplicated, and these structural checks establish no probability bounds, calibration, source truth, execution or applicability of the declared interpretation."@x-gmeow-english ;
+    skos:example "A supplied finite score is checked in its actual frame while a reading with no raw score acquires neither a default value nor a probability interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the supplied raw pass-confidence quantities of extraction reclassification readings without requiring a score on every reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a passing structural result as source authentication, normalized confidence, successful reclassification, evidence of a model run or permission to invent missing dimension and frame context."@x-gmeow-english ;
+    gmeow:howToUse "Apply the reading type guard and six independently positive score guards with fresh local variables and atomic existence probes. Check every original magnitude for finite numeric validity and numeric equality, require one actual typed frame, and leave exact dimension presence, type and uniqueness to the existing Math Quantity owner."@x-gmeow-english ;
+    logic:formalizes gmeow:reclassificationPassConfidence ;
+    logic:message "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reading" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ExtractionReclassificationReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreMagnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreMagnitudeQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreMagnitude" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreFiniteQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFiniteMagnitude" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFiniteQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreFiniteQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFiniteMagnitude" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreFiniteMagnitude" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFirstValue" ] , [ logic:termIndex 2 ; logic:termVariable "scoreSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreEqualQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFirstValue" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreFirstValue" ] , [ logic:termIndex 1 ; logic:termVariable "scoreSecondValue" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFrame" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreTypedFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreTypedFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scoreUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFirstFrame" ] , [ logic:termIndex 2 ; logic:termVariable "scoreSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:reclassificationPassConfidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reading" ] , [ logic:termIndex 1 ; logic:termVariable "scoreUniqueFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreFirstFrame" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "scoreSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scoreFirstFrame" ] , [ logic:termIndex 1 ; logic:termVariable "scoreSecondFrame" ] ] ] ] ] ] ] .
+
+# OCR source-image digest: supplied-value admission.
+gmeow:ocrSourceImageDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "OCR source-image digest"@x-gmeow-english ;
+    skos:definition "A supplied algorithm-typed digest of the exact identified image byte representation from which this ContentBlock’s text was read by OCR, retained as the source’s attributed claim."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Its preimage belongs to the OCR source image representation, not this block’s own bytes. Several source claims and algorithms may coexist without creating or identifying image resources or pairing their values."@x-gmeow-english ;
+    skos:example "A source reports a SHA-256 digest of the exact cropped image file used to read one block’s text; retain that supplied sha256Digest literal and the source’s crop and encoding evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source establishes the block’s OCR-input relation and supplies a digest with its actual algorithm construction and exact identified image byte preimage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the block’s own contentDigest, an unknown algorithm or preimage, a perceptual or scheme identifier, inferred image identity, or a claim that OCR or byte verification has been independently established."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied complete blake3_256Digest, sha256Digest or md5Digest term and its exact lowercase spelling on the actual ContentBlock. Retain the actual algorithm construction, byte representation, OCR-input evidence and exact-statement attribution; reject missing or invalid selected evidence without normalization, retyping, defaults or a weaker string."@x-gmeow-english ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:OcrSourceImageDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "OCR source-image digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."@x-gmeow-english ;
+    skos:scopeNote "This is supplied-value datatype and lexical admission. It computes no hash and certifies neither source content, the image preimage, OCR execution nor digest agreement. The provided-value endpoint checks independently require an actual ContentBlock subject."@x-gmeow-english ;
+    skos:example "An xsd:string of 64 lowercase hexadecimal digits fails the algorithm contract; a sha256Digest value with uppercase digits fails the lexical contract."@x-gmeow-english ;
+    gmeow:useWhen "Use to admit each supplied OCR source-image digest only under its explicitly supplied algorithm datatype and exact hexadecimal width."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating lexical acceptance as source verification, using an untyped fallback, normalizing invalid values, deriving an algorithm from width or requiring a digest on every block."@x-gmeow-english ;
+    gmeow:howToUse "Select the actual ocrSourceImageDigest relation, bind its subject and value positively, and require one complete datatype-and-width branch using termSameComponent and termRegex. Reject a failed branch union without replacing the supplied term; keep the actual byte and OCR-source evidence separately."@x-gmeow-english ;
+    logic:formalizes gmeow:ocrSourceImageDigest ;
+    logic:severity "Violation" ;
+    logic:message "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "ocrBlock" ],
+            [ logic:termIndex 1 ; logic:termVariable "ocrDigest" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:ocrSourceImageDigest ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "ocrBlock" ],
+                    [ logic:termIndex 1 ; logic:termVariable "ocrDigest" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:or
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ],
+                                [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ],
+                                [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ],
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ],
+                                [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ],
+                                [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ],
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ],
+                                [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ],
+                                [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "ocrDigest" ],
+                                [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .

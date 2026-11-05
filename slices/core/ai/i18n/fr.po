@@ -3423,3 +3423,179 @@ msgstr "Éviter de substituer modelRevision, modelIdentifier, modelAlias ou le c
 msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied xsd:hexBinary lexical form and datatype on the ModelInvocation. Preserve the provider receipt, source attribution and its actual weights, quantization and runtime context without inventing missing fields. Do not infer cross-scheme identity, hash verification or a whole weights-byte preimage from the digest alone."
 msgstr "Conserver la forme lexicale et le type de données xsd:hexBinary fournis sur la ModelInvocation. Conserver le reçu du fournisseur, l’attribution de source et son contexte réel de poids, de quantification et d’exécution sans inventer les champs manquants. Ne pas inférer une identité entre schémas, une vérification de hachage ou une préimage constituée de tous les octets des poids à partir du seul condensat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Extraction reclassification reading"
+msgstr "Lecture de reclassification d’extraction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Refinement retaining one extraction pass's reported prior and resulting ContentSegmentType identities for an actual ContentBlock, separately from the block's structural segmentType."
+msgstr "Un Refinement conservant les identités ContentSegmentType antérieure et résultante rapportées par une passe d’extraction pour un ContentBlock réel, séparément du segmentType structurel du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One actual block, prior kind, resulting kind and method are required, with at least one real source and supplied vantage. Joint vantages coexist. Outcome, input scope and raw pass confidence are optional; no current global kind, chronology or successful execution is inferred."
+msgstr "Un bloc réel, un type antérieur, un type résultant et une méthode sont requis, avec au moins une source réelle et un point de vue fourni. Les points de vue conjoints coexistent. Le résultat qualitatif, la portée des entrées et la confiance brute de passe sont facultatifs ; aucun type global courant, aucune chronologie ni exécution réussie n’est inféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-recorded extraction pass retains its actual prior and resulting kind identities on a separate reading while the original block and competing readings remain unchanged."
+msgstr "Une passe d’extraction consignée par une source conserve ses identités réelles de type antérieur et résultant sur une lecture distincte, tandis que le bloc original et les lectures concurrentes restent inchangés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual block, kind identities, method, source derivation and named versioned process or standpoint context are supplied for an extraction reclassification reading."
+msgstr "Utiliser lorsque le bloc réel, les identités de types, la méthode, la dérivation de source et le contexte d’un processus nommé et versionné ou d’un point de vue sont fournis pour une lecture de reclassification d’extraction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving a label into a kind identity, overwriting segmentType, requiring the prior and resulting identities to differ, inventing a model run, or defaulting an absent outcome, scope or chronology."
+msgstr "Éviter de résoudre une étiquette en identité de type, d’écraser segmentType, d’exiger que les identités antérieure et résultante diffèrent, d’inventer une exécution de modèle ou de donner une valeur par défaut à un résultat qualitatif, une portée ou une chronologie absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtractionReclassificationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual ContentBlock, reclassifiedFrom to the reported prior kind and observationResult to the supplied resulting kind. Retain the actual source records through wasDerivedFrom, HOW through observationMethod and actual versioned WHO or standpoint context through vantage; preserve exact-statement attribution separately."
+msgstr "Relier observedFeature au ContentBlock réel, reclassifiedFrom au type antérieur rapporté et observationResult au type résultant fourni. Conserver les sources réelles par wasDerivedFrom, le COMMENT par observationMethod et le QUI réel versionné ou son contexte de point de vue par vantage ; préserver séparément l’attribution de chaque assertion exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reclassified from"
+msgstr "type antérieur rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual ContentSegmentType identity reported as the prior kind in an ExtractionReclassificationReading, rather than a mutable kind field on its ContentBlock."
+msgstr "L’identité ContentSegmentType réelle rapportée comme type antérieur dans une ExtractionReclassificationReading, plutôt qu’un champ de type mutable sur son ContentBlock."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one prior identity is required per coherent reading. Its label spelling establishes no identity, historical chronology, difference from the resulting kind or globally preferred interpretation. This relation does not specialize segmentType."
+msgstr "Exactement une identité antérieure est requise par lecture cohérente. Son libellé n’établit aucune identité, chronologie historique, différence avec le type résultant ni interprétation globalement privilégiée. Cette relation ne spécialise pas segmentType."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "An attributed reading names the prior kind actually supplied by its source without changing the block's structural type or resolving an unresolved source label."
+msgstr "Une lecture attribuée nomme le type antérieur réellement fourni par sa source sans modifier le type structurel du bloc ni résoudre une étiquette source non résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source-supported prior kind identity of an extraction reclassification reading."
+msgstr "Utiliser pour l’identité de type antérieur étayée par la source d’une lecture de reclassification d’extraction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a prior kind from current segmentType, a stage name or matching text, minting a kind to repair a missing identity, or asserting that an earlier reading was false."
+msgstr "Éviter de deviner un type antérieur à partir du segmentType courant, d’un nom d’étape ou d’un texte identique, de créer un type pour réparer une identité manquante ou d’affirmer qu’une lecture antérieure était fausse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassifiedFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual ContentSegmentType individual on the reading and retain the supplied resulting kind through existing observationResult. Preserve unresolved raw labels in the source record instead of silently converting them to vocabulary identities."
+msgstr "Conserver l’individu ContentSegmentType réel sur la lecture et le type résultant fourni par observationResult existant. Préserver les étiquettes brutes non résolues dans le document source au lieu de les convertir silencieusement en identités du vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reclassification raw pass confidence"
+msgstr "confiance brute de la passe de reclassification"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied raw pass-confidence math:Quantity of an ExtractionReclassificationReading, preserving its original finite numeric magnitudes and actual declared dimension and frame interpretation."
+msgstr "La math:Quantity de confiance brute de passe fournie pour une ExtractionReclassificationReading, conservant ses grandeurs numériques finies originales ainsi que sa dimension déclarée et son interprétation réelle de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and at most one Quantity per coherent reading. A supplied zero, negative value or value above one is retained when valid and finite; absence is not zero. No source numeric datatype, dimensionless dimension, bounds, probability, calibration or confidence conversion is inferred."
+msgstr "Facultative, avec au plus une Quantity par lecture cohérente. Un zéro, une valeur négative ou supérieure à un fournis sont conservés lorsqu’ils sont valides et finis ; l’absence n’est pas zéro. Aucun type numérique source, dimension sans dimension, borne, probabilité, étalonnage ou conversion de confiance n’est inféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A pass's supplied raw score retains its original numeric literal and actual interpretation; no score is fabricated for a reading that supplied none."
+msgstr "Le score brut fourni par une passe conserve son littéral numérique original et son interprétation réelle ; aucun score n’est fabriqué pour une lecture qui n’en fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the pass supplies an original valid finite numeric confidence value with its actual mathematical dimension and frame interpretation."
+msgstr "Utiliser uniquement lorsque la passe fournit une valeur de confiance numérique originale, valide et finie avec sa dimension mathématique et son interprétation réelle de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing bounded statement confidence, classifierScore or expressionFindingPassConfidence, guessing xsd:decimal, clamping values, substituting zero or inventing dimensions and frames to hide incomplete interpretation."
+msgstr "Éviter de réutiliser la confiance bornée d’une assertion, classifierScore ou expressionFindingPassConfidence, de supposer xsd:decimal, de borner artificiellement les valeurs, de substituer zéro ou d’inventer des dimensions et référentiels pour masquer une interprétation incomplète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reclassificationPassConfidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity and retain original finite numeric literals unchanged on math:quantityValue, allowing equal numeric lexical aliases. Reuse Quantity's inherited dimension obligations and keep one actual complete ReferenceFrame. Retain the pass-specific interpretation without asserting probability, rank, calibration or a decision threshold."
+msgstr "Relier la Quantity réelle et conserver sans modification les littéraux numériques finis originaux dans math:quantityValue, en permettant les variantes lexicales numériquement égales. Réutiliser les obligations dimensionnelles héritées de Quantity et conserver un unique ReferenceFrame réel et complet. Préserver l’interprétation propre à la passe sans affirmer de probabilité, de rang, d’étalonnage ou de seuil de décision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reclassification pass confidence constraint"
+msgstr "Contrainte de confiance de la passe de reclassification"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."
+msgstr "Chaque Quantity de confiance de passe de reclassification fournie possède au moins une grandeur numérique originale, valide et finie, une seule valeur numérique et exactement un ReferenceFrame typé et complet ; les obligations dimensionnelles existantes de Quantity restent héritées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Six independent positive magnitude/frame obligations preserve original numeric identity and equal lexical aliases. No dimension law is duplicated, and these structural checks establish no probability bounds, calibration, source truth, execution or applicability of the declared interpretation."
+msgstr "Six obligations positives indépendantes de grandeur et de référentiel préservent l’identité numérique originale et les variantes lexicales égales. Aucune loi dimensionnelle n’est dupliquée, et ces vérifications structurelles n’établissent ni bornes de probabilité, ni étalonnage, vérité de source, exécution ou applicabilité de l’interprétation déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied finite score is checked in its actual frame while a reading with no raw score acquires neither a default value nor a probability interpretation."
+msgstr "Un score fini fourni est vérifié dans son référentiel réel, tandis qu’une lecture sans score brut n’acquiert ni valeur par défaut ni interprétation probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the supplied raw pass-confidence quantities of extraction reclassification readings without requiring a score on every reading."
+msgstr "Utiliser pour valider les quantités de confiance brute de passe fournies pour les lectures de reclassification d’extraction sans exiger de score sur chaque lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a passing structural result as source authentication, normalized confidence, successful reclassification, evidence of a model run or permission to invent missing dimension and frame context."
+msgstr "Éviter d’utiliser un résultat structurel conforme comme authentification de source, confiance normalisée, reclassification réussie, preuve d’une exécution de modèle ou autorisation d’inventer un contexte dimensionnel et de référentiel manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the reading type guard and six independently positive score guards with fresh local variables and atomic existence probes. Check every original magnitude for finite numeric validity and numeric equality, require one actual typed frame, and leave exact dimension presence, type and uniqueness to the existing Math Quantity owner."
+msgstr "Appliquer la garde de type de lecture et six gardes positives indépendantes de score, avec des variables locales nouvelles et des sondes existentielles atomiques. Vérifier la validité numérique finie et l’égalité numérique de chaque grandeur originale, exiger un référentiel réel typé unique et laisser la présence, le type et l’unicité exacts de la dimension au propriétaire Math Quantity existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReclassificationPassConfidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied reclassification pass-confidence Quantity has at least one original valid finite numeric magnitude, one numeric value and exactly one typed complete ReferenceFrame; existing Quantity dimension obligations remain inherited."
+msgstr "Chaque Quantity de confiance de passe de reclassification fournie possède au moins une grandeur numérique originale, valide et finie, une seule valeur numérique et exactement un ReferenceFrame typé et complet ; les obligations dimensionnelles existantes de Quantity restent héritées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OCR source-image digest"
+msgstr "condensat de l’image source d’OCR"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied algorithm-typed digest of the exact identified image byte representation from which this ContentBlock’s text was read by OCR, retained as the source’s attributed claim."
+msgstr "Un condensat fourni, typé selon son algorithme, de la représentation exacte et identifiée en octets de l’image à partir de laquelle le texte de ce ContentBlock a été lu par OCR, conservé comme affirmation attribuée à la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Its preimage belongs to the OCR source image representation, not this block’s own bytes. Several source claims and algorithms may coexist without creating or identifying image resources or pairing their values."
+msgstr "Facultatif et non fonctionnel. Sa préimage relève de la représentation de l’image source d’OCR, et non des octets de ce bloc lui-même. Plusieurs affirmations de source et algorithmes peuvent coexister sans créer ni identifier de ressources image, ni apparier leurs valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports a SHA-256 digest of the exact cropped image file used to read one block’s text; retain that supplied sha256Digest literal and the source’s crop and encoding evidence."
+msgstr "Une source rapporte le condensat SHA-256 du fichier image recadré exact utilisé pour lire le texte d’un bloc ; conserver ce littéral sha256Digest fourni et les éléments de source sur le recadrage et l’encodage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source establishes the block’s OCR-input relation and supplies a digest with its actual algorithm construction and exact identified image byte preimage."
+msgstr "Utiliser lorsque la source établit la relation entre le bloc et son entrée d’OCR et fournit un condensat avec la construction réelle de son algorithme et sa préimage exacte et identifiée en octets d’image."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the block’s own contentDigest, an unknown algorithm or preimage, a perceptual or scheme identifier, inferred image identity, or a claim that OCR or byte verification has been independently established."
+msgstr "Éviter pour le contentDigest du bloc lui-même, un algorithme ou une préimage inconnus, un identifiant perceptuel ou de schéma, une identité d’image inférée, ou une affirmation de preuve indépendante de l’OCR ou de la vérification des octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ocrSourceImageDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied complete blake3_256Digest, sha256Digest or md5Digest term and its exact lowercase spelling on the actual ContentBlock. Retain the actual algorithm construction, byte representation, OCR-input evidence and exact-statement attribution; reject missing or invalid selected evidence without normalization, retyping, defaults or a weaker string."
+msgstr "Conserver sur le ContentBlock réel le terme complet blake3_256Digest, sha256Digest ou md5Digest fourni, avec sa graphie minuscule exacte. Conserver la construction réelle de l’algorithme, la représentation en octets, les éléments probants sur l’entrée d’OCR et l’attribution de l’énoncé exact ; rejeter les éléments sélectionnés manquants ou invalides sans normalisation, changement de type, valeurs par défaut ni chaîne moins précise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OCR source-image digest admission"
+msgstr "contrôle d’admission du condensat de l’image source d’OCR"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."
+msgstr "Chaque ocrSourceImageDigest fourni possède le type de données exact de son algorithme et la longueur requise en chiffres hexadécimaux minuscules sans préfixe : blake3_256Digest ou sha256Digest avec 64 chiffres, ou md5Digest avec 32 chiffres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is supplied-value datatype and lexical admission. It computes no hash and certifies neither source content, the image preimage, OCR execution nor digest agreement. The provided-value endpoint checks independently require an actual ContentBlock subject."
+msgstr "Il s’agit du contrôle du type de données et de la forme lexicale des valeurs fournies. Il ne calcule aucun hachage et ne certifie ni le contenu source, ni la préimage de l’image, ni l’exécution de l’OCR, ni la concordance du condensat. Les contrôles des extrémités des valeurs fournies exigent séparément un sujet ContentBlock réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An xsd:string of 64 lowercase hexadecimal digits fails the algorithm contract; a sha256Digest value with uppercase digits fails the lexical contract."
+msgstr "Une valeur xsd:string contenant 64 chiffres hexadécimaux minuscules enfreint le contrat d’algorithme ; une valeur sha256Digest contenant des majuscules enfreint le contrat lexical."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to admit each supplied OCR source-image digest only under its explicitly supplied algorithm datatype and exact hexadecimal width."
+msgstr "Utiliser pour n’admettre chaque condensat fourni de l’image source d’OCR qu’avec le type de données de son algorithme explicitement fourni et la longueur hexadécimale exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating lexical acceptance as source verification, using an untyped fallback, normalizing invalid values, deriving an algorithm from width or requiring a digest on every block."
+msgstr "Éviter de traiter l’acceptation lexicale comme une vérification de la source, d’utiliser un repli sans type d’algorithme, de normaliser les valeurs invalides, de déduire un algorithme de la longueur ou d’exiger un condensat sur chaque bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the actual ocrSourceImageDigest relation, bind its subject and value positively, and require one complete datatype-and-width branch using termSameComponent and termRegex. Reject a failed branch union without replacing the supplied term; keep the actual byte and OCR-source evidence separately."
+msgstr "Sélectionner la relation ocrSourceImageDigest réelle, lier positivement son sujet et sa valeur, puis exiger une branche complète associant type de données et longueur au moyen de termSameComponent et termRegex. Rejeter une union de branches non satisfaite sans remplacer le terme fourni ; conserver séparément les éléments probants sur les octets réels et la source d’OCR."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OcrSourceImageDigestValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied ocrSourceImageDigest has the exact algorithm datatype and bare lowercase hexadecimal width: blake3_256Digest or sha256Digest with 64 digits, or md5Digest with 32 digits."
+msgstr "Chaque ocrSourceImageDigest fourni possède le type de données exact de son algorithme et la longueur requise en chiffres hexadécimaux minuscules sans préfixe : blake3_256Digest ou sha256Digest avec 64 chiffres, ou md5Digest avec 32 chiffres."
