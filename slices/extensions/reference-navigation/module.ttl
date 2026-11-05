@@ -806,29 +806,198 @@ gmeow:BibliographicWordSequenceConstraint
     gmeow:howToUse "Follow each selected sequence and structuredItem. Require a term, then compare every supplied term’s datatype with the three admitted word datatypes through termSameComponent; report failures without rewriting input."@x-gmeow-english ;
     logic:formalizes gmeow:bibliographicTitleWords , gmeow:bibliographicAuthorWords ;
     logic:message "Every selected title or author item has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal." ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] , [ logic:termIndex 2 ; logic:termVariable "item" ] ;
-    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
-    [ a logic:Formula ; logic:or
-    [ a logic:Formula ; logic:relation gmeow:bibliographicTitleWords ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
-    [ a logic:Formula ; logic:relation gmeow:bibliographicAuthorWords ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ] ,
-    [ a logic:Formula ; logic:relation gmeow:structuredItem ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] , [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
-    logic:consequent [ a logic:Formula ; logic:and
-    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
-    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
-    logic:consequent [ a logic:Formula ; logic:or
-    [ a logic:Formula ; logic:relation logic:termSameComponent ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:string ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
-    [ a logic:Formula ; logic:relation logic:termSameComponent ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri rdf:langString ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
-    [ a logic:Formula ; logic:relation logic:termSameComponent ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectorItem" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:structuredItem ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectorItem" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "titlePresenceOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "titlePresenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicTitleWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePresenceOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "titlePresenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "titlePresentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "titlePresenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "titlePresentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "titlePayloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "titlePayloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicTitleWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "titlePayloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "titlePayloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:or
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:langString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "titlePayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "authorPresenceOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "authorPresenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicAuthorWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPresenceOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "authorPresenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "authorPresentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "authorPresenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "authorPresentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "authorPayloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "authorPayloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicAuthorWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "authorPayloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "authorPayloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:or
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:langString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "authorPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
 
 gmeow:BibliographicAuthoritySequenceConstraint
     a logic:Constraint ;
@@ -843,18 +1012,86 @@ gmeow:BibliographicAuthoritySequenceConstraint
     gmeow:howToUse "Follow bibliographicAuthorityReferences and structuredItem. Require a structuredTerm and check every supplied term’s AuthorityReferenceRecord type; retain generic scalar and ordering laws and report failure without substitution."@x-gmeow-english ;
     logic:formalizes gmeow:bibliographicAuthorityReferences ;
     logic:message "Every selected authority-reference item has a structuredTerm, and every such term is an actual resource typed AuthorityReferenceRecord." ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] , [ logic:termIndex 2 ; logic:termVariable "item" ] ;
-    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
-    [ a logic:Formula ; logic:relation gmeow:bibliographicAuthorityReferences ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "description" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
-    [ a logic:Formula ; logic:relation gmeow:structuredItem ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] , [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
-    logic:consequent [ a logic:Formula ; logic:and
-    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
-    [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
-    logic:consequent [ a logic:Formula ; logic:relation rdf:type ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityReferenceRecord ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "description" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:bibliographicAuthorityReferences ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "description" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicAuthorityReferences ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "description" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "presenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "payloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:bibliographicAuthorityReferences ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "description" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation rdf:type ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadValue" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityReferenceRecord ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .

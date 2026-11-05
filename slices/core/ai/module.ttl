@@ -3001,7 +3001,149 @@ gmeow:NgramSizeContextConstraint
     gmeow:useWhen "Use to require explicit context for an actual count supplied through ngramSize."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."@x-gmeow-english ;
     gmeow:howToUse "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."@x-gmeow-english ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:ngramSize ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextMagnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextMagnitude" ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextFrame" ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextDimension" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextDimension" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "contextDimension" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termIri math:dimensionless ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "contextLeft" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextLeft" ] ] , [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "contextLeft" ] , [ logic:termIndex 1 ; logic:termVariable "contextRight" ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectedQuantity" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:ngramSize ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedQuantity" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "dimensionPresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "dimensionPresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation math:hasDimension ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "dimensionPresenceQuantity" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri math:dimensionless ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "magnitudePresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "magnitudePresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentMagnitude" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation math:quantityValue ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "magnitudePresenceQuantity" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentMagnitude" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "framePresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "framePresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentFrame" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:hasReferenceFrame ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "framePresenceQuantity" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentFrame" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "dimensionQuantity" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "dimensionValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:ngramSize ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "dimensionQuantity" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:hasDimension ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "dimensionQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "dimensionValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termSameComponent ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "dimensionValue" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                    [ logic:termIndex 2 ; logic:termIri math:dimensionless ] ,
+                                    [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "leftMagnitude" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "rightMagnitude" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:ngramSize ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "agreementQuantity" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:quantityValue ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "leftMagnitude" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:quantityValue ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "rightMagnitude" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termEqual ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "leftMagnitude" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "rightMagnitude" ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
 
 gmeow:NgramSizeValueConstraint
     a logic:Constraint ;
@@ -3138,43 +3280,88 @@ gmeow:ChunkMarkerLineTextConstraint
     logic:integrity [ a logic:Formula ;
         logic:quantifiedVariable
             [ logic:termIndex 0 ; logic:termVariable "this" ] ,
-            [ logic:termIndex 1 ; logic:termVariable "sequence" ] ,
-            [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+            [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ;
         logic:forall [ a logic:Formula ;
-            logic:antecedent [ a logic:Formula ; logic:and
-                [ a logic:Formula ; logic:relation gmeow:chunkMarkerLines ;
-                    logic:argument
-                        [ logic:termIndex 0 ; logic:termVariable "this" ] ,
-                        [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
-                [ a logic:Formula ; logic:relation gmeow:structuredItem ;
-                    logic:argument
-                        [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
-                        [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
-            logic:consequent [ a logic:Formula ; logic:and
-                [ a logic:Formula ;
-                    logic:quantifiedVariable
-                        [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-                    logic:exists [ a logic:Formula ;
-                        logic:relation gmeow:structuredTerm ;
-                        logic:argument
-                            [ logic:termIndex 0 ; logic:termVariable "item" ] ,
-                            [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ,
-                [ a logic:Formula ;
-                    logic:quantifiedVariable
-                        [ logic:termIndex 0 ; logic:termVariable "value" ] ;
-                    logic:forall [ a logic:Formula ;
-                        logic:antecedent [ a logic:Formula ;
-                            logic:relation gmeow:structuredTerm ;
-                            logic:argument
-                                [ logic:termIndex 0 ; logic:termVariable "item" ] ,
-                                [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
-                        logic:consequent [ a logic:Formula ;
-                            logic:relation logic:termSameComponent ;
-                            logic:argument
-                                [ logic:termIndex 0 ; logic:termVariable "value" ] ,
-                                [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
-                                [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
-                                [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] .
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:chunkMarkerLines ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:chunkMarkerLines ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "presenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "payloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:chunkMarkerLines ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termSameComponent ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadValue" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                    [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                    [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
 
 gmeow:MathematicalExpressionFinding
     a logic:SubKind , logic:Class ;
@@ -3264,34 +3451,70 @@ gmeow:BlockExpressionFindingSequenceConstraint
     logic:integrity [ a logic:Formula ;
         logic:quantifiedVariable
             [ logic:termIndex 0 ; logic:termVariable "block" ] ,
-            [ logic:termIndex 1 ; logic:termVariable "sequence" ] ,
-            [ logic:termIndex 2 ; logic:termVariable "item" ] ;
+            [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ;
         logic:forall [ a logic:Formula ;
-            logic:antecedent [ a logic:Formula ; logic:and
-                [ a logic:Formula ; logic:relation gmeow:blockExpressionFindings ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "block" ] ,
-                        [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ,
-                [ a logic:Formula ; logic:relation gmeow:structuredItem ;
-                    logic:argument [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
-                        [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:blockExpressionFindings ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ] ;
             logic:consequent [ a logic:Formula ; logic:and
                 [ a logic:Formula ;
-                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finding" ] ;
-                    logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] ,
-                            [ logic:termIndex 1 ; logic:termVariable "finding" ] ] ] ,
-                [ a logic:Formula ;
-                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finding" ] ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ;
                     logic:forall [ a logic:Formula ;
-                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "item" ] ,
-                                [ logic:termIndex 1 ; logic:termVariable "finding" ] ] ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ;
+                                logic:relation gmeow:blockExpressionFindings ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presenceSequence" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredItem ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable
+                                [ logic:termIndex 0 ; logic:termVariable "presentTerm" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "presenceItem" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presentTerm" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ,
+                        [ logic:termIndex 2 ; logic:termVariable "payloadTerm" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ;
+                                logic:relation gmeow:blockExpressionFindings ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadSequence" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredItem ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadItem" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadTerm" ] ] ] ;
                         logic:consequent [ a logic:Formula ; logic:and
-                            [ a logic:Formula ; logic:relation rdf:type ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "finding" ] ,
+                            [ a logic:Formula ;
+                                logic:relation rdf:type ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadTerm" ] ,
                                     [ logic:termIndex 1 ; logic:termIri gmeow:MathematicalExpressionFinding ] ] ,
-                            [ a logic:Formula ; logic:relation gmeow:observedFeature ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "finding" ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:observedFeature ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadTerm" ] ,
                                     [ logic:termIndex 1 ; logic:termVariable "block" ] ] ] ] ] ] ] ] .
 
 gmeow:MathematicalExpressionFinding logic:subClassOf
