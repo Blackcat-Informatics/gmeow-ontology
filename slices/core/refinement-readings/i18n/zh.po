@@ -2035,3 +2035,91 @@ msgstr "避免因规则或结果数据缺失而推断此值、指定后备圈层
 msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this value through contactRingOutcome, retain the actual decision context and leave the relationship ring unstated."
 msgstr "通过 contactRingOutcome 引用此值，保留实际判定语境，并不陈述关系圈层。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported presence count"
+msgstr "报告的参与情境计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported number of situations in this HabitFigure’s selected population in which the holder was in the designated activity, whoever chose it, retained as a math:Quantity."
+msgstr "来源报告的、此 HabitFigure 所选情境总体中持有者参与指定活动的情境数，不论由谁选择该活动，保留为一个 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this optional role. Situations are counted under the source’s declared grouping; habitMember Activity occurrences do not define the count or its denominator."
+msgstr "此可选角色至多关联一个 Quantity。按来源声明的分组统计情境；habitMember 的 Activity 发生实例不定义此计数或其分母。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains a supplied count of situations where the holder was in an activity that someone else had chosen."
+msgstr "读数保留来源提供的情境数：持有者参与了由其他人选择的活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported count of situations where the holder was in the designated activity, independently of who chose it."
+msgstr "用于实际报告的、持有者参与指定活动的情境计数，与由谁选择该活动无关。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting chosen acts, Activity membership or an invented missing-value zero, or inferring preference, a denominator equality or an inequality between counts."
+msgstr "避免以选择行为、Activity 成员关系或为缺失值编造的零替代此计数，也不要推断偏好、分母相等或计数间的不等式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity and retain the original xsd:nonNegativeInteger on math:quantityValue with math:dimensionless and one complete actual counting frame. Preserve this reading’s holder, activity designation, DayPart, TemporalFrame, input scope and declared situation grouping as the count’s interpretation context."
+msgstr "关联实际 Quantity，在 math:quantityValue 上保留原始 xsd:nonNegativeInteger，并保留 math:dimensionless 及恰好一个完整的实际计数参考系。保留此读数的持有者、活动指定、DayPart、TemporalFrame、输入范围及声明的情境分组，作为计数的解释上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported offered count"
+msgstr "报告的活动提供情境计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported number of situations in this HabitFigure’s selected population in which the guidance in force offered the designated activity to the holder, retained as a math:Quantity."
+msgstr "来源报告的、此 HabitFigure 所选情境总体中当时生效的指导向持有者提供指定活动的情境数，保留为一个 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this optional role. The source’s situation grouping and guidance in force determine its interpretation; an offered activity need not have been chosen or performed."
+msgstr "此可选角色至多关联一个 Quantity。其解释取决于来源的情境分组及当时生效的指导；提供的活动不一定被选择或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains a supplied count of situations where the guidance offered an activity, including situations where the holder did something else."
+msgstr "读数保留来源提供的、指导提供某活动的情境数，其中也包括持有者做了其他事情的情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported count of situations where the guidance in force offered the designated activity."
+msgstr "用于实际报告的、当时生效的指导提供指定活动的情境计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an offer from a chosen or performed act, treating missing guidance evidence as zero, or inventing a denominator relationship to other counts."
+msgstr "避免根据已选择或已执行的行为推断活动曾被提供、将缺失的指导证据视为零，或编造与其他计数的分母关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with its original xsd:nonNegativeInteger, dimensionless dimension and one complete actual counting frame. Retain the holder, activity designation, DayPart, TemporalFrame, input scope, situation grouping and actual guidance in force; the temporal frame alone does not supply this counting interpretation."
+msgstr "关联实际 Quantity，保留其原始 xsd:nonNegativeInteger、无量纲维度及恰好一个完整的实际计数参考系。保留持有者、活动指定、DayPart、TemporalFrame、输入范围、情境分组及实际生效的指导；仅有时间参考系并不能提供此计数解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Habit count value constraint"
+msgstr "习惯情境计数值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "HabitFigure 通过 habitPresenceCount 或 habitOfferedCount 提供的每个 Quantity 都具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Neither count role is required. Equivalent retained lexical aliases may coexist under numeric value equality. Existing frame obligations apply; source truth, population, grouping and counting interpretation remain evidence obligations."
+msgstr "两种计数角色均非必填。在数值相等时，可并存保留的等价词法变体。现有参考系义务同样适用；来源真实性、情境总体、分组及计数解释仍须由证据支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A HabitFigure may omit both roles; when a presence count is supplied, its actual Quantity must satisfy the same magnitude, dimension and frame obligations as an offered count."
+msgstr "HabitFigure 可以不提供这两种角色；提供参与情境计数时，其实际 Quantity 必须满足与活动提供情境计数相同的数值、维度及参考系义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual supplied presence and offered count quantities without requiring either role."
+msgstr "用于校验实际提供的参与情境及活动提供情境计数量，而不要求任一种角色必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a count, zero, dimension or frame, imposing count inequalities, or using habitMember size as a hidden denominator."
+msgstr "避免编造计数、零、维度或参考系、强加计数间的不等式，或将 habitMember 的大小用作隐含分母。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer HabitFigure guard and each independent positive count guard, preserve original literals and validate both roles with the same canonical obligations. Retain actual source evidence for their distinct situation-counting meanings."
+msgstr "应用外层 HabitFigure 守卫及每个独立的正向计数守卫，保留原始字面量，并以相同的规范义务校验两种角色。保留实际来源证据，以支持两者不同的情境计数含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "HabitFigure 通过 habitPresenceCount 或 habitOfferedCount 提供的每个 Quantity 都具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。"

@@ -294,3 +294,45 @@ uniqueness or arbitrary maxima. Existing observedFeature/vantage obligations,
 coexisting attributed readings and old record-focused examples remain in force.
 No new holder role, identity rule or automatic subject assertion is introduced
 (Principles 4, 9, 10, 17 and 19).
+
+## Presence and offered situation counts
+
+`habitPresenceCount` and `habitOfferedCount` add distinct reported counts to a
+`HabitFigure`. Presence counts situations in the selected population where the
+holder was in the designated activity, whoever chose it. Offered counts
+situations where the guidance in force offered that activity to the holder,
+including situations where it was neither chosen nor performed. Preserve the
+source’s actual holder, activity designation, DayPart, TemporalFrame, input scope,
+situation grouping and applicable guidance. The counts remain the named
+process’s readings, never the holder’s own assertions or preference judgments.
+
+Both roles are optional and each has at most one `math:Quantity` per figure.
+A figure may omit either or both. Missing evidence is not zero; retain an actual
+supplied zero without fabricating a counted act. Situations are not identified
+with the `Activity` occurrences retained by `habitMember`. These roles establish
+no equality with membership size and no inequality or denominator relationship
+to `habitChosenCount`, `habitSituationCount` or each other.
+
+Use the existing [Math Quantity](../../grounding/math/docs.md) for each supplied
+count. Keep every original `xsd:nonNegativeInteger` on `math:quantityValue`,
+including its lexical form and datatype. All magnitudes must be valid and have
+the same numeric value; equal source-supported lexical aliases may coexist.
+Retain `math:dimensionless` on `math:hasDimension` and exactly one actual
+`hasReferenceFrame` value typed as `ReferenceFrame`, subject to the existing
+complete [Places frame profile](../places/docs.md).
+
+The counting frame’s evidenced interpretation must cover the distinct count
+role, selected population, holder, activity designation, DayPart, temporal frame,
+input scope and declared grouping. For offered counts, retain the actual
+guidance in force. A nearby `TemporalFrame`, a generic named frame or a matching
+number does not establish that counting interpretation. Do not invent a frame,
+raw scalar alias or duplicate Quantity subclass to fill a missing input.
+
+Canonical `logic:` endpoint closures and figure-local maxima validate supplied
+roles. `HabitCountValueConstraint` checks magnitude presence and validity,
+numeric-value equality, dimension presence and value, and frame presence, type
+and uniqueness through independent positive guards. These structural checks
+cannot prove source truth, population membership, grouping, guidance history or
+an asserted frame interpretation. Retain the actual evidence and declared method
+without claiming a counter, guidance selector, civil-time classifier or rule
+executor ran (Principles 4, 9, 11, 17 and 19).

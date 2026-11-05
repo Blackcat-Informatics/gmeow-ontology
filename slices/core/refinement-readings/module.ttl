@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -1408,3 +1409,127 @@ gmeow:contactRingUndecided
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contactKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contactRingOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:habitPresenceCount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported presence count"@x-gmeow-english ;
+    skos:definition "The source-reported number of situations in this HabitFigure’s selected population in which the holder was in the designated activity, whoever chose it, retained as a math:Quantity."@x-gmeow-english ;
+    skos:scopeNote "At most one Quantity fills this optional role. Situations are counted under the source’s declared grouping; habitMember Activity occurrences do not define the count or its denominator."@x-gmeow-english ;
+    skos:example "A reading retains a supplied count of situations where the holder was in an activity that someone else had chosen."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual reported count of situations where the holder was in the designated activity, independently of who chose it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting chosen acts, Activity membership or an invented missing-value zero, or inferring preference, a denominator equality or an inequality between counts."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity and retain the original xsd:nonNegativeInteger on math:quantityValue with math:dimensionless and one complete actual counting frame. Preserve this reading’s holder, activity designation, DayPart, TemporalFrame, input scope and declared situation grouping as the count’s interpretation context."@x-gmeow-english ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range math:Quantity .
+
+gmeow:habitOfferedCount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported offered count"@x-gmeow-english ;
+    skos:definition "The source-reported number of situations in this HabitFigure’s selected population in which the guidance in force offered the designated activity to the holder, retained as a math:Quantity."@x-gmeow-english ;
+    skos:scopeNote "At most one Quantity fills this optional role. The source’s situation grouping and guidance in force determine its interpretation; an offered activity need not have been chosen or performed."@x-gmeow-english ;
+    skos:example "A reading retains a supplied count of situations where the guidance offered an activity, including situations where the holder did something else."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual reported count of situations where the guidance in force offered the designated activity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an offer from a chosen or performed act, treating missing guidance evidence as zero, or inventing a denominator relationship to other counts."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity with its original xsd:nonNegativeInteger, dimensionless dimension and one complete actual counting frame. Retain the holder, activity designation, DayPart, TemporalFrame, input scope, situation grouping and actual guidance in force; the temporal frame alone does not supply this counting interpretation."@x-gmeow-english ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range math:Quantity .
+
+gmeow:HabitCountValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Habit count value constraint"@x-gmeow-english ;
+    skos:definition "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."@x-gmeow-english ;
+    skos:scopeNote "Neither count role is required. Equivalent retained lexical aliases may coexist under numeric value equality. Existing frame obligations apply; source truth, population, grouping and counting interpretation remain evidence obligations."@x-gmeow-english ;
+    skos:example "A HabitFigure may omit both roles; when a presence count is supplied, its actual Quantity must satisfy the same magnitude, dimension and frame obligations as an offered count."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate actual supplied presence and offered count quantities without requiring either role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a count, zero, dimension or frame, imposing count inequalities, or using habitMember size as a hidden denominator."@x-gmeow-english ;
+    gmeow:howToUse "Apply the outer HabitFigure guard and each independent positive count guard, preserve original literals and validate both roles with the same canonical obligations. Retain actual source evidence for their distinct situation-counting meanings."@x-gmeow-english ;
+    logic:formalizes gmeow:HabitFigure , gmeow:habitPresenceCount , gmeow:habitOfferedCount ;
+    logic:message "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "report" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termIri gmeow:HabitFigure ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceTypedValue" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "presenceSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "presenceSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presenceUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "presenceSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitPresenceCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presenceUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presenceSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "presenceFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "presenceSecondFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredTypedValue" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "offeredSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "offeredSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "offeredUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "offeredSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:habitOfferedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "offeredUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "offeredSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "offeredFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "offeredSecondFrame" ] ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitPresenceCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitOfferedCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:HabitFigure logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:habitPresenceCount ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:habitPresenceCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:habitOfferedCount ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:habitOfferedCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .

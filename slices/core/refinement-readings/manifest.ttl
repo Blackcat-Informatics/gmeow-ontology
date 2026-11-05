@@ -19,6 +19,7 @@
     gmeow:sliceConsumer "Consumer-owned record refiners and recall adapters exposing scoped findings as process readings rather than subject assertions."@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/math>,
         <https://blackcatinformatics.ca/gmeow/slices/kernel>,
         <https://blackcatinformatics.ca/gmeow/slices/observations>,
         <https://blackcatinformatics.ca/gmeow/slices/query-context>,
