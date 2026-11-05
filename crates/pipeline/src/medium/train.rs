@@ -3,30 +3,20 @@
 
 //! Dictionary training: a thin adapter over [`purrdf::gts::dict`], and NOTHING else.
 //!
-//! Upstream already owns deterministic dictionary construction — canonical
-//! order-independent concatenation of the sample multiset, an EXPLICIT
-//! [`DictSeed`], a save/restore of the thread-local `fastrand` state around
-//! FastCOVER, and finalization into a real zstd dictionary binary. Reimplementing
-//! any of that here would shadow upstream rather than subsume it (`.goals`:
-//! SUBSUME/EXTEND upstream, never shadow it), and a second implementation of
-//! "canonical corpus order" is exactly the kind of divergence that produces two
-//! dictionaries with one id.
+//! PurRDF owns canonical, order-independent concatenation of the sample multiset,
+//! deterministic FastCOVER training and finalization into a zstd dictionary.
+//! Its native trainer reads the canonical corpus bytes and fixed training options;
+//! it has no random generator or seed parameter.
 //!
 //! So this module is deliberately a pure function `&[&[u8]] -> Vec<u8>` plus a
 //! strategy dispatch. It holds NO carrier state, NO registry, NO I/O. PurRDF owns
 //! the order-independence and concurrency tests; GMEOW checks strategy dispatch,
 //! finalized dictionary admission, and typed diagnostic translation.
 //!
-//! # Determinism by construction, not by discipline
-//!
-//! The pipeline runs its DAG on every available CPU, so a "train on one thread
-//! only" workaround would be unenforceable. It is also unnecessary: the seed is an
-//! explicit [`DictSeed::FromCorpus`] (BLAKE3 over the canonical corpus bytes), and
-//! `fastrand`'s generator is thread-LOCAL and round-tripped around the call, so the
-//! output is a pure function of `(corpus, target_len)` no matter what any other
-//! thread — or the same thread, before or after — is doing with `fastrand`.
+//! The upstream determinism contract makes the output a function of the sample
+//! multiset and target length, including when pipeline stages run concurrently.
 
-use purrdf::gts::dict::{DictSeed, dictionary_id, raw_content_dict, trained_dict};
+use purrdf::gts::dict::{dictionary_id, raw_content_dict, trained_dict};
 
 use super::registry::DictionaryStrategy;
 
@@ -53,7 +43,7 @@ pub fn build(
     target_len: usize,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let built = match strategy {
-        DictionaryStrategy::Trained => trained_dict(corpus, target_len, DictSeed::FromCorpus),
+        DictionaryStrategy::Trained => trained_dict(corpus, target_len),
         DictionaryStrategy::RawContent | DictionaryStrategy::TermTable => {
             raw_content_dict(corpus, target_len)
         }
