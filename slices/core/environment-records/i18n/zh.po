@@ -6138,3 +6138,31 @@ msgstr "避免根据封装记录中的行动者、wasAssociatedWith、wasAttribu
 msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."
 msgstr "从实际的 Activity 向每个明确提供的 Agent 引用断言 changeCausedBy。通过现有原生陈述元数据，在该条确切陈述上保留源和立场；保留独立提供的行动者及记录者主张，不覆盖它们，也不编造端点证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "playful surprise"
+msgstr "趣味惊喜"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An informal Tag for an act that its source describes as playful and meant to surprise. Applying this label records that description; it does not establish the actor's actual intention, successful surprise, deception, permission or an EventType classification."
+msgstr "用于来源描述为具有玩笑性质且旨在使人意外的行为的非正式 Tag。应用该标签记录这种描述，不确立行为者的实际意图、惊喜是否成功、欺骗、许可或 EventType 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source applies the playful-surprise label to a retained Activity."
+msgstr "当实际来源为保留的 Activity 应用趣味惊喜标签时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for fraud or arbitrary mischief, replacing it with an event kind or Boolean, or inferring a negative classification from an absent tag, a false/default source flag or a renderer's ordinary wording."
+msgstr "避免将其用于欺诈或任意恶作剧、用事件种类或布尔值替代它，或根据缺失标签、为假或采用默认值的来源标志、呈现器的普通措辞推断否定分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Activity through hasTag to tagTrick. Preserve source evidence, recorder and declaring frame on the exact native RDF 1.2 statement reifier. Retain an independently supplied performer through wasAssociatedWith; put wasAttributedTo on the reifier, not the Activity."
+msgstr "通过 hasTag 将实际 Activity 关联到 tagTrick。在该精确陈述的原生 RDF 1.2 重述节点上保留来源证据、记录者和声明框架。通过 wasAssociatedWith 保留独立提供的执行者；将 wasAttributedTo 放在重述节点上，而非 Activity 上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the exact tagTrick label identity, not an intention, outcome, causality claim or event-kind value. Several attributed tags may coexist. The tag alone identifies no performer, recipient or recorder and executes no provider; missing tagging remains unspecified."
+msgstr "这是 tagTrick 标签的精确身份，不是意图、结果、因果主张或事件种类值。多个归属明确的标签可以并存。标签本身不标识执行者、接收者或记录者，也不执行任何提供方操作；缺失标签仍未说明分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source labels a retained act: ex:act gmeow:hasTag gmeow:tagTrick ."
+msgstr "来源为保留的行为加标签：ex:act gmeow:hasTag gmeow:tagTrick ."

@@ -1,0 +1,142 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/playful-surprise-tagging/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# Every identity and assertion is supplied by this hypothetical documentary source.
+# Event kind and performer are independent of the informal Tag application.
+# No actual provider, flag decoder, renderer, tagging process or isolation runs.
+# Omitted tagging is unspecified, never an asserted negative classification.
+
+ex:source rdf:type gmeow:InformationObject .
+ex:source rdfs:label "Documentary account of the reported gestures"@en .
+ex:source rdfs:comment "This hypothetical account describes ex:act as a playful gesture meant to surprise and independently names ex:performer. It supplies no trick classification for ex:unclassifiedAct and reports no successful surprise, deception, permission or causal responsibility."@en .
+ex:performer rdf:type gmeow:Agent .
+ex:performer rdfs:label "Performer independently identified by the source"@en .
+ex:recorder rdf:type gmeow:SoftwareAgent .
+ex:recorder rdf:type gmeow:Agent .
+ex:recorder rdfs:label "Recording importer, distinct from the performer"@en .
+ex:frame rdf:type gmeow:Agent .
+ex:frame rdfs:label "Declaring source agent, distinct from performer and recorder"@en .
+ex:gestureKind rdf:type gmeow:EventType .
+ex:gestureKind rdfs:label "Source-reported gesture"@en .
+ex:gestureKind skos:definition "The gesture kind independently supplied by this hypothetical source, without a trick classification or success claim."@en .
+ex:act rdf:type gmeow:Activity .
+ex:act rdfs:label "Reported gesture labelled as a playful surprise"@en .
+ex:act gmeow:eventType ex:gestureKind .
+ex:act gmeow:wasAssociatedWith ex:performer .
+ex:act gmeow:hasTag gmeow:tagTrick .
+ex:unclassifiedAct rdf:type gmeow:Activity .
+ex:unclassifiedAct rdfs:label "Another reported gesture with no supplied trick classification"@en .
+ex:unclassifiedAct gmeow:eventType ex:gestureKind .
+
+# Exact per-statement documentary source, recorder and declaring frame.
+
+ex:statement001 rdf:reifies <<( ex:source rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement002 rdf:reifies <<( ex:source rdfs:label "Documentary account of the reported gestures"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement003 rdf:reifies <<( ex:source rdfs:comment "This hypothetical account describes ex:act as a playful gesture meant to surprise and independently names ex:performer. It supplies no trick classification for ex:unclassifiedAct and reports no successful surprise, deception, permission or causal responsibility."@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement004 rdf:reifies <<( ex:performer rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement005 rdf:reifies <<( ex:performer rdfs:label "Performer independently identified by the source"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement006 rdf:reifies <<( ex:recorder rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement007 rdf:reifies <<( ex:recorder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement008 rdf:reifies <<( ex:recorder rdfs:label "Recording importer, distinct from the performer"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement009 rdf:reifies <<( ex:frame rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement010 rdf:reifies <<( ex:frame rdfs:label "Declaring source agent, distinct from performer and recorder"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement011 rdf:reifies <<( ex:gestureKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement012 rdf:reifies <<( ex:gestureKind rdfs:label "Source-reported gesture"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement013 rdf:reifies <<( ex:gestureKind skos:definition "The gesture kind independently supplied by this hypothetical source, without a trick classification or success claim."@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement014 rdf:reifies <<( ex:act rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement015 rdf:reifies <<( ex:act rdfs:label "Reported gesture labelled as a playful surprise"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement016 rdf:reifies <<( ex:act gmeow:eventType ex:gestureKind )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement017 rdf:reifies <<( ex:act gmeow:wasAssociatedWith ex:performer )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement018 rdf:reifies <<( ex:act gmeow:hasTag gmeow:tagTrick )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement019 rdf:reifies <<( ex:unclassifiedAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement020 rdf:reifies <<( ex:unclassifiedAct rdfs:label "Another reported gesture with no supplied trick classification"@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .
+
+ex:statement021 rdf:reifies <<( ex:unclassifiedAct gmeow:eventType ex:gestureKind )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frame .

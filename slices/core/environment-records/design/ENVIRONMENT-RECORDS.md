@@ -275,3 +275,36 @@ Generic informal tagging and occurrence kinds remain independent axes; this
 property introduces no tag, Boolean assessment or event kind. Its bounded source
 contract does not settle any separate requirement for a real Tag identity or
 legal Activity tagging (Principles 4, 7, 9, 12, 17 and 19).
+
+## A domain label for playful surprise
+
+EnvironmentRecords owns `tagTrick` because it names a source description of
+an act in the represented environment. It reuses the Tag information-object
+identity and `hasTag` resource-target semantics from Tags; the existing
+EnvironmentRecords dependency already supplies that owner. An Activity is a
+legal target, and no Boolean, EventType, wrapper, tagging API or duplicate
+constraint is introduced. The one complete EN/FR/ZH coat records the narrow
+playful-act-meant-to-surprise meaning without claiming execution or intent.
+
+The exact Tag IRI is the identity consumed by tagging and rendering. A
+positive source-applied label stays positive evidence. A source flag lacking
+presence cannot distinguish omission from its false/default representation;
+neither that value nor a renderer's ordinary branch supplies a negative
+classification. Actual adapter and renderer adoption remains separate from
+this source declaration. No source alias or interpretation guarantee is
+asserted.
+
+The ordinary source scene independently supplies its gesture kind and any
+performer. Kind uses the existing open EventType vocabulary; the trick label
+is not substituted for that kind. Performer uses `wasAssociatedWith` on the
+Activity. Documentary source, recorder and declaring frame are retained on
+the exact native statement reifier. Entity-only `wasAttributedTo` and
+`description` are not placed on Activities. No source, recorder or frame is
+silently promoted to performer, causing agent, recipient or author of an act.
+
+Tagging never proves playful intention, successful surprise, deception,
+permission or causality. It also performs no provider call, flag decoding,
+recipient isolation or runtime verification. The unchanged generic Tags
+contract and existing statement metadata are the complete shared mechanism;
+no new law, test, fixture, manifest edge or generated authoring is needed
+(Principles 4, 7, 9, 10, 12 and 17).
