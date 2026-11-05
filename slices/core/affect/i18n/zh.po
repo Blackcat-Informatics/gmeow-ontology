@@ -959,3 +959,143 @@ msgstr "指定来源法则：gmeow:MoodSourceClaimConstraint logic:formalizes gm
 msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
 msgstr "实际 Mood 应具有确切的原生类型断言，保留实际解读者 Agent 与文档 InformationObject 来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tone Reading"
+msgstr "语气解读"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named, versioned refiner's attributed reading of the tone of actual retained words. It specializes AffectiveExpression and Refinement: evidence about word choice, never the speaker's or recipient's inner state, the words themselves or an automatically asserted AffectiveClaim."
+msgstr "由具名且版本明确的精炼过程对实际保留话语的语气作出的归属明确的解读。它专化 AffectiveExpression 和 Refinement，是关于措辞的证据，而非说话者或接收者的内在状态、话语本身或自动断言的 AffectiveClaim。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what an actual refiner read the words as, with its versioned vantage, real source evidence and explicit refinement outcome."
+msgstr "用于保留实际精炼过程如何解读话语，并保留其版本明确的立场、真实来源证据及明确的精炼结果状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the speaker or recipient for the words target, diagnosing a person, treating a counted phrase as truth or inner affect, or inferring a neutral tone from missing, unread or failed readings."
+msgstr "避免以说话者或接收者替换作为目标的话语、诊断个人、把计数的短语当作事实或内在情感，或根据缺失、未读取或失败的解读推断中性语气。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point observedFeature at the actual words-bearing record. Retain the actual versioned refiner through vantage, source derivation, generating activity and refinementOutcome. Put selected labels in readTone and unselected alternatives in refinementCandidate; preserve supplied field, literal, version and span evidence without inventing it."
+msgstr "使 observedFeature 指向实际承载话语的记录。通过 vantage 保留实际且版本明确的精炼过程，并保留来源派生、生成活动及 refinementOutcome。将选中的标签放入 readTone，未选中的备选放入 refinementCandidate；保留来源提供的字段、字面量、版本和文本跨度证据，不编造缺失内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Competing refiner versions and multiple co-equal selected labels may coexist. A reading is neither a classifier run nor a calibrated score, reviewed cue release, verified diagnosis or recipient-isolation guarantee. Missing evidence remains missing."
+msgstr "不同精炼版本的相互竞争解读及多个地位相同的选中标签可以并存。解读不是分类器运行、校准分数、经审查的线索发布、已验证诊断或接收者隔离保证。缺失证据保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A refiner reads the actual words: ex:reading a gmeow:ToneReading ; gmeow:observedFeature ex:words ; gmeow:vantage ex:refinerV1 ; gmeow:readTone gmeow:toneTroubled ."
+msgstr "精炼过程解读实际话语：ex:reading a gmeow:ToneReading ; gmeow:observedFeature ex:words ; gmeow:vantage ex:refinerV1 ; gmeow:readTone gmeow:toneTroubled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read tone"
+msgstr "解读出的语气"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ToneReading to a selected word-tone AffectClassifierLabel in its actual label set. A specialization of observationResult, it records the refiner's selection rather than an unselected candidate or a fact about the speaker's inner affect."
+msgstr "将 ToneReading 关联到其实际标签集中选中的话语语气 AffectClassifierLabel。作为 observationResult 的专化，它记录精炼过程的选择，而非未选中的备选或有关说话者内在情感的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each explicitly selected tone label in an actual attributed reading of retained words."
+msgstr "用于实际且归属明确的话语解读中每个明确选中的语气标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching a tone directly to the speaker, recipient or source words, promoting a candidate to a selected result, or treating label spelling as a shared identity across sets."
+msgstr "避免将语气直接附加到说话者、接收者或源话语上，把备选提升为选中结果，或将标签拼写视为跨标签集的共同身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert readTone from the ToneReading to each supplied selected label, retaining that label's memberOfLabelSet identity. Keep the actual source, refiner and outcome independent; use refinementCandidate for alternatives that were not selected."
+msgstr "从 ToneReading 向每个提供的选中标签断言 readTone，并保留该标签的 memberOfLabelSet 身份。分别保留实际来源、精炼过程和结果状态；未选中的备选使用 refinementCandidate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional, with ordinary open-world endpoints and no required raw target-type evidence. Several selected labels may coexist without a winner. No label is inferred from absence, unread input or failure; the relation performs no cue matching or model execution."
+msgstr "此属性可不提供且不是函数性属性，两端采用通常的开放世界语义，不要求预先提供目标类型的原始证据。多个选中标签可并存，无优胜者。缺失、未读取输入或失败均不推导出标签；该关系不执行线索匹配或模型运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#example"
+msgid "One reading selects both co-equal labels: ex:reading gmeow:readTone gmeow:toneTroubled, gmeow:toneWeary ."
+msgstr "同一解读选中两个地位相同的标签：ex:reading gmeow:readTone gmeow:toneTroubled, gmeow:toneWeary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "word-tone reading label set"
+msgstr "话语语气解读标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectLabelSet identifying the source-defined word-tone labels used by attributed ToneReadings, including troubled and weary. It groups exact label artifacts rather than canonical emotion categories or claims about the speaker."
+msgstr "标识由来源定义、用于归属明确的 ToneReading 的话语语气标签的 AffectLabelSet，包括不安和疲惫。它组织精确的标签信息对象，而非规范情绪类别或关于说话者的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual vocabulary membership of these word-tone label identities."
+msgstr "用于保留这些话语语气标签身份的实际词表归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid declaring this set a registered classifier registry, a run-scoped zero-shot set, a reviewed cue release or a decision rule, or inferring model capability from its existence."
+msgstr "避免将该集合声明为已注册的分类器注册表、运行限定的零样本标签集、经审查的线索发布或决策规则，也不要由其存在推断模型能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each actual word-tone label through memberOfLabelSet. Retain the exact source-defined label identity and reading evidence; do not replace the label with an EmotionType or manufacture a model run, score or static decision-rule admission."
+msgstr "通过 memberOfLabelSet 关联每个实际话语语气标签。保留来源定义的精确标签身份及解读证据；不要以 EmotionType 替换标签，也不要编造模型运行、分数或静态决策规则准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The supplied members are not an exhaustive universal tone inventory. Equal label wording in another set does not establish identical meaning. Membership neither selects a reading nor establishes an inner affect, cue review or classifier-producer admission."
+msgstr "提供的成员不是穷尽性的通用语气清单。其他集合中相同的标签文字不确立相同含义。成员关系不选择解读，也不确立内在情感、线索审查或分类器生产者准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain exact set membership: gmeow:toneTroubled gmeow:memberOfLabelSet gmeow:toneReadingLabelSet ."
+msgstr "保留精确标签集成员关系：gmeow:toneTroubled gmeow:memberOfLabelSet gmeow:toneReadingLabelSet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "troubled words"
+msgstr "解读为不安的话语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact word-tone label for words read as worried, afraid or upset in toneReadingLabelSet. It is an attributed interpretation of wording, not the speaker's felt state or an EmotionType."
+msgstr "toneReadingLabelSet 中表示话语被解读为担忧、害怕或心烦的精确语气标签。它是归属明确的措辞解释，而非说话者的感受状态或 EmotionType。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual attributed reading selects this troubled-words label."
+msgstr "当实际且归属明确的解读选中该不安话语标签时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing worry or fear, asserting speaker affect from a word match, or selecting this label merely because another tone is absent."
+msgstr "避免诊断担忧或恐惧、根据字词匹配断言说话者情感，或仅因另一语气缺失而选择该标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through readTone on the ToneReading, preserving its actual words target, versioned refiner and source. Its memberOfLabelSet identity remains toneReadingLabelSet; unselected consideration belongs in refinementCandidate."
+msgstr "在 ToneReading 上通过 readTone 选中该标签，保留实际话语目标、版本明确的精炼过程和来源。其 memberOfLabelSet 身份保持为 toneReadingLabelSet；考虑但未选中的标签属于 refinementCandidate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This label may coexist with weary and other source-supported labels without rank or a global winner. It executes no matcher, supplies no reviewed cue inventory and establishes no calibrated probability or truth claim."
+msgstr "该标签可与疲惫及其他有来源支持的标签并存，无排名或全局优胜者。它不执行匹配器、不提供经审查的线索清单，也不确立校准概率或真实性主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#example"
+msgid "The refiner selects troubled words: ex:reading gmeow:readTone gmeow:toneTroubled ."
+msgstr "精炼过程选中不安话语标签：ex:reading gmeow:readTone gmeow:toneTroubled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weary words"
+msgstr "解读为疲惫的话语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact word-tone label for words read as tired or worn out in toneReadingLabelSet. It is an attributed interpretation of wording, not an asserted fatigue condition of the speaker or recipient."
+msgstr "toneReadingLabelSet 中表示话语被解读为疲倦或精疲力尽的精确语气标签。它是归属明确的措辞解释，而非对说话者或接收者疲劳状况的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual attributed reading selects this weary-words label."
+msgstr "当实际且归属明确的解读选中该疲惫话语标签时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring physical fatigue, a medical condition or speaker intent from this label, or treating unread or failed interpretation as its negation or as neutral tone."
+msgstr "避免由该标签推断身体疲劳、医学状况或说话者意图，也不要将未读取或失败的解释视为该标签的否定或中性语气。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through readTone on the ToneReading with its actual source and versioned vantage. Preserve toneReadingLabelSet membership and any independently selected troubled label; keep candidates separate from selected results."
+msgstr "在 ToneReading 上通过 readTone 选中该标签，并保留实际来源和版本明确的立场。保留 toneReadingLabelSet 成员关系及任何独立选中的不安标签；将备选与选中结果分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A co-equal label artifact rather than an emotion category, score or default. Its existence supplies no model run, successful reading, reviewed lexicon or recipient-isolation evidence."
+msgstr "这是与其他标签地位相同的信息对象，不是情绪类别、分数或默认值。其存在不提供模型运行、成功解读、经审查词表或接收者隔离证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The refiner selects weary words: ex:reading gmeow:readTone gmeow:toneWeary ."
+msgstr "精炼过程选中疲惫话语标签：ex:reading gmeow:readTone gmeow:toneWeary ."

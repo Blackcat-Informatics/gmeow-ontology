@@ -1050,3 +1050,58 @@ explicit `runLabelSet` edge can enrich general records; it is not imposed on
 existing producer graphs. EmotionML still enumerates EmotionType categories and
 its existing axes, with the existing loss record; neither Mood categories nor
 general genre outputs enter that view.
+
+## Word-tone labels remain expression evidence
+
+Word-tone readings belong to Affect's expression and label-artifact semantics,
+which preserve the boundary between expression evidence and inner state.
+`ToneReading` combines `AffectiveExpression` and `Refinement`; exact label
+identities reuse `AffectClassifierLabel` and `AffectLabelSet`.
+
+`readTone` is an optional, nonfunctional ObjectProperty from `ToneReading` to
+`AffectClassifierLabel`, specializing `observationResult`. Ordinary open-world
+endpoints do not demand invented raw type evidence. Its selected labels retain
+their actual `memberOfLabelSet`; unselected alternatives use the independent
+`refinementCandidate` role. The actual versioned process, source derivation,
+generating activity and explicit outcome stay distinct from the source words,
+speaker, recipient, recorder and declaring frame. A resolved source report is
+not automatically a true statement about the speaker.
+
+`toneReadingLabelSet` groups the exact `toneTroubled` and `toneWeary` label
+artifacts. The members are not an exhaustive universal tone inventory and their
+spelling does not collapse labels from other sets. Label artifacts retain actual
+set identity and establish no equivalence to EmotionType, a QualityValue category
+or another label vocabulary. The set is neither a `RegisteredClassifierLabelSet`
+nor a run-scoped zero-shot set. Neither label membership nor reading classification
+supplies a model run, score, decision rule or producer admission.
+
+Multiple co-equal selected labels and independently attributed readings may
+coexist. Missing, unread or failed interpretation produces no default neutral
+tone or inferred negative. Wording supplies no diagnosis, inner affect, intent
+or calibrated confidence. `supportsAffectiveClaim` remains evidence-only when
+a separate actual claim is supplied; neither its existence nor an inner-state
+claim is a prerequisite for retaining this word-targeted observation.
+
+The optional, nonfunctional result role preserves inherited label-set membership
+and observation/refinement contracts without imposing additional closures,
+restrictions, required paths, maxima or functionality. Any original field,
+literal, version and span evidence must be retained when supplied. A reading
+does not reconstruct missing source granularity or execute runtime indexing,
+matching, isolation or verification.
+
+Label sets and readings do not themselves supply genuine reviewed cue releases.
+Such releases require their actual source, license, exact payload, digest,
+lineage and completed accountable review evidence. A detector's computation-
+version digest is not automatically an artifact-byte `contentDigest`, and a code
+comment is not a sign-off. Prose guidance is a judge rubric, not proof that a
+phrase matcher implements person, negation, quotation or time exclusions.
+RefinementCues owns that mechanism and evidence boundary.
+
+The ordinary source scene supplies actual hypothetical identities and outcomes,
+co-equal selections, a distinct unselected candidate and an explicit absence of
+available reading evidence. Its exact statement reifiers retain independent
+source, recorder and declaring frame; they assert no executed model, detector,
+review or recipient-isolation guarantee. Label identities, attributed readings
+and genuine reviewed cue releases remain independent evidence; none establishes
+runtime fidelity or isolation
+(Principles 4, 7, 9, 10, 12, 17 and 19).

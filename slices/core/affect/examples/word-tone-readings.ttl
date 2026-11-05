@@ -1,0 +1,420 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/word-tone-readings/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Every identity and assertion is explicitly supplied by these hypothetical sources.
+# Words, speaker, recipient, versioned refiners, runs, recorder and frames stay distinct.
+# Source A selects both co-equal label-set members; source B selects weary only.
+# Source B's troubled candidate is unselected and is not a second readTone result.
+# No available reading for unreadWords supplies no neutral or negative label.
+# No actual cue review, released inventory, model run, score or diagnosis is asserted.
+# The example runs no reader, detector, model, provenance check or isolation mechanism.
+
+ex:wordSource rdf:type gmeow:InformationObject .
+ex:wordSource rdfs:label "Original source recording the words and addressed participants"@en .
+ex:readingSourceA rdf:type gmeow:InformationObject .
+ex:readingSourceA rdfs:label "Source account for the first actual refiner version and its reading"@en .
+ex:readingSourceB rdf:type gmeow:InformationObject .
+ex:readingSourceB rdfs:label "Independent source account for the second actual refiner version"@en .
+ex:speaker rdf:type gmeow:Agent .
+ex:speaker rdfs:label "Original author of the words"@en .
+ex:recipient rdf:type gmeow:Agent .
+ex:recipient rdfs:label "Actual addressee independently named by the source"@en .
+ex:recorder rdf:type gmeow:SoftwareAgent .
+ex:recorder rdf:type gmeow:Agent .
+ex:recorder rdfs:label "Recording importer, separate from speaker, recipient and refiner"@en .
+ex:frameA rdf:type gmeow:Agent .
+ex:frameA rdfs:label "Actual declaring source frame for the words and first reading"@en .
+ex:frameB rdf:type gmeow:Agent .
+ex:frameB rdfs:label "Actual declaring source frame for the second reading"@en .
+ex:refinerV1 rdf:type gmeow:SoftwareAgent .
+ex:refinerV1 rdf:type gmeow:Agent .
+ex:refinerV1 rdfs:label "Source-identified word-tone refiner version one"@en .
+ex:refinerV2 rdf:type gmeow:SoftwareAgent .
+ex:refinerV2 rdf:type gmeow:Agent .
+ex:refinerV2 rdfs:label "Source-identified word-tone refiner version two"@en .
+ex:words rdf:type gmeow:Message .
+ex:words rdf:type gmeow:InformationObject .
+ex:words rdfs:label "Actual retained words targeted by both readings"@en .
+ex:unreadWords rdf:type gmeow:Message .
+ex:unreadWords rdf:type gmeow:InformationObject .
+ex:unreadWords rdfs:label "Words for which the supplied source makes no reading available"@en .
+ex:hearing rdf:type gmeow:Activity .
+ex:hearing rdfs:label "Source-reported reception by the addressee"@en .
+ex:readingKind rdf:type gmeow:EventType .
+ex:readingKind rdfs:label "Actual reading-activity kind supplied by the source accounts"@en .
+ex:runA rdf:type gmeow:Activity .
+ex:runA rdfs:label "Actual generating activity for the first reading"@en .
+ex:runB rdf:type gmeow:Activity .
+ex:runB rdfs:label "Actual generating activity for the second reading"@en .
+ex:readingA rdf:type gmeow:ToneReading .
+ex:readingA rdfs:label "First source-attributed reading, selecting both co-equal labels"@en .
+ex:readingB rdf:type gmeow:ToneReading .
+ex:readingB rdfs:label "Second source-attributed reading, retaining a separate candidate"@en .
+ex:wordSource gmeow:description "This hypothetical source explicitly identifies ex:speaker as the author and ex:recipient as the addressee, records the supplied hearing, and supplies no available reading for ex:unreadWords. Missing, unread or failed interpretation supplies no neutral-tone fact."@en .
+ex:words gmeow:utteranceText "I am worried about the roof and exhausted after the journey."@en .
+ex:words gmeow:wasAttributedTo ex:speaker .
+ex:hearing gmeow:eventType gmeow:eventTypeAgentHeard .
+ex:hearing gmeow:heardMessage ex:words .
+ex:hearing gmeow:wasAssociatedWith ex:recipient .
+ex:refinerV1 gmeow:description "The source identifies the exact process as example-word-tone-refiner version one. This is source identity evidence, not a model run, score or reviewed cue release."@en .
+ex:refinerV2 gmeow:description "The independent source identifies the exact process as example-word-tone-refiner version two and reports its best-guess selection and distinct unselected alternative."@en .
+ex:runA gmeow:eventType ex:readingKind .
+ex:runA gmeow:wasAssociatedWith ex:refinerV1 .
+ex:runB gmeow:eventType ex:readingKind .
+ex:runB gmeow:wasAssociatedWith ex:refinerV2 .
+ex:readingA gmeow:observedFeature ex:words .
+ex:readingA gmeow:vantage ex:refinerV1 .
+ex:readingA gmeow:wasDerivedFrom ex:words .
+ex:readingA gmeow:wasGeneratedBy ex:runA .
+ex:readingA gmeow:refinementOutcome gmeow:refinementResolved .
+ex:readingA gmeow:readTone gmeow:toneTroubled .
+ex:readingA gmeow:readTone gmeow:toneWeary .
+ex:readingB gmeow:observedFeature ex:words .
+ex:readingB gmeow:vantage ex:refinerV2 .
+ex:readingB gmeow:wasDerivedFrom ex:words .
+ex:readingB gmeow:wasGeneratedBy ex:runB .
+ex:readingB gmeow:refinementOutcome gmeow:refinementBestGuess .
+ex:readingB gmeow:readTone gmeow:toneWeary .
+ex:readingB gmeow:refinementCandidate gmeow:toneTroubled .
+
+# Exact per-statement sources, recorder and declaring frame; no metadata propagation.
+
+ex:statement001 rdf:reifies <<( ex:wordSource rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement002 rdf:reifies <<( ex:wordSource rdfs:label "Original source recording the words and addressed participants"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement003 rdf:reifies <<( ex:readingSourceA rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement004 rdf:reifies <<( ex:readingSourceA rdfs:label "Source account for the first actual refiner version and its reading"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement005 rdf:reifies <<( ex:readingSourceB rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement006 rdf:reifies <<( ex:readingSourceB rdfs:label "Independent source account for the second actual refiner version"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement007 rdf:reifies <<( ex:speaker rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement008 rdf:reifies <<( ex:speaker rdfs:label "Original author of the words"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement009 rdf:reifies <<( ex:recipient rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement010 rdf:reifies <<( ex:recipient rdfs:label "Actual addressee independently named by the source"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement011 rdf:reifies <<( ex:recorder rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement012 rdf:reifies <<( ex:recorder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement013 rdf:reifies <<( ex:recorder rdfs:label "Recording importer, separate from speaker, recipient and refiner"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement014 rdf:reifies <<( ex:frameA rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement015 rdf:reifies <<( ex:frameA rdfs:label "Actual declaring source frame for the words and first reading"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement016 rdf:reifies <<( ex:frameB rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement017 rdf:reifies <<( ex:frameB rdfs:label "Actual declaring source frame for the second reading"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement018 rdf:reifies <<( ex:refinerV1 rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement019 rdf:reifies <<( ex:refinerV1 rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement020 rdf:reifies <<( ex:refinerV1 rdfs:label "Source-identified word-tone refiner version one"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement021 rdf:reifies <<( ex:refinerV2 rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement022 rdf:reifies <<( ex:refinerV2 rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement023 rdf:reifies <<( ex:refinerV2 rdfs:label "Source-identified word-tone refiner version two"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement024 rdf:reifies <<( ex:words rdf:type gmeow:Message )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement025 rdf:reifies <<( ex:words rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement026 rdf:reifies <<( ex:words rdfs:label "Actual retained words targeted by both readings"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement027 rdf:reifies <<( ex:unreadWords rdf:type gmeow:Message )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement028 rdf:reifies <<( ex:unreadWords rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement029 rdf:reifies <<( ex:unreadWords rdfs:label "Words for which the supplied source makes no reading available"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement030 rdf:reifies <<( ex:hearing rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement031 rdf:reifies <<( ex:hearing rdfs:label "Source-reported reception by the addressee"@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement032 rdf:reifies <<( ex:readingKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement033 rdf:reifies <<( ex:readingKind rdfs:label "Actual reading-activity kind supplied by the source accounts"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement034 rdf:reifies <<( ex:runA rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement035 rdf:reifies <<( ex:runA rdfs:label "Actual generating activity for the first reading"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement036 rdf:reifies <<( ex:runB rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement037 rdf:reifies <<( ex:runB rdfs:label "Actual generating activity for the second reading"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement038 rdf:reifies <<( ex:readingA rdf:type gmeow:ToneReading )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement039 rdf:reifies <<( ex:readingA rdfs:label "First source-attributed reading, selecting both co-equal labels"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement040 rdf:reifies <<( ex:readingB rdf:type gmeow:ToneReading )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement041 rdf:reifies <<( ex:readingB rdfs:label "Second source-attributed reading, retaining a separate candidate"@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement042 rdf:reifies <<( ex:wordSource gmeow:description "This hypothetical source explicitly identifies ex:speaker as the author and ex:recipient as the addressee, records the supplied hearing, and supplies no available reading for ex:unreadWords. Missing, unread or failed interpretation supplies no neutral-tone fact."@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement043 rdf:reifies <<( ex:words gmeow:utteranceText "I am worried about the roof and exhausted after the journey."@en )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement044 rdf:reifies <<( ex:words gmeow:wasAttributedTo ex:speaker )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement045 rdf:reifies <<( ex:hearing gmeow:eventType gmeow:eventTypeAgentHeard )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement046 rdf:reifies <<( ex:hearing gmeow:heardMessage ex:words )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement047 rdf:reifies <<( ex:hearing gmeow:wasAssociatedWith ex:recipient )>> ;
+    gmeow:wasDerivedFrom ex:wordSource ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement048 rdf:reifies <<( ex:refinerV1 gmeow:description "The source identifies the exact process as example-word-tone-refiner version one. This is source identity evidence, not a model run, score or reviewed cue release."@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement049 rdf:reifies <<( ex:refinerV2 gmeow:description "The independent source identifies the exact process as example-word-tone-refiner version two and reports its best-guess selection and distinct unselected alternative."@en )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement050 rdf:reifies <<( ex:runA gmeow:eventType ex:readingKind )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement051 rdf:reifies <<( ex:runA gmeow:wasAssociatedWith ex:refinerV1 )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement052 rdf:reifies <<( ex:runB gmeow:eventType ex:readingKind )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement053 rdf:reifies <<( ex:runB gmeow:wasAssociatedWith ex:refinerV2 )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement054 rdf:reifies <<( ex:readingA gmeow:observedFeature ex:words )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement055 rdf:reifies <<( ex:readingA gmeow:vantage ex:refinerV1 )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement056 rdf:reifies <<( ex:readingA gmeow:wasDerivedFrom ex:words )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement057 rdf:reifies <<( ex:readingA gmeow:wasGeneratedBy ex:runA )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement058 rdf:reifies <<( ex:readingA gmeow:refinementOutcome gmeow:refinementResolved )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement059 rdf:reifies <<( ex:readingA gmeow:readTone gmeow:toneTroubled )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement060 rdf:reifies <<( ex:readingA gmeow:readTone gmeow:toneWeary )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameA .
+
+ex:statement061 rdf:reifies <<( ex:readingB gmeow:observedFeature ex:words )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement062 rdf:reifies <<( ex:readingB gmeow:vantage ex:refinerV2 )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement063 rdf:reifies <<( ex:readingB gmeow:wasDerivedFrom ex:words )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement064 rdf:reifies <<( ex:readingB gmeow:wasGeneratedBy ex:runB )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement065 rdf:reifies <<( ex:readingB gmeow:refinementOutcome gmeow:refinementBestGuess )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement066 rdf:reifies <<( ex:readingB gmeow:readTone gmeow:toneWeary )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
+
+ex:statement067 rdf:reifies <<( ex:readingB gmeow:refinementCandidate gmeow:toneTroubled )>> ;
+    gmeow:wasDerivedFrom ex:readingSourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:frameB .
