@@ -4791,7 +4791,7 @@ gmeow:eventTypeAgentReasoningTrace
     skos:definition "An open event-kind value for a source-reported entry of model-emitted reasoning before a reply in an exchange. The retained words are distinct from inference validity, a proof, a raw reply envelope or a transport event."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly identifies this pre-reply reasoning-entry category."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating generated reasoning words as a valid inference or verified proof, or substituting the general model-generation trace kind for this specific entry meaning."@x-gmeow-english ;
-    gmeow:howToUse "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, prompt references and reply-handling reports under their existing independent contracts."@x-gmeow-english ;
+    gmeow:howToUse "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, model-input Prompt references, promptedBy occurrence links and reply-handling reports under their existing independent contracts."@x-gmeow-english ;
     skos:scopeNote "No inference engine, model call, output ownership, success verdict, temporal order or missing invocation identity is created. The value is neither equivalent to nor mutually exclusive with a general generation trace."@x-gmeow-english ;
     skos:example "A source retains its reasoning-entry category: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."@x-gmeow-english .
 
