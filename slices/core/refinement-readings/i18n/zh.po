@@ -2123,3 +2123,379 @@ msgstr "应用外层 HabitFigure 守卫及每个独立的正向计数守卫，�
 msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
 msgstr "HabitFigure 通过 habitPresenceCount 或 habitOfferedCount 提供的每个 Quantity 都具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "High-friction correction reading"
+msgstr "高摩擦纠正读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named teller’s source-derived Refinement that an actual earlier unsuccessful ToolCall was followed in one episode by a distinct retry of the same tool and reported argument interpretation."
+msgstr "具名讲述者基于来源作出的 Refinement，认为同一片段中，一次实际未成功的较早 ToolCall 之后，出现了使用相同工具及所报告参数解释的另一次重试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "observedFeature is the earlier ToolCall; frictionCorrection is the later one. Actual receipts, positive unsuccessful-outcome and order evidence, scope, vantage and the selected immutable rule remain required. The reading is not the agent’s claim or a truth, equality, success or execution certificate."
+msgstr "observedFeature 是较早的 ToolCall；frictionCorrection 是较晚的调用。仍须保留实际回执、未成功结果及顺序的正面证据、范围、vantage 和所选不可变规则。此读数不是智能体自身的断言，也不是真实性、相等、成功或执行的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "A teller retains two actual attempts and their receipts as its retry reading without asserting that the correction succeeded."
+msgstr "讲述者将两次实际尝试及其回执保留为重试读数，但不声称纠正已经成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual attributed reading of a later retry after positive source evidence that an earlier attempt did not succeed."
+msgstr "用于实际存在且有归属的读数：有明确来源证据表明较早尝试未成功，随后又发生重试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing events, treating missing success as failure, equating tool labels or opaque payloads, or replacing source receipts with episode or call events in the input roster."
+msgstr "避免编造事件、将缺失的成功记录当作失败、等同工具标签或不透明载荷，或在输入清单中以片段及调用事件替代来源回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual earlier feature, later correction, episode, tool, retained argument evidence, readingScope, vantage, refinementOutcome and frictionRule. Retain the actual receipt fields supporting the unsuccessful outcome and reported order; validate structural consistency without claiming to execute the reader’s interpretation."
+msgstr "绑定实际较早特征、较晚纠正、片段、工具、保留的参数证据、readingScope、vantage、refinementOutcome 和 frictionRule。保留支持未成功结果及所报告顺序的实际回执字段；校验结构一致性，但不声称执行了读取者的解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction reading episode"
+msgstr "纠正读数所属片段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual episode Activity within which this reading places both its earlier attempt and later correction attempt."
+msgstr "此读数将较早尝试及较晚纠正尝试置于其中的实际片段 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one episode is required per reading. It is surrounding context, not the observedFeature, a receipt artifact or a newly invented Episode class."
+msgstr "每项读数须恰有一个片段。它是周围上下文，不是 observedFeature、回执对象或另行编造的 Episode 类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both retained ToolCalls belong to the same actual episode, directly or through a source-identified round."
+msgstr "保留的两个 ToolCall 直接或通过来源标明的轮次属于同一实际片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual episode occurrence selected by the teller."
+msgstr "用于讲述者所选的实际片段发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid targeting a transition report, a receipt, a label or a guessed episode node."
+msgstr "避免指向转换报告、回执、标签或猜测的片段节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionEpisode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one actual Activity and retain the source-supported containment of each attempt; keep the earlier ToolCall as observedFeature."
+msgstr "关联一个实际 Activity，保留来源支持的各次尝试包含关系；较早的 ToolCall 仍作为 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction reading tool"
+msgstr "纠正读数工具"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual SoftwareAgent tool identity shared by the two ToolCalls selected in this correction reading."
+msgstr "此纠正读数中所选两个 ToolCall 共同使用的实际 SoftwareAgent 工具身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one tool is required per reading. The role does not specialize usedTool and does not make the reading a ToolCall; matching names do not establish identity."
+msgstr "每项读数须恰有一个工具。此关系不特化 usedTool，也不会将读数变成 ToolCall；名称相同不能确立身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source identifies the same actual tool agent on both attempts and on the reading."
+msgstr "来源在两次尝试及读数上标明同一个实际工具智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual tool identity is retained, rather than only its label."
+msgstr "在保留实际工具身份而非仅有标签时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving tools from equal spellings or assigning the teller as the called tool."
+msgstr "避免根据相同拼写解析工具，或将讲述者指定为被调用工具。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionTool|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual SoftwareAgent and check agreement with each selected call’s actual usedTool value."
+msgstr "关联实际 SoftwareAgent，并检查其与每个所选调用的实际 usedTool 值一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction reading arguments"
+msgstr "纠正读数参数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained StructuredValue argument payload occurrence the teller uses as its reported grouping basis for the earlier attempt."
+msgstr "讲述者用于报告较早尝试分组依据的、所保留的 StructuredValue 参数载荷发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one evidence occurrence is required. It retains an actual opaque literal or structured representation; it is not an independently computed semantic signature or proof that both calls’ arguments are equivalent."
+msgstr "须恰有一个证据发生实例。它保留实际不透明字面量或结构化表示，不是独立计算的语义签名，也不证明两个调用的参数等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scalar StructuredValue keeps the earlier call’s original opaque literal while the later call retains its own original payload."
+msgstr "标量 StructuredValue 保留较早调用的原始不透明字面量，较晚调用仍保留自身的原始载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual argument evidence selected by the teller’s declared interpretation."
+msgstr "用于保留讲述者声明的解释所选用的实际参数证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing, normalizing, hashing or equating payloads without the actual declared method, or inventing null, an empty map or a default representation."
+msgstr "避免在没有实际声明方法时解析、规范化、散列或等同载荷，也不要编造 null、空映射或默认表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArguments|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse an actual toolArgumentsStructured occurrence or retain the exact opaque toolArguments literal through structuredTerm on a source-identified scalar occurrence. Preserve both calls’ original evidence and the selected rule; no semantic comparator is executed here."
+msgstr "复用实际 toolArgumentsStructured 发生实例，或在来源标识的标量发生实例上通过 structuredTerm 保留完整的不透明 toolArguments 字面量。保留两个调用的原始证据及所选规则；此处不执行语义比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "later correction attempt"
+msgstr "较晚纠正尝试"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The distinct actual later ToolCall that this reading reports as another attempt of the earlier feature’s tool and argument act."
+msgstr "此读数报告为较早特征所用工具及参数行为的再次尝试的、实际且不同的较晚 ToolCall。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one later attempt is required. The relation records the teller’s retry and order interpretation; it neither asserts later success nor adds an Allen BEFORE gap relation."
+msgstr "须恰有一次较晚尝试。此关系记录讲述者对重试及顺序的解释，既不断言随后成功，也不添加具有时间间隔含义的 Allen BEFORE 关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reading selects a later retry without reporting its eventual outcome."
+msgstr "来源读数选择一次较晚重试，但不报告其最终结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual later attempt selected after positive evidence of the earlier unsuccessful attempt."
+msgstr "用于在较早尝试未成功的明确证据之后选出的实际较晚尝试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a correction text, a rule artifact, the earlier call itself, or a fabricated successful event."
+msgstr "避免使用纠正文本、规则对象、较早调用本身或编造的成功事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the distinct actual ToolCall and retain its source receipts, argument evidence, episode containment and reported order separately from the reading’s clock."
+msgstr "关联实际且不同的 ToolCall，保留其来源回执、参数证据、片段包含关系及所报告顺序，并与读数时钟分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt temporal placement"
+msgstr "尝试时间定位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied temporal placement of a ToolCall attempt, specializing eventTime at the source’s actual precision."
+msgstr "来源提供的 ToolCall 尝试时间定位，以来源的实际精度特化 eventTime。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional attempt property admits xsd:dateTime, xsd:date, xsd:gYearMonth or xsd:gYear. It is not the reading or recording clock and introduces no new timezone or frame default beyond the existing Events contract."
+msgstr "此可选且不具函数性的尝试属性允许 xsd:dateTime、xsd:date、xsd:gYearMonth 或 xsd:gYear。它不是读数或记录时钟，也不在现有 Events 约定之外引入新的时区或参考系默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "An attempt retains the source’s day placement without padding it to midnight."
+msgstr "尝试保留来源提供的日期定位，不将其补齐为午夜。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual attempt time or coarse placement."
+msgstr "在来源提供实际尝试时间或较粗时间定位时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying the teller’s clock, inventing missing precision or inferring order from incomparable placements."
+msgstr "避免复制讲述者时钟、编造缺失精度，或从不可比较的定位推断顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original literal to the actual ToolCall and preserve datatype, lexical form, timezone and the actual eventTemporalFrame contract. Keep the reading’s own time separate; no chronology comparator is executed."
+msgstr "将原始字面量附于实际 ToolCall，保留其数据类型、词法形式、时区及实际 eventTemporalFrame 约定。读数自身的时间保持独立；不执行时间顺序比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt containment"
+msgstr "尝试包含关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual round or episode Activity containing a ToolCall attempt, specializing subEventOf."
+msgstr "包含某次 ToolCall 尝试的实际轮次或片段 Activity，特化 subEventOf。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is optional on ToolCall generally and has no single-container maximum. Both selected attempts require actual containment in the reading’s episode, directly or through an actual trace round."
+msgstr "此关系对一般 ToolCall 可选，不强加单一容器上限。两个所选尝试均须实际包含于读数所属片段，直接包含或通过实际轨迹轮次包含。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-identified round contains the attempt and is itself part of the selected episode."
+msgstr "来源标明的轮次包含该尝试，且该轮次本身属于所选片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual source-supported event containment of an attempt."
+msgstr "用于来源支持的实际尝试事件包含关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a receipt’s storage location, a matching label, mere temporal co-location or a guessed round or episode."
+msgstr "避免使用回执存储位置、相同标签、单纯时间重合或猜测的轮次及片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionWithin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each selected ToolCall to its actual episode or an actual eventTypeTraceRound Activity belonging to that episode. Preserve the source’s part-whole evidence and do not infer scheduler execution."
+msgstr "将每个所选 ToolCall 关联到其实际片段，或关联到属于该片段且实际标为 eventTypeTraceRound 的 Activity。保留来源的部分与整体证据，不推断调度器执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported correction attempt count"
+msgstr "报告的纠正尝试计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported count of distinct attempts the teller groups with the earlier attempt in this episode and input scope under its selected rule."
+msgstr "来源报告的、讲述者按所选规则在此片段及输入范围内与较早尝试归为同组的不同尝试数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role has at most one Quantity. A supplied count is at least two because its declared population includes the required witnesses; it is an annotation, never confidence or a graph-node count."
+msgstr "此可选角色至多关联一个 Quantity。因其声明总体包含必需的见证尝试，提供的计数须至少为二；它是注记，不是置信值或图节点计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains its supplied count and declared population without recomputing it from receipt membership."
+msgstr "读数保留所提供的计数及声明总体，不根据回执成员重新计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an actual reported count over this reading’s declared attempt population."
+msgstr "仅用于此读数声明的尝试总体中实际报告的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing value, zero, population, confidence or equality with the number of receipts or ToolCall nodes."
+msgstr "避免编造缺失值、零、总体、置信值，或与回执及 ToolCall 节点数的相等关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionAttemptCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link an actual math:Quantity retaining original xsd:nonNegativeInteger magnitudes, one numeric value, math:dimensionless and one complete actual counting frame. Preserve role, episode, witnesses, tool, argument grouping, scope, rule and outcome interpretation; enforce the witness minimum of two without synthesizing it."
+msgstr "关联实际 math:Quantity，保留原始 xsd:nonNegativeInteger 数值、唯一数值、math:dimensionless 及恰好一个完整实际计数参考系。保留角色、片段、见证尝试、工具、参数分组、范围、规则及结果解释；校验至少为二的见证下限，但不合成该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported unsuccessful correction attempt count"
+msgstr "报告的未成功纠正尝试计数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported count of unsuccessful attempts in this reading’s same declared attempt population under the selected outcome interpretation."
+msgstr "来源报告的、按所选结果解释在此读数同一声明尝试总体中的未成功尝试数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role has at most one Quantity. A supplied count is at least one because its declared population includes the required witnesses; it is an annotation, never confidence or a graph-node count."
+msgstr "此可选角色至多关联一个 Quantity。因其声明总体包含必需的见证尝试，提供的计数须至少为一；它是注记，不是置信值或图节点计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains its supplied count and declared population without recomputing it from receipt membership."
+msgstr "读数保留所提供的计数及声明总体，不根据回执成员重新计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an actual reported count over this reading’s declared attempt population."
+msgstr "仅用于此读数声明的尝试总体中实际报告的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing value, zero, population, confidence or equality with the number of receipts or ToolCall nodes."
+msgstr "避免编造缺失值、零、总体、置信值，或与回执及 ToolCall 节点数的相等关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link an actual math:Quantity retaining original xsd:nonNegativeInteger magnitudes, one numeric value, math:dimensionless and one complete actual counting frame. Preserve role, episode, witnesses, tool, argument grouping, scope, rule and outcome interpretation; enforce the witness minimum of one without synthesizing it."
+msgstr "关联实际 math:Quantity，保留原始 xsd:nonNegativeInteger 数值、唯一数值、math:dimensionless 及恰好一个完整实际计数参考系。保留角色、片段、见证尝试、工具、参数分组、范围、规则及结果解释；校验至少为一的见证下限，但不合成该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction reading rule release"
+msgstr "纠正读数规则版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual immutable ReadingRule parameter release selected for this correction reading, retained as a derivation input."
+msgstr "此纠正读数实际选用的不可变 ReadingRule 参数版本，作为派生输入保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one release is required per reading. It carries all four supplied friction parameters and the existing version/provenance metadata, independently of the process vantage and other derivation inputs."
+msgstr "每项读数须恰有一个版本。该版本带有所提供的四个摩擦参数及现有版本和来源元数据，并与处理过程 vantage 及其他派生输入分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading explicitly selects the actual reviewed release rather than guessing it from field spellings."
+msgstr "读数明确选择实际经过审阅的版本，而不根据字段拼写猜测版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual parameter release used by this reading."
+msgstr "用于标明此读数实际使用的参数版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a mutable rule, a bare version token, an executable logic:Rule substitution or mixing parameters from unrelated releases."
+msgstr "避免使用可变规则、孤立版本词元、以可执行 logic:Rule 替代，或混合无关版本的参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual ReadingRule with its required lineage, versionLabel, contentDigest and attribution and all four token parameters. The wasDerivedFrom relation follows by subproperty; preserve actual receipt inputs separately and do not infer execution."
+msgstr "关联实际 ReadingRule 及其必需的沿革、versionLabel、contentDigest、归属和四个 token 参数。wasDerivedFrom 关系由子属性继承；实际输入回执单独保留，不推断执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "High-friction correction bindings constraint"
+msgstr "高摩擦纠正绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."
+msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks retained references and intrinsic consistency. Positive unsuccessful-outcome and reported-order evidence remains mandatory source content under the selected rule; no receipt lookup, semantic argument comparison, chronology engine or truth certificate is claimed."
+msgstr "此定律检查保留的引用及内在一致性。按所选规则，未成功结果及所报告顺序的正面证据仍是必需的来源内容；不声称执行回执查找、参数语义比较、时间顺序引擎或真实性证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A rule release is retained separately from a nonempty receipt roster; a missing outcome does not become a failure."
+msgstr "规则版本与非空回执清单分开保留；结果缺失不会变成失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the intrinsic bindings of an actual attributed correction reading."
+msgstr "用于校验实际且有归属的纠正读数的内在绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a valid graph as proof that the reader ran, the source is true, the arguments are semantically equal or the later attempt succeeded."
+msgstr "避免将有效图视为读取者已运行、来源真实、参数语义相等或较晚尝试成功的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply each independent positive guard to actual supplied calls, receipts, scope and containers. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."
+msgstr "将每个独立正向守卫应用于实际提供的调用、回执、范围及容器。保留支持所报告未成功结果及较晚重试的原始字段和来源归属；对缺失的必需证据作出诊断，不编造证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."
+msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "High-friction count value constraint"
+msgstr "高摩擦计数值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied correction count Quantity has valid xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless dimension and one typed ReferenceFrame; attempt counts are at least two and unsuccessful counts at least one."
+msgstr "每个提供的纠正计数 Quantity 都具有有效的 xsd:nonNegativeInteger 数值、唯一数值、无量纲维度及一个带类型的 ReferenceFrame；尝试计数至少为二，未成功计数至少为一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are optional annotations of the same declared witness-containing population, never confidence. Equal retained lexical aliases may coexist. Frame interpretation, grouping, outcome meaning and actual aggregate truth remain source evidence obligations."
+msgstr "计数是同一声明总体的可选注记，该总体包含见证尝试；计数不是置信值。可并存保留数值相等的词法变体。参考系解释、分组、结果含义及实际汇总真实性仍须来源证据支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied count is validated without inventing an absent count or equating it with receipt membership."
+msgstr "校验来源提供的计数，但不编造缺失计数，也不将计数等同于回执成员数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual supplied counts over this reading’s declared attempt population."
+msgstr "用于此读数声明尝试总体中实际提供的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid synthesizing a witness minimum, zero, counting frame, population or confidence, or adding unsupported aggregate equalities and inequalities."
+msgstr "避免合成见证下限值、零、计数参考系、总体或置信值，也不要添加无依据的汇总等式及不等式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate both optional roles through independent positive guards and atomic presence probes. Preserve each original magnitude, numeric aliases, actual dimension and complete frame; enforce only the declared witness bounds without recomputing counts."
+msgstr "通过独立正向守卫及原子存在检查校验两个可选角色。保留每个原始数值、数值相等的词法变体、实际维度及完整参考系；仅校验声明的见证下限，不重新计算计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied correction count Quantity has valid xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless dimension and one typed ReferenceFrame; attempt counts are at least two and unsuccessful counts at least one."
+msgstr "每个提供的纠正计数 Quantity 都具有有效的 xsd:nonNegativeInteger 数值、唯一数值、无量纲维度及一个带类型的 ReferenceFrame；尝试计数至少为二，未成功计数至少为一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Selected correction rule parameters constraint"
+msgstr "所选纠正规则参数约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ReadingRule release selected through frictionRule supplies frictionToolField, frictionArgumentsField, frictionOutcomeField and frictionUnsucceededOutcome on that same release."
+msgstr "通过 frictionRule 选用的每个 ReadingRule 版本，都须在同一版本上提供 frictionToolField、frictionArgumentsField、frictionOutcomeField 和 frictionUnsucceededOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law requires the four selected inputs without making them required on every ReadingRule. It supplies no token defaults and does not execute field lookup, duplicate-key selection or outcome interpretation."
+msgstr "此定律要求四个所选输入，但不要求每个 ReadingRule 都具备这些输入。它不提供默认词元，也不执行字段查找、重复键选择或结果解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected release is incomplete when one parameter is absent, even if another release has that value."
+msgstr "所选版本缺少一个参数即不完整，即使另一版本具有该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the complete actual parameter tuple of a selected correction reader release."
+msgstr "用于要求所选纠正读取者版本具有完整的实际参数元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid borrowing a missing token from another version or treating an unrelated generic ReadingRule as a selected correction profile."
+msgstr "避免从另一版本借用缺失词元，或将无关的一般 ReadingRule 当作所选纠正配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the rule object positively through frictionRule and check four independent atomic existence obligations on that same object. Preserve all supplied literals and the existing immutable release metadata."
+msgstr "通过 frictionRule 正向绑定规则对象，并在同一对象上检查四项独立原子存在义务。保留全部提供的字面量及现有不可变版本元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every ReadingRule release selected through frictionRule supplies frictionToolField, frictionArgumentsField, frictionOutcomeField and frictionUnsucceededOutcome on that same release."
+msgstr "通过 frictionRule 选用的每个 ReadingRule 版本，都须在同一版本上提供 frictionToolField、frictionArgumentsField、frictionOutcomeField 和 frictionUnsucceededOutcome。"

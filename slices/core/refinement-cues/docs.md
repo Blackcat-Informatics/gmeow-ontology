@@ -484,3 +484,32 @@ actual source records separately. Do not replace `observedFeature` with the
 rule, identify the process vantage with the release or invent a figure-to-rule
 link. No release instance, magnitude, frame, default window or executed
 selection is supplied by this vocabulary (Principles 4, 9, 11, 17 and 19).
+
+## Correction reader parameters
+
+`frictionToolField`, `frictionArgumentsField` and `frictionOutcomeField` retain
+the exact supplied receipt field labels read for tool, argument and outcome
+evidence. `frictionUnsucceededOutcome` retains the exact supplied outcome token
+the selected reader interprets as unsuccessful. All four belong to an actual
+immutable `ReadingRule` release, separate from its lineage and the reading
+process. Preserve each original `xsd:token`; do not guess labels or failure
+codes, normalize the source fields or retype their payloads.
+
+Each parameter is optional on ReadingRule generally and has at most one value
+per release. A [correction reading](../refinement-readings/docs.md) selecting a
+release through `frictionRule` requires all four parameters on that same release,
+together with the existing required version identity and accountable provenance.
+A changed parameter selects a new release. Parameters from another version
+cannot fill an absent input, and the release is not an executable `logic:Rule`
+or the teller’s vantage (Principles 4 and 17).
+
+Labels remain data, not predicate IRIs or an assumed JSON-path language.
+Actual source receipt/field occurrences and their original payload types remain
+available, including repeated labels. The selected method must identify the
+actual evidence it reads; this vocabulary supplies no first-key-wins policy,
+parser, implicit string-to-token conversion or key deduplication. A supplied
+unsuccessful code is positive source evidence under that actual interpretation;
+absence of success, unreadability or missing source is not a failure code.
+Declaring parameters does not execute the lookup, outcome classifier or
+semantic argument comparison, and does not certify the reading’s truth,
+successful correction or consumer adoption (Principles 9, 11 and 19).

@@ -2062,3 +2062,77 @@ gmeow:HabitWindowValueConstraint
         [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFirstFrame" ] ] ,
         [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondFrame" ] ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winFirstFrame" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondFrame" ] ] ] ] ] ] ] .
+
+gmeow:frictionToolField
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction tool field"@x-gmeow-english ;
+    skos:definition "The exact supplied receipt field label from which this ReadingRule reads tool evidence."@x-gmeow-english ;
+    skos:scopeNote "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."@x-gmeow-english ;
+    skos:example "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reviewed rule actually supplies this parameter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ;
+    logic:range xsd:token .
+
+gmeow:frictionArgumentsField
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction arguments field"@x-gmeow-english ;
+    skos:definition "The exact supplied receipt field label from which this ReadingRule reads argument evidence."@x-gmeow-english ;
+    skos:scopeNote "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."@x-gmeow-english ;
+    skos:example "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reviewed rule actually supplies this parameter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ;
+    logic:range xsd:token .
+
+gmeow:frictionOutcomeField
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction outcome field"@x-gmeow-english ;
+    skos:definition "The exact supplied receipt field label from which this ReadingRule reads outcome evidence."@x-gmeow-english ;
+    skos:scopeNote "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."@x-gmeow-english ;
+    skos:example "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reviewed rule actually supplies this parameter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ;
+    logic:range xsd:token .
+
+gmeow:frictionUnsucceededOutcome
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction unsuccessful outcome"@x-gmeow-english ;
+    skos:definition "The exact supplied outcome token this ReadingRule interprets as an unsuccessful attempt."@x-gmeow-english ;
+    skos:scopeNote "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."@x-gmeow-english ;
+    skos:example "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reviewed rule actually supplies this parameter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ;
+    logic:range xsd:token .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionToolField" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionArgumentsField" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionOutcomeField" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionToolField ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionToolField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionArgumentsField ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionArgumentsField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionOutcomeField ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionOutcomeField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionUnsucceededOutcome ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionUnsucceededOutcome ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ] .

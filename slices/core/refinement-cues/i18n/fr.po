@@ -2254,3 +2254,115 @@ msgstr "Appliquer la garde ReadingRule et huit gardes positives indépendantes s
 msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
 msgstr "Chaque habitWindow fourni par une version de ReadingRule possède une grandeur xsd:positiveInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction tool field"
+msgstr "champ d’outil de correction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied receipt field label from which this ReadingRule reads tool evidence."
+msgstr "Le libellé exact fourni du champ de reçu dont ce ReadingRule lit les preuves d’outil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."
+msgstr "Au plus un xsd:token fourni est admis par version. Le champ est facultatif pour ReadingRule en général, mais une version sélectionnée par frictionRule exige les quatre paramètres. Les libellés et codes de résultat restent des données sources, pas des prédicats ontologiques ou des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|http://www.w3.org/2004/02/skos/core#example"
+msgid "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."
+msgstr "Une règle immuable conserve le jeton réellement fourni sans normaliser le champ ou le résultat du reçu original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reviewed rule actually supplies this parameter."
+msgstr "Utiliser lorsque la règle revue fournit réellement ce paramètre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."
+msgstr "Éviter de deviner des libellés ou résultats manquants, de retyper les chaînes sources, d’interpréter les libellés comme chemins JSON ou IRI de prédicats, ou de choisir silencieusement le premier champ dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionToolField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."
+msgstr "Conserver le xsd:token exact fourni sur le ReadingRule immuable réel. Préserver séparément les occurrences sources des reçus, les types originaux des charges et l’interprétation déclarée ; un changement de paramètres exige une nouvelle version et cette déclaration n’exécute ni recherche ni classification de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction arguments field"
+msgstr "champ d’arguments de correction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied receipt field label from which this ReadingRule reads argument evidence."
+msgstr "Le libellé exact fourni du champ de reçu dont ce ReadingRule lit les preuves d’arguments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."
+msgstr "Au plus un xsd:token fourni est admis par version. Le champ est facultatif pour ReadingRule en général, mais une version sélectionnée par frictionRule exige les quatre paramètres. Les libellés et codes de résultat restent des données sources, pas des prédicats ontologiques ou des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|http://www.w3.org/2004/02/skos/core#example"
+msgid "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."
+msgstr "Une règle immuable conserve le jeton réellement fourni sans normaliser le champ ou le résultat du reçu original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reviewed rule actually supplies this parameter."
+msgstr "Utiliser lorsque la règle revue fournit réellement ce paramètre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."
+msgstr "Éviter de deviner des libellés ou résultats manquants, de retyper les chaînes sources, d’interpréter les libellés comme chemins JSON ou IRI de prédicats, ou de choisir silencieusement le premier champ dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionArgumentsField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."
+msgstr "Conserver le xsd:token exact fourni sur le ReadingRule immuable réel. Préserver séparément les occurrences sources des reçus, les types originaux des charges et l’interprétation déclarée ; un changement de paramètres exige une nouvelle version et cette déclaration n’exécute ni recherche ni classification de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction outcome field"
+msgstr "champ de résultat de correction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied receipt field label from which this ReadingRule reads outcome evidence."
+msgstr "Le libellé exact fourni du champ de reçu dont ce ReadingRule lit les preuves de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."
+msgstr "Au plus un xsd:token fourni est admis par version. Le champ est facultatif pour ReadingRule en général, mais une version sélectionnée par frictionRule exige les quatre paramètres. Les libellés et codes de résultat restent des données sources, pas des prédicats ontologiques ou des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|http://www.w3.org/2004/02/skos/core#example"
+msgid "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."
+msgstr "Une règle immuable conserve le jeton réellement fourni sans normaliser le champ ou le résultat du reçu original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reviewed rule actually supplies this parameter."
+msgstr "Utiliser lorsque la règle revue fournit réellement ce paramètre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."
+msgstr "Éviter de deviner des libellés ou résultats manquants, de retyper les chaînes sources, d’interpréter les libellés comme chemins JSON ou IRI de prédicats, ou de choisir silencieusement le premier champ dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionOutcomeField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."
+msgstr "Conserver le xsd:token exact fourni sur le ReadingRule immuable réel. Préserver séparément les occurrences sources des reçus, les types originaux des charges et l’interprétation déclarée ; un changement de paramètres exige une nouvelle version et cette déclaration n’exécute ni recherche ni classification de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correction unsuccessful outcome"
+msgstr "résultat non réussi de correction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied outcome token this ReadingRule interprets as an unsuccessful attempt."
+msgstr "Le jeton de résultat exact fourni que ce ReadingRule interprète comme une tentative non réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one supplied xsd:token is admitted per release. The field is optional on ReadingRule generally, but a release selected through frictionRule requires all four parameters. Labels and outcome codes remain source data, not ontology predicates or defaults."
+msgstr "Au plus un xsd:token fourni est admis par version. Le champ est facultatif pour ReadingRule en général, mais une version sélectionnée par frictionRule exige les quatre paramètres. Les libellés et codes de résultat restent des données sources, pas des prédicats ontologiques ou des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "An immutable rule retains the actual supplied token without normalizing the original receipt field or outcome."
+msgstr "Une règle immuable conserve le jeton réellement fourni sans normaliser le champ ou le résultat du reçu original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reviewed rule actually supplies this parameter."
+msgstr "Utiliser lorsque la règle revue fournit réellement ce paramètre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing missing labels or outcomes, retyping source strings, interpreting labels as JSON paths or predicate IRIs, or choosing the first duplicate field silently."
+msgstr "Éviter de deviner des libellés ou résultats manquants, de retyper les chaînes sources, d’interpréter les libellés comme chemins JSON ou IRI de prédicats, ou de choisir silencieusement le premier champ dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frictionUnsucceededOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied xsd:token on the actual immutable ReadingRule. Preserve source receipt occurrences, original payload types and the declared interpretation separately; changed parameters require a new release and this declaration executes no lookup or outcome classifier."
+msgstr "Conserver le xsd:token exact fourni sur le ReadingRule immuable réel. Préserver séparément les occurrences sources des reçus, les types originaux des charges et l’interprétation déclarée ; un changement de paramètres exige une nouvelle version et cette déclaration n’exécute ni recherche ni classification de résultat."
