@@ -186,6 +186,9 @@ computation or IRI agreement is certified. worldObjectState retains its differen
 preimage contract. A supplied empty encoded catalog may have zero entries and
 an actual digest; an absent relation supplies no catalog, and zero visible entry
 triples alone cannot turn partial capture into evidence of emptiness.
+The link and digest carry no explicit claim that the inventory is empty or capture is complete.
+Such a source claim needs separately supplied evidence; these roles do not
+encode a queryable indicator for it.
 
 The target law checks every direct bearer's hasPart inventory when that bearer
 has no incoming worldObjectAffordances link. For a set bearer, it instead checks

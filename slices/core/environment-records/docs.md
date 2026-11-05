@@ -278,6 +278,9 @@ alone do not prove emptiness, and partial capture must not be presented as an
 empty catalog. For example, a source may explicitly report an empty inventory
 and identify its encoded catalog artifact and algorithm-typed digest, without
 supplying any action entry.
+These roles expose no assertion that capture is complete or that the catalog
+is empty. A consumer needs separately supplied source evidence for either claim;
+the catalog link and digest alone do not make those claims queryable.
 
 affordanceTarget names a supplied part of the represented object. For a direct
 catalog bearer with no incoming worldObjectAffordances link, the target law
