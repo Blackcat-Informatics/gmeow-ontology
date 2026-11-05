@@ -10896,3 +10896,87 @@ msgstr "不要将此关系断言为人工覆盖，不要将向量相等当作 RD
 msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain each quantity's actual hasDimension link and use the existing exact-vector decision for dimensional compatibility. Assess the source quantity kinds and actual unit, scale, frame and numeric-admission requirements separately; no conversion, additional native validation or materialized relation output is promised by these annotations."
 msgstr "保留每个量实际的 hasDimension 链接，使用现有精确向量判定确定量纲相容性。另行评估来源量的种类及实际单位、标度、参考系和数值准入要求；这些注释不承诺转换、额外原生验证或实体化关系输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimension"
+msgstr "物理量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A physical dimension: an element of the ℚ-vector space over the seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity). Product of dimensions adds their exponent vectors, a power scalar-multiplies, math:dimensionless is the identity, and two dimensions are equal exactly when their exponent vectors are equal. The derived math:commensurableWith relation expresses dimensional compatibility between quantities carrying dimensions with equal exponent vectors. Exponents are exact rationals (ℚ, admitting fractional dimensions such as T^(−1/2)), never floating-point. A math:Quantity carries its dimension through math:hasDimension."
+msgstr "物理量纲：由七个 SI 基本量纲（长度、质量、时间、电流、热力学温度、物质的量、发光强度）构成的 ℚ 向量空间中的元素。量纲乘积使指数向量相加，取幂使向量作标量乘法，math:dimensionless 是单位元；两个量纲当且仅当其指数向量相等时相等。推导关系 math:commensurableWith 表达具有相等量纲指数向量的量之间的量纲相容性。指数使用精确有理数（ℚ，允许 T^(−1/2) 等分数次幂量纲），绝不使用浮点数。math:Quantity 通过 math:hasDimension 具有其量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class concerns physical SI dimension values, distinct from measured magnitudes, units, quantity kinds and geometric dimension counts. Equal exact exponent vectors express equality of dimension values; they do not identify RDF resources or authorize arithmetic on source quantities."
+msgstr "此类描述 SI 物理量纲值，与测量数值、单位、量的种类及几何维数不同。精确指数向量相等表示量纲值相等，不将 RDF 资源认同为同一资源，也不授权对来源量进行算术。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing math:dimensionless denotes the zero exponent vector, while math:timeDimension denotes the time basis vector. These are dimension values, not supplied magnitudes or units."
+msgstr "现有 math:dimensionless 表示零指数向量，math:timeDimension 表示时间基向量。它们是量纲值，不是所提供的数值大小或单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the physical dimension carried by an actual quantity or other dimensioned object, retaining its exact SI exponent meaning independently of a rendered label or numerical measurement."
+msgstr "用于实际量或其他带量纲对象所具有的物理量纲；独立于渲染标签或数值测量，保留其精确 SI 指数含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for a coordinate-space dimension count, a unit resource or a numeric magnitude. A Dimension type or equal vector alone supplies no source quantity-kind agreement, unit conversion or reference-frame alignment."
+msgstr "不要将此类用于坐标空间维数、单位资源或数值大小。仅有 Dimension 类型或向量相等，不提供来源量的种类一致性、单位换算或参考系对齐。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual Dimension resource on hasDimension and retain its existing base identity, dimensionless interpretation or supplied derived cells. Preserve exact rational source exponents; the current native i128/Rational profile is bounded and checked, so mathematical exactness does not promise unlimited execution."
+msgstr "在 hasDimension 上保留实际 Dimension 资源，并保留其现有基本量纲身份、无量纲解释或所提供的派生单元。保留精确有理数来源指数；当前原生 i128/Rational 配置有界并受检，因此数学上的精确性不意味着无限制执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Base Dimension"
+msgstr "基本量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One of the seven SI base dimensions — a generator of the ℚ-vector space of dimensions. The seven individuals are math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N), and math:luminousIntensityDimension (J). A base dimension is a basis vector; it carries no math:baseDimensionExponent edges because it is itself a generator, not a product."
+msgstr "七个 SI 基本量纲之一，是 ℚ 上量纲向量空间的生成元。七个个体为 math:lengthDimension（L）、math:massDimension（M）、math:timeDimension（T）、math:electricCurrentDimension（I）、math:temperatureDimension（Θ）、math:amountOfSubstanceDimension（N）和 math:luminousIntensityDimension（J）。基本量纲是基向量，不具有 math:baseDimensionExponent 边，因为它本身是生成元，而不是乘积。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Current native basis dispatch recognizes the seven canonical SI generator IRIs before looking for derived cells. Merely typing a different resource BaseDimension does not register another native generator. That recognition step does not certify every unrelated field or stray cell on a source record."
+msgstr "当前原生基分派先识别七个规范 SI 生成元 IRI，再查找派生单元。仅将另一资源标为 BaseDimension，不会注册额外原生生成元。这一步识别不认证来源记录上的所有无关字段或多余单元。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentOfDimension math:massDimension . The existing force cell names the declared mass generator rather than another derived dimension."
+msgstr "math:forceMassExponent math:exponentOfDimension math:massDimension . 现有力量纲单元指定已声明的质量生成元，而不是另一个派生量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for one of the seven declared SI physical generators, either as an actual quantity's dimension or as the base target of a rational exponent cell."
+msgstr "用于七个已声明 SI 物理生成元之一，可作为实际量的量纲，也可作为有理数指数单元的基本量纲目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a new native basis from a label, putting a derived dimension in an exponent cell's base role, or adding a self-power cell to make a generator look like a product. Dimension symbols are not unit identities."
+msgstr "不要根据标签编造新的原生基，不要将派生量纲放入指数单元的基本量纲角色，也不要添加对自身取幂的单元，使生成元看似乘积。量纲符号不是单位身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual existing SI generator IRI through hasDimension or exponentOfDimension. Keep its basis-vector meaning separate from the source's measured magnitude and realizing unit; it needs no baseDimensionExponent links and performs no conversion or generator registration."
+msgstr "通过 hasDimension 或 exponentOfDimension 引用实际已有的 SI 生成元 IRI。将其基向量含义与来源测量数值及实现单位分开；它不需要 baseDimensionExponent 链接，也不执行换算或生成元注册。"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Derived Dimension"
+msgstr "派生量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dimension expressed as a product of powers of the base dimensions — velocity L·T⁻¹, energy M·L²·T⁻², and so on. It records that product as a set of math:DimensionExponent cells through math:baseDimensionExponent (one edge per base dimension it involves), each naming a math:BaseDimension (math:exponentOfDimension) and an exact-rational power (math:exponentNumerator over math:exponentDenominator). The cells are an unordered set — a product commutes — so no list order is imposed. Its human-readable math:dimensionVector string is a computed projection of that structured set, never an independent source."
+msgstr "表示为基本量纲次幂乘积的量纲，例如速度 L·T⁻¹、能量 M·L²·T⁻² 等。它通过 math:baseDimensionExponent 将该乘积记录为 math:DimensionExponent 单元的集合（每个涉及的基本量纲对应一条边），每个单元指定一个 math:BaseDimension（math:exponentOfDimension）及精确有理数次幂（math:exponentNumerator 除以 math:exponentDenominator）。单元构成无序集合，因为乘积可交换，不强加列表顺序。其人类可读 math:dimensionVector 字符串是此结构化集合的计算投影，绝不是独立来源。"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical authoring requires at least one direct exponent cell, with one cell per represented base dimension. The current native cell walk can return a zero vector for an empty cell set; that reader behavior does not satisfy or relax the model's required-cell obligation."
+msgstr "规范编写要求至少一个直接指数单元，每个被表示的基本量纲对应一个单元。当前原生单元遍历可能对空集返回零向量；该读取行为不满足也不放宽模型必须提供单元的义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+msgstr "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual product of SI base-dimension powers retained as the existing structured cells, including exact negative or fractional powers. The dimension describes that product without supplying a measured quantity or numerical unit scale."
+msgstr "用于以现有结构化单元保留的实际 SI 基本量纲次幂乘积，包括精确负指数和分数指数。量纲描述该乘积，不提供测量量或数值单位标度。"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an RDF list in place of direct cell edges, an empty product as an authoring pattern, duplicate cells for the same represented base, or a dimensionVector string used as a second source of truth. Do not infer well-formedness from a successfully returned native vector alone."
+msgstr "不要以 RDF 列表替代直接单元边，不要把空乘积当作编写模式，不要为同一被表示的基本量纲重复设单元，也不要把 dimensionVector 字符串当作第二份真相来源。不要仅因成功返回原生向量就推断良构性。"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. Detected malformed or unrepresentable input raises Math's MalformedDimension error; the physical dimension reader instead leaves an unresolved mode gap. Keep those limits separate from complete source validation and preserve the existing cardinality rules."
+msgstr "通过 baseDimensionExponent 直接链接所提供单元，保留每个实际基本量纲以及整数分子、非零整数分母。检测到格式不合要求或无法表示的输入时，Math 抛出 MalformedDimension 错误；物理执行层的量纲读取器则留下未解析的模式缺口。将这些限制与完整来源验证分开，保留现有基数规则。"

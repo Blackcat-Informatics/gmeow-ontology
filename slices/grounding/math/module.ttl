@@ -2873,7 +2873,7 @@ math:Dimension
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimension"@x-gmeow-english ;
-    skos:definition "A physical dimension: an element of the ℚ-vector space over the seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity). Product of dimensions adds their exponent vectors, a power scalar-multiplies, math:dimensionless is the identity, and two dimensions are equal exactly when their exponent vectors are equal — the derived math:commensurableWith relation. Exponents are exact rationals (ℚ, admitting fractional dimensions such as T^(−1/2)), never floating-point. A math:Quantity carries its dimension through math:hasDimension."@x-gmeow-english ;
+    skos:definition "A physical dimension: an element of the ℚ-vector space over the seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity). Product of dimensions adds their exponent vectors, a power scalar-multiplies, math:dimensionless is the identity, and two dimensions are equal exactly when their exponent vectors are equal. The derived math:commensurableWith relation expresses dimensional compatibility between quantities carrying dimensions with equal exponent vectors. Exponents are exact rationals (ℚ, admitting fractional dimensions such as T^(−1/2)), never floating-point. A math:Quantity carries its dimension through math:hasDimension."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:BaseDimension
@@ -2881,7 +2881,7 @@ math:BaseDimension
     rdfs:subClassOf math:Dimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Base Dimension"@x-gmeow-english ;
-    skos:definition "One of the seven SI base dimensions — a generator of the ℚ-vector space of dimensions. The seven individuals are math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N), and math:luminousIntensityDimension (J). A base dimension is a basis vector; it carries no math:baseDimensionExponent list because it is itself a generator, not a product."@x-gmeow-english ;
+    skos:definition "One of the seven SI base dimensions — a generator of the ℚ-vector space of dimensions. The seven individuals are math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N), and math:luminousIntensityDimension (J). A base dimension is a basis vector; it carries no math:baseDimensionExponent edges because it is itself a generator, not a product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DerivedDimension
@@ -18131,3 +18131,24 @@ math:commensurableWith
     gmeow:useWhen "Use to describe or query derived dimensional compatibility between actual quantities whose dimensions have been resolved. Keep the selected arithmetic or comparison contract separate from this dimensional relation."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting this relation as a manual override, treating equal vectors as RDF resource identity, or using it as a unit converter or a certificate that arbitrary source quantities may be added, subtracted or compared."@x-gmeow-english ;
     gmeow:howToUse "Retain each quantity's actual hasDimension link and use the existing exact-vector decision for dimensional compatibility. Assess the source quantity kinds and actual unit, scale, frame and numeric-admission requirements separately; no conversion, additional native validation or materialized relation output is promised by these annotations."@x-gmeow-english .
+
+math:Dimension
+    skos:scopeNote "This class concerns physical SI dimension values, distinct from measured magnitudes, units, quantity kinds and geometric dimension counts. Equal exact exponent vectors express equality of dimension values; they do not identify RDF resources or authorize arithmetic on source quantities."@x-gmeow-english ;
+    skos:example "The existing math:dimensionless denotes the zero exponent vector, while math:timeDimension denotes the time basis vector. These are dimension values, not supplied magnitudes or units."@x-gmeow-english ;
+    gmeow:useWhen "Use for the physical dimension carried by an actual quantity or other dimensioned object, retaining its exact SI exponent meaning independently of a rendered label or numerical measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this class for a coordinate-space dimension count, a unit resource or a numeric magnitude. A Dimension type or equal vector alone supplies no source quantity-kind agreement, unit conversion or reference-frame alignment."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual Dimension resource on hasDimension and retain its existing base identity, dimensionless interpretation or supplied derived cells. Preserve exact rational source exponents; the current native i128/Rational profile is bounded and checked, so mathematical exactness does not promise unlimited execution."@x-gmeow-english .
+
+math:BaseDimension
+    skos:scopeNote "Current native basis dispatch recognizes the seven canonical SI generator IRIs before looking for derived cells. Merely typing a different resource BaseDimension does not register another native generator. That recognition step does not certify every unrelated field or stray cell on a source record."@x-gmeow-english ;
+    skos:example "math:forceMassExponent math:exponentOfDimension math:massDimension . The existing force cell names the declared mass generator rather than another derived dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use for one of the seven declared SI physical generators, either as an actual quantity's dimension or as the base target of a rational exponent cell."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a new native basis from a label, putting a derived dimension in an exponent cell's base role, or adding a self-power cell to make a generator look like a product. Dimension symbols are not unit identities."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual existing SI generator IRI through hasDimension or exponentOfDimension. Keep its basis-vector meaning separate from the source's measured magnitude and realizing unit; it needs no baseDimensionExponent links and performs no conversion or generator registration."@x-gmeow-english .
+
+math:DerivedDimension
+    skos:scopeNote "Canonical authoring requires at least one direct exponent cell, with one cell per represented base dimension. The current native cell walk can return a zero vector for an empty cell set; that reader behavior does not satisfy or relax the model's required-cell obligation."@x-gmeow-english ;
+    skos:example "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual product of SI base-dimension powers retained as the existing structured cells, including exact negative or fractional powers. The dimension describes that product without supplying a measured quantity or numerical unit scale."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an RDF list in place of direct cell edges, an empty product as an authoring pattern, duplicate cells for the same represented base, or a dimensionVector string used as a second source of truth. Do not infer well-formedness from a successfully returned native vector alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. Detected malformed or unrepresentable input raises Math's MalformedDimension error; the physical dimension reader instead leaves an unresolved mode gap. Keep those limits separate from complete source validation and preserve the existing cardinality rules."@x-gmeow-english .

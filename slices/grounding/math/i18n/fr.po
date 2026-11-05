@@ -10896,3 +10896,87 @@ msgstr "Éviter d’affirmer cette relation comme dérogation manuelle, de trait
 msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain each quantity's actual hasDimension link and use the existing exact-vector decision for dimensional compatibility. Assess the source quantity kinds and actual unit, scale, frame and numeric-admission requirements separately; no conversion, additional native validation or materialized relation output is promised by these annotations."
 msgstr "Conserver le lien hasDimension réel de chaque grandeur et utiliser la décision existante sur les vecteurs exacts pour la compatibilité dimensionnelle. Évaluer séparément les natures de grandeur sources et les exigences réelles d’unité, d’échelle, de référentiel et d’admission numérique ; ces annotations ne promettent ni conversion, ni validation native supplémentaire, ni sortie de relation matérialisée."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimension"
+msgstr "Dimension physique"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A physical dimension: an element of the ℚ-vector space over the seven SI base dimensions (length, mass, time, electric current, thermodynamic temperature, amount of substance, luminous intensity). Product of dimensions adds their exponent vectors, a power scalar-multiplies, math:dimensionless is the identity, and two dimensions are equal exactly when their exponent vectors are equal. The derived math:commensurableWith relation expresses dimensional compatibility between quantities carrying dimensions with equal exponent vectors. Exponents are exact rationals (ℚ, admitting fractional dimensions such as T^(−1/2)), never floating-point. A math:Quantity carries its dimension through math:hasDimension."
+msgstr "Une dimension physique : un élément de l’espace vectoriel sur ℚ engendré par les sept dimensions de base SI (longueur, masse, temps, courant électrique, température thermodynamique, quantité de matière, intensité lumineuse). Le produit de dimensions additionne leurs vecteurs d’exposants, une puissance effectue une multiplication scalaire, math:dimensionless est l’élément neutre, et deux dimensions sont égales exactement lorsque leurs vecteurs d’exposants sont égaux. La relation dérivée math:commensurableWith exprime la compatibilité dimensionnelle entre des grandeurs portant des dimensions de vecteurs d’exposants égaux. Les exposants sont des rationnels exacts (ℚ, qui admet des dimensions fractionnaires telles que T^(−1/2)), jamais des flottants. Une math:Quantity porte sa dimension par math:hasDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class concerns physical SI dimension values, distinct from measured magnitudes, units, quantity kinds and geometric dimension counts. Equal exact exponent vectors express equality of dimension values; they do not identify RDF resources or authorize arithmetic on source quantities."
+msgstr "Cette classe concerne les valeurs de dimension physique SI, distinctes des valeurs mesurées, unités, natures de grandeur et nombres de dimensions géométriques. Des vecteurs d’exposants exacts égaux expriment l’égalité des valeurs de dimension ; ils n’identifient pas les ressources RDF et n’autorisent pas l’arithmétique sur les grandeurs sources."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing math:dimensionless denotes the zero exponent vector, while math:timeDimension denotes the time basis vector. These are dimension values, not supplied magnitudes or units."
+msgstr "math:dimensionless existant dénote le vecteur d’exposants nul, tandis que math:timeDimension dénote le vecteur de base temporel. Ce sont des valeurs de dimension, non des valeurs numériques ou des unités fournies."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the physical dimension carried by an actual quantity or other dimensioned object, retaining its exact SI exponent meaning independently of a rendered label or numerical measurement."
+msgstr "À utiliser pour la dimension physique portée par une grandeur réelle ou un autre objet dimensionné, en conservant son sens exact d’exposants SI indépendamment d’une étiquette rendue ou d’une mesure numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for a coordinate-space dimension count, a unit resource or a numeric magnitude. A Dimension type or equal vector alone supplies no source quantity-kind agreement, unit conversion or reference-frame alignment."
+msgstr "Éviter d’utiliser cette classe pour un nombre de dimensions d’espace de coordonnées, une ressource d’unité ou une valeur numérique. Un type Dimension ou un vecteur égal seul ne fournit ni accord de nature de grandeur source, ni conversion d’unités, ni alignement de référentiels."
+
+msgctxt "https://blackcatinformatics.ca/math/Dimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual Dimension resource on hasDimension and retain its existing base identity, dimensionless interpretation or supplied derived cells. Preserve exact rational source exponents; the current native i128/Rational profile is bounded and checked, so mathematical exactness does not promise unlimited execution."
+msgstr "Garder la ressource Dimension réelle sur hasDimension et conserver son identité de base existante, son interprétation adimensionnelle ou ses cellules dérivées fournies. Préserver les exposants sources rationnels exacts ; le profil natif i128/Rational actuel est borné et vérifié, de sorte que l’exactitude mathématique ne promet pas une exécution sans limites."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Base Dimension"
+msgstr "Dimension de base"
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One of the seven SI base dimensions — a generator of the ℚ-vector space of dimensions. The seven individuals are math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N), and math:luminousIntensityDimension (J). A base dimension is a basis vector; it carries no math:baseDimensionExponent edges because it is itself a generator, not a product."
+msgstr "L’une des sept dimensions de base SI — un générateur de l’espace vectoriel des dimensions sur ℚ. Les sept individus sont math:lengthDimension (L), math:massDimension (M), math:timeDimension (T), math:electricCurrentDimension (I), math:temperatureDimension (Θ), math:amountOfSubstanceDimension (N) et math:luminousIntensityDimension (J). Une dimension de base est un vecteur de base ; elle ne porte aucune arête math:baseDimensionExponent, car c’est elle-même un générateur, non un produit."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Current native basis dispatch recognizes the seven canonical SI generator IRIs before looking for derived cells. Merely typing a different resource BaseDimension does not register another native generator. That recognition step does not certify every unrelated field or stray cell on a source record."
+msgstr "La sélection native actuelle de la base reconnaît les sept IRI canoniques de générateurs SI avant de chercher des cellules dérivées. Le seul typage d’une autre ressource comme BaseDimension n’enregistre pas un générateur natif supplémentaire. Cette étape de reconnaissance ne certifie pas tous les champs sans rapport ni toutes les cellules superflues d’un enregistrement source."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentOfDimension math:massDimension . The existing force cell names the declared mass generator rather than another derived dimension."
+msgstr "math:forceMassExponent math:exponentOfDimension math:massDimension . La cellule de force existante nomme le générateur de masse déclaré plutôt qu’une autre dimension dérivée."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for one of the seven declared SI physical generators, either as an actual quantity's dimension or as the base target of a rational exponent cell."
+msgstr "À utiliser pour l’un des sept générateurs physiques SI déclarés, soit comme dimension d’une grandeur réelle, soit comme cible de base d’une cellule d’exposant rationnel."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a new native basis from a label, putting a derived dimension in an exponent cell's base role, or adding a self-power cell to make a generator look like a product. Dimension symbols are not unit identities."
+msgstr "Éviter de fabriquer une nouvelle base native à partir d’une étiquette, de placer une dimension dérivée dans le rôle de base d’une cellule d’exposant ou d’ajouter une cellule de puissance sur soi pour faire passer un générateur pour un produit. Les symboles de dimension ne sont pas des identités d’unité."
+
+msgctxt "https://blackcatinformatics.ca/math/BaseDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual existing SI generator IRI through hasDimension or exponentOfDimension. Keep its basis-vector meaning separate from the source's measured magnitude and realizing unit; it needs no baseDimensionExponent links and performs no conversion or generator registration."
+msgstr "Référencer l’IRI réel existant du générateur SI par hasDimension ou exponentOfDimension. Garder son sens de vecteur de base distinct de la valeur mesurée source et de l’unité qui le réalise ; il n’a besoin d’aucun lien baseDimensionExponent et n’effectue ni conversion ni enregistrement de générateur."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Derived Dimension"
+msgstr "Dimension dérivée"
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dimension expressed as a product of powers of the base dimensions — velocity L·T⁻¹, energy M·L²·T⁻², and so on. It records that product as a set of math:DimensionExponent cells through math:baseDimensionExponent (one edge per base dimension it involves), each naming a math:BaseDimension (math:exponentOfDimension) and an exact-rational power (math:exponentNumerator over math:exponentDenominator). The cells are an unordered set — a product commutes — so no list order is imposed. Its human-readable math:dimensionVector string is a computed projection of that structured set, never an independent source."
+msgstr "Une dimension exprimée comme produit de puissances des dimensions de base — vitesse L·T⁻¹, énergie M·L²·T⁻², etc. Elle consigne ce produit comme ensemble de cellules math:DimensionExponent par math:baseDimensionExponent (une arête par dimension de base impliquée), chacune nommant une math:BaseDimension (math:exponentOfDimension) et une puissance rationnelle exacte (math:exponentNumerator sur math:exponentDenominator). Les cellules forment un ensemble non ordonné — le produit commute — et aucun ordre de liste n’est donc imposé. Sa chaîne math:dimensionVector lisible par l’humain est une projection calculée de cet ensemble structuré, jamais une source indépendante."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical authoring requires at least one direct exponent cell, with one cell per represented base dimension. The current native cell walk can return a zero vector for an empty cell set; that reader behavior does not satisfy or relax the model's required-cell obligation."
+msgstr "La rédaction canonique exige au moins une cellule d’exposant directe, avec une cellule par dimension de base représentée. Le parcours natif actuel des cellules peut renvoyer un vecteur nul pour un ensemble vide ; ce comportement du lecteur ne satisfait ni n’assouplit l’obligation du modèle de fournir des cellules."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+msgstr "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual product of SI base-dimension powers retained as the existing structured cells, including exact negative or fractional powers. The dimension describes that product without supplying a measured quantity or numerical unit scale."
+msgstr "À utiliser pour un produit réel de puissances de dimensions de base SI conservé dans les cellules structurées existantes, y compris des puissances négatives ou fractionnaires exactes. La dimension décrit ce produit sans fournir de grandeur mesurée ni d’échelle numérique d’unité."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an RDF list in place of direct cell edges, an empty product as an authoring pattern, duplicate cells for the same represented base, or a dimensionVector string used as a second source of truth. Do not infer well-formedness from a successfully returned native vector alone."
+msgstr "Éviter une liste RDF à la place d’arêtes directes vers les cellules, un produit vide comme modèle de rédaction, des cellules dupliquées pour une même base représentée ou une chaîne dimensionVector utilisée comme seconde source de vérité. Ne pas déduire la bonne formation du seul retour réussi d’un vecteur natif."
+
+msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. Detected malformed or unrepresentable input raises Math's MalformedDimension error; the physical dimension reader instead leaves an unresolved mode gap. Keep those limits separate from complete source validation and preserve the existing cardinality rules."
+msgstr "Relier directement les cellules fournies par baseDimensionExponent, en conservant chaque base réelle et les entiers du numérateur et du dénominateur non nul. Une entrée détectée comme mal formée ou non représentable déclenche l’erreur MalformedDimension de Math ; le lecteur de dimension de la couche d’exécution laisse plutôt une lacune de mode non résolue. Garder ces limites distinctes d’une validation source complète et préserver les règles de cardinalité existantes."
