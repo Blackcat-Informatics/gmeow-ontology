@@ -3395,3 +3395,31 @@ msgstr "避免将默认缺失视为分析、丢弃空值或 false，或假定此
 msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."
 msgstr "检查每个 ImageAnalysis 是否至少存在三个字段关系之一。保留实际一致的语境，并执行独立的值类型、特征、方法和视角义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model execution identity"
+msgstr "模型执行标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3 execution-identity digest supplied by a provider’s inference receipt for this ModelInvocation, retained as carried under the receipt’s actual scheme for the weights, quantization and runtime configuration or build of that call."
+msgstr "提供者的推理回执为本次 ModelInvocation 提供的 BLAKE3 执行标识摘要；依照回执针对该调用的权重、量化及运行时配置或构建版本所采用的实际方案，按原样保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role records the provider’s reported execution identity. It does not certify complete capture of the execution context, verified digest agreement or deterministic equivalence of calls, outputs or model agents."
+msgstr "此角色可选且非函数式，记录提供者报告的执行标识。它不认证执行语境已被完整记录、摘要一致性已被验证，也不认证调用、输出或模型代理之间的确定性等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A provider’s receipt reports the execution identity of one call with its weights, quantization and runtime-build context; the invocation retains the supplied BLAKE3 digest and that receipt context."
+msgstr "提供者的回执报告某次调用的执行标识及其权重、量化和运行时构建语境；调用记录保留来源提供的 BLAKE3 摘要和该回执语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the provider’s actual inference receipt supplies a BLAKE3 execution identity for a particular generative call, beyond the requested alias or model name."
+msgstr "用于提供者的实际推理回执为某次特定生成式调用提供 BLAKE3 执行标识，而非仅提供请求别名或模型名称时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting modelRevision, modelIdentifier, modelAlias or an artifact’s contentDigest, guessing BLAKE3 mode, output length, fixed case or preimage encoding, or retyping the supplied value to a narrower named digest datatype."
+msgstr "避免以 modelRevision、modelIdentifier、modelAlias 或某制品的 contentDigest 替代，猜测 BLAKE3 模式、输出长度、固定大小写或原像编码，或将提供值改成更窄的具名摘要数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:hexBinary lexical form and datatype on the ModelInvocation. Preserve the provider receipt, source attribution and its actual weights, quantization and runtime context without inventing missing fields. Do not infer cross-scheme identity, hash verification or a whole weights-byte preimage from the digest alone."
+msgstr "在 ModelInvocation 上保留来源提供的 xsd:hexBinary 词法形式和数据类型。保留提供者回执、来源归属及其实际权重、量化和运行时语境，不编造缺失字段。不得仅凭摘要推断跨方案身份相同、哈希已验证，或原像为全部权重字节。"

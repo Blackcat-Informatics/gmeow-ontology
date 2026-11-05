@@ -1278,3 +1278,50 @@ run identity. Source words and flags establish no depicted Scene, canonical
 classification, validated pixels, authenticated bytes or segmentation result.
 No generated, installed, consumer or runtime acceptance is demonstrated by this
 source example.
+
+## Receipt-supplied model execution identity
+
+`modelExecutionIdentity` retains the BLAKE3 execution-identity digest that a
+provider's actual inference receipt supplies for one `ModelInvocation`. Keep
+the receipt's identity scheme and its actual weights, quantization and runtime
+configuration/build context with the supplied assertion. The value reports what
+that receipt identifies for the call; it does not independently certify that
+the execution context was captured completely or that the digest was verified.
+For example, a receipt can report one call's execution identity together with
+its weights, quantization and runtime-build context, without this vocabulary
+reconstructing the configuration or reading the weights.
+
+Keep the supplied `xsd:hexBinary` literal's lexical form and datatype exactly.
+The property supplies the receipt-reported BLAKE3 meaning; arbitrary binary
+data does not acquire that meaning elsewhere. No mode, output length, fixed
+case, canonical preimage encoding or whole weights-file byte hash is prescribed
+by this contract. Preserve actually supplied scheme details without inferring
+them from the digest. Do not normalize, silently retype, accept another hash
+algorithm as fallback or invent a missing value. Equal spelling alone supplies
+neither identity across provider schemes nor deterministic equivalence of calls,
+outputs or model agents.
+
+The existing mathematical
+[`blake3_256Digest`](../../grounding/math/docs.md#algorithm-tagged-digest-literals)
+has a narrower contract: plain unkeyed BLAKE3 with the default thirty-two-byte
+output, exactly sixty-four lowercase hexadecimal digits and its own named RDF
+datatype. The receipt contract here does not assert those mode, length or case
+choices, and its `xsd:hexBinary` terms remain distinct. This documentary link
+adds no datatype conversion, formal equality or new algorithm definition.
+
+Keep `usedModel` for the actual SoftwareAgent called and `modelAlias` for the
+requested provider alias. `modelIdentifier` and `modelRevision` remain the
+classifier `ModelInferenceRun` record's pinned identifier and immutable revision;
+that enduring InformationObject is distinct from the generative invocation
+Activity. An execution-identity digest neither replaces those coordinates nor
+becomes an artifact's own `contentDigest`. In particular, the receipt may name
+an execution-identity scheme rather than hash all weights bytes, the invocation
+record's bytes or the receipt's bytes.
+
+The new role is optional and nonfunctional. Its property-global provided-value
+closure checks supplied ModelInvocation/xsd:hexBinary endpoints, without requiring
+a receipt digest on every call or choosing one globally preferred source claim.
+There is no fixed-width/case lexical Constraint, complete-receipt profile,
+modelRevision generalization, wrapper, hash producer, verification routine,
+receipt lookup or runtime executor. Existing classifier records and invocation
+provenance remain intact (Principles 2, 4, 7, 9, 12, 17 and 19).
