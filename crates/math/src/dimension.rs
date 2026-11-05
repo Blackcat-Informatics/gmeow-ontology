@@ -207,9 +207,9 @@ pub fn homogeneous(dimensions: &[DimVector]) -> bool {
 /// `math:DimensionExponent` with a `math:exponentOfDimension` base target and
 /// `math:exponentNumerator`/`math:exponentDenominator` power).
 ///
-/// Every structural fault is a HARD fail ([`MalformedDimension`]): a cell naming a
-/// non-base target, a missing numerator/denominator, a zero-denominator (undefined)
-/// power, an arithmetic overflow, or a node that is not a recognizable dimension.
+/// Detected structural faults and failures to construct an individual rational
+/// exponent return [`MalformedDimension`]. Checked exponent accumulation can
+/// instead propagate `ArithmeticOverflow` or `RationalDomain` diagnostics.
 pub fn load_dimension_vector(index: &TripleIndex, dim_iri: &str) -> Result<DimVector> {
     if let Some(v) = DimVector::base_unit(dim_iri) {
         return Ok(v);

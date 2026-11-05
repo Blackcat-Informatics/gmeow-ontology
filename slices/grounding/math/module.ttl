@@ -2897,7 +2897,7 @@ math:Dimensionless
     rdfs:subClassOf math:Dimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimensionless"@x-gmeow-english ;
-    skos:definition "The dimensionless quantity: the identity element of the dimension vector space, whose exponent vector is zero on every base dimension. A ratio of commensurable quantities, a probability, a correlation, and an angle are all math:dimensionless. The distinguished individual is math:dimensionless."@x-gmeow-english ;
+    skos:definition "The dimensionless dimension: the identity element of the dimension vector space, whose exponent vector is zero on every base dimension. A ratio of commensurable quantities, a probability, a correlation, and an angle all carry this dimension. The distinguished individual is math:dimensionless."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DimensionalExpression
@@ -3165,7 +3165,7 @@ math:dimensionVector
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "dimension vector"@x-gmeow-english ;
-    skos:definition "The human-readable canonical rendering of a dimension's exponent vector, for example \"M·L2·T-2\" for energy. Domain math:Dimension, range xsd:string (stated in prose). A computed projection of the structured math:baseDimensionExponent list, never an independent authored source: where present it must match the canonical render of the structured exponents, or the dimension is malformed."@x-gmeow-english ;
+    skos:definition "The human-readable canonical rendering of a dimension's exponent vector, for example \"L2·M·T-2\" for energy. Domain math:Dimension, range xsd:string (stated in prose). A computed projection of the exact exponent vector obtained from direct math:baseDimensionExponent cells or recognized base or dimensionless cases, never an independent authored source: where present it must match the canonical render of the structured exponents, or the dimension is malformed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:baseDimensionExponent
@@ -18151,4 +18151,25 @@ math:DerivedDimension
     skos:example "math:forceDimension a math:DerivedDimension ; math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."@x-gmeow-english ;
     gmeow:useWhen "Use for an actual product of SI base-dimension powers retained as the existing structured cells, including exact negative or fractional powers. The dimension describes that product without supplying a measured quantity or numerical unit scale."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an RDF list in place of direct cell edges, an empty product as an authoring pattern, duplicate cells for the same represented base, or a dimensionVector string used as a second source of truth. Do not infer well-formedness from a successfully returned native vector alone."@x-gmeow-english ;
-    gmeow:howToUse "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. Detected malformed or unrepresentable input raises Math's MalformedDimension error; the physical dimension reader instead leaves an unresolved mode gap. Keep those limits separate from complete source validation and preserve the existing cardinality rules."@x-gmeow-english .
+    gmeow:howToUse "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. The Math reader reports MalformedDimension for detected structural faults and failed construction of an individual rational exponent; exponent accumulation can instead propagate ArithmeticOverflow or RationalDomain. The physical dimension reader leaves an unresolved mode gap on these failures. Keep those limits separate from complete source validation and preserve the existing cardinality rules."@x-gmeow-english .
+
+math:Dimensionless
+    skos:scopeNote "This class concerns dimensions with the all-zero SI exponent vector. Zero exponents express the identity for products of dimensions; they say nothing about whether a quantity's numeric magnitude is zero. A zero-valued time quantity still carries timeDimension."@x-gmeow-english ;
+    skos:example "A probability and a correlation both carry math:dimensionless, while their permitted ranges and interpretation remain different. Neither becomes the dimension resource itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify an actual dimension resource with zero exponents, while leaving the quantity carrying that dimension typed by its own quantity kind."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a probability, angle or ratio quantity as this dimension class, inferring a dimensionless dimension from zero magnitude, or inferring probability from a dimensionless confidence score."@x-gmeow-english ;
+    gmeow:howToUse "Put the actual dimension resource on hasDimension. The native readers recognize the seven canonical basis IRIs first, then the distinguished dimensionless IRI or a Dimensionless type; this dispatch supplies no validation of stray exponent cells or contradictory source typing."@x-gmeow-english .
+
+math:dimensionless
+    skos:scopeNote "This individual denotes the zero exponent vector; its canonical rendered string is \"1\". The vector, string and RDF resource are distinct from a quantity's numeric value 0 or 1, and vector equality does not establish RDF identity."@x-gmeow-english ;
+    skos:example "A quantity with hasDimension math:dimensionless may have numeric magnitude 0, 1 or another value allowed by its quantity kind. The dimension does not supply that magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use this existing distinguished individual when a source explicitly supplies the dimensionless dimension, retaining the source quantity's own magnitude and meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting a missing dimension to this individual, interpreting it as a numeric literal or a unit conversion, or discarding distinctions of quantity kind, unit, scale, reference frame, probability and confidence."@x-gmeow-english ;
+    gmeow:howToUse "Link the quantity through hasDimension to this IRI and keep its other source qualifications. The selected exact-decimal scalar profile requires this distinguished IRI; another resource that a native reader maps to the zero vector does not satisfy that identity check."@x-gmeow-english .
+
+math:dimensionVector
+    skos:scopeNote "The current native renderer uses L M T I Θ N J order, skips zero coordinates, elides exponent 1 and writes other exponents as signed integer or reduced num/den suffixes. It joins the resulting factors with ·. The all-zero vector renders as \"1\"; this display text supplies neither a quantity magnitude nor an RDF identity."@x-gmeow-english ;
+    skos:example "The existing force cells render as \"L·M·T-2\" in native order; energy with length exponent 2, mass exponent 1 and time exponent -2 renders as \"L2·M·T-2\". Reordering product factors preserves a mathematical dimension but changes this canonical string."@x-gmeow-english ;
+    gmeow:useWhen "Use as a computed human-readable view of an actual dimension's exact vector, derived from its direct exponent cells or recognized basis or dimensionless case."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this property to author an RDF list, supply an independent exponent string or identify a dimension by its display text. Presence of a matching string does not prove complete validation, quantity-kind compatibility or aligned units, scales and frames."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source dimension and cells and, where this rendering is supplied, match the current canonical output. The drift scan compares only the first literal's lexical text and skips a dimension it cannot load; it does not check every value, certify datatype and language identity or replace source validation."@x-gmeow-english .
