@@ -428,3 +428,31 @@ msgstr "Utiliser pour consigner une Language de première classe effectivement i
 msgctxt "https://blackcatinformatics.ca/gmeow/partText|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set partText on a NamePart, preserving the supplied literal and actual language/script tagging without inventing missing tags; add partExpansion when the text is an abbreviated initial."
 msgstr "Définir partText sur un NamePart en préservant le littéral fourni et son étiquetage réel de langue ou d’écriture sans inventer les étiquettes manquantes ; ajouter partExpansion lorsque le texte est une initiale abrégée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "named after"
+msgstr "nommé d’après"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named Entity to the Entity from which a particular supplied name is taken, within the source and name context of the exact statement."
+msgstr "Relie une Entity nommée à l’Entity dont provient un nom particulier fourni, dans le contexte de source et de nom de l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Naming origin is distinct from identity, denotation and a ranking of coequal names. The relation does not say every name has this origin or infer Person, Agent, relationship ring or a change of bearer."
+msgstr "L’origine du nom est distincte de l’identité, de la dénotation et d’un classement entre noms égaux. La relation ne dit pas que tous les noms ont cette origine et n’infère ni Person, ni Agent, ni cercle relationnel, ni changement de porteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly says a being’s recorded name was taken from another entity; the origin statement retains that source and its particular-name context."
+msgstr "Une source indique explicitement que le nom enregistré d’un être provient d’une autre entité ; l’énoncé d’origine conserve cette source et le contexte de ce nom particulier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a sourced naming origin or an explicitly marked conjecture about that origin, preserving the distinction on the exact statement."
+msgstr "Utiliser pour une origine de nom étayée par une source ou une conjecture explicitement marquée sur cette origine, en conservant cette distinction sur l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating matching name strings as an actual origin, equating bearer and namesake, assigning one origin to every coequal name, or presenting a wording-only conjecture as a sourced actual fact."
+msgstr "Éviter de traiter des chaînes de noms identiques comme une origine réelle, d’identifier le porteur à l’entité dont vient le nom, d’attribuer une même origine à tous les noms égaux ou de présenter une conjecture tirée du seul nom comme un fait réel étayé par une source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the named being to the namesake and retain the particular supplied name context. Attribute a sourced actual-origin statement and record modalForceActual through standpointModalForce. For wording-only conjecture, explicitly put standpointAssertoricForce assertoricConjecture on the exact reifier and keep its quoted content unasserted as a global fact."
+msgstr "Relier l’être nommé à l’entité dont vient le nom et conserver le contexte du nom particulier fourni. Attribuer l’énoncé d’origine réelle étayé par une source et consigner modalForceActual par standpointModalForce. Pour une conjecture tirée du seul nom, placer explicitement standpointAssertoricForce assertoricConjecture sur le réificateur exact et ne pas affirmer son contenu cité comme un fait global."

@@ -432,3 +432,60 @@ Keep source, viewpoint and any validity on the actual bearing statement, or
 use the existing NameUsage relator when that context must be first-class.
 Honor `displayable false` on suppressed names. This pattern changes no content,
 frame, suppression or co-equality obligation (Principles 2, 4, 9, 10, 11 and 19).
+
+## Naming origin
+
+namedAfter relates the named being to the entity from which a particular name
+was taken: both endpoints are Entity. Its subject is the named being, not a
+ContactReading, Appellation or NameUsage. Keep the particular supplied name and
+its source context with the exact origin statement when known. A statement
+about one name does not assign that origin to every coequal name of the being.
+Existing name-bearing and usage records can retain their own actual evidence;
+the origin relation does not create an Appellation or invent a missing name.
+
+Keep source, viewpoint and force on the exact statement. Where a stated source
+reports the origin as actual, retain that source and its standpoint and record
+standpointModalForce modalForceActual. Actual is the source-scoped modal claim,
+not independent verification of naming history or a universal truth verdict.
+Missing modal force remains unspecified. A source's wording does not turn its
+reported origin into verified identity or an authorized preferred name.
+
+When the only basis is the name's wording, preserve the proposed origin as an
+explicit conjecture. Use an RDF 1.2 reifier for the precise namedAfter triple
+and put standpointAssertoricForce assertoricConjecture on that reifier; keep the
+quoted content unasserted as a global actual fact. An absent assertoric force
+reads as assertoricAssert, so omission does not encode conjecture. Retain the
+observer's actual source and viewpoint separately. Do not put claimAssertoricForce
+on a ContactReading: that property belongs to StandpointClaim and would change
+the reading's type. Conjecture supplies neither a numeric probability nor an
+automatic modalForcePossible value.
+
+For example, a source can explicitly say that a being's recorded name was taken
+from another entity, with the particular name and source retained. A resemblance
+in wording without that report supports only the explicitly marked conjecture;
+it does not authenticate an origin. The relation remains optional and
+nonfunctional, preserving separately attributed origin claims.
+
+### Naming-origin design boundary
+
+Historical naming origin differs from name bearing, the entity a name denotes,
+the event conferring a name, and coreference. namedAfter does not equate the
+named being with the namesake, rank coequal names, connect one coequal name as
+a subordinate form of another, change a bearer, or infer Person, Agent or a
+relationship ring. Existing display suppression and retained-name history
+remain unchanged (Principles 9 and 10).
+
+The canonical logic:ObjectProperty and property-global provided-value closure
+reuse generic Entity endpoint validation. They add no required origin, global
+uniqueness, name-wide implication, provenance/force classifier, Formula or
+runtime verifier. Reified conjectural content remains a quotation; closure over
+ordinary supplied property statements is not a promise to validate every nested
+statement's attribution or recover its particular-name context. Authors retain
+those distinctions explicitly, without inferring a source or guessing one.
+
+The repository's StatementMetadata DSL compiler emits a cell's base assertion
+alongside its metadata. Such a cell is not an unasserted conjecture carrier.
+Use native unasserted RDF 1.2 quotation for the name-only conjecture described
+above, without adding a bare global origin assertion merely to attach its
+annotations. No new wrapper, claim vocabulary or compiler path is introduced
+(Principles 2, 3, 4, 9, 17 and 19).

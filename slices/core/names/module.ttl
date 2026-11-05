@@ -1933,3 +1933,19 @@ gmeow:usageRelationshipScopeFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/names> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .
+
+gmeow:namedAfter
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "named after"@x-gmeow-english ;
+    skos:definition "Relates a named Entity to the Entity from which a particular supplied name is taken, within the source and name context of the exact statement."@x-gmeow-english ;
+    skos:scopeNote "Naming origin is distinct from identity, denotation and a ranking of coequal names. The relation does not say every name has this origin or infer Person, Agent, relationship ring or a change of bearer."@x-gmeow-english ;
+    skos:example "A source explicitly says a being’s recorded name was taken from another entity; the origin statement retains that source and its particular-name context."@x-gmeow-english ;
+    gmeow:useWhen "Use for a sourced naming origin or an explicitly marked conjecture about that origin, preserving the distinction on the exact statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating matching name strings as an actual origin, equating bearer and namesake, assigning one origin to every coequal name, or presenting a wording-only conjecture as a sourced actual fact."@x-gmeow-english ;
+    gmeow:howToUse "Point from the named being to the namesake and retain the particular supplied name context. Attribute a sourced actual-origin statement and record modalForceActual through standpointModalForce. For wording-only conjecture, explicitly put standpointAssertoricForce assertoricConjecture on the exact reifier and keep its quoted content unasserted as a global fact."@x-gmeow-english ;
+    logic:domain gmeow:Entity ;
+    logic:range gmeow:Entity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/namedAfter" ; logic:closureValue logic:ClosedWorldClosure ] .
