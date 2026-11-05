@@ -1851,3 +1851,174 @@ gmeow:precisionNamedPeriod
     gmeow:useWhen "Use when a source explicitly supplies named-period or season-level dating resolution for an Event, independently of whether its actual period or exact bounds are known."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid deriving this value or a temporal placement from raw wording alone, inventing a NamedPeriod or season boundaries, or treating the tag as an exact instant or validated EDTF value."@x-gmeow-english ;
     gmeow:howToUse "Reference this value through temporalPrecision on the actual Event with exact-statement attribution. Retain independently supplied placement through existing temporal carriers; leave unknown boundaries and calendar context unknown."@x-gmeow-english .
+
+# Event descriptions and attributed progress readings.
+gmeow:EventDescription
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "event description"@x-gmeow-english ;
+    skos:definition "An information object describing an event, including an anticipated occurrence, without asserting that the described occurrence has happened or exists as an actual Event."@x-gmeow-english ;
+    skos:scopeNote "The description is distinct from its actual realization and is disjoint from Event. It may remain addressable after another reading identifies a realization; its existence supplies no participants, occurrence time or execution evidence."@x-gmeow-english ;
+    skos:example "A source describes an awaited transfer without supplying an actual occurrence; a progress reading observes that description rather than inventing an Event."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source description whose event occurrence must remain distinct from what the description anticipates or reports."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the description as an Event, treating anticipation as occurrence evidence, or replacing the actual event with its description."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual description identity and its source evidence. A progress reading may observe it and separately name an actual Event through progressRealization only when that reading reports an in-progress or completed occurrence."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    logic:disjointWith gmeow:Event .
+
+gmeow:EventProgressReading
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "event progress reading"@x-gmeow-english ;
+    skos:definition "An attributed Observation reporting one event progress value for one actual Event or EventDescription under its supplied vantage or joint vantages."@x-gmeow-english ;
+    skos:scopeNote "Exactly one observedFeature and one observationResult are required, with at least one actual vantage and no vantage maximum. Coexisting readings do not create a global status slot or a preferred frame."@x-gmeow-english ;
+    skos:example "Two supplied standpoints report different progress for the same description; the awaited reading has no realization while a completed reading retains its actual Event."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source report of awaited, in-progress or completed event progress in its actual frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving status from a missing end, an open commitment, a timestamp or a global now, or treating progress as a goal or continuity verdict."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual Event or EventDescription, observationResult to one reviewed EventProgress value, and vantage to every actual joint holder. Reserve progressRealization for nonawaited description readings; keep source and frame evidence without inventing execution or temporal bounds."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:EventProgress
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "event progress"@x-gmeow-english ;
+    skos:definition "The closed three-value progress vocabulary eventAwaited, eventInProgress and eventCompleted carried by an EventProgressReading."@x-gmeow-english ;
+    skos:scopeNote "These are quality values under a reading’s actual frame, not event kinds, clock positions, goal outcomes or epistemic confidence. An unreviewed fourth value cannot bypass realization obligations."@x-gmeow-english ;
+    skos:example "An explicit underway report uses eventInProgress; an omitted report supplies no member of this vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reviewed result vocabulary for explicit event progress readings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding an extension value, subclassing events by progress, choosing a default status or conflating completion with success."@x-gmeow-english ;
+    gmeow:howToUse "Use exactly one of the three named individuals as the EventProgressReading’s observationResult. Preserve each reading’s actual vantages and conditional realization bindings; leave unspecified progress absent."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    logic:oneOf ( gmeow:eventAwaited gmeow:eventInProgress gmeow:eventCompleted ) .
+
+gmeow:eventAwaited
+    a logic:NamedIndividual, gmeow:EventProgress ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "awaited event"@x-gmeow-english ;
+    skos:definition "The progress value for an event described as awaited in the reading’s supplied frame, without an actual occurrence selected by that reading."@x-gmeow-english ;
+    skos:scopeNote "The reading observes an EventDescription and has no progressRealization. This is an explicit anticipation report, not universal nonexistence or evidence of a stage commitment."@x-gmeow-english ;
+    skos:example "A source awaits a described transfer without reporting that any occurrence has begun."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual source explicitly reports anticipation of the described event in its frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring awaiting from missing fields or using this value on a reading whose feature is an actual Event."@x-gmeow-english ;
+    gmeow:howToUse "Set the explicit reading result to eventAwaited, observe the actual EventDescription and retain its actual vantages. Omit progressRealization without inventing an Event, occurrence time, participant or completed outcome."@x-gmeow-english .
+
+gmeow:eventInProgress
+    a logic:NamedIndividual, gmeow:EventProgress ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "event in progress"@x-gmeow-english ;
+    skos:definition "The progress value reporting that the selected actual event occurrence is underway in the reading’s supplied frame."@x-gmeow-english ;
+    skos:scopeNote "The reading observes an actual Event directly or selects an actual Event realization of its EventDescription. No missing end, open commitment or global clock establishes this value."@x-gmeow-english ;
+    skos:example "A source explicitly reports an ongoing occurrence and identifies it as the realization of its event description."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit source evidence of an actual occurrence underway in its stated frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this value from anticipation, a missing latestEnd, goal pursuit or an event boundary alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain eventInProgress on the attributed reading with its actual vantages. For an EventDescription feature, require its supplied actual Event through progressRealization; for a direct Event feature, omit that redundant role."@x-gmeow-english .
+
+gmeow:eventCompleted
+    a logic:NamedIndividual, gmeow:EventProgress ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "completed event"@x-gmeow-english ;
+    skos:definition "The progress value reporting that the selected actual event occurrence is completed in the reading’s supplied frame."@x-gmeow-english ;
+    skos:scopeNote "Completion reports progress, not goal satisfaction, successful restoration or subject continuity. The reading keeps its actual occurrence and vantages without deriving a date or closed boundary."@x-gmeow-english ;
+    skos:example "A source reports that a transfer ended while leaving its intended result and any continuity verdict unestablished."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports completion of the actual occurrence under its frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading completion as success, a satisfied Goal, continuitySame, a computed end time or a globally accepted status."@x-gmeow-english ;
+    gmeow:howToUse "Keep eventCompleted on the attributed reading. An EventDescription feature requires its supplied actual Event through progressRealization; a direct Event feature forbids that redundant role. Retain other outcome and temporal evidence separately."@x-gmeow-english .
+
+gmeow:progressRealization
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "event progress realization"@x-gmeow-english ;
+    skos:definition "The actual Event selected as the realization of the EventDescription observed by an in-progress or completed EventProgressReading."@x-gmeow-english ;
+    skos:scopeNote "This optional role has at most one actual Event per reading. It is required for nonawaited descriptions and forbidden for awaited descriptions or direct Event features; it does not infer occurrence or descriptive correspondence from missing evidence."@x-gmeow-english ;
+    skos:example "A completed reading of a transfer description retains the actual transfer occurrence supplied by its source; a direct reading of that occurrence has no extra realization link."@x-gmeow-english ;
+    gmeow:useWhen "Use only when an in-progress or completed description reading supplies the actual occurrence it reports as that description’s realization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an unrelated occurrence, a prospective placeholder, an awaited reading, a direct Event feature, or an inferred participant, output or time."@x-gmeow-english ;
+    gmeow:howToUse "Link the description reading to the actual source-identified Event, retaining the reading’s vantages and evidence for that correspondence. Check domain, range, conditional presence and local maximum; do not promote endpoint admission into proof that the source report is true."@x-gmeow-english ;
+    logic:domain gmeow:EventProgressReading ;
+    logic:range gmeow:Event .
+
+gmeow:EventProgressReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:allValuesFrom [ logic:unionOf ( gmeow:Event gmeow:EventDescription ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ;
+        logic:allValuesFrom gmeow:EventProgress ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ;
+        logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:progressRealization ;
+        logic:allValuesFrom gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:progressRealization ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EventProgressReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EventProgressReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EventProgressReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/progressRealization" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:EventProgressBindingsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "event progress bindings constraint"@x-gmeow-english ;
+    skos:definition "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."@x-gmeow-english ;
+    skos:scopeNote "The five guarded arms check retained roles and conditional presence. Closed result membership, feature/result maxima, uncapped required vantages and actual Event endpoints are separately declared; no source-content, time, goal or native execution proof is asserted."@x-gmeow-english ;
+    skos:example "An awaited reading with a supplied realization fails; a description reported completed without a realization also fails, as does any extra realization on a direct Event reading."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the five intrinsic progress bindings without inferring a status or an actual occurrence from absent fields."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bypassing a guarded obligation with an extension status, borrowing another reading’s realization, requiring one vantage only or deriving a goal, boundary or continuity verdict."@x-gmeow-english ;
+    gmeow:howToUse "Apply each independent positive reading guard. Require a description for awaited progress, forbid realizations for awaited or direct Event readings, and require an atomic realization witness for in-progress and completed descriptions. Keep every probe correlated to that same reading and preserve its actual joint vantages."@x-gmeow-english ;
+    logic:formalizes gmeow:EventProgressReading, gmeow:progressRealization,
+        gmeow:eventAwaited, gmeow:eventInProgress, gmeow:eventCompleted ;
+    logic:severity "Violation" ;
+    logic:message "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "progressReading" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:EventProgressReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "awaitedFeature" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventAwaited ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "awaitedFeature" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "awaitedFeature" ], [ logic:termIndex 1 ; logic:termIri gmeow:EventDescription ] ] ] ],
+                [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventAwaited ] ] ;
+                    logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "awaitedRealization" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:progressRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "awaitedRealization" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "underwayDescription" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventInProgress ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "underwayDescription" ] ],
+                            [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "underwayDescription" ], [ logic:termIndex 1 ; logic:termIri gmeow:EventDescription ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "underwayOccurrence" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:progressRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "underwayOccurrence" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "completedDescription" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventCompleted ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "completedDescription" ] ],
+                            [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "completedDescription" ], [ logic:termIndex 1 ; logic:termIri gmeow:EventDescription ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "completedOccurrence" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:progressRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "completedOccurrence" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "directOccurrence" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "directOccurrence" ] ],
+                            [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "directOccurrence" ], [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "redundantRealization" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:progressRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "progressReading" ], [ logic:termIndex 1 ; logic:termVariable "redundantRealization" ] ] ] ] ] ] ] ] ] .

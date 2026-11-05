@@ -472,3 +472,231 @@ msgstr "将实际 Event 关联到已提供精度值，并记录精确陈述归�
 msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to state how precisely an actual Event is dated, including named-period or season-level resolution, without claiming missing temporal placement."
 msgstr "用于说明实际 Event 的时间判定精度，包括命名时段或季节层级分辨率，不声称缺失的时间定位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event description"
+msgstr "事件描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object describing an event, including an anticipated occurrence, without asserting that the described occurrence has happened or exists as an actual Event."
+msgstr "描述事件的信息对象，可描述预期中的发生，但不由此断言所描述的发生已经出现或作为实际 Event 存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is distinct from its actual realization and is disjoint from Event. It may remain addressable after another reading identifies a realization; its existence supplies no participants, occurrence time or execution evidence."
+msgstr "描述与其实际实现相区分，并与 Event 不相交。另一读数识别出实现后，描述仍可保留并供引用；描述的存在不提供参与者、发生时间或执行证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source describes an awaited transfer without supplying an actual occurrence; a progress reading observes that description rather than inventing an Event."
+msgstr "来源描述一次待发生的转移，却未提供实际发生项；进度读数以该描述为观测对象，而不编造 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source description whose event occurrence must remain distinct from what the description anticipates or reports."
+msgstr "用于实际来源描述，需要将事件的发生项与描述所预期或报告的内容分开时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the description as an Event, treating anticipation as occurrence evidence, or replacing the actual event with its description."
+msgstr "避免将描述归为 Event、将预期视为发生证据，或以描述替代实际事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual description identity and its source evidence. A progress reading may observe it and separately name an actual Event through progressRealization only when that reading reports an in-progress or completed occurrence."
+msgstr "保留实际描述的身份及其来源证据。进度读数可以观测该描述；仅当读数报告发生项正在进行或已经完成时，才可通过 progressRealization 另行关联实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress reading"
+msgstr "事件进度读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation reporting one event progress value for one actual Event or EventDescription under its supplied vantage or joint vantages."
+msgstr "具有来源归属的 Observation，按所提供的视点或联合视点，为一个实际 Event 或 EventDescription 报告一个事件进度值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one observedFeature and one observationResult are required, with at least one actual vantage and no vantage maximum. Coexisting readings do not create a global status slot or a preferred frame."
+msgstr "须恰好有一个 observedFeature 和一个 observationResult，并至少有一个实际 vantage，视点数量无上限。共存读数不会创建全局唯一状态槽或优先参考框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied standpoints report different progress for the same description; the awaited reading has no realization while a completed reading retains its actual Event."
+msgstr "两个来源提供的立场对同一描述报告不同进度；待发生读数不带实现，而已完成读数保留其实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source report of awaited, in-progress or completed event progress in its actual frame."
+msgstr "用于保留来源在其实际框架下对事件待发生、进行中或已完成进度的明确报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving status from a missing end, an open commitment, a timestamp or a global now, or treating progress as a goal or continuity verdict."
+msgstr "避免根据缺失的结束信息、开放承诺、时间戳或全局当前时刻推导状态，也不得将进度视为目标或连续性判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual Event or EventDescription, observationResult to one reviewed EventProgress value, and vantage to every actual joint holder. Reserve progressRealization for nonawaited description readings; keep source and frame evidence without inventing execution or temporal bounds."
+msgstr "将 observedFeature 绑定到实际 Event 或 EventDescription，将 observationResult 绑定到一个已审定的 EventProgress 值，并通过 vantage 关联各实际联合持有者。progressRealization 仅用于非待发生的描述读数；保留来源和框架证据，不编造执行或时间边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress"
+msgstr "事件进度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed three-value progress vocabulary eventAwaited, eventInProgress and eventCompleted carried by an EventProgressReading."
+msgstr "由 EventProgressReading 承载的封闭三值进度词表，包含 eventAwaited、eventInProgress 和 eventCompleted。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are quality values under a reading’s actual frame, not event kinds, clock positions, goal outcomes or epistemic confidence. An unreviewed fourth value cannot bypass realization obligations."
+msgstr "这些是在读数实际框架下的性质值，不是事件种类、时钟位置、目标结果或认识置信度。未经审定的第四个值不能绕过实现要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit underway report uses eventInProgress; an omitted report supplies no member of this vocabulary."
+msgstr "明确的进行中报告使用 eventInProgress；报告缺失时，不会提供此词表中的任何值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the reviewed result vocabulary for explicit event progress readings."
+msgstr "用作明确事件进度读数的已审定结果词表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding an extension value, subclassing events by progress, choosing a default status or conflating completion with success."
+msgstr "避免添加扩展值、按进度建立事件子类、选择默认状态，或将完成与成功混为一谈。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use exactly one of the three named individuals as the EventProgressReading’s observationResult. Preserve each reading’s actual vantages and conditional realization bindings; leave unspecified progress absent."
+msgstr "将三个具名个体中的恰好一个用作 EventProgressReading 的 observationResult。保留各读数的实际视点及条件实现绑定；未说明的进度不予添加。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited event"
+msgstr "待发生事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value for an event described as awaited in the reading’s supplied frame, without an actual occurrence selected by that reading."
+msgstr "事件在读数提供的框架下被描述为待发生、且该读数未选择实际发生项时的进度值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reading observes an EventDescription and has no progressRealization. This is an explicit anticipation report, not universal nonexistence or evidence of a stage commitment."
+msgstr "读数观测 EventDescription，且不带 progressRealization。这是明确的预期报告，不代表普遍不存在，也不是对某阶段作出承诺的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source awaits a described transfer without reporting that any occurrence has begun."
+msgstr "来源期待一项所描述的转移，但未报告任何发生项已经开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source explicitly reports anticipation of the described event in its frame."
+msgstr "用于实际来源明确报告在其框架下预期所描述的事件时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring awaiting from missing fields or using this value on a reading whose feature is an actual Event."
+msgstr "避免从字段缺失推断待发生，也不得将此值用于以实际 Event 为观测对象的读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set the explicit reading result to eventAwaited, observe the actual EventDescription and retain its actual vantages. Omit progressRealization without inventing an Event, occurrence time, participant or completed outcome."
+msgstr "将明确读数的结果设为 eventAwaited，观测实际 EventDescription，并保留其实际视点。不添加 progressRealization，也不编造 Event、发生时间、参与者或已完成结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event in progress"
+msgstr "进行中事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value reporting that the selected actual event occurrence is underway in the reading’s supplied frame."
+msgstr "报告所选实际事件发生项在读数提供的框架下正在进行的进度值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reading observes an actual Event directly or selects an actual Event realization of its EventDescription. No missing end, open commitment or global clock establishes this value."
+msgstr "读数直接观测实际 Event，或为其 EventDescription 选择实际 Event 实现。结束信息缺失、开放承诺或全局时钟均不能确立此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly reports an ongoing occurrence and identifies it as the realization of its event description."
+msgstr "来源明确报告一项正在进行的发生项，并将其识别为事件描述的实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit source evidence of an actual occurrence underway in its stated frame."
+msgstr "用于来源明确报告实际发生项在所述框架下正在进行的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this value from anticipation, a missing latestEnd, goal pursuit or an event boundary alone."
+msgstr "避免仅凭预期、缺失的 latestEnd、目标追求或事件边界推导此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain eventInProgress on the attributed reading with its actual vantages. For an EventDescription feature, require its supplied actual Event through progressRealization; for a direct Event feature, omit that redundant role."
+msgstr "在具有归属的读数上保留 eventInProgress 及其实际视点。若观测对象为 EventDescription，须通过 progressRealization 提供对应的实际 Event；若直接观测 Event，则不添加这一冗余角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completed event"
+msgstr "已完成事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value reporting that the selected actual event occurrence is completed in the reading’s supplied frame."
+msgstr "报告所选实际事件发生项在读数提供的框架下已经完成的进度值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completion reports progress, not goal satisfaction, successful restoration or subject continuity. The reading keeps its actual occurrence and vantages without deriving a date or closed boundary."
+msgstr "完成报告的是进度，不是目标达成、恢复成功或主体连续性。读数保留实际发生项及视点，但不据此推导日期或闭合边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a transfer ended while leaving its intended result and any continuity verdict unestablished."
+msgstr "来源报告一次转移已经结束，但其预期结果及任何连续性判定仍未确立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports completion of the actual occurrence under its frame."
+msgstr "用于来源明确报告实际发生项在其框架下已经完成时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading completion as success, a satisfied Goal, continuitySame, a computed end time or a globally accepted status."
+msgstr "避免将完成解读为成功、Goal 已达成、continuitySame、计算出的结束时间或全局认可的状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep eventCompleted on the attributed reading. An EventDescription feature requires its supplied actual Event through progressRealization; a direct Event feature forbids that redundant role. Retain other outcome and temporal evidence separately."
+msgstr "在具有归属的读数上保留 eventCompleted。若观测对象为 EventDescription，须通过 progressRealization 提供对应的实际 Event；若直接观测 Event，则禁止这一冗余角色。另行保留其他结果及时间证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress realization"
+msgstr "进度读数中的事件实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Event selected as the realization of the EventDescription observed by an in-progress or completed EventProgressReading."
+msgstr "在报告进行中或已完成的 EventProgressReading 中，作为其所观测 EventDescription 之实现而选择的实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role has at most one actual Event per reading. It is required for nonawaited descriptions and forbidden for awaited descriptions or direct Event features; it does not infer occurrence or descriptive correspondence from missing evidence."
+msgstr "此可选角色对每个读数至多关联一个实际 Event。非待发生的描述必须提供此角色；待发生描述或直接 Event 观测对象则禁止此角色。它不会从证据缺失推断发生项或描述对应关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A completed reading of a transfer description retains the actual transfer occurrence supplied by its source; a direct reading of that occurrence has no extra realization link."
+msgstr "对转移描述的已完成读数保留来源提供的实际转移发生项；直接观测该发生项的读数则没有额外实现链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when an in-progress or completed description reading supplies the actual occurrence it reports as that description’s realization."
+msgstr "仅用于描述读数报告进行中或已完成，并提供其声称实现该描述的实际发生项时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an unrelated occurrence, a prospective placeholder, an awaited reading, a direct Event feature, or an inferred participant, output or time."
+msgstr "避免关联无关发生项、未来占位项、待发生读数或直接 Event 观测对象，也不得推断参与者、输出或时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the description reading to the actual source-identified Event, retaining the reading’s vantages and evidence for that correspondence. Check domain, range, conditional presence and local maximum; do not promote endpoint admission into proof that the source report is true."
+msgstr "将描述读数关联到来源识别的实际 Event，保留读数的视点及对应关系的证据。校验定义域、值域、条件存在及局部数量上限；不得将端点准入提升为来源报告属实的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress bindings constraint"
+msgstr "事件进度绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."
+msgstr "结果为待发生的 EventProgressReading 只能观测 EventDescription，且不得带有 progressRealization；报告进行中或已完成的描述读数必须具备实际 Event 实现，而直接观测 Event 的读数不得带有冗余实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The five guarded arms check retained roles and conditional presence. Closed result membership, feature/result maxima, uncapped required vantages and actual Event endpoints are separately declared; no source-content, time, goal or native execution proof is asserted."
+msgstr "五个带守卫的分支校验所保留角色及条件存在。封闭结果成员关系、观测对象及结果数量上限、必需且无数量上限的视点，以及实际 Event 端点均另行声明；本约束不声称证明来源内容、时间、目标或原生执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An awaited reading with a supplied realization fails; a description reported completed without a realization also fails, as does any extra realization on a direct Event reading."
+msgstr "待发生读数若提供实现，则不符合契约；描述被报告为已完成却未提供实现也不符合契约，直接 Event 读数上的任何额外实现同样如此。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the five intrinsic progress bindings without inferring a status or an actual occurrence from absent fields."
+msgstr "用于校验五项内在进度绑定，不根据字段缺失推断状态或实际发生项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bypassing a guarded obligation with an extension status, borrowing another reading’s realization, requiring one vantage only or deriving a goal, boundary or continuity verdict."
+msgstr "避免以扩展状态绕过带守卫的要求、借用另一读数的实现、限制为仅一个视点，或推导目标、边界及连续性判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply each independent positive reading guard. Require a description for awaited progress, forbid realizations for awaited or direct Event readings, and require an atomic realization witness for in-progress and completed descriptions. Keep every probe correlated to that same reading and preserve its actual joint vantages."
+msgstr "应用各独立的正向读数守卫。待发生进度必须观测描述；待发生读数或直接 Event 读数禁止带实现；进行中及已完成的描述必须提供原子的实现见证。每个探查均须关联同一读数，并保留其实际联合视点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."
+msgstr "结果为待发生的 EventProgressReading 只能观测 EventDescription，且不得带有 progressRealization；报告进行中或已完成的描述读数必须具备实际 Event 实现，而直接观测 Event 的读数不得带有冗余实现。"
