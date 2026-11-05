@@ -2785,7 +2785,7 @@ math:Measure
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Measure"@x-gmeow-english ;
-    skos:definition "A measure μ: a countably-additive assignment of non-negative extended-real mass to the measurable sets of a math:MeasurableSpace. Names the space it acts on through math:measureOn and its total mass through math:totalMass — which may be a finite non-negative number or math:PositiveInfinity (a σ-finite measure such as a math:LebesgueMeasure on the line, or a math:CountingMeasure on an infinite set, has infinite total mass). The general object every mass-bearing construction specializes: a math:ProbabilityMeasure is a measure of total mass one, and a math:Integral integrates a math:MeasurableFunction against a measure."@x-gmeow-english ;
+    skos:definition "A measure μ: a countably-additive assignment of non-negative extended-real mass to the measurable sets of a math:MeasurableSpace. Names the space it acts on through math:measureOn and its total mass through math:totalMass — which may be a finite non-negative number or math:PositiveInfinity. Lebesgue measure on the whole real line and counting measure on a discrete countably infinite space (all singletons measurable) are examples of σ-finite measures with infinite total mass; σ-finitude alone does not imply infinite total mass. The general object every mass-bearing construction specializes: a math:ProbabilityMeasure is a measure of total mass one, and a math:Integral integrates a math:MeasurableFunction against a measure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LebesgueMeasure
@@ -2793,7 +2793,7 @@ math:LebesgueMeasure
     rdfs:subClassOf math:Measure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Lebesgue Measure"@x-gmeow-english ;
-    skos:definition "The Lebesgue measure: the canonical translation-invariant measure on ℝⁿ that assigns to an interval its length (area, volume). A subclass of math:Measure; the continuous counterpart of the discrete math:CountingMeasure. Its total mass over an unbounded space is math:PositiveInfinity, though it is σ-finite. Integration against it recovers the ordinary Riemann integral where that exists."@x-gmeow-english ;
+    skos:definition "The Lebesgue measure: the canonical translation-invariant measure on ℝⁿ that assigns to an interval its length (area, volume). A subclass of math:Measure; the continuous counterpart of the discrete math:CountingMeasure. Its total mass over the whole ℝⁿ, for positive n, is math:PositiveInfinity, though it is σ-finite; an unbounded measurable restriction need not have infinite mass. Integration against it recovers the ordinary Riemann integral where that exists."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CountingMeasure
@@ -2821,7 +2821,7 @@ math:MeasureEvaluation
     gmeow:useWhen "Reach for it to reify μ(A) — the mass one named measure assigns one named subset — as a queryable datum, so distinct subsets can be evaluated and compared side by side."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for the whole-space math:totalMass μ(X); an evaluation is the mass of a NAMED subset A ⊆ X, and it must name all three of measure, subset, and result or it is math:UnderspecifiedMeasureEvaluation."@x-gmeow-english ;
     gmeow:howToUse "Name math:evaluatedMeasure, math:measuredSubset, and math:measureResult; the result is a finite non-negative number or math:PositiveInfinity, never math:NegativeInfinity."@x-gmeow-english ;
-    skos:example "exf:evalB2 a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue ; math:measuredSubset exf:ballB2 ; math:measureResult exf:massB2 ."@x-gmeow-english .
+    skos:example "ex:muRegionA a math:MeasureEvaluation ; math:evaluatedMeasure ex:volumeMeasure ; math:measuredSubset ex:regionA ; math:measureResult \"2.0\"^^xsd:double ."@x-gmeow-english .
 
 math:MeasurableFunction
     a logic:Class ;
@@ -3032,7 +3032,7 @@ math:UnderspecifiedMeasureEvaluation
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the typed violation object when a math:MeasureEvaluation omits any of its measure, its subset, or its result."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for a whole-space mass carried correctly by math:totalMass; this failure is specific to the three-role evaluation object μ(A)."@x-gmeow-english ;
-    gmeow:howToUse "Point the shapes enforcing the three cardinalities on math:MeasureEvaluation at it through gmeow:enforcesFailureClass; a negative result is also caught here."@x-gmeow-english ;
+    gmeow:howToUse "The existing logic restrictions on MeasureEvaluation and MeasureResultNonNegativeConstraint associate this failure through gmeow:enforcesFailureClass; validation shapes are generated from those sources. Inspect the supplied measure, subset and result, and repair the source data rather than authoring another shape rule."@x-gmeow-english ;
     skos:example "exf:eval a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue . # no subset, no result -> math:UnderspecifiedMeasureEvaluation"@x-gmeow-english .
 
 math:ProbabilityMeasureMassViolation
@@ -3145,12 +3145,12 @@ math:measureResult
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "measure result"@x-gmeow-english ;
-    skos:definition "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
+    skos:definition "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to carry the mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or math:PositiveInfinity."@x-gmeow-english ;
     gmeow:avoidWhen "Do not carry math:NegativeInfinity here — a measure is non-negative, so a negative result is a violation; and do not use it for the whole-space math:totalMass."@x-gmeow-english ;
     gmeow:howToUse "Set it on a math:MeasureEvaluation to a non-negative numeric literal or math:PositiveInfinity; its rdf:Property typing spans literal and the pole individual."@x-gmeow-english ;
-    skos:example "exf:evalB2 math:measureResult exf:massB2 ."@x-gmeow-english .
+    skos:example "ex:muRegionA math:measureResult \"2.0\"^^xsd:double ."@x-gmeow-english .
 
 # --- Dimension properties --------------------------------------------------- #
 
@@ -18229,3 +18229,76 @@ math:homogeneousOperand
     gmeow:useWhen "Use to connect an actual object participating in the dimensional-agreement requirement, keeping the separate AST slots for operand positions and repetitions."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading relation order as operand order, manufacturing duplicate edges to satisfy the target count, or copying Quantity's exactly-one dimension rule onto every target class. Equal exponent vectors do not identify source resources."@x-gmeow-english ;
     gmeow:howToUse "Retain at least two distinct targets on a DimensionalExpression and each actual hasDimension, including non-Quantity targets reached by the dimension-presence constraint. Keep source typing and cardinalities unchanged. The native law compares vectors; it neither validates every source structure nor compares the expression's result dimension with its operands."@x-gmeow-english .
+
+# --- Measure and evaluation guidance --------------------------------------- #
+
+math:Measure
+    skos:scopeNote "The measure frame records a space and whole-space mass. Classifying an object as a Measure does not prove countable additivity, establish which subsets belong to its σ-algebra, or provide a numerical evaluator for μ(A)."@x-gmeow-english ;
+    skos:example "In measure-evaluation-framed.ttl, volumeMeasure names space through measureOn and PositiveInfinity through totalMass; muRegionA separately records the finite subset result 2.0 as an xsd:double."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied measure with its measurable-space interpretation, retaining the distinction between the whole-space mass and results on named subsets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a class assertion as evidence of additivity or treating totalMass as the mass of every subset. A σ-finite measure can have finite or infinite total mass."@x-gmeow-english ;
+    gmeow:howToUse "Declare measureOn to the MeasurableSpace and totalMass to a finite non-negative numeric literal or PositiveInfinity, retaining the existing Measure restrictions. Record a named subset's supplied result in a separate MeasureEvaluation."@x-gmeow-english .
+
+math:LebesgueMeasure
+    skos:scopeNote "This identifies the supplied Lebesgue measure and inherits the Measure frame. Whole ℝⁿ has infinite mass for positive n; unboundedness alone does not determine the mass of a measurable restriction, and the class does not compute volumes."@x-gmeow-english ;
+    skos:example "The existing volumeMeasure example has totalMass PositiveInfinity, while its volumeOfRegionA evaluation records the finite result 2.0 as an xsd:double for regionA."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies Lebesgue length, area or volume, preserving the actual ambient space or measurable restriction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming every unbounded measurable region has infinite mass or that a LebesgueMeasure assertion computes a region's volume."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited measureOn and totalMass declarations for the actual space. Use PositiveInfinity for the whole positive-dimensional Euclidean space and MeasureEvaluation for supplied subset results; do not infer those results from the class alone."@x-gmeow-english .
+
+math:CountingMeasure
+    skos:scopeNote "Counting measure assigns each measurable set its finite cardinality or PositiveInfinity. On a discrete countably infinite space (all singletons measurable) it is σ-finite with infinite total mass; counting measure on an uncountable set is not σ-finite. The class assertion performs no enumeration."@x-gmeow-english ;
+    skos:example "Counting measure on a three-element space has totalMass 3; on the natural numbers it has totalMass PositiveInfinity. These are declared mathematical examples, not a request to enumerate either space."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source measure that counts elements, distinguishing it from a probability measure that assigns normalized weights."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a count as a probability or inferring σ-finitude for counting measure on an arbitrary infinite set."@x-gmeow-english ;
+    gmeow:howToUse "Name the underlying MeasurableSpace through measureOn and supply its whole-space count through totalMass, using PositiveInfinity for an infinite count. Record a supplied count for a named measurable subset through MeasureEvaluation."@x-gmeow-english .
+
+math:ProbabilityMeasure
+    skos:scopeNote "The existing totalMass restriction requires the supplied value 1, in addition to inherited Measure obligations. This declared normalization neither proves countable additivity nor computes event probabilities or establishes subset membership."@x-gmeow-english ;
+    skos:example "The existing uniformProbability example names configSpace through measureOn and uses totalMass 1. Its frame records the supplied normalization without defining a numerical probability evaluator."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied probability measure of total mass one, retaining its actual measurable space and the evidence for its probabilistic interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for an unnormalized mass or inferring individual event probabilities from totalMass 1. Do not assume unverified equivalence between differently typed literal spellings of one."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited measureOn frame and declare totalMass 1 using the literal shown by the existing hasValue obligation. Record supplied event results separately through MeasureEvaluation; retain the source's probability law and evidence."@x-gmeow-english .
+
+math:MeasureEvaluation
+    skos:scopeNote "This records a supplied μ(A), rather than executing a measure. Its three roles do not prove additivity, establish that A belongs to the named measure's σ-algebra, or compute the result. The result must be a finite non-negative numeric literal or the named PositiveInfinity individual, not floating INF or NaN."@x-gmeow-english .
+
+math:IncompleteMeasure
+    skos:scopeNote "This failure belongs to the whole-measure frame and the existing total-mass value constraint. Native numeric comparison admits finite numeric literals; its generated SPARQL comparison is a different implementation surface. This guidance adds no closure requirement or claim of projection parity."@x-gmeow-english ;
+    skos:example "A Measure declaration that names its space but supplies no totalMass illustrates an incomplete measure frame; it is distinct from an evaluation that omits measuredSubset."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify findings owned by the existing Measure restrictions or MeasureTotalMassValueConstraint, retaining the actual diagnostic and supplied frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a missing mass with zero, treating PositiveInfinity as missing, or using this failure for a subset evaluation's missing roles."@x-gmeow-english ;
+    gmeow:howToUse "Inspect measureOn and totalMass on the reported measure and repair the source declaration. The existing logic restrictions and MeasureTotalMassValueConstraint own validation and generated projections; do not author a second shape rule or fabricate a result."@x-gmeow-english .
+
+math:UnderspecifiedMeasureEvaluation
+    skos:scopeNote "The existing evaluation restrictions own the three-role frame, and MeasureResultNonNegativeConstraint maps invalid result values to this same failure. In particular, NegativeInfinity is invalid here even though it is a valid pole of the signed extended real line; no numerical evaluation is performed."@x-gmeow-english .
+
+math:ProbabilityMeasureMassViolation
+    skos:scopeNote "This is the existing probability-measure total-mass obligation, not a proof about every event's probability. The canonical hasValue uses literal 1; equivalence with other datatype spellings is not established by this guidance."@x-gmeow-english ;
+    skos:example "A declared ProbabilityMeasure with totalMass 2 conflicts with the existing requirement for totalMass 1, regardless of whether a separate subset evaluation reports a value below one."@x-gmeow-english ;
+    gmeow:useWhen "Use for a diagnostic owned by the ProbabilityMeasure totalMass restrictions, keeping it distinct from a general incomplete measure or subset-evaluation failure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalizing source masses silently, labelling an infinite counting measure as a probability measure, or using this failure to claim that event probabilities were computed."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the supplied totalMass and the intended measure type. Repair the source declaration under the existing max-cardinality and hasValue 1 obligations; retain any genuine normalization derivation separately instead of changing values to hide the finding."@x-gmeow-english .
+
+math:measureOn
+    skos:scopeNote "This names the whole measurable space on which the measure is defined, not the individual subset of an evaluation. The link does not itself establish the space's σ-algebra membership relation or compute a mass."@x-gmeow-english ;
+    skos:example "In measure-evaluation-framed.ttl, volumeMeasure has measureOn space, while muRegionA has measuredSubset regionA; the space and the subset have different roles."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual measurable space associated with a supplied measure, including a Lebesgue, counting or probability measure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a numeric result or using it in place of measuredSubset on an evaluation. A space declaration alone is not evidence that a chosen subset is measurable there."@x-gmeow-english ;
+    gmeow:howToUse "Set measureOn on the Measure to its MeasurableSpace under the existing Measure restrictions, keeping totalMass on that measure and subset-specific roles on their MeasureEvaluation objects."@x-gmeow-english .
+
+math:totalMass
+    skos:scopeNote "This records μ(X) for the whole named space, separately from μ(A) on a subset. The value contract uses finite non-negative numeric literals or the named PositiveInfinity individual; floating INF and NaN are not substitutes. Native and generated comparison paths must not be assumed identical."@x-gmeow-english ;
+    skos:example "The existing volumeMeasure has totalMass PositiveInfinity while uniformProbability has totalMass 1; volumeOfRegionA carries its separate finite value through measureResult."@x-gmeow-english ;
+    gmeow:useWhen "Use for the supplied mass of the measure's entire declared space, preserving zero, finite positive mass and the named positive-infinity pole as distinct values."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing an arbitrary resource as a finite mass, encoding PositiveInfinity as floating INF, substituting zero for a missing value, or putting a subset result here."@x-gmeow-english ;
+    gmeow:howToUse "Supply totalMass on the Measure under its existing restrictions and MeasureTotalMassValueConstraint. Use a finite non-negative numeric literal or PositiveInfinity; for a ProbabilityMeasure retain literal 1 as required by its existing hasValue obligation."@x-gmeow-english .
+
+math:evaluatedMeasure
+    skos:scopeNote "This selects whose supplied mass the evaluation records; it does not invoke a numerical implementation. The selected measure's space and whole-space mass remain on the measure, and the subset and result remain separate evaluation roles."@x-gmeow-english .
+
+math:measuredSubset
+    skos:scopeNote "This names A in a supplied μ(A), not the measure's whole-space declaration. A MeasurableSet type and this edge alone do not prove that A belongs to the particular σ-algebra of the evaluated measure; retain that interpretation and its source evidence."@x-gmeow-english .
+
+math:measureResult
+    skos:scopeNote "The existing MeasureResultNonNegativeConstraint admits finite non-negative numeric literals or exactly PositiveInfinity. An arbitrary IRI, NegativeInfinity, NaN or floating INF is not a valid result. Recording an admitted value does not compute it or prove that it is the correct mass of the named subset."@x-gmeow-english .
