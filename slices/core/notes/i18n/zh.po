@@ -510,3 +510,63 @@ msgstr "避免将分支关闭视为任务完成、目标已满足或丢弃历史
 msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record branchClosed through notebookEntryState while retaining the entry and previous attributed claims."
 msgstr "通过 notebookEntryState 记录 branchClosed，同时保留条目和此前有归属的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook quoted statement"
+msgstr "笔记簿引用陈述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original native RDF 1.2 triple term retained on a NotebookEntry and shared exactly with its rdf:reifies value."
+msgstr "NotebookEntry 上保留的原始原生 RDF 1.2 三元组项，与其 rdf:reifies 值完全相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual quoted triple term for a valid notebook entry."
+msgstr "当来源为有效笔记簿条目提供实际引用三元组项时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string conversion, asserting the quoted proposition or inferring truth, belief or execution."
+msgstr "避免转换为字符串、断言被引用命题，或推断真实性、信念或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact same native term through notebookStatement and rdf:reifies on that entry, with actual source context."
+msgstr "在同一条目上通过 notebookStatement 和 rdf:reifies 保留完全相同的原生项及实际来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and without a declared range. Inherited Note content requirements remain; quotation does not replace them or validate arbitrary terms."
+msgstr "非函数性，不声明值域。继承的 Note 内容要求仍适用；引用不能替代这些要求，也不验证任意项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "An entry keeps a quoted candidate statement without asserting that statement."
+msgstr "条目保留引用的候选陈述，而不将该陈述断言为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notebook statement quotation constraint"
+msgstr "笔记簿陈述引用约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."
+msgstr "每个 notebookStatement 与该条目上的 rdf:reifies 共享完全相同的原生 RDF 1.2 三元组项。引用既不是断言，也不是通用三元组项验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the exact quotation binding of a supplied notebook statement."
+msgstr "用于保留已提供笔记簿陈述的确切引用绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid another entry’s quote, substitute prose or an invented witness."
+msgstr "避免使用其他条目的引用、替代文字或虚构见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same bound entry and term in notebookStatement and rdf:reifies."
+msgstr "在 notebookStatement 和 rdf:reifies 中保留相同绑定条目及项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native transport owns the quoted representation; inherited Note content remains required."
+msgstr "原生传输负责被引用表示；继承的 Note 内容仍必须提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A quote on a different entry cannot satisfy this entry’s exact statement binding."
+msgstr "其他条目上的引用不能满足本条目的确切陈述绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."
+msgstr "每个 notebookStatement 与该条目上的 rdf:reifies 共享完全相同的原生 RDF 1.2 三元组项。引用既不是断言，也不是通用三元组项验证器。"

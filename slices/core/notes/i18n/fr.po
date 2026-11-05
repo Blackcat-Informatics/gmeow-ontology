@@ -510,3 +510,63 @@ msgstr "Éviter de traiter la fermeture d’une piste comme une tâche terminée
 msgctxt "https://blackcatinformatics.ca/gmeow/branchClosed|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record branchClosed through notebookEntryState while retaining the entry and previous attributed claims."
 msgstr "Consigner branchClosed avec notebookEntryState tout en conservant l’entrée et les affirmations attribuées précédentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notebook quoted statement"
+msgstr "énoncé cité du carnet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original native RDF 1.2 triple term retained on a NotebookEntry and shared exactly with its rdf:reifies value."
+msgstr "Le terme de triplet RDF 1.2 natif original conservé sur une NotebookEntry et partagé exactement avec sa valeur rdf:reifies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual quoted triple term for a valid notebook entry."
+msgstr "Utiliser lorsque la source fournit un terme de triplet réellement cité pour une entrée de carnet valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string conversion, asserting the quoted proposition or inferring truth, belief or execution."
+msgstr "Éviter la conversion en chaîne, l’affirmation de la proposition citée ou la déduction de vérité, de croyance ou d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact same native term through notebookStatement and rdf:reifies on that entry, with actual source context."
+msgstr "Conserver le même terme natif exact par notebookStatement et rdf:reifies sur cette entrée, avec son contexte source réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and without a declared range. Inherited Note content requirements remain; quotation does not replace them or validate arbitrary terms."
+msgstr "Non fonctionnelle et sans portée déclarée. Les exigences héritées de contenu de Note demeurent ; la citation ne les remplace pas et ne valide pas des termes arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "An entry keeps a quoted candidate statement without asserting that statement."
+msgstr "Une entrée conserve un énoncé candidat cité sans affirmer cet énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notebook statement quotation constraint"
+msgstr "Contrainte de citation d’énoncé du carnet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."
+msgstr "Chaque notebookStatement partage son terme de triplet RDF 1.2 natif exact avec rdf:reifies sur cette entrée. La citation n’est ni une affirmation ni un validateur générique de termes de triplet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the exact quotation binding of a supplied notebook statement."
+msgstr "Utiliser pour préserver la liaison exacte de citation d’un énoncé de carnet fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid another entry’s quote, substitute prose or an invented witness."
+msgstr "Éviter la citation d’une autre entrée, un texte de remplacement ou un témoin inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same bound entry and term in notebookStatement and rdf:reifies."
+msgstr "Conserver la même entrée liée et le même terme lié dans notebookStatement et rdf:reifies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Native transport owns the quoted representation; inherited Note content remains required."
+msgstr "Le transport natif gouverne la représentation citée ; le contenu hérité de Note reste requis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A quote on a different entry cannot satisfy this entry’s exact statement binding."
+msgstr "Une citation sur une autre entrée ne peut satisfaire la liaison exacte d’énoncé de cette entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotebookStatementConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."
+msgstr "Chaque notebookStatement partage son terme de triplet RDF 1.2 natif exact avec rdf:reifies sur cette entrée. La citation n’est ni une affirmation ni un validateur générique de termes de triplet."

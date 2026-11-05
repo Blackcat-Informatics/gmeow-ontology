@@ -6422,3 +6422,411 @@ msgstr "可缺省且非函数性。缺失值表示未指定；历史时长及相
 msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#example"
 msgid "A source supplies fifteen minutes for the episode named by episodeLeft; the report retains the supplied xsd:duration and its exact assertion provenance without deriving timestamps."
 msgstr "来源为 episodeLeft 指明的片段提供十五分钟；报告保留所提供的 xsd:duration 及其确切断言的溯源信息，不推导时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode transition attachment"
+msgstr "片段转换关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied attachment from an actual episode-chain claim reifier to its episode-transition report."
+msgstr "来源提供的关联，从实际片段链断言的重述节点指向其片段转换报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source attaches a transition report to an actual native claim."
+msgstr "当来源将转换报告关联到实际原生断言时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a chain predicate, quoted claim or endpoint correspondence."
+msgstr "避免虚构链谓词、被引用断言或端点对应关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual rdf:reifies witness and exact assertion provenance; preserve any selected slot protocol."
+msgstr "保留实际 rdf:reifies 见证及确切断言的溯源；保留任何已选用的槽位协议。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Attachment neither asserts the quoted proposition nor executes a scheduler."
+msgstr "非函数性。关联既不断言被引用命题，也不执行调度器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual chain-claim reifier names its retained transition report."
+msgstr "实际链断言的重述节点指明其保留的转换报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported causing rule specification"
+msgstr "报告的致因规则说明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual identified rule-specification record cited by the source as a transition’s causal basis."
+msgstr "来源作为转换因果依据引用的、实际已标识的规则说明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source’s actual cited rule specification."
+msgstr "用于来源实际引用的规则说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a logic:Rule, program, rule firing or verified causality from citation."
+msgstr "避免从引用推断 logic:Rule、程序、规则触发或已验证因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the identified specification and exact claim’s source and declaring frame; keep actual formalization separate."
+msgstr "保留已标识说明及确切断言的来源和声明框架；分别保留实际形式化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. A string or label alone does not supply an identified rule record."
+msgstr "非函数性。仅有字符串或标签不能提供已标识的规则记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A transition report cites the actual policy specification supplied by its source."
+msgstr "转换报告引用来源提供的实际策略说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported causing fact claim"
+msgstr "报告的致因事实断言"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual claim reifier cited by the source as a factual causal basis for a transition."
+msgstr "来源作为转换的事实性因果依据引用的实际断言重述节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the exact factual claim it cites."
+msgstr "当来源标识其引用的确切事实断言时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting the quotation, inventing a fact or treating citation as causal proof."
+msgstr "避免断言引用内容、虚构事实或将引用视为因果证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain that claim’s actual rdf:reifies witness and the causal association’s own source and frame."
+msgstr "保留该断言实际的 rdf:reifies 见证，以及因果关联自身的来源和框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. The quoted proposition, recorder and reported causal basis remain distinct."
+msgstr "非函数性。被引用命题、记录者和报告的因果依据保持区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report cites a retained observation claim without asserting its quoted proposition."
+msgstr "报告引用保留的观察断言，而不将其中被引用命题断言为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode Interlude Occurrence"
+msgstr "片段间插曲项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar payload occurrence belonging to one transition report, retaining an actual Activity and its report-local ordinal."
+msgstr "属于一个转换报告的标量载荷项，保留实际 Activity 及报告内的序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each source-supplied interlude occurrence within a transition report."
+msgstr "用于转换报告中来源提供的每个插曲项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing an ordinal on a shared Activity or inferring chronological or causal order."
+msgstr "避免在共享 Activity 上放置序号，或推断时间或因果顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain structuredTerm as the actual Activity and entryOrdinal as its zero-based position; use distinct occurrences for repetitions."
+msgstr "以 structuredTerm 保留实际 Activity，以 entryOrdinal 保留从零开始的位置；重复载荷使用不同项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One parent is required. Equal numeric ordinal aliases coexist without literal rewriting; positions need not be contiguous."
+msgstr "必须有一个父报告。同一数值序号的词法变体可并存，不改写字面量；位置无需连续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#example"
+msgid "The same Activity appears twice through distinct interlude occurrences at different positions."
+msgstr "同一 Activity 通过不同插曲项出现在两个不同位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported transition interlude"
+msgstr "报告的转换插曲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied interlude occurrence retained within an episode-transition report."
+msgstr "片段转换报告中保留的、来源提供的插曲项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each actual supplied interlude occurrence."
+msgstr "用于保留实际提供的每个插曲项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid RDF lists, shared payload ordinals or an inferred empty history from missing links."
+msgstr "避免使用 RDF 列表、共享载荷上的序号，或从缺失关联推断空历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the report to each EpisodeInterlude; preserve its payload, position and exact association provenance."
+msgstr "将报告关联到每个 EpisodeInterlude；保留载荷、位置和确切关联的溯源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Each interlude occurrence belongs to one report; ordinal order proves no chronology."
+msgstr "非函数性。每个插曲项属于一个报告；序号顺序不证明时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report retains several separately positioned interlude occurrences."
+msgstr "报告保留多个分别定位的插曲项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "offered activity description"
+msgstr "提议的活动描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual EventDescription of the activity offered by a Guidance note."
+msgstr "Guidance 便笺所提议活动的实际 EventDescription。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a description of the offered activity."
+msgstr "当来源提供所提议活动的描述时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a future Activity, adopted Intention, permission or execution."
+msgstr "避免虚构未来 Activity、已采纳 Intention、许可或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual description identity and exact offered association’s source and declaring frame."
+msgstr "保留实际描述身份，以及确切提议关联的来源和声明框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Several source-supported activity descriptions may coexist."
+msgstr "可缺省且非函数性。多个有来源支持的活动描述可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "An offer describes reviewing an archive without asserting that a review occurred."
+msgstr "提议描述审查档案，而不声称审查已经发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead Anchor Occurrence"
+msgstr "后续锚点项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An offer-local reference occurrence retaining one actual task-specification artifact, a canonical ordinal and any supplied planned window."
+msgstr "提议内的引用项，保留一个实际任务说明制品、规范序号及任何提供的计划时间窗。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a separately positioned task reference in one guidance offer."
+msgstr "用于一项指导提议中单独定位的任务引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the anchor or task artifact as an actual Task occurrence."
+msgstr "避免将锚点或任务制品视为实际 Task 发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply referencedTaskDocument and zero-based entryOrdinal; retain an optional aheadWindow and any independently supplied loop reference."
+msgstr "提供 referencedTaskDocument 及从零开始的 entryOrdinal；保留可缺省的 aheadWindow 和任何独立提供的事项引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One offer and one task artifact are required; no loop is required or copied. Numeric ordinal aliases remain unchanged."
+msgstr "必须属于一个提议并具有一个任务制品；不要求或复制事项。同一数值序号的词法变体保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two offers name the same task artifact through distinct anchor occurrences."
+msgstr "两个提议通过不同锚点项指明同一任务制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance ahead anchor"
+msgstr "指导的后续锚点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supported ordered anchor occurrence retained within a Guidance offer."
+msgstr "Guidance 提议中保留的、有来源支持的有序锚点项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each supplied task anchor ahead of an offer."
+msgstr "用于提议所提供的每个后续任务锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a loop target, selecting a global winner or inferring scheduler execution."
+msgstr "避免复制事项目标、选择全局优先结果或推断调度器执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link Guidance to actual AheadAnchor occurrences and preserve their own task, ordinal and source context."
+msgstr "将 Guidance 关联到实际 AheadAnchor 项，并保留各项自身的任务、序号和来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Each anchor belongs to one offer; repeated task identities use distinct occurrences."
+msgstr "非函数性。每个锚点属于一个提议；重复任务身份使用不同项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#example"
+msgid "An offer retains several anchors whose positions need not be contiguous."
+msgstr "提议保留多个锚点，其位置无需连续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "planned ahead window"
+msgstr "计划的后续时间窗"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-identified TimeInterval retained as the planned window of an ahead anchor."
+msgstr "来源实际标识的 TimeInterval，作为后续锚点的计划时间窗保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual planned interval with temporal-frame evidence."
+msgstr "当来源提供实际计划区间及时间参考系依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a boundary, midnight, UTC, conversion, chronological order or future event occurrence."
+msgstr "避免虚构边界、午夜、UTC、换算、时间顺序或未来事件发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep actual frame data and any supplied start/end Instants or inline values under their existing Temporal contracts."
+msgstr "按现有 Temporal 契约保留实际参考系数据，以及任何提供的起止 Instant 或内联值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, locally at most one. Unknown bounds stay unspecified; frame presence implies no frame equality or start-before-end proof."
+msgstr "可缺省，局部最多一个。未知边界保持未指定；参考系存在不意味着参考系相同，也不证明起点早于终点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "An anchor retains an identified interval with only its supplied start boundary and actual frame."
+msgstr "锚点保留已标识区间，仅记录所提供的起点边界及实际参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported notebook working-through activity"
+msgstr "报告的笔记簿条目处理活动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Activity associated by the source with working through a notebook entry."
+msgstr "来源关联到笔记簿条目处理过程的实际 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied NotebookEntry-to-Activity association."
+msgstr "用于明确提供的 NotebookEntry 到 Activity 的关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ongoing work, execution, mental belief, chronology or a common writer and performer."
+msgstr "避免推断工作正在进行、执行、心理信念、时间顺序，或作者与执行者相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Activity and the exact association’s source, recorder and declaring frame separately from note authorship."
+msgstr "保留实际 Activity 及确切关联的来源、记录者和声明框架，并与便笺作者身份区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Naming the actual occurrence supplies no missing performer or current-work verdict."
+msgstr "可缺省且非函数性。指明实际发生实例不能补出缺失执行者或当前工作判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#example"
+msgid "A historical entry retains its source-reported working-through activity without marking it current."
+msgstr "历史条目保留来源报告的条目处理活动，而不将其标记为当前活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode transition claim constraint"
+msgstr "片段转换断言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."
+msgstr "每个提供的片段链关联和致因事实引用都在该确切断言上具有实际 rdf:reifies 见证。引用既不断言其命题，也不证明因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check actual quoted-claim witnesses for supplied transition associations."
+msgstr "用于检查已提供转换关联的实际引用断言见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid borrowing another claim’s witness or inventing quoted evidence."
+msgstr "避免借用其他断言的见证或虚构引用依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply both guarded arms to the exact linked claims under the EpisodeTransition guard."
+msgstr "在 EpisodeTransition 守卫下，对确切关联断言应用两个守卫分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks retained bindings; it does not authenticate the source or execute a chain."
+msgstr "该定律检查保留的绑定；不认证来源，也不执行链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A factual reference without its own actual quote fails the selected binding."
+msgstr "事实引用若缺少自身实际引用项，就不满足所选绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."
+msgstr "每个提供的片段链关联和致因事实引用都在该确切断言上具有实际 rdf:reifies 见证。引用既不断言其命题，也不证明因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode interlude constraint"
+msgstr "片段间插曲约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."
+msgstr "每个 EpisodeInterlude 具有一个转换父报告和实际 Activity 标量载荷。其序号共享唯一数值；不同项不能占据该报告内同一数值位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for parent, payload and report-local ordinal integrity of interlude occurrences."
+msgstr "用于插曲项的父报告、载荷及报告内序号完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid literal maxima, rewritten ordinal aliases or ordering shared Activity identities."
+msgstr "避免字面量数量上限、改写序号词法变体或为共享 Activity 身份排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply six guarded arms with atomic existence witnesses and explicit positive class guards on parent and payload presence."
+msgstr "应用六个守卫分支，使用原子存在见证，并在父报告及载荷存在要求中显式保留正向类守卫。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Numeric aliases remain valid; scalar branch integrity stays with StructuredValue. Position proves no time or cause."
+msgstr "数值词法变体仍有效；标量分支完整性仍由 StructuredValue 负责。位置不证明时间或因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two distinct occurrences with equal numeric positions in one report violate the law."
+msgstr "同一报告中两个不同项若具有相等数值位置，就违反该定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."
+msgstr "每个 EpisodeInterlude 具有一个转换父报告和实际 Activity 标量载荷。其序号共享唯一数值；不同项不能占据该报告内同一数值位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead anchor constraint"
+msgstr "后续锚点约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."
+msgstr "每个 AheadAnchor 属于一个指导提议，并具有唯一数值序号。不同锚点不能占据该提议内同一数值位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for offer-local anchor parentage and numeric position integrity."
+msgstr "用于锚点在提议内的归属及数值位置完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid global task ordinals, contiguous-position requirements or literal-count uniqueness."
+msgstr "避免全局任务序号、位置连续要求或以字面量数量限制唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply four guarded arms, retaining the positive class guard for parent existence and numeric equality for ordinals."
+msgstr "应用四个守卫分支，保留父提议存在要求的正向类守卫及序号数值相等比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Aliases of one numeric ordinal coexist unchanged; source-supported repeated tasks use distinct anchors."
+msgstr "同一数值序号的词法变体可原样并存；有来源支持的重复任务使用不同锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Separate offers can each retain an anchor at numeric position zero."
+msgstr "不同提议可各自保留数值位置为零的锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."
+msgstr "每个 AheadAnchor 属于一个指导提议，并具有唯一数值序号。不同锚点不能占据该提议内同一数值位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead window constraint"
+msgstr "后续时间窗约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
+msgstr "每个已提供后续时间窗都具有实际 TemporalFrame 依据。每个通过 hasStartInstant 或 hasEndInstant 提供的边界均为具有实际 TemporalFrame 依据的 Instant。不推断缺失边界、参考系相等或时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for selected window and supplied boundary frame presence and typing."
+msgstr "用于所选时间窗和已提供边界的参考系存在及类型要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid completing bounds, imposing frame equality or claiming start-before-end verification."
+msgstr "避免补全边界、强制参考系相同或声称已验证起点早于终点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply eight window-focused arms with atomic frame witnesses; preserve existing Instant value-or-EDTF and inline temporal contracts."
+msgstr "应用八个以时间窗为焦点的分支及原子参考系见证；保留现有 Instant 值或 EDTF 契约及内联时间契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A window may retain one boundary or unspecified bounds. No future event, conversion or temporal calculation follows."
+msgstr "时间窗可只保留一个边界或保持边界未指定。不由此推出未来事件、换算或时间计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied start Instant needs its own actual frame even when the interval already has one."
+msgstr "已提供的起点 Instant 需要自身实际参考系，即使区间已有参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
+msgstr "每个已提供后续时间窗都具有实际 TemporalFrame 依据。每个通过 hasStartInstant 或 hasEndInstant 提供的边界均为具有实际 TemporalFrame 依据的 Instant。不推断缺失边界、参考系相等或时间顺序。"

@@ -237,3 +237,25 @@ kinds and five states, including competing writer assessments and retained
 dated reports. Its recorder, writers and source artifacts remain distinct.
 The quoted content is unasserted, and the scene reports no executed tests,
 scheduler, state update or goal completion.
+
+## Exact quoted notebook statements
+
+`notebookStatement` retains an original native RDF 1.2 triple term on a
+`NotebookEntry`. The exact same entry must have `rdf:reifies` with that exact
+same term. A quote on another entry, substitute prose or an invented witness
+cannot satisfy this binding. Preserve the original term and actual source
+context without string conversion.
+
+Quotation does not assert the quoted proposition or establish truth, mental
+belief, an assertion act or execution. Native RDF 1.2 transport owns the
+representation; the same-term law is not a generic triple-term validator.
+The property is nonfunctional and has no declared range. Its global closure
+selects the supplied subject's NotebookEntry domain without adding a required
+statement to every notebook entry.
+
+NotebookEntry still inherits Note's actual content-or-label requirement.
+Preserve the supplied content or label rather than fabricating one for this
+association. AgencyRecords owns the separate `notebookWorkingThrough` relation
+from an entry to an actual Activity; it supplies no current-work verdict or
+shared author/performer inference. Exact writer-state attributions remain
+independent of authorship and recording attribution (Principles 4, 9, 11 and 17).
