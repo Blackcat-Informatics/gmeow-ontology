@@ -32,6 +32,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/mentation>,
         <https://blackcatinformatics.ca/gmeow/slices/affect>,
         <https://blackcatinformatics.ca/gmeow/slices/messaging>,
+        <https://blackcatinformatics.ca/gmeow/slices/tags>,
         <https://blackcatinformatics.ca/gmeow/slices/observations>,
         <https://blackcatinformatics.ca/gmeow/slices/norms>,
         <https://blackcatinformatics.ca/gmeow/slices/record-metadata>,

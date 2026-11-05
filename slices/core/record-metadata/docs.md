@@ -228,3 +228,27 @@ ex:detail gmeow:structureName "PendingInput" while its hasFacet entries retain
 their own facetLabel and typed or nested payloads. The
 [query-context account](../query-context/docs.md#row-reasons-and-scoped-loss-observations)
 shows nested maps, supplied record tags and native field values on a loss detail.
+
+## Preserve a raw reception-channel code
+
+`receivedViaCode` retains the producer's exact channel spelling as `xsd:string`
+or an explicitly supplied `xsd:token`. It follows the same holder-specific
+subject contract as `receivedVia`, while remaining a separate literal field.
+Its global supplied-value closure checks the declared datatype union; it
+does not classify a code, normalize whitespace, infer token typing or install
+an arbitrary producer-code validator.
+
+Put the code on one actual reception record, ordinarily the hearing Activity
+when using AgencyRecords. Different holders or independent receptions use
+separate records even when they share Message content. A Message subject is
+appropriate only with independent evidence that its identity already denotes
+one holder-specific reception. Message typing and source authorship are
+insufficient. If that scope is unknown, do not put the code on globally shared
+content or invent a holder-specific record merely to place the value.
+
+Raw code and classified `receivedVia` may coexist when each is independently
+supplied. Neither determines the other, and the existing classified-channel
+law does not turn the raw field into a functional property. Missing metadata
+has no default. There is no IRI-valued code field, subproperty bridge to
+`receivedVia`, automatic vocabulary membership or proof of delivery, truth,
+trust or holder isolation (Principles 4, 9 and 17).

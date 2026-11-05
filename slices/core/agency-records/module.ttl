@@ -4598,3 +4598,121 @@ gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onPrope
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ReplyHandlingReport ; logic:closureKey "https://blackcatinformatics.ca/gmeow/replyShape" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ReplyHandlingReport ; logic:closureKey "https://blackcatinformatics.ca/gmeow/replyHandlingOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-reported reception and prompting; canonical logic authoring.
+
+gmeow:heardMessage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "heard message"@x-gmeow-english ;
+    skos:definition "Relates a source-reported activity of hearing words addressed to an agent to the Message it heard. The hearing occurrence and its communicative content retain separate identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported hearing occurrence and its actual message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring hearing from sending, recipient addressing or a message merely being available."@x-gmeow-english ;
+    gmeow:howToUse "Link the hearing Activity to its Message. Retain the actual hearer through wasAssociatedWith, speaker through message attribution, and source and recorder on exact statement reifiers."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Neither acoustic processing, understanding, phenomenal experience nor a recording agent's identity follows from the link."@x-gmeow-english ;
+    skos:example "ex:hearing gmeow:heardMessage ex:words ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Message .
+
+gmeow:sawAct
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "saw act"@x-gmeow-english ;
+    skos:definition "Relates an agent's source-reported seeing Activity to the actual Activity it saw. The observer's occurrence and the observed act remain distinct."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies both a seeing occurrence and the act seen."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a description document for the seen act or identifying its actor with the observer or recorder."@x-gmeow-english ;
+    gmeow:howToUse "Keep separate Activity identities. Retain each source-identified performer through its own wasAssociatedWith and the seen act's supplied place through eventLocation."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. A reported sighting does not by itself create an Observation, ObservationalActivity, Experience, causal relation or permission."@x-gmeow-english ;
+    skos:example "ex:seeing gmeow:sawAct ex:observedAct ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Activity .
+
+gmeow:promptedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prompted by"@x-gmeow-english ;
+    skos:definition "The acting agent's own source-identified hearing or seeing occurrence reported as prompting this act. The target is that agent's occurrence record, not another holder's record or the shared Message."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an actual supplied reference to the acting agent's prompting occurrence, including an opaque target IRI."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a target, resolving an alias by string equality, or treating recorder, declaring frame or a different holder as the actor."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied occurrence IRI and exact assertion provenance. Retain independently supplied actor and hearer or observer evidence without fabricating missing target types or holder identities."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional, with open-world Activity domain and range but no global closed endpoint opt-in. An opaque reference is retained without proving its kind, same-holder validity, chronology or runtime isolation."@x-gmeow-english ;
+    skos:example "ex:act gmeow:promptedBy <https://example.org/source-memory/prompt-8> ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Activity .
+
+gmeow:promptedByAlias
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prompted by alias"@x-gmeow-english ;
+    skos:definition "The producer's unresolved alias for the acting agent's prompting hearing or seeing record, preserved as supplied. The alias is not an Activity node or a resolved promptedBy link."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a prompt alias without an established corresponding record identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid matching unrelated producers or holders by equal alias text, minting a target or converting an IRI reference into an alias."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string or explicitly supplied xsd:token literal with its producer namespace and assertion provenance. Retain an independently supplied direct reference separately."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Preserve lexical form and datatype without whitespace normalization or inferred token typing. This declaration installs no resolver or arbitrary producer-alias validator."@x-gmeow-english ;
+    skos:example "ex:act gmeow:promptedByAlias \"source:heard-8\"^^xsd:token ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+gmeow:actUnprompted
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "act unprompted"@x-gmeow-english ;
+    skos:definition "The source's explicit boolean assessment that nothing addressed to the acting agent prompted this act, such as its own tick or solitary activity. It is not a claim that the act had no influences or causes."@x-gmeow-english ;
+    gmeow:useWhen "Use only for an explicitly supplied assessment of whether an address to this actor prompted the act."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving true from missing prompt links or deriving false from a missing tag. Do not apply hasTag to the Activity to encode this assessment."@x-gmeow-english ;
+    gmeow:howToUse "Retain true or false exactly as assessed, with exact statement source, recorder and declaring frame. Missing remains unknown; false does not identify a particular prompt."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Competing attributed assessments coexist without a global winner or mutual-exclusion rule. This field does not prove free will, causal absence or runtime behavior."@x-gmeow-english ;
+    skos:example "ex:act gmeow:actUnprompted true ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range xsd:boolean .
+
+gmeow:tagWordsNotKept
+    a gmeow:Tag ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "words not kept"@x-gmeow-english ;
+    skos:definition "A source-applied tag on a holder-specific Message record reporting that its heard wording was not retained. The hearing and Message remain represented even though this record keeps no words."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit report that a particular holder's heard-word record keeps no wording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this tag from missing utteranceText, applying it to shared content globally, or treating it as proof that no words were spoken or heard."@x-gmeow-english ;
+    gmeow:howToUse "Attach through hasTag to the actual holder-specific Message information record. Keep its hearing link, speaker attribution and exact tagging provenance independently."@x-gmeow-english ;
+    skos:scopeNote "The tag has no type-inference or deletion rule. A missing tag does not prove that wording was retained; wording held elsewhere, historically or by a different attributed account remains intact."@x-gmeow-english ;
+    skos:example "ex:holderWords gmeow:hasTag gmeow:tagWordsNotKept ."@x-gmeow-english .
+
+gmeow:eventTypeAgentHeard
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent heard addressed words"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported occurrence of an agent hearing words addressed to it. The occurrence is distinct from the Message heard and the source recording it."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify an explicitly reported hearing Activity without introducing an event subclass."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid classifying a message, receipt document or mere recipient address as the hearing occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Attach through eventType on the actual hearing Activity; retain its actual hearer and heardMessage separately with source-specific assertion metadata."@x-gmeow-english ;
+    skos:scopeNote "An event-kind seed, not a class or proof of delivery, acoustic processing, understanding, phenomenal experience or successful execution. Other supplied event kinds may coexist."@x-gmeow-english ;
+    skos:example "ex:hearing gmeow:eventType gmeow:eventTypeAgentHeard ."@x-gmeow-english .
+
+gmeow:eventTypeAgentSaw
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent saw another's act"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported occurrence of an agent seeing another's act. The observer's occurrence and the actual seen Activity retain their identities and independently represented performers."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify an explicitly reported seeing Activity without introducing an event subclass."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid classifying the seen act or a description document as the observer's seeing occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Attach through eventType on the seeing Activity and link sawAct to the actual observed Activity. Retain observer, seen actor and supplied place through their own roles."@x-gmeow-english ;
+    skos:scopeNote "An event-kind seed, not a new class, Observation, ObservationalActivity or Experience. It supplies no missing actor, place, mental state, causal relation or permission."@x-gmeow-english ;
+    skos:example "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."@x-gmeow-english .
+
+# promptedBy intentionally retains open-world opaque endpoints; no global closure.
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/heardMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sawAct" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/promptedByAlias" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actUnprompted" ; logic:closureValue logic:ClosedWorldClosure ] .

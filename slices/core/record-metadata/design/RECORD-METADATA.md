@@ -208,3 +208,28 @@ never an ambiguous format on the containing call. Neither representation implies
 that another representation is equivalent. These are canonical vocabulary and
 integrity laws, not a converter or a storage DTO contract (Principles 2, 4, 17
 and 19).
+
+## Raw channel spelling remains reception metadata
+
+receivedViaCode complements the existing receivedVia/ReceptionChannel contract
+without borrowing its object-property range. It is a domain-free literal field
+with the same string/token union and lexical-preservation discipline as
+originatingTrace and originatingPacket. Its global supplied-value closure
+admits that union on present values; it neither requires a code on every record
+nor adds a token lexical checker, normalizer or resolver.
+
+The subject identifies one holder-specific reception, not globally shared
+content. AgencyRecords' ordinary hearing Activity can carry the code while
+heardMessage retains a Message shared across independent receptions. A Message
+subject needs independent source/identity evidence that it already denotes a
+single holder-specific reception record. No author-to-holder inference, default
+holder, synthetic reception identity or global shared-content detector is
+introduced. The semantic source-scope obligation is not a claimed range-gate
+proof of holder identity.
+
+An independently supplied classified receivedVia and raw receivedViaCode may
+both survive without an equivalence or subproperty bridge. The existing
+guarded uniqueness law concerns classified channels only; the new raw field
+is nonfunctional. Neither field supplies a missing counterpart or proves
+delivery. No new dependency, source-wrapper class, channel seed, mapping or
+generated authoring surface is introduced (Principles 4, 9 and 17).

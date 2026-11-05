@@ -1221,3 +1221,31 @@ msgstr "Les étiquettes de source non fonctionnelles ne fournissent aucun nom ab
 msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."
 msgstr "Une étiquette d’enregistrement fournie : ex:detail gmeow:structureName \"NotEmbedded\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received via code"
+msgstr "code du canal de réception"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's raw channel spelling for one holder-specific reception, preserved as supplied. The subject identifies that reception, not content globally shared among holders."
+msgstr "Désignation brute du canal fournie par le producteur pour une réception propre à un détenteur, conservée telle quelle. Le sujet identifie cette réception, pas un contenu globalement partagé entre détenteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports a reception channel as raw text rather than an established ReceptionChannel resource."
+msgstr "Utiliser lorsqu’une source rapporte un canal de réception sous forme de texte brut plutôt que de ressource ReceptionChannel établie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the code on shared content, inferring a holder from authorship, choosing a default channel or converting code text into a channel IRI."
+msgstr "Éviter de placer le code sur un contenu partagé, de déduire le détenteur de l’auteur, de choisir un canal par défaut ou de convertir le texte du code en IRI de canal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact xsd:string or explicitly supplied xsd:token literal on the actual holder-specific reception record. A Message subject requires independent evidence that its identity already denotes one such reception."
+msgstr "Conserver le littéral xsd:string exact ou le xsd:token explicitement fourni sur l’enregistrement réel de réception propre au détenteur. Un sujet Message exige des éléments indépendants établissant que son identité désigne déjà une telle réception."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Domain-free and nonfunctional. Preserve lexical form and datatype without normalization or inferred token typing. This field neither specializes receivedVia nor classifies codes, proves delivery or verifies holder scope."
+msgstr "Sans domaine et non fonctionnel. Préserver la forme lexicale et le type sans normalisation ni inférence du type token. Ce champ ne spécialise pas receivedVia, ne classe pas les codes, ne prouve pas la livraison et ne vérifie pas la portée du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedViaCode \"room relay\" ."
+msgstr "ex:reception gmeow:receivedViaCode \"room relay\" ."

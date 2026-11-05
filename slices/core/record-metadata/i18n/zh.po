@@ -1221,3 +1221,31 @@ msgstr "非函数式来源标签不提供缺失名称、类成员关系、模式
 msgctxt "https://blackcatinformatics.ca/gmeow/structureName|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."
 msgstr "提供的记录标签：ex:detail gmeow:structureName \"NotEmbedded\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received via code"
+msgstr "接收渠道代码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's raw channel spelling for one holder-specific reception, preserved as supplied. The subject identifies that reception, not content globally shared among holders."
+msgstr "生产者为一次特定持有者的接收提供的原始渠道写法，按来源原样保留。主体标识该次接收，而非持有者之间全局共享的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports a reception channel as raw text rather than an established ReceptionChannel resource."
+msgstr "当来源以原始文本而非已确定的 ReceptionChannel 资源报告接收渠道时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the code on shared content, inferring a holder from authorship, choosing a default channel or converting code text into a channel IRI."
+msgstr "避免将代码置于共享内容上、根据作者身份推断持有者、选择默认渠道，或将代码文本转换为渠道 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact xsd:string or explicitly supplied xsd:token literal on the actual holder-specific reception record. A Message subject requires independent evidence that its identity already denotes one such reception."
+msgstr "在实际的持有者特定接收记录上保留精确的 xsd:string 或来源明确提供的 xsd:token 字面量。以 Message 为主体时，需要独立证据表明其身份已表示一次此类接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Domain-free and nonfunctional. Preserve lexical form and datatype without normalization or inferred token typing. This field neither specializes receivedVia nor classifies codes, proves delivery or verifies holder scope."
+msgstr "无定义域且非函数性。保留词法形式和数据类型，不做规范化，也不推断 token 类型。此字段既不特化 receivedVia，也不分类代码、证明送达或验证持有者范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedViaCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedViaCode \"room relay\" ."
+msgstr "ex:reception gmeow:receivedViaCode \"room relay\" ."
