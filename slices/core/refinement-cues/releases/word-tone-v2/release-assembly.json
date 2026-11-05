@@ -1,0 +1,98 @@
+{
+  "schema": "external-cue-release-assembly-v2",
+  "state": "review approved; publication authorized; external data validation not run",
+  "versionLabel": "2",
+  "approval": {
+    "reviewer_and_curator": "https://blackcatinformatics.ca/gmeow/self#patrick-audley",
+    "name": "Patrick Audley",
+    "activity": "urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z",
+    "eventType": "urn:gmeow:word-tone-cues:event-type:review-approval",
+    "eventTime": "2026-11-05T17:59:52Z",
+    "time_evidence": "Approval observed at the supplied instant.",
+    "scope": "Exact troubled and weary version 2 inventories, their full source attribution, review and publication.",
+    "authority": "Explicit approval by Patrick Audley of both exact payload inventories, with full source attribution, review and publication."
+  },
+  "external_data_assembly": {
+    "ordered_parts": [
+      "source-documentation.ttl",
+      "troubled-cues.payload.ttl",
+      "weary-cues.payload.ttl",
+      "release-envelope.ttl"
+    ],
+    "join": "Concatenate exact UTF-8 part bytes in the listed order, inserting one LF byte between parts.",
+    "file": "word-tone-cue-releases.ttl",
+    "bytes": 16543,
+    "sha256": "e699cbe796f157281c2936eaafb258e874dc59a954d6414fa6ff0342743d8225"
+  },
+  "standalone_placement": {
+    "repository_directory": "slices/core/refinement-cues/releases/word-tone-v2/",
+    "purpose": "Standalone external application-data distribution under the owning slice.",
+    "data_entrypoint": "word-tone-cue-releases.ttl",
+    "loader_scope": "Outside the ontology loader’s immediate module/import/example inputs.",
+    "consumer_adoption": "not established",
+    "ontology_dataset": "not imported",
+    "release_integration": "No dedicated release-blob or loader integration.",
+    "compression_dictionary_corpus": "Files under slices/core/ participate in the existing compression-dictionary training corpus and may affect dictionary bytes."
+  },
+  "source_evidence_file": "source-evidence.json",
+  "validation": {
+    "boundary": "gmeow validate word-tone-cue-releases.ttl",
+    "implementation": "crates/validate/src/data_validate.rs:222–246",
+    "status": "not run",
+    "limit": "No RDF parsing, resident-shape validation, native execution, matcher adoption or recipient isolation qualification was performed."
+  },
+  "supersession": "Version 1 was an unreviewed candidate; this release does not assert supersession of a released version.",
+  "releases": [
+    {
+      "release_iri": "urn:gmeow:word-tone-cues:troubled:2",
+      "versionOf": "urn:gmeow:word-tone-cues:troubled",
+      "versionLabel": "2",
+      "rdfs_label": "troubled word-tone cue release",
+      "writtenInLanguage": "https://blackcatinformatics.ca/lang/english",
+      "payload_bytes": 3947,
+      "contentDigest": {
+        "value": "e33516e14a746f3802aff5225a4756226afc4d1b36772d5ac12c6308bd427770",
+        "datatype": "https://blackcatinformatics.ca/gmeow/sha256Digest"
+      },
+      "hasCue": [
+        "urn:gmeow:word-tone-cues:troubled:2:cue:worried",
+        "urn:gmeow:word-tone-cues:troubled:2:cue:afraid",
+        "urn:gmeow:word-tone-cues:troubled:2:cue:upset"
+      ],
+      "wasDerivedFrom": [
+        "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53"
+      ],
+      "description": "English word-evidence declarations for a troubled reading. Phrase matches do not execute the judge guidance or assert a person state.",
+      "payload_file": "troubled-cues.payload.ttl",
+      "documentation_file": "source-documentation.ttl",
+      "wasAttributedTo": "https://blackcatinformatics.ca/gmeow/self#patrick-audley",
+      "cueReview": "urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z",
+      "review_status": "approved"
+    },
+    {
+      "release_iri": "urn:gmeow:word-tone-cues:weary:2",
+      "versionOf": "urn:gmeow:word-tone-cues:weary",
+      "versionLabel": "2",
+      "rdfs_label": "weary word-tone cue release",
+      "writtenInLanguage": "https://blackcatinformatics.ca/lang/english",
+      "payload_bytes": 2654,
+      "contentDigest": {
+        "value": "d9bdfd0ead31a0c07534d86663d203d60e3031d9b14408ed559bbb956b414ccd",
+        "datatype": "https://blackcatinformatics.ca/gmeow/sha256Digest"
+      },
+      "hasCue": [
+        "urn:gmeow:word-tone-cues:weary:2:cue:tired",
+        "urn:gmeow:word-tone-cues:weary:2:cue:wornOut"
+      ],
+      "wasDerivedFrom": [
+        "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53"
+      ],
+      "description": "English word-evidence declarations for a weary reading. Phrase matches do not execute the judge guidance or assert a person state.",
+      "payload_file": "weary-cues.payload.ttl",
+      "documentation_file": "source-documentation.ttl",
+      "wasAttributedTo": "https://blackcatinformatics.ca/gmeow/self#patrick-audley",
+      "cueReview": "urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z",
+      "review_status": "approved"
+    }
+  ]
+}

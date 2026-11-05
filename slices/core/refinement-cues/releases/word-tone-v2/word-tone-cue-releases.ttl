@@ -1,0 +1,178 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53>
+    a gmeow:InformationObject ;
+    rdfs:label "Pinned original cue source module"@en ;
+    gmeow:versionOf <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl> ;
+    gmeow:versionLabel "f89ada3d6b34d792b8b386013642f77d99a7ed53" ;
+    gmeow:contentDigest "51ddd28721cfba6494102778001b13d0abb07d53a3f4c9d213fbb1872e1e2078"^^gmeow:sha256Digest ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    gmeow:description "Exact source module snapshot. Checkout: /home/paudley/Active/lillith_memetics; repository-relative path: slices/extensions/lillith-observations/module.ttl; Git revision: f89ada3d6b34d792b8b386013642f77d99a7ed53; cue declaration lines: 894-973. Observed SPDX notice: # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n# SPDX-License-Identifier: CC-BY-4.0. This is source evidence; it supplies no new release accountability or signoff."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:worried:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:worried> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:worried. Definition: A declared word cue for a troubled reading, using worried, worrying, anxious. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:afraid:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:afraid> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:afraid. Definition: A declared word cue for a troubled reading, using afraid, scared. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:upset:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:upset> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:upset. Definition: A declared word cue for a troubled reading, using upset, distressed. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:tired:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:weary:2:cue:tired> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:weary:2:cue:tired. Definition: A declared word cue for a weary reading, using tired, exhausted. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:weary:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:wornOut:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:weary:2:cue:wornOut> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:weary:2:cue:wornOut. Definition: A declared word cue for a weary reading, using worn out, long day. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:weary:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:worried>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "worried"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is worried or anxious. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"worried\", \"worrying\" or \"anxious\" where the speaker says it of themself now (\"I'm worried about the roof\", \"feeling anxious tonight\"). It is not the cue when it is said of someone else, denied (\"not worried at all\"), in the past and over (\"I was worried, but it's fine now\"), or reported or quoted speech. Report as missed any words of the speaker's present worry using these words that were not reported."@en ;
+    gmeow:cuePhrase "worried"@en , "worrying"@en , "anxious"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm worried about the roof leaking again tonight."@en ;
+    gmeow:cueCounterExample "The roof held up fine in the storm."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:afraid>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "afraid"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is afraid or scared. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"afraid\" or \"scared\" where the speaker says it of themself now (\"I'm scared of what the doctor will say\"). It is not the cue in the polite idiom of regret (\"I'm afraid we're out of milk\"), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present fear using these words that were not reported."@en ;
+    gmeow:cuePhrase "afraid"@en , "scared"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm scared of what the doctor will say tomorrow."@en ;
+    gmeow:cueCounterExample "The doctor said everything looks good."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:upset>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "upset"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is upset or distressed. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"upset\" or \"distressed\" where the speaker says it of themself now (\"I'm so upset about the letter\"). It is not the cue as an upset stomach or an upset in a game, when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present distress using these words that were not reported."@en ;
+    gmeow:cuePhrase "upset"@en , "distressed"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm so upset about the letter from the council."@en ;
+    gmeow:cueCounterExample "The letter from the council came this morning."@en .
+
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:tired>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "tired"@en ;
+    gmeow:description "Word evidence for a weary reading: the words say the speaker is tired or exhausted. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"tired\" or \"exhausted\" where the speaker says it of themself now (\"so tired tonight\", \"I'm exhausted\"). It is not the cue as tired of something (\"tired of the rain\" is not weariness), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present weariness using these words that were not reported."@en ;
+    gmeow:cuePhrase "tired"@en , "exhausted"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm exhausted after the drive back from the coast."@en ;
+    gmeow:cueCounterExample "The drive back from the coast was lovely."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:wornOut>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "worn out"@en ;
+    gmeow:description "Word evidence for a weary reading: the words say the speaker is worn out or had a long day. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"worn out\" or \"long day\" where the speaker says it of themself now (\"I'm worn out\", \"it's been a long day\"). It is not the cue when said of a thing (\"the rug is worn out\"), of someone else, or in reported speech. Report as missed any words of the speaker's present weariness using these phrases that were not reported."@en ;
+    gmeow:cuePhrase "worn out"@en , "long day"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "It's been a long day at the workshop."@en ;
+    gmeow:cueCounterExample "The workshop opens early on Saturdays."@en .
+
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:gmeow:word-tone-cues:troubled> a gmeow:InformationObject ;
+    rdfs:label "troubled word-tone cue lineage"@en .
+
+<urn:gmeow:word-tone-cues:troubled:2>
+    a gmeow:CueLexicon ;
+    rdfs:label "troubled word-tone cue release"@en ;
+    gmeow:versionOf <urn:gmeow:word-tone-cues:troubled> ;
+    gmeow:versionLabel "2" ;
+    gmeow:contentDigest "e33516e14a746f3802aff5225a4756226afc4d1b36772d5ac12c6308bd427770"^^gmeow:sha256Digest ;
+    gmeow:hasCue <urn:gmeow:word-tone-cues:troubled:2:cue:worried>, <urn:gmeow:word-tone-cues:troubled:2:cue:afraid>, <urn:gmeow:word-tone-cues:troubled:2:cue:upset> ;
+    gmeow:writtenInLanguage <https://blackcatinformatics.ca/lang/english> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "English word-evidence declarations for a troubled reading. Phrase matches do not execute the judge guidance or assert a person state."@en ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:cueReview <urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> .
+
+<urn:gmeow:word-tone-cues:weary> a gmeow:InformationObject ;
+    rdfs:label "weary word-tone cue lineage"@en .
+
+<urn:gmeow:word-tone-cues:weary:2>
+    a gmeow:CueLexicon ;
+    rdfs:label "weary word-tone cue release"@en ;
+    gmeow:versionOf <urn:gmeow:word-tone-cues:weary> ;
+    gmeow:versionLabel "2" ;
+    gmeow:contentDigest "d9bdfd0ead31a0c07534d86663d203d60e3031d9b14408ed559bbb956b414ccd"^^gmeow:sha256Digest ;
+    gmeow:hasCue <urn:gmeow:word-tone-cues:weary:2:cue:tired>, <urn:gmeow:word-tone-cues:weary:2:cue:wornOut> ;
+    gmeow:writtenInLanguage <https://blackcatinformatics.ca/lang/english> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "English word-evidence declarations for a weary reading. Phrase matches do not execute the judge guidance or assert a person state."@en ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:cueReview <urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> .
+
+<https://blackcatinformatics.ca/gmeow/self#patrick-audley> a gmeow:Person, gmeow:Agent ;
+    rdfs:label "Patrick Audley"@en .
+
+<urn:gmeow:word-tone-cues:event-type:review-approval> a gmeow:EventType ;
+    rdfs:label "Cue release review approval"@en ;
+    skos:definition "Approval of an exact cue inventory for release by its accountable reviewer and curator."@en .
+
+<urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> a gmeow:Activity ;
+    rdfs:label "Patrick Audley approval of the troubled and weary cue inventories, version 2"@en ;
+    gmeow:wasAssociatedWith <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:eventType <urn:gmeow:word-tone-cues:event-type:review-approval> ;
+    gmeow:eventTime "2026-11-05T17:59:52Z"^^xsd:dateTime ;
+    gmeow:description "Patrick Audley approved review and publication of both exact version 2 cue payloads and designated himself reviewer and curator. Approval was observed at the recorded instant; this activity does not assert that external data validation or publication has occurred."@en .

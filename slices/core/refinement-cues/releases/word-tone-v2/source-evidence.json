@@ -1,0 +1,144 @@
+{
+  "source_revision": "f89ada3d6b34d792b8b386013642f77d99a7ed53",
+  "source_file": "slices/extensions/lillith-observations/module.ttl",
+  "source_module_iri": "https://blackcatinformatics.ca/gmeow/slices/lillith-observations",
+  "source_module_sha256": "51ddd28721cfba6494102778001b13d0abb07d53a3f4c9d213fbb1872e1e2078",
+  "source_working_bytes_equal_committed_revision": true,
+  "source_excerpt_sha256": "69c0b183b9512201d01a4d6aa95731cd445a3b706b8669a3c315961c53a7957f",
+  "source_excerpt_start_line": 894,
+  "source_excerpt_end_line": 973,
+  "observed_spdx_header": "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n# SPDX-License-Identifier: CC-BY-4.0",
+  "observed_copyright": "2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
+  "observed_license_identifier": "CC-BY-4.0",
+  "original_lexicons": [
+    "https://blackcatinformatics.ca/gmeow/cueLexiconToneTroubled",
+    "https://blackcatinformatics.ca/gmeow/cueLexiconToneWeary"
+  ],
+  "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+  "source_file_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl",
+  "source_excerpt_file": "source-cues.ttl.txt",
+  "source_attribution": {
+    "observed_repository_author": "Patrick_Audley",
+    "source_author_identity": "https://blackcatinformatics.ca/gmeow/self#patrick-audley",
+    "limit": "Repository line attribution is source evidence; the user approval separately establishes release review and curatorship. It does not establish that this person composed every word."
+  },
+  "license_evidence_limit": "The observed CC-BY-4.0 source notice and attribution are retained; no legal certification or third-party provenance audit is asserted.",
+  "adaptation_mapping": [
+    {
+      "source_cue": "https://blackcatinformatics.ca/gmeow/cueToneWorried",
+      "tone_label": "https://blackcatinformatics.ca/gmeow/toneTroubled",
+      "phrases": [
+        "worried",
+        "worrying",
+        "anxious"
+      ],
+      "language_tag": "en",
+      "base_direction": null,
+      "source_block_sha256": "8edd0f94268cedab4fd7aeb98712b65817004643830c7e27859c2420d8d2a7c4",
+      "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+      "documentation_iri": "urn:gmeow:word-tone-cues:troubled:2:cue:worried:documentation",
+      "release_cue": "urn:gmeow:word-tone-cues:troubled:2:cue:worried",
+      "release": "urn:gmeow:word-tone-cues:troubled:2",
+      "changes": [
+        "Distinct external release-scoped cue identity; no canonical alias or equivalence.",
+        "Direct predicates are restricted to the existing Cue closed-record allowlist.",
+        "Source snapshot wasDerivedFrom is retained directly on the Cue.",
+        "Definition, original owner, defining release and original graph role are carried by the linked documentary record, not directly on the Cue.",
+        "Original flat contentLanguageCode is replaced by writtenInLanguage lang:english; lexical phrases remain @en without translated alternatives.",
+        "Description concerns word evidence only. Labels, guidance, all phrases, evidence targets and synthetic examples remain verbatim."
+      ]
+    },
+    {
+      "source_cue": "https://blackcatinformatics.ca/gmeow/cueToneAfraid",
+      "tone_label": "https://blackcatinformatics.ca/gmeow/toneTroubled",
+      "phrases": [
+        "afraid",
+        "scared"
+      ],
+      "language_tag": "en",
+      "base_direction": null,
+      "source_block_sha256": "e686aaea6c76966135bf1ea6675ca0897b959ccb7f8dfb86a2efdc8a04e23927",
+      "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+      "documentation_iri": "urn:gmeow:word-tone-cues:troubled:2:cue:afraid:documentation",
+      "release_cue": "urn:gmeow:word-tone-cues:troubled:2:cue:afraid",
+      "release": "urn:gmeow:word-tone-cues:troubled:2",
+      "changes": [
+        "Distinct external release-scoped cue identity; no canonical alias or equivalence.",
+        "Direct predicates are restricted to the existing Cue closed-record allowlist.",
+        "Source snapshot wasDerivedFrom is retained directly on the Cue.",
+        "Definition, original owner, defining release and original graph role are carried by the linked documentary record, not directly on the Cue.",
+        "Original flat contentLanguageCode is replaced by writtenInLanguage lang:english; lexical phrases remain @en without translated alternatives.",
+        "Description concerns word evidence only. Labels, guidance, all phrases, evidence targets and synthetic examples remain verbatim."
+      ]
+    },
+    {
+      "source_cue": "https://blackcatinformatics.ca/gmeow/cueToneUpset",
+      "tone_label": "https://blackcatinformatics.ca/gmeow/toneTroubled",
+      "phrases": [
+        "upset",
+        "distressed"
+      ],
+      "language_tag": "en",
+      "base_direction": null,
+      "source_block_sha256": "691978b637f1863f77f30c0056655e224a9ff5010f47e92928df8a6e39484d4f",
+      "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+      "documentation_iri": "urn:gmeow:word-tone-cues:troubled:2:cue:upset:documentation",
+      "release_cue": "urn:gmeow:word-tone-cues:troubled:2:cue:upset",
+      "release": "urn:gmeow:word-tone-cues:troubled:2",
+      "changes": [
+        "Distinct external release-scoped cue identity; no canonical alias or equivalence.",
+        "Direct predicates are restricted to the existing Cue closed-record allowlist.",
+        "Source snapshot wasDerivedFrom is retained directly on the Cue.",
+        "Definition, original owner, defining release and original graph role are carried by the linked documentary record, not directly on the Cue.",
+        "Original flat contentLanguageCode is replaced by writtenInLanguage lang:english; lexical phrases remain @en without translated alternatives.",
+        "Description concerns word evidence only. Labels, guidance, all phrases, evidence targets and synthetic examples remain verbatim."
+      ]
+    },
+    {
+      "source_cue": "https://blackcatinformatics.ca/gmeow/cueToneTired",
+      "tone_label": "https://blackcatinformatics.ca/gmeow/toneWeary",
+      "phrases": [
+        "tired",
+        "exhausted"
+      ],
+      "language_tag": "en",
+      "base_direction": null,
+      "source_block_sha256": "ff34331b637b43e3389af11a57c9715f9c1ec9ed1308d0f8b02ecf8e99435a3c",
+      "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+      "documentation_iri": "urn:gmeow:word-tone-cues:weary:2:cue:tired:documentation",
+      "release_cue": "urn:gmeow:word-tone-cues:weary:2:cue:tired",
+      "release": "urn:gmeow:word-tone-cues:weary:2",
+      "changes": [
+        "Distinct external release-scoped cue identity; no canonical alias or equivalence.",
+        "Direct predicates are restricted to the existing Cue closed-record allowlist.",
+        "Source snapshot wasDerivedFrom is retained directly on the Cue.",
+        "Definition, original owner, defining release and original graph role are carried by the linked documentary record, not directly on the Cue.",
+        "Original flat contentLanguageCode is replaced by writtenInLanguage lang:english; lexical phrases remain @en without translated alternatives.",
+        "Description concerns word evidence only. Labels, guidance, all phrases, evidence targets and synthetic examples remain verbatim."
+      ]
+    },
+    {
+      "source_cue": "https://blackcatinformatics.ca/gmeow/cueToneWornOut",
+      "tone_label": "https://blackcatinformatics.ca/gmeow/toneWeary",
+      "phrases": [
+        "worn out",
+        "long day"
+      ],
+      "language_tag": "en",
+      "base_direction": null,
+      "source_block_sha256": "11690a93952c8b625772a3cb1e7132ae8fb290042603ab63be08aff87a0563eb",
+      "source_snapshot_iri": "file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53",
+      "documentation_iri": "urn:gmeow:word-tone-cues:weary:2:cue:wornOut:documentation",
+      "release_cue": "urn:gmeow:word-tone-cues:weary:2:cue:wornOut",
+      "release": "urn:gmeow:word-tone-cues:weary:2",
+      "changes": [
+        "Distinct external release-scoped cue identity; no canonical alias or equivalence.",
+        "Direct predicates are restricted to the existing Cue closed-record allowlist.",
+        "Source snapshot wasDerivedFrom is retained directly on the Cue.",
+        "Definition, original owner, defining release and original graph role are carried by the linked documentary record, not directly on the Cue.",
+        "Original flat contentLanguageCode is replaced by writtenInLanguage lang:english; lexical phrases remain @en without translated alternatives.",
+        "Description concerns word evidence only. Labels, guidance, all phrases, evidence targets and synthetic examples remain verbatim."
+      ]
+    }
+  ]
+}

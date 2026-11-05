@@ -42,6 +42,19 @@ algorithms can coexist. Any changed cue declaration, text, language, direction,
 guidance or scope changes the released payload and requires a new release and
 review. Declaration validation neither executes a review nor recomputes a digest.
 
+## Troubled and weary word-tone inventories
+
+The reviewed [word-tone inventories, version 2](releases/word-tone-v2/README.md)
+provide five Cues and eleven English phrase alternatives with exact payload
+hashes, full source attribution and Patrick Audley’s shared review approval.
+Their [complete external-data entrypoint](releases/word-tone-v2/word-tone-cue-releases.ttl)
+is distributed beside its payloads and review envelope. External-data validation
+remains unrun. The inventories supply evidence about words, without asserting
+a speaker’s state or executing the judge guidance. They are outside ontology
+module/import/example loading; their files participate in the existing broad
+compression-dictionary training corpus. No dedicated release loader or matcher
+adoption is established.
+
 ## Exact comparison contracts
 
 Phrase words are maximal runs of Unicode 16.0.0 general-category letters

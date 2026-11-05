@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:tired>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "tired"@en ;
+    gmeow:description "Word evidence for a weary reading: the words say the speaker is tired or exhausted. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"tired\" or \"exhausted\" where the speaker says it of themself now (\"so tired tonight\", \"I'm exhausted\"). It is not the cue as tired of something (\"tired of the rain\" is not weariness), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present weariness using these words that were not reported."@en ;
+    gmeow:cuePhrase "tired"@en , "exhausted"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm exhausted after the drive back from the coast."@en ;
+    gmeow:cueCounterExample "The drive back from the coast was lovely."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:wornOut>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "worn out"@en ;
+    gmeow:description "Word evidence for a weary reading: the words say the speaker is worn out or had a long day. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"worn out\" or \"long day\" where the speaker says it of themself now (\"I'm worn out\", \"it's been a long day\"). It is not the cue when said of a thing (\"the rug is worn out\"), of someone else, or in reported speech. Report as missed any words of the speaker's present weariness using these phrases that were not reported."@en ;
+    gmeow:cuePhrase "worn out"@en , "long day"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "It's been a long day at the workshop."@en ;
+    gmeow:cueCounterExample "The workshop opens early on Saturdays."@en .

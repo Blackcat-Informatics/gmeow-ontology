@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:worried>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "worried"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is worried or anxious. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"worried\", \"worrying\" or \"anxious\" where the speaker says it of themself now (\"I'm worried about the roof\", \"feeling anxious tonight\"). It is not the cue when it is said of someone else, denied (\"not worried at all\"), in the past and over (\"I was worried, but it's fine now\"), or reported or quoted speech. Report as missed any words of the speaker's present worry using these words that were not reported."@en ;
+    gmeow:cuePhrase "worried"@en , "worrying"@en , "anxious"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm worried about the roof leaking again tonight."@en ;
+    gmeow:cueCounterExample "The roof held up fine in the storm."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:afraid>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "afraid"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is afraid or scared. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"afraid\" or \"scared\" where the speaker says it of themself now (\"I'm scared of what the doctor will say\"). It is not the cue in the polite idiom of regret (\"I'm afraid we're out of milk\"), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present fear using these words that were not reported."@en ;
+    gmeow:cuePhrase "afraid"@en , "scared"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm scared of what the doctor will say tomorrow."@en ;
+    gmeow:cueCounterExample "The doctor said everything looks good."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:upset>
+    a gmeow:Cue ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    rdfs:label "upset"@en ;
+    gmeow:description "Word evidence for a troubled reading: the words say the speaker is upset or distressed. A counted phrase match is a reading of words and does not establish the speaker's state or satisfaction of the guidance."@en ;
+    gmeow:detectionGuidance "Find \"upset\" or \"distressed\" where the speaker says it of themself now (\"I'm so upset about the letter\"). It is not the cue as an upset stomach or an upset in a game, when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present distress using these words that were not reported."@en ;
+    gmeow:cuePhrase "upset"@en , "distressed"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:writtenInLanguage lang:english ;
+    gmeow:cueExample "I'm so upset about the letter from the council."@en ;
+    gmeow:cueCounterExample "The letter from the council came this morning."@en .
