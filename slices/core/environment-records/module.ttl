@@ -3508,3 +3508,19 @@ gmeow:DreamEligibleAffordanceTagConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldObjectState" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestRevisionDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:releasesAttentionFrom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "conditionally releases attention from"@x-gmeow-english ;
+    skos:definition "Relates an Event to the Entity from which it conditionally releases attention: the event ends attention on that entity if it rested there, and otherwise asserts nothing about attention."@x-gmeow-english ;
+    skos:scopeNote "This relation records a conditional release, not an observed departing focus. It establishes no prior focus, Agent, slot assignment, successor focus or timeline and does not mutate an attention store."@x-gmeow-english ;
+    skos:example "A source reports that a provider failure releases attention from its object if attention rested there; it does not report whether that object was the focus."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual Event’s source-reported conditional attention release from an Entity, without asserting prior attention on that entity through this relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a departing or arriving focus, an Agent, a slot assignment or a timeline, or treating this relation as evidence of performed attention-store mutation."@x-gmeow-english ;
+    gmeow:howToUse "Point the actual Event to the supplied Entity and preserve source and viewpoint on the exact statement. Use attentionFrom separately only when the actual departing focus is supplied; unknown prior focus remains unknown."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Entity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -6022,3 +6022,31 @@ msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string 
 msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditionally releases attention from"
+msgstr "détache conditionnellement l’attention de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Event to the Entity from which it conditionally releases attention: the event ends attention on that entity if it rested there, and otherwise asserts nothing about attention."
+msgstr "Relie un Event à l’Entity de laquelle il détache conditionnellement l’attention : l’événement met fin à l’attention portée à cette entité si elle s’y portait, et sinon n’affirme rien au sujet de l’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records a conditional release, not an observed departing focus. It establishes no prior focus, Agent, slot assignment, successor focus or timeline and does not mutate an attention store."
+msgstr "Cette relation consigne une libération conditionnelle et non un foyer d’attention dont le départ a été observé. Elle n’établit ni foyer antérieur, ni Agent, ni affectation de case attentionnelle, ni foyer suivant, ni chronologie et ne modifie pas un stockage d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a provider failure releases attention from its object if attention rested there; it does not report whether that object was the focus."
+msgstr "Une source rapporte qu’une défaillance de fournisseur détache l’attention de son objet si elle s’y portait ; elle ne rapporte pas si cet objet était le foyer d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual Event’s source-reported conditional attention release from an Entity, without asserting prior attention on that entity through this relation."
+msgstr "Utiliser lorsqu’une source rapporte qu’un Event réel détache conditionnellement l’attention d’une Entity, sans que cette relation affirme que l’attention se portait auparavant sur cette entité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a departing or arriving focus, an Agent, a slot assignment or a timeline, or treating this relation as evidence of performed attention-store mutation."
+msgstr "Éviter d’inférer un foyer d’attention quitté ou atteint, un Agent, une affectation de case attentionnelle ou une chronologie, ou de traiter cette relation comme une preuve de modification effectuée d’un stockage d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the supplied Entity and preserve source and viewpoint on the exact statement. Use attentionFrom separately only when the actual departing focus is supplied; unknown prior focus remains unknown."
+msgstr "Relier l’Event réel à l’Entity fournie et conserver la source et le point de vue sur l’énoncé exact. Utiliser attentionFrom séparément uniquement lorsque le foyer d’attention réellement quitté est fourni ; un foyer antérieur inconnu reste inconnu."

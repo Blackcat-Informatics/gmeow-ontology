@@ -6022,3 +6022,31 @@ msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:stri
 msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditionally releases attention from"
+msgstr "有条件地将注意力从实体移开"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Event to the Entity from which it conditionally releases attention: the event ends attention on that entity if it rested there, and otherwise asserts nothing about attention."
+msgstr "将 Event 关联到其有条件移开注意力的 Entity：若注意力原本落在该实体上，事件则结束对它的注意；否则不对注意力作出任何断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records a conditional release, not an observed departing focus. It establishes no prior focus, Agent, slot assignment, successor focus or timeline and does not mutate an attention store."
+msgstr "此关系记录有条件的注意力移开，而非观测到的离开焦点。它不确立先前焦点、Agent、槽位分配、后继焦点或时间线，也不改变注意力存储。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a provider failure releases attention from its object if attention rested there; it does not report whether that object was the focus."
+msgstr "一个来源报告：若注意力原本落在某提供者的对象上，提供者故障会将注意力从该对象移开；来源并未报告该对象是否为焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual Event’s source-reported conditional attention release from an Entity, without asserting prior attention on that entity through this relation."
+msgstr "用于保留来源报告的实际 Event 有条件地将注意力从某 Entity 移开的陈述，不通过此关系断言先前注意力落在该实体上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a departing or arriving focus, an Agent, a slot assignment or a timeline, or treating this relation as evidence of performed attention-store mutation."
+msgstr "避免推断离开或到达的焦点、Agent、槽位分配或时间线，也避免把此关系当作已执行注意力存储修改的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the supplied Entity and preserve source and viewpoint on the exact statement. Use attentionFrom separately only when the actual departing focus is supplied; unknown prior focus remains unknown."
+msgstr "将实际 Event 关联到已提供的 Entity，并在精确陈述上保留来源和视角。仅在实际离开焦点已提供时另行使用 attentionFrom；未知先前焦点仍保持未知。"

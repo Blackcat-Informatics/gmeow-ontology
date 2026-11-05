@@ -303,3 +303,22 @@ The `providerHandle` and `worldIdentifier` source identifiers admit `xsd:string`
 and explicitly supplied `xsd:token`. Keep the original datatype and lexical
 form; do not trim, collapse whitespace or infer token typing. Their range
 unions add no requiredness or closed-world validation boundary.
+
+## Conditional attention release
+
+releasesAttentionFrom records an actual Event’s conditional release of attention
+from a supplied Entity. If attention rested there, the event ends that attention;
+otherwise the statement asserts nothing about attention. Unlike attentionFrom,
+it does not report a departing focus or presuppose that attention was on the
+target. Keep an actual departing focus separately through attentionFrom only
+when the source supplies that fact.
+
+For example, a source may report that a provider failure releases attention
+from its object if attention rested there, without reporting whether that object
+was the focus. Preserve the source and viewpoint on the exact release statement.
+The optional, nonfunctional relation creates no Agent, slot assignment, next
+focus, timeline or attention-store mutation. Its provided-value closure validates
+the existing Event and Entity endpoint sorts without requiring the property on
+every Event or changing existing event constraints. This is a source-reported
+conditional meaning, not execution of an attention policy (Principles 4, 9, 12
+and 17).
