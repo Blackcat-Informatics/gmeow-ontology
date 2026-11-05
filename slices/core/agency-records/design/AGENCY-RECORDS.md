@@ -664,3 +664,86 @@ asserted equivalent to this canonical account. Source, language, projection
 and native qualification remain distinct from authoring a vocabulary. Actual
 retained raw replies, per-call result ownership, real derivation and producer
 adoption must be supported by their actual sources, not by the names alone.
+
+## Perception occurrences and source-reported prompts
+
+AgencyRecords owns hearing/seeing event-kind values and their source-relative
+links, composing the existing Activity, Message, provenance and event owners.
+The actual hearing/seeing node is an occurrence, retained as an activity
+record; its source information artifact and exact statement reifier are
+distinct. It is not made an InformationObject merely by being recorded.
+Message typing alone proves no receipt, and recipient addressing or sending
+is not hearing evidence. Observation retains its own vantage/observedFeature
+claim contract, ObservationalActivity its observation-producing purpose, and
+Experience its phenomenal meaning; none is inferred here.
+
+The seeing occurrence has its actual observer through wasAssociatedWith;
+sawAct targets a distinct actual Activity whose performer and supplied place
+remain its own. heardMessage targets the actual communicative Message, whose
+speaker attribution is distinct from the hearer, recorder and declaring frame.
+Messaging's domain-free saidOnBehalfBy retains an explicitly supplied stand-in
+producer. Each exact assertion carries its own documentary source, recording
+attribution and accordingTo declaring frame. Metadata does not propagate across
+neighboring assertions or invent roles; source-supplied identity overlap remains
+permitted.
+
+promptedBy retains the source assertion that an actual occurrence is this
+acting agent's own prompting hearing/seeing record. A known common associated
+Agent can support that identity without selecting one globally unique performer.
+The source may nevertheless supply an opaque target IRI without target kind or
+holder triples. Preserve that actual reference without fabricating a target,
+typing evidence or holder. Its Activity domain and range remain open-world
+canonical axioms, including their entailment effects. This source meaning is
+separate from independently verified endpoint kind, holder validity and runtime
+isolation. Contradictory known endpoint evidence is retained as a source refusal;
+absence of endpoint evidence alone is not such a contradiction.
+
+Only promptedBy omits the global ClosedWorldClosure opt-in. Such an entry
+would derive an objects-of endpoint class check, while raw validation does not
+first materialize rdf:type from domain/range. It would reject the very opaque
+source IRI the relation must preserve. This omission neither removes the
+Activity range nor asserts that an unknown target has been checked. No new
+common-Agent, hearing-kind, uniqueness or target-fetching law is added.
+heardMessage, sawAct, promptedByAlias and actUnprompted retain their ordinary
+global supplied-value closures. RecordMetadata owns the fifth supplied-value
+closure, for receivedViaCode. No field is required on unrelated Activities;
+no new class, wrapper, Constraint, functionality or required path is introduced.
+
+promptedByAlias preserves an unresolved string or explicitly supplied token,
+including its exact lexical form and source namespace. There is no whitespace
+normalization, inferred token typing, string-equality resolver or invented
+target. Direct references and aliases remain independently source-supplied
+even if their evidence disagrees. A particular producer's alias admission
+rules are not promoted into an arbitrary upstream validator.
+
+actUnprompted expresses an explicit source assessment about an address to the
+acting agent, not universal causal independence. True, false and unknown stay
+distinct when actually supplied; false does not identify a prompt. A source
+representation that emitted only a positive tag loses the distinction between
+false and omission, so neither value is inferred from its absent tag. Conflicting
+attributed assessments coexist without global exclusion or winner selection.
+
+The actual tag boundary matters: hasTag has Entity domain, while taggingTagged
+has Tagging domain and Entity range. Entity excludes Event/Activity occurrents.
+The unprompted boolean avoids changing that shared API or inventing a wrapper
+whose tag would describe a different object. The domain-owned tagWordsNotKept
+is instead applied to an actual holder-specific Message information record.
+Missing text does not infer it; it neither denies hearing nor deletes wording
+held elsewhere. AgencyRecords therefore adds one direct dependency on Tags;
+Tags has no return dependency on AgencyRecords. No other dependency changes.
+
+Reception channels follow RecordMetadata's existing holder-specific metadata
+contract. receivedViaCode ordinarily belongs to the hearing Activity, so two
+holders can hear shared Message content without sharing their reception code.
+A Message identity is admissible only with independent evidence that it already
+names one holder-specific reception. Neither Message typing nor authorship
+supplies that evidence. The source/identity obligation is explicit; no range
+declaration is advertised as a global shared-content detector.
+
+The ordinary native RDF 1.2 scene declares its own hypothetical event kinds
+for the observed and resulting acts, avoiding an unanchored Event without
+inventing original source facts. Every role, channel, reference, boolean,
+wording and tag assertion retains exact source/frame metadata. Its unknown
+prompt endpoint has no invented type or holder. This is source illustration,
+not executed validation, private alias equivalence, consumer adoption or
+runtime isolation (Principles 2, 3, 4, 9, 10 and 17).

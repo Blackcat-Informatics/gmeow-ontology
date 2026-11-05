@@ -7482,3 +7482,227 @@ msgstr "不要从同次提交分组推断推导关系，不要强求具体目标
 msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain each actual IRI or blank-node reference; use genuine wasGeneratedBy and wasDerivedFrom backlinks independently when the source supplies them."
 msgstr "保留每个实际 IRI 或空白节点引用；来源提供真实 wasGeneratedBy 和 wasDerivedFrom 反向关联时，独立使用这些关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "heard message"
+msgstr "听到的消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a source-reported activity of hearing words addressed to an agent to the Message it heard. The hearing occurrence and its communicative content retain separate identities."
+msgstr "将来源所报告的、智能体听到对其说的话的活动关联到所听到的 Message。听到话语的发生与其交际内容保持不同的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicitly reported hearing occurrence and its actual message."
+msgstr "用于保留明确报告的听闻活动及其实际消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring hearing from sending, recipient addressing or a message merely being available."
+msgstr "避免根据发送、指定收件人或消息仅仅可用就推断已经听到。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the hearing Activity to its Message. Retain the actual hearer through wasAssociatedWith, speaker through message attribution, and source and recorder on exact statement reifiers."
+msgstr "将听闻 Activity 关联到其 Message。通过 wasAssociatedWith 保留实际听者，通过消息归属保留说话者，并在精确语句的具化节点上保留来源和记录者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Neither acoustic processing, understanding, phenomenal experience nor a recording agent's identity follows from the link."
+msgstr "可选且非函数性。此链接不蕴含声学处理、理解、现象体验或记录智能体的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heardMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hearing gmeow:heardMessage ex:words ."
+msgstr "ex:hearing gmeow:heardMessage ex:words ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "saw act"
+msgstr "看到的行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an agent's source-reported seeing Activity to the actual Activity it saw. The observer's occurrence and the observed act remain distinct."
+msgstr "将来源所报告的智能体的看见 Activity 关联到其所看到的实际 Activity。观察者的看见活动与被观察的行动保持不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies both a seeing occurrence and the act seen."
+msgstr "当来源同时标明看见活动及被看到的行动时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a description document for the seen act or identifying its actor with the observer or recorder."
+msgstr "避免以描述文档替代被看到的行动，或将行动者等同于观察者或记录者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep separate Activity identities. Retain each source-identified performer through its own wasAssociatedWith and the seen act's supplied place through eventLocation."
+msgstr "保留不同的 Activity 身份。通过各自的 wasAssociatedWith 保留来源标明的执行者，并通过 eventLocation 保留来源提供的被看到行动的地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. A reported sighting does not by itself create an Observation, ObservationalActivity, Experience, causal relation or permission."
+msgstr "可选且非函数性。报告看见本身并不创建 Observation、ObservationalActivity、Experience、因果关系或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sawAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:seeing gmeow:sawAct ex:observedAct ."
+msgstr "ex:seeing gmeow:sawAct ex:observedAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompted by"
+msgstr "由其触发"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The acting agent's own source-identified hearing or seeing occurrence reported as prompting this act. The target is that agent's occurrence record, not another holder's record or the shared Message."
+msgstr "来源标明为触发本行动的、行动智能体自身的听闻或看见活动。目标是该智能体的活动记录，而非其他持有者的记录或共享的 Message。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an actual supplied reference to the acting agent's prompting occurrence, including an opaque target IRI."
+msgstr "用于保留来源实际提供的、指向行动智能体的触发活动的引用，包括不透明的目标 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a target, resolving an alias by string equality, or treating recorder, declaring frame or a different holder as the actor."
+msgstr "避免臆造目标、凭字符串相等解析别名，或将记录者、声明框架或其他持有者当作行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied occurrence IRI and exact assertion provenance. Retain independently supplied actor and hearer or observer evidence without fabricating missing target types or holder identities."
+msgstr "保留来源提供的活动 IRI 及精确断言的溯源。保留独立提供的行动者及听者或观察者证据，不补造缺失的目标类型或持有者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional, with open-world Activity domain and range but no global closed endpoint opt-in. An opaque reference is retained without proving its kind, same-holder validity, chronology or runtime isolation."
+msgstr "可选且非函数性，具有开放世界的 Activity 定义域和值域，但不启用全局封闭端点验证。保留不透明引用并不证明其种类、同一持有者有效性、时间顺序或运行时隔离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:act gmeow:promptedBy <https://example.org/source-memory/prompt-8> ."
+msgstr "保留来源提供的不透明引用：ex:act gmeow:promptedBy <https://example.org/source-memory/prompt-8> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompted by alias"
+msgstr "触发活动别名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved alias for the acting agent's prompting hearing or seeing record, preserved as supplied. The alias is not an Activity node or a resolved promptedBy link."
+msgstr "生产者为行动智能体的触发性听闻或看见记录提供的未解析别名，按来源原样保留。别名不是 Activity 节点，也不是已解析的 promptedBy 链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a prompt alias without an established corresponding record identity."
+msgstr "当来源提供触发活动别名，但尚未确定对应记录身份时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching unrelated producers or holders by equal alias text, minting a target or converting an IRI reference into an alias."
+msgstr "避免因别名文本相同就匹配无关生产者或持有者、臆造目标，或将 IRI 引用转换为别名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact xsd:string or explicitly supplied xsd:token literal with its producer namespace and assertion provenance. Retain an independently supplied direct reference separately."
+msgstr "保留精确的 xsd:string 或来源明确提供的 xsd:token 字面量，以及生产者命名空间和断言溯源。单独保留独立提供的直接引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Preserve lexical form and datatype without whitespace normalization or inferred token typing. This declaration installs no resolver or arbitrary producer-alias validator."
+msgstr "可选且非函数性。保留词法形式和数据类型，不规范化空白，也不推断 token 类型。此声明不安装解析器或任意生产者别名验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptedByAlias|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:act gmeow:promptedByAlias \"source:heard-8\"^^xsd:token ."
+msgstr "ex:act gmeow:promptedByAlias \"source:heard-8\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act unprompted"
+msgstr "行动未由对其的言行触发"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's explicit boolean assessment that nothing addressed to the acting agent prompted this act, such as its own tick or solitary activity. It is not a claim that the act had no influences or causes."
+msgstr "来源明确给出的布尔判断：没有对行动智能体发出的言行触发本行动，例如其自身的节拍或独处活动。这不表示行动没有任何影响因素或原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an explicitly supplied assessment of whether an address to this actor prompted the act."
+msgstr "仅用于来源明确提供的判断，即本行动是否由对该行动者发出的言行触发。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving true from missing prompt links or deriving false from a missing tag. Do not apply hasTag to the Activity to encode this assessment."
+msgstr "避免因缺少触发链接而推导 true，或因缺少标签而推导 false。不要通过对 Activity 使用 hasTag 来编码此判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain true or false exactly as assessed, with exact statement source, recorder and declaring frame. Missing remains unknown; false does not identify a particular prompt."
+msgstr "按判断原样保留 true 或 false，并保留精确语句的来源、记录者和声明框架。缺失仍表示未知；false 不标明任何特定触发活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Competing attributed assessments coexist without a global winner or mutual-exclusion rule. This field does not prove free will, causal absence or runtime behavior."
+msgstr "可选且非函数性。归属不同来源的相互竞争的判断可以共存，不设全局优先结论或互斥规则。此字段不证明自由意志、无因性或运行时行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actUnprompted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:act gmeow:actUnprompted true ."
+msgstr "来源明确判断此行动未由对其的言行触发：ex:act gmeow:actUnprompted true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "words not kept"
+msgstr "未保留话语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-applied tag on a holder-specific Message record reporting that its heard wording was not retained. The hearing and Message remain represented even though this record keeps no words."
+msgstr "来源应用于持有者特定的 Message 记录的标签，表示所听到的话语措辞未被保留。即使本记录没有保留话语，听闻活动和 Message 仍然存在于表示中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit report that a particular holder's heard-word record keeps no wording."
+msgstr "用于明确报告某一持有者的听闻消息记录未保留措辞的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this tag from missing utteranceText, applying it to shared content globally, or treating it as proof that no words were spoken or heard."
+msgstr "避免根据缺少 utteranceText 推断此标签、将其全局应用于共享内容，或将其视为未说出或未听到任何话语的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through hasTag to the actual holder-specific Message information record. Keep its hearing link, speaker attribution and exact tagging provenance independently."
+msgstr "通过 hasTag 关联到实际的持有者特定 Message 信息记录。独立保留其听闻链接、说话者归属及精确的标签溯源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The tag has no type-inference or deletion rule. A missing tag does not prove that wording was retained; wording held elsewhere, historically or by a different attributed account remains intact."
+msgstr "此标签不带类型推断或删除规则。缺少标签并不证明已保留措辞；在别处、历史记录或归属其他来源的记述中保留的话语保持完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagWordsNotKept|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:holderWords gmeow:hasTag gmeow:tagWordsNotKept ."
+msgstr "ex:holderWords gmeow:hasTag gmeow:tagWordsNotKept ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent heard addressed words"
+msgstr "智能体听到对其说的话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence of an agent hearing words addressed to it. The occurrence is distinct from the Message heard and the source recording it."
+msgstr "开放的事件种类值，用于来源所报告的智能体听到对其说的话的发生。该活动区别于所听到的 Message 以及记录它的来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an explicitly reported hearing Activity without introducing an event subclass."
+msgstr "用于分类明确报告的听闻 Activity，而不引入事件子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying a message, receipt document or mere recipient address as the hearing occurrence."
+msgstr "避免将消息、回执文档或仅仅收件人地址分类为听闻活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType on the actual hearing Activity; retain its actual hearer and heardMessage separately with source-specific assertion metadata."
+msgstr "通过 eventType 关联到实际的听闻 Activity；单独保留实际听者和 heardMessage，并附上来源特定的断言元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An event-kind seed, not a class or proof of delivery, acoustic processing, understanding, phenomenal experience or successful execution. Other supplied event kinds may coexist."
+msgstr "这是事件种类的种子值，而非类，也不是送达、声学处理、理解、现象体验或成功执行的证明。来源提供的其他事件种类可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentHeard|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hearing gmeow:eventType gmeow:eventTypeAgentHeard ."
+msgstr "ex:hearing gmeow:eventType gmeow:eventTypeAgentHeard ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent saw another's act"
+msgstr "智能体看到他者的行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence of an agent seeing another's act. The observer's occurrence and the actual seen Activity retain their identities and independently represented performers."
+msgstr "开放的事件种类值，用于来源所报告的智能体看到他者行动的发生。观察者的看见活动与实际被看到的 Activity 分别保留其身份和执行者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an explicitly reported seeing Activity without introducing an event subclass."
+msgstr "用于分类明确报告的看见 Activity，而不引入事件子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid classifying the seen act or a description document as the observer's seeing occurrence."
+msgstr "避免将被看到的行动或描述文档分类为观察者的看见活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType on the seeing Activity and link sawAct to the actual observed Activity. Retain observer, seen actor and supplied place through their own roles."
+msgstr "通过 eventType 关联到看见 Activity，并通过 sawAct 指向实际被观察的 Activity。通过各自的角色保留观察者、被看见的行动者及来源提供的地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An event-kind seed, not a new class, Observation, ObservationalActivity or Experience. It supplies no missing actor, place, mental state, causal relation or permission."
+msgstr "这是事件种类的种子值，而非新类、Observation、ObservationalActivity 或 Experience。它不补造缺失的行动者、地点、心理状态、因果关系或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."
+msgstr "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."

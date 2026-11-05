@@ -1007,3 +1007,63 @@ actual derivation independent. It supplies no decomposer implementation,
 runtime receipt, successful persistence result, private alias or consumer
 migration. Genuine source qualification and each selected consuming
 operation's required evidence remain necessary.
+
+## Hearing, seeing and what prompted an act
+
+`eventTypeAgentHeard` and `eventTypeAgentSaw` classify source-reported hearing
+and seeing Activities. These nodes name the actual reported occurrences, not
+their source documents. `heardMessage` points to the Message heard;
+`sawAct` points to a separate actual Activity seen. Preserve the hearer or
+observer with the occurrence's `wasAssociatedWith`, the seen actor with the
+seen act's own `wasAssociatedWith`, and its supplied place with `eventLocation`.
+Message attribution identifies the source-reported speaker; an independently
+identified stand-in producer uses Messaging's existing `saidOnBehalfBy`.
+Recorder, documentary source and declaring frame stay on exact native RDF 1.2
+statement reifiers. They do not supply missing performers or speakers.
+
+`promptedBy` retains the source's actual reference to the acting agent's own
+hearing or seeing occurrence. Its target is neither the shared Message nor
+the other agent's seen act. An opaque occurrence IRI is still retained when
+its kind and holder are not independently evidenced. The canonical open-world
+Activity domain and range do not verify that source claim. This property has
+no global closed endpoint opt-in: raw validation must not demand fabricated
+target typing to retain an actual reference. A known contradictory endpoint
+remains rejected source evidence rather than being silently repaired.
+
+`promptedByAlias` separately retains an unresolved producer alias. Preserve
+the supplied `xsd:string` or explicitly supplied `xsd:token`, its spelling and
+producer namespace. Equal text across holders or producers establishes no
+record identity. Neither this field nor a direct reference fetches a target,
+chooses a globally unique acting Agent or proves runtime holder isolation.
+
+`actUnprompted` is an explicit source boolean saying that nothing addressed
+to this actor prompted the act. Its own tick or solitary activity can be
+reported this way without claiming an absence of every influence or cause.
+True, false and missing remain distinct; false supplies no particular prompt.
+Missing prompt links do not imply true. If a source encoded only true as a
+tag, an absent old tag cannot recover either false or omission. Preserve the
+original evidence instead of guessing. Differently attributed assessments
+may coexist without a global winner or mutual-exclusion rule.
+
+`hasTag` has Entity domain; `taggingTagged` has Tagging domain and Entity
+range. An Activity is an occurrent, not an Entity. Use the boolean for the
+unprompted act assessment rather than tagging or retyping that Activity.
+`tagWordsNotKept` instead belongs on a holder-specific Message information
+record. It reports that this record retains no heard wording; hearing and
+Message identity survive. Missing `utteranceText` alone implies no tag, and a
+missing tag does not establish retained wording. Wording held elsewhere, historically or in
+another attributed account is not deleted or marked globally lost.
+
+For raw reception-channel text use RecordMetadata's `receivedViaCode` on the
+actual holder-specific reception, ordinarily the hearing Activity. Two holders
+may hear one Message through separate occurrences and different codes. Message
+typing alone does not justify placing a reception code or a words-not-kept
+assessment on shared content. A Message subject is appropriate only when its
+identity already denotes one holder-specific reception record.
+
+The [ordinary scene](examples/perception-and-prompts.ttl) keeps these roles,
+opaque and alias references, source booleans and retention boundaries explicit.
+Its source-local event kinds describe that hypothetical scene only. It proves
+no acoustic processing, consciousness, Observation, ObservationalActivity,
+Experience, chronology, permission, generated validation or executed consumer
+behavior (Principles 2, 3, 4, 9, 10 and 17).

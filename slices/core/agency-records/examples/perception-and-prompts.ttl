@@ -1,0 +1,644 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/perception-and-prompts/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# All identities and assertions below belong to this hypothetical source scene.
+# Source-local EventType values add no canonical coats or original source facts.
+# Every scene assertion has its exact native reifier and independent source/frame.
+# Shared words retain wording; holderWords alone reports its words not kept.
+# unspecifiedWords has no text or retention tag; unknownPromptAct has no prompt bit.
+# The opaque prompt IRI deliberately has no invented type, kind or holder triples.
+# The source string spaces and explicit token datatypes remain unchanged.
+# Neither range declarations nor this illustration execute holder isolation.
+
+ex:holderA rdf:type gmeow:Agent .
+ex:holderA rdfs:label "First source-identified hearer and actor"@en .
+ex:holderB rdf:type gmeow:Agent .
+ex:holderB rdfs:label "Second source-identified hearer"@en .
+ex:speaker rdf:type gmeow:Agent .
+ex:speaker rdfs:label "Attributed speaker"@en .
+ex:voice rdf:type gmeow:Agent .
+ex:voice rdfs:label "Actual stand-in utterance producer"@en .
+ex:seenActor rdf:type gmeow:Agent .
+ex:seenActor rdfs:label "Source-identified actor of the seen act"@en .
+ex:recorder rdf:type gmeow:SoftwareAgent .
+ex:recorder rdf:type gmeow:Agent .
+ex:recorder rdfs:label "Recording importer"@en .
+ex:writerA rdf:type gmeow:Agent .
+ex:writerA rdfs:label "First declaring source frame"@en .
+ex:writerB rdf:type gmeow:Agent .
+ex:writerB rdfs:label "Second declaring source frame"@en .
+ex:sourceA rdf:type gmeow:InformationObject .
+ex:sourceA rdfs:label "First hypothetical source account"@en .
+ex:sourceB rdf:type gmeow:InformationObject .
+ex:sourceB rdfs:label "Second hypothetical source account"@en .
+ex:courtyard rdf:type gmeow:Place .
+ex:courtyard rdfs:label "Place explicitly named by the hypothetical source"@en .
+ex:observedActKind rdf:type gmeow:EventType .
+ex:observedActKind rdfs:label "Observed act kind declared only by this hypothetical source"@en .
+ex:resultingActKind rdf:type gmeow:EventType .
+ex:resultingActKind rdfs:label "Resulting act kind declared only by this hypothetical source"@en .
+ex:sharedWords rdf:type gmeow:Message .
+ex:sharedWords rdfs:label "Message content heard through two receptions"@en .
+ex:holderWords rdf:type gmeow:Message .
+ex:holderWords rdfs:label "Separate holder-specific heard-word record without retained wording"@en .
+ex:unspecifiedWords rdf:type gmeow:Message .
+ex:unspecifiedWords rdfs:label "Message with no supplied wording or retention assessment"@en .
+ex:hearingA rdf:type gmeow:Activity .
+ex:hearingA rdfs:label "First hearing occurrence"@en .
+ex:hearingB rdf:type gmeow:Activity .
+ex:hearingB rdfs:label "Independent hearing occurrence for the same content"@en .
+ex:seeingA rdf:type gmeow:Activity .
+ex:seeingA rdfs:label "Seeing occurrence of the first holder"@en .
+ex:observedAct rdf:type gmeow:Activity .
+ex:observedAct rdfs:label "Actual seen act separate from the seeing occurrence"@en .
+ex:resultingAct rdf:type gmeow:Activity .
+ex:resultingAct rdfs:label "Act reported as prompted by the holder's hearing and seeing"@en .
+ex:opaqueReferenceAct rdf:type gmeow:Activity .
+ex:opaqueReferenceAct rdfs:label "Act retaining an opaque prompt reference and unresolved alias"@en .
+ex:unpromptedAct rdf:type gmeow:Activity .
+ex:unpromptedAct rdfs:label "Act explicitly assessed as unprompted"@en .
+ex:deniedUnpromptedAct rdf:type gmeow:Activity .
+ex:deniedUnpromptedAct rdfs:label "Act explicitly denied the unprompted assessment"@en .
+ex:unknownPromptAct rdf:type gmeow:Activity .
+ex:unknownPromptAct rdfs:label "Act with no supplied prompt assessment"@en .
+ex:disputedAct rdf:type gmeow:Activity .
+ex:disputedAct rdfs:label "Act with competing source-attributed assessments"@en .
+ex:hearingWithoutWords rdf:type gmeow:Activity .
+ex:hearingWithoutWords rdfs:label "Hearing whose holder-specific words were not kept"@en .
+ex:hearingUnspecifiedWords rdf:type gmeow:Activity .
+ex:hearingUnspecifiedWords rdfs:label "Hearing with no supplied word-retention assessment"@en .
+ex:sharedWords gmeow:wasAttributedTo ex:speaker .
+ex:sharedWords gmeow:saidOnBehalfBy ex:voice .
+ex:sharedWords gmeow:utteranceText "The gate is open."@en .
+ex:hearingA gmeow:eventType gmeow:eventTypeAgentHeard .
+ex:hearingA gmeow:wasAssociatedWith ex:holderA .
+ex:hearingA gmeow:heardMessage ex:sharedWords .
+ex:hearingA gmeow:receivedViaCode " room relay " .
+ex:hearingB gmeow:eventType gmeow:eventTypeAgentHeard .
+ex:hearingB gmeow:wasAssociatedWith ex:holderB .
+ex:hearingB gmeow:heardMessage ex:sharedWords .
+ex:hearingB gmeow:receivedViaCode "relay"^^xsd:token .
+ex:seeingA gmeow:eventType gmeow:eventTypeAgentSaw .
+ex:seeingA gmeow:wasAssociatedWith ex:holderA .
+ex:seeingA gmeow:sawAct ex:observedAct .
+ex:observedAct gmeow:eventType ex:observedActKind .
+ex:observedAct gmeow:wasAssociatedWith ex:seenActor .
+ex:observedAct gmeow:eventLocation ex:courtyard .
+ex:resultingAct gmeow:eventType ex:resultingActKind .
+ex:resultingAct gmeow:wasAssociatedWith ex:holderA .
+ex:resultingAct gmeow:promptedBy ex:hearingA .
+ex:resultingAct gmeow:promptedBy ex:seeingA .
+ex:opaqueReferenceAct gmeow:eventType ex:resultingActKind .
+ex:opaqueReferenceAct gmeow:wasAssociatedWith ex:holderA .
+ex:opaqueReferenceAct gmeow:promptedBy <https://example.org/source-memory/prompt-8> .
+ex:opaqueReferenceAct gmeow:promptedByAlias "source:heard-8"^^xsd:token .
+ex:opaqueReferenceAct gmeow:promptedByAlias " local alias 8 " .
+ex:unpromptedAct gmeow:eventType ex:resultingActKind .
+ex:unpromptedAct gmeow:wasAssociatedWith ex:holderA .
+ex:unpromptedAct gmeow:actUnprompted true .
+ex:deniedUnpromptedAct gmeow:eventType ex:resultingActKind .
+ex:deniedUnpromptedAct gmeow:wasAssociatedWith ex:holderA .
+ex:deniedUnpromptedAct gmeow:actUnprompted false .
+ex:unknownPromptAct gmeow:eventType ex:resultingActKind .
+ex:unknownPromptAct gmeow:wasAssociatedWith ex:holderA .
+ex:disputedAct gmeow:eventType ex:resultingActKind .
+ex:disputedAct gmeow:wasAssociatedWith ex:holderA .
+ex:disputedAct gmeow:actUnprompted true .
+ex:disputedAct gmeow:actUnprompted false .
+ex:hearingWithoutWords gmeow:eventType gmeow:eventTypeAgentHeard .
+ex:hearingWithoutWords gmeow:wasAssociatedWith ex:holderA .
+ex:hearingWithoutWords gmeow:heardMessage ex:holderWords .
+ex:holderWords gmeow:wasAttributedTo ex:speaker .
+ex:holderWords gmeow:hasTag gmeow:tagWordsNotKept .
+ex:hearingUnspecifiedWords gmeow:eventType gmeow:eventTypeAgentHeard .
+ex:hearingUnspecifiedWords gmeow:wasAssociatedWith ex:holderA .
+ex:hearingUnspecifiedWords gmeow:heardMessage ex:unspecifiedWords .
+ex:unspecifiedWords gmeow:wasAttributedTo ex:speaker .
+
+# Exact asserted statement identities; metadata never propagates to neighbors.
+
+ex:statement001 rdf:reifies <<( ex:holderA rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement002 rdf:reifies <<( ex:holderA rdfs:label "First source-identified hearer and actor"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement003 rdf:reifies <<( ex:holderB rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement004 rdf:reifies <<( ex:holderB rdfs:label "Second source-identified hearer"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement005 rdf:reifies <<( ex:speaker rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement006 rdf:reifies <<( ex:speaker rdfs:label "Attributed speaker"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement007 rdf:reifies <<( ex:voice rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement008 rdf:reifies <<( ex:voice rdfs:label "Actual stand-in utterance producer"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement009 rdf:reifies <<( ex:seenActor rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement010 rdf:reifies <<( ex:seenActor rdfs:label "Source-identified actor of the seen act"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement011 rdf:reifies <<( ex:recorder rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement012 rdf:reifies <<( ex:recorder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement013 rdf:reifies <<( ex:recorder rdfs:label "Recording importer"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement014 rdf:reifies <<( ex:writerA rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement015 rdf:reifies <<( ex:writerA rdfs:label "First declaring source frame"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement016 rdf:reifies <<( ex:writerB rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement017 rdf:reifies <<( ex:writerB rdfs:label "Second declaring source frame"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement018 rdf:reifies <<( ex:sourceA rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement019 rdf:reifies <<( ex:sourceA rdfs:label "First hypothetical source account"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement020 rdf:reifies <<( ex:sourceB rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement021 rdf:reifies <<( ex:sourceB rdfs:label "Second hypothetical source account"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement022 rdf:reifies <<( ex:courtyard rdf:type gmeow:Place )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement023 rdf:reifies <<( ex:courtyard rdfs:label "Place explicitly named by the hypothetical source"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement024 rdf:reifies <<( ex:observedActKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement025 rdf:reifies <<( ex:observedActKind rdfs:label "Observed act kind declared only by this hypothetical source"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement026 rdf:reifies <<( ex:resultingActKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement027 rdf:reifies <<( ex:resultingActKind rdfs:label "Resulting act kind declared only by this hypothetical source"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement028 rdf:reifies <<( ex:sharedWords rdf:type gmeow:Message )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement029 rdf:reifies <<( ex:sharedWords rdfs:label "Message content heard through two receptions"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement030 rdf:reifies <<( ex:holderWords rdf:type gmeow:Message )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement031 rdf:reifies <<( ex:holderWords rdfs:label "Separate holder-specific heard-word record without retained wording"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement032 rdf:reifies <<( ex:unspecifiedWords rdf:type gmeow:Message )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement033 rdf:reifies <<( ex:unspecifiedWords rdfs:label "Message with no supplied wording or retention assessment"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement034 rdf:reifies <<( ex:hearingA rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement035 rdf:reifies <<( ex:hearingA rdfs:label "First hearing occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement036 rdf:reifies <<( ex:hearingB rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement037 rdf:reifies <<( ex:hearingB rdfs:label "Independent hearing occurrence for the same content"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement038 rdf:reifies <<( ex:seeingA rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement039 rdf:reifies <<( ex:seeingA rdfs:label "Seeing occurrence of the first holder"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement040 rdf:reifies <<( ex:observedAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement041 rdf:reifies <<( ex:observedAct rdfs:label "Actual seen act separate from the seeing occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement042 rdf:reifies <<( ex:resultingAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement043 rdf:reifies <<( ex:resultingAct rdfs:label "Act reported as prompted by the holder's hearing and seeing"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement044 rdf:reifies <<( ex:opaqueReferenceAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement045 rdf:reifies <<( ex:opaqueReferenceAct rdfs:label "Act retaining an opaque prompt reference and unresolved alias"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement046 rdf:reifies <<( ex:unpromptedAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement047 rdf:reifies <<( ex:unpromptedAct rdfs:label "Act explicitly assessed as unprompted"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement048 rdf:reifies <<( ex:deniedUnpromptedAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement049 rdf:reifies <<( ex:deniedUnpromptedAct rdfs:label "Act explicitly denied the unprompted assessment"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement050 rdf:reifies <<( ex:unknownPromptAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement051 rdf:reifies <<( ex:unknownPromptAct rdfs:label "Act with no supplied prompt assessment"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement052 rdf:reifies <<( ex:disputedAct rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement053 rdf:reifies <<( ex:disputedAct rdfs:label "Act with competing source-attributed assessments"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement054 rdf:reifies <<( ex:hearingWithoutWords rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement055 rdf:reifies <<( ex:hearingWithoutWords rdfs:label "Hearing whose holder-specific words were not kept"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement056 rdf:reifies <<( ex:hearingUnspecifiedWords rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement057 rdf:reifies <<( ex:hearingUnspecifiedWords rdfs:label "Hearing with no supplied word-retention assessment"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement058 rdf:reifies <<( ex:sharedWords gmeow:wasAttributedTo ex:speaker )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement059 rdf:reifies <<( ex:sharedWords gmeow:saidOnBehalfBy ex:voice )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement060 rdf:reifies <<( ex:sharedWords gmeow:utteranceText "The gate is open."@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement061 rdf:reifies <<( ex:hearingA gmeow:eventType gmeow:eventTypeAgentHeard )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement062 rdf:reifies <<( ex:hearingA gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement063 rdf:reifies <<( ex:hearingA gmeow:heardMessage ex:sharedWords )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement064 rdf:reifies <<( ex:hearingA gmeow:receivedViaCode " room relay " )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement065 rdf:reifies <<( ex:hearingB gmeow:eventType gmeow:eventTypeAgentHeard )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:statement066 rdf:reifies <<( ex:hearingB gmeow:wasAssociatedWith ex:holderB )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:statement067 rdf:reifies <<( ex:hearingB gmeow:heardMessage ex:sharedWords )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:statement068 rdf:reifies <<( ex:hearingB gmeow:receivedViaCode "relay"^^xsd:token )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:statement069 rdf:reifies <<( ex:seeingA gmeow:eventType gmeow:eventTypeAgentSaw )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement070 rdf:reifies <<( ex:seeingA gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement071 rdf:reifies <<( ex:seeingA gmeow:sawAct ex:observedAct )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement072 rdf:reifies <<( ex:observedAct gmeow:eventType ex:observedActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement073 rdf:reifies <<( ex:observedAct gmeow:wasAssociatedWith ex:seenActor )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement074 rdf:reifies <<( ex:observedAct gmeow:eventLocation ex:courtyard )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement075 rdf:reifies <<( ex:resultingAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement076 rdf:reifies <<( ex:resultingAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement077 rdf:reifies <<( ex:resultingAct gmeow:promptedBy ex:hearingA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement078 rdf:reifies <<( ex:resultingAct gmeow:promptedBy ex:seeingA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement079 rdf:reifies <<( ex:opaqueReferenceAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement080 rdf:reifies <<( ex:opaqueReferenceAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement081 rdf:reifies <<( ex:opaqueReferenceAct gmeow:promptedBy <https://example.org/source-memory/prompt-8> )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement082 rdf:reifies <<( ex:opaqueReferenceAct gmeow:promptedByAlias "source:heard-8"^^xsd:token )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement083 rdf:reifies <<( ex:opaqueReferenceAct gmeow:promptedByAlias " local alias 8 " )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement084 rdf:reifies <<( ex:unpromptedAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement085 rdf:reifies <<( ex:unpromptedAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement086 rdf:reifies <<( ex:unpromptedAct gmeow:actUnprompted true )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement087 rdf:reifies <<( ex:deniedUnpromptedAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement088 rdf:reifies <<( ex:deniedUnpromptedAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement089 rdf:reifies <<( ex:deniedUnpromptedAct gmeow:actUnprompted false )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement090 rdf:reifies <<( ex:unknownPromptAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement091 rdf:reifies <<( ex:unknownPromptAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement092 rdf:reifies <<( ex:disputedAct gmeow:eventType ex:resultingActKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement093 rdf:reifies <<( ex:disputedAct gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement094 rdf:reifies <<( ex:disputedAct gmeow:actUnprompted true )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement095 rdf:reifies <<( ex:disputedAct gmeow:actUnprompted false )>> ;
+    gmeow:wasDerivedFrom ex:sourceB ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerB .
+
+ex:statement096 rdf:reifies <<( ex:hearingWithoutWords gmeow:eventType gmeow:eventTypeAgentHeard )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement097 rdf:reifies <<( ex:hearingWithoutWords gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement098 rdf:reifies <<( ex:hearingWithoutWords gmeow:heardMessage ex:holderWords )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement099 rdf:reifies <<( ex:holderWords gmeow:wasAttributedTo ex:speaker )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement100 rdf:reifies <<( ex:holderWords gmeow:hasTag gmeow:tagWordsNotKept )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement101 rdf:reifies <<( ex:hearingUnspecifiedWords gmeow:eventType gmeow:eventTypeAgentHeard )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement102 rdf:reifies <<( ex:hearingUnspecifiedWords gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement103 rdf:reifies <<( ex:hearingUnspecifiedWords gmeow:heardMessage ex:unspecifiedWords )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .
+
+ex:statement104 rdf:reifies <<( ex:unspecifiedWords gmeow:wasAttributedTo ex:speaker )>> ;
+    gmeow:wasDerivedFrom ex:sourceA ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:writerA .

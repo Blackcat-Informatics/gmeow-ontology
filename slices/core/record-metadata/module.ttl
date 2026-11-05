@@ -1047,3 +1047,20 @@ gmeow:structureName
     skos:scopeNote "Nonfunctional source tags supply no missing name, class membership, schema validation or executable parser."@x-gmeow-english ;
     skos:example "A supplied record tag: ex:detail gmeow:structureName \"NotEmbedded\" ."@x-gmeow-english ;
     logic:domain gmeow:StructuredMap ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+# Source-reported reception and prompting; canonical logic authoring.
+
+gmeow:receivedViaCode
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "received via code"@x-gmeow-english ;
+    skos:definition "The producer's raw channel spelling for one holder-specific reception, preserved as supplied. The subject identifies that reception, not content globally shared among holders."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source reports a reception channel as raw text rather than an established ReceptionChannel resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing the code on shared content, inferring a holder from authorship, choosing a default channel or converting code text into a channel IRI."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string or explicitly supplied xsd:token literal on the actual holder-specific reception record. A Message subject requires independent evidence that its identity already denotes one such reception."@x-gmeow-english ;
+    skos:scopeNote "Domain-free and nonfunctional. Preserve lexical form and datatype without normalization or inferred token typing. This field neither specializes receivedVia nor classifies codes, proves delivery or verifies holder scope."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedViaCode \"room relay\" ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/receivedViaCode" ; logic:closureValue logic:ClosedWorldClosure ] .
