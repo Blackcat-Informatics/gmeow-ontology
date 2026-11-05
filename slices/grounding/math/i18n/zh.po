@@ -8946,16 +8946,16 @@ msgid "Group Action"
 msgstr "群作用"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."
-msgstr "math:Group 在集合上的作用，即为每个群元素指定集合变换的映射，并与群运算相容（(g·h)·x = g·(h·x), e·x = x）。作用必须标识其作用群和 math:actsOn 目标，作用定律必须指称 logic: 公式；已有 E8 作用记录提供目标和定律链接，但缺少指向标识其作用群资源的显式链接。群作用是对称性的机制：根系外尔群作用于根。"
+msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). A group action identifies its acting group through math:actingGroup and its target through math:actsOn; its action law denotes a logic: formula. The E8 descriptor identifies its Weyl group and retains a bounded composition-compatibility witness, without thereby proving identity action or constructing the full root action."
+msgstr "math:Group 在集合上的作用，即将每个群元素映为该集合的一个变换，并与群运算相容（(g·h)·x = g·(h·x)，e·x = x）。群作用通过 math:actingGroup 指明施动群，通过 math:actsOn 指明作用对象；其作用定律指称一个 logic: 公式。E8 描述对象指明其外尔群并保留有限的复合相容性见证，但这并不证明恒等作用，也不构造完整的根作用。"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."
-msgstr "群作用要求已标识作用群、目标、与群复合的相容性及恒等作用。当前 E8 描述对象缺少显式作用者链接：目标和定律不能唯一标识该群，此省略仍不完整，不能由背景免除。"
+msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The actor declaration requires exactly one math:actingGroup value typed as math:Group or a valid subclass in the conformance reader view. This declaration check does not prove the action laws."
+msgstr "群作用要求明确的施动群、作用对象、与群复合的相容性和恒等作用。施动群声明必须恰好具有一个 math:actingGroup 值，该值在符合性读取视图中具有 math:Group 或其有效子类的类型。此声明检查不证明作用定律。"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#example"
-msgid "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."
-msgstr "e8-symmetry.ttl 中 exa:e8WeylAction 指定 exa:e8Roots、exa:rootReflection 及 exa:groupActionLaw。该定律以小型见证实现相容性 Formula 语法，但作用记录仍缺少显式作用群链接。"
+msgid "exa:e8WeylAction identifies exa:e8Weyl through math:actingGroup and names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. The law realizes composition compatibility with a small witness; the actor edge does not construct the E8 action or realize its identity law."
+msgstr "e8-symmetry.ttl 中的 exa:e8WeylAction 通过 math:actingGroup 指明 exa:e8Weyl，并指定 exa:e8Roots、exa:rootReflection 和 exa:groupActionLaw。该定律以一个小型见证实现复合相容性；施动群链接并未构造 E8 作用，也未实现其恒等定律。"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."
@@ -8966,8 +8966,8 @@ msgid "Avoid deriving a unique actor from the target, a law label, a nearby Weyl
 msgstr "不要从目标、定律标签、附近外尔链接或 E8 特定完整群相等关系推导唯一作用者，也不要将相容性见证视为全部恒等性、完整性及 E8 根作用主张的证明。"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."
-msgstr "保留实际目标、保持运算及已实现定律，并在缺少链接处明确保留作用群标识要求。不添加臆造作用者谓词或补全声明。相容性公式的 exa:gaWr/exa:eqRel 见证是范围有限的证据；应另行保留作用的其余义务。"
+msgid "Identify the actual acting group with math:actingGroup and retain the target, preserved operation and realized law separately. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; preserve identity-action, completeness and E8-root-action obligations without claiming that the actor declaration discharges them."
+msgstr "使用 math:actingGroup 指明实际施动群，并分别保留作用对象、保持的运算和已实现的定律。相容性公式的 exa:gaWr/exa:eqRel 见证仅提供有限证据；应保留恒等作用、完备性和 E8 根作用的义务，不得声称施动群声明已经履行这些义务。"
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "acts on"
@@ -8978,8 +8978,8 @@ msgid "This property records the acted-on target for existing action carriers, i
 msgstr "此属性为已有作用承载对象记录被作用目标，包括 GroupAction 和 Group 用法。Set、AlgebraicStructure 和 RootSystem 目标是示例，而非封闭全局值域；单凭此边既不能标识作用描述对象的作用群，也不能证明完整自同构群主张。"
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#example"
-msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."
-msgstr "e8-symmetry.ttl 中 exa:e8Weyl 与 exa:e8WeylAction 均通过 math:actsOn 指向 exa:e8Roots。共同目标不会提供作用描述对象缺失的作用者链接，也不会使两个源角色相同。"
+msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The action descriptor separately identifies exa:e8Weyl through math:actingGroup; sharing a target does not make the two source roles identical."
+msgstr "e8-symmetry.ttl 中的 exa:e8Weyl 和 exa:e8WeylAction 都通过 math:actsOn 指向 exa:e8Roots。作用描述对象另通过 math:actingGroup 指明 exa:e8Weyl；共用作用对象并不使两种主语角色相同。"
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."
@@ -8990,8 +8990,8 @@ msgid "Avoid imposing a global subject or target kind, inferring an inverse edge
 msgstr "不要施加全局主语或目标种类，不要推断反向边或唯一作用群，也不要仅从目标读出可执行传输、资源同一性或完整群相等关系。"
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."
-msgstr "将实际承载对象关联到其作用目标，在已有处另行保留定律、运算及作用者标识信息。明确保留尚未满足的作用者标识要求，保留开放定义，不添加资源种类排除、推断反向边或自动作用执行。"
+msgid "Link the actual carrier to the target it acts on and retain the separate law, operation and actor information. A GroupAction identifies its actor through math:actingGroup. Preserve this property’s open definition, with no resource-kind exclusion, inferred reverse edge or automatic action execution."
+msgstr "将实际作用载体链接到其作用对象，并分别保留定律、运算和施动群信息。GroupAction 通过 math:actingGroup 指明施动群。保留本属性的开放定义，不增加资源种类排除、推导的反向链接或自动作用执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "representation of"
@@ -10420,3 +10420,59 @@ msgstr "不要假定每个流形都有所选旋量丛，不要默认选取 spin 
 msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the actual operator and its section spaces without inventing dedicated slots or laws. A connectionOn link or discrete transport alone proves neither smoothness nor Clifford compatibility. Generic native Clifford arithmetic supplies no differentiation, spinor-bundle construction or Dirac execution; retain any supporting geometric and calculation evidence separately."
 msgstr "描述实际算子及其截面空间，不要臆造专用槽位或定律。仅有 connectionOn 链接或离散平行移动既不能证明光滑性，也不能证明 Clifford 兼容性。一般的原生 Clifford 算术不提供微分、旋量丛构造或 Dirac 执行；须分别保留几何及计算的支持依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acting group"
+msgstr "施动群"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GroupAction descriptor to the math:Group whose action it describes. The acting-group role is separate from the action-descriptor and target roles; a generic action may use any genuine group, including a subgroup."
+msgstr "将 math:GroupAction 描述对象链接到其所描述作用的 math:Group。施动群角色与作用描述对象角色及作用对象角色分开表示；一般作用可由任意真正的群施动，包括子群。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The GroupAction declaration requires exactly one typed Group actor under class-local closure. This property has no global domain, range or functionality declaration; the edge alone does not prove an action law, faithfulness or a full automorphism-group claim."
+msgstr "GroupAction 声明在类局部闭合下要求恰好一个具有 Group 类型的施动群。本属性不声明全局定义域、值域或函数性；该链接本身不证明作用定律、忠实性或完整自同构群的断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction math:actingGroup exa:e8Weyl explicitly identifies W(E8), while math:actsOn names exa:e8Roots. The existing Lie group, Lie algebra, lattice and adjoint representation retain separate identities and roles."
+msgstr "exa:e8WeylAction math:actingGroup exa:e8Weyl 显式指明 W(E8)，而 math:actsOn 指定 exa:e8Roots。已有李群、李代数、格和伴随表示保留各自的身份和角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a GroupAction descriptor must identify the group that acts on its separately named target."
+msgstr "用于 GroupAction 描述对象需要指明对另行指定的对象施动的群时。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the target, Lie algebra or action descriptor for the group, inferring the actor from nearby links, or treating every acting subgroup as the full automorphism group."
+msgstr "不得以作用对象、李代数或作用描述对象代替施动群，不得从相邻链接推断施动群，也不得将每个施动子群视为完整自同构群。"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the action descriptor to its actual Group resource, retaining the group frame and the action’s target, operation, law and witness evidence. Validate the actor declaration separately from exact named-action identity and mathematical proof."
+msgstr "将作用描述对象链接到实际 Group 资源，并保留群框架以及作用对象、运算、定律和见证证据。将施动群声明的验证与具名作用的确切身份及数学证明分别处理。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Group Action Actor"
+msgstr "群作用施动群声明不合规范"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:GroupAction does not declare exactly one resource-valued math:actingGroup typed as math:Group or a valid subclass in the conformance reader view."
+msgstr "当 math:GroupAction 未声明恰好一个作为资源的 math:actingGroup，或该资源在符合性读取视图中不具有 math:Group 或其有效子类的类型时产生的失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covers the actor declaration’s presence, type and count. It does not establish action laws or select the exact E8 actor."
+msgstr "仅检查施动群声明的存在性、类型和数量；不证明作用定律，也不确定 E8 的具体施动群。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#example"
+msgid "group-action-actor-missing.ttl declares an action without math:actingGroup; the actor declaration gate reports this failure."
+msgstr "group-action-actor-missing.ttl 声明了缺少 math:actingGroup 的作用；施动群声明检查会报告此失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a missing, wrongly typed or multiple actor declaration on a GroupAction."
+msgstr "用于 GroupAction 缺少施动群、施动群类型不符合要求或声明了多个施动群的情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this finding as a disproof of an action law, or successful declaration validation as a constructed action."
+msgstr "不应将此结果视为对作用定律的反证，也不应将声明验证通过视为已经构造出作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual single Group actor through math:actingGroup and preserve the target, operation, law and witness evidence. Qualify exact E8 identity separately."
+msgstr "通过 math:actingGroup 指定实际且唯一的 Group 施动群，并保留作用对象、运算、定律和见证证据；另行验证 E8 施动群的具体身份。"

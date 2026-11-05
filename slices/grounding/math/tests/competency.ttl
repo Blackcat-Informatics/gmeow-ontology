@@ -331,7 +331,7 @@ ex:rowPiAnchor a gmeow:ExpectedRow ;
 ex:cqStructurePreservingMaps a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/structure-preserving-maps.rq" ;
     gmeow:cqReasoning gmeow:reasoningLogic ;
-    gmeow:cqRationale "The E8 group-action law (g·h)·x = g·(h·x) made a LIVE entailment consumer: authored as a real logic:Formula over fixed-arity n-ary comp/act predications and evaluated by the native logic: reasoner over a concrete compatible action, it DERIVES the binary consequent eq((g·h)·x, g·(h·x)) — both association orders reach the same point gaWr. Nothing asserts that eq tuple; only the law derives it. Over the reasoned closure the answer is exactly {gaWr}. Removing the law formula makes the answer empty." ;
+    gmeow:cqRationale "The named E8 action explicitly identifies exa:e8Weyl, exa:e8Roots, exa:rootReflection and exa:groupActionLaw through the actor, target, operation and both law links. Its real logic:Formula over fixed-arity comp/act predications derives eq(gaWr, gaWr); that equality is not asserted. The query requires the exact descriptor links and the derived equality, returning exactly {gaWr}. Removing a descriptor law link empties the qualified answer but need not remove globally derived equality; removing the Formula is a separate entailment control. This witness does not prove identity action or construct the full E8 root action." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqMapsShape ;
     gmeow:cqExpectRow ex:rowWeylMap .

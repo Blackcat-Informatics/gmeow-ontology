@@ -125,7 +125,7 @@ over their n-ary predication is a relational-core capability, not an algebra-sli
   `det(A·B) = det(A)·det(B)` as a `logic:Formula`, with `GL₂/SL₂ ≅ ℝ*`.
 - **Lie theory and the E8 flagship** — `math:LieGroup`, `math:LieAlgebra`, `math:RootSystem`,
   `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup` (⊑ `math:Group`), `math:Lattice`,
-  `math:GroupRepresentation`, and `math:GroupAction`/`math:actsOn`. The E8 example declares 240 roots,
+  `math:GroupRepresentation`, and `math:GroupAction` with `math:actingGroup`/`math:actsOn`. The E8 example declares 240 roots,
   rank 8, and a Weyl group of order 696,729,600 explicitly also typed `math:AutomorphismGroup`, acting
   on the roots. Generic Weyl groups retain their typed `math:hasRootSystem` anchor under class-local
   closure, without an existential minimum. E8 separately declares `math:automorphismGroupOf` for its
@@ -133,6 +133,15 @@ over their n-ary predication is a relational-core capability, not an algebra-sli
   question checks its fixed E8 fixture. The canonical `math:E8WeylOrderConstraint` has a generated
   validation view that rejects a supplied incorrect Weyl order for the E8 fingerprint (240 roots,
   rank 8).
+  Each GroupAction declares exactly one typed Group actor through `math:actingGroup`, with
+  class-local required-path closure and a maximum count derived into `math:GroupAction-shape`.
+  Missing, wrongly typed or multiple actor declarations raise `math:MalformedGroupActionActor`
+  on the conformance reader view; this is distinct from native open-world type/equality inference.
+  `exa:e8WeylAction` explicitly names `exa:e8Weyl`, retaining the roots, operation, both law links
+  and compatibility witness. The existing native competency query requires those exact links and
+  the derived equality. A different genuine Group can satisfy the generic actor rule without
+  becoming the actor of this named E8 descriptor. Neither the actor edge nor that witness proves
+  identity action, faithfulness or a constructed complete E8 root action.
 - **Homomorphic encryption (flagship 2) and secret sharing** — `math:HomomorphicEncryptionScheme` (a
   `math:RingHomomorphism`) with `math:homomorphicOver`, `math:securityAssumption` (LWE/RLWE), and
   `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`
@@ -158,6 +167,7 @@ The algebra gates:
 | --- | --- | --- |
 | A structure declares its carrier, operation, and axioms | `math:AlgebraicStructureShape` | `math:IncompleteAlgebraicStructure` |
 | A homomorphism declares its preserved operation and law | `math:HomomorphismShape` | `math:UnderspecifiedHomomorphism` |
+| A GroupAction declares exactly one typed Group actor | `math:GroupAction-shape` (derived SHACL Core) | `math:MalformedGroupActionActor` |
 | A preservation law denotes a `logic:` formula, not a string | `math:PreservationLawShape` | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system | `math:LieStructureShape` | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | `math:RootSystemShape` | `math:IncompleteLieStructure` |

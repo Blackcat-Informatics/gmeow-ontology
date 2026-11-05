@@ -122,6 +122,7 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | An algebraic structure declares its underlying set, operation, and axioms | SHACL Core | `math:IncompleteAlgebraicStructure` |
 | A ring declares the distributivity law tying its two operations together | SHACL Core | `math:NonDistributiveRing` |
 | A homomorphism declares its preserved operation and preservation law | SHACL Core | `math:UnderspecifiedHomomorphism` |
+| A `math:GroupAction` declares exactly one typed `math:Group` actor through `math:actingGroup` | SHACL Core derived from canonical GroupAction all-values, closed-path and maximum-qualified-cardinality restrictions (`math:GroupAction-shape`) | `math:MalformedGroupActionActor` |
 | A preservation law denotes a `logic:` formula, not a string | SHACL-SPARQL (`math:PreservationLawNodeKindConstraint`, a path node-kind rule projected as a SPARQL-AF constraint) | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system; a Weyl reflection group declares its required typed root-system anchor | SHACL Core | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | SHACL Core | `math:IncompleteLieStructure` |

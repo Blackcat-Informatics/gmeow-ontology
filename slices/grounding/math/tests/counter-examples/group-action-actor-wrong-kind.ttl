@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Wrong-kind boundary: the actor value is a framed RootSystem, not a Group.
+# Its own Weyl group and root-system fields are supplied to avoid collateral failures.
+# No global disjointness or native type-inference rejection is claimed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/group-action-actor/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:action a math:GroupAction ;
+    math:actingGroup ex:roots ;
+    math:actsOn ex:target .
+ex:target a math:Set .
+
+ex:roots a math:RootSystem ;
+    math:rootSystemRank "2"^^xsd:nonNegativeInteger ;
+    math:cartanMatrix ex:cartan ;
+    math:weylGroup ex:weyl .
+ex:cartan a math:CartanMatrix .
+ex:weyl a math:WeylGroup ;
+    math:hasRootSystem ex:roots ;
+    math:underlyingSet ex:weylCarrier ;
+    math:structureOperation ex:weylComposition ;
+    math:identityElement ex:weylIdentity ;
+    math:inverseOperation ex:weylInverse ;
+    math:satisfiesAxiom ex:weylAssociativity, ex:weylIdentityLaw, ex:weylInverseLaw ;
+    math:groupOrder 6 .
+ex:weylCarrier a math:Set .
+ex:weylComposition a math:Operation .
+ex:weylInverse a math:Operation .
+ex:weylAssociativity a math:Axiom .
+ex:weylIdentityLaw a math:Axiom .
+ex:weylInverseLaw a math:Axiom .

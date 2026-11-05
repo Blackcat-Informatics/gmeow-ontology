@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Count boundary: two distinct RDF actor resources, each a fully framed Group.
+# The generated actor gate checks the supplied count without native sameAs inference.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/group-action-actor/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:action a math:GroupAction ;
+    math:actingGroup ex:actorOne, ex:actorTwo ;
+    math:actsOn ex:target .
+ex:target a math:Set .
+
+ex:actorOne a math:Group ;
+    math:underlyingSet ex:actorOneCarrier ;
+    math:structureOperation ex:actorOneComposition ;
+    math:identityElement ex:actorOneIdentity ;
+    math:inverseOperation ex:actorOneInverse ;
+    math:satisfiesAxiom ex:actorOneAssociativity, ex:actorOneIdentityLaw, ex:actorOneInverseLaw .
+ex:actorOneCarrier a math:Set .
+ex:actorOneComposition a math:Operation .
+ex:actorOneInverse a math:Operation .
+ex:actorOneAssociativity a math:Axiom .
+ex:actorOneIdentityLaw a math:Axiom .
+ex:actorOneInverseLaw a math:Axiom .
+
+ex:actorTwo a math:Group ;
+    math:underlyingSet ex:actorTwoCarrier ;
+    math:structureOperation ex:actorTwoComposition ;
+    math:identityElement ex:actorTwoIdentity ;
+    math:inverseOperation ex:actorTwoInverse ;
+    math:satisfiesAxiom ex:actorTwoAssociativity, ex:actorTwoIdentityLaw, ex:actorTwoInverseLaw .
+ex:actorTwoCarrier a math:Set .
+ex:actorTwoComposition a math:Operation .
+ex:actorTwoInverse a math:Operation .
+ex:actorTwoAssociativity a math:Axiom .
+ex:actorTwoIdentityLaw a math:Axiom .
+ex:actorTwoInverseLaw a math:Axiom .

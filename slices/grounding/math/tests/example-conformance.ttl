@@ -2538,3 +2538,28 @@ ex:ecAlphaEquivalentPairB a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/alpha-equivalent-pair-b.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "Half B of the α-equivalence pair, ∑ⱼ j: structurally identical to half A — same operator, same single slot-indexed operand, same binding shape — differing ONLY in the IRI of its bound-variable declaration, which is exactly what makes the pair an α-equivalence witness. It satisfies the same obligations and validates with no findings." .
+
+# === Group-action actor declaration: presence, type and count =============== #
+
+ex:ecGroupActionActorValid a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/group-action-actor-valid.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One resource-valued math:actingGroup names a fully framed math:Group, with a separately typed Set target. The generic actor declaration conforms without requiring the named E8 actor. This is declaration-frame evidence, not construction or proof of an action." .
+
+ex:ecGroupActionActorMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/group-action-actor-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedGroupActionActor ;
+    gmeow:conformanceRationale "The GroupAction has a Set target but no math:actingGroup. The class-local closed required path must raise MalformedGroupActionActor through the generated GroupAction validation shape. expectedFailureClass requires isolation across the existing conformance channels; no native witness is manufactured." .
+
+ex:ecGroupActionActorWrongKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/group-action-actor-wrong-kind.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedGroupActionActor ;
+    gmeow:conformanceRationale "The sole actor is a fully framed RootSystem with no Group type or Group subclass route in the module-plus-example reader view. Its own Weyl group is separately framed and anchored. The generated actor class requirement must raise only MalformedGroupActionActor; no global disjointness or rejection by native open-world inference is asserted." .
+
+ex:ecGroupActionActorMultiple a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/group-action-actor-multiple.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedGroupActionActor ;
+    gmeow:conformanceRationale "Two distinct RDF resources are supplied as actors, both fully framed Groups. The generated maximum count must raise only MalformedGroupActionActor on the module-plus-example reader view. This checks the declaration count, without requiring an owl:differentFrom assertion or claiming native equality reasoning rejects the data." .

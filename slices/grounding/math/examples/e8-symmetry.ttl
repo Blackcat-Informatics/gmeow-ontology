@@ -9,7 +9,7 @@
 # real logic:Formula the reasoner owns. The numbers (240 roots, rank 8, Weyl order) are
 # carried as data and pinned by the E8 competency question; wrong data fails that
 # exact-match gate. Group data cited to the ATLAS of Finite Groups / GAP; concept
-# identity anchored to Wikidata (see mappings/equivalences.ttl). Validates cleanly.
+# identity anchored to Wikidata (see mappings/equivalences.ttl).
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -81,6 +81,7 @@ exa:identityReflection rdfs:label "the identity symmetry"@x-gmeow-english .
 # and a homomorphic-encryption scheme under the structure-preserving-maps query.
 exa:e8WeylAction a math:GroupAction ;
     rdfs:label "the Weyl action W(E8) ↷ roots"@x-gmeow-english ;
+    math:actingGroup exa:e8Weyl ;
     math:actsOn exa:e8Roots ;
     math:preservedOperation exa:rootReflection ;
     math:preservationLaw exa:groupActionLaw ;
