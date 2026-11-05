@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 5a88859856526fbb784acb1ebb4e2e22948bfab0
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2548
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2548
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 73c05145ff247f3bb0b426cc437ac06a9772a556
+GhpRsq-Head-Ref: paudley/2547-declare-the-playful-surprise-tag-and
+GhpRsq-Head-OID: 5a88859856526fbb784acb1ebb4e2e22948bfab0
+GhpRsq-Result-Tree: 435db504e2f5058ab741174b277670c124e9c89c
+GhpRsq-Result-Commit: f8cb38ef7b4a6d396627463695ffb3aea783f764
+GhpRsq-Parent-Hashes: 5a88859856526fbb784acb1ebb4e2e22948bfab0
+GhpRsq-Squash-Notes-SHA256: bc7432fdc6d2b3d7728142a1ec93189ce359bbad336b5a33d180403eb4bf98ec
+GhpRsq-Stage-Evidence: none
