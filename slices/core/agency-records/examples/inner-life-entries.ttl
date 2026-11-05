@@ -1,0 +1,604 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/inner-life-entries/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The hypothetical source already identifies these records, occurrences and documents.
+# Its convention document was actually consulted in this illustrative source account.
+# Only the documented identity claim cites that document as scheme support.
+# Opaque bytes remain explicitly unqualified; no missing document is manufactured.
+# Values are source-supplied examples, not hashes computed by this scene.
+# Empty text, JSON-looking words, language and base direction remain literal content.
+# Layer markers never supply or override a separately stated layer number.
+# One independent account explicitly supplies the distinct Experience/recollection facts.
+# Other entries acquire no Experience, DreamReport, inference validity or call identity.
+# No prompt, state payload, current history position, model success or runtime is invented.
+
+ex:holderA rdf:type gmeow:Agent .
+ex:holderA rdfs:label "Source-identified agent whose entries are retained"@en .
+ex:modelAgent rdf:type gmeow:SoftwareAgent .
+ex:modelAgent rdf:type gmeow:Agent .
+ex:modelAgent rdfs:label "Source-identified producing model agent"@en .
+ex:recorder rdf:type gmeow:SoftwareAgent .
+ex:recorder rdf:type gmeow:Agent .
+ex:recorder rdfs:label "Recording importer, separate from holder and model"@en .
+ex:declaringFrame rdf:type gmeow:Agent .
+ex:declaringFrame rdfs:label "Actual declaring source frame"@en .
+ex:sourceRecord rdf:type gmeow:InformationObject .
+ex:sourceRecord rdfs:label "Actual entry source record within this hypothetical scene"@en .
+ex:schemeDocument rdf:type gmeow:InformationObject .
+ex:schemeDocument rdfs:label "Actually consulted versioned convention document within this hypothetical scene"@en .
+ex:experienceAccount rdf:type gmeow:InformationObject .
+ex:experienceAccount rdfs:label "Independent source explicitly reporting a phenomenal dream and recollection"@en .
+ex:sourceCallKind rdf:type gmeow:EventType .
+ex:sourceCallKind rdfs:label "Call kind explicitly supplied by the hypothetical source"@en .
+ex:sourceExperienceKind rdf:type gmeow:EventType .
+ex:sourceExperienceKind rdfs:label "Dream episode kind explicitly supplied by the independent account"@en .
+ex:monologueEntry rdf:type gmeow:InformationObject .
+ex:monologueEntry rdfs:label "Entry with documented input-state scheme support"@en .
+ex:dreamAtZero rdf:type gmeow:InformationObject .
+ex:dreamAtZero rdfs:label "Dream entry with explicitly empty wording and stated zero layer"@en .
+ex:dreamAtSeven rdf:type gmeow:InformationObject .
+ex:dreamAtSeven rdfs:label "Dream entry with stated layer independent of its words"@en .
+ex:dreamWithoutLayer rdf:type gmeow:InformationObject .
+ex:dreamWithoutLayer rdfs:label "Dream entry whose textual marker supplies no layer assertion"@en .
+ex:patrolEntry rdf:type gmeow:InformationObject .
+ex:patrolEntry rdfs:label "Patrol note with explicitly supplied language and base direction"@en .
+ex:traceEntry rdf:type gmeow:InformationObject .
+ex:traceEntry rdfs:label "Reasoning entry whose JSON-looking words remain literal"@en .
+ex:opaqueEntry rdf:type gmeow:InformationObject .
+ex:opaqueEntry rdfs:label "Opaque state bytes with unspecified wording and no scheme qualification"@en .
+ex:monologueEvent rdf:type gmeow:Activity .
+ex:monologueEvent rdfs:label "Source-recorded monologue-entry occurrence"@en .
+ex:zeroDreamEvent rdf:type gmeow:Activity .
+ex:zeroDreamEvent rdfs:label "Source-recorded zero-layer dream-entry occurrence"@en .
+ex:sevenDreamEvent rdf:type gmeow:Activity .
+ex:sevenDreamEvent rdfs:label "Source-recorded nonzero-layer dream-entry occurrence"@en .
+ex:unstatedDreamEvent rdf:type gmeow:Activity .
+ex:unstatedDreamEvent rdfs:label "Source-recorded dream entry without a stated layer"@en .
+ex:patrolEvent rdf:type gmeow:Activity .
+ex:patrolEvent rdfs:label "Source-recorded patrol-note occurrence"@en .
+ex:traceEvent rdf:type gmeow:Activity .
+ex:traceEvent rdfs:label "Source-recorded reasoning-entry occurrence"@en .
+ex:opaqueEvent rdf:type gmeow:Activity .
+ex:opaqueEvent rdfs:label "Source-recorded entry retaining only opaque state evidence"@en .
+ex:actualCall rdf:type gmeow:ModelInvocation .
+ex:actualCall rdf:type gmeow:Activity .
+ex:actualCall rdfs:label "Actual producing call identified by this hypothetical source"@en .
+ex:actualExperience rdf:type gmeow:Experience .
+ex:actualExperience rdfs:label "Distinct phenomenal dream explicitly asserted by the independent source"@en .
+ex:sourceRecord gmeow:identifier "example-source/entry-batch/v1"^^xsd:token .
+ex:schemeDocument gmeow:identifier "example-source/context-state/v1"^^xsd:token .
+ex:schemeDocument gmeow:description "This actually consulted version-one document for example-source specifies plain unkeyed BLAKE3 with 256-bit output. The input is the ASCII domain bytes example-source/context-state/v1 followed by the source's canonical encoding of the selected slot and sorted unique record-or-alias pointers. Its holder scope is https://example.org/inner-life-entries/holderA within example-source version one. This convention is documentary evidence, not a supplied state payload or a verified hash preimage."@en .
+ex:experienceAccount gmeow:description "This independent hypothetical account explicitly reports the named phenomenal dream episode and says that dreamAtSeven recollects it. This account is independent of the generated words and does not establish experiences for the other entries."@en .
+ex:monologueEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry .
+ex:monologueEvent gmeow:wasAssociatedWith ex:holderA .
+ex:monologueEvent gmeow:affectsObject ex:monologueEntry .
+ex:monologueEntry gmeow:thoughtText "I will review the archive."@en .
+ex:monologueEntry gmeow:wasAttributedTo ex:holderA .
+ex:monologueEntry gmeow:generationInputStateIdentity "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"^^xsd:hexBinary .
+ex:monologueEntry gmeow:wasGeneratedBy ex:actualCall .
+ex:actualCall gmeow:eventType ex:sourceCallKind .
+ex:actualCall gmeow:usedModel ex:modelAgent .
+ex:zeroDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry .
+ex:zeroDreamEvent gmeow:wasAssociatedWith ex:holderA .
+ex:zeroDreamEvent gmeow:affectsObject ex:dreamAtZero .
+ex:dreamAtZero gmeow:thoughtText "" .
+ex:dreamAtZero gmeow:dreamLayer "0"^^xsd:nonNegativeInteger .
+ex:sevenDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry .
+ex:sevenDreamEvent gmeow:wasAssociatedWith ex:holderA .
+ex:sevenDreamEvent gmeow:affectsObject ex:dreamAtSeven .
+ex:dreamAtSeven gmeow:thoughtText "[Dream layer 99] a blue door" .
+ex:dreamAtSeven gmeow:dreamLayer "7"^^xsd:nonNegativeInteger .
+ex:unstatedDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry .
+ex:unstatedDreamEvent gmeow:wasAssociatedWith ex:holderA .
+ex:unstatedDreamEvent gmeow:affectsObject ex:dreamWithoutLayer .
+ex:dreamWithoutLayer gmeow:thoughtText "[Dream layer 12] a silver stair" .
+ex:patrolEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote .
+ex:patrolEvent gmeow:wasAssociatedWith ex:holderA .
+ex:patrolEvent gmeow:affectsObject ex:patrolEntry .
+ex:patrolEntry gmeow:thoughtText "باب هادئ"@ar--rtl .
+ex:traceEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace .
+ex:traceEvent gmeow:wasAssociatedWith ex:holderA .
+ex:traceEvent gmeow:affectsObject ex:traceEntry .
+ex:traceEntry gmeow:thoughtText "{\"note\":\"a quoted claim\",\"layer\":23}" .
+ex:opaqueEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry .
+ex:opaqueEvent gmeow:wasAssociatedWith ex:holderA .
+ex:opaqueEvent gmeow:affectsObject ex:opaqueEntry .
+ex:opaqueEntry gmeow:generationInputStateIdentity "00FF"^^xsd:hexBinary .
+ex:opaqueEntry rdfs:comment "The source supplies only these opaque bytes and no documentary scheme qualification. No verified or comparable state-identity claim is made. An operation requiring qualified identity must refuse; this scene executes no operation."@en .
+ex:actualExperience gmeow:eventType ex:sourceExperienceKind .
+ex:actualExperience gmeow:experiencer ex:holderA .
+ex:actualExperience gmeow:mentalProcessType gmeow:processDreaming .
+ex:dreamAtSeven gmeow:recollects ex:actualExperience .
+
+# Each exact assertion keeps its own sources, recorder and declaring frame.
+
+ex:statement001 rdf:reifies <<( ex:holderA rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement002 rdf:reifies <<( ex:holderA rdfs:label "Source-identified agent whose entries are retained"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement003 rdf:reifies <<( ex:modelAgent rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement004 rdf:reifies <<( ex:modelAgent rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement005 rdf:reifies <<( ex:modelAgent rdfs:label "Source-identified producing model agent"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement006 rdf:reifies <<( ex:recorder rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement007 rdf:reifies <<( ex:recorder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement008 rdf:reifies <<( ex:recorder rdfs:label "Recording importer, separate from holder and model"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement009 rdf:reifies <<( ex:declaringFrame rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement010 rdf:reifies <<( ex:declaringFrame rdfs:label "Actual declaring source frame"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement011 rdf:reifies <<( ex:sourceRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement012 rdf:reifies <<( ex:sourceRecord rdfs:label "Actual entry source record within this hypothetical scene"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement013 rdf:reifies <<( ex:schemeDocument rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:schemeDocument ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement014 rdf:reifies <<( ex:schemeDocument rdfs:label "Actually consulted versioned convention document within this hypothetical scene"@en )>> ;
+    gmeow:wasDerivedFrom ex:schemeDocument ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement015 rdf:reifies <<( ex:experienceAccount rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement016 rdf:reifies <<( ex:experienceAccount rdfs:label "Independent source explicitly reporting a phenomenal dream and recollection"@en )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement017 rdf:reifies <<( ex:sourceCallKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement018 rdf:reifies <<( ex:sourceCallKind rdfs:label "Call kind explicitly supplied by the hypothetical source"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement019 rdf:reifies <<( ex:sourceExperienceKind rdf:type gmeow:EventType )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement020 rdf:reifies <<( ex:sourceExperienceKind rdfs:label "Dream episode kind explicitly supplied by the independent account"@en )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement021 rdf:reifies <<( ex:monologueEntry rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement022 rdf:reifies <<( ex:monologueEntry rdfs:label "Entry with documented input-state scheme support"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement023 rdf:reifies <<( ex:dreamAtZero rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement024 rdf:reifies <<( ex:dreamAtZero rdfs:label "Dream entry with explicitly empty wording and stated zero layer"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement025 rdf:reifies <<( ex:dreamAtSeven rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement026 rdf:reifies <<( ex:dreamAtSeven rdfs:label "Dream entry with stated layer independent of its words"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement027 rdf:reifies <<( ex:dreamWithoutLayer rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement028 rdf:reifies <<( ex:dreamWithoutLayer rdfs:label "Dream entry whose textual marker supplies no layer assertion"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement029 rdf:reifies <<( ex:patrolEntry rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement030 rdf:reifies <<( ex:patrolEntry rdfs:label "Patrol note with explicitly supplied language and base direction"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement031 rdf:reifies <<( ex:traceEntry rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement032 rdf:reifies <<( ex:traceEntry rdfs:label "Reasoning entry whose JSON-looking words remain literal"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement033 rdf:reifies <<( ex:opaqueEntry rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement034 rdf:reifies <<( ex:opaqueEntry rdfs:label "Opaque state bytes with unspecified wording and no scheme qualification"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement035 rdf:reifies <<( ex:monologueEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement036 rdf:reifies <<( ex:monologueEvent rdfs:label "Source-recorded monologue-entry occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement037 rdf:reifies <<( ex:zeroDreamEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement038 rdf:reifies <<( ex:zeroDreamEvent rdfs:label "Source-recorded zero-layer dream-entry occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement039 rdf:reifies <<( ex:sevenDreamEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement040 rdf:reifies <<( ex:sevenDreamEvent rdfs:label "Source-recorded nonzero-layer dream-entry occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement041 rdf:reifies <<( ex:unstatedDreamEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement042 rdf:reifies <<( ex:unstatedDreamEvent rdfs:label "Source-recorded dream entry without a stated layer"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement043 rdf:reifies <<( ex:patrolEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement044 rdf:reifies <<( ex:patrolEvent rdfs:label "Source-recorded patrol-note occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement045 rdf:reifies <<( ex:traceEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement046 rdf:reifies <<( ex:traceEvent rdfs:label "Source-recorded reasoning-entry occurrence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement047 rdf:reifies <<( ex:opaqueEvent rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement048 rdf:reifies <<( ex:opaqueEvent rdfs:label "Source-recorded entry retaining only opaque state evidence"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement049 rdf:reifies <<( ex:actualCall rdf:type gmeow:ModelInvocation )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement050 rdf:reifies <<( ex:actualCall rdf:type gmeow:Activity )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement051 rdf:reifies <<( ex:actualCall rdfs:label "Actual producing call identified by this hypothetical source"@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement052 rdf:reifies <<( ex:actualExperience rdf:type gmeow:Experience )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement053 rdf:reifies <<( ex:actualExperience rdfs:label "Distinct phenomenal dream explicitly asserted by the independent source"@en )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement054 rdf:reifies <<( ex:sourceRecord gmeow:identifier "example-source/entry-batch/v1"^^xsd:token )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement055 rdf:reifies <<( ex:schemeDocument gmeow:identifier "example-source/context-state/v1"^^xsd:token )>> ;
+    gmeow:wasDerivedFrom ex:schemeDocument ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement056 rdf:reifies <<( ex:schemeDocument gmeow:description "This actually consulted version-one document for example-source specifies plain unkeyed BLAKE3 with 256-bit output. The input is the ASCII domain bytes example-source/context-state/v1 followed by the source's canonical encoding of the selected slot and sorted unique record-or-alias pointers. Its holder scope is https://example.org/inner-life-entries/holderA within example-source version one. This convention is documentary evidence, not a supplied state payload or a verified hash preimage."@en )>> ;
+    gmeow:wasDerivedFrom ex:schemeDocument ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement057 rdf:reifies <<( ex:experienceAccount gmeow:description "This independent hypothetical account explicitly reports the named phenomenal dream episode and says that dreamAtSeven recollects it. This account is independent of the generated words and does not establish experiences for the other entries."@en )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement058 rdf:reifies <<( ex:monologueEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement059 rdf:reifies <<( ex:monologueEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement060 rdf:reifies <<( ex:monologueEvent gmeow:affectsObject ex:monologueEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement061 rdf:reifies <<( ex:monologueEntry gmeow:thoughtText "I will review the archive."@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement062 rdf:reifies <<( ex:monologueEntry gmeow:wasAttributedTo ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement063 rdf:reifies <<( ex:monologueEntry gmeow:generationInputStateIdentity "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"^^xsd:hexBinary )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord , ex:schemeDocument ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement064 rdf:reifies <<( ex:monologueEntry gmeow:wasGeneratedBy ex:actualCall )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement065 rdf:reifies <<( ex:actualCall gmeow:eventType ex:sourceCallKind )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement066 rdf:reifies <<( ex:actualCall gmeow:usedModel ex:modelAgent )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement067 rdf:reifies <<( ex:zeroDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement068 rdf:reifies <<( ex:zeroDreamEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement069 rdf:reifies <<( ex:zeroDreamEvent gmeow:affectsObject ex:dreamAtZero )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement070 rdf:reifies <<( ex:dreamAtZero gmeow:thoughtText "" )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement071 rdf:reifies <<( ex:dreamAtZero gmeow:dreamLayer "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement072 rdf:reifies <<( ex:sevenDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement073 rdf:reifies <<( ex:sevenDreamEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement074 rdf:reifies <<( ex:sevenDreamEvent gmeow:affectsObject ex:dreamAtSeven )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement075 rdf:reifies <<( ex:dreamAtSeven gmeow:thoughtText "[Dream layer 99] a blue door" )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement076 rdf:reifies <<( ex:dreamAtSeven gmeow:dreamLayer "7"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement077 rdf:reifies <<( ex:unstatedDreamEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement078 rdf:reifies <<( ex:unstatedDreamEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement079 rdf:reifies <<( ex:unstatedDreamEvent gmeow:affectsObject ex:dreamWithoutLayer )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement080 rdf:reifies <<( ex:dreamWithoutLayer gmeow:thoughtText "[Dream layer 12] a silver stair" )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement081 rdf:reifies <<( ex:patrolEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement082 rdf:reifies <<( ex:patrolEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement083 rdf:reifies <<( ex:patrolEvent gmeow:affectsObject ex:patrolEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement084 rdf:reifies <<( ex:patrolEntry gmeow:thoughtText "باب هادئ"@ar--rtl )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement085 rdf:reifies <<( ex:traceEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement086 rdf:reifies <<( ex:traceEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement087 rdf:reifies <<( ex:traceEvent gmeow:affectsObject ex:traceEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement088 rdf:reifies <<( ex:traceEntry gmeow:thoughtText "{\"note\":\"a quoted claim\",\"layer\":23}" )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement089 rdf:reifies <<( ex:opaqueEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement090 rdf:reifies <<( ex:opaqueEvent gmeow:wasAssociatedWith ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement091 rdf:reifies <<( ex:opaqueEvent gmeow:affectsObject ex:opaqueEntry )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement092 rdf:reifies <<( ex:opaqueEntry gmeow:generationInputStateIdentity "00FF"^^xsd:hexBinary )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement093 rdf:reifies <<( ex:opaqueEntry rdfs:comment "The source supplies only these opaque bytes and no documentary scheme qualification. No verified or comparable state-identity claim is made. An operation requiring qualified identity must refuse; this scene executes no operation."@en )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement094 rdf:reifies <<( ex:actualExperience gmeow:eventType ex:sourceExperienceKind )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement095 rdf:reifies <<( ex:actualExperience gmeow:experiencer ex:holderA )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement096 rdf:reifies <<( ex:actualExperience gmeow:mentalProcessType gmeow:processDreaming )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .
+
+ex:statement097 rdf:reifies <<( ex:dreamAtSeven gmeow:recollects ex:actualExperience )>> ;
+    gmeow:wasDerivedFrom ex:experienceAccount ;
+    gmeow:wasAttributedTo ex:recorder ;
+    gmeow:accordingTo ex:declaringFrame .

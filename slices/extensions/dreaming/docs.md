@@ -195,3 +195,25 @@ terminal output follows from these strings (Principles 2, 4, 9 and 17).
 
 See the [ordinary cycle record](examples/selection-appraisal-and-preemption.ttl)
 and [design rationale](design/SELECTION-APPRAISAL.md).
+
+## A producer's stated layer on a retained entry
+
+`dreamLayer` records a separately supplied nonnegative layer number on a dream
+entry's `InformationObject`. It does not type that record as `Experience` or
+`DreamReport`. A genuine dream episode, later recollection, written account and
+producing invocation keep their own identities and source evidence.
+
+Keep stated zero, stated nonzero and no supplied layer distinct. A marker inside
+the entry's `thoughtText` remains wording and creates no layer fact. The actual
+source's numbering convention and frame accompany the assertion when supplied;
+do not invent either. One producer's wire width is not a universal maximum.
+Repeated numbers do not identify one event, and increasing numbers establish
+neither nesting, depth, phase succession nor chronology.
+
+The field is optional and nonfunctional. Its canonical InformationObject domain,
+nonNegativeInteger range and global supplied-value closure validate present
+values without requiring a layer on every record or making one source's account
+the global winner. Existing phase Events, subEventOf structure and whole-dream
+text retain their separate contracts. Missing phases or layers are not invented.
+This adds a retained source field while leaving the experiential composition
+and mental-process primitives unchanged (Principles 4, 9 and 17).

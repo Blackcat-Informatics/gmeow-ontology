@@ -1067,3 +1067,59 @@ Its source-local event kinds describe that hypothetical scene only. It proves
 no acoustic processing, consciousness, Observation, ObservationalActivity,
 Experience, chronology, permission, generated validation or executed consumer
 behavior (Principles 2, 3, 4, 9, 10 and 17).
+
+## Retained inner-life entries
+
+`thoughtText` retains the actual words of an inner-life or reasoning information
+record. Use a plain `InformationObject`; words alone do not establish a
+phenomenal `Experience`, a `MentalProcess` or a `DreamReport`. Keep an actual
+reported entry occurrence and any genuinely identified producing
+`ModelInvocation` separate. Existing `affectsObject` can retain the source's
+affected information record, and `wasGeneratedBy` names a producing call only
+with real evidence. Actor, attributed responsible agent, model, recorder and
+declaring frame do not supply one another's identities.
+
+Keep the exact supplied string, language and RDF 1.2 base direction. Explicit
+empty wording is a present literal; missing text is not empty. Do not assign a
+default language, parse JSON-looking words into facets or extract facts from
+layer markers, quoted claims or other generated wording. The field declares
+literal retention; it does not implement an index or certify reasoning validity.
+
+`generationInputStateIdentity` retains the supplied binary identity of the
+context slot state reported as given to this record's generation. Preserve
+the `xsd:hexBinary` lexical form and datatype together with its actual source
+scheme. The exact `rdf:reifies` assertion cites its real source record through
+`wasDerivedFrom`. To establish a qualified interpretation, additionally cite the
+actually consulted, version-identified documentary evidence establishing
+algorithm, domain/preimage convention, source/version and holder scope through
+`wasDerivedFrom`. `accordingTo` names the real declaring frame and
+`wasAttributedTo` the recorder. Neither role alone supplies scheme evidence.
+
+When those real documents do not establish the scheme, retain opaque bytes
+without verified or comparable identity claims. A selected operation requiring
+qualified identity must refuse missing qualification rather than guess. Do not
+invent a profile, algorithm resource or snapshot to hold evidence, reconstruct
+state pointers, infer a current history position, copy a prompt or substitute
+the record's `contentDigest` or an invocation's `modelExecutionIdentity`.
+This field imposes no global hash mode, width, case or preimage convention and
+performs no hash verification or proof of context use.
+
+Four open `EventType` values classify source-reported entry occurrences:
+`eventTypeAgentMonologueEntry`, `eventTypeAgentDreamEntry`,
+`eventTypeAgentPatrolNote` and `eventTypeAgentReasoningTrace`. They do not create
+mental-process classes, actual dream experiences, patrol routes, valid
+inferences or successful model calls. The reasoning-entry category differs
+from the general `eventTypeTraceGeneration` occurrence marker. Actual mechanics,
+reply handling, prompt links and recall inputs retain their existing contracts.
+
+Dreaming owns `dreamLayer` on the retained information record. Only a separately
+stated source number belongs there; generated words do not provide a layer or
+override one. Missing layer, stated zero and stated nonzero remain different.
+No source-specific wire-width cap, nesting or chronological rule is imposed.
+
+See the [ordinary source scene](examples/inner-life-entries.ttl) for exact
+documentary support distinct from recorder/frame roles, an explicitly
+unqualified opaque case, literal fidelity and independently source-described
+experience. Every assertion has its own source metadata; none propagates to
+neighboring claims. The scene runs no generation, interpretation, retrieval or
+verification (Principles 2, 3, 4, 9, 10 and 17).

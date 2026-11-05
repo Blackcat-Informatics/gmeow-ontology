@@ -7706,3 +7706,171 @@ msgstr "这是事件种类的种子值，而非新类、Observation、Observatio
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."
 msgstr "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thought text"
+msgstr "思绪文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim words of a retained inner-life or reasoning information record. The words remain literal content rather than an assertion of the facts they describe or evidence of phenomenal experience."
+msgstr "内在生活或推理信息记录中逐字保留的话语。这些话语仍是字面内容，并不构成对其所述事实的断言，也不证明现象体验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual words supplied for an inner-life entry or a model-emitted reasoning trace."
+msgstr "用于保留内在生活条目或模型输出的推理踪迹中实际提供的话语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing JSON-looking words or embedded markers into facts, inferring consciousness, or substituting a prompt or reply envelope for the entry's words."
+msgstr "避免把看似 JSON 的话语或内嵌标记解析为事实、推断意识，或以提示词或回复信封替代条目本身的话语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place the exact literal on the InformationObject, preserving supplied language, base direction and explicit empty wording. Keep an independently supported experience and producing invocation separate."
+msgstr "将精确字面量置于 InformationObject 上，保留来源提供的语言、基本方向及明确的空文本。将独立有据的体验和产生该记录的调用分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several attributed wordings may coexist. Missing text is not an empty literal, unspecified language stays unspecified, and text alone creates no Experience, DreamReport or valid inference."
+msgstr "此属性可选且不是函数性属性：多个分别归属的措辞可以共存。缺失文本不是空字面量；未指定的语言保持未指定；仅凭文本不会创建 Experience、DreamReport 或有效推理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies empty wording explicitly: ex:entry gmeow:thoughtText \"\" ."
+msgstr "来源明确提供空文本：ex:entry gmeow:thoughtText \"\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation input state identity"
+msgstr "生成输入状态标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer-supplied binary identity of the context slot state reported as given to the generation producing this information record. It is a source-scoped state identifier, not a snapshot payload, prompt copy or digest of this record's bytes."
+msgstr "生产者提供的二进制标识，用于来源所报告的、产生本信息记录的生成过程所获给的上下文槽位状态。它是限于来源范围的状态标识，而非快照载荷、提示词副本或本记录字节的摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies the actual identity bytes of the context state given to this record's generation."
+msgstr "当来源提供了本记录生成过程所获上下文状态的实际标识字节时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing state contents, a history position, an algorithm or a profile; substituting contentDigest or modelExecutionIdentity; or treating equal bytes as verified cross-source state equality."
+msgstr "避免臆造状态内容、历史位置、算法或配置，替代 contentDigest 或 modelExecutionIdentity，或把相同字节视为已验证的跨来源状态相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:hexBinary literal. Its exact rdf:reifies assertion cites the real source record through wasDerivedFrom. To establish a qualified interpretation, also cite actually consulted, version-identified documents establishing algorithm, domain/preimage convention, source/version and holder scope. Keep recorder and declaring frame separate; without that evidence the bytes remain opaque."
+msgstr "保留来源提供的 xsd:hexBinary 字面量。其精确断言的 rdf:reifies 具化节点通过 wasDerivedFrom 引用真实来源记录。要确立有依据的解释，还须引用实际查阅且版本明确的文献，以确立算法、域与原像约定、来源及版本和持有者范围。单独保留记录者和声明框架；缺少此证据时，字节仍是不透明的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. No global width, case, preimage, current-state or success rule is imposed. Without documentary scheme qualification, retain opaque bytes and withhold verified or comparable identity claims; selected operations requiring qualification must refuse rather than guess."
+msgstr "此属性可选且不是函数性属性。不施加全局长度、大小写、原像、当前状态或成功规则。缺少文献支持的标识方案依据时，保留不透明字节，不声称标识已验证或可比较；所选操作若要求此依据，必须拒绝而不是猜测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reports opaque bytes without qualified comparison: ex:entry gmeow:generationInputStateIdentity \"00FF\"^^xsd:hexBinary ."
+msgstr "来源报告不透明字节，但不据此进行有依据的比较：ex:entry gmeow:generationInputStateIdentity \"00FF\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent monologue entry"
+msgstr "智能体独白条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence recording an agent's waking solitary monologue entry. The occurrence, retained words and any actual mental process remain distinct."
+msgstr "开放的事件种类值，用于来源所报告的、记录智能体清醒独处独白条目的发生。该活动、保留的话语及任何实际心理过程保持不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly classifies the occurrence as a waking monologue entry."
+msgstr "当来源明确把该活动分类为清醒独白条目时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the category from wording or treating a generated first-person sentence as proof of consciousness or an actual Experience."
+msgstr "避免根据措辞推断此类别，或将生成的第一人称句子视为意识或实际 Experience 的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType to the source-identified entry Activity. Retain its actual actor and affected information record separately, with exact assertion metadata."
+msgstr "通过 eventType 关联到来源标明的条目 Activity。分别保留其实际行动者及受影响的信息记录，并附上精确断言元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A value, not an Experience subclass or a universal waking-state rule. It neither executes generation nor binds recall inputs, assigns a current slot or supplies a missing invocation."
+msgstr "这是值，而非 Experience 子类或普遍的清醒状态规则。它不执行生成、不绑定回忆输入、不分配当前槽位，也不补造缺失的调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source classifies its entry occurrence: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry ."
+msgstr "来源分类其条目活动：ex:entryEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent dream entry"
+msgstr "智能体梦境条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported dream-entry occurrence. Its retained information record is distinct from a source-described dream Experience and from a later DreamReport recollection."
+msgstr "开放的事件种类值，用于来源所报告的梦境条目活动。其保留的信息记录区别于来源描述的梦境 Experience，以及之后的 DreamReport 回忆活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects a dream-entry category rather than a waking entry."
+msgstr "当来源明确选择梦境条目类别而非清醒条目时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a dream from text markers, requiring a layer when unstated, or retyping generated text as Experience or DreamReport."
+msgstr "避免根据文本标记推断梦境、在未说明时要求层号，或将生成文本改定类型为 Experience 或 DreamReport。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual entry Activity through eventType and keep its information record separate. Attach dreamLayer only when the source states one; genuine recollection links need independent evidence."
+msgstr "通过 eventType 分类实际条目 Activity，并单独保留其信息记录。仅在来源说明时添加 dreamLayer；真实回忆链接需要独立证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value creates no phenomenal episode, phase structure, nesting order or automatic awareness-mode assertion. Missing layer and unspecified dream facts remain unknown."
+msgstr "此值不创建现象体验事件、阶段结构、嵌套顺序或自动的意识模式断言。缺少层号和未说明的梦境事实仍为未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source selects its dream-entry kind: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry ."
+msgstr "来源选择其梦境条目种类：ex:entryEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent patrol note"
+msgstr "智能体巡查笔记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence recording a note of an agent's patrol. The retained note is not itself the patrol or proof of actual perception or successful action."
+msgstr "开放的事件种类值，用于来源所报告的、记录智能体巡查笔记的活动。保留的笔记本身不是巡查，也不证明实际感知或行动成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the entry category as a patrol note."
+msgstr "当来源将条目类别标明为巡查笔记时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a route, place, observation, patrol occurrence or awareness mode merely from the note category."
+msgstr "避免仅根据笔记类别臆造路线、地点、观察、巡查活动或意识模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType to the source-recorded entry Activity. Retain actual actor, place and note wording only with their own source evidence."
+msgstr "通过 eventType 关联到来源记录的条目 Activity。仅在各自来源证据支持时保留实际行动者、地点和笔记措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An event-kind seed rather than an information-record or mental-process class. It supplies no missing state, invocation, time or location and runs no patrol or recall operation."
+msgstr "这是事件种类的种子值，而非信息记录类或心理过程类。它不补造缺失的状态、调用、时间或地点，也不执行巡查或回忆操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reports a patrol note: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote ."
+msgstr "来源报告巡查笔记：ex:entryEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent reasoning trace"
+msgstr "智能体推理踪迹"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported entry of model-emitted reasoning before a reply in an exchange. The retained words are distinct from inference validity, a proof, a raw reply envelope or a transport event."
+msgstr "开放的事件种类值，用于来源所报告的、模型在交流回复之前输出的推理条目。保留的话语区别于推理有效性、证明、原始回复信封或传输事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies this pre-reply reasoning-entry category."
+msgstr "当来源明确标明此回复前推理条目类别时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating generated reasoning words as a valid inference or verified proof, or substituting the general model-generation trace kind for this specific entry meaning."
+msgstr "避免将生成的推理话语视为有效推理或已验证的证明，或以通用模型生成踪迹种类替代此特定条目含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, prompt references and reply-handling reports under their existing independent contracts."
+msgstr "分类来源标明的条目 Activity，并保留其实际信息记录。已知的生成调用溯源、触发引用和回复处理报告仍各自遵循既有的独立约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No inference engine, model call, output ownership, success verdict, temporal order or missing invocation identity is created. The value is neither equivalent to nor mutually exclusive with a general generation trace."
+msgstr "不会创建推理引擎、模型调用、输出归属、成功结论、时间顺序或缺失的调用身份。此值既不等同于通用生成踪迹，也不与其互斥。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source retains its reasoning-entry category: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."
+msgstr "来源保留其推理条目类别：ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."

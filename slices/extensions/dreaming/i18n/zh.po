@@ -1031,3 +1031,31 @@ msgstr "每个 wakingEvidence 主体均为 InformationObject 描述记录或实�
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/dreaming|http://www.w3.org/2000/01/rdf-schema#comment"
 msgid "The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted.\n\nDREAM COMPOSITION.\n  * A dream is an instance of gmeow:Experience with:\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode value gmeow:modeDreaming or gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * Lucid dreaming = the same composition but with gmeow:awarenessMode gmeow:modeLucidDreaming.\n  * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.\n\nDOCTRINE.\n  * Core composition (Principle 4 / Principle 6): dream and recollection episodes, selection and waking-appraisal information records, source provenance and recorded phase dispositions compose existing core classes and value vocabularies. Dream kinds remain compositions of gmeow:Experience; retained source records do not become new kinds of experience.\n  * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.\n  * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."
 msgstr "dreaming 切片完全组合 GMEOW 核心事件与意识机制，不创建新的原语。\n\n梦境组合。\n  * 梦境是具有以下属性的 gmeow:Experience 实例：\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode 的值为 gmeow:modeDreaming 或 gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * 清醒梦采用相同组合，但使用 gmeow:awarenessMode gmeow:modeLucidDreaming。\n  * 记忆巩固梦是具有 gmeow:learningType gmeow:learningConsolidation 的离线 gmeow:LearningEvent，通过 gmeow:Analogy 和 gmeow:learningConceptFormation 重组已保存的主张。\n\n原则。\n  * 核心组合（原则 4 / 原则 6）：梦境与回忆事件、选择与醒后评估信息记录、来源溯源及记录的阶段结束状态，均组合已有核心类和值词汇表。梦境类型仍为 gmeow:Experience 的组合；保留的来源记录不成为新的体验类型。\n  * 组合而非分类体系：不增加超出 mentation 切片既有许可的 gmeow:Experience 子类。更细的梦境类型（清醒梦、REM、巩固梦、重复梦）采用值标记或限制类型组合，绝不成为 gmeow:Experience 子类。\n  * 按观点索引的平等主张（原则 9 / 原则 10）：梦境报告是可靠性较低的回忆；竞争报告、分析者解释、元素划分及清醒度归属作为按观点索引的主张并存。被替代主张通过 gmeow:displayable false 抑制显示，而不删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dream layer"
+msgstr "梦境层号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer-stated layer number of this retained dream-entry information record, interpreted only under its actual source convention. It is not an inferred phase, nesting relation, depth measure or chronology of an Experience."
+msgstr "生产者为本保留的梦境条目信息记录说明的层号，仅按其实际来源约定解释。它不是推断出的阶段、嵌套关系、深度量度或 Experience 的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the producer separately states a nonnegative dream-layer number."
+msgstr "仅在生产者单独说明非负梦境层号时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extracting a layer from generated words, filling missing layers with zero, imposing one producer's wire-width cap or treating repeated numbers as the same event."
+msgstr "避免从生成话语中提取层号、以零填补缺失层号、施加某一生产者传输格式的位宽上限，或将重复层号视为同一事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied nonNegativeInteger on the actual InformationObject and retain its source numbering convention when supplied. Distinguish stated zero, stated nonzero and no layer without retyping the record as Experience or DreamReport."
+msgstr "在实际 InformationObject 上保留来源提供的 nonNegativeInteger，并在来源提供编号约定时一并保留。区分明确的零、明确的非零值和未说明层号，不将记录改定类型为 Experience 或 DreamReport。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: attributed layer values may coexist. No global maximum, successor order, awareness mode, whole-dream structure or successful generation follows from the field."
+msgstr "此属性可选且不是函数性属性：分别归属的层号值可以共存。此字段不蕴含全局上限、后继顺序、意识模式、整个梦境结构或生成成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamLayer|http://www.w3.org/2004/02/skos/core#example"
+msgid "A separately stated zero remains a real value: ex:entry gmeow:dreamLayer \"0\"^^xsd:nonNegativeInteger ."
+msgstr "单独说明的零仍是实际值：ex:entry gmeow:dreamLayer \"0\"^^xsd:nonNegativeInteger ."

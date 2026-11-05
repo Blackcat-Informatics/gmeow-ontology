@@ -7706,3 +7706,171 @@ msgstr "Valeur initiale de genre d’événement, pas une nouvelle classe, une O
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentSaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."
 msgstr "ex:seeing gmeow:eventType gmeow:eventTypeAgentSaw ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thought text"
+msgstr "texte de pensée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim words of a retained inner-life or reasoning information record. The words remain literal content rather than an assertion of the facts they describe or evidence of phenomenal experience."
+msgstr "Paroles conservées mot pour mot dans un enregistrement informationnel de vie intérieure ou de raisonnement. Elles restent un contenu littéral, sans affirmer les faits décrits ni établir une expérience phénoménale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual words supplied for an inner-life entry or a model-emitted reasoning trace."
+msgstr "Utiliser pour les paroles réellement fournies d’une entrée de vie intérieure ou d’une trace de raisonnement émise par un modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid parsing JSON-looking words or embedded markers into facts, inferring consciousness, or substituting a prompt or reply envelope for the entry's words."
+msgstr "Éviter d’analyser en faits des paroles ressemblant à du JSON ou des marqueurs intégrés, d’inférer une conscience ou de remplacer les paroles de l’entrée par un prompt ou une enveloppe de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place the exact literal on the InformationObject, preserving supplied language, base direction and explicit empty wording. Keep an independently supported experience and producing invocation separate."
+msgstr "Placer le littéral exact sur l’InformationObject, en préservant la langue, la direction de base et le texte explicitement vide fournis. Garder séparées toute expérience étayée indépendamment et l’invocation productrice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several attributed wordings may coexist. Missing text is not an empty literal, unspecified language stays unspecified, and text alone creates no Experience, DreamReport or valid inference."
+msgstr "Propriété facultative et non fonctionnelle : plusieurs formulations attribuées peuvent coexister. Un texte absent n’est pas un littéral vide, une langue non précisée le reste, et le texte seul ne crée ni Experience, ni DreamReport, ni inférence valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thoughtText|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies empty wording explicitly: ex:entry gmeow:thoughtText \"\" ."
+msgstr "Une source fournit explicitement un texte vide : ex:entry gmeow:thoughtText \"\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation input state identity"
+msgstr "identité de l’état fourni à la génération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer-supplied binary identity of the context slot state reported as given to the generation producing this information record. It is a source-scoped state identifier, not a snapshot payload, prompt copy or digest of this record's bytes."
+msgstr "Identité binaire fournie par le producteur de l’état du slot de contexte déclaré comme fourni à la génération produisant cet enregistrement informationnel. C’est un identifiant d’état limité à sa source, pas un instantané, une copie du prompt ni un condensat des octets de cet enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies the actual identity bytes of the context state given to this record's generation."
+msgstr "Utiliser lorsque la source fournit les octets d’identité réels de l’état de contexte donné à la génération de cet enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing state contents, a history position, an algorithm or a profile; substituting contentDigest or modelExecutionIdentity; or treating equal bytes as verified cross-source state equality."
+msgstr "Éviter d’inventer un contenu d’état, une position historique, un algorithme ou un profil, de substituer contentDigest ou modelExecutionIdentity, ou de traiter des octets égaux comme une égalité d’état vérifiée entre sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:hexBinary literal. Its exact rdf:reifies assertion cites the real source record through wasDerivedFrom. To establish a qualified interpretation, also cite actually consulted, version-identified documents establishing algorithm, domain/preimage convention, source/version and holder scope. Keep recorder and declaring frame separate; without that evidence the bytes remain opaque."
+msgstr "Conserver le littéral xsd:hexBinary fourni. Le réificateur rdf:reifies de l’assertion exacte cite l’enregistrement source réel par wasDerivedFrom. Pour établir une interprétation qualifiée, citer aussi les documents effectivement consultés, identifiés par version, qui établissent l’algorithme, la convention de domaine et de préimage, la source et sa version, et la portée du détenteur. Garder séparés l’enregistreur et le cadre déclarant ; sans ces éléments, les octets restent opaques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. No global width, case, preimage, current-state or success rule is imposed. Without documentary scheme qualification, retain opaque bytes and withhold verified or comparable identity claims; selected operations requiring qualification must refuse rather than guess."
+msgstr "Propriété facultative et non fonctionnelle. Aucune règle globale de largeur, de casse, de préimage, d’état courant ou de réussite n’est imposée. Sans qualification documentaire du schéma, conserver les octets opaques sans affirmer d’identité vérifiée ou comparable ; les opérations sélectionnées exigeant cette qualification doivent refuser plutôt que deviner."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reports opaque bytes without qualified comparison: ex:entry gmeow:generationInputStateIdentity \"00FF\"^^xsd:hexBinary ."
+msgstr "La source rapporte des octets opaques sans comparaison qualifiée : ex:entry gmeow:generationInputStateIdentity \"00FF\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent monologue entry"
+msgstr "entrée de monologue d’un agent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence recording an agent's waking solitary monologue entry. The occurrence, retained words and any actual mental process remain distinct."
+msgstr "Valeur ouverte de genre d’événement pour une occurrence rapportée par une source qui enregistre une entrée de monologue solitaire éveillé d’un agent. L’occurrence, les paroles conservées et tout processus mental réel restent distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly classifies the occurrence as a waking monologue entry."
+msgstr "Utiliser lorsque la source classe explicitement l’occurrence comme une entrée de monologue éveillé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the category from wording or treating a generated first-person sentence as proof of consciousness or an actual Experience."
+msgstr "Éviter de déduire la catégorie des paroles ou de traiter une phrase générée à la première personne comme une preuve de conscience ou d’Experience réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType to the source-identified entry Activity. Retain its actual actor and affected information record separately, with exact assertion metadata."
+msgstr "Rattacher par eventType à l’Activity d’entrée identifiée par la source. Conserver séparément son agent réel et l’enregistrement informationnel affecté, avec les métadonnées des assertions exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A value, not an Experience subclass or a universal waking-state rule. It neither executes generation nor binds recall inputs, assigns a current slot or supplies a missing invocation."
+msgstr "Une valeur, pas une sous-classe d’Experience ni une règle universelle d’état éveillé. Elle n’exécute pas de génération, ne lie pas les entrées de rappel, n’affecte pas de slot courant et ne fournit pas d’invocation manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentMonologueEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source classifies its entry occurrence: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry ."
+msgstr "Une source classe l’occurrence de son entrée : ex:entryEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent dream entry"
+msgstr "entrée de rêve d’un agent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported dream-entry occurrence. Its retained information record is distinct from a source-described dream Experience and from a later DreamReport recollection."
+msgstr "Valeur ouverte de genre d’événement pour une occurrence d’entrée de rêve rapportée par une source. Son enregistrement informationnel conservé est distinct d’une Experience de rêve décrite par la source et d’une recollection DreamReport ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects a dream-entry category rather than a waking entry."
+msgstr "Utiliser lorsque la source sélectionne explicitement une catégorie d’entrée de rêve plutôt qu’une entrée éveillée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a dream from text markers, requiring a layer when unstated, or retyping generated text as Experience or DreamReport."
+msgstr "Éviter de déduire un rêve de marqueurs textuels, d’exiger une couche non déclarée ou de retyper un texte généré comme Experience ou DreamReport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual entry Activity through eventType and keep its information record separate. Attach dreamLayer only when the source states one; genuine recollection links need independent evidence."
+msgstr "Classer l’Activity d’entrée réelle par eventType et garder séparé son enregistrement informationnel. Ajouter dreamLayer uniquement lorsque la source en déclare une ; les liens de recollection véritables exigent des éléments indépendants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value creates no phenomenal episode, phase structure, nesting order or automatic awareness-mode assertion. Missing layer and unspecified dream facts remain unknown."
+msgstr "La valeur ne crée aucun épisode phénoménal, structure de phases, ordre d’imbrication ou assertion automatique de mode de conscience. Une couche absente et les faits de rêve non précisés restent inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentDreamEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source selects its dream-entry kind: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry ."
+msgstr "Une source sélectionne son genre d’entrée de rêve : ex:entryEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent patrol note"
+msgstr "note de patrouille d’un agent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported occurrence recording a note of an agent's patrol. The retained note is not itself the patrol or proof of actual perception or successful action."
+msgstr "Valeur ouverte de genre d’événement pour une occurrence rapportée par une source qui enregistre une note de patrouille d’un agent. La note conservée n’est ni la patrouille elle-même ni une preuve de perception réelle ou d’action réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the entry category as a patrol note."
+msgstr "Utiliser lorsque la source identifie la catégorie de l’entrée comme une note de patrouille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a route, place, observation, patrol occurrence or awareness mode merely from the note category."
+msgstr "Éviter d’inventer un itinéraire, un lieu, une observation, une occurrence de patrouille ou un mode de conscience à partir de la seule catégorie de note."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType to the source-recorded entry Activity. Retain actual actor, place and note wording only with their own source evidence."
+msgstr "Rattacher par eventType à l’Activity d’entrée enregistrée par la source. Conserver l’agent réel, le lieu et les paroles de la note uniquement avec leurs propres éléments sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An event-kind seed rather than an information-record or mental-process class. It supplies no missing state, invocation, time or location and runs no patrol or recall operation."
+msgstr "Une valeur initiale de genre d’événement plutôt qu’une classe d’enregistrement informationnel ou de processus mental. Elle ne fournit aucun état, invocation, temps ou lieu manquant et n’exécute ni patrouille ni rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentPatrolNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reports a patrol note: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote ."
+msgstr "La source rapporte une note de patrouille : ex:entryEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent reasoning trace"
+msgstr "trace de raisonnement d’un agent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open event-kind value for a source-reported entry of model-emitted reasoning before a reply in an exchange. The retained words are distinct from inference validity, a proof, a raw reply envelope or a transport event."
+msgstr "Valeur ouverte de genre d’événement pour une entrée rapportée par une source de raisonnement émis par un modèle avant une réponse dans un échange. Les paroles conservées sont distinctes de la validité d’une inférence, d’une preuve, d’une enveloppe brute de réponse ou d’un événement de transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies this pre-reply reasoning-entry category."
+msgstr "Utiliser lorsque la source identifie explicitement cette catégorie d’entrée de raisonnement précédant la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating generated reasoning words as a valid inference or verified proof, or substituting the general model-generation trace kind for this specific entry meaning."
+msgstr "Éviter de traiter des paroles de raisonnement générées comme une inférence valide ou une preuve vérifiée, ou de substituer le genre général de trace de génération du modèle à ce sens précis d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, prompt references and reply-handling reports under their existing independent contracts."
+msgstr "Classer l’Activity d’entrée identifiée par la source et conserver son enregistrement informationnel réel. Garder la provenance connue de l’appel producteur, les références déclenchantes et les rapports de traitement de réponse sous leurs contrats indépendants existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No inference engine, model call, output ownership, success verdict, temporal order or missing invocation identity is created. The value is neither equivalent to nor mutually exclusive with a general generation trace."
+msgstr "Aucun moteur d’inférence, appel de modèle, propriété de sortie, verdict de réussite, ordre temporel ou identité d’invocation manquante n’est créé. La valeur n’est ni équivalente à une trace générale de génération ni mutuellement exclusive avec elle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source retains its reasoning-entry category: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."
+msgstr "Une source conserve sa catégorie d’entrée de raisonnement : ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."

@@ -604,3 +604,21 @@ gmeow:WakingEvidenceSubjectConstraint
     logic:message "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."@x-gmeow-english ;
     logic:formalizes gmeow:wakingEvidence ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:wakingEvidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+# Retained inner-life records; canonical source assertions.
+
+gmeow:dreamLayer
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "dream layer"@x-gmeow-english ;
+    skos:definition "The producer-stated layer number of this retained dream-entry information record, interpreted only under its actual source convention. It is not an inferred phase, nesting relation, depth measure or chronology of an Experience."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the producer separately states a nonnegative dream-layer number."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extracting a layer from generated words, filling missing layers with zero, imposing one producer's wire-width cap or treating repeated numbers as the same event."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied nonNegativeInteger on the actual InformationObject and retain its source numbering convention when supplied. Distinguish stated zero, stated nonzero and no layer without retyping the record as Experience or DreamReport."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: attributed layer values may coexist. No global maximum, successor order, awareness mode, whole-dream structure or successful generation follows from the field."@x-gmeow-english ;
+    skos:example "A separately stated zero remains a real value: ex:entry gmeow:dreamLayer \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range xsd:nonNegativeInteger .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamLayer" ; logic:closureValue logic:ClosedWorldClosure ] .
