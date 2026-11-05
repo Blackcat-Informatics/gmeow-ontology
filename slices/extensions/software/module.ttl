@@ -412,7 +412,7 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:someValuesFrom xsd:string ;
+            logic:someValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
         ] ,
         [
             a logic:Restriction ;
