@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 1a5aeb1b86caf02892e6001b5ecb19adda1cf8db
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2570
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2570
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: b3fc07b3eee9e929df73a475e425a0b62744a46c
+GhpRsq-Head-Ref: paudley/2569-explain-the-existing-physical-dimension
+GhpRsq-Head-OID: 1a5aeb1b86caf02892e6001b5ecb19adda1cf8db
+GhpRsq-Result-Tree: 178ce642d669d3a09db42684b8f7fcbe8a09b640
+GhpRsq-Result-Commit: 12ea16f0a195f96cce3bba866e90b76202dba942
+GhpRsq-Parent-Hashes: 1a5aeb1b86caf02892e6001b5ecb19adda1cf8db
+GhpRsq-Squash-Notes-SHA256: ad201d1b3015ea92b2175d6409482bb65b131d38ad1d4d8d7746356c8408f322
+GhpRsq-Stage-Evidence: none
