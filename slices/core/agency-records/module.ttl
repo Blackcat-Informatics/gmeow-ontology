@@ -3911,3 +3911,585 @@ gmeow:AheadAnchor logic:subClassOf
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/aheadWindow" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-reported model-call mechanics and conditional frame witnesses.
+
+gmeow:ModelCallMechanics
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "model call mechanics"@x-gmeow-english ;
+    skos:definition "An information report of one model invocation’s source-supplied mechanics, retaining at least one timing, queue, session, token, unreported-field or provider-failure value."@x-gmeow-english ;
+    skos:scopeNote "The report is separate from the invocation occurrence, its generated words, a deployment and an interaction session. Several actually sourced reports may describe one invocation."@x-gmeow-english ;
+    skos:example "A source reports a call’s queue delay while leaving its token usage unspecified."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual mechanics report linked to its actual ModelInvocation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent missing metrics, zeroes, frames, provider identities or a successful outcome."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual invocation, supplied values and statement attribution; supply real frames only for the selected framed fields."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:mechanicsOf
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mechanics of"@x-gmeow-english ;
+    skos:definition "Links a ModelCallMechanics report to the one actual ModelInvocation it describes."@x-gmeow-english ;
+    skos:scopeNote "The relation is not inverse-functional; separately sourced reports may coexist for the same invocation."@x-gmeow-english ;
+    skos:example "Two attributed reports retain their actual shared invocation without being merged."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor an actual mechanics report to its call occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat the link as proof of successful execution, retained output or accurate measurements."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one actual ModelInvocation per report, retaining independent source assertions."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range gmeow:ModelInvocation .
+
+gmeow:callStartedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "call started at"@x-gmeow-english ;
+    skos:definition "The source-reported start timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."@x-gmeow-english ;
+    skos:scopeNote "The actual timing frame is required when supplied. The source boundary is not automatically the start of model execution after queueing."@x-gmeow-english ;
+    skos:example "A source timestamp retains its supplied offset and fractional precision."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actually supplied call-start timestamp."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not default to UTC, normalize the literal or retype the report as a TimeInterval."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original literal and link its actual mechanicsTemporalFrame on the report."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:dateTime .
+
+gmeow:callFinishedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "call finished at"@x-gmeow-english ;
+    skos:definition "The source-reported finish timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."@x-gmeow-english ;
+    skos:scopeNote "A finish may accompany provider failure. It establishes neither successful generation nor a derived elapsed duration."@x-gmeow-english ;
+    skos:example "A failed call retains its actual reported finish timestamp and failure evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actually supplied call-finish timestamp."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer success, endpoint order or a queue duration from the timestamp."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied dateTime and actual mechanicsTemporalFrame, including source clock anomalies."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:dateTime .
+
+gmeow:queueDelayMillis
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "queue delay in milliseconds"@x-gmeow-english ;
+    skos:definition "The source-reported milliseconds the call waited for a slot before its reported start, retained as the supplied xsd:nonNegativeInteger."@x-gmeow-english ;
+    skos:scopeNote "Milliseconds is this role’s fixed declared unit. The unanchored elapsed magnitude alone requires no clock, calendar, epoch or TemporalFrame."@x-gmeow-english ;
+    skos:example "An actual queue-delay counter is retained without manufacturing call timestamps."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-supplied nonnegative millisecond queue-delay value."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer zero from absence, convert a calendar duration or calculate finish minus start."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original typed literal; equal numeric lexical aliases may coexist without rewriting."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:slotSession
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "slot session"@x-gmeow-english ;
+    skos:definition "The provider-named slot-session token reported for this call, retained as the supplied xsd:token."@x-gmeow-english ;
+    skos:scopeNote "The opaque identifier is scoped by the actual report, invocation and source. It is not a globally identified AgentSession or RuntimeExecution."@x-gmeow-english ;
+    skos:example "A supplied session token remains unchanged without becoming an IRI or process handle."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source actually reports its slot-session identifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not trim, case-fold, parse or infer a provider identity from the token."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact token and source attribution; absence means unspecified."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:token .
+
+gmeow:promptTokenCount
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prompt token count"@x-gmeow-english ;
+    skos:definition "The source-reported prompt tokens used by this call, including cached prompt tokens, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."@x-gmeow-english ;
+    skos:scopeNote "The counting convention is explicit. This count does not assert billed usage or infer an omitted cached count."@x-gmeow-english ;
+    skos:example "A prompt count includes its actually reported cached subset."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual reported inclusive prompt-token counter."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not subtract cached tokens, invent a tokenizer or replace absence with zero."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original literal and actual mechanicsCountingFrame, preserving equal numeric aliases."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:cachedPromptTokenCount
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cached prompt token count"@x-gmeow-english ;
+    skos:definition "The source-reported prompt tokens served from the provider’s prompt cache for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."@x-gmeow-english ;
+    skos:scopeNote "When both are supplied, this subset cannot exceed the inclusive prompt count. A missing prompt counter remains unspecified."@x-gmeow-english ;
+    skos:example "An actual cached count is retained even when another usage field is not reported."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual prompt-cache token counter."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a cache hit, zero value or complete usage group from missing fields."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied literal and common counting frame; validate the subset bound only when both counters exist."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:completionTokenCount
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "completion token count"@x-gmeow-english ;
+    skos:definition "The source-reported tokens generated for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."@x-gmeow-english ;
+    skos:scopeNote "Generated-token accounting does not prove successful completion, retained words or billed usage."@x-gmeow-english ;
+    skos:example "A failed provider call may retain an actually supplied completion-token count."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual reported generated-token counter."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer missing prompt counts, a successful outcome or a zero from absence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source literal and actual mechanicsCountingFrame with its declared token convention."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:mechanicsUnreported
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mechanics unreported field"@x-gmeow-english ;
+    skos:definition "An actual source-supplied xsd:token naming an unreported mechanics field or group. The token usage declares all three token counters unreported on this report."@x-gmeow-english ;
+    skos:scopeNote "The role is nonfunctional and open. An unknown marker gains no inferred property mapping; a missing marker is unspecified."@x-gmeow-english ;
+    skos:example "An explicit usage token is retained without writing three zero counters."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source explicitly reports that a field or group was unreported."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a marker from omission or combine usage-unreported with supplied token counts."@x-gmeow-english ;
+    gmeow:howToUse "Retain each exact supplied token; preserve partial actual counts when the usage marker is absent."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:token .
+
+gmeow:providerFailureStage
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider failure stage"@x-gmeow-english ;
+    skos:definition "The caller-named stage token of a reported provider failure for this call, retained as the supplied xsd:token."@x-gmeow-english ;
+    skos:scopeNote "Stages remain an open vocabulary of source-supplied codes. The report does not define a global provider lifecycle enum or automatically write an invocation outcome."@x-gmeow-english ;
+    skos:example "A supplied transport-stage token remains the caller’s reported classification."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actually supplied provider-failure stage code."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent a stage, require missing diagnostic text or infer success from absence."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact token and its source context independently of any supplied failure detail."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range xsd:token .
+
+gmeow:providerFailureDetail
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider failure detail"@x-gmeow-english ;
+    skos:definition "The actual source-supplied provider-failure diagnostic literal for this call, retaining its original characters, datatype, language and direction."@x-gmeow-english ;
+    skos:scopeNote "The diagnostic is machinery evidence, separate from generated words. String, language-bearing and directional language-bearing literals retain their actual distinctions."@x-gmeow-english ;
+    skos:example "A provider’s actual unknown-language diagnostic retains its supplied und tag without making und a default."@x-gmeow-english ;
+    gmeow:useWhen "Use for actual diagnostic text supplied about a provider failure."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not paraphrase, normalize, infer a language, fabricate a stage or treat the words as the calling agent’s speech."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete literal unchanged with its source attribution; a missing companion stage remains unknown."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:mechanicsTemporalFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mechanics temporal frame"@x-gmeow-english ;
+    skos:definition "Links a ModelCallMechanics report to the actual TemporalFrame interpreting its supplied call-start and call-finish timestamp literals."@x-gmeow-english ;
+    skos:scopeNote "Required when either timestamp is supplied, optional otherwise. Queue delay alone does not require a temporal frame."@x-gmeow-english ;
+    skos:example "A source justifies the actual clock and calendar context for its reported endpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual endpoint clock, calendar and timescale convention declared by the source."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent UTC, an epoch or a calendar merely to fill this role, or require it from a queue-delay value."@x-gmeow-english ;
+    gmeow:howToUse "Link one actual complete TemporalFrame for this report’s endpoints; leave the generic frame spine uncapped."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range gmeow:TemporalFrame ;
+    logic:subPropertyOf gmeow:hasReferenceFrame .
+
+gmeow:mechanicsCountingFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mechanics counting frame"@x-gmeow-english ;
+    skos:definition "Links a ModelCallMechanics report to the actual ReferenceFrame interpreting its provider, model, tokenizer and prompt-cache counting convention for the supplied token counters."@x-gmeow-english ;
+    skos:scopeNote "Any supplied token count requires this actual common frame. Its role is separate from endpoint timing; no identity between frame resources is inferred."@x-gmeow-english ;
+    skos:example "A partial usage report retains its actual counting convention without inventing the other counters."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source-justified convention shared by this report’s token counters."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not guess provider or tokenizer identities, invent a frame individual or equate it with a clock frame."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual complete ReferenceFrame and retain the source evidence for its counting interpretation."@x-gmeow-english ;
+    logic:domain gmeow:ModelCallMechanics ;
+    logic:range gmeow:ReferenceFrame ;
+    logic:subPropertyOf gmeow:hasReferenceFrame .
+
+gmeow:ModelCallMechanicsValuesConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "model call mechanics values constraint"@x-gmeow-english ;
+    skos:definition "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."@x-gmeow-english ;
+    skos:scopeNote "Equal numeric lexical aliases remain unchanged. Queue delay alone requires no clock frame; missing partial metrics are not synthesized."@x-gmeow-english ;
+    skos:example "A source-supplied cached count greater than its prompt count violates the subset law."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate actual supplied mechanics values and conditional frame witnesses."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not repair a failed report by clamping counts, inventing frames or filling missing values with zero."@x-gmeow-english ;
+    gmeow:howToUse "Apply the guarded Formula law to original literals and actual frame resources, retaining source attribution."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelCallMechanics ;
+    logic:message "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."@x-gmeow-english ;
+    logic:integrity _:mechanicsModelCallMechanicsValuesConstraint1 .
+
+_:mechanicsModelCallMechanicsValuesConstraint2 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint5 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint6 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:ModelCallMechanics .
+_:mechanicsModelCallMechanicsValuesConstraint4 a logic:Formula ; logic:relation rdf:type ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint5 , _:mechanicsModelCallMechanicsValuesConstraint6 .
+_:mechanicsModelCallMechanicsValuesConstraint9 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_invocation" .
+_:mechanicsModelCallMechanicsValuesConstraint12 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint13 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_invocation" .
+_:mechanicsModelCallMechanicsValuesConstraint11 a logic:Formula ; logic:relation gmeow:mechanicsOf ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint12 , _:mechanicsModelCallMechanicsValuesConstraint13 .
+_:mechanicsModelCallMechanicsValuesConstraint16 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentcallStartedAt" .
+_:mechanicsModelCallMechanicsValuesConstraint18 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint19 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentcallStartedAt" .
+_:mechanicsModelCallMechanicsValuesConstraint17 a logic:Formula ; logic:relation gmeow:callStartedAt ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint18 , _:mechanicsModelCallMechanicsValuesConstraint19 .
+_:mechanicsModelCallMechanicsValuesConstraint15 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint17 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint16 .
+_:mechanicsModelCallMechanicsValuesConstraint21 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentcallFinishedAt" .
+_:mechanicsModelCallMechanicsValuesConstraint23 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint24 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentcallFinishedAt" .
+_:mechanicsModelCallMechanicsValuesConstraint22 a logic:Formula ; logic:relation gmeow:callFinishedAt ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint23 , _:mechanicsModelCallMechanicsValuesConstraint24 .
+_:mechanicsModelCallMechanicsValuesConstraint20 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint22 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint21 .
+_:mechanicsModelCallMechanicsValuesConstraint26 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentqueueDelayMillis" .
+_:mechanicsModelCallMechanicsValuesConstraint28 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint29 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentqueueDelayMillis" .
+_:mechanicsModelCallMechanicsValuesConstraint27 a logic:Formula ; logic:relation gmeow:queueDelayMillis ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint28 , _:mechanicsModelCallMechanicsValuesConstraint29 .
+_:mechanicsModelCallMechanicsValuesConstraint25 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint27 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint26 .
+_:mechanicsModelCallMechanicsValuesConstraint31 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentslotSession" .
+_:mechanicsModelCallMechanicsValuesConstraint33 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint34 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentslotSession" .
+_:mechanicsModelCallMechanicsValuesConstraint32 a logic:Formula ; logic:relation gmeow:slotSession ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint33 , _:mechanicsModelCallMechanicsValuesConstraint34 .
+_:mechanicsModelCallMechanicsValuesConstraint30 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint32 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint31 .
+_:mechanicsModelCallMechanicsValuesConstraint36 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentpromptTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint38 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint39 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentpromptTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint37 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint38 , _:mechanicsModelCallMechanicsValuesConstraint39 .
+_:mechanicsModelCallMechanicsValuesConstraint35 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint37 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint36 .
+_:mechanicsModelCallMechanicsValuesConstraint41 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentcachedPromptTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint43 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint44 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentcachedPromptTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint42 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint43 , _:mechanicsModelCallMechanicsValuesConstraint44 .
+_:mechanicsModelCallMechanicsValuesConstraint40 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint42 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint41 .
+_:mechanicsModelCallMechanicsValuesConstraint46 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentcompletionTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint48 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint49 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentcompletionTokenCount" .
+_:mechanicsModelCallMechanicsValuesConstraint47 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint48 , _:mechanicsModelCallMechanicsValuesConstraint49 .
+_:mechanicsModelCallMechanicsValuesConstraint45 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint47 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint46 .
+_:mechanicsModelCallMechanicsValuesConstraint51 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentmechanicsUnreported" .
+_:mechanicsModelCallMechanicsValuesConstraint53 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint54 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentmechanicsUnreported" .
+_:mechanicsModelCallMechanicsValuesConstraint52 a logic:Formula ; logic:relation gmeow:mechanicsUnreported ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint53 , _:mechanicsModelCallMechanicsValuesConstraint54 .
+_:mechanicsModelCallMechanicsValuesConstraint50 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint52 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint51 .
+_:mechanicsModelCallMechanicsValuesConstraint56 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentproviderFailureStage" .
+_:mechanicsModelCallMechanicsValuesConstraint58 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint59 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentproviderFailureStage" .
+_:mechanicsModelCallMechanicsValuesConstraint57 a logic:Formula ; logic:relation gmeow:providerFailureStage ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint58 , _:mechanicsModelCallMechanicsValuesConstraint59 .
+_:mechanicsModelCallMechanicsValuesConstraint55 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint57 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint56 .
+_:mechanicsModelCallMechanicsValuesConstraint61 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV01_presentproviderFailureDetail" .
+_:mechanicsModelCallMechanicsValuesConstraint63 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint64 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV01_presentproviderFailureDetail" .
+_:mechanicsModelCallMechanicsValuesConstraint62 a logic:Formula ; logic:relation gmeow:providerFailureDetail ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint63 , _:mechanicsModelCallMechanicsValuesConstraint64 .
+_:mechanicsModelCallMechanicsValuesConstraint60 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint62 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint61 .
+_:mechanicsModelCallMechanicsValuesConstraint14 a logic:Formula ; logic:or _:mechanicsModelCallMechanicsValuesConstraint15 , _:mechanicsModelCallMechanicsValuesConstraint20 , _:mechanicsModelCallMechanicsValuesConstraint25 , _:mechanicsModelCallMechanicsValuesConstraint30 , _:mechanicsModelCallMechanicsValuesConstraint35 , _:mechanicsModelCallMechanicsValuesConstraint40 , _:mechanicsModelCallMechanicsValuesConstraint45 , _:mechanicsModelCallMechanicsValuesConstraint50 , _:mechanicsModelCallMechanicsValuesConstraint55 , _:mechanicsModelCallMechanicsValuesConstraint60 .
+_:mechanicsModelCallMechanicsValuesConstraint10 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint11 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint14 .
+_:mechanicsModelCallMechanicsValuesConstraint8 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint10 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint9 .
+_:mechanicsModelCallMechanicsValuesConstraint66 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV02_value" .
+_:mechanicsModelCallMechanicsValuesConstraint69 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint70 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV02_value" .
+_:mechanicsModelCallMechanicsValuesConstraint68 a logic:Formula ; logic:relation gmeow:queueDelayMillis ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint69 , _:mechanicsModelCallMechanicsValuesConstraint70 .
+_:mechanicsModelCallMechanicsValuesConstraint73 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV02_value" .
+_:mechanicsModelCallMechanicsValuesConstraint74 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:componentDatatype .
+_:mechanicsModelCallMechanicsValuesConstraint75 a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger .
+_:mechanicsModelCallMechanicsValuesConstraint76 a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:componentWhole .
+_:mechanicsModelCallMechanicsValuesConstraint72 a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint73 , _:mechanicsModelCallMechanicsValuesConstraint74 , _:mechanicsModelCallMechanicsValuesConstraint75 , _:mechanicsModelCallMechanicsValuesConstraint76 .
+_:mechanicsModelCallMechanicsValuesConstraint78 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV02_value" .
+_:mechanicsModelCallMechanicsValuesConstraint77 a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint78 .
+_:mechanicsModelCallMechanicsValuesConstraint71 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint72 , _:mechanicsModelCallMechanicsValuesConstraint77 .
+_:mechanicsModelCallMechanicsValuesConstraint67 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint68 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint71 .
+_:mechanicsModelCallMechanicsValuesConstraint65 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint67 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint66 .
+_:mechanicsModelCallMechanicsValuesConstraint80 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV03_value" .
+_:mechanicsModelCallMechanicsValuesConstraint83 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint84 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV03_value" .
+_:mechanicsModelCallMechanicsValuesConstraint82 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint83 , _:mechanicsModelCallMechanicsValuesConstraint84 .
+_:mechanicsModelCallMechanicsValuesConstraint87 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV03_value" .
+_:mechanicsModelCallMechanicsValuesConstraint88 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:componentDatatype .
+_:mechanicsModelCallMechanicsValuesConstraint89 a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger .
+_:mechanicsModelCallMechanicsValuesConstraint90 a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:componentWhole .
+_:mechanicsModelCallMechanicsValuesConstraint86 a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint87 , _:mechanicsModelCallMechanicsValuesConstraint88 , _:mechanicsModelCallMechanicsValuesConstraint89 , _:mechanicsModelCallMechanicsValuesConstraint90 .
+_:mechanicsModelCallMechanicsValuesConstraint92 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV03_value" .
+_:mechanicsModelCallMechanicsValuesConstraint91 a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint92 .
+_:mechanicsModelCallMechanicsValuesConstraint85 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint86 , _:mechanicsModelCallMechanicsValuesConstraint91 .
+_:mechanicsModelCallMechanicsValuesConstraint81 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint82 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint85 .
+_:mechanicsModelCallMechanicsValuesConstraint79 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint81 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint80 .
+_:mechanicsModelCallMechanicsValuesConstraint94 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV04_value" .
+_:mechanicsModelCallMechanicsValuesConstraint97 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint98 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV04_value" .
+_:mechanicsModelCallMechanicsValuesConstraint96 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint97 , _:mechanicsModelCallMechanicsValuesConstraint98 .
+_:mechanicsModelCallMechanicsValuesConstraint101 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV04_value" .
+_:mechanicsModelCallMechanicsValuesConstraint102 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:componentDatatype .
+_:mechanicsModelCallMechanicsValuesConstraint103 a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger .
+_:mechanicsModelCallMechanicsValuesConstraint104 a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:componentWhole .
+_:mechanicsModelCallMechanicsValuesConstraint100 a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint101 , _:mechanicsModelCallMechanicsValuesConstraint102 , _:mechanicsModelCallMechanicsValuesConstraint103 , _:mechanicsModelCallMechanicsValuesConstraint104 .
+_:mechanicsModelCallMechanicsValuesConstraint106 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV04_value" .
+_:mechanicsModelCallMechanicsValuesConstraint105 a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint106 .
+_:mechanicsModelCallMechanicsValuesConstraint99 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint100 , _:mechanicsModelCallMechanicsValuesConstraint105 .
+_:mechanicsModelCallMechanicsValuesConstraint95 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint96 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint99 .
+_:mechanicsModelCallMechanicsValuesConstraint93 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint95 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint94 .
+_:mechanicsModelCallMechanicsValuesConstraint108 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV05_value" .
+_:mechanicsModelCallMechanicsValuesConstraint111 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint112 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV05_value" .
+_:mechanicsModelCallMechanicsValuesConstraint110 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint111 , _:mechanicsModelCallMechanicsValuesConstraint112 .
+_:mechanicsModelCallMechanicsValuesConstraint115 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV05_value" .
+_:mechanicsModelCallMechanicsValuesConstraint116 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:componentDatatype .
+_:mechanicsModelCallMechanicsValuesConstraint117 a logic:TermCarrier ; logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger .
+_:mechanicsModelCallMechanicsValuesConstraint118 a logic:TermCarrier ; logic:termIndex 3 ; logic:termIri logic:componentWhole .
+_:mechanicsModelCallMechanicsValuesConstraint114 a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint115 , _:mechanicsModelCallMechanicsValuesConstraint116 , _:mechanicsModelCallMechanicsValuesConstraint117 , _:mechanicsModelCallMechanicsValuesConstraint118 .
+_:mechanicsModelCallMechanicsValuesConstraint120 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV05_value" .
+_:mechanicsModelCallMechanicsValuesConstraint119 a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint120 .
+_:mechanicsModelCallMechanicsValuesConstraint113 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint114 , _:mechanicsModelCallMechanicsValuesConstraint119 .
+_:mechanicsModelCallMechanicsValuesConstraint109 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint110 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint113 .
+_:mechanicsModelCallMechanicsValuesConstraint107 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint109 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint108 .
+_:mechanicsModelCallMechanicsValuesConstraint122 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV06_first" .
+_:mechanicsModelCallMechanicsValuesConstraint123 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV06_second" .
+_:mechanicsModelCallMechanicsValuesConstraint127 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint128 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV06_first" .
+_:mechanicsModelCallMechanicsValuesConstraint126 a logic:Formula ; logic:relation gmeow:queueDelayMillis ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint127 , _:mechanicsModelCallMechanicsValuesConstraint128 .
+_:mechanicsModelCallMechanicsValuesConstraint130 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint131 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV06_second" .
+_:mechanicsModelCallMechanicsValuesConstraint129 a logic:Formula ; logic:relation gmeow:queueDelayMillis ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint130 , _:mechanicsModelCallMechanicsValuesConstraint131 .
+_:mechanicsModelCallMechanicsValuesConstraint125 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint126 , _:mechanicsModelCallMechanicsValuesConstraint129 .
+_:mechanicsModelCallMechanicsValuesConstraint133 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV06_first" .
+_:mechanicsModelCallMechanicsValuesConstraint134 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV06_second" .
+_:mechanicsModelCallMechanicsValuesConstraint132 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint133 , _:mechanicsModelCallMechanicsValuesConstraint134 .
+_:mechanicsModelCallMechanicsValuesConstraint124 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint125 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint132 .
+_:mechanicsModelCallMechanicsValuesConstraint121 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint124 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint122 , _:mechanicsModelCallMechanicsValuesConstraint123 .
+_:mechanicsModelCallMechanicsValuesConstraint136 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV07_first" .
+_:mechanicsModelCallMechanicsValuesConstraint137 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV07_second" .
+_:mechanicsModelCallMechanicsValuesConstraint141 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint142 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV07_first" .
+_:mechanicsModelCallMechanicsValuesConstraint140 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint141 , _:mechanicsModelCallMechanicsValuesConstraint142 .
+_:mechanicsModelCallMechanicsValuesConstraint144 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint145 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV07_second" .
+_:mechanicsModelCallMechanicsValuesConstraint143 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint144 , _:mechanicsModelCallMechanicsValuesConstraint145 .
+_:mechanicsModelCallMechanicsValuesConstraint139 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint140 , _:mechanicsModelCallMechanicsValuesConstraint143 .
+_:mechanicsModelCallMechanicsValuesConstraint147 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV07_first" .
+_:mechanicsModelCallMechanicsValuesConstraint148 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV07_second" .
+_:mechanicsModelCallMechanicsValuesConstraint146 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint147 , _:mechanicsModelCallMechanicsValuesConstraint148 .
+_:mechanicsModelCallMechanicsValuesConstraint138 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint139 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint146 .
+_:mechanicsModelCallMechanicsValuesConstraint135 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint138 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint136 , _:mechanicsModelCallMechanicsValuesConstraint137 .
+_:mechanicsModelCallMechanicsValuesConstraint150 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV08_first" .
+_:mechanicsModelCallMechanicsValuesConstraint151 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV08_second" .
+_:mechanicsModelCallMechanicsValuesConstraint155 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint156 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV08_first" .
+_:mechanicsModelCallMechanicsValuesConstraint154 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint155 , _:mechanicsModelCallMechanicsValuesConstraint156 .
+_:mechanicsModelCallMechanicsValuesConstraint158 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint159 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV08_second" .
+_:mechanicsModelCallMechanicsValuesConstraint157 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint158 , _:mechanicsModelCallMechanicsValuesConstraint159 .
+_:mechanicsModelCallMechanicsValuesConstraint153 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint154 , _:mechanicsModelCallMechanicsValuesConstraint157 .
+_:mechanicsModelCallMechanicsValuesConstraint161 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV08_first" .
+_:mechanicsModelCallMechanicsValuesConstraint162 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV08_second" .
+_:mechanicsModelCallMechanicsValuesConstraint160 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint161 , _:mechanicsModelCallMechanicsValuesConstraint162 .
+_:mechanicsModelCallMechanicsValuesConstraint152 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint153 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint160 .
+_:mechanicsModelCallMechanicsValuesConstraint149 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint152 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint150 , _:mechanicsModelCallMechanicsValuesConstraint151 .
+_:mechanicsModelCallMechanicsValuesConstraint164 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV09_first" .
+_:mechanicsModelCallMechanicsValuesConstraint165 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV09_second" .
+_:mechanicsModelCallMechanicsValuesConstraint169 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint170 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV09_first" .
+_:mechanicsModelCallMechanicsValuesConstraint168 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint169 , _:mechanicsModelCallMechanicsValuesConstraint170 .
+_:mechanicsModelCallMechanicsValuesConstraint172 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint173 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV09_second" .
+_:mechanicsModelCallMechanicsValuesConstraint171 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint172 , _:mechanicsModelCallMechanicsValuesConstraint173 .
+_:mechanicsModelCallMechanicsValuesConstraint167 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint168 , _:mechanicsModelCallMechanicsValuesConstraint171 .
+_:mechanicsModelCallMechanicsValuesConstraint175 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV09_first" .
+_:mechanicsModelCallMechanicsValuesConstraint176 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV09_second" .
+_:mechanicsModelCallMechanicsValuesConstraint174 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint175 , _:mechanicsModelCallMechanicsValuesConstraint176 .
+_:mechanicsModelCallMechanicsValuesConstraint166 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint167 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint174 .
+_:mechanicsModelCallMechanicsValuesConstraint163 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint166 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint164 , _:mechanicsModelCallMechanicsValuesConstraint165 .
+_:mechanicsModelCallMechanicsValuesConstraint178 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV10_prompt" .
+_:mechanicsModelCallMechanicsValuesConstraint179 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV10_cached" .
+_:mechanicsModelCallMechanicsValuesConstraint183 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint184 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV10_prompt" .
+_:mechanicsModelCallMechanicsValuesConstraint182 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint183 , _:mechanicsModelCallMechanicsValuesConstraint184 .
+_:mechanicsModelCallMechanicsValuesConstraint186 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint187 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV10_cached" .
+_:mechanicsModelCallMechanicsValuesConstraint185 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint186 , _:mechanicsModelCallMechanicsValuesConstraint187 .
+_:mechanicsModelCallMechanicsValuesConstraint181 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint182 , _:mechanicsModelCallMechanicsValuesConstraint185 .
+_:mechanicsModelCallMechanicsValuesConstraint190 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV10_cached" .
+_:mechanicsModelCallMechanicsValuesConstraint191 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV10_prompt" .
+_:mechanicsModelCallMechanicsValuesConstraint189 a logic:Formula ; logic:relation logic:termGreater ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint190 , _:mechanicsModelCallMechanicsValuesConstraint191 .
+_:mechanicsModelCallMechanicsValuesConstraint188 a logic:Formula ; logic:not _:mechanicsModelCallMechanicsValuesConstraint189 .
+_:mechanicsModelCallMechanicsValuesConstraint180 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint181 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint188 .
+_:mechanicsModelCallMechanicsValuesConstraint177 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint180 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint178 , _:mechanicsModelCallMechanicsValuesConstraint179 .
+_:mechanicsModelCallMechanicsValuesConstraint193 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV11_value" .
+_:mechanicsModelCallMechanicsValuesConstraint196 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint197 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV11_value" .
+_:mechanicsModelCallMechanicsValuesConstraint195 a logic:Formula ; logic:relation gmeow:callStartedAt ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint196 , _:mechanicsModelCallMechanicsValuesConstraint197 .
+_:mechanicsModelCallMechanicsValuesConstraint199 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV11_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint201 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint202 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV11_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint200 a logic:Formula ; logic:relation gmeow:mechanicsTemporalFrame ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint201 , _:mechanicsModelCallMechanicsValuesConstraint202 .
+_:mechanicsModelCallMechanicsValuesConstraint198 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint200 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint199 .
+_:mechanicsModelCallMechanicsValuesConstraint194 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint195 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint198 .
+_:mechanicsModelCallMechanicsValuesConstraint192 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint194 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint193 .
+_:mechanicsModelCallMechanicsValuesConstraint204 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV12_value" .
+_:mechanicsModelCallMechanicsValuesConstraint207 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint208 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV12_value" .
+_:mechanicsModelCallMechanicsValuesConstraint206 a logic:Formula ; logic:relation gmeow:callFinishedAt ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint207 , _:mechanicsModelCallMechanicsValuesConstraint208 .
+_:mechanicsModelCallMechanicsValuesConstraint210 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV12_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint212 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint213 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV12_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint211 a logic:Formula ; logic:relation gmeow:mechanicsTemporalFrame ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint212 , _:mechanicsModelCallMechanicsValuesConstraint213 .
+_:mechanicsModelCallMechanicsValuesConstraint209 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint211 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint210 .
+_:mechanicsModelCallMechanicsValuesConstraint205 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint206 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint209 .
+_:mechanicsModelCallMechanicsValuesConstraint203 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint205 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint204 .
+_:mechanicsModelCallMechanicsValuesConstraint215 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV13_value" .
+_:mechanicsModelCallMechanicsValuesConstraint218 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint219 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV13_value" .
+_:mechanicsModelCallMechanicsValuesConstraint217 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint218 , _:mechanicsModelCallMechanicsValuesConstraint219 .
+_:mechanicsModelCallMechanicsValuesConstraint221 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV13_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint223 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint224 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV13_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint222 a logic:Formula ; logic:relation gmeow:mechanicsCountingFrame ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint223 , _:mechanicsModelCallMechanicsValuesConstraint224 .
+_:mechanicsModelCallMechanicsValuesConstraint220 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint222 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint221 .
+_:mechanicsModelCallMechanicsValuesConstraint216 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint217 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint220 .
+_:mechanicsModelCallMechanicsValuesConstraint214 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint216 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint215 .
+_:mechanicsModelCallMechanicsValuesConstraint226 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV14_value" .
+_:mechanicsModelCallMechanicsValuesConstraint229 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint230 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV14_value" .
+_:mechanicsModelCallMechanicsValuesConstraint228 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint229 , _:mechanicsModelCallMechanicsValuesConstraint230 .
+_:mechanicsModelCallMechanicsValuesConstraint232 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV14_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint234 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint235 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV14_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint233 a logic:Formula ; logic:relation gmeow:mechanicsCountingFrame ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint234 , _:mechanicsModelCallMechanicsValuesConstraint235 .
+_:mechanicsModelCallMechanicsValuesConstraint231 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint233 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint232 .
+_:mechanicsModelCallMechanicsValuesConstraint227 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint228 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint231 .
+_:mechanicsModelCallMechanicsValuesConstraint225 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint227 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint226 .
+_:mechanicsModelCallMechanicsValuesConstraint237 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV15_value" .
+_:mechanicsModelCallMechanicsValuesConstraint240 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint241 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV15_value" .
+_:mechanicsModelCallMechanicsValuesConstraint239 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint240 , _:mechanicsModelCallMechanicsValuesConstraint241 .
+_:mechanicsModelCallMechanicsValuesConstraint243 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsV15_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint245 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsValuesReport" .
+_:mechanicsModelCallMechanicsValuesConstraint246 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsV15_frame" .
+_:mechanicsModelCallMechanicsValuesConstraint244 a logic:Formula ; logic:relation gmeow:mechanicsCountingFrame ; logic:argument _:mechanicsModelCallMechanicsValuesConstraint245 , _:mechanicsModelCallMechanicsValuesConstraint246 .
+_:mechanicsModelCallMechanicsValuesConstraint242 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsValuesConstraint244 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint243 .
+_:mechanicsModelCallMechanicsValuesConstraint238 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint239 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint242 .
+_:mechanicsModelCallMechanicsValuesConstraint236 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint238 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint237 .
+_:mechanicsModelCallMechanicsValuesConstraint7 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsValuesConstraint8 , _:mechanicsModelCallMechanicsValuesConstraint65 , _:mechanicsModelCallMechanicsValuesConstraint79 , _:mechanicsModelCallMechanicsValuesConstraint93 , _:mechanicsModelCallMechanicsValuesConstraint107 , _:mechanicsModelCallMechanicsValuesConstraint121 , _:mechanicsModelCallMechanicsValuesConstraint135 , _:mechanicsModelCallMechanicsValuesConstraint149 , _:mechanicsModelCallMechanicsValuesConstraint163 , _:mechanicsModelCallMechanicsValuesConstraint177 , _:mechanicsModelCallMechanicsValuesConstraint192 , _:mechanicsModelCallMechanicsValuesConstraint203 , _:mechanicsModelCallMechanicsValuesConstraint214 , _:mechanicsModelCallMechanicsValuesConstraint225 , _:mechanicsModelCallMechanicsValuesConstraint236 .
+_:mechanicsModelCallMechanicsValuesConstraint3 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsValuesConstraint4 ; logic:consequent _:mechanicsModelCallMechanicsValuesConstraint7 .
+_:mechanicsModelCallMechanicsValuesConstraint1 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsValuesConstraint3 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsValuesConstraint2 .
+
+gmeow:ModelCallMechanicsUnreportedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "model call mechanics unreported constraint"@x-gmeow-english ;
+    skos:definition "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."@x-gmeow-english ;
+    skos:scopeNote "Only the actual usage token selects this group rule. Absence and other open marker names imply no invented completeness claim."@x-gmeow-english ;
+    skos:example "A report combining usage-unreported and a completion count violates the rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect contradictory source declarations about this report’s unreported usage."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer the marker from missing counters or require every partial usage report to have all three counts."@x-gmeow-english ;
+    gmeow:howToUse "Bind each actual marker and reject any conflicting supplied count without erasing either source claim."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelCallMechanics ;
+    logic:message "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."@x-gmeow-english ;
+    logic:integrity _:mechanicsModelCallMechanicsUnreportedConstraint1 .
+
+_:mechanicsModelCallMechanicsUnreportedConstraint2 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint5 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint6 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:ModelCallMechanics .
+_:mechanicsModelCallMechanicsUnreportedConstraint4 a logic:Formula ; logic:relation rdf:type ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint5 , _:mechanicsModelCallMechanicsUnreportedConstraint6 .
+_:mechanicsModelCallMechanicsUnreportedConstraint9 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU01_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint13 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint14 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU01_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint12 a logic:Formula ; logic:relation gmeow:mechanicsUnreported ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint13 , _:mechanicsModelCallMechanicsUnreportedConstraint14 .
+_:mechanicsModelCallMechanicsUnreportedConstraint16 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU01_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint17 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "usage"^^xsd:token .
+_:mechanicsModelCallMechanicsUnreportedConstraint15 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint16 , _:mechanicsModelCallMechanicsUnreportedConstraint17 .
+_:mechanicsModelCallMechanicsUnreportedConstraint11 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsUnreportedConstraint12 , _:mechanicsModelCallMechanicsUnreportedConstraint15 .
+_:mechanicsModelCallMechanicsUnreportedConstraint20 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU01_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint22 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint23 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU01_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint21 a logic:Formula ; logic:relation gmeow:promptTokenCount ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint22 , _:mechanicsModelCallMechanicsUnreportedConstraint23 .
+_:mechanicsModelCallMechanicsUnreportedConstraint19 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsUnreportedConstraint21 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint20 .
+_:mechanicsModelCallMechanicsUnreportedConstraint18 a logic:Formula ; logic:not _:mechanicsModelCallMechanicsUnreportedConstraint19 .
+_:mechanicsModelCallMechanicsUnreportedConstraint10 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsUnreportedConstraint11 ; logic:consequent _:mechanicsModelCallMechanicsUnreportedConstraint18 .
+_:mechanicsModelCallMechanicsUnreportedConstraint8 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsUnreportedConstraint10 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint9 .
+_:mechanicsModelCallMechanicsUnreportedConstraint25 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU02_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint29 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint30 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU02_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint28 a logic:Formula ; logic:relation gmeow:mechanicsUnreported ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint29 , _:mechanicsModelCallMechanicsUnreportedConstraint30 .
+_:mechanicsModelCallMechanicsUnreportedConstraint32 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU02_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint33 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "usage"^^xsd:token .
+_:mechanicsModelCallMechanicsUnreportedConstraint31 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint32 , _:mechanicsModelCallMechanicsUnreportedConstraint33 .
+_:mechanicsModelCallMechanicsUnreportedConstraint27 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsUnreportedConstraint28 , _:mechanicsModelCallMechanicsUnreportedConstraint31 .
+_:mechanicsModelCallMechanicsUnreportedConstraint36 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU02_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint38 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint39 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU02_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint37 a logic:Formula ; logic:relation gmeow:cachedPromptTokenCount ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint38 , _:mechanicsModelCallMechanicsUnreportedConstraint39 .
+_:mechanicsModelCallMechanicsUnreportedConstraint35 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsUnreportedConstraint37 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint36 .
+_:mechanicsModelCallMechanicsUnreportedConstraint34 a logic:Formula ; logic:not _:mechanicsModelCallMechanicsUnreportedConstraint35 .
+_:mechanicsModelCallMechanicsUnreportedConstraint26 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsUnreportedConstraint27 ; logic:consequent _:mechanicsModelCallMechanicsUnreportedConstraint34 .
+_:mechanicsModelCallMechanicsUnreportedConstraint24 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsUnreportedConstraint26 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint25 .
+_:mechanicsModelCallMechanicsUnreportedConstraint41 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU03_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint45 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint46 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU03_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint44 a logic:Formula ; logic:relation gmeow:mechanicsUnreported ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint45 , _:mechanicsModelCallMechanicsUnreportedConstraint46 .
+_:mechanicsModelCallMechanicsUnreportedConstraint48 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU03_marker" .
+_:mechanicsModelCallMechanicsUnreportedConstraint49 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "usage"^^xsd:token .
+_:mechanicsModelCallMechanicsUnreportedConstraint47 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint48 , _:mechanicsModelCallMechanicsUnreportedConstraint49 .
+_:mechanicsModelCallMechanicsUnreportedConstraint43 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsUnreportedConstraint44 , _:mechanicsModelCallMechanicsUnreportedConstraint47 .
+_:mechanicsModelCallMechanicsUnreportedConstraint52 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsU03_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint54 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "callMechanicsUnreportedReport" .
+_:mechanicsModelCallMechanicsUnreportedConstraint55 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "callMechanicsU03_forbidden" .
+_:mechanicsModelCallMechanicsUnreportedConstraint53 a logic:Formula ; logic:relation gmeow:completionTokenCount ; logic:argument _:mechanicsModelCallMechanicsUnreportedConstraint54 , _:mechanicsModelCallMechanicsUnreportedConstraint55 .
+_:mechanicsModelCallMechanicsUnreportedConstraint51 a logic:Formula ; logic:exists _:mechanicsModelCallMechanicsUnreportedConstraint53 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint52 .
+_:mechanicsModelCallMechanicsUnreportedConstraint50 a logic:Formula ; logic:not _:mechanicsModelCallMechanicsUnreportedConstraint51 .
+_:mechanicsModelCallMechanicsUnreportedConstraint42 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsUnreportedConstraint43 ; logic:consequent _:mechanicsModelCallMechanicsUnreportedConstraint50 .
+_:mechanicsModelCallMechanicsUnreportedConstraint40 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsUnreportedConstraint42 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint41 .
+_:mechanicsModelCallMechanicsUnreportedConstraint7 a logic:Formula ; logic:and _:mechanicsModelCallMechanicsUnreportedConstraint8 , _:mechanicsModelCallMechanicsUnreportedConstraint24 , _:mechanicsModelCallMechanicsUnreportedConstraint40 .
+_:mechanicsModelCallMechanicsUnreportedConstraint3 a logic:Formula ; logic:antecedent _:mechanicsModelCallMechanicsUnreportedConstraint4 ; logic:consequent _:mechanicsModelCallMechanicsUnreportedConstraint7 .
+_:mechanicsModelCallMechanicsUnreportedConstraint1 a logic:Formula ; logic:forall _:mechanicsModelCallMechanicsUnreportedConstraint3 ; logic:quantifiedVariable _:mechanicsModelCallMechanicsUnreportedConstraint2 .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsOf ; logic:allValuesFrom gmeow:ModelInvocation ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsTemporalFrame ; logic:allValuesFrom gmeow:TemporalFrame ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsTemporalFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsCountingFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsCountingFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:callStartedAt ; logic:allValuesFrom xsd:dateTime ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:callStartedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:callFinishedAt ; logic:allValuesFrom xsd:dateTime ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:callFinishedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queueDelayMillis ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotSession ; logic:allValuesFrom xsd:token ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotSession ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:promptTokenCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cachedPromptTokenCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:completionTokenCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mechanicsUnreported ; logic:allValuesFrom xsd:token ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:providerFailureStage ; logic:allValuesFrom xsd:token ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:providerFailureStage ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ] .
+
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:providerFailureDetail ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:providerFailureDetail ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelCallMechanics ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/callStartedAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/callFinishedAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/queueDelayMillis" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/slotSession" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/promptTokenCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/completionTokenCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsUnreported" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerFailureStage" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerFailureDetail" ; logic:closureValue logic:ClosedWorldClosure ] .

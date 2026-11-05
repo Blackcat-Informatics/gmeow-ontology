@@ -813,3 +813,117 @@ The Notes-owned `notebookStatement` retains an exact quoted native triple term;
 see the [notebook guide](../notes/docs.md). Both notebook and guidance records
 still inherit Note's content-or-label requirement; no content is fabricated to
 admit an association (Principles 4, 9, 11 and 17).
+
+## Source-reported model-call mechanics
+
+`ModelCallMechanics` is an InformationObject report linked by `mechanicsOf`
+to exactly one actual `ModelInvocation`. It retains at least one actually
+supplied mechanics field or explicit unreported marker. The report is
+separate from the call occurrence, generated words, deployment, runtime
+execution and interaction session. Several independently sourced reports may
+describe one invocation; the link is not inverse-functional. Existing native
+statement attribution retains whose machinery account this is, without
+equating caller, reporter, model and provider (Principles 4 and 9).
+
+`callStartedAt` and `callFinishedAt` retain actual supplied xsd:dateTime
+literals with their original lexical form, datatype, offset and precision.
+They are the source's reported call boundaries. Start does not automatically
+mean model execution after queueing; finish can accompany provider failure
+and does not prove successful generation. No start/finish ordering, elapsed
+duration, normalized UTC timestamp or clock conversion is inferred.
+
+Supplying either timestamp requires an actual `mechanicsTemporalFrame`,
+interpreting the endpoints' clock, calendar and timescale. The report does
+not use Temporal's TimeInterval-domain `startedAtTime`, `endedAtTime` or
+`hasTemporalFrame` as aliases. Its typed frame companion specializes the
+domain-open `hasReferenceFrame` spine without turning the InformationObject
+into an interval or Observation.
+
+`queueDelayMillis` is the actual supplied xsd:nonNegativeInteger number of
+milliseconds waited for a slot before the reported start. Milliseconds is
+the role's intrinsic declared unit. This unanchored elapsed magnitude alone
+requires no clock frame, epoch, TimeScale, FrameRealm or FrameKind. An
+actual source timing convention may still be retained when supplied; it is
+not fabricated to fill the report. Queue delay is not calculated from finish
+minus start, converted from calendar duration or constrained to lie within a
+derived call span. Missing delay does not mean zero (Principles 11 and 12).
+
+`slotSession` retains the actual provider-named xsd:token. The opaque token
+is scoped by the report, invocation and source. It is not parsed into an IRI,
+provider identity or process handle. ModelServing's `AgentSession` is an
+interaction event aggregate and `RuntimeExecution` is an occurrent of a
+deployed runtime; neither is inferred from this provider token. Empty
+actually supplied tokens remain distinct from omitted fields.
+
+### Actual token accounting and partial reports
+
+`promptTokenCount`, `cachedPromptTokenCount` and `completionTokenCount`
+retain original xsd:nonNegativeInteger literals. Prompt count includes cached
+prompt tokens. Cached count is that cached subset; when both counts are
+supplied, cached cannot exceed prompt. Completion count records generated
+tokens, without proving a successful outcome, billed usage or retained words.
+There is no upstream machine-word-width cap, invented tokenizer or inferred
+missing counter.
+
+Any supplied token count requires the report's actual
+`mechanicsCountingFrame`: a complete existing ReferenceFrame justified for
+the actual provider/model/tokenizer and prompt-cache/completion counting
+convention. All reported token counters share that selected role. Timing
+and counting are different frame roles; their actual resource identities are
+not inferred equal or different. Each role has its own report-local maximum;
+the generic frame spine remains uncapped. A frame name alone does not supply
+the required source interpretation or satisfy its owner's completeness laws.
+
+The four numeric roles use exact datatype and finite numeric admission, then
+numeric-value uniqueness. Equal-valued original lexical aliases may coexist
+without being rewritten; conflicting numeric values fail. No synthetic
+Quantity wrappers or parallel unit/coefficient fields are required merely
+to retain these source machine counters. A separately selected numerical
+computation must still use its actual admitted mathematical contracts.
+
+`mechanicsUnreported` retains actual xsd:token field/group names, openly and
+nonfunctionally. The explicit token `usage` means all three token counters
+were unreported on this report and therefore conflicts with any supplied
+token count. An absent marker is unspecified, not false, successful or zero.
+Unknown explicit marker names gain no guessed property mapping. Partial
+actual usage reports are valid when that whole-usage marker is absent; no
+universal all-three-counts requirement is inferred from one provider wire.
+
+### Provider-failure evidence
+
+`providerFailureStage` preserves the actual caller-named xsd:token stage.
+The code vocabulary stays open; an actual transport-stage example does not
+create a global provider lifecycle enumeration. `providerFailureDetail`
+retains the actual diagnostic literal, including characters, datatype,
+language and direction. The range admits xsd:string, rdf:langString and
+rdf:dirLangString without converting between them. An actually supplied
+`und` tag is preserved, never used as an upstream default.
+
+Failure stage and detail are independently source-supplied. A missing
+companion remains unknown rather than fabricated to complete a tuple. The
+diagnostic is machinery evidence, separate from the agent's generated words.
+Neither field automatically writes `invocationOutcome` or `invocationState`,
+and their absence does not mean success. Those independent axes retain their
+existing meanings (Principles 7, 9 and 19).
+
+### Canonical validation and acceptance boundary
+
+`ModelCallMechanicsValuesConstraint` requires an actually informative report,
+valid finite nonNegativeInteger counters with one numeric value, the cached
+subset bound, and real conditional timing/counting frame witnesses.
+`ModelCallMechanicsUnreportedConstraint` forbids counts contradicting the
+explicit whole-usage marker. All laws, required paths and supplied-value
+closures are authored in `logic:`; no independent shape surface is added.
+
+The subset comparison uses the canonically declared bound `termGreater`
+primitive under the explicit finite numeric admission laws: cached is not
+greater than prompt. It introduces no new comparator or numeric parser.
+Its projected and native admission remain subject to actual qualification;
+source declarations and a represented law are not evidence that the check ran.
+
+The vocabulary does not extract mechanics from a provider, manufacture frame
+individuals, normalize timestamps, convert units or alter a private producer.
+Actual source-frame justification, source/catalog/projection/native checks,
+exact retained literals and verified consumer adoption remain required for
+the selected consuming operation. A source report is not a runtime receipt
+or a proof of successful call execution.

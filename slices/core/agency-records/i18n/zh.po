@@ -6830,3 +6830,459 @@ msgstr "已提供的起点 Instant 需要自身实际参考系，即使区间已
 msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
 msgstr "每个已提供后续时间窗都具有实际 TemporalFrame 依据。每个通过 hasStartInstant 或 hasEndInstant 提供的边界均为具有实际 TemporalFrame 依据的 Instant。不推断缺失边界、参考系相等或时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics"
+msgstr "模型调用机制记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information report of one model invocation’s source-supplied mechanics, retaining at least one timing, queue, session, token, unreported-field or provider-failure value."
+msgstr "关于一次模型调用的源提供机制信息的报告，至少保留一个时间、排队、会话、词元、未报告字段或提供方故障值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The report is separate from the invocation occurrence, its generated words, a deployment and an interaction session. Several actually sourced reports may describe one invocation."
+msgstr "该报告与调用发生实例、生成文字、部署及交互会话分别建模。多个确有来源的报告可描述同一次调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports a call’s queue delay while leaving its token usage unspecified."
+msgstr "来源报告一次调用的排队延迟，同时不说明其词元用量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual mechanics report linked to its actual ModelInvocation."
+msgstr "用于关联到实际 ModelInvocation 的实际机制报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent missing metrics, zeroes, frames, provider identities or a successful outcome."
+msgstr "不要虚构缺失指标、零值、参考框架、提供方身份或成功结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual invocation, supplied values and statement attribution; supply real frames only for the selected framed fields."
+msgstr "保留实际调用、给定值与陈述归属；为选定的需框架字段提供真实框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics of"
+msgstr "机制所属调用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the one actual ModelInvocation it describes."
+msgstr "将 ModelCallMechanics 报告关联到其描述的唯一实际 ModelInvocation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is not inverse-functional; separately sourced reports may coexist for the same invocation."
+msgstr "该关系不具有逆函数性；来自不同来源的报告可就同一次调用并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two attributed reports retain their actual shared invocation without being merged."
+msgstr "两个具有归属信息的报告保留其共同的实际调用，而不被合并。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor an actual mechanics report to its call occurrence."
+msgstr "用于将实际机制报告锚定到其调用发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat the link as proof of successful execution, retained output or accurate measurements."
+msgstr "不要将该关联视为执行成功、输出已保留或测量准确的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one actual ModelInvocation per report, retaining independent source assertions."
+msgstr "每个报告提供恰好一个实际 ModelInvocation，并保留独立的源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call started at"
+msgstr "调用开始时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported start timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."
+msgstr "由来源报告的 ModelCallMechanics 所描述模型调用的开始时间戳，保留给定的 xsd:dateTime。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual timing frame is required when supplied. The source boundary is not automatically the start of model execution after queueing."
+msgstr "提供该值时须有实际时间框架。源边界不自动等于排队后模型执行的开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source timestamp retains its supplied offset and fractional precision."
+msgstr "源时间戳保留其给定偏移量与小数精度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied call-start timestamp."
+msgstr "用于实际给定的调用开始时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not default to UTC, normalize the literal or retype the report as a TimeInterval."
+msgstr "不要默认采用 UTC、规范化字面量或将报告重新归类为 TimeInterval。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original literal and link its actual mechanicsTemporalFrame on the report."
+msgstr "保留原始字面量，并在报告上关联其实际 mechanicsTemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call finished at"
+msgstr "调用结束时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported finish timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."
+msgstr "由来源报告的 ModelCallMechanics 所描述模型调用的结束时间戳，保留给定的 xsd:dateTime。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A finish may accompany provider failure. It establishes neither successful generation nor a derived elapsed duration."
+msgstr "结束时间可与提供方故障同时存在。它不表示生成成功，也不表示已推导出经过时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A failed call retains its actual reported finish timestamp and failure evidence."
+msgstr "失败调用保留其实际报告的结束时间戳及故障证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied call-finish timestamp."
+msgstr "用于实际给定的调用结束时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer success, endpoint order or a queue duration from the timestamp."
+msgstr "不要从时间戳推断成功、端点顺序或排队时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied dateTime and actual mechanicsTemporalFrame, including source clock anomalies."
+msgstr "保留给定 dateTime 与实际 mechanicsTemporalFrame，包括源时钟异常。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "queue delay in milliseconds"
+msgstr "排队延迟毫秒数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported milliseconds the call waited for a slot before its reported start, retained as the supplied xsd:nonNegativeInteger."
+msgstr "来源报告的调用在所报告开始之前等待槽位的毫秒数，保留给定的 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Milliseconds is this role’s fixed declared unit. The unanchored elapsed magnitude alone requires no clock, calendar, epoch or TemporalFrame."
+msgstr "毫秒是该角色固定声明的单位。单独的未锚定经过时长数值不要求时钟、历法、纪元或 TemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual queue-delay counter is retained without manufacturing call timestamps."
+msgstr "保留实际排队延迟计数，而不虚构调用时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supplied nonnegative millisecond queue-delay value."
+msgstr "用于来源提供的非负毫秒排队延迟值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer zero from absence, convert a calendar duration or calculate finish minus start."
+msgstr "不要从缺失推断零值，不要转换日历时长，也不要计算结束减开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original typed literal; equal numeric lexical aliases may coexist without rewriting."
+msgstr "保留原始带类型字面量；数值相等的词法别名可并存而不被改写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot session"
+msgstr "槽位会话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider-named slot-session token reported for this call, retained as the supplied xsd:token."
+msgstr "为此次调用报告的由提供方命名的槽位会话令牌，保留给定的 xsd:token。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The opaque identifier is scoped by the actual report, invocation and source. It is not a globally identified AgentSession or RuntimeExecution."
+msgstr "该不透明标识符以实际报告、调用和来源为范围。它不是具有全局身份的 AgentSession 或 RuntimeExecution。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied session token remains unchanged without becoming an IRI or process handle."
+msgstr "给定会话令牌保持不变，不被转换为 IRI 或进程句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually reports its slot-session identifier."
+msgstr "用于来源实际报告其槽位会话标识符的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not trim, case-fold, parse or infer a provider identity from the token."
+msgstr "不要修剪空白、折叠大小写、解析令牌或从中推断提供方身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact token and source attribution; absence means unspecified."
+msgstr "保留精确令牌与来源归属；缺失表示未说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompt token count"
+msgstr "提示词元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported prompt tokens used by this call, including cached prompt tokens, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "来源报告的此次调用所用提示词元数，包含缓存提示词元，在实际计数框架下保留给定的 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The counting convention is explicit. This count does not assert billed usage or infer an omitted cached count."
+msgstr "计数约定须明确。该计数不表示计费用量，也不推断省略的缓存计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A prompt count includes its actually reported cached subset."
+msgstr "提示计数包含其实际报告的缓存子集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual reported inclusive prompt-token counter."
+msgstr "用于实际报告的包含缓存部分的提示词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not subtract cached tokens, invent a tokenizer or replace absence with zero."
+msgstr "不要扣除缓存词元、虚构词元化方案或以零替代缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original literal and actual mechanicsCountingFrame, preserving equal numeric aliases."
+msgstr "保留原始字面量与实际 mechanicsCountingFrame，并保留数值相等的别名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cached prompt token count"
+msgstr "缓存提示词元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported prompt tokens served from the provider’s prompt cache for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "来源报告的此次调用由提供方提示缓存提供的提示词元数，在实际计数框架下保留给定的 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "When both are supplied, this subset cannot exceed the inclusive prompt count. A missing prompt counter remains unspecified."
+msgstr "两项均提供时，该子集不能超过包含缓存部分的提示计数。缺失的提示计数仍为未说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual cached count is retained even when another usage field is not reported."
+msgstr "即使另一用量字段未报告，也保留实际缓存计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual prompt-cache token counter."
+msgstr "用于实际提示缓存词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a cache hit, zero value or complete usage group from missing fields."
+msgstr "不要从缺失字段推断缓存命中、零值或完整用量组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied literal and common counting frame; validate the subset bound only when both counters exist."
+msgstr "保留给定字面量及共同计数框架；仅在两项计数均存在时验证子集上界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completion token count"
+msgstr "生成词元数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported tokens generated for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "来源报告的此次调用所生成词元数，在实际计数框架下保留给定的 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generated-token accounting does not prove successful completion, retained words or billed usage."
+msgstr "生成词元计数不证明成功完成、文字已保留或计费用量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A failed provider call may retain an actually supplied completion-token count."
+msgstr "提供方调用失败时仍可保留实际给定的生成词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported generated-token counter."
+msgstr "用于实际报告的生成词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer missing prompt counts, a successful outcome or a zero from absence."
+msgstr "不要推断缺失的提示计数、成功结果或以缺失推断零值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and actual mechanicsCountingFrame with its declared token convention."
+msgstr "保留源字面量及实际 mechanicsCountingFrame 和其声明的词元约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics unreported field"
+msgstr "机制未报告字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-supplied xsd:token naming an unreported mechanics field or group. The token usage declares all three token counters unreported on this report."
+msgstr "来源实际提供的 xsd:token，命名未报告的机制字段或组。令牌 usage 声明此报告的三个词元计数均未报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is nonfunctional and open. An unknown marker gains no inferred property mapping; a missing marker is unspecified."
+msgstr "该角色非函数性且开放。不为未知标记推断属性映射；缺失标记表示未说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit usage token is retained without writing three zero counters."
+msgstr "保留明确的 usage 令牌，而不写入三个零计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source explicitly reports that a field or group was unreported."
+msgstr "仅用于来源明确报告某字段或组未被报告的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a marker from omission or combine usage-unreported with supplied token counts."
+msgstr "不要从省略推断标记，也不要将 usage 未报告标记与已给定词元计数并列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each exact supplied token; preserve partial actual counts when the usage marker is absent."
+msgstr "保留每个精确的给定令牌；usage 标记缺失时保留实际的部分计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider failure stage"
+msgstr "提供方故障阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The caller-named stage token of a reported provider failure for this call, retained as the supplied xsd:token."
+msgstr "此次调用所报告提供方故障的调用方命名阶段令牌，保留给定的 xsd:token。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Stages remain an open vocabulary of source-supplied codes. The report does not define a global provider lifecycle enum or automatically write an invocation outcome."
+msgstr "阶段代码由来源提供，词汇保持开放。报告不定义全局提供方生命周期枚举，也不自动写入调用结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied transport-stage token remains the caller’s reported classification."
+msgstr "给定的传输阶段令牌仍为调用方报告的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied provider-failure stage code."
+msgstr "用于实际给定的提供方故障阶段代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent a stage, require missing diagnostic text or infer success from absence."
+msgstr "不要虚构阶段、强求缺失诊断文字或从缺失推断成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact token and its source context independently of any supplied failure detail."
+msgstr "保留精确令牌及源上下文，并将其与任何给定故障详情独立保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider failure detail"
+msgstr "提供方故障详情"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source-supplied provider-failure diagnostic literal for this call, retaining its original characters, datatype, language and direction."
+msgstr "来源实际提供的此次调用的提供方故障诊断字面量，保留原始字符、数据类型、语言与方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The diagnostic is machinery evidence, separate from generated words. String, language-bearing and directional language-bearing literals retain their actual distinctions."
+msgstr "诊断是机器机制证据，与生成文字分别建模。字符串、带语言及带方向语言字面量保留其实际区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "A provider’s actual unknown-language diagnostic retains its supplied und tag without making und a default."
+msgstr "提供方实际的未知语言诊断保留给定 und 标签，而不将 und 设为默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual diagnostic text supplied about a provider failure."
+msgstr "用于关于提供方故障实际给定的诊断文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not paraphrase, normalize, infer a language, fabricate a stage or treat the words as the calling agent’s speech."
+msgstr "不要改述、规范化、推断语言、虚构阶段或将文字视为调用智能体的言语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete literal unchanged with its source attribution; a missing companion stage remains unknown."
+msgstr "原样保留完整字面量及来源归属；缺失的关联阶段仍为未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics temporal frame"
+msgstr "机制时间框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the actual TemporalFrame interpreting its supplied call-start and call-finish timestamp literals."
+msgstr "将 ModelCallMechanics 报告关联到解释其给定调用开始与结束时间戳字面量的实际 TemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required when either timestamp is supplied, optional otherwise. Queue delay alone does not require a temporal frame."
+msgstr "提供任一时间戳时必需，其他情况下可选。单独的排队延迟不要求时间框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source justifies the actual clock and calendar context for its reported endpoints."
+msgstr "来源为其报告的端点提供实际时钟与历法上下文依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual endpoint clock, calendar and timescale convention declared by the source."
+msgstr "用于来源声明的实际端点时钟、历法与时间尺度约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent UTC, an epoch or a calendar merely to fill this role, or require it from a queue-delay value."
+msgstr "不要仅为填充此角色而虚构 UTC、纪元或历法，也不要因排队延迟值而强制要求它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one actual complete TemporalFrame for this report’s endpoints; leave the generic frame spine uncapped."
+msgstr "为报告端点关联一个实际完整 TemporalFrame；不对通用框架关系设置数量上限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics counting frame"
+msgstr "机制计数框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the actual ReferenceFrame interpreting its provider, model, tokenizer and prompt-cache counting convention for the supplied token counters."
+msgstr "将 ModelCallMechanics 报告关联到解释给定词元计数所用提供方、模型、词元化与提示缓存计数约定的实际 ReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Any supplied token count requires this actual common frame. Its role is separate from endpoint timing; no identity between frame resources is inferred."
+msgstr "任何给定词元计数均要求此实际共同框架。其角色与端点时间不同；不推断框架资源之间的身份关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A partial usage report retains its actual counting convention without inventing the other counters."
+msgstr "部分用量报告保留其实际计数约定，而不虚构其他计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-justified convention shared by this report’s token counters."
+msgstr "用于由实际来源支持并由报告词元计数共享的约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not guess provider or tokenizer identities, invent a frame individual or equate it with a clock frame."
+msgstr "不要猜测提供方或词元化身份、虚构框架个体或将其等同于时钟框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual complete ReferenceFrame and retain the source evidence for its counting interpretation."
+msgstr "关联实际完整 ReferenceFrame，并保留其计数解释的源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics values constraint"
+msgstr "模型调用机制值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."
+msgstr "机制报告至少包含一个实际值；每个给定排队或词元计数均为具有单一数值的有效有限 nonNegativeInteger，缓存词元不超过给定的包含缓存部分的提示计数，给定时间戳或词元计数须有其实际角色绑定框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal numeric lexical aliases remain unchanged. Queue delay alone requires no clock frame; missing partial metrics are not synthesized."
+msgstr "数值相等的词法别名保持不变。单独的排队延迟不要求时钟框架；不合成部分报告中缺失的指标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-supplied cached count greater than its prompt count violates the subset law."
+msgstr "来源提供的缓存计数大于提示计数时违反子集定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual supplied mechanics values and conditional frame witnesses."
+msgstr "用于验证实际给定机制值及条件性框架见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not repair a failed report by clamping counts, inventing frames or filling missing values with zero."
+msgstr "不要通过钳制计数、虚构框架或将缺失值填为零来修复不合格报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the guarded Formula law to original literals and actual frame resources, retaining source attribution."
+msgstr "对原始字面量及实际框架资源应用带守卫的 Formula 定律，并保留来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."
+msgstr "机制报告至少包含一个实际值；每个给定排队或词元计数均为具有单一数值的有效有限 nonNegativeInteger，缓存词元不超过给定的包含缓存部分的提示计数，给定时间戳或词元计数须有其实际角色绑定框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics unreported constraint"
+msgstr "模型调用机制未报告约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."
+msgstr "机制报告上的明确 usage 未报告标记禁止同一报告包含给定提示、缓存提示及生成词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only the actual usage token selects this group rule. Absence and other open marker names imply no invented completeness claim."
+msgstr "仅实际 usage 令牌选择此组规则。缺失及其他开放标记名不蕴含虚构的完整性声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report combining usage-unreported and a completion count violates the rule."
+msgstr "同时含有 usage 未报告标记和生成计数的报告违反规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect contradictory source declarations about this report’s unreported usage."
+msgstr "用于检测有关此报告未报告用量的相互矛盾源声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer the marker from missing counters or require every partial usage report to have all three counts."
+msgstr "不要从缺失计数推断标记，也不要要求每个部分用量报告均具有三个计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each actual marker and reject any conflicting supplied count without erasing either source claim."
+msgstr "绑定每个实际标记并拒绝相冲突的给定计数，而不擦除任何源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."
+msgstr "机制报告上的明确 usage 未报告标记禁止同一报告包含给定提示、缓存提示及生成词元计数。"

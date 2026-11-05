@@ -6830,3 +6830,459 @@ msgstr "Un Instant de début fourni requiert son propre référentiel réel mêm
 msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
 msgstr "Chaque fenêtre à venir fournie possède des éléments réels de TemporalFrame. Chaque borne fournie par hasStartInstant ou hasEndInstant est un Instant avec des éléments réels de TemporalFrame. Aucune borne manquante, égalité de référentiels ou chronologie n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics"
+msgstr "mécanique d’appel de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information report of one model invocation’s source-supplied mechanics, retaining at least one timing, queue, session, token, unreported-field or provider-failure value."
+msgstr "Un rapport informationnel sur la mécanique fournie par la source pour une invocation de modèle, conservant au moins une valeur de temps, de file d’attente, de session, de jetons, de champ non rapporté ou de défaillance du fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The report is separate from the invocation occurrence, its generated words, a deployment and an interaction session. Several actually sourced reports may describe one invocation."
+msgstr "Le rapport est distinct de l’occurrence d’invocation, des mots produits, d’un déploiement et d’une session d’interaction. Plusieurs rapports réellement sourcés peuvent décrire une invocation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports a call’s queue delay while leaving its token usage unspecified."
+msgstr "Une source rapporte le délai d’attente d’un appel sans préciser son utilisation de jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual mechanics report linked to its actual ModelInvocation."
+msgstr "À utiliser pour un rapport réel de mécanique lié à sa ModelInvocation réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent missing metrics, zeroes, frames, provider identities or a successful outcome."
+msgstr "N’inventez ni mesures manquantes, ni zéros, ni référentiels, ni identités de fournisseurs, ni issue réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual invocation, supplied values and statement attribution; supply real frames only for the selected framed fields."
+msgstr "Conservez l’invocation réelle, les valeurs fournies et l’attribution des énoncés ; fournissez des référentiels réels uniquement pour les champs encadrés sélectionnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics of"
+msgstr "mécanique de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the one actual ModelInvocation it describes."
+msgstr "Relie un rapport ModelCallMechanics à l’unique ModelInvocation réelle qu’il décrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is not inverse-functional; separately sourced reports may coexist for the same invocation."
+msgstr "La relation n’est pas inverse-fonctionnelle ; des rapports de sources distinctes peuvent coexister pour la même invocation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two attributed reports retain their actual shared invocation without being merged."
+msgstr "Deux rapports attribués conservent leur invocation réelle commune sans être fusionnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor an actual mechanics report to its call occurrence."
+msgstr "À utiliser pour ancrer un rapport réel de mécanique dans son occurrence d’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat the link as proof of successful execution, retained output or accurate measurements."
+msgstr "Ne traitez pas le lien comme preuve d’exécution réussie, de sortie conservée ou de mesures exactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one actual ModelInvocation per report, retaining independent source assertions."
+msgstr "Fournissez exactement une ModelInvocation réelle par rapport, en conservant les assertions sources indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call started at"
+msgstr "début de l’appel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported start timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."
+msgstr "L’horodatage de début rapporté par la source pour l’appel de modèle décrit par un rapport ModelCallMechanics, conservé sous sa forme xsd:dateTime fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual timing frame is required when supplied. The source boundary is not automatically the start of model execution after queueing."
+msgstr "Le référentiel temporel réel est requis lorsque cette valeur est fournie. La limite source n’est pas automatiquement le début d’exécution du modèle après l’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source timestamp retains its supplied offset and fractional precision."
+msgstr "Un horodatage source conserve son décalage et sa précision fractionnaire fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied call-start timestamp."
+msgstr "À utiliser pour un horodatage de début d’appel réellement fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not default to UTC, normalize the literal or retype the report as a TimeInterval."
+msgstr "Ne prenez pas UTC par défaut, ne normalisez pas le littéral et ne retypez pas le rapport en TimeInterval."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callStartedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original literal and link its actual mechanicsTemporalFrame on the report."
+msgstr "Conservez le littéral original et reliez son mechanicsTemporalFrame réel au rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call finished at"
+msgstr "fin de l’appel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported finish timestamp of the model call described by a ModelCallMechanics report, retained as the supplied xsd:dateTime."
+msgstr "L’horodatage de fin rapporté par la source pour l’appel de modèle décrit par un rapport ModelCallMechanics, conservé sous sa forme xsd:dateTime fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A finish may accompany provider failure. It establishes neither successful generation nor a derived elapsed duration."
+msgstr "Une fin peut accompagner une défaillance du fournisseur. Elle n’établit ni génération réussie ni durée écoulée dérivée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A failed call retains its actual reported finish timestamp and failure evidence."
+msgstr "Un appel échoué conserve son horodatage réel de fin rapporté et les preuves de défaillance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied call-finish timestamp."
+msgstr "À utiliser pour un horodatage de fin d’appel réellement fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer success, endpoint order or a queue duration from the timestamp."
+msgstr "Ne déduisez de l’horodatage ni réussite, ni ordre des bornes, ni durée d’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/callFinishedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied dateTime and actual mechanicsTemporalFrame, including source clock anomalies."
+msgstr "Conservez le dateTime fourni et le mechanicsTemporalFrame réel, y compris les anomalies de l’horloge source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "queue delay in milliseconds"
+msgstr "délai d’attente en millisecondes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported milliseconds the call waited for a slot before its reported start, retained as the supplied xsd:nonNegativeInteger."
+msgstr "Les millisecondes d’attente d’un créneau avant le début rapporté de l’appel, rapportées par la source et conservées comme xsd:nonNegativeInteger fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Milliseconds is this role’s fixed declared unit. The unanchored elapsed magnitude alone requires no clock, calendar, epoch or TemporalFrame."
+msgstr "La milliseconde est l’unité déclarée fixe de ce rôle. Cette grandeur écoulée non ancrée n’exige à elle seule ni horloge, ni calendrier, ni époque, ni TemporalFrame."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual queue-delay counter is retained without manufacturing call timestamps."
+msgstr "Un compteur réel de délai d’attente est conservé sans fabriquer d’horodatages d’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supplied nonnegative millisecond queue-delay value."
+msgstr "À utiliser pour une valeur non négative de délai d’attente en millisecondes fournie par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer zero from absence, convert a calendar duration or calculate finish minus start."
+msgstr "Ne déduisez pas zéro de l’absence, ne convertissez pas une durée calendaire et ne calculez pas la fin moins le début."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queueDelayMillis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original typed literal; equal numeric lexical aliases may coexist without rewriting."
+msgstr "Conservez le littéral typé original ; des variantes lexicales numériquement égales peuvent coexister sans réécriture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot session"
+msgstr "session de créneau"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider-named slot-session token reported for this call, retained as the supplied xsd:token."
+msgstr "Le jeton de session de créneau nommé par le fournisseur et rapporté pour cet appel, conservé comme xsd:token fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The opaque identifier is scoped by the actual report, invocation and source. It is not a globally identified AgentSession or RuntimeExecution."
+msgstr "L’identifiant opaque est délimité par le rapport, l’invocation et la source réels. Ce n’est pas une AgentSession ou RuntimeExecution identifiée globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied session token remains unchanged without becoming an IRI or process handle."
+msgstr "Un jeton de session fourni reste inchangé sans devenir une IRI ou un identifiant de processus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually reports its slot-session identifier."
+msgstr "À utiliser lorsque la source rapporte réellement son identifiant de session de créneau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not trim, case-fold, parse or infer a provider identity from the token."
+msgstr "Ne supprimez pas d’espaces, ne modifiez pas la casse, n’analysez pas le jeton et n’en déduisez pas une identité de fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotSession|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact token and source attribution; absence means unspecified."
+msgstr "Conservez le jeton exact et l’attribution source ; l’absence signifie que ce n’est pas précisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompt token count"
+msgstr "nombre de jetons de l’invite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported prompt tokens used by this call, including cached prompt tokens, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "Le nombre de jetons d’invite utilisés par cet appel, jetons d’invite en cache compris, rapporté par la source et conservé comme xsd:nonNegativeInteger fourni dans le référentiel réel de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The counting convention is explicit. This count does not assert billed usage or infer an omitted cached count."
+msgstr "La convention de comptage est explicite. Ce nombre n’affirme pas une utilisation facturée et ne permet pas de déduire un nombre de jetons en cache omis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A prompt count includes its actually reported cached subset."
+msgstr "Un nombre de jetons d’invite comprend son sous-ensemble en cache réellement rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual reported inclusive prompt-token counter."
+msgstr "À utiliser pour le compteur inclusif réel de jetons d’invite rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not subtract cached tokens, invent a tokenizer or replace absence with zero."
+msgstr "Ne soustrayez pas les jetons en cache, n’inventez pas de segmentation en jetons et ne remplacez pas l’absence par zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original literal and actual mechanicsCountingFrame, preserving equal numeric aliases."
+msgstr "Conservez le littéral original et le mechanicsCountingFrame réel, en préservant les variantes numériquement égales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cached prompt token count"
+msgstr "nombre de jetons d’invite en cache"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported prompt tokens served from the provider’s prompt cache for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "Le nombre de jetons d’invite servis depuis le cache d’invite du fournisseur pour cet appel, rapporté par la source et conservé comme xsd:nonNegativeInteger fourni dans le référentiel réel de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "When both are supplied, this subset cannot exceed the inclusive prompt count. A missing prompt counter remains unspecified."
+msgstr "Lorsque les deux sont fournis, ce sous-ensemble ne peut dépasser le nombre inclusif de jetons d’invite. Un compteur d’invite manquant reste non précisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual cached count is retained even when another usage field is not reported."
+msgstr "Un nombre réel de jetons en cache est conservé même lorsqu’un autre champ d’utilisation n’est pas rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual prompt-cache token counter."
+msgstr "À utiliser pour un compteur réel de jetons du cache d’invite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a cache hit, zero value or complete usage group from missing fields."
+msgstr "Ne déduisez des champs manquants ni succès de cache, ni valeur nulle, ni groupe complet d’utilisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cachedPromptTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied literal and common counting frame; validate the subset bound only when both counters exist."
+msgstr "Conservez le littéral fourni et le référentiel commun de comptage ; validez la borne du sous-ensemble uniquement lorsque les deux compteurs existent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completion token count"
+msgstr "nombre de jetons générés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported tokens generated for this call, retained as the supplied xsd:nonNegativeInteger under the actual counting frame."
+msgstr "Le nombre de jetons générés pour cet appel, rapporté par la source et conservé comme xsd:nonNegativeInteger fourni dans le référentiel réel de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generated-token accounting does not prove successful completion, retained words or billed usage."
+msgstr "Le décompte des jetons générés ne prouve ni achèvement réussi, ni conservation des mots, ni utilisation facturée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A failed provider call may retain an actually supplied completion-token count."
+msgstr "Un appel fournisseur échoué peut conserver un nombre de jetons générés réellement fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported generated-token counter."
+msgstr "À utiliser pour un compteur réel rapporté de jetons générés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer missing prompt counts, a successful outcome or a zero from absence."
+msgstr "Ne déduisez ni compteurs d’invite manquants, ni issue réussie, ni zéro de l’absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/completionTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and actual mechanicsCountingFrame with its declared token convention."
+msgstr "Conservez le littéral source et le mechanicsCountingFrame réel avec sa convention déclarée de jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics unreported field"
+msgstr "champ de mécanique non rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-supplied xsd:token naming an unreported mechanics field or group. The token usage declares all three token counters unreported on this report."
+msgstr "Un xsd:token réellement fourni par la source et nommant un champ ou groupe de mécanique non rapporté. Le jeton usage déclare les trois compteurs de jetons non rapportés dans ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is nonfunctional and open. An unknown marker gains no inferred property mapping; a missing marker is unspecified."
+msgstr "Le rôle est non fonctionnel et ouvert. Un marqueur inconnu n’acquiert aucune correspondance de propriété déduite ; un marqueur manquant reste non précisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit usage token is retained without writing three zero counters."
+msgstr "Un jeton usage explicite est conservé sans écrire trois compteurs à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source explicitly reports that a field or group was unreported."
+msgstr "À utiliser uniquement lorsque la source rapporte explicitement qu’un champ ou groupe n’a pas été rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a marker from omission or combine usage-unreported with supplied token counts."
+msgstr "Ne déduisez pas un marqueur d’une omission et ne combinez pas usage non rapporté avec des compteurs de jetons fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsUnreported|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each exact supplied token; preserve partial actual counts when the usage marker is absent."
+msgstr "Conservez chaque jeton exact fourni ; préservez les compteurs réels partiels lorsque le marqueur usage est absent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider failure stage"
+msgstr "étape de défaillance du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The caller-named stage token of a reported provider failure for this call, retained as the supplied xsd:token."
+msgstr "Le jeton d’étape nommé par l’appelant pour une défaillance fournisseur rapportée de cet appel, conservé comme xsd:token fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Stages remain an open vocabulary of source-supplied codes. The report does not define a global provider lifecycle enum or automatically write an invocation outcome."
+msgstr "Les codes d’étape sont fournis par la source et le vocabulaire reste ouvert. Le rapport ne définit pas d’énumération globale du cycle de vie fournisseur et n’écrit pas automatiquement une issue d’invocation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied transport-stage token remains the caller’s reported classification."
+msgstr "Un jeton fourni d’étape de transport reste la classification rapportée par l’appelant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actually supplied provider-failure stage code."
+msgstr "À utiliser pour un code d’étape de défaillance fournisseur réellement fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent a stage, require missing diagnostic text or infer success from absence."
+msgstr "N’inventez pas d’étape, n’exigez pas un texte de diagnostic manquant et ne déduisez pas une réussite de l’absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact token and its source context independently of any supplied failure detail."
+msgstr "Conservez le jeton exact et son contexte source indépendamment de tout détail de défaillance fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider failure detail"
+msgstr "détail de défaillance du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source-supplied provider-failure diagnostic literal for this call, retaining its original characters, datatype, language and direction."
+msgstr "Le littéral réel de diagnostic de défaillance fournisseur fourni par la source pour cet appel, conservant ses caractères, son type, sa langue et sa direction d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The diagnostic is machinery evidence, separate from generated words. String, language-bearing and directional language-bearing literals retain their actual distinctions."
+msgstr "Le diagnostic est une preuve de fonctionnement technique, distincte des mots générés. Les littéraux chaîne, linguistiques et linguistiques directionnels conservent leurs distinctions réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "A provider’s actual unknown-language diagnostic retains its supplied und tag without making und a default."
+msgstr "Un diagnostic réel de fournisseur en langue indéterminée conserve son étiquette und fournie sans faire de und une valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual diagnostic text supplied about a provider failure."
+msgstr "À utiliser pour un texte réel de diagnostic fourni au sujet d’une défaillance fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not paraphrase, normalize, infer a language, fabricate a stage or treat the words as the calling agent’s speech."
+msgstr "Ne paraphrasez pas, ne normalisez pas, ne déduisez pas de langue, ne fabriquez pas d’étape et ne traitez pas les mots comme la parole de l’agent appelant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerFailureDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete literal unchanged with its source attribution; a missing companion stage remains unknown."
+msgstr "Conservez le littéral complet inchangé avec son attribution source ; une étape associée manquante reste inconnue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics temporal frame"
+msgstr "référentiel temporel de la mécanique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the actual TemporalFrame interpreting its supplied call-start and call-finish timestamp literals."
+msgstr "Relie un rapport ModelCallMechanics au TemporalFrame réel interprétant ses littéraux fournis d’horodatage de début et de fin d’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required when either timestamp is supplied, optional otherwise. Queue delay alone does not require a temporal frame."
+msgstr "Requis lorsqu’un des horodatages est fourni, optionnel sinon. Un délai d’attente seul n’exige pas de référentiel temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source justifies the actual clock and calendar context for its reported endpoints."
+msgstr "Une source justifie le contexte réel d’horloge et de calendrier de ses bornes rapportées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual endpoint clock, calendar and timescale convention declared by the source."
+msgstr "À utiliser pour la convention réelle d’horloge, de calendrier et d’échelle de temps des bornes déclarée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent UTC, an epoch or a calendar merely to fill this role, or require it from a queue-delay value."
+msgstr "N’inventez ni UTC, ni époque, ni calendrier pour remplir ce rôle, et ne l’exigez pas d’une valeur de délai d’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsTemporalFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one actual complete TemporalFrame for this report’s endpoints; leave the generic frame spine uncapped."
+msgstr "Reliez un TemporalFrame complet réel pour les bornes de ce rapport ; laissez le lien générique de référentiel sans plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanics counting frame"
+msgstr "référentiel de comptage de la mécanique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a ModelCallMechanics report to the actual ReferenceFrame interpreting its provider, model, tokenizer and prompt-cache counting convention for the supplied token counters."
+msgstr "Relie un rapport ModelCallMechanics au ReferenceFrame réel interprétant sa convention de fournisseur, de modèle, de segmentation en jetons et de cache d’invite pour les compteurs de jetons fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Any supplied token count requires this actual common frame. Its role is separate from endpoint timing; no identity between frame resources is inferred."
+msgstr "Tout compteur de jetons fourni exige ce référentiel commun réel. Son rôle est distinct de la temporalité des bornes ; aucune identité entre ressources de référentiel n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A partial usage report retains its actual counting convention without inventing the other counters."
+msgstr "Un rapport partiel d’utilisation conserve sa convention réelle de comptage sans inventer les autres compteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-justified convention shared by this report’s token counters."
+msgstr "À utiliser pour une convention réelle justifiée par la source et partagée par les compteurs de jetons de ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not guess provider or tokenizer identities, invent a frame individual or equate it with a clock frame."
+msgstr "Ne devinez pas d’identités de fournisseur ou de segmentation en jetons, n’inventez pas d’individu référentiel et ne l’assimilez pas à un référentiel d’horloge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mechanicsCountingFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual complete ReferenceFrame and retain the source evidence for its counting interpretation."
+msgstr "Reliez le ReferenceFrame complet réel et conservez les preuves sources de son interprétation du comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics values constraint"
+msgstr "contrainte des valeurs de mécanique d’appel de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."
+msgstr "Un rapport de mécanique contient au moins une valeur réelle ; chaque compteur d’attente ou de jetons fourni est un nonNegativeInteger fini valide avec une valeur numérique unique, les jetons en cache ne dépassent pas un nombre inclusif d’invite fourni et les horodatages ou compteurs de jetons fournis exigent leurs référentiels réels liés à leur rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equal numeric lexical aliases remain unchanged. Queue delay alone requires no clock frame; missing partial metrics are not synthesized."
+msgstr "Les variantes lexicales numériquement égales restent inchangées. Un délai d’attente seul n’exige pas de référentiel d’horloge ; les mesures partielles manquantes ne sont pas synthétisées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-supplied cached count greater than its prompt count violates the subset law."
+msgstr "Un nombre de jetons en cache fourni par la source supérieur à son nombre de jetons d’invite viole la loi du sous-ensemble."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual supplied mechanics values and conditional frame witnesses."
+msgstr "À utiliser pour valider les valeurs de mécanique réellement fournies et les témoins conditionnels de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not repair a failed report by clamping counts, inventing frames or filling missing values with zero."
+msgstr "Ne réparez pas un rapport invalide en bornant les compteurs, en inventant des référentiels ou en remplaçant les valeurs manquantes par zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the guarded Formula law to original literals and actual frame resources, retaining source attribution."
+msgstr "Appliquez la loi Formula gardée aux littéraux originaux et aux ressources réelles de référentiel, en conservant l’attribution source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsValuesConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A mechanics report has at least one actual value; every supplied queue or token counter is a valid finite nonNegativeInteger with one numeric value, cached tokens do not exceed a supplied inclusive prompt count, and supplied timestamps or token counts require their actual role-bound frames."
+msgstr "Un rapport de mécanique contient au moins une valeur réelle ; chaque compteur d’attente ou de jetons fourni est un nonNegativeInteger fini valide avec une valeur numérique unique, les jetons en cache ne dépassent pas un nombre inclusif d’invite fourni et les horodatages ou compteurs de jetons fournis exigent leurs référentiels réels liés à leur rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model call mechanics unreported constraint"
+msgstr "contrainte des champs non rapportés de mécanique d’appel de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."
+msgstr "Un marqueur explicite d’utilisation non rapportée sur un rapport de mécanique interdit les nombres fournis de jetons d’invite, d’invite en cache et générés dans ce même rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only the actual usage token selects this group rule. Absence and other open marker names imply no invented completeness claim."
+msgstr "Seul le jeton réel usage sélectionne cette règle de groupe. L’absence et les autres noms ouverts de marqueurs n’impliquent aucune affirmation inventée de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report combining usage-unreported and a completion count violates the rule."
+msgstr "Un rapport combinant utilisation non rapportée et nombre de jetons générés viole la règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect contradictory source declarations about this report’s unreported usage."
+msgstr "À utiliser pour détecter les déclarations sources contradictoires sur l’utilisation non rapportée de ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer the marker from missing counters or require every partial usage report to have all three counts."
+msgstr "Ne déduisez pas le marqueur de compteurs manquants et n’exigez pas les trois compteurs de tout rapport partiel d’utilisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each actual marker and reject any conflicting supplied count without erasing either source claim."
+msgstr "Liez chaque marqueur réel et refusez tout compteur fourni contradictoire sans effacer l’une ou l’autre assertion source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."
+msgstr "Un marqueur explicite d’utilisation non rapportée sur un rapport de mécanique interdit les nombres fournis de jetons d’invite, d’invite en cache et générés dans ce même rapport."
