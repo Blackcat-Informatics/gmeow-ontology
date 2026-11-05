@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: d75961da30277a6ab6af29d673b87e641483513b
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2486
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2486
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 71ed6650af6cfc625b3230b689b789c54d2fcd3d
+GhpRsq-Head-Ref: paudley/2483-ground-the-immutable-reading-rule
+GhpRsq-Head-OID: d75961da30277a6ab6af29d673b87e641483513b
+GhpRsq-Result-Tree: 77b278e2e2c6cd0059dfd45e0b84e86bf5d5c284
+GhpRsq-Result-Commit: b738e7b1dfa7c3f6bef7a9d104ea3279f0603c9a
+GhpRsq-Parent-Hashes: d75961da30277a6ab6af29d673b87e641483513b
+GhpRsq-Squash-Notes-SHA256: 5280340dbcd200d6720e37f8030457ec94b2cc8e55cf6bd7d81f05f2ca4a9bf1
+GhpRsq-Stage-Evidence: none
