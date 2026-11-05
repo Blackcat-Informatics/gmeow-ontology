@@ -1028,12 +1028,12 @@ gmeow:TraceMark logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:annotationTarget ; logic:allValuesFrom gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:traceMarkClass ; logic:allValuesFrom gmeow:TraceMarkClass ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:traceMarkAt ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:traceMarkAt ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:traceMarkAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:TemporalFrame ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:traceMarkAnchor ; logic:allValuesFrom gmeow:TraceAnchor ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:traceMarkWithoutPacket ; logic:allValuesFrom xsd:boolean ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:traceMarkWithoutPacket ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:traceMarkWithoutPacket ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:TraceMark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/annotationTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1044,7 +1044,7 @@ gmeow:TraceMark logic:subClassOf
 
 gmeow:TraceAnchor logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:anchorPacket ; logic:allValuesFrom xsd:hexBinary ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:anchorPacket ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:anchorPacket ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:anchorSourceProfile ; logic:allValuesFrom gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:anchorSourceProfile ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:anchorEpisode ; logic:allValuesFrom gmeow:StructuredValue ] ,
