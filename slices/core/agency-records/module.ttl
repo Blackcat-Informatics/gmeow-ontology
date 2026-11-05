@@ -3361,3 +3361,148 @@ gmeow:BudgetCountValueConstraint
                 [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callSecondFrame" ] ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "callSecondFrame" ] ] ] ],
                 [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetDay ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "budgetCountDay" ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ], [ logic:termIndex 1 ; logic:termLiteral "[+-][0-9]{2}:[0-9]{2}[ \\t\\r\\n]*$" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ], [ logic:termIndex 1 ; logic:termLiteral "[+-]00:00[ \\t\\r\\n]*$" ] ] ] ] ] ] ] .
+
+gmeow:budgetEstimatedMillicents
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "estimated budget millicents"@x-gmeow-english ;
+    skos:definition "The ledger's estimated cost retained as a math:Quantity counting millicent units. One millicent is exactly 1/100000 of the declared currency's major unit; the original magnitude is xsd:nonNegativeInteger."@x-gmeow-english ;
+    skos:scopeNote "Optional and at most one Quantity per coherent BudgetReading cost counter; a supplied zero differs from absence. This is the source's table-based estimate, not a measurement, verified bill, payment or confidence. The fixed unit factor implies no legal minor-unit exponent or performed conversion."@x-gmeow-english ;
+    skos:example "A ledger report retains its supplied estimated-cost quantity, declared currency-major-unit basis and actual price-table releases without inventing their values or identities."@x-gmeow-english ;
+    gmeow:useWhen "Use when the ledger actually supplies an estimated millicent cost with its declared currency and pricing interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a parallel integer slot, decimal coercion, a default currency or table, inferred cost from request counts, or silently dropping a present cost whose interpretation is incomplete."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity; preserve its original valid finite nonnegative integer magnitude on math:quantityValue, math:dimensionless for the unit count and one actual complete reporting frame. Retain budgetCostCurrency and every budgetCostPriceTable separately with the actual ledger, day, spender and schema context."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range math:Quantity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:budgetCostCurrency
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget cost currency basis"@x-gmeow-english ;
+    skos:definition "The actual currency ReferenceFrame explicitly declared as the major-unit basis of this BudgetReading's estimated millicent cost."@x-gmeow-english ;
+    skos:scopeNote "One coherent supplied cost has one major-unit basis. The frame must be complete, scalar, currency-realm and one-dimensional. A currency code alone establishes neither its denomination nor a legal minor-unit exponent, and this role does not infer MonetaryAmount."@x-gmeow-english ;
+    skos:example "A source declares its actual currency-major-unit frame; the report preserves that declaration rather than choosing a currency from a code-shaped label."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual explicitly declared major-unit currency basis of a supplied budget estimate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring USD, a cent frame, currency conversion, frame identity from matching codes or missing axes and other frame components."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual complete ReferenceFrame whose supplied meaning supports the major-unit declaration. Keep its source attribution and original currency metadata; existing Places obligations govern its real axis, determinacy and other components. Do not manufacture a frame to satisfy the role."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range gmeow:ReferenceFrame .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetCostCurrency" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:budgetCostPriceTable
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget cost price table"@x-gmeow-english ;
+    skos:definition "An actual price-table InformationObject release that the ledger declares as a basis for this BudgetReading's estimated cost, with its retained source pricing interpretation."@x-gmeow-english ;
+    skos:scopeNote "At least one declared release is required when cost is supplied; all actual releases are retained without a maximum. This source declaration authenticates neither the table nor its actual use, rates, arithmetic or resulting bill."@x-gmeow-english ;
+    skos:example "A report cites each actual declared table release and preserves its supplied interpretation without synthesizing a composite table or a missing version."@x-gmeow-english ;
+    gmeow:useWhen "Use for the table releases actually declared by the ledger for its estimated-cost reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting a current or cheapest table, inventing a digest or release label, assuming a rate formula, or replacing the actual source table identity with a guessed name."@x-gmeow-english ;
+    gmeow:howToUse "Retain each actual source-identified release and the ledger's declared pricing interpretation. Preserve original version, digest and attribution metadata only when supplied. A source cost lacking its actual table context remains an explicitly incomplete interpretation, not a silent omission or default."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range gmeow:InformationObject .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:BudgetReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetEstimatedMillicents ; logic:allValuesFrom math:Quantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetEstimatedMillicents ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetCostCurrency ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetCostCurrency ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetCostPriceTable ; logic:allValuesFrom gmeow:InformationObject ] .
+
+gmeow:BudgetEstimatedCostConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Budget estimated cost constraint"@x-gmeow-english ;
+    skos:definition "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."@x-gmeow-english ;
+    skos:scopeNote "The fixed denomination is exactly 1/100000 of the declared currency's major unit, not a free scale input. Equivalent numeric lexical aliases are preserved. Existing frame profiles apply; structural checks prove no source interpretation, table authenticity, conversion, measured charge or pricing arithmetic."@x-gmeow-english ;
+    skos:example "A counter-only reading remains valid without cost; a supplied cost with missing currency or table context fails its selected interpretation rather than acquiring invented metadata."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the complete explicitly supplied cost interpretation of a BudgetReading without requiring cost on historical counter-only reports."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating values, frames, source releases or currency identity, changing existing counter semantics, capping table releases or presenting the result as a measurement or statistical estimate."@x-gmeow-english ;
+    gmeow:howToUse "Apply the BudgetReading guard and fifteen independently positive cost/context guards, retaining fresh local binders and atomic existence probes. Check every supplied magnitude, dimension, frame, currency basis and table release through the existing Math, Places and information-object owners; retain actual source evidence separately."@x-gmeow-english ;
+    logic:formalizes gmeow:budgetEstimatedMillicents , gmeow:budgetCostCurrency , gmeow:budgetCostPriceTable ;
+    logic:message "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "report" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termIri gmeow:BudgetReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costMagnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costMagnitudeQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costMagnitude" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costTypedQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedValue" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
+        [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedValue" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstValue" ] , [ logic:termIndex 2 ; logic:termVariable "costSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costEqualQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstValue" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costFirstValue" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondValue" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costDimension" ] ; logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costDimension" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costOnlyDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costOnlyDimensionQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costOnlyDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costOnlyDimension" ] , [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFrame" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstFrame" ] , [ logic:termIndex 2 ; logic:termVariable "costSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costUniqueFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstFrame" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costFirstFrame" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondFrame" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyPresenceQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyPresenceQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyPresenceFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyPresenceFrame" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyTypeQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyTypeFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyTypeQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyTypeFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costCurrencyTypeFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyProfileQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyProfileFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyProfileQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyProfileFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costCurrencyProfileFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costCurrencyProfileFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyDimensionFrame" ] , [ logic:termIndex 2 ; logic:termVariable "costCurrencyDimensionCount" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyDimensionQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyDimensionFrame" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:dimensionCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costCurrencyDimensionFrame" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyDimensionCount" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costCurrencyDimensionCount" ] , [ logic:termIndex 1 ; logic:termLiteral "1"^^xsd:integer ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costCurrencyUniqueQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstCurrency" ] , [ logic:termIndex 2 ; logic:termVariable "costSecondCurrency" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costCurrencyUniqueQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costFirstCurrency" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostCurrency ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondCurrency" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costFirstCurrency" ] , [ logic:termIndex 1 ; logic:termVariable "costSecondCurrency" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costTablePresenceQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTablePresenceQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costTableRelease" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:budgetCostPriceTable ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTableRelease" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "costTableTypeQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedTableRelease" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTableTypeQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:budgetCostPriceTable ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedTableRelease" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedTableRelease" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] ] .

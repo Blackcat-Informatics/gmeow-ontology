@@ -6278,3 +6278,119 @@ msgstr "应用外层报告守卫及每个独立的正向计数守卫；保留原
 msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
 msgstr "BudgetReading 至少提供一种计数角色；每个关联的 Quantity 必须具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。 budgetDay 的带符号时区偏移必须为零；无时区日期和带 Z 的日期保留固定的 UTC 民用日约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimated budget millicents"
+msgstr "以毫分计数的预算估计成本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ledger's estimated cost retained as a math:Quantity counting millicent units. One millicent is exactly 1/100000 of the declared currency's major unit; the original magnitude is xsd:nonNegativeInteger."
+msgstr "以计数毫分单位的 math:Quantity 保留账本的估计成本。一毫分严格等于所声明货币主单位的 1/100000；原始数值为 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and at most one Quantity per coherent BudgetReading cost counter; a supplied zero differs from absence. This is the source's table-based estimate, not a measurement, verified bill, payment or confidence. The fixed unit factor implies no legal minor-unit exponent or performed conversion."
+msgstr "此项可省略；BudgetReading 的一个完整一致成本计数器至多关联一个 Quantity，提供的零值不同于缺失。它是来源基于价格表的估计，不是测量、经核实的账单、付款或置信度。固定单位因子不意味着法定辅币位数，也不表示已执行换算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger report retains its supplied estimated-cost quantity, declared currency-major-unit basis and actual price-table releases without inventing their values or identities."
+msgstr "账本报告保留所提供的估计成本量、声明的货币主单位基准及实际价格表版本，不虚构其数值或身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ledger actually supplies an estimated millicent cost with its declared currency and pricing interpretation."
+msgstr "用于账本确实提供估计毫分成本及所声明货币和定价解释的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a parallel integer slot, decimal coercion, a default currency or table, inferred cost from request counts, or silently dropping a present cost whose interpretation is incomplete."
+msgstr "避免添加平行整数字段、强制转换为小数、使用默认货币或价格表、从请求计数推断成本，或静默丢弃解释不完整但实际存在的成本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity; preserve its original valid finite nonnegative integer magnitude on math:quantityValue, math:dimensionless for the unit count and one actual complete reporting frame. Retain budgetCostCurrency and every budgetCostPriceTable separately with the actual ledger, day, spender and schema context."
+msgstr "关联实际 Quantity，在 math:quantityValue 上保留原始有效有限非负整数，以 math:dimensionless 表示单位计数，并保留一个实际完整的报告参考系。分别保留 budgetCostCurrency 及每个 budgetCostPriceTable，并保留实际账本、日期、支出桶和模式上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget cost currency basis"
+msgstr "预算成本的货币主单位基准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual currency ReferenceFrame explicitly declared as the major-unit basis of this BudgetReading's estimated millicent cost."
+msgstr "明确声明为此 BudgetReading 估计毫分成本之主单位基准的实际货币 ReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One coherent supplied cost has one major-unit basis. The frame must be complete, scalar, currency-realm and one-dimensional. A currency code alone establishes neither its denomination nor a legal minor-unit exponent, and this role does not infer MonetaryAmount."
+msgstr "一个完整一致的已提供成本只有一个主单位基准。参考系必须完整、标量、属于货币域且为一维。货币代码本身不能确定计价单位或法定辅币位数，此角色也不推断 MonetaryAmount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source declares its actual currency-major-unit frame; the report preserves that declaration rather than choosing a currency from a code-shaped label."
+msgstr "来源声明其实际货币主单位参考系；报告保留该声明，不依据形似代码的标签选择货币。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual explicitly declared major-unit currency basis of a supplied budget estimate."
+msgstr "用于保留已提供预算估计实际明确声明的货币主单位基准。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring USD, a cent frame, currency conversion, frame identity from matching codes or missing axes and other frame components."
+msgstr "避免推断 USD、分单位参考系、货币换算、由相同代码推断参考系身份，或推断缺失轴及其他参考系组成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual complete ReferenceFrame whose supplied meaning supports the major-unit declaration. Keep its source attribution and original currency metadata; existing Places obligations govern its real axis, determinacy and other components. Do not manufacture a frame to satisfy the role."
+msgstr "引用其所提供含义能够支持主单位声明的实际完整 ReferenceFrame。保留来源归属和原始货币元数据；现有 Places 要求约束其实际轴、确定性及其他组成。不得为满足此角色而虚构参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget cost price table"
+msgstr "预算成本价格表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual price-table InformationObject release that the ledger declares as a basis for this BudgetReading's estimated cost, with its retained source pricing interpretation."
+msgstr "账本声明作为此 BudgetReading 估计成本依据的实际价格表 InformationObject 版本，并保留来源的定价解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one declared release is required when cost is supplied; all actual releases are retained without a maximum. This source declaration authenticates neither the table nor its actual use, rates, arithmetic or resulting bill."
+msgstr "提供成本时至少需要一个已声明版本；保留所有实际版本，不设数量上限。该来源声明不认证价格表、实际使用、费率、算术或最终账单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report cites each actual declared table release and preserves its supplied interpretation without synthesizing a composite table or a missing version."
+msgstr "报告引用每个实际声明的价格表版本并保留所提供解释，不合成组合价格表，也不补造缺失版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the table releases actually declared by the ledger for its estimated-cost reading."
+msgstr "用于账本为其估计成本读数实际声明的价格表版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting a current or cheapest table, inventing a digest or release label, assuming a rate formula, or replacing the actual source table identity with a guessed name."
+msgstr "避免选择当前或最便宜的价格表、虚构摘要或版本标签、假设费率公式，或用猜测名称替换实际来源价格表身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual source-identified release and the ledger's declared pricing interpretation. Preserve original version, digest and attribution metadata only when supplied. A source cost lacking its actual table context remains an explicitly incomplete interpretation, not a silent omission or default."
+msgstr "保留来源实际标识的每个版本及账本声明的定价解释。仅在提供时保留原始版本、摘要和归属元数据。缺少实际价格表上下文的来源成本必须保持为明确不完整的解释，不能静默省略或填入默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget estimated cost constraint"
+msgstr "预算估计成本约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
+msgstr "每个已提供的 budgetEstimatedMillicents 量都具有有效有限且数值唯一的 xsd:nonNegativeInteger 数值、单位计数的无量纲维度，以及一个完整报告参考系。其报告声明一个完整、标量、一维的货币主单位参考系，并声明至少一个实际价格表版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The fixed denomination is exactly 1/100000 of the declared currency's major unit, not a free scale input. Equivalent numeric lexical aliases are preserved. Existing frame profiles apply; structural checks prove no source interpretation, table authenticity, conversion, measured charge or pricing arithmetic."
+msgstr "固定计价单位严格等于所声明货币主单位的 1/100000，不是自由输入的比例。保留等值数值词法形式。现有参考系配置仍适用；结构检查不证明来源解释、价格表真实性、换算、测量费用或定价算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A counter-only reading remains valid without cost; a supplied cost with missing currency or table context fails its selected interpretation rather than acquiring invented metadata."
+msgstr "仅含计数器的读数可不提供成本；已提供成本若缺少货币或价格表上下文，其选定解释应失败，而不是补造元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the complete explicitly supplied cost interpretation of a BudgetReading without requiring cost on historical counter-only reports."
+msgstr "用于检查 BudgetReading 明确提供的完整成本解释，不要求历史仅计数报告提供成本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating values, frames, source releases or currency identity, changing existing counter semantics, capping table releases or presenting the result as a measurement or statistical estimate."
+msgstr "避免虚构数值、参考系、来源版本或货币身份，避免改变现有计数器语义、限制价格表版本数量，或将结果当作测量或统计估计。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the BudgetReading guard and fifteen independently positive cost/context guards, retaining fresh local binders and atomic existence probes. Check every supplied magnitude, dimension, frame, currency basis and table release through the existing Math, Places and information-object owners; retain actual source evidence separately."
+msgstr "应用 BudgetReading 守卫及十五个独立正向成本与上下文守卫，保留互不冲突的局部变量和原子存在性探测。通过现有 Math、Places 和信息对象的所属模型检查每个已提供数值、维度、参考系、货币基准和价格表版本；分别保留实际来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
+msgstr "每个已提供的 budgetEstimatedMillicents 量都具有有效有限且数值唯一的 xsd:nonNegativeInteger 数值、单位计数的无量纲维度，以及一个完整报告参考系。其报告声明一个完整、标量、一维的货币主单位参考系，并声明至少一个实际价格表版本。"
