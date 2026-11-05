@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: d5d70e8b39f2d4d2a441b8223848936eebd7db4f
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2531
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2531
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 5e96f4e17eb5121f502d43ee130899d5d6355599
+GhpRsq-Head-Ref: paudley/2530-retain-inner-life-wording-and-reported
+GhpRsq-Head-OID: d5d70e8b39f2d4d2a441b8223848936eebd7db4f
+GhpRsq-Result-Tree: 4c849832b2c616115da32375e0146888a64fe726
+GhpRsq-Result-Commit: 21b14f3cc4f86f8195e50b54afb624b730e84634
+GhpRsq-Parent-Hashes: d5d70e8b39f2d4d2a441b8223848936eebd7db4f
+GhpRsq-Squash-Notes-SHA256: 971642be67ebeb1550a85e9c62fe689ea15fc5b5c2e8e96e15c53021564d4feb
+GhpRsq-Stage-Evidence: none
