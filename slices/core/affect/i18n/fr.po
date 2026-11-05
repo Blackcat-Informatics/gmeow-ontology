@@ -959,3 +959,143 @@ msgstr "Nommer la loi de source : gmeow:MoodSourceClaimConstraint logic:formaliz
 msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
 msgstr "Une Mood réelle possède une affirmation native exacte de type conservant un lecteur Agent réel et une source documentaire InformationObject."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tone Reading"
+msgstr "Lecture du ton"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named, versioned refiner's attributed reading of the tone of actual retained words. It specializes AffectiveExpression and Refinement: evidence about word choice, never the speaker's or recipient's inner state, the words themselves or an automatically asserted AffectiveClaim."
+msgstr "Lecture attribuée du ton de paroles réellement conservées, effectuée par un processus de raffinement nommé et versionné. Spécialise AffectiveExpression et Refinement : un élément sur le choix des mots, jamais l’état intérieur du locuteur ou du destinataire, les paroles elles-mêmes ou une AffectiveClaim déclarée automatiquement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what an actual refiner read the words as, with its versioned vantage, real source evidence and explicit refinement outcome."
+msgstr "Utiliser pour conserver la manière dont un processus réel a lu les paroles, avec son point de vue versionné, ses éléments sources réels et son résultat de raffinement explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the speaker or recipient for the words target, diagnosing a person, treating a counted phrase as truth or inner affect, or inferring a neutral tone from missing, unread or failed readings."
+msgstr "Éviter de substituer le locuteur ou le destinataire aux paroles ciblées, de diagnostiquer une personne, de traiter une expression comptée comme une vérité ou un affect intérieur, ou de déduire un ton neutre d’une lecture absente, non lue ou échouée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point observedFeature at the actual words-bearing record. Retain the actual versioned refiner through vantage, source derivation, generating activity and refinementOutcome. Put selected labels in readTone and unselected alternatives in refinementCandidate; preserve supplied field, literal, version and span evidence without inventing it."
+msgstr "Diriger observedFeature vers l’enregistrement réel porteur des paroles. Conserver le processus versionné réel par vantage, la dérivation source, l’activité productrice et refinementOutcome. Placer les étiquettes retenues dans readTone et les alternatives non retenues dans refinementCandidate ; préserver les éléments fournis sur le champ, le littéral, la version et l’intervalle de texte sans les inventer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Competing refiner versions and multiple co-equal selected labels may coexist. A reading is neither a classifier run nor a calibrated score, reviewed cue release, verified diagnosis or recipient-isolation guarantee. Missing evidence remains missing."
+msgstr "Des versions concurrentes du processus et plusieurs étiquettes retenues de même rang peuvent coexister. Une lecture n’est ni une exécution de classifieur, ni un score calibré, ni une publication révisée d’indices, ni un diagnostic vérifié, ni une garantie d’isolation des destinataires. Les éléments absents restent absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A refiner reads the actual words: ex:reading a gmeow:ToneReading ; gmeow:observedFeature ex:words ; gmeow:vantage ex:refinerV1 ; gmeow:readTone gmeow:toneTroubled ."
+msgstr "Un processus lit les paroles réelles : ex:reading a gmeow:ToneReading ; gmeow:observedFeature ex:words ; gmeow:vantage ex:refinerV1 ; gmeow:readTone gmeow:toneTroubled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read tone"
+msgstr "ton retenu par la lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ToneReading to a selected word-tone AffectClassifierLabel in its actual label set. A specialization of observationResult, it records the refiner's selection rather than an unselected candidate or a fact about the speaker's inner affect."
+msgstr "Relie une ToneReading à une AffectClassifierLabel de ton des paroles retenue dans son ensemble réel d’étiquettes. Spécialise observationResult et consigne la sélection du processus plutôt qu’un candidat non retenu ou un fait sur l’affect intérieur du locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each explicitly selected tone label in an actual attributed reading of retained words."
+msgstr "Utiliser pour chaque étiquette de ton explicitement retenue dans une lecture réelle et attribuée de paroles conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching a tone directly to the speaker, recipient or source words, promoting a candidate to a selected result, or treating label spelling as a shared identity across sets."
+msgstr "Éviter de rattacher directement un ton au locuteur, au destinataire ou aux paroles sources, de promouvoir un candidat en résultat retenu ou de traiter le libellé comme une identité commune entre ensembles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert readTone from the ToneReading to each supplied selected label, retaining that label's memberOfLabelSet identity. Keep the actual source, refiner and outcome independent; use refinementCandidate for alternatives that were not selected."
+msgstr "Déclarer readTone de la ToneReading vers chaque étiquette retenue fournie, en conservant son identité memberOfLabelSet. Garder indépendants la source réelle, le processus et le résultat de raffinement ; utiliser refinementCandidate pour les alternatives non retenues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional, with ordinary open-world endpoints and no required raw target-type evidence. Several selected labels may coexist without a winner. No label is inferred from absence, unread input or failure; the relation performs no cue matching or model execution."
+msgstr "Propriété facultative et non fonctionnelle, avec des extrémités ordinaires en monde ouvert et sans exigence de preuve brute du type de cible. Plusieurs étiquettes retenues peuvent coexister sans gagnante. Aucune étiquette n’est déduite d’une absence, d’une entrée non lue ou d’un échec ; la relation n’exécute ni détection d’indices ni modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readTone|http://www.w3.org/2004/02/skos/core#example"
+msgid "One reading selects both co-equal labels: ex:reading gmeow:readTone gmeow:toneTroubled, gmeow:toneWeary ."
+msgstr "Une lecture retient les deux étiquettes de même rang : ex:reading gmeow:readTone gmeow:toneTroubled, gmeow:toneWeary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "word-tone reading label set"
+msgstr "ensemble d’étiquettes de lecture du ton des paroles"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectLabelSet identifying the source-defined word-tone labels used by attributed ToneReadings, including troubled and weary. It groups exact label artifacts rather than canonical emotion categories or claims about the speaker."
+msgstr "Un AffectLabelSet qui identifie les étiquettes de ton des paroles définies par la source et utilisées par des ToneReading attribuées, dont les lectures troublée et lasse. Il regroupe des artefacts d’étiquette exacts, pas des catégories canoniques d’émotion ni des affirmations sur le locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual vocabulary membership of these word-tone label identities."
+msgstr "Utiliser pour conserver l’appartenance réelle au vocabulaire de ces identités d’étiquette de ton des paroles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid declaring this set a registered classifier registry, a run-scoped zero-shot set, a reviewed cue release or a decision rule, or inferring model capability from its existence."
+msgstr "Éviter de déclarer cet ensemble comme un registre de classifieur enregistré, un ensemble zero-shot propre à une exécution, une publication révisée d’indices ou une règle de décision, ou de déduire de son existence une capacité du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each actual word-tone label through memberOfLabelSet. Retain the exact source-defined label identity and reading evidence; do not replace the label with an EmotionType or manufacture a model run, score or static decision-rule admission."
+msgstr "Relier chaque étiquette réelle de ton des paroles par memberOfLabelSet. Conserver son identité exacte définie par la source et les éléments de lecture ; ne pas la remplacer par une EmotionType ni fabriquer une exécution de modèle, un score ou une admission par règle statique de décision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The supplied members are not an exhaustive universal tone inventory. Equal label wording in another set does not establish identical meaning. Membership neither selects a reading nor establishes an inner affect, cue review or classifier-producer admission."
+msgstr "Les membres fournis ne constituent pas un inventaire universel exhaustif des tons. Un libellé identique dans un autre ensemble n’établit pas une signification identique. L’appartenance ne sélectionne aucune lecture et n’établit ni affect intérieur, ni révision d’indices, ni admission par le producteur de classification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneReadingLabelSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain exact set membership: gmeow:toneTroubled gmeow:memberOfLabelSet gmeow:toneReadingLabelSet ."
+msgstr "Conserver l’appartenance exacte à l’ensemble : gmeow:toneTroubled gmeow:memberOfLabelSet gmeow:toneReadingLabelSet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "troubled words"
+msgstr "paroles lues comme troublées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact word-tone label for words read as worried, afraid or upset in toneReadingLabelSet. It is an attributed interpretation of wording, not the speaker's felt state or an EmotionType."
+msgstr "L’étiquette exacte de ton pour des paroles lues comme inquiètes, effrayées ou bouleversées dans toneReadingLabelSet. C’est une interprétation attribuée du texte, pas l’état ressenti du locuteur ni une EmotionType."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual attributed reading selects this troubled-words label."
+msgstr "Utiliser lorsqu’une lecture réelle et attribuée retient cette étiquette de paroles troublées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing worry or fear, asserting speaker affect from a word match, or selecting this label merely because another tone is absent."
+msgstr "Éviter de diagnostiquer une inquiétude ou une peur, d’affirmer l’affect du locuteur à partir d’une correspondance de mots, ou de choisir cette étiquette parce qu’un autre ton est absent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through readTone on the ToneReading, preserving its actual words target, versioned refiner and source. Its memberOfLabelSet identity remains toneReadingLabelSet; unselected consideration belongs in refinementCandidate."
+msgstr "Retenir par readTone sur la ToneReading en préservant les paroles ciblées, le processus versionné et la source réels. Son identité memberOfLabelSet reste toneReadingLabelSet ; une option envisagée mais non retenue appartient à refinementCandidate."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This label may coexist with weary and other source-supported labels without rank or a global winner. It executes no matcher, supplies no reviewed cue inventory and establishes no calibrated probability or truth claim."
+msgstr "Cette étiquette peut coexister avec la lecture lasse et d’autres étiquettes étayées par la source, sans classement ni gagnante globale. Elle n’exécute aucun détecteur, ne fournit aucun inventaire révisé d’indices et n’établit ni probabilité calibrée ni affirmation de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneTroubled|http://www.w3.org/2004/02/skos/core#example"
+msgid "The refiner selects troubled words: ex:reading gmeow:readTone gmeow:toneTroubled ."
+msgstr "Le processus retient des paroles troublées : ex:reading gmeow:readTone gmeow:toneTroubled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "weary words"
+msgstr "paroles lues comme lasses"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact word-tone label for words read as tired or worn out in toneReadingLabelSet. It is an attributed interpretation of wording, not an asserted fatigue condition of the speaker or recipient."
+msgstr "L’étiquette exacte de ton pour des paroles lues comme fatiguées ou épuisées dans toneReadingLabelSet. C’est une interprétation attribuée du texte, pas une fatigue affirmée du locuteur ou du destinataire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual attributed reading selects this weary-words label."
+msgstr "Utiliser lorsqu’une lecture réelle et attribuée retient cette étiquette de paroles lasses."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring physical fatigue, a medical condition or speaker intent from this label, or treating unread or failed interpretation as its negation or as neutral tone."
+msgstr "Éviter d’inférer une fatigue physique, un état médical ou une intention du locuteur à partir de cette étiquette, ou de traiter une interprétation non lue ou échouée comme sa négation ou comme un ton neutre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through readTone on the ToneReading with its actual source and versioned vantage. Preserve toneReadingLabelSet membership and any independently selected troubled label; keep candidates separate from selected results."
+msgstr "Retenir par readTone sur la ToneReading avec sa source réelle et son point de vue versionné. Préserver l’appartenance à toneReadingLabelSet et toute étiquette troublée sélectionnée indépendamment ; séparer les candidats des résultats retenus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A co-equal label artifact rather than an emotion category, score or default. Its existence supplies no model run, successful reading, reviewed lexicon or recipient-isolation evidence."
+msgstr "Un artefact d’étiquette de même rang que les autres, pas une catégorie d’émotion, un score ou une valeur par défaut. Son existence ne fournit aucune exécution de modèle, lecture réussie, publication révisée d’indices ou preuve d’isolation des destinataires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneWeary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The refiner selects weary words: ex:reading gmeow:readTone gmeow:toneWeary ."
+msgstr "Le processus retient des paroles lasses : ex:reading gmeow:readTone gmeow:toneWeary ."

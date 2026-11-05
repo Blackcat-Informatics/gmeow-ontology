@@ -304,3 +304,49 @@ frame-bound position. The [worked affects](examples/epistemic-affects.ttl) and
 [narrative beat readings](../../extensions/narrative/examples/beat-functions.ttl)
 show both patterns. Multiple readings coexist; no numeric confidence or clinical
 diagnosis follows from either emotion value.
+
+## A refiner's reading of words
+
+`ToneReading` specializes `AffectiveExpression` and `Refinement`. It observes
+the actual words-bearing record through `observedFeature`, retaining the real
+source and named, versioned refiner through the existing provenance, `vantage`
+and `refinementOutcome` roles. The speaker, recipient, recorder, generating
+activity and declaring source frame keep their independently supplied identities.
+Do not substitute any of them for the words target or alter the original text.
+
+`readTone` specializes `observationResult` and records only selected word-tone
+labels. `toneTroubled` means words read as worried, afraid or upset;
+`toneWeary` means words read as tired or worn out. Both are exact
+`AffectClassifierLabel` artifacts in `toneReadingLabelSet`, an `AffectLabelSet`.
+Several selected labels and competing refiner versions may coexist without a
+global winner. Unselected labels belong in `refinementCandidate`; naming an
+alternative does not select it. Keep actual source field, literal identity,
+version and span evidence when supplied, without inventing missing granularity.
+
+Word-tone labels belong to Affect's expression and label-artifact semantics.
+Their actual set membership remains explicit; shared wording does not establish
+identity or equivalence to EmotionType or another category. The set is neither
+registered for a classifier producer nor a run-scoped zero-shot candidate set.
+Label membership supplies no model run, raw score, calibrated probability or
+decision-rule admission.
+
+These readings concern word choice. They neither assert a speaker's or
+recipient's inner state nor diagnose a person or establish truth, intention or
+successful interpretation. A genuinely supported affective claim can separately
+use `supportsAffectiveClaim`; no such claim is required merely to retain a
+word-tone reading, and no chain derives one from it. Missing, unread or failed
+readings imply no neutral tone, negative label or lack of affect.
+
+Label sets and readings do not themselves supply a reviewed cue release. An
+actual immutable `CueLexicon`
+still needs its actual source, payload identity, version, accountability and
+completed review evidence under RefinementCues. Word-match results do not prove
+that a detector executes the richer prose judge rubric. Existing cue/negation/
+grounding/match evidence roles remain separate; neither label membership nor a
+code comment supplies release qualification.
+
+See the [word-tone source scene](examples/word-tone-readings.ttl) for distinct
+source/author/recipient/refiner identities, co-equal selections and an unselected
+candidate. Every hypothetical assertion has its own exact native reifier and
+source/recorder/frame metadata. The scene executes no reading, detector, model,
+diagnosis or recipient-isolation mechanism (Principles 4, 7, 9, 10, 12 and 17).

@@ -3142,3 +3142,71 @@ gmeow:Mood logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:Mood ; logic:closureKey "https://blackcatinformatics.ca/gmeow/moodType" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/moodBearer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/moodType" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Attributed word-tone readings; existing expression and label-artifact owners.
+
+gmeow:ToneReading
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Tone Reading"@x-gmeow-english ;
+    skos:definition "A named, versioned refiner's attributed reading of the tone of actual retained words. It specializes AffectiveExpression and Refinement: evidence about word choice, never the speaker's or recipient's inner state, the words themselves or an automatically asserted AffectiveClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain what an actual refiner read the words as, with its versioned vantage, real source evidence and explicit refinement outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the speaker or recipient for the words target, diagnosing a person, treating a counted phrase as truth or inner affect, or inferring a neutral tone from missing, unread or failed readings."@x-gmeow-english ;
+    gmeow:howToUse "Point observedFeature at the actual words-bearing record. Retain the actual versioned refiner through vantage, source derivation, generating activity and refinementOutcome. Put selected labels in readTone and unselected alternatives in refinementCandidate; preserve supplied field, literal, version and span evidence without inventing it."@x-gmeow-english ;
+    skos:scopeNote "Competing refiner versions and multiple co-equal selected labels may coexist. A reading is neither a classifier run nor a calibrated score, reviewed cue release, verified diagnosis or recipient-isolation guarantee. Missing evidence remains missing."@x-gmeow-english ;
+    skos:example "A refiner reads the actual words: ex:reading a gmeow:ToneReading ; gmeow:observedFeature ex:words ; gmeow:vantage ex:refinerV1 ; gmeow:readTone gmeow:toneTroubled ."@x-gmeow-english ;
+    logic:subClassOf gmeow:AffectiveExpression, gmeow:Refinement .
+
+gmeow:readTone
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "read tone"@x-gmeow-english ;
+    skos:definition "Relates a ToneReading to a selected word-tone AffectClassifierLabel in its actual label set. A specialization of observationResult, it records the refiner's selection rather than an unselected candidate or a fact about the speaker's inner affect."@x-gmeow-english ;
+    gmeow:useWhen "Use for each explicitly selected tone label in an actual attributed reading of retained words."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching a tone directly to the speaker, recipient or source words, promoting a candidate to a selected result, or treating label spelling as a shared identity across sets."@x-gmeow-english ;
+    gmeow:howToUse "Assert readTone from the ToneReading to each supplied selected label, retaining that label's memberOfLabelSet identity. Keep the actual source, refiner and outcome independent; use refinementCandidate for alternatives that were not selected."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional, with ordinary open-world endpoints and no required raw target-type evidence. Several selected labels may coexist without a winner. No label is inferred from absence, unread input or failure; the relation performs no cue matching or model execution."@x-gmeow-english ;
+    skos:example "One reading selects both co-equal labels: ex:reading gmeow:readTone gmeow:toneTroubled, gmeow:toneWeary ."@x-gmeow-english ;
+    logic:domain gmeow:ToneReading ;
+    logic:range gmeow:AffectClassifierLabel ;
+    logic:subPropertyOf gmeow:observationResult .
+
+gmeow:toneReadingLabelSet
+    a gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "word-tone reading label set"@x-gmeow-english ;
+    skos:definition "An AffectLabelSet identifying the source-defined word-tone labels used by attributed ToneReadings, including troubled and weary. It groups exact label artifacts rather than canonical emotion categories or claims about the speaker."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the actual vocabulary membership of these word-tone label identities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid declaring this set a registered classifier registry, a run-scoped zero-shot set, a reviewed cue release or a decision rule, or inferring model capability from its existence."@x-gmeow-english ;
+    gmeow:howToUse "Link each actual word-tone label through memberOfLabelSet. Retain the exact source-defined label identity and reading evidence; do not replace the label with an EmotionType or manufacture a model run, score or static decision-rule admission."@x-gmeow-english ;
+    skos:scopeNote "The supplied members are not an exhaustive universal tone inventory. Equal label wording in another set does not establish identical meaning. Membership neither selects a reading nor establishes an inner affect, cue review or classifier-producer admission."@x-gmeow-english ;
+    skos:example "Retain exact set membership: gmeow:toneTroubled gmeow:memberOfLabelSet gmeow:toneReadingLabelSet ."@x-gmeow-english .
+
+gmeow:toneTroubled
+    a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "troubled words"@x-gmeow-english ;
+    skos:definition "The exact word-tone label for words read as worried, afraid or upset in toneReadingLabelSet. It is an attributed interpretation of wording, not the speaker's felt state or an EmotionType."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual attributed reading selects this troubled-words label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid diagnosing worry or fear, asserting speaker affect from a word match, or selecting this label merely because another tone is absent."@x-gmeow-english ;
+    gmeow:howToUse "Select through readTone on the ToneReading, preserving its actual words target, versioned refiner and source. Its memberOfLabelSet identity remains toneReadingLabelSet; unselected consideration belongs in refinementCandidate."@x-gmeow-english ;
+    skos:scopeNote "This label may coexist with weary and other source-supported labels without rank or a global winner. It executes no matcher, supplies no reviewed cue inventory and establishes no calibrated probability or truth claim."@x-gmeow-english ;
+    skos:example "The refiner selects troubled words: ex:reading gmeow:readTone gmeow:toneTroubled ."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow:toneReadingLabelSet .
+
+gmeow:toneWeary
+    a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "weary words"@x-gmeow-english ;
+    skos:definition "The exact word-tone label for words read as tired or worn out in toneReadingLabelSet. It is an attributed interpretation of wording, not an asserted fatigue condition of the speaker or recipient."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual attributed reading selects this weary-words label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring physical fatigue, a medical condition or speaker intent from this label, or treating unread or failed interpretation as its negation or as neutral tone."@x-gmeow-english ;
+    gmeow:howToUse "Select through readTone on the ToneReading with its actual source and versioned vantage. Preserve toneReadingLabelSet membership and any independently selected troubled label; keep candidates separate from selected results."@x-gmeow-english ;
+    skos:scopeNote "A co-equal label artifact rather than an emotion category, score or default. Its existence supplies no model run, successful reading, reviewed lexicon or recipient-isolation evidence."@x-gmeow-english ;
+    skos:example "The refiner selects weary words: ex:reading gmeow:readTone gmeow:toneWeary ."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow:toneReadingLabelSet .
