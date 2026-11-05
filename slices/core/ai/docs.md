@@ -896,3 +896,217 @@ ex:markersB a gmeow:StructuredSequence .
 # The fictional third report supplies a section tag and no marker information.
 ex:chunkC gmeow:chunkSectionTag "closing" .
 ```
+
+## Mathematical-expression pass findings
+
+Keep the finding, its block and its supplied contexts distinct. The method says
+HOW; vantage says WHO or the actual named perspective holding the observation.
+Method wording such as model-based, regex-based or MathML-based never identifies
+an Agent or supplies a vantage. A stage perspective may be coarse: it supplies
+no invocation, model revision or time. If method or vantage is unknown, do not
+claim a complete finding by fabricating it. Joint supplied vantages coexist.
+Different passes retain different findings even when their LaTeX agrees.
+
+The three ContentBlocks already satisfy their existing structural contracts in the surrounding graph; this snippet adds finding and roster facts only.
+
+The scene below is entirely fictional. It explicitly supplies three actual
+ContentBlocks, three named stage standpoints, three method individuals and
+three report InformationObjects. Each standpoint’s label and sharpens edge
+are supplied background context, not inferred from a method name. A model-based
+report supplies finding A with zero confidence and displayed false; a regex-based
+report supplies finding B with blank LaTeX, displayed false and no confidence;
+a MathML-based report supplies finding C with displayed true and raw confidence
+-2.5. The last number illustrates that the vocabulary imposes no score bound;
+it does not establish any source’s score range. Their method and standpoint
+identities are actually supplied in the scene. No method is a run class or a
+closed public pass enumeration.
+
+The model-based report supplies roster A containing A, B, A in that order. Its
+reference to B does not adopt or propagate B’s field provenance. The MathML-based
+report independently supplies roster C for the same block. The regex-based
+report explicitly supplies an empty roster for a second block. The third block
+has no supplied roster. Typed empty sequence and absent relation remain
+different; no schema default proves that either was historically present.
+
+Every report assertion below is asserted separately and has its own native
+RDF 1.2 reifier carrying wasDerivedFrom for that exact triple. Background scene
+declarations are explicitly supplied framing, separately marked. Provenance
+never propagates from roster to finding, from finding to its fields, or from a
+quoted triple to another assertion. The quoted triples alone do not assert
+facts; each underlying triple is present too. No actual source or consumer
+identity, path, key, class name or IRI is included in this fictional example.
+
+```turtle
+@prefix ex: <https://example.org/math-finding-scene/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Explicit fictional background supplied by this scene.
+ex:block a gmeow:ContentBlock .
+ex:emptyBlock a gmeow:ContentBlock .
+ex:unknownBlock a gmeow:ContentBlock .
+ex:modelReport a gmeow:InformationObject .
+ex:regexReport a gmeow:InformationObject .
+ex:mathmlReport a gmeow:InformationObject .
+ex:modelStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional model-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:regexStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional regex-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:mathmlStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional MathML-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:modelMethod a gmeow:ObservationMethod ; rdfs:label "Fictional model-based method"@en .
+ex:regexMethod a gmeow:ObservationMethod ; rdfs:label "Fictional regex-based method"@en .
+ex:mathmlMethod a gmeow:ObservationMethod ; rdfs:label "Fictional MathML-based method"@en .
+
+# Underlying assertions supplied by the three fictional reports.
+ex:findingA rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingA gmeow:observedFeature ex:block .
+ex:findingA gmeow:observationMethod ex:modelMethod .
+ex:findingA gmeow:vantage ex:modelStageStandpoint .
+ex:findingA gmeow:expressionFindingLatex "x + 1" .
+ex:findingA gmeow:expressionFindingDisplayed false .
+ex:findingA gmeow:expressionFindingPassConfidence "0"^^xsd:decimal .
+ex:findingB rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingB gmeow:observedFeature ex:block .
+ex:findingB gmeow:observationMethod ex:regexMethod .
+ex:findingB gmeow:vantage ex:regexStageStandpoint .
+ex:findingB gmeow:expressionFindingLatex "" .
+ex:findingB gmeow:expressionFindingDisplayed false .
+ex:findingC rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingC gmeow:observedFeature ex:block .
+ex:findingC gmeow:observationMethod ex:mathmlMethod .
+ex:findingC gmeow:vantage ex:mathmlStageStandpoint .
+ex:findingC gmeow:expressionFindingLatex "x + 1" .
+ex:findingC gmeow:expressionFindingDisplayed true .
+ex:findingC gmeow:expressionFindingPassConfidence "-2.5"^^xsd:decimal .
+ex:block gmeow:blockExpressionFindings ex:rosterA .
+ex:rosterA rdf:type gmeow:StructuredSequence .
+ex:rosterA gmeow:structuredItem ex:rosterAItem0 .
+ex:rosterAItem0 rdf:type gmeow:StructuredValue .
+ex:rosterAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:rosterAItem0 gmeow:structuredTerm ex:findingA .
+ex:rosterA gmeow:structuredItem ex:rosterAItem1 .
+ex:rosterAItem1 rdf:type gmeow:StructuredValue .
+ex:rosterAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:rosterAItem1 gmeow:structuredTerm ex:findingB .
+ex:rosterA gmeow:structuredItem ex:rosterAItem2 .
+ex:rosterAItem2 rdf:type gmeow:StructuredValue .
+ex:rosterAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+ex:rosterAItem2 gmeow:structuredTerm ex:findingA .
+ex:block gmeow:blockExpressionFindings ex:rosterC .
+ex:rosterC rdf:type gmeow:StructuredSequence .
+ex:rosterC gmeow:structuredItem ex:rosterCItem0 .
+ex:rosterCItem0 rdf:type gmeow:StructuredValue .
+ex:rosterCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:rosterCItem0 gmeow:structuredTerm ex:findingC .
+ex:emptyBlock gmeow:blockExpressionFindings ex:emptyRoster .
+ex:emptyRoster rdf:type gmeow:StructuredSequence .
+
+# Exact-statement provenance; no propagation is implied.
+ex:claim1 rdf:reifies <<( ex:findingA rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim2 rdf:reifies <<( ex:findingA gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim3 rdf:reifies <<( ex:findingA gmeow:observationMethod ex:modelMethod )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim4 rdf:reifies <<( ex:findingA gmeow:vantage ex:modelStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim5 rdf:reifies <<( ex:findingA gmeow:expressionFindingLatex "x + 1" )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim6 rdf:reifies <<( ex:findingA gmeow:expressionFindingDisplayed false )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim7 rdf:reifies <<( ex:findingA gmeow:expressionFindingPassConfidence "0"^^xsd:decimal )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim8 rdf:reifies <<( ex:findingB rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim9 rdf:reifies <<( ex:findingB gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim10 rdf:reifies <<( ex:findingB gmeow:observationMethod ex:regexMethod )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim11 rdf:reifies <<( ex:findingB gmeow:vantage ex:regexStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim12 rdf:reifies <<( ex:findingB gmeow:expressionFindingLatex "" )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim13 rdf:reifies <<( ex:findingB gmeow:expressionFindingDisplayed false )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim14 rdf:reifies <<( ex:findingC rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim15 rdf:reifies <<( ex:findingC gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim16 rdf:reifies <<( ex:findingC gmeow:observationMethod ex:mathmlMethod )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim17 rdf:reifies <<( ex:findingC gmeow:vantage ex:mathmlStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim18 rdf:reifies <<( ex:findingC gmeow:expressionFindingLatex "x + 1" )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim19 rdf:reifies <<( ex:findingC gmeow:expressionFindingDisplayed true )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim20 rdf:reifies <<( ex:findingC gmeow:expressionFindingPassConfidence "-2.5"^^xsd:decimal )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim21 rdf:reifies <<( ex:block gmeow:blockExpressionFindings ex:rosterA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim22 rdf:reifies <<( ex:rosterA rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim23 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem0 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim24 rdf:reifies <<( ex:rosterAItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim25 rdf:reifies <<( ex:rosterAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim26 rdf:reifies <<( ex:rosterAItem0 gmeow:structuredTerm ex:findingA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim27 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem1 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim28 rdf:reifies <<( ex:rosterAItem1 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim29 rdf:reifies <<( ex:rosterAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim30 rdf:reifies <<( ex:rosterAItem1 gmeow:structuredTerm ex:findingB )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim31 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem2 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim32 rdf:reifies <<( ex:rosterAItem2 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim33 rdf:reifies <<( ex:rosterAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim34 rdf:reifies <<( ex:rosterAItem2 gmeow:structuredTerm ex:findingA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim35 rdf:reifies <<( ex:block gmeow:blockExpressionFindings ex:rosterC )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim36 rdf:reifies <<( ex:rosterC rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim37 rdf:reifies <<( ex:rosterC gmeow:structuredItem ex:rosterCItem0 )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim38 rdf:reifies <<( ex:rosterCItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim39 rdf:reifies <<( ex:rosterCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim40 rdf:reifies <<( ex:rosterCItem0 gmeow:structuredTerm ex:findingC )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim41 rdf:reifies <<( ex:emptyBlock gmeow:blockExpressionFindings ex:emptyRoster )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim42 rdf:reifies <<( ex:emptyRoster rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+```
+
+All 42 report assertions have exact-statement attribution. The scene preserves
+three separate findings, two independent rosters for one block, the repeated A
+reference through distinct occurrences, the empty second-block roster and the
+third block’s missing roster. Blank LaTeX is supplied, false is supplied, zero
+is supplied, and absent confidence is left absent. No coercion or default is
+introduced. A joint observation can carry several actual vantages under the
+same inherited nonfunctional contract; this single-vantage scene neither caps
+nor synthesizes them.
+
+An item without structuredTerm fails the roster Formula. An item with a valid
+finding plus an untyped resource or a literal payload fails its universal
+check as well as any applicable generic scalar integrity. A finding with the
+wrong observedFeature fails block agreement. A finding with the right block
+and an extra block fails the local exact-one law. Missing or invalid required
+LaTeX or displayed input fails the local finding contract; malformed confidence
+fails when selected, with no substitution or partial successful finding.
