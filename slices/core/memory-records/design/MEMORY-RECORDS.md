@@ -164,3 +164,45 @@ retain their existing meanings. A source declaration does not execute trace
 retention or deletion and cannot establish a complete producer inventory or
 absence proof. No finality, native execution or consumer-adoption claim is
 introduced (Principles 4, 7, 9, 11, 12, 17 and 19).
+
+## Recorded packet evidence reuses the anchor spine
+
+TracePacketLedger is an actual InformationObject ledger record, with actual
+observed-packet membership through tracePacket. It does not require a snapshot,
+commit boundary, complete history, source profile or invented empty inventory.
+Membership stays nonfunctional and optional on ledger records. Actual source
+evidence determines which descriptors were recorded; digest or time agreement
+alone creates no member or packet resource.
+
+TracePacket specializes the existing TraceAnchor descriptor, inheriting the
+original hexBinary digest, required actual per-anchor source profile and optional
+exact episode/round scalar roles. Existing scalar branch and whole-term laws
+remain with their owners. No duplicate anchor law, hash construction, ledger
+profile or packet identity mechanism is selected. A ledger must not acquire
+anchorSourceProfile and its anchor/digest obligations merely by listing packets.
+
+The original source ordering-time value is tracePacketAt. The property domain
+is TraceAnchor so that an actual key time does not imply observed TracePacket
+membership. Only recorded TracePacket locally requires exactly one original
+temporal-union value and one actual complete TemporalFrame. Literal maximum
+one qualifies onDataRange with the actual temporal union, not onClass Thing.
+Frame maximum one counts object endpoints while its typed all-values sibling
+requires TemporalFrame. The existing temporal/reference-frame profile remains
+authoritative; no default clock, UTC, rounding or calendar reinterpretation is
+introduced. Event placement, mark placement and transaction time remain distinct.
+
+The new surface is two classes and two properties with five direct restrictions,
+two class-local required-path closures and two new-property endpoint closures.
+It adds no Formula, Constraint, failure marker, generator, fixture or runtime
+order implementation. Existing direct dependencies already name all owners;
+no manifest or cross-slice seam changes are needed.
+
+The time-then-digest comparison mechanism, inclusive monotonic finality cuts,
+complete applicable producer frontiers and lost-mark give-up with its reason
+remain separate contracts. No reported order pair tuples or blanket source
+commit-history/completeness prerequisites are added to this evidence unit.
+Current numeric integrity comparison must not be used as a temporal or digest
+comparator; PurRDF owns the existing typed value mechanisms and any actual
+GMEOW exposure/projection verification remains explicit. Structural membership
+does not execute recording, joining, retention or deletion and establishes no
+consumer adoption (Principles 4, 7, 9, 11, 12, 17 and 19).

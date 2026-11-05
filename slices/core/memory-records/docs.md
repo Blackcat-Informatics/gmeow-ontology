@@ -290,3 +290,64 @@ frontier or discard traces. The vocabulary computes no digest, performs no
 join, authenticates no source and executes no storage action. Unknown source
 interpretation remains unknown rather than being hidden by a successful
 structural result (Principles 4, 7, 9, 11, 12, 17 and 19).
+
+## Recorded trace-packet ledger evidence
+
+`TracePacketLedger` is an actual `InformationObject` ledger record.
+`tracePacket` retains the source's actual observed-packet memberships, without
+a maximum or preferred packet. It is not required on every ledger record.
+Missing members establish neither an empty inventory nor complete observation.
+No immutable snapshot, commit boundary, ledger profile, history completeness
+or recorder-ingestion operation is imposed by this vocabulary. Retain actual
+ledger identity, source attribution and any real recording metadata supplied.
+
+Each `TracePacket` is a source-recorded packet descriptor specializing the
+existing `TraceAnchor`. It inherits exactly one original `anchorPacket`
+`xsd:hexBinary` digest and one actual `anchorSourceProfile` declaration, with
+their existing construction/preimage interpretation requirements. Optional
+`anchorEpisode` and `anchorRound` retain their original scalar RDF terms and
+existing integrity laws. No anchor contract is duplicated, algorithm guessed,
+literal retyped or packet artifact created from a hash. The ledger record
+itself is not an anchor: do not put `anchorSourceProfile` on the ledger to
+manufacture a ledger-level interpretation or digest requirement.
+
+`tracePacketAt` retains the original temporal value the source uses to order
+the described packet. On recorded `TracePacket`, exactly one supplied
+`xsd:dateTime`, `xsd:date`, `xsd:gYearMonth` or `xsd:gYear` literal is required,
+together with exactly one actual complete [TemporalFrame](../temporal/docs.md)
+through `hasReferenceFrame`. Preserve datatype, lexical form, precision and
+timezone information. The actual temporal and [reference-frame](../places/docs.md)
+owners retain frame completeness; no frame laws are copied here. Do not invent
+midnight, UTC, an epoch conversion or a more precise instant, round a timestamp,
+or use a frame to reinterpret an XSD datatype's calendar.
+
+The role's domain is `TraceAnchor`, not `TracePacket`. A source-backed key time
+on an anchor therefore does not assert that its packet was observed or entered
+in a ledger. Required time/frame remains local to recorded `TracePacket`;
+unrelated anchors acquire no required time. A future genuine frontier key can
+retain an actual source time without manufacturing a recorded-packet row, but
+this unit supplies no frontier protocol or cursor interpretation.
+
+Ordering time is distinct from the marked event's `traceMarkAt`, an occurrence's
+`eventTime` and record transaction `recordedAt`. It neither specializes those
+roles nor borrows Events' UTC default. A selecting importer must fail when a
+recorded packet's required original time, frame or inherited anchor evidence
+is missing or invalid. Preserve incomplete raw source under its actual meaning
+rather than inventing missing context, silently dropping selected data or
+claiming normalized success.
+
+These terms retain ordering inputs; they execute no time-then-digest comparator
+and add no pairwise order relation, ordinal or commit-history requirement.
+The native integrity ordering path currently handles finite numeric values;
+it cannot be relabeled as timestamp or digest-byte comparison. The existing
+PurRDF temporal/binary owner and any future GMEOW comparison exposure retain
+their separate qualification requirements. No order-verification result is
+asserted by a supplied timestamp or structurally valid ledger membership.
+
+The full finality protocol remains separate: inclusive never-backward marking
+watermarks, complete applicable producer frontiers, and explicit give-up with
+reason for lost in-memory marks before advancement. Without-packet status is
+not a give-up receipt. Missing membership is not unmarkedness, finality, an
+age-policy verdict or permission to discard traces. No trace join, retention,
+deletion action, producer commitment, completeness proof or consumer adoption
+follows (Principles 4, 7, 9, 11, 12, 17 and 19).
