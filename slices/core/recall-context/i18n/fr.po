@@ -2032,3 +2032,479 @@ msgstr "Éviter d’y placer les mots littéraux du paquet ou un mode deviné, d
 msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual InformationObject packet to its supplied PacketKind resource and retain exact-statement attribution. Keep its words separately; the endpoint closure and qualified upper bound validate supplied values without claiming universal field presence."
 msgstr "Relier le paquet InformationObject réel à sa ressource PacketKind fournie et conserver l’attribution de l’énoncé exact. Garder ses mots séparément ; la fermeture des extrémités et la borne qualifiée valident les valeurs fournies sans prétendre imposer une présence universelle du champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan source lens"
+msgstr "perspective source du plan de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source/vantage lens whose declared record domain a context plan selects, independently of its state subject, author or executor."
+msgstr "La perspective source réelle dont un plan de contexte sélectionne le domaine de dossiers déclaré, indépendamment de son sujet d’état, de son auteur ou de son exécutant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the lens governing this plan’s record selection."
+msgstr "Utiliser lorsque la source identifie explicitement la perspective qui gouverne la sélection de dossiers de ce plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating the lens with an Agent, state subject, author, recorder or pair member without actual source evidence."
+msgstr "Éviter d’assimiler la perspective à un Agent, sujet d’état, auteur, agent qui consigne ou membre de paire sans éléments sources réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Entity fulfilling the Agent/Standpoint vantage role and the exact association’s source and frame. Supply state and record-domain bindings separately."
+msgstr "Conserver l’Entity réelle jouant le rôle de perspective Agent ou Standpoint ainsi que la source et le cadre de l’association exacte. Fournir séparément les liaisons d’état et de domaine de dossiers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Absence selects no default agent or domain. Entity range does not prove lens semantics, permission, execution or private-field equivalence."
+msgstr "Facultative et non fonctionnelle. L’absence ne sélectionne aucun agent ou domaine par défaut. La portée Entity ne prouve ni la sémantique de perspective, ni une permission, ni une exécution, ni une équivalence de champ privé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanHolder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A plan names its supplied source lens while keeping the actual state subject separately identified."
+msgstr "Un plan désigne sa perspective source fournie tout en identifiant séparément le sujet d’état réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side heard-from-speaker recall scope"
+msgstr "portée de rappel des paroles entendues du locuteur côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side heard records of the current speaker, newest in the actual selected source order, excluding the exact current exchange."
+msgstr "Une spécification partagée demandant les dossiers de paroles entendues du locuteur actuel dans le domaine de la perspective, du plus récent au plus ancien selon l’ordre source réellement sélectionné, en excluant l’échange actuel exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for historical hearing of the actual current speaker."
+msgstr "Utiliser pour les paroles antérieurement entendues du locuteur actuel réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the speaker’s private memory, inferring hearing from receipt or including the current exchange as history."
+msgstr "Éviter de substituer la mémoire privée du locuteur, de déduire l’audition de la réception ou d’inclure l’échange actuel comme histoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual lens/domain, state view, exchange, addressed words, speaker, source order and temporal interpretation; retain exact source links."
+msgstr "Fournir la perspective et le domaine réels, la vue d’état, l’échange, les mots adressés, le locuteur, l’ordre source et l’interprétation temporelle ; conserver les liens sources exacts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing bindings refuse the selected operation; this specification creates no records, clock or global latest selection."
+msgstr "Des liaisons manquantes imposent le refus de l’opération sélectionnée ; cette spécification ne crée ni dossiers, ni horloge, ni sélection globale du plus récent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderHeardFromSpeaker|http://www.w3.org/2004/02/skos/core#example"
+msgid "Recall earlier heard records of the supplied speaker while setting aside the exact exchange now addressed to the holder."
+msgstr "Rappeler les dossiers antérieurs de paroles entendues du locuteur fourni en écartant l’échange exact actuellement adressé au détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side memories-of-speaker recall scope"
+msgstr "portée de rappel des souvenirs du locuteur côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting the holder-side memory records whose retained words identify the actual current speaker under supplied source name and mention evidence."
+msgstr "Une spécification partagée demandant les dossiers de souvenirs du domaine de la perspective dont les mots conservés identifient le locuteur actuel réel selon les éléments sources fournis de nom et de mention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the holder-side memories that actually name the current speaker."
+msgstr "Utiliser pour les souvenirs du domaine de la perspective qui nomment réellement le locuteur actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a memory-to-person link, canonical name or universal text matcher."
+msgstr "Éviter d’inventer un lien de souvenir vers une personne, un nom canonique ou un moteur universel de correspondance textuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, state/exchange, addressed words, speaker and source name/mention bindings; retain the selected matching capability."
+msgstr "Fournir les liaisons réelles de perspective et de domaine, d’état et d’échange, de mots adressés, de locuteur et de nom ou mention source ; conserver la capacité de correspondance sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selection requests source-supported memory wording, not the speaker’s own records or proof of identity resolution."
+msgstr "Cette sélection demande le texte de souvenirs étayé par la source, non les dossiers propres du locuteur ni une preuve de résolution d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfSpeaker|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request retains the actual source name used to find memories without adding a fabricated aboutness edge."
+msgstr "Une demande conserve le nom source réel utilisé pour trouver les souvenirs sans ajouter de lien de sujet fabriqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side replies-to-speaker recall scope"
+msgstr "portée de rappel des réponses au locuteur côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side replies prompted by actual heard records of the current speaker, under the selected source order."
+msgstr "Une spécification partagée demandant les réponses du domaine de la perspective suscitées par des dossiers réels de paroles entendues du locuteur actuel, selon l’ordre source sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-identified earlier replies to the supplied current speaker."
+msgstr "Utiliser pour les réponses antérieures au locuteur actuel fourni identifiées par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every generated output or matching author as a reply to that speaker."
+msgstr "Éviter de traiter toute sortie générée ou tout auteur correspondant comme une réponse à ce locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, state/exchange, addressed words, speaker, prompt/heard links and source temporal order."
+msgstr "Fournir la perspective et le domaine réels, l’état et l’échange, les mots adressés, le locuteur, les liens de sollicitation et d’audition ainsi que l’ordre temporel source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing prompt evidence stays missing; the request neither invents a reply nor proves successful communication."
+msgstr "Les éléments manquants de sollicitation restent manquants ; la demande n’invente pas de réponse et ne prouve pas une communication réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderRepliesToSpeaker|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected reply retains the actual heard record that prompted it."
+msgstr "Une réponse sélectionnée conserve le dossier réel de paroles entendues qui l’a suscitée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side saw-speaker-here recall scope"
+msgstr "portée de rappel du locuteur vu ici côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side seen-act records of the actual current speaker at the source-supported current place."
+msgstr "Une spécification partagée demandant les dossiers d’actes vus du locuteur actuel réel, dans le domaine de la perspective, au lieu actuel étayé par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when both the speaker and current place have actual source bindings."
+msgstr "Utiliser lorsque le locuteur et le lieu actuel possèdent tous deux des liaisons sources réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an observed act from speech attribution or current location alone."
+msgstr "Éviter d’inventer un acte observé à partir de la seule attribution de paroles ou du seul lieu actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lens/domain, state/exchange, speaker, actual seen-act/actor/place links and source order; retain any interpreted spatial and temporal frames."
+msgstr "Fournir la perspective et le domaine, l’état et l’échange, le locuteur, les liens réels d’acte vu, d’acteur et de lieu ainsi que l’ordre source ; conserver les référentiels spatiaux et temporels interprétés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unknown place is not a wildcard. The request proves neither perception nor frame conversion."
+msgstr "Un lieu inconnu n’est pas un joker. La demande ne prouve ni perception ni conversion de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawSpeakerHere|http://www.w3.org/2004/02/skos/core#example"
+msgid "The same speaker’s acts elsewhere do not satisfy a request bound to this actual place."
+msgstr "Les actes du même locuteur ailleurs ne satisfont pas une demande liée à ce lieu réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side last-of-other-pair-member recall scope"
+msgstr "portée de rappel du dernier souvenir de l’autre membre côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting the newest holder-side heard record and newest seen-act record of the unique pair member other than the current speaker."
+msgstr "Une spécification partagée demandant le plus récent dossier de paroles entendues et le plus récent dossier d’acte vu du domaine de la perspective pour l’unique membre de la paire autre que le locuteur actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicitly supplied other member of a two-Agent pair."
+msgstr "Utiliser pour l’autre membre explicitement fourni d’une paire de deux Agents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a default member when the speaker is unknown or outside the pair, or one newest record across both categories."
+msgstr "Éviter un membre par défaut lorsque le locuteur est inconnu ou extérieur à la paire, ou un seul dossier le plus récent pour les deux catégories."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lens/domain, current exchange/speaker, two distinct pair Agents and actual source order; require the speaker to be a member."
+msgstr "Fournir la perspective et le domaine, l’échange et le locuteur actuels, deux Agents distincts de la paire et l’ordre source réel ; exiger que le locuteur soit membre de la paire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Heard and seen records are selected separately. No global latest order or missing record is manufactured."
+msgstr "Les dossiers entendus et vus sont sélectionnés séparément. Aucun ordre global du plus récent ni dossier manquant n’est fabriqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfOtherPairMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request about the other member keeps distinct newest heard and seen records."
+msgstr "Une demande concernant l’autre membre conserve des dossiers les plus récents distincts pour l’audition et la vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side memories-of-pair recall scope"
+msgstr "portée de rappel des souvenirs de la paire côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side memory records whose retained words identify both explicitly supplied pair members."
+msgstr "Une spécification partagée demandant les dossiers de souvenirs du domaine de la perspective dont les mots conservés identifient les deux membres de paire explicitement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-supported memories naming both actual pair identities."
+msgstr "Utiliser pour les souvenirs étayés par la source nommant les deux identités réelles de la paire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a relationship, cohabitation, aboutness edge or third-party memory domain."
+msgstr "Éviter d’inventer une relation, une cohabitation, un lien de sujet ou un domaine de mémoire tiers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, two distinct Agent identities and their actual source name/mention evidence and matching capability."
+msgstr "Fournir la perspective et le domaine réels, deux identités distinctes d’Agent ainsi que leurs éléments sources réels de nom ou mention et la capacité de correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The pair is an explicit unordered input; no member is primary and names do not create identity links."
+msgstr "La paire est une entrée explicite non ordonnée ; aucun membre n’est principal et les noms ne créent pas de liens d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesOfPair|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both supplied identities remain explicit while source wording is searched without fabricated links."
+msgstr "Les deux identités fournies restent explicites lors de la recherche du texte source sans liens fabriqués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "shared-canon holder-past recall scope"
+msgstr "portée de rappel du passé selon le canon partagé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting the actual shared canon’s account concerning the holder and its shared past, including its source-identified canon record and records naming it."
+msgstr "Une spécification partagée demandant le récit du canon partagé réel concernant le détenteur et son passé partagé, y compris son dossier canonique identifié par la source et les dossiers le nommant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects the shared canon independently of private memory domains."
+msgstr "Utiliser lorsque la source sélectionne explicitement le canon partagé indépendamment des domaines de mémoire privés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging canon into either private domain or treating its account as verified history."
+msgstr "Éviter de fusionner le canon dans l’un ou l’autre domaine privé ou de traiter son récit comme une histoire vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual holder lens, shared-canon view, holder canon identity and source reference/mention evidence with its own frame."
+msgstr "Fournir la perspective réelle du détenteur, la vue du canon partagé, l’identité canonique du détenteur et les éléments sources de référence ou mention avec leur propre cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canon is a separately selected source, not either mind’s records or a truth certificate."
+msgstr "Le canon est une source sélectionnée séparément, non les dossiers de l’un des esprits ni un certificat de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderCanonSharedPast|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request retains the canon account separately from the holder’s own memories."
+msgstr "Une demande conserve le récit canonique séparément des souvenirs propres du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side trail recall scope"
+msgstr "portée de rappel du parcours côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side transition and genesis records forming the supplied trail under actual source chronology."
+msgstr "Une spécification partagée demandant les dossiers de transition et de genèse du domaine de la perspective formant le parcours fourni selon la chronologie source réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the trail anchored by the actual selected locus state."
+msgstr "Utiliser pour le parcours ancré par l’état de lieu réellement sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a trail with unrelated recent episodes or inventing a genesis, transition or clock."
+msgstr "Éviter de remplacer un parcours par des épisodes récents sans rapport ou d’inventer une genèse, une transition ou une horloge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lens/domain, actual state/locus anchor, source record-kind bindings and source ordering/temporal interpretation."
+msgstr "Fournir la perspective et le domaine, l’ancre réelle d’état et de lieu, les liaisons de types de dossiers sources et l’interprétation source de l’ordre et du temps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source chronology is retained, not repaired. This selector creates no route, place or current-state winner."
+msgstr "La chronologie source est conservée, non réparée. Ce sélecteur ne crée ni itinéraire, ni lieu, ni état actuel prioritaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderTrail|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request preserves the actual transitions and genesis supplied for one trail."
+msgstr "Une demande préserve les transitions et la genèse réelles fournies pour un parcours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side memories-here recall scope"
+msgstr "portée de rappel des souvenirs d’ici côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side memory records of the actual place resolved from the selected source locus/move evidence."
+msgstr "Une spécification partagée demandant les dossiers de souvenirs du domaine de la perspective concernant le lieu réel résolu à partir des éléments sources sélectionnés de lieu ou de déplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for memories of the explicitly bound current place."
+msgstr "Utiliser pour les souvenirs du lieu actuel explicitement lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing place as all places or inferring a location from a name."
+msgstr "Éviter de traiter un lieu manquant comme tous les lieux ou de déduire une localisation d’un nom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, state/locus, Place, source location association and source order; retain frames when interpreting coordinates or times."
+msgstr "Fournir la perspective et le domaine réels, l’état et le lieu, la ressource Place réelle, l’association source de localisation et l’ordre source ; conserver les référentiels lors de l’interprétation de coordonnées ou de temps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The place and memory associations need actual evidence; no missing boundary, coordinate or frame is synthesized."
+msgstr "Le lieu et les associations de souvenirs nécessitent des éléments réels ; aucun élément manquant de borne, de coordonnée ou de référentiel n’est synthétisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMemoriesHere|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request stays bound to the source-identified place instead of broadening when its anchor is absent."
+msgstr "Une demande reste liée au lieu identifié par la source au lieu de s’élargir lorsque son ancre manque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side waking-entries recall scope"
+msgstr "portée de rappel des entrées éveillées côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side waking entries of the kind held by the actual current solitude entry, excluding that exact entry."
+msgstr "Une spécification partagée demandant les entrées éveillées du domaine de la perspective du type porté par l’entrée réelle de solitude actuelle, en excluant cette entrée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual current entry and its source kind are supplied."
+msgstr "Utiliser lorsque l’entrée actuelle réelle et son type source sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a fixed waking taxonomy or typing generated text as phenomenal Experience."
+msgstr "Éviter d’inventer une taxonomie fixe des entrées éveillées ou de typer un texte généré comme Experience phénoménale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lens/domain, selected state/solitude anchor, exact current entry, actual record kind and source order/frame."
+msgstr "Fournir la perspective et le domaine, l’ancre sélectionnée d’état et de solitude, l’entrée actuelle exacte, le type réel de dossier ainsi que l’ordre et le cadre sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Kind and current-entry identity remain actual inputs; the specification neither generates a thought nor asserts consciousness."
+msgstr "Le type et l’identité de l’entrée actuelle restent des entrées réelles ; la spécification ne génère pas de pensée et n’affirme pas de conscience."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderWakingEntries|http://www.w3.org/2004/02/skos/core#example"
+msgid "Earlier same-kind entries are requested while the exact current entry is set aside."
+msgstr "Les entrées antérieures du même type sont demandées tandis que l’entrée actuelle exacte est écartée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side saw-named-agent recall scope"
+msgstr "portée de rappel d’un agent nommé vu côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side seen-act records of an explicitly supplied target Agent, independently of the current speaker."
+msgstr "Une spécification partagée demandant les dossiers d’actes vus du domaine de la perspective concernant un Agent cible explicitement fourni, indépendamment du locuteur actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sightings of the actual named target Agent."
+msgstr "Utiliser pour les actes vus de l’Agent cible réel nommé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the target from a hard-coded person, a name string, pair ranking or the current speaker alone."
+msgstr "Éviter de déduire la cible d’une personne codée en dur, d’une chaîne de nom, d’un classement de paire ou du seul locuteur actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, target Agent, seen-act/actor evidence and source order with its temporal interpretation."
+msgstr "Fournir la perspective et le domaine réels, l’Agent cible, les éléments d’acte vu et d’acteur ainsi que l’ordre source et son interprétation temporelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selector is distinct from seeing the current speaker here; no current place or pair membership is invented."
+msgstr "Ce sélecteur est distinct de la vue du locuteur actuel ici ; aucun lieu actuel n’est inventé et aucune appartenance à une paire n’est inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderSawNamedAgent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The supplied target can differ from the current speaker without changing the selected record domain."
+msgstr "La cible fournie peut différer du locuteur actuel sans changer le domaine de dossiers sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side dream-entries recall scope"
+msgstr "portée de rappel des entrées de rêve côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting holder-side dream-entry records under the actual declared source category and selected solitude context."
+msgstr "Une spécification partagée demandant les dossiers d’entrées de rêve du domaine de la perspective selon la catégorie source réelle déclarée et le contexte de solitude sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the dream-entry selection."
+msgstr "Utiliser lorsque la source identifie explicitement la sélection d’entrées de rêve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every dream record as DreamReport, actual Experience or proof that a dream occurred."
+msgstr "Éviter de traiter tout dossier de rêve comme DreamReport, Experience réelle ou preuve qu’un rêve a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, state/solitude anchor, source dream-kind role and source order/frame without creating missing entries."
+msgstr "Fournir la perspective et le domaine réels, l’ancre d’état et de solitude, le rôle source de type de rêve ainsi que l’ordre et le cadre sources sans créer d’entrées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The request selects retained records, not a dream-generation or phenomenal-character verdict."
+msgstr "La demande sélectionne des dossiers conservés, non un verdict de génération de rêve ou de caractère phénoménal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderDreamEntries|http://www.w3.org/2004/02/skos/core#example"
+msgid "Dream entries remain records in the supplied view without being retyped as experiences."
+msgstr "Les entrées de rêve restent des dossiers dans la vue fournie sans être retypées comme expériences."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side mood recall scope"
+msgstr "portée de rappel de l’humeur côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting the source-recorded mood shift held by the actual selected state view."
+msgstr "Une spécification partagée demandant le changement d’humeur enregistré par la source et porté par la vue d’état réelle sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual mood record identified by selected state evidence."
+msgstr "Utiliser pour le dossier réel d’humeur identifié par les éléments d’état sélectionnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a classifier diagnosis, source-free emotional truth or global current mood."
+msgstr "Éviter un diagnostic de classifieur, une vérité émotionnelle sans source ou une humeur actuelle globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, independent state subject/view, declared mood-slot role and its exact pointer/assignment evidence."
+msgstr "Fournir la perspective et le domaine réels, le sujet et la vue d’état indépendants, le rôle déclaré de créneau d’humeur et ses éléments exacts de pointeur ou d’affectation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A missing mood binding remains missing; this selector does not infer the lens’s own inner state."
+msgstr "Une liaison d’humeur manquante reste manquante ; ce sélecteur ne déduit pas l’état intérieur propre de la perspective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderMood|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied state view points to a retained mood-shift record without selecting a universal state winner."
+msgstr "Une vue d’état fournie pointe vers un dossier conservé de changement d’humeur sans sélectionner un état universel prioritaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side pending-demands recall scope"
+msgstr "portée de rappel des demandes en attente côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting records of demands explicitly held pending by the selected state view, retaining each supplied raised-time datum."
+msgstr "Une spécification partagée demandant les dossiers de demandes explicitement en attente dans la vue d’état sélectionnée, en conservant chaque donnée temporelle fournie de leur formulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual declared pending-demand roster."
+msgstr "Utiliser pour la liste réelle déclarée des demandes en attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an empty roster from missing bindings or inventing a demand, raised time or resolution."
+msgstr "Éviter de déduire une liste vide de liaisons manquantes ou d’inventer une demande, une date de formulation ou une résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lens/domain, state/view, actual pending-demand role and complete selected pointer roster; preserve actual raised-time source/frame evidence."
+msgstr "Fournir la perspective et le domaine, l’état et la vue, le rôle réel de demandes en attente et la liste complète des pointeurs sélectionnés ; préserver les éléments réels de source et de cadre du temps de formulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Known empty and unknown are distinct. The request neither resolves demands nor certifies successful action."
+msgstr "Le vide connu et l’inconnu sont distincts. La demande ne résout pas les demandes en attente et ne certifie pas une action réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderPendingDemands|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each selected demand keeps its original raised-time evidence rather than an invented timestamp."
+msgstr "Chaque demande sélectionnée conserve ses éléments originaux de temps de formulation plutôt qu’un horodatage inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side grouped last-of-pair recall scope"
+msgstr "portée de rappel groupé du dernier souvenir de la paire côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting separately newest heard and seen-act records for each supplied pair member, plus only explicitly admitted directional last-contact time and channel metadata, never its words."
+msgstr "Une spécification partagée demandant séparément les plus récents dossiers de paroles entendues et d’actes vus pour chaque membre fourni de la paire, avec uniquement les métadonnées explicitement admises de temps et de canal du dernier contact directionnel, jamais ses mots."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the complete grouped pair selection with its explicitly admitted metadata boundary."
+msgstr "Utiliser pour la sélection groupée complète de la paire avec sa limite de métadonnées explicitement admise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid one newest record overall, one member’s scope, private contact words or extra payload/tone."
+msgstr "Éviter un seul dossier globalement le plus récent, la portée d’un seul membre, les mots privés du contact ou un contenu ou ton supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, two distinct pair Agents, per-member/category source order and admitted contact direction/time/frame/channel evidence; retain completeness separately."
+msgstr "Fournir la perspective et le domaine réels, deux Agents distincts de la paire, l’ordre source par membre et catégorie ainsi que les éléments admis de direction, temps, cadre et canal du contact ; conserver séparément la complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is one grouped scope, distinct from LastOfOtherPairMember. Missing contact evidence is not a negative contact fact or permission to read words."
+msgstr "Il s’agit d’une portée groupée unique, distincte de LastOfOtherPairMember. Des éléments de contact manquants ne constituent ni un fait négatif de contact ni une permission de lire les mots."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderLastOfPair|http://www.w3.org/2004/02/skos/core#example"
+msgid "The request keeps separate latest heard/seen selections for both members and only admitted contact time/channel metadata."
+msgstr "La demande conserve des sélections distinctes des derniers dossiers entendus et vus pour les deux membres, avec uniquement les métadonnées admises de temps et de canal du contact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holder-side addressed-tone-reading recall scope"
+msgstr "portée de rappel du ton des mots adressés côté perspective"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared specification requesting an actual named/versioned process reading of the tone of the exact currently addressed words, under its own source frame."
+msgstr "Une spécification partagée demandant une lecture réelle du ton des mots exacts actuellement adressés, par un processus nommé et versionné, dans son propre cadre source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supported refinement of the exact current words."
+msgstr "Utiliser pour un raffinement étayé par la source des mots actuels exacts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the words, the holder’s own utterance or a claim about the speaker’s inner state."
+msgstr "Éviter de substituer les mots, l’énoncé propre du détenteur ou une assertion sur l’état intérieur du locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual lens/domain, state/exchange, exact words and the named/versioned refiner’s actual evidence and frame; keep competing readings separate."
+msgstr "Fournir la perspective et le domaine réels, l’état et l’échange, les mots exacts ainsi que les éléments réels et le cadre du processus de raffinement nommé et versionné ; garder les lectures concurrentes séparées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A reading is neither the words nor the holder’s own state. The request performs no classifier, cue match or truth inference."
+msgstr "Une lecture n’est ni les mots ni l’état propre du détenteur. La demande n’exécute ni classifieur ni correspondance d’indice et n’effectue aucune inférence de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual refiner’s tone reading remains attributed separately from the addressed words and speaker."
+msgstr "La lecture du ton par un processus réel de raffinement conserve une attribution séparée des mots adressés et du locuteur."
