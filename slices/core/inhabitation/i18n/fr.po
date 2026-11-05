@@ -180,3 +180,631 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:InhabitationTenure, et rien d'autre. Ce n'est pas une définition de gmeow:InhabitationTenure (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospective subject stage description"
+msgstr "description prospective d’une étape du sujet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An InformationObject describing a prospective position in a SubjectLineage without asserting a realized SubjectStage, bearer or epoch."
+msgstr "Un InformationObject décrivant une position prospective dans une SubjectLineage sans affirmer de SubjectStage réalisé, de porteur ni d’époque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is disjoint from SubjectStage and may retain several actual lineage memberships. Its existence alone establishes neither realization nor committed anticipation."
+msgstr "La description est disjointe de SubjectStage et peut conserver plusieurs appartenances réelles à des lignées. Son existence seule n’établit ni réalisation ni anticipation engagée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "A future lineage position remains described while one frame awaits it and another reports a separate actual realization."
+msgstr "Une position future de lignée reste décrite tandis qu’un cadre l’attend et qu’un autre rapporte une réalisation réelle distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source description of a prospective stage whose bearer or realized epoch must not be invented."
+msgstr "Utiliser pour une description source réelle d’une étape prospective dont le porteur ou l’époque réalisée ne doivent pas être inventés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a prospective description as a realized stage or treating missing bearer, interval or evidence as an awaited status."
+msgstr "Éviter de typer une description prospective comme étape réalisée ou de traiter l’absence de porteur, d’intervalle ou de preuve comme un état d’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its actual prospectOfLineage memberships. Put status and any separate actual realization on attributed StageStatusReadings; keep bearer and epoch slots off the description."
+msgstr "Conserver ses appartenances prospectOfLineage réelles. Porter l’état et toute réalisation réelle distincte sur des StageStatusReadings attribuées ; ne pas placer de porteur ni d’époque sur la description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage status reading"
+msgstr "lecture d’état d’étape du sujet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation of one closed StageStatus for an actual SubjectStage or SubjectStageProspect, with one selected lineage witness and actual single or joint vantages."
+msgstr "Une Observation attribuée d’un StageStatus fermé pour un SubjectStage réel ou une SubjectStageProspect, avec un témoin de lignée sélectionné et un point de vue réel ou plusieurs points de vue conjoints."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Feature, result and selected lineage each have one value; vantages and actual awaited pursuits have no cap. Readings coexist without a global status, preferred frame or latest-reading rule."
+msgstr "L’objet observé, le résultat et la lignée sélectionnée ont chacun une valeur ; les points de vue et les poursuites réelles d’attente ne sont pas plafonnés. Les lectures coexistent sans état global, cadre privilégié ni règle de dernière lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two actual frames hold different statuses for the same prospect while preserving their selected lineage and realization evidence separately."
+msgstr "Deux cadres réels tiennent des états différents pour la même description prospective tout en conservant séparément leurs éléments de lignée sélectionnée et de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source-held ended, current, intermediate in-progress or committed awaited stage status."
+msgstr "Utiliser pour un état d’étape explicitement tenu par la source : terminé, courant, intermédiaire en cours ou attendu avec engagement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving status from missing fields, a global now, shared bearer identity or an unrelated account’s event progress."
+msgstr "Éviter de déduire l’état de champs absents, d’un présent global, de l’identité commune d’un porteur ou de la progression d’événement d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature, observationResult, stageStatusLineage and every actual vantage. Retain required pursuit, realization and selected restoration bindings under their conditional laws without inventing source evidence."
+msgstr "Lier observedFeature, observationResult, stageStatusLineage et chaque vantage réel. Conserver les liaisons requises de poursuite, réalisation et restauration sélectionnée selon leurs lois conditionnelles sans inventer de preuves source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage status"
+msgstr "état d’étape du sujet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed four-value stage-status vocabulary stageEnded, stageCurrent, stageInProgress and stageAwaited carried by a StageStatusReading."
+msgstr "Le vocabulaire fermé d’état d’étape à quatre valeurs, stageEnded, stageCurrent, stageInProgress et stageAwaited, porté par une StageStatusReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Status is a frame-relative quality value, distinct from confidence, event progress and continuity verdict. A fifth value cannot bypass conditional stage obligations."
+msgstr "L’état est une valeur de qualité relative au cadre, distincte de la confiance, de la progression d’événement et du verdict de continuité. Une cinquième valeur ne peut contourner les obligations conditionnelles d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit awaited reading uses stageAwaited; an incomplete record supplies no default status."
+msgstr "Une lecture d’attente explicite utilise stageAwaited ; un enregistrement incomplet ne fournit aucun état par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the reviewed observationResult vocabulary of StageStatusReading."
+msgstr "Utiliser comme vocabulaire observationResult examiné de StageStatusReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extension statuses, status subclasses of bearers, ordering the values on a global timeline or selecting a preferred frame."
+msgstr "Éviter les états d’extension, les sous-classes de porteurs fondées sur l’état, l’ordre des valeurs sur une chronologie globale ou la sélection d’un cadre privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose exactly one named member per reading and retain all actual vantages. Keep coexisting readings and historical evidence rather than mutating a stage’s global status."
+msgstr "Choisir exactement un membre nommé par lecture et conserver tous les points de vue réels. Garder les lectures coexistantes et les preuves historiques plutôt que de modifier un état global de l’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ended subject stage"
+msgstr "étape du sujet terminée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting that an actual realized subject stage has ended within the reading’s supplied frame."
+msgstr "La valeur d’état rapportant qu’une étape réelle et réalisée du sujet est terminée dans le cadre fourni de la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ending the stage does not delete it, suppress it or independently prove its bearer’s death. An ended prospect reading still requires a separate actual realization."
+msgstr "La fin de l’étape ne la supprime pas, ne la masque pas et ne prouve pas indépendamment la mort de son porteur. Une lecture de fin d’une description prospective exige toujours une réalisation réelle distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source retains an ended original stage and its bearer while a different intermediate stage is reported in progress."
+msgstr "Une source conserve une étape initiale terminée et son porteur tandis qu’une étape intermédiaire distincte est rapportée en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports a realized stage’s ending in its frame."
+msgstr "Utiliser lorsque la source rapporte explicitement la fin d’une étape réalisée dans son cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ending from silence, missing intervals, suppression or a continuity verdict."
+msgstr "Éviter d’inférer la fin du silence, d’intervalles absents, d’un masquage ou d’un verdict de continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain stageEnded on the attributed reading with its selected lineage and actual stage or prospect realization. Preserve actual bearer and temporal evidence separately."
+msgstr "Conserver stageEnded sur la lecture attribuée avec sa lignée sélectionnée et son étape réelle ou sa réalisation de description prospective. Préserver séparément les preuves réelles de porteur et de temps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "current subject stage"
+msgstr "étape courante du sujet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting the realized stage held current in the reading’s actual frame, without an absolute present."
+msgstr "La valeur d’état rapportant l’étape réalisée tenue pour courante dans le cadre réel de la lecture, sans présent absolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Another frame may hold a different status for the same prospect. Current does not select the latest timestamp or imply continuity with another stage."
+msgstr "Un autre cadre peut tenir un état différent pour la même description prospective. Courant ne sélectionne pas le dernier horodatage et n’implique pas de continuité avec une autre étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#example"
+msgid "One frame reports a prospect’s actual realization as current while another still awaits that prospect."
+msgstr "Un cadre rapporte comme courante la réalisation réelle d’une description prospective tandis qu’un autre attend encore cette description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit current-stage report with actual realization and lineage evidence."
+msgstr "Utiliser pour un rapport explicite d’étape courante avec des preuves réelles de réalisation et de lignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving current status from timestamps, global now, absent ending or a shared bearer."
+msgstr "Éviter de déduire l’état courant d’horodatages, d’un présent global, d’une fin absente ou d’un porteur commun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use stageCurrent on the source-held reading; select an actual realization only for a prospect feature. Keep actual joint vantages and independent historical readings."
+msgstr "Utiliser stageCurrent sur la lecture tenue par la source ; sélectionner une réalisation réelle uniquement pour un objet observé prospectif. Conserver les points de vue conjoints réels et les lectures historiques indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intermediate subject stage in progress"
+msgstr "étape intermédiaire du sujet en cours"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value for an actual intermediate stage in the selected restoration account whose same actual Event is explicitly reported in progress."
+msgstr "La valeur d’état d’une étape intermédiaire réelle du récit de restauration sélectionné dont le même Event réel est explicitement rapporté en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The intermediate is a realized stage, not the intended result. Its reading selects the same account, lineage, actual event-progress record and matching actual vantage set."
+msgstr "L’étape intermédiaire est réalisée, et non le résultat attendu. Sa lecture sélectionne le même récit, la même lignée, le même enregistrement réel de progression et le même ensemble réel de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "A restoration’s existing intermediate bearer remains distinct from the awaited future position."
+msgstr "Le porteur intermédiaire existant d’une restauration reste distinct de la position future attendue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual source evidence identifies the intermediate stage and the selected account’s explicitly ongoing Event."
+msgstr "Utiliser lorsque les preuves source réelles identifient l’étape intermédiaire et l’Event explicitement en cours du récit sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring progress from an open commitment, missing latestEnd, another event or another account’s progress reading."
+msgstr "Éviter d’inférer la progression d’un engagement ouvert, d’un latestEnd absent, d’un autre événement ou de la lecture de progression d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the actual stage or its prospect realization, the exact stageRestorationReading and its intermediate role. Require that account’s selected progress reading to report eventInProgress for the same actual Event."
+msgstr "Sélectionner l’étape réelle ou sa réalisation de description prospective, le stageRestorationReading exact et son rôle intermédiaire. Exiger que la lecture de progression sélectionnée de ce récit rapporte eventInProgress pour le même Event réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited subject stage"
+msgstr "étape du sujet attendue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting a prospect as anticipated and committed to through actual Intention or social Commitment pursuits under the reading’s supplied frame."
+msgstr "La valeur d’état rapportant une description prospective comme anticipée et poursuivie avec engagement par des Intention réelles ou des Commitment sociaux réels dans le cadre fourni de la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one actual pursuit and its actual Goal target are required; all supplied pursuits are checked without a cap. The reading has no stageStatusRealization, and its prospect has no bearer or epoch slot."
+msgstr "Au moins une poursuite réelle et son Goal cible réel sont requis ; toutes les poursuites fournies sont contrôlées sans plafond. La lecture n’a pas de stageStatusRealization et sa description prospective n’a ni porteur ni époque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source commits to a future lineage position while retaining an ongoing restoration and no realized future bearer."
+msgstr "Une source s’engage envers une position future de lignée tout en conservant une restauration en cours et aucun futur porteur réalisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual source-held committed anticipation, rather than mere Desire, a plan or incomplete realization evidence."
+msgstr "Utiliser pour une anticipation engagée réellement tenue par la source, plutôt qu’un simple Desire, un plan ou des preuves de réalisation incomplètes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an agent, beneficiary, goal, epoch or active pursuit, or treating historical adoption and missing abandonment as current commitment."
+msgstr "Éviter d’inventer un agent, bénéficiaire, but, époque ou poursuite active, ou de traiter une adoption historique et l’absence d’abandon comme un engagement actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Observe the prospect and bind each actual pursuit through stagePursuit and its intentionGoal to that same prospect through goalStageProspect. If an account is supplied, retain its exact intended prospect, motive, lineage and matching actual vantages."
+msgstr "Observer la description prospective et lier chaque poursuite réelle par stagePursuit et son intentionGoal à cette même description par goalStageProspect. Si un récit est fourni, conserver sa description cible exacte, son motif, sa lignée et ses points de vue réels concordants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage restoration reading"
+msgstr "lecture de restauration d’étapes du sujet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation of one actual restoration Event retaining its distinct actual source and intermediate stages, intended prospect, selected shared lineage and explicit event-progress reading."
+msgstr "Une Observation attribuée d’un Event de restauration réel conservant ses étapes source et intermédiaire réelles distinctes, sa description prospective cible, sa lignée commune sélectionnée et sa lecture explicite de progression d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selected same-lineage account has one value for each required role and uncapped actual vantages. It does not place rival accounts’ endpoints on global Event slots or assert a generated future stage."
+msgstr "Ce récit sélectionné de même lignée a une valeur par rôle requis et des points de vue réels non plafonnés. Il ne place pas les extrémités de récits rivaux sur des champs globaux d’Event et n’affirme pas d’étape future produite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "One account identifies the original stage, an existing intermediate stage and an awaited intended prospect while its actual Event remains underway."
+msgstr "Un récit identifie l’étape initiale, une étape intermédiaire existante et une description prospective cible attendue tandis que son Event réel demeure en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual attributed restoration interpretation with supplied source, intermediate, intended, lineage and progress bindings."
+msgstr "Utiliser pour une interprétation attribuée réelle de restauration avec des liaisons fournies de source, intermédiaire, cible, lignée et progression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging accounts, inventing a restoration EventType, treating intended output as generation or imposing this same-lineage profile on arbitrary transformations."
+msgstr "Éviter de fusionner les récits, d’inventer un EventType de restauration, de traiter la cible comme production ou d’imposer ce profil de même lignée aux transformations quelconques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Observe the exact actual Event and retain all five account roles and actual vantages. Require positive membership of each stage role in the selected lineage and match the selected progress reading’s Event and complete vantage set."
+msgstr "Observer l’Event réel exact et conserver les cinq rôles du récit et ses points de vue réels. Exiger l’appartenance positive de chaque rôle d’étape à la lignée sélectionnée et faire correspondre l’Event et l’ensemble complet des points de vue de la lecture de progression sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospect of lineage"
+msgstr "description prospective de lignée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual SubjectLineage membership retained for a SubjectStageProspect without asserting a realized stage or shared bearer."
+msgstr "Une appartenance réelle à une SubjectLineage conservée pour une SubjectStageProspect sans affirmer d’étape réalisée ni de porteur commun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one membership is required on a prospect, with no maximum. Selected readings name their own positive witness without forbidding other legitimate memberships."
+msgstr "Au moins une appartenance est requise sur une description prospective, sans maximum. Les lectures sélectionnées nomment leur propre témoin positif sans interdire d’autres appartenances légitimes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A prospect retains two source-supported memberships while a restoration account explicitly selects one of those actual lineages."
+msgstr "Une description prospective conserve deux appartenances étayées par les sources tandis qu’un récit de restauration sélectionne explicitement l’une de ces lignées réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to group an actual prospective description in its supplied lineage without changing stageOfLineage on realized stages."
+msgstr "Utiliser pour grouper une description prospective réelle dans sa lignée fournie sans modifier stageOfLineage sur les étapes réalisées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an invented lineage, a global single-lineage rule or treating membership as realization or continuitySame."
+msgstr "Éviter une lignée inventée, une règle globale de lignée unique ou l’assimilation de l’appartenance à une réalisation ou à continuitySame."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every actual supplied membership. A status or restoration reading selects one lineage and requires that exact positive membership; other memberships remain intact."
+msgstr "Conserver chaque appartenance réellement fournie. Une lecture d’état ou de restauration sélectionne une lignée et exige cette appartenance positive exacte ; les autres appartenances restent intactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected stage-status lineage"
+msgstr "lignée sélectionnée de la lecture d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual SubjectLineage selected as the positive membership witness by this StageStatusReading."
+msgstr "L’unique SubjectLineage réelle sélectionnée comme témoin positif d’appartenance par cette StageStatusReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This local single witness does not make the feature’s global lineage membership functional. Actual feature, prospect and supplied realization must carry its exact membership."
+msgstr "Ce témoin local unique ne rend pas fonctionnelle l’appartenance globale de l’objet observé à une lignée. L’objet réel, la description prospective et la réalisation fournie doivent porter son appartenance exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading selects one supported lineage while retaining another account’s distinct lineage claim."
+msgstr "Une lecture sélectionne une lignée étayée tout en conservant l’affirmation distincte de lignée d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual lineage witness selected by a stage-status interpretation."
+msgstr "Utiliser pour le témoin réel de lignée sélectionné par une interprétation d’état d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting absent membership through equality-only checks or constraining every global stage membership to this witness."
+msgstr "Éviter d’accepter une appartenance absente par de seuls contrôles d’égalité ou de contraindre toute appartenance globale d’étape à ce témoin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind one actual lineage and require stageOfLineage on an actual feature or realization and prospectOfLineage on a prospective feature with that same bound value."
+msgstr "Lier une lignée réelle et exiger stageOfLineage sur un objet ou une réalisation réels et prospectOfLineage sur un objet prospectif avec cette même valeur liée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage-status realization"
+msgstr "réalisation de la lecture d’état d’étape"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual SubjectStage selected as the realization of the prospect observed by a nonawaited StageStatusReading."
+msgstr "Le SubjectStage réel sélectionné comme réalisation de la description prospective observée par une StageStatusReading dont l’état n’est pas attendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional generally and at most one per reading, but required for ended/current/in-progress prospect readings. Awaited and direct actual-stage readings forbid this slot, including a redundant self-link."
+msgstr "Facultatif en général et limité à une valeur par lecture, mais requis pour les lectures prospectives terminées, courantes ou en cours. Les lectures d’attente et d’étapes réelles directes interdisent ce champ, y compris un lien redondant vers soi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later reading names an actual realization while an older awaited reading remains unchanged on the same prospect."
+msgstr "Une lecture ultérieure nomme une réalisation réelle tandis qu’une ancienne lecture d’attente reste inchangée sur la même description prospective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source supplies an actual realized stage for the prospective feature under this reading."
+msgstr "Utiliser uniquement lorsque la source fournit une étape réellement réalisée pour l’objet prospectif selon cette lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a placeholder bearer, a realized-stage feature, an awaited reading, invented epoch evidence or automatic retirement of historical anticipation."
+msgstr "Éviter un porteur fictif, un objet observé déjà réalisé, une lecture d’attente, des preuves d’époque inventées ou le retrait automatique d’une anticipation historique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual stage and require its stageOfLineage to match the reading’s selected positive witness. Retain the prospect and actual bearer/epoch evidence separately without merging their identities."
+msgstr "Relier l’étape réelle et exiger que son stageOfLineage corresponde au témoin positif sélectionné de la lecture. Conserver séparément la description et les preuves réelles de porteur et d’époque sans fusionner leurs identités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited-stage pursuit"
+msgstr "poursuite de l’étape attendue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Intention or social Commitment that this awaited StageStatusReading reports held toward its prospective stage."
+msgstr "Une Intention réelle ou un Commitment social réel que cette StageStatusReading d’attente rapporte comme tenu envers son étape prospective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Awaited status requires at least one actual pursuit, with no maximum. Every supplied pursuit, Goal and selected-account motive is checked; Desire alone is insufficient."
+msgstr "L’état d’attente exige au moins une poursuite réelle, sans maximum. Chaque poursuite, Goal et motif de récit sélectionné fourni est contrôlé ; un Desire seul ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Joint source evidence retains several actual intentions directed through their actual goals to the same prospective stage."
+msgstr "Des preuves source conjointes conservent plusieurs intentions réelles dirigées par leurs buts réels vers la même étape prospective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual source-held committed anticipation with the existing Intention or social Commitment meaning."
+msgstr "Utiliser pour une anticipation engagée réellement tenue par la source selon le sens existant d’Intention ou de Commitment social."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing beneficiaries or bearers, treating an open tenure as proof of current pursuit, or attaching this awaited role to another stage status."
+msgstr "Éviter d’inventer bénéficiaires ou porteurs, de traiter une tenure ouverte comme preuve de poursuite actuelle ou d’attacher ce rôle d’attente à un autre état d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every supplied actual pursuit and require its actual intentionGoal to be a Goal targeting this same prospect through goalStageProspect. A selected account also requires that pursuit to motivate its exact actual Event."
+msgstr "Conserver chaque poursuite réelle fournie et exiger que son intentionGoal réel soit un Goal visant cette même description par goalStageProspect. Un récit sélectionné exige aussi que cette poursuite motive son Event réel exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "goal stage prospect"
+msgstr "description prospective visée par le but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual SubjectStageProspect that this supplied Goal seeks to have realized, without asserting satisfaction or an existing future bearer."
+msgstr "La SubjectStageProspect réelle que ce Goal fourni vise à voir réalisée, sans affirmer de satisfaction ni de futur porteur existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional and required only through the selected awaited-reading bindings, not on every Goal. Other supported goal/prospect relations remain intact."
+msgstr "La relation n’est pas fonctionnelle et n’est requise que par les liaisons sélectionnées de lecture d’attente, pas sur chaque Goal. Les autres relations but/description étayées restent intactes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied goal names the same intended prospect as its actual pursuit’s awaited reading."
+msgstr "Un but fourni nomme la même description cible que la lecture d’attente de sa poursuite réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-supplied goal-to-prospect relation in committed stage anticipation."
+msgstr "Utiliser pour une relation réelle fournie par la source entre but et description dans une anticipation engagée d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfiedBy, a realized output, an invented Goal or inferring the goal’s content from a stage label."
+msgstr "Éviter satisfiedBy, un résultat réalisé, un Goal inventé ou l’inférence du contenu du but à partir d’une étiquette d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Goal to the same observed prospect retained by the awaited reading. Keep pursuit, motive, source and viewpoint evidence without claiming execution or success."
+msgstr "Relier le Goal réel à la même description observée conservée par la lecture d’attente. Garder les preuves de poursuite, motif, source et point de vue sans prétendre à une exécution ni à une réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected stage restoration account"
+msgstr "récit sélectionné de restauration d’étapes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual StageRestorationReading selected by an awaited or in-progress StageStatusReading."
+msgstr "L’unique StageRestorationReading réelle sélectionnée par une StageStatusReading d’attente ou en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is optional for awaited status, required for in-progress status and forbidden for current/ended status. It has at most one account; actual joint vantage sets match in both directions."
+msgstr "Le rôle est facultatif pour l’attente, requis pour l’état en cours et interdit pour les états courant ou terminé. Il admet au plus un récit ; les ensembles réels de points de vue conjoints concordent dans les deux sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "The intermediate reading and awaited reading explicitly select the same supplied account rather than joining arbitrary records about its Event."
+msgstr "La lecture intermédiaire et la lecture d’attente sélectionnent explicitement le même récit fourni plutôt que de joindre des enregistrements quelconques sur son Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact attributed account supporting the selected intermediate or awaited interpretation."
+msgstr "Utiliser pour conserver le récit attribué exact étayant l’interprétation intermédiaire ou d’attente sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid borrowing another account’s endpoints, progress or frame, or placing a meaningless optional link on current/ended readings."
+msgstr "Éviter d’emprunter les extrémités, la progression ou le cadre d’un autre récit, ou de placer un lien facultatif sans sens sur les lectures courantes ou terminées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the exact account and require the same lineage and complete actual vantage set. Match its intermediate stage for in-progress status, or its intended prospect and actual motive for awaited status."
+msgstr "Sélectionner le récit exact et exiger la même lignée et l’ensemble complet des points de vue réels. Faire correspondre son étape intermédiaire pour l’état en cours, ou sa description cible et son motif réel pour l’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration source stage"
+msgstr "étape source de restauration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source SubjectStage named by this selected StageRestorationReading."
+msgstr "Le SubjectStage source réel nommé par cette StageRestorationReading sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one source stage belongs to this account and is distinct from its intermediate stage. Other accounts and global lineage claims remain separate."
+msgstr "Exactement une étape source appartient à ce récit et elle est distincte de son étape intermédiaire. Les autres récits et affirmations globales de lignée restent séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "An account retains an ended original stage as its actual source without replacing it with its bearer or a future description."
+msgstr "Un récit conserve une étape initiale terminée comme source réelle sans la remplacer par son porteur ni par une description future."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied actual source-stage binding of this attributed restoration account."
+msgstr "Utiliser pour la liaison fournie d’étape source réelle de ce récit attribué de restauration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a prospect, a bearer, a portal tenure or another account’s source stage."
+msgstr "Éviter une description prospective, un porteur, une tenure de portail ou l’étape source d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind one actual SubjectStage and require stageOfLineage to contain the account’s selected restorationLineage witness. Preserve other memberships and source evidence."
+msgstr "Lier un SubjectStage réel et exiger que stageOfLineage contienne le témoin restorationLineage sélectionné du récit. Conserver les autres appartenances et les preuves source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration intermediate stage"
+msgstr "étape intermédiaire de restauration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual intermediate SubjectStage named by this selected StageRestorationReading, distinct from its source stage and not an asserted intended result."
+msgstr "Le SubjectStage intermédiaire réel nommé par cette StageRestorationReading sélectionnée, distinct de son étape source et ne constituant pas un résultat cible affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one intermediate stage belongs to the account. Its actual bearer is retained without requiring all restorations to change bearer or merging stages that share one."
+msgstr "Exactement une étape intermédiaire appartient au récit. Son porteur réel est conservé sans exiger que toute restauration change de porteur ni fusionner les étapes qui en partagent un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "An in-progress stage reading selects this account’s exact intermediate stage and its explicitly ongoing actual Event."
+msgstr "Une lecture d’étape en cours sélectionne l’étape intermédiaire exacte de ce récit et son Event réel explicitement en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an existing realized intermediate stage supplied by the actual restoration account."
+msgstr "Utiliser pour une étape intermédiaire existante et réalisée fournie par le récit réel de restauration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the intended future prospect, the source stage itself or another account’s intermediate stage."
+msgstr "Éviter de substituer la description prospective future cible, l’étape source elle-même ou l’étape intermédiaire d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the distinct actual stage and require its positive membership in the selected restorationLineage. The linked in-progress reading must use this same stage, account, explicit event progress and vantage set."
+msgstr "Relier l’étape réelle distincte et exiger son appartenance positive à la restorationLineage sélectionnée. La lecture en cours liée doit utiliser cette même étape, ce récit, cette progression explicite d’événement et cet ensemble de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration intended stage prospect"
+msgstr "description prospective cible de restauration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one SubjectStageProspect named as intended output by this selected StageRestorationReading, without asserting an actual generated stage or bearer."
+msgstr "L’unique SubjectStageProspect nommée comme cible par cette StageRestorationReading sélectionnée, sans affirmer d’étape ni de porteur réellement produits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Intended output remains descriptive even while the actual Event is underway or completed. Event completion does not establish realization, goal satisfaction or continuity."
+msgstr "La cible reste descriptive même lorsque l’Event réel est en cours ou achevé. L’achèvement de l’événement n’établit ni réalisation, ni satisfaction du but, ni continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "An awaited reading selects this same prospect and retains its actual pursuits without inventing a future bearer."
+msgstr "Une lecture d’attente sélectionne cette même description prospective et conserve ses poursuites réelles sans inventer de futur porteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual intended prospective-stage binding in the attributed account."
+msgstr "Utiliser pour la liaison réelle d’étape prospective cible dans le récit attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an actual output stage, generated entity, substituted bearer or prospect borrowed from another account."
+msgstr "Éviter une étape de sortie réelle, une entité produite, un porteur substitué ou une description prospective empruntée à un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual prospect and its positive prospectOfLineage membership in the account’s selected lineage. A linked awaited reading must observe this exact prospect and retain its actual goal and motive bindings."
+msgstr "Lier la description prospective réelle et son appartenance prospectOfLineage positive à la lignée sélectionnée du récit. Une lecture d’attente liée doit observer cette description exacte et conserver ses liaisons réelles de but et de motif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected restoration lineage"
+msgstr "lignée sélectionnée de restauration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual SubjectLineage selected as the common positive membership witness for this restoration account’s source, intermediate and intended prospect."
+msgstr "L’unique SubjectLineage réelle sélectionnée comme témoin positif commun d’appartenance pour la source, l’intermédiaire et la description prospective cible de ce récit de restauration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The single witness belongs to this account. It does not forbid additional global memberships or impose same-lineage behavior on arbitrary transformations."
+msgstr "Le témoin unique appartient à ce récit. Il n’interdit pas d’appartenances globales supplémentaires et n’impose pas un comportement de même lignée aux transformations quelconques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "All three supplied roles have the selected positive membership while other source-supported lineage claims remain retained."
+msgstr "Les trois rôles fournis portent l’appartenance positive sélectionnée tandis que les autres affirmations de lignée étayées restent conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual common witness selected by this same-lineage restoration interpretation."
+msgstr "Utiliser pour le témoin commun réel sélectionné par cette interprétation de restauration de même lignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid missing witnesses, equality-only validation, a global lineage maximum or borrowing another account’s lineage."
+msgstr "Éviter les témoins manquants, la validation par seule égalité, un maximum global de lignées ou l’emprunt de la lignée d’un autre récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require exact positive stageOfLineage links from the source and intermediate and prospectOfLineage from the intended description to this bound witness. Match a linked status reading’s selected lineage without changing other memberships."
+msgstr "Exiger des liens stageOfLineage positifs exacts de la source et de l’intermédiaire, et prospectOfLineage de la description cible, vers ce témoin lié. Faire correspondre la lignée sélectionnée d’une lecture d’état liée sans modifier les autres appartenances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected restoration event progress"
+msgstr "progression sélectionnée de l’événement de restauration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual EventProgressReading selected by this StageRestorationReading, directly observing its exact actual Event."
+msgstr "L’unique EventProgressReading réelle sélectionnée par cette StageRestorationReading et observant directement son Event réel exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Account and progress reading have the same actual vantage set without a cap. A linked in-progress stage requires eventInProgress on this exact record, not another record about the Event."
+msgstr "Le récit et la lecture de progression ont le même ensemble réel de points de vue sans plafond. Une étape en cours liée exige eventInProgress sur cet enregistrement exact, et non sur un autre enregistrement concernant l’Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "The selected account and intermediate-stage reading reference the same explicit ongoing-event progress report."
+msgstr "Le récit sélectionné et la lecture d’étape intermédiaire référencent le même rapport explicite de progression d’événement en cours."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual progress record selected as part of this attributed restoration account."
+msgstr "Utiliser pour l’enregistrement réel de progression sélectionné comme partie de ce récit attribué de restauration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid another Event, another account or frame, a borrowed description realization, or inferring progress from commitment or missing end data."
+msgstr "Éviter un autre Event, un autre récit ou cadre, une réalisation descriptive empruntée ou l’inférence de progression d’un engagement ou de données de fin absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one actual EventProgressReading whose observedFeature is exactly the account’s Event. Match vantage membership in both directions and require eventInProgress when a linked stage is in progress; infer no success or continuity verdict."
+msgstr "Sélectionner une EventProgressReading réelle dont observedFeature est exactement l’Event du récit. Faire correspondre l’appartenance aux points de vue dans les deux sens et exiger eventInProgress lorsqu’une étape liée est en cours ; ne déduire ni réussite ni verdict de continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage-status bindings constraint"
+msgstr "contrainte des liaisons d’état d’étape"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."
+msgstr "Une StageStatusReading conserve sa lignée positive sélectionnée, sa réalisation réelle conditionnelle, chaque poursuite réelle d’attente et le Goal correspondant, ainsi que les liaisons exactes de restauration, progression et points de vue sélectionnés, sans porteur ni époque sur son objet prospectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The twenty-six independent guards check intrinsic associations without a pursuit or vantage cap. Source truth, current holding of commitment, realization authenticity and successful restoration remain separate evidence obligations."
+msgstr "Les vingt-six gardes indépendantes contrôlent les associations intrinsèques sans plafonner les poursuites ni les points de vue. La vérité source, le maintien actuel de l’engagement, l’authenticité de réalisation et la réussite de restauration restent des obligations probantes distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An intermediate reading cannot borrow another account’s stage or ongoing-event report; an awaited reading cannot omit its actual pursuits and matching goals."
+msgstr "Une lecture intermédiaire ne peut emprunter l’étape ou le rapport d’événement en cours d’un autre récit ; une lecture d’attente ne peut omettre ses poursuites réelles et buts correspondants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every selected stage-status branch, supplied optional role and positively witnessed lineage/account association."
+msgstr "Utiliser pour valider chaque branche d’état sélectionnée, rôle facultatif fourni et association de lignée ou de récit positivement attestée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid vacuous equality-only checks, arbitrary frame joins, missing-field defaults, capped joint pursuits or a semantic continuity certificate."
+msgstr "Éviter les contrôles d’égalité seuls et vacuement satisfaits, les jointures arbitraires de cadres, les valeurs par défaut de champs absents, le plafonnement des poursuites conjointes ou un certificat de continuité sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply each focused positive guard to the same reading and exact supplied roles. Require atomic presence witnesses and positive membership links, check every pursuit/Goal/motive, and match selected account/progress identities and vantage membership in both directions without a clock or latest selector."
+msgstr "Appliquer chaque garde positive centrée sur la même lecture et les rôles exacts fournis. Exiger des témoins atomiques de présence et des liens positifs d’appartenance, contrôler chaque poursuite, Goal et motif, puis faire correspondre les identités de récit et de progression et les appartenances aux points de vue dans les deux sens, sans horloge ni sélecteur de dernière lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage restoration bindings constraint"
+msgstr "contrainte des liaisons de restauration d’étapes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."
+msgstr "Une StageRestorationReading possède des étapes source et intermédiaire distinctes avec une appartenance positive exacte à sa lignée sélectionnée, la même appartenance pour sa description prospective cible, et une lecture de progression sélectionnée observant son Event réel exact selon le même ensemble complet de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The seven guards constrain this selected account, not every transformation or every global lineage claim. Progress and shared bearer identity imply no stage merge, goal success or continuity verdict."
+msgstr "Les sept gardes contraignent ce récit sélectionné, et non toute transformation ni toute affirmation globale de lignée. La progression et l’identité commune d’un porteur n’impliquent ni fusion d’étapes, ni réussite du but, ni verdict de continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Additional legitimate lineage memberships coexist while the account’s exact selected witness must appear positively on all three stage roles."
+msgstr "Des appartenances légitimes supplémentaires à des lignées coexistent tandis que le témoin exact sélectionné du récit doit apparaître positivement sur ses trois rôles d’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the selected same-lineage account and its actual event-progress record without mixing competing interpretations."
+msgstr "Utiliser pour contrôler le récit sélectionné de même lignée et son enregistrement réel de progression d’événement sans mêler les interprétations concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid missing witnesses, another account’s endpoints or frame, an intended prospect treated as an actual result, or a global same-lineage invariant."
+msgstr "Éviter les témoins manquants, les extrémités ou le cadre d’un autre récit, une description cible traitée comme résultat réel ou un invariant global de même lignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require exact positive source/intermediate/prospect membership in the bound restorationLineage, distinct source/intermediate terms, the same actual Event on the selected progress reading and bidirectional actual vantage membership. Keep all probes bound to that one account."
+msgstr "Exiger l’appartenance positive exacte de la source, de l’intermédiaire et de la description à la restorationLineage liée, des termes source et intermédiaire distincts, le même Event réel sur la lecture de progression sélectionnée et l’appartenance réelle aux points de vue dans les deux sens. Lier chaque test à ce seul récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospective continuity target rejection"
+msgstr "rejet d’une cible prospective de continuité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."
+msgstr "Aucun lien assessmentToStage ne peut cibler une SubjectStageProspect, y compris une description également typée SubjectStage ; l’admission d’une extrémité d’étape réelle est requise séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This directly guarded prohibition preserves actual continuity verdicts and historical awaited readings. It selects no latest status, accepted viewpoint or provisional fourth verdict."
+msgstr "Cette interdiction directement gardée conserve les verdicts réels de continuité et les lectures historiques d’attente. Elle ne sélectionne ni dernier état, ni point de vue accepté, ni quatrième verdict provisoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later assessment targets a distinct actual realization while its prospect retains an older awaited reading without a historical veto."
+msgstr "Une évaluation ultérieure cible une réalisation réelle distincte tandis que sa description conserve une ancienne lecture d’attente sans veto historique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an actual supplied continuity target that is prospective, even if dual typing attempts to satisfy the actual-stage range."
+msgstr "Utiliser pour rejeter une cible prospective de continuité réellement fournie, même si un double typage tente de satisfaire la plage des étapes réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating absent realization as continuityDifferent, inventing a future bearer or blocking an actual stage because an old awaited description remains."
+msgstr "Éviter de traiter l’absence de réalisation comme continuityDifferent, d’inventer un futur porteur ou de bloquer une étape réelle parce qu’une ancienne description d’attente subsiste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select each actual assessmentToStage link, bind both terms positively and reject a prospective target. Combine this with the closed SubjectStage endpoint and prospect disjointness without asserting source truth, accepted-status selection or runtime qualification."
+msgstr "Sélectionner chaque lien assessmentToStage réel, lier positivement ses deux termes et rejeter une cible prospective. Combiner ce contrôle avec l’extrémité SubjectStage fermée et l’exclusion entre SubjectStage et SubjectStageProspect, sans affirmer vérité source, sélection d’état accepté ni qualification d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."
+msgstr "Une StageStatusReading conserve sa lignée positive sélectionnée, sa réalisation réelle conditionnelle, chaque poursuite réelle d’attente et le Goal correspondant, ainsi que les liaisons exactes de restauration, progression et points de vue sélectionnés, sans porteur ni époque sur son objet prospectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."
+msgstr "Une StageRestorationReading possède des étapes source et intermédiaire distinctes avec une appartenance positive exacte à sa lignée sélectionnée, la même appartenance pour sa description prospective cible, et une lecture de progression sélectionnée observant son Event réel exact selon le même ensemble complet de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."
+msgstr "Aucun lien assessmentToStage ne peut cibler une SubjectStageProspect, y compris une description également typée SubjectStage ; l’admission d’une extrémité d’étape réelle est requise séparément."

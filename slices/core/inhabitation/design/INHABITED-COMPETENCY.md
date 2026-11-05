@@ -91,3 +91,53 @@ This document is the conformance contract. The constructs it tests are defined a
 [`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md), [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md),
 [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md), and
 [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md).
+
+## Prospective-stage and restoration obligations
+
+The descriptive prospective seam preserves the charter's realized SubjectStage
+category. The source contract distinguishes an actual ended original stage,
+a separate actual intermediate stage and a SubjectStageProspect describing
+the future position. The prospect has no bearer, epoch or realized Situation;
+status cannot be encoded merely by an absent field or a label.
+
+The complete competency contract requires the following behavior, with source
+truth and runtime evidence distinguished from intrinsic graph structure:
+
+| Required distinction | Canonical obligation |
+| --- | --- |
+| Realized versus prospective stage | SubjectStage remains a realized Situation; SubjectStageProspect is an InformationObject explicitly disjoint from it. No bearer or duringInterval belongs on the selected prospective feature. |
+| Explicit stage status | StageStatusReading has one feature, one closed ended/current/in-progress/awaited result, one selected actual lineage witness and at least one uncapped actual vantage. Missing status has no default. |
+| Positive shared lineage | Required selected witnesses and exact stageOfLineage/prospectOfLineage membership links connect actual features, realizations and account roles; additional global memberships remain valid. |
+| Committed anticipation | Awaited status requires actual Intention or social Commitment pursuits with no cap, each actual Goal and that Goal's exact prospect target. Desire, missing abandonment or an open tenure is insufficient. |
+| Conditional realization | Ended/current/in-progress prospect readings require an actual realization; awaited and direct actual-stage readings forbid that slot, including redundant self-links. |
+| One actual restoration account | StageRestorationReading retains one actual Event, source stage, distinct intermediate stage, intended prospect, actual lineage witness and selected progress reading. Endpoints remain on the account rather than global Event slots. |
+| Actual ongoing intermediate | The in-progress status reading selects that exact account/intermediate stage and the account's selected progress record explicitly reports eventInProgress for the same actual Event. Missing end data does not qualify. |
+| Awaited account association | If an awaited reading selects an account, it observes the account's exact intended prospect and every supplied pursuit motivates that account's exact actual Event. No future output or success is inferred. |
+| Actual matching contexts | Status/account and account/progress links preserve their actual complete vantage sets in both directions, with no cap, arbitrary frame join or latest-reading selector. |
+| Strict prospective continuity boundary | The closed actual assessmentToStage endpoint, prospect disjointness and directly guarded prohibition exclude prospective and dual-typed targets without changing existing actual verdicts. |
+| Historical coexistence | A later actual-stage assessment remains possible while old awaited readings remain retained on the description; no historical awaiting claim supplies a global veto. |
+| No unearned consequence | Progress/completion supplies no goal satisfaction, successful restoration, continuitySame, end time or Open/Closed boundary. Shared bearer identity never merges distinct stages. |
+
+The original three-position case preserves its supplied different actual
+bearers without requiring every possible restoration to change bearer. The
+actual original-to-intermediate assessment retains continuityIndeterminate in
+its supplied frame; no assessment is created toward the prospect. Ended and
+awaited positions may be co-temporal without an imposed linear timeline.
+
+These obligations are authored through ordinary canonical restrictions,
+closures and three focused Constraint formulas. The status formula has
+twenty-six independently guarded arms, the account formula seven, and the
+strict target formula one. Their ten existence bodies are atomic. Actual
+pursuits, goals, memberships, motives, event progress and vantages are retained
+and bound explicitly; there is no source-content parser, generic context
+framework, native failure marker or execution oracle.
+
+Source-level structural admission is not proof of authentic realization,
+current holding of a commitment, true source interpretation, successful
+restoration or installed consumer adoption. Generated projections and native
+execution require actual qualification evidence before being described as
+verified. Existing model-serving and continuity consumers continue to select
+actual SubjectStage/stageOfLineage records. The
+[identity charter](INHABITED-IDENTITY.md#prospective-stages-and-scoped-status)
+and [owning guide](../docs.md#prospective-stages-and-attributed-restoration-status)
+state the complete contract without fabricating an instance or a default.
