@@ -751,7 +751,7 @@ pub fn lift_annotation_axioms(
 ) -> Result<(Vec<LogicAxiom>, Vec<Diagnostic>), Diag> {
     require_nonempty_source(dataset)?;
     let mut diagnostics = Vec::new();
-    let mut seen = HashSet::new();
+    let mut seen = BTreeSet::new();
     let mut axioms: Vec<LogicAxiom> = extract_annotation_axioms(dataset, &mut diagnostics)
         .into_iter()
         .map(|emission| emission.axiom)
