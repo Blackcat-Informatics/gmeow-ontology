@@ -205,3 +205,20 @@ by its bowl parent; the ontology does not claim every repaired vessel is a bowl.
 Virtual desktop and the raft's craft meaning deliberately receive no invented
 physical-surface or container parent. Inherited kind assertions remain inferred,
 with attribution to the original source description (Principles 2, 4, 9, 17 and 19).
+
+## Conditional release and departing focus
+
+EnvironmentRecords owns releasesAttentionFrom beside its attention endpoint
+roles. The Event-to-Entity relation records a conditional effect: the event ends
+attention on the target if attention rested there and otherwise asserts nothing
+about attention. attentionFrom instead reports an actual departing focus. No
+subproperty, chain or implication connects the new relation to attentionFrom,
+attentionTo or the state endpoint roles; unknown prior attention remains unknown.
+
+The canonical logic:ObjectProperty declaration and provided-value closure reuse
+the existing endpoint validation pattern. Optional, nonfunctional release facts
+remain attributed source claims. They require no new class, event type, Agent,
+slot, state history or dependency, and do not weaken existing Event constraints.
+The property supplies no runtime clearing or mutation operation. Actual slot
+assignments or transition evidence, when supplied independently, keep their own
+existing contracts (Principles 4, 9, 12, 17 and 19).
