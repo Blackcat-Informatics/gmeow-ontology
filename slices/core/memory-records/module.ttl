@@ -1132,3 +1132,73 @@ gmeow:TraceAnchorScalarConstraint
         [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "roundCarrier" ] ;
         logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:anchorRound ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scalarAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "roundCarrier" ] ] ;
             logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "roundTerm" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "roundCarrier" ] , [ logic:termIndex 1 ; logic:termVariable "roundTerm" ] ] ] ] ] ] ] ] .
+
+gmeow:TracePacketLedger
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace packet ledger"@x-gmeow-english ;
+    skos:definition "An actual InformationObject ledger record retaining the trace packets its source reports observing."@x-gmeow-english ;
+    skos:scopeNote "Actual membership is retained through tracePacket. The record imposes no snapshot, commit boundary, source profile or complete-history requirement; absent members establish no empty inventory, completeness or finality."@x-gmeow-english ;
+    skos:example "A source ledger retains its actual observed-packet descriptors without inventing missing rows or claiming that every possible packet was recorded."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source ledger record listing observed trace packets."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a ledger, forcing it into a transition journal or treating missing membership as proof of an empty, complete or finalized ledger."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual ledger identity and each supplied tracePacket membership with its source attribution. Keep real recording metadata when supplied, without inventing a boundary, profile, order relation or completeness certificate."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:TracePacket
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Recorded trace packet"@x-gmeow-english ;
+    skos:definition "A TraceAnchor descriptor of a source-recorded trace packet, retaining its original ordering-time value and actual complete TemporalFrame alongside the inherited packet digest and source interpretation."@x-gmeow-english ;
+    skos:scopeNote "Exactly one original tracePacketAt value and one actual complete TemporalFrame are locally required. Existing required digest/profile and optional episode/round scalar contracts remain inherited; no packet artifact, verified bytes or recorder execution is inferred."@x-gmeow-english ;
+    skos:example "An actual recorded-packet descriptor retains its original digest, applicable per-anchor profile and source ordering time in the actual temporal frame."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies an actual recorded packet with the inherited anchor interpretation and required time/frame evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating a packet from a hash or timestamp, guessing a frame, copying another anchor's profile or claiming order verification, completeness or finality from this type."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original anchorPacket and actual anchorSourceProfile, supply tracePacketAt and hasReferenceFrame, and reuse inherited scalar laws. Record actual ledger membership separately through tracePacket; keep unqualified raw source evidence under its actual meaning."@x-gmeow-english ;
+    logic:subClassOf gmeow:TraceAnchor .
+
+gmeow:tracePacket
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recorded trace packet membership"@x-gmeow-english ;
+    skos:definition "An actual source-observed TracePacket retained as a member of this TracePacketLedger."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and not required on every ledger record. Several actual members coexist; omission establishes neither an empty inventory nor complete observation, packet ordering or marking finality."@x-gmeow-english ;
+    skos:example "The ledger links each recorded-packet descriptor actually supplied by its source, retaining several memberships without a preferred packet."@x-gmeow-english ;
+    gmeow:useWhen "Use only for the source's actual observed-packet membership in the ledger record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring membership from matching digests, synthesizing missing rows or treating absence as unmarkedness or permission to discard traces."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual TracePacketLedger to each supplied TracePacket and preserve its source evidence. Do not impose an ordinal, commit history, ledger-level anchor profile or fabricated packet identity."@x-gmeow-english ;
+    logic:domain gmeow:TracePacketLedger ;
+    logic:range gmeow:TracePacket .
+
+gmeow:tracePacketAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "packet ordering time"@x-gmeow-english ;
+    skos:definition "The original source-supplied temporal value used to order the packet described by this TraceAnchor."@x-gmeow-english ;
+    skos:scopeNote "The domain is TraceAnchor, so a supplied key time alone does not assert observed TracePacket membership. Exactly one dateTime, date, gYearMonth or gYear value and one actual complete TemporalFrame are required locally only on recorded TracePacket."@x-gmeow-english ;
+    skos:example "A source ordering date remains that original date without an invented midnight or UTC timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source actually supplies this packet ordering-time value under its actual interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting traceMarkAt, eventTime or recordedAt, guessing a clock, rounding a timestamp, converting an epoch or claiming that this value computes packet order."@x-gmeow-english ;
+    gmeow:howToUse "Preserve datatype, lexical form, precision and timezone exactly. On TracePacket retain one actual complete TemporalFrame through hasReferenceFrame; do not borrow Events' UTC default or reinterpret an XSD calendar."@x-gmeow-english ;
+    logic:domain gmeow:TraceAnchor ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tracePacket" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tracePacketAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:TracePacketLedger logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:tracePacket ; logic:allValuesFrom gmeow:TracePacket ] .
+
+gmeow:TracePacket logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:tracePacketAt ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:tracePacketAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:TemporalFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:TracePacket ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tracePacketAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TracePacket ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .

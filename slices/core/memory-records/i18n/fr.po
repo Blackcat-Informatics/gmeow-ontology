@@ -1568,3 +1568,115 @@ msgstr "Une TraceMark dont la valeur fournie traceMarkWithoutPacket est égale a
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
 msgstr "Chaque occurrence anchorEpisode ou anchorRound fournie pour un TraceAnchor possède un témoin structuredTerm original et hérite de l’unicité scalaire et de l’exclusivité des branches existantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace packet ledger"
+msgstr "Registre des paquets de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual InformationObject ledger record retaining the trace packets its source reports observing."
+msgstr "Un véritable enregistrement de registre InformationObject conservant les paquets de trace que sa source déclare avoir observés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual membership is retained through tracePacket. The record imposes no snapshot, commit boundary, source profile or complete-history requirement; absent members establish no empty inventory, completeness or finality."
+msgstr "Les appartenances réelles sont conservées via tracePacket. L’enregistrement n’impose ni instantané, ni frontière de commit, ni profil source, ni historique complet ; l’absence de membres n’établit ni inventaire vide, ni complétude, ni finalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ledger retains its actual observed-packet descriptors without inventing missing rows or claiming that every possible packet was recorded."
+msgstr "Un registre source conserve ses véritables descripteurs de paquets observés sans inventer de lignes manquantes ni prétendre que tous les paquets possibles ont été enregistrés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source ledger record listing observed trace packets."
+msgstr "À utiliser pour un véritable enregistrement de registre source répertoriant des paquets de trace observés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a ledger, forcing it into a transition journal or treating missing membership as proof of an empty, complete or finalized ledger."
+msgstr "Éviter de fabriquer un registre, de le forcer dans un journal de transitions ou de traiter l’absence d’appartenance comme la preuve d’un registre vide, complet ou finalisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual ledger identity and each supplied tracePacket membership with its source attribution. Keep real recording metadata when supplied, without inventing a boundary, profile, order relation or completeness certificate."
+msgstr "Conserver l’identité réelle du registre et chaque appartenance tracePacket fournie avec son attribution source. Garder les métadonnées réelles d’enregistrement lorsqu’elles sont fournies, sans inventer de frontière, de profil, de relation d’ordre ni de certificat de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recorded trace packet"
+msgstr "Paquet de trace enregistré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceAnchor descriptor of a source-recorded trace packet, retaining its original ordering-time value and actual complete TemporalFrame alongside the inherited packet digest and source interpretation."
+msgstr "Un descripteur TraceAnchor d’un paquet de trace enregistré par la source, conservant sa valeur temporelle originale d’ordre et son TemporalFrame complet réel, avec le condensat du paquet et l’interprétation source hérités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original tracePacketAt value and one actual complete TemporalFrame are locally required. Existing required digest/profile and optional episode/round scalar contracts remain inherited; no packet artifact, verified bytes or recorder execution is inferred."
+msgstr "Exactement une valeur originale tracePacketAt et un TemporalFrame complet réel sont requis localement. Les contrats existants de condensat et profil requis et de champs scalaires épisode/tour facultatifs restent hérités ; aucun artefact de paquet, octet vérifié ni exécution du collecteur n’est déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual recorded-packet descriptor retains its original digest, applicable per-anchor profile and source ordering time in the actual temporal frame."
+msgstr "Un véritable descripteur de paquet enregistré conserve son condensat original, son profil applicable propre à l’ancrage et le temps source servant à l’ordonner dans le cadre temporel réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual recorded packet with the inherited anchor interpretation and required time/frame evidence."
+msgstr "À utiliser lorsque la source fournit un véritable paquet enregistré avec l’interprétation d’ancrage héritée et les preuves temporelles et de cadre requises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a packet from a hash or timestamp, guessing a frame, copying another anchor's profile or claiming order verification, completeness or finality from this type."
+msgstr "Éviter de créer un paquet à partir d’un condensat ou d’un horodatage, de deviner un cadre, de copier le profil d’un autre ancrage ou de déduire de ce type une vérification d’ordre, une complétude ou une finalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original anchorPacket and actual anchorSourceProfile, supply tracePacketAt and hasReferenceFrame, and reuse inherited scalar laws. Record actual ledger membership separately through tracePacket; keep unqualified raw source evidence under its actual meaning."
+msgstr "Conserver l’anchorPacket original et l’anchorSourceProfile réel, fournir tracePacketAt et hasReferenceFrame et réutiliser les lois scalaires héritées. Enregistrer séparément l’appartenance réelle au registre via tracePacket ; garder les preuves sources brutes non qualifiées sous leur sens réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded trace packet membership"
+msgstr "appartenance d’un paquet de trace enregistré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-observed TracePacket retained as a member of this TracePacketLedger."
+msgstr "Un véritable TracePacket observé par la source et conservé comme membre de ce TracePacketLedger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and not required on every ledger record. Several actual members coexist; omission establishes neither an empty inventory nor complete observation, packet ordering or marking finality."
+msgstr "Non fonctionnel et non requis sur chaque enregistrement de registre. Plusieurs membres réels coexistent ; l’omission n’établit ni inventaire vide, ni observation complète, ni ordre des paquets, ni finalité du marquage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ledger links each recorded-packet descriptor actually supplied by its source, retaining several memberships without a preferred packet."
+msgstr "Le registre relie chaque descripteur de paquet enregistré réellement fourni par sa source, conservant plusieurs appartenances sans paquet préféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for the source's actual observed-packet membership in the ledger record."
+msgstr "À utiliser uniquement pour l’appartenance réelle d’un paquet observé par la source à l’enregistrement du registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring membership from matching digests, synthesizing missing rows or treating absence as unmarkedness or permission to discard traces."
+msgstr "Éviter de déduire l’appartenance de condensats correspondants, de synthétiser des lignes manquantes ou de traiter l’absence comme une absence de marque ou une permission de supprimer des traces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual TracePacketLedger to each supplied TracePacket and preserve its source evidence. Do not impose an ordinal, commit history, ledger-level anchor profile or fabricated packet identity."
+msgstr "Lier le TracePacketLedger réel à chaque TracePacket fourni et préserver ses preuves sources. Ne pas imposer d’ordinal, d’historique de commits, de profil d’ancrage au niveau du registre ni d’identité de paquet fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet ordering time"
+msgstr "position temporelle d’ordre du paquet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original source-supplied temporal value used to order the packet described by this TraceAnchor."
+msgstr "La valeur temporelle originale fournie par la source pour ordonner le paquet décrit par ce TraceAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain is TraceAnchor, so a supplied key time alone does not assert observed TracePacket membership. Exactly one dateTime, date, gYearMonth or gYear value and one actual complete TemporalFrame are required locally only on recorded TracePacket."
+msgstr "Le domaine est TraceAnchor : un temps de clé fourni seul n’affirme donc pas une appartenance TracePacket observée. Exactement une valeur dateTime, date, gYearMonth ou gYear et un TemporalFrame complet réel ne sont requis localement que sur TracePacket enregistré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ordering date remains that original date without an invented midnight or UTC timezone."
+msgstr "Une date source servant à l’ordre reste cette date originale, sans minuit ni fuseau UTC inventés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually supplies this packet ordering-time value under its actual interpretation."
+msgstr "À utiliser lorsque la source fournit réellement cette valeur temporelle d’ordre du paquet sous son interprétation réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting traceMarkAt, eventTime or recordedAt, guessing a clock, rounding a timestamp, converting an epoch or claiming that this value computes packet order."
+msgstr "Éviter de substituer traceMarkAt, eventTime ou recordedAt, de deviner une horloge, d’arrondir un horodatage, de convertir une époque ou de prétendre que cette valeur calcule l’ordre des paquets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve datatype, lexical form, precision and timezone exactly. On TracePacket retain one actual complete TemporalFrame through hasReferenceFrame; do not borrow Events' UTC default or reinterpret an XSD calendar."
+msgstr "Préserver exactement type de données, forme lexicale, précision et fuseau horaire. Sur TracePacket, conserver un TemporalFrame complet réel via hasReferenceFrame ; ne pas emprunter la valeur UTC par défaut d’Events ni réinterpréter un calendrier XSD."

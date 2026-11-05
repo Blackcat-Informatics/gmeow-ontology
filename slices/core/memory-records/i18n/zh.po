@@ -1568,3 +1568,115 @@ msgstr "当 TraceMark 提供的 traceMarkWithoutPacket 值等于布尔真时，�
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
 msgstr "为 TraceAnchor 提供的每个 anchorEpisode 或 anchorRound 载体都必须有原始 structuredTerm 见证，并继承现有标量唯一性及分支互斥规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace packet ledger"
+msgstr "轨迹数据包账本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual InformationObject ledger record retaining the trace packets its source reports observing."
+msgstr "一种实际的 InformationObject 账本记录，保留其来源报告观察到的轨迹数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual membership is retained through tracePacket. The record imposes no snapshot, commit boundary, source profile or complete-history requirement; absent members establish no empty inventory, completeness or finality."
+msgstr "通过 tracePacket 保留实际成员关系。此记录不要求快照、提交边界、来源配置或完整历史；缺少成员不证明清单为空、完备性或终局。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ledger retains its actual observed-packet descriptors without inventing missing rows or claiming that every possible packet was recorded."
+msgstr "来源账本保留其实际观察到的数据包描述记录，不虚构缺失行，也不声称已记录所有可能的数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source ledger record listing observed trace packets."
+msgstr "用于实际列出已观察轨迹数据包的来源账本记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a ledger, forcing it into a transition journal or treating missing membership as proof of an empty, complete or finalized ledger."
+msgstr "不要虚构账本、将其强行视为状态转换日志，或将缺少成员关系视为账本为空、完整或已终局的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacketLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual ledger identity and each supplied tracePacket membership with its source attribution. Keep real recording metadata when supplied, without inventing a boundary, profile, order relation or completeness certificate."
+msgstr "保留实际账本身份、提供的每项 tracePacket 成员关系及其来源归属。仅在提供时保留实际记录元数据，不虚构边界、配置、顺序关系或完备性凭证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recorded trace packet"
+msgstr "已记录的轨迹数据包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceAnchor descriptor of a source-recorded trace packet, retaining its original ordering-time value and actual complete TemporalFrame alongside the inherited packet digest and source interpretation."
+msgstr "来源已记录轨迹数据包的 TraceAnchor 描述记录，保留原始排序时间值及实际完整 TemporalFrame，并继承数据包摘要和来源解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original tracePacketAt value and one actual complete TemporalFrame are locally required. Existing required digest/profile and optional episode/round scalar contracts remain inherited; no packet artifact, verified bytes or recorder execution is inferred."
+msgstr "局部要求恰好一个原始 tracePacketAt 值及一个实际完整 TemporalFrame。继承现有必需摘要、配置及可选回合段、轮次标量约定；不推断数据包工件、字节已验证或记录器已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual recorded-packet descriptor retains its original digest, applicable per-anchor profile and source ordering time in the actual temporal frame."
+msgstr "实际已记录数据包的描述记录保留原始摘要、适用于自身锚点的配置及实际时间参考框架中的来源排序时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual recorded packet with the inherited anchor interpretation and required time/frame evidence."
+msgstr "当来源提供实际已记录的数据包、继承的锚点解释及必要时间、参考框架证据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a packet from a hash or timestamp, guessing a frame, copying another anchor's profile or claiming order verification, completeness or finality from this type."
+msgstr "不要根据哈希或时间戳创建数据包、猜测参考框架、复制其他锚点的配置，或根据此类型声称顺序已验证、完备性或终局。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TracePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original anchorPacket and actual anchorSourceProfile, supply tracePacketAt and hasReferenceFrame, and reuse inherited scalar laws. Record actual ledger membership separately through tracePacket; keep unqualified raw source evidence under its actual meaning."
+msgstr "保留原始 anchorPacket 及实际 anchorSourceProfile，提供 tracePacketAt 和 hasReferenceFrame，并复用继承的标量规则。通过 tracePacket 分别记录实际账本成员关系；按实际含义保留尚未具备准入条件的原始来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded trace packet membership"
+msgstr "已记录轨迹数据包成员关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-observed TracePacket retained as a member of this TracePacketLedger."
+msgstr "作为此 TracePacketLedger 成员保留的、来源实际观察到的 TracePacket。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional and not required on every ledger record. Several actual members coexist; omission establishes neither an empty inventory nor complete observation, packet ordering or marking finality."
+msgstr "非函数性角色，并非每个账本记录都必需。多个实际成员可并存；省略不证明清单为空、观察完整、数据包顺序或标记终局。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ledger links each recorded-packet descriptor actually supplied by its source, retaining several memberships without a preferred packet."
+msgstr "账本链接来源实际提供的每个已记录数据包描述记录，保留多个成员关系而不选择首选数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for the source's actual observed-packet membership in the ledger record."
+msgstr "仅用于来源实际观察到的数据包在账本记录中的成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring membership from matching digests, synthesizing missing rows or treating absence as unmarkedness or permission to discard traces."
+msgstr "不要根据摘要匹配推断成员关系、合成缺失行，或将缺失视为未标记或可丢弃轨迹的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual TracePacketLedger to each supplied TracePacket and preserve its source evidence. Do not impose an ordinal, commit history, ledger-level anchor profile or fabricated packet identity."
+msgstr "将实际 TracePacketLedger 链接至每个提供的 TracePacket，并保留来源证据。不强加序数、提交历史、账本级锚点配置或虚构数据包身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet ordering time"
+msgstr "数据包排序时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original source-supplied temporal value used to order the packet described by this TraceAnchor."
+msgstr "来源提供的原始时间值，用于对此 TraceAnchor 描述的数据包排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain is TraceAnchor, so a supplied key time alone does not assert observed TracePacket membership. Exactly one dateTime, date, gYearMonth or gYear value and one actual complete TemporalFrame are required locally only on recorded TracePacket."
+msgstr "定义域为 TraceAnchor，因此仅提供键时间不声明已观察的 TracePacket 成员关系。仅对已记录的 TracePacket，局部要求恰好一个 dateTime、date、gYearMonth 或 gYear 值及一个实际完整 TemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ordering date remains that original date without an invented midnight or UTC timezone."
+msgstr "来源排序日期保持原始日期，不虚构午夜或 UTC 时区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually supplies this packet ordering-time value under its actual interpretation."
+msgstr "当来源确实提供此数据包排序时间值及其实际解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting traceMarkAt, eventTime or recordedAt, guessing a clock, rounding a timestamp, converting an epoch or claiming that this value computes packet order."
+msgstr "不要用 traceMarkAt、eventTime 或 recordedAt 替代此值、猜测时钟、舍入时间戳、转换纪元，或声称此值会计算数据包顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve datatype, lexical form, precision and timezone exactly. On TracePacket retain one actual complete TemporalFrame through hasReferenceFrame; do not borrow Events' UTC default or reinterpret an XSD calendar."
+msgstr "精确保留数据类型、词法形式、精度及时区。在 TracePacket 上通过 hasReferenceFrame 保留一个实际完整 TemporalFrame，不借用 Events 的默认 UTC，也不重新解释 XSD 历法。"
