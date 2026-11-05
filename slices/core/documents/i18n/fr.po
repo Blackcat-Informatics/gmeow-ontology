@@ -1962,3 +1962,119 @@ msgstr "Éviter de déduire cette coordonnée d’une autre, de remplacer l’ab
 msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
 msgstr "Relier la Quantity réelle, conserver sa grandeur originale par math:quantityValue, garder sa dimension réelle héritée et exiger que son référentiel concorde avec le référentiel réel de coordonnées de cette région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Figure Part"
+msgstr "Partie de figure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied occurrence of one actual stored MediaObject within a printed documentary figure, retaining the original media-resource term as its scalar StructuredValue payload, its framed numeric index and its source region."
+msgstr "Une occurrence fournie d’un MediaObject réel stocké dans une figure documentaire imprimée, conservant le terme original de la ressource média comme charge scalaire StructuredValue, son indice numérique référencé et sa région source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complete part requires one actual image payload, one partIndex Quantity and one sourceLocus typed SourceRegion, even when no parent link is supplied. Repeated uses of the same image remain distinct occurrences. Whole RDF payload identity proves neither image-content equality nor byte verification; the ordinal frame is independent of the spatial frame."
+msgstr "Une partie complète exige une charge d’image réelle, une Quantity partIndex et une sourceLocus typée SourceRegion, même sans lien parent fourni. Les utilisations répétées de la même image restent des occurrences distinctes. L’identité complète du terme RDF de la charge ne prouve ni égalité du contenu des images ni vérification des octets ; le référentiel ordinal est indépendant du référentiel spatial."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied parts retain the same stored image resource with their own original index quantities and printed-source regions, without becoming one occurrence."
+msgstr "Deux parties fournies conservent la même ressource d’image stockée avec leurs propres quantités d’indice originales et régions de source imprimée, sans devenir une seule occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each actual image-part occurrence supplied for a printed figure."
+msgstr "Utiliser pour conserver chaque occurrence réelle de partie d’image fournie pour une figure imprimée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the part with its image, creating an image from a path or href, inventing a parent or sequence, or using another region representation."
+msgstr "Éviter d’identifier la partie à son image, de créer une image à partir d’un chemin ou href, d’inventer un parent ou une séquence ou d’utiliser une autre représentation de région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual MediaObject once through structuredTerm, link the actual index Quantity through partIndex and reuse sourceLocus to the supplied SourceRegion. Preserve source attribution and both independent frame interpretations without fabricating a source revision or authentication claim."
+msgstr "Conserver le MediaObject réel une seule fois par structuredTerm, relier la Quantity d’indice réelle par partIndex et réutiliser sourceLocus vers la SourceRegion fournie. Préserver l’attribution source et les deux interprétations indépendantes de référentiels sans fabriquer de révision source ni d’affirmation d’authentification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "figure part"
+msgstr "partie de figure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual supplied FigurePart occurrence belonging to this documentary ContentSegment figure."
+msgstr "Une occurrence réelle de FigurePart fournie appartenant à cette figure documentaire ContentSegment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, many-valued parent relation requires the actual segmentTypeFigure classification when supplied. It creates no part inventory, inverse-owner uniqueness, image identity, numeric index ordering or parent for a standalone part."
+msgstr "Cette relation parent facultative à valeurs multiples exige la classification réelle segmentTypeFigure lorsqu’elle est fournie. Elle ne crée ni inventaire de parties, ni unicité de propriétaire inverse, ni identité d’image, ni ordre numérique des indices, ni parent pour une partie autonome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual figure links several supplied image occurrences while its caption and stored media remain distinct resources."
+msgstr "Une figure réelle relie plusieurs occurrences d’image fournies tandis que sa légende et ses médias stockés restent des ressources distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually identifies the documentary figure and its image-part occurrences."
+msgstr "Utiliser lorsque la source identifie réellement la figure documentaire et ses occurrences de parties d’image."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing figure or part, classifying the stored image as the figure or deriving occurrence identity from equal bytes or indices."
+msgstr "Éviter d’inventer une figure ou une partie manquante, de classer l’image stockée comme figure ou de déduire l’identité d’une occurrence d’octets ou d’indices égaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each actual FigurePart and retain the parent’s source-supported segmentTypeFigure. Keep its scalar image payload, index Quantity and SourceRegion on that occurrence; do not duplicate the image or coordinate fields on the parent."
+msgstr "Relier chaque FigurePart réelle et conserver la segmentTypeFigure du parent étayée par la source. Garder sa charge d’image scalaire, sa Quantity d’indice et sa SourceRegion sur cette occurrence ; ne pas dupliquer les champs d’image ou de coordonnées sur le parent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part index"
+msgstr "indice de partie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining this FigurePart’s actual supplied numeric ordinal or index under its source ordering convention."
+msgstr "La math:Quantity existante conservant l’ordinal ou indice numérique réellement fourni de cette FigurePart selon la convention d’ordre de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity is required, with original valid finite numeric literals, one numeric value, its inherited actual dimension and one actual complete ordinal/index frame covering source ordering, base and assembly context. Dimensionless applies only when justified by count/ordinal semantics; no base, sign bound, direction or spatial-frame equality is imposed."
+msgstr "Une seule Quantity est requise, avec des littéraux numériques finis originaux valides, une seule valeur numérique, sa dimension réelle héritée et un référentiel ordinal/d’indice réel complet couvrant l’ordre source, la base et le contexte d’assemblage. Sans dimension ne s’applique que si la sémantique de comptage/ordinal le justifie ; aucune base, borne de signe, direction ni égalité au référentiel spatial n’est imposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied numeric index retains its own actual source convention and frame instead of being copied into zero-based entryOrdinal."
+msgstr "Un indice numérique fourni conserve sa propre convention source réelle et son référentiel au lieu d’être copié dans entryOrdinal à base zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual numeric index of a supplied figure-part occurrence with its real ordinal interpretation."
+msgstr "Utiliser pour conserver l’indice numérique réel d’une occurrence de partie de figure fournie avec son interprétation ordinale réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a raw scalar alias, casting a string to a number, guessing an integer/float type or index base, imposing contiguity or uniqueness, or copying the spatial dimension/frame."
+msgstr "Éviter un alias scalaire brut, la conversion d’une chaîne en nombre, la supposition d’un type entier/flottant ou d’une base d’indice, l’imposition de continuité ou d’unicité ou la copie de la dimension ou du référentiel spatial."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original numeric terms on math:quantityValue and preserve its justified dimension and complete independent index frame. Retain equivalent source numeric aliases without rewriting; an actually supplied StructuredSequence may separately retain its real entryOrdinal positions."
+msgstr "Relier la Quantity réelle, conserver ses termes numériques originaux sur math:quantityValue et préserver sa dimension justifiée et son référentiel d’indice complet indépendant. Garder les variantes numériques source équivalentes sans réécriture ; une StructuredSequence réellement fournie peut conserver séparément ses positions entryOrdinal réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Figure part constraint"
+msgstr "Contrainte des parties de figure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
+msgstr "Chaque FigurePart conserve une charge scalaire MediaObject réelle et une Quantity d’indice numérique fini valide avec une seule valeur numérique et exactement un référentiel d’indice typé ; tout parent de figure fourni possède segmentTypeFigure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing StructuredValue laws own scalar identity/exclusivity, Quantity owns its exact dimension, and SourceRegion owns spatial coordinates. Numeric lexical aliases may coexist by value equality. This constraint authenticates no image bytes, source history, ordinal interpretation or execution."
+msgstr "Les lois existantes de StructuredValue possèdent l’identité et l’exclusivité scalaires, Quantity possède sa dimension exacte et SourceRegion possède les coordonnées spatiales. Les variantes lexicales numériques peuvent coexister selon l’égalité de valeur. Cette contrainte n’authentifie ni octets d’image, ni historique source, ni interprétation ordinale, ni exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A standalone part still requires its real image, index Quantity and SourceRegion; no parent, default frame or image object is invented to satisfy validation."
+msgstr "Une partie autonome exige encore son image réelle, sa Quantity d’indice et sa SourceRegion ; aucun parent, référentiel par défaut ni objet d’image n’est inventé pour satisfaire la validation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every actual figure-part payload, selected numeric index and conditional figure classification."
+msgstr "Utiliser pour valider chaque charge réelle de partie de figure, l’indice numérique choisi et la classification conditionnelle de figure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a path as an image, a raw index as grounded quantity, missing data as zero or absent context as a default frame."
+msgstr "Éviter d’accepter un chemin comme image, un indice brut comme quantité fondée, des données manquantes comme zéro ou un contexte absent comme référentiel par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer part guard and nine independently positive guarded arms. Reuse inherited scalar and dimension contracts, require the actual image and index context, and preserve the independent SourceRegion without another geometry or authentication path."
+msgstr "Appliquer la garde externe de partie et neuf branches gardées positivement indépendantes. Réutiliser les contrats hérités de scalaire et de dimension, exiger l’image réelle et le contexte d’indice et préserver la SourceRegion indépendante sans autre voie de géométrie ou d’authentification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
+msgstr "Chaque FigurePart conserve une charge scalaire MediaObject réelle et une Quantity d’indice numérique fini valide avec une seule valeur numérique et exactement un référentiel d’indice typé ; tout parent de figure fourni possède segmentTypeFigure."

@@ -1962,3 +1962,119 @@ msgstr "避免从其他槽推断此坐标、以零补足缺失值，或强制使
 msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
 msgstr "连接实际 Quantity，通过 math:quantityValue 保留原始数值，保留其继承的实际维度，并要求其参考系与此区域实际的坐标参考系一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Figure Part"
+msgstr "图件组成项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied occurrence of one actual stored MediaObject within a printed documentary figure, retaining the original media-resource term as its scalar StructuredValue payload, its framed numeric index and its source region."
+msgstr "来源提供的已存储实际 MediaObject 在印刷文献图件中的一次出现，将原始媒体资源项保留为 StructuredValue 标量载荷，并保留具有参考系的数值索引及来源区域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complete part requires one actual image payload, one partIndex Quantity and one sourceLocus typed SourceRegion, even when no parent link is supplied. Repeated uses of the same image remain distinct occurrences. Whole RDF payload identity proves neither image-content equality nor byte verification; the ordinal frame is independent of the spatial frame."
+msgstr "完整组成项即使未提供父关系，也必须具有一个实际图像载荷、一个 partIndex Quantity 及一个标为 SourceRegion 的 sourceLocus。同一图像的重复使用保持为不同出现项。完整 RDF 载荷项身份既不证明图像内容相等，也不证明字节已验证；序数参考系独立于空间参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied parts retain the same stored image resource with their own original index quantities and printed-source regions, without becoming one occurrence."
+msgstr "两个来源组成项保留同一个已存储图像资源，各有原始索引量和印刷来源区域，不合并为一次出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each actual image-part occurrence supplied for a printed figure."
+msgstr "用于保留印刷图件实际提供的每个图像组成出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the part with its image, creating an image from a path or href, inventing a parent or sequence, or using another region representation."
+msgstr "避免将组成项等同于图像、从路径或 href 创建图像、编造父项或序列，或使用另一种区域表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual MediaObject once through structuredTerm, link the actual index Quantity through partIndex and reuse sourceLocus to the supplied SourceRegion. Preserve source attribution and both independent frame interpretations without fabricating a source revision or authentication claim."
+msgstr "通过 structuredTerm 只保留一次实际 MediaObject，通过 partIndex 连接实际索引 Quantity，并通过 sourceLocus 复用所提供的 SourceRegion。保留来源归属及两个独立参考系的解释，不编造来源修订版或认证声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "figure part"
+msgstr "图件组成项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual supplied FigurePart occurrence belonging to this documentary ContentSegment figure."
+msgstr "属于此文献 ContentSegment 图件的、来源实际提供的 FigurePart 出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, many-valued parent relation requires the actual segmentTypeFigure classification when supplied. It creates no part inventory, inverse-owner uniqueness, image identity, numeric index ordering or parent for a standalone part."
+msgstr "此可选多值父关系在提供时要求实际的 segmentTypeFigure 分类。它不创建组成项清单、反向所有者唯一性、图像身份、数值索引顺序，或独立组成项的父项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual figure links several supplied image occurrences while its caption and stored media remain distinct resources."
+msgstr "实际图件连接多个来源提供的图像出现项，其图注和已存储媒体仍为不同资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually identifies the documentary figure and its image-part occurrences."
+msgstr "用于来源实际标明文献图件及其图像组成出现项时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing figure or part, classifying the stored image as the figure or deriving occurrence identity from equal bytes or indices."
+msgstr "避免编造缺失图件或组成项、将已存储图像分类为图件，或根据相等字节或索引推导出现项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/figurePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each actual FigurePart and retain the parent’s source-supported segmentTypeFigure. Keep its scalar image payload, index Quantity and SourceRegion on that occurrence; do not duplicate the image or coordinate fields on the parent."
+msgstr "连接每个实际 FigurePart，并保留父项有来源依据的 segmentTypeFigure。将标量图像载荷、索引 Quantity 和 SourceRegion 保留在该出现项上；不要在父项重复图像或坐标字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part index"
+msgstr "组成项索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining this FigurePart’s actual supplied numeric ordinal or index under its source ordering convention."
+msgstr "在来源排序约定下，保留此 FigurePart 实际提供的数值序数或索引的现有 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity is required, with original valid finite numeric literals, one numeric value, its inherited actual dimension and one actual complete ordinal/index frame covering source ordering, base and assembly context. Dimensionless applies only when justified by count/ordinal semantics; no base, sign bound, direction or spatial-frame equality is imposed."
+msgstr "必须恰有一个 Quantity，具有有效的原始有限数值字面量、唯一数值、继承的实际维度，以及涵盖来源排序、基数和组合上下文的实际完整序数／索引参考系。仅当计数或序数语义支持时才采用无量纲维度；不强加基数、正负界限、方向或与空间参考系相等的要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied numeric index retains its own actual source convention and frame instead of being copied into zero-based entryOrdinal."
+msgstr "来源提供的数值索引保留其实际来源约定和参考系，不复制为从零起算的 entryOrdinal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual numeric index of a supplied figure-part occurrence with its real ordinal interpretation."
+msgstr "用于保留来源提供的图件组成出现项的实际数值索引及其真实序数解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a raw scalar alias, casting a string to a number, guessing an integer/float type or index base, imposing contiguity or uniqueness, or copying the spatial dimension/frame."
+msgstr "避免使用原始标量别名、将字符串转换为数字、猜测整数或浮点类型或索引基数、强加连续性或唯一性，或复制空间维度／参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original numeric terms on math:quantityValue and preserve its justified dimension and complete independent index frame. Retain equivalent source numeric aliases without rewriting; an actually supplied StructuredSequence may separately retain its real entryOrdinal positions."
+msgstr "连接实际 Quantity，在 math:quantityValue 上保留原始数值项，并保留有依据的维度及完整独立索引参考系。原样保留等价来源数值变体；若实际提供 StructuredSequence，可另行保留其真实 entryOrdinal 位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Figure part constraint"
+msgstr "图件组成项约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
+msgstr "每个 FigurePart 必须保留实际的 MediaObject 标量载荷，以及有效有限数值索引 Quantity；该索引量具有唯一数值和恰好一个带类型的索引参考系；任何提供的图件父项必须具有 segmentTypeFigure。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing StructuredValue laws own scalar identity/exclusivity, Quantity owns its exact dimension, and SourceRegion owns spatial coordinates. Numeric lexical aliases may coexist by value equality. This constraint authenticates no image bytes, source history, ordinal interpretation or execution."
+msgstr "现有 StructuredValue 规则负责标量身份和互斥性，Quantity 负责其唯一维度，SourceRegion 负责空间坐标。数值词法变体可按值相等并存。此约束不认证图像字节、来源历史、序数解释或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A standalone part still requires its real image, index Quantity and SourceRegion; no parent, default frame or image object is invented to satisfy validation."
+msgstr "独立组成项仍须具有实际图像、索引 Quantity 和 SourceRegion；不得为满足校验而编造父项、默认参考系或图像对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every actual figure-part payload, selected numeric index and conditional figure classification."
+msgstr "用于校验每个实际图件组成项载荷、选定数值索引及条件性的图件分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a path as an image, a raw index as grounded quantity, missing data as zero or absent context as a default frame."
+msgstr "避免将路径视为图像、将原始索引视为已充分表述的量、以零填补缺失数据，或用默认参考系替代缺失上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer part guard and nine independently positive guarded arms. Reuse inherited scalar and dimension contracts, require the actual image and index context, and preserve the independent SourceRegion without another geometry or authentication path."
+msgstr "应用外层组成项守卫及九个独立正向守卫分支。复用继承的标量和维度契约，要求实际图像及索引上下文，并保留独立 SourceRegion，不添加另一条几何或认证路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
+msgstr "每个 FigurePart 必须保留实际的 MediaObject 标量载荷，以及有效有限数值索引 Quantity；该索引量具有唯一数值和恰好一个带类型的索引参考系；任何提供的图件父项必须具有 segmentTypeFigure。"
