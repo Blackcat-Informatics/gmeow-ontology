@@ -9111,3 +9111,179 @@ msgstr "Lier indépendamment les deux booléens stockés et toutes les grandeurs
 msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional same-tier pair with opposed score and activation preferences follows activation first under this native account; the requested score-first definition remains distinct."
 msgstr "Exemple fictif à portée limitée : une paire fictive de même palier dont le score et l’activation donnent des préférences opposées suit d’abord l’activation dans ce compte rendu natif ; la définition demandée donnant priorité au score reste distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL Selection Canonicalization"
+msgstr "Canonicalisation de sélection SPARQL"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object specifying an actual versioned recipe for normalizing a parsed SPARQL selection and serializing and encoding its canonical byte preimage."
+msgstr "Un objet informationnel spécifiant une recette versionnée réelle pour normaliser une sélection SPARQL analysée, puis sérialiser et encoder sa préimage canonique en octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The recipe must give the same canonical byte preimage to query texts differing only in comments, insignificant whitespace or prefix names when equivalent PREFIX, BASE and relative-IRI resolution yields the same parsed bindings. It preserves significant literal whitespace and content and the actual parsed bindings. It specifies actual parsed-query normalization, canonical serialization and byte encoding, but declares no installed canonicalizer and certifies no execution, verification or general semantic query equivalence."
+msgstr "La recette doit donner la même préimage canonique en octets aux textes de requêtes qui ne diffèrent que par les commentaires, les espaces non significatifs ou les noms de préfixes, lorsque des résolutions équivalentes de PREFIX, BASE et des IRI relatifs donnent les mêmes liaisons analysées. Elle préserve les espaces et le contenu significatifs des littéraux ainsi que les liaisons analysées réelles. Elle spécifie la normalisation réelle de la requête analysée, la sérialisation canonique et l’encodage des octets, mais ne déclare aucun canonicaliseur installé et ne certifie ni exécution, ni vérification, ni équivalence sémantique générale des requêtes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A consumer records its actual named normalization recipe and the exact version declared by its source."
+msgstr "Un consommateur enregistre sa recette de normalisation réelle et nommée ainsi que la version exacte déclarée par sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a real SPARQL selection canonicalization recipe."
+msgstr "Utiliser lorsque la source fournit une véritable recette de canonicalisation de sélection SPARQL."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a profile instance, version, canonical byte sequence or implementation, or substituting a Unicode surface profile or expression-only procedure."
+msgstr "Éviter d’inventer une instance de profil, une version, une suite d’octets canoniques ou une implémentation, ou de substituer un profil de surface Unicode ou une procédure limitée aux expressions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual recipe IRI and exactly one supplied xsd:string or xsd:token version. Retain the recipe’s full normalization and byte-production rules without claiming they ran."
+msgstr "Conserver l’IRI réel de la recette et exactement une version fournie de type xsd:string ou xsd:token. Conserver toutes les règles de normalisation et de production des octets sans prétendre qu’elles ont été exécutées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonicalization version"
+msgstr "version de canonicalisation de sélection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied version of this SparqlSelectionCanonicalization recipe, retained with its original xsd:string or xsd:token datatype and lexical form."
+msgstr "La version exacte fournie de cette recette SparqlSelectionCanonicalization, conservée avec son type xsd:string ou xsd:token et sa forme lexicale d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one supplied version is required per recipe. Equal-looking string and token literals are not silently identified or rewritten."
+msgstr "Une seule version fournie est requise par recette. Des littéraux chaîne et jeton d’apparence identique ne sont ni assimilés ni réécrits silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s recipe version remains a token when the source supplies a token, without conversion to a string."
+msgstr "La version d’une recette reste un jeton lorsque la source fournit un jeton, sans conversion en chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the version actually declared for the named recipe."
+msgstr "Utiliser pour la version réellement déclarée pour la recette nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a version from a digest, date, implementation build or query text when the source did not declare it."
+msgstr "Éviter de déduire une version d’un condensat, d’une date, d’une compilation ou du texte de la requête lorsque la source ne l’a pas déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exactly one supplied literal on the recipe, preserving its complete RDF term identity for the comparison key."
+msgstr "Conserver exactement un littéral fourni sur la recette en préservant son identité complète de terme RDF pour la clé de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonicalization"
+msgstr "canonicalisation de sélection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual named SparqlSelectionCanonicalization recipe selected for this source- and context-specific SparqlSelectionLeaf description."
+msgstr "La recette SparqlSelectionCanonicalization réelle et nommée choisie pour cette description de SparqlSelectionLeaf propre à une source et à un contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is optional and has at most one recipe per leaf description. Coequal recipes require distinct actually sourced descriptions; this flat shape cannot pair several recipes and digests on the same leaf."
+msgstr "Ce rôle est facultatif et comporte au plus une recette par description de feuille. Des recettes de même rang exigent des descriptions distinctes réellement fournies par les sources ; cette structure plate ne peut associer plusieurs recettes et condensats sur la même feuille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two sources supply distinct leaf descriptions using different real recipes; neither recipe is made globally preferred."
+msgstr "Deux sources fournissent des descriptions de feuilles distinctes utilisant différentes recettes réelles ; aucune recette n’est rendue globalement préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source declares the canonicalization recipe for this exact leaf description."
+msgstr "Utiliser lorsque la source déclare la recette de canonicalisation de cette description précise de feuille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple recipes on one leaf, fabricated copies or aliases of a leaf, and automatic preferred-recipe selection."
+msgstr "Éviter plusieurs recettes sur une feuille, les copies ou alias fabriqués d’une feuille et la sélection automatique d’une recette préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link at most one actual recipe IRI, retain its supplied version and preserve the original selectionText, selectionLanguage, dataset and context."
+msgstr "Relier au plus un IRI réel de recette, conserver sa version fournie ainsi que les selectionText, selectionLanguage, jeu de données et contexte d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonical digest"
+msgstr "condensat canonique de sélection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied algorithm-typed digest of the canonical byte preimage defined by this leaf description’s actual named and versioned selection canonicalization recipe."
+msgstr "Un condensat fourni, typé par algorithme, de la préimage canonique en octets définie par la recette réelle, nommée et versionnée de canonicalisation de sélection de cette description de feuille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role admits BLAKE3-256, SHA-256 and MD5 literals under the same selected recipe. It is not contentDigest of the verbatim query text and certifies neither hash computation nor collision-free identity."
+msgstr "Ce rôle facultatif et non fonctionnel admet les littéraux BLAKE3-256, SHA-256 et MD5 selon la même recette choisie. Il n’est pas le contentDigest du texte littéral de la requête et ne certifie ni calcul de hachage ni identité sans collision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A consumer retains supplied BLAKE3-256 and SHA-256 digests of the same recipe-defined byte preimage without merging their algorithm identities."
+msgstr "Un consommateur conserve les condensats BLAKE3-256 et SHA-256 fournis d’une même préimage en octets définie par la recette, sans fusionner leurs identités d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a digest together with its actual named recipe and supplied version."
+msgstr "Utiliser lorsque la source fournit un condensat avec sa recette réelle et nommée et sa version fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bare generic hexBinary, inferred algorithms, raw-text hashes, unpaired recipe claims or treating a digest match as semantic or execution identity."
+msgstr "Éviter les hexBinary génériques nus, les algorithmes déduits, les hachages du texte brut, les affirmations de recette non associées ou l’assimilation d’une concordance de condensats à une identité sémantique ou d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied algorithm datatype and lowercase hexadecimal literal unchanged: 64 digits for blake3_256Digest or sha256Digest, 32 for md5Digest. Compare the recipe IRI, exact supplied version and complete typed digest together."
+msgstr "Conserver sans changement le type d’algorithme et le littéral hexadécimal minuscule fournis : 64 chiffres pour blake3_256Digest ou sha256Digest, 32 pour md5Digest. Comparer ensemble l’IRI de la recette, la version exacte fournie et le condensat typé complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Selection canonical digest value constraint"
+msgstr "Contrainte de valeur du condensat canonique de sélection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."
+msgstr "Chaque selectionCanonicalDigest fourni conserve un type d’algorithme admis et des chiffres hexadécimaux minuscules sans préfixe de la longueur exacte : 64 pour BLAKE3-256 ou SHA-256, 32 pour MD5."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is exact supplied-value admission, separate from recipe presence and version requirements. It computes no digest and proves no preimage agreement."
+msgstr "Il s’agit de l’admission exacte des valeurs fournies, distincte des exigences de présence de recette et de version. Elle ne calcule aucun condensat et ne prouve aucune concordance de préimage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The same hexadecimal spelling under BLAKE3-256 and SHA-256 remains two distinct algorithm-typed digest terms."
+msgstr "La même graphie hexadécimale sous BLAKE3-256 et SHA-256 reste deux termes de condensat distincts typés par algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to admit each supplied canonical selection digest without changing its literal identity."
+msgstr "Utiliser pour admettre chaque condensat canonique de sélection fourni sans changer l’identité de son littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a generic datatype or normalizing uppercase, prefixed or wrong-width input."
+msgstr "Éviter d’accepter un type générique ou de normaliser une entrée en majuscules, préfixée ou de longueur incorrecte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the positive selectionCanonicalDigest guard and the exact datatype-component and hexadecimal-pattern alternatives; reject invalid values without rewriting them."
+msgstr "Appliquer la garde positive selectionCanonicalDigest et les alternatives exactes de composant de type et de motif hexadécimal ; rejeter les valeurs invalides sans les réécrire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."
+msgstr "Chaque selectionCanonicalDigest fourni conserve un type d’algorithme admis et des chiffres hexadécimaux minuscules sans préfixe de la longueur exacte : 64 pour BLAKE3-256 ou SHA-256, 32 pour MD5."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Selection canonicalization binding constraint"
+msgstr "Contrainte de liaison de canonicalisation de sélection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."
+msgstr "Chaque selectionCanonicalDigest fourni possède un compagnon selectionCanonicalization réel, et chaque compagnon fourni est un IRI de recette nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Recipe class, exact supplied version and leaf-local at-most-one obligations are validated separately. This constraint invents no recipe and selects no default."
+msgstr "La classe de la recette, sa version exacte fournie et la borne locale d’au plus une recette par feuille sont validées séparément. Cette contrainte n’invente aucune recette et ne choisit aucune valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A digest without its actual named recipe is rejected rather than paired with a guessed canonicalization scheme."
+msgstr "Un condensat sans sa recette réelle et nommée est rejeté plutôt qu’associé à un schéma de canonicalisation deviné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the real recipe companion of a supplied canonical selection digest."
+msgstr "Utiliser pour exiger la recette réelle qui accompagne un condensat canonique de sélection fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling missing companions with synthetic profiles, blank-node identities, source aliases or a globally preferred recipe."
+msgstr "Éviter de compléter les compagnons manquants par des profils synthétiques, des identités de nœuds anonymes, des alias de source ou une recette globalement préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the outer leaf-type guard and independent positive digest and companion guards; retain the actual named recipe and its source-declared version."
+msgstr "Utiliser la garde externe du type de feuille et les gardes positives indépendantes du condensat et du compagnon ; conserver la recette réellement nommée et sa version déclarée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."
+msgstr "Chaque selectionCanonicalDigest fourni possède un compagnon selectionCanonicalization réel, et chaque compagnon fourni est un IRI de recette nommée."

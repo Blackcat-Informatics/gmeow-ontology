@@ -1092,3 +1092,56 @@ native fixed-point admission/truncation/checked sums/saturation, requested-polic
 adoption and end-to-end consumer integration retain their own evidence
 requirements. No generated, runtime or native parity result follows merely from
 the presence of these canonical laws.
+
+## Selection recipe identity and digest comparison
+
+A canonical selection digest needs the actual scheme that defines its preimage.
+QueryProgram therefore owns SparqlSelectionCanonicalization as a Kind under
+InformationObject, with a real supplied string/token version and a direct
+optional at-most-one companion on each source/context-specific selection leaf.
+The existing text, language, dataset, context, input and output bounds remain
+unchanged. No query node is fabricated or aliased to make a second scheme fit.
+Different coequal schemes may occur on distinct actually sourced descriptions;
+the flat leaf shape does not pair multiple schemes and digests on one leaf.
+
+The canonicalization information object describes the actual parsed-query
+normalization, canonical serialization, byte encoding and PREFIX/BASE/relative-IRI
+resolution rules. Its IRI is required whenever selected. Its exact supplied
+version is a required identity coordinate, not a measured quantity or inferred
+build identifier. A cited recipe and version must retain their declared meaning;
+a changed normalization contract cannot silently reuse an old comparison key.
+This source seeds no recipe, canonicalizer, implementation or byte sequence.
+
+The recipe contract requires identical canonical byte preimages for query texts
+differing only in comments, insignificant whitespace or prefix names after
+equivalent PREFIX, BASE and relative-IRI resolution yields the same parsed
+bindings. Significant literal whitespace/content and actual parsed bindings
+remain preserved. This invariance does not admit arbitrary algebraic rewrites
+or imply general semantic query equivalence. The vocabulary states the contract;
+it does not execute or verify canonicalization.
+
+selectionCanonicalDigest is a distinct nonfunctional role with the existing
+Math-owned BLAKE3-256, SHA-256 and MD5 datatype union. The digest-value Formula
+uses exact datatype-component tests and exact lowercase hexadecimal patterns.
+The binding Formula uses a first-focus leaf class guard and two independently
+property-guarded obligations: supplied digest requires an actual companion;
+every supplied companion is an IRI. Class-local closed version requiredness and
+qualified maxima apply to the original provided values. No global functionality
+or native failure marker is introduced (Principles 4, 7, 9 and 17).
+
+The comparison key is recipe IRI plus the exact supplied version RDF term plus
+the complete algorithm-typed digest RDF term. Several algorithms may describe
+the same recipe-defined preimage without losing their distinct datatype identity.
+The key licenses comparison under the recipe contract; it does not prove
+semantic query equivalence, execution/dataset/authority identity, hash verification,
+collision-free identity or owl:sameAs. It is not a contentDigest specialization.
+Original query text, language and context remain explicit source data.
+
+Lang’s CanonicalizationProfile describes a surface Unicode frame; Math’s
+NormalizationProcedure describes mathematical-expression normalization; Logic’s
+ArgumentNormalization pins effect arguments. Their identity disciplines inform
+this design, but their domains do not own parsed SPARQL normalization. No
+subclass, equivalence, additional dependency or generic normalization framework
+is introduced for them. Structural validation checks the supplied recipe link,
+version and digest syntax; actual recipe completeness and correct consumer
+execution require their own source evidence.
