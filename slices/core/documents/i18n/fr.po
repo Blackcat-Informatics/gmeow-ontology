@@ -718,8 +718,8 @@ msgid "Use when the exact MIME spelling of an identified media-type value is nee
 msgstr "Utiliser lorsqu’un consommateur ou une frontière de sérialisation a besoin de la graphie MIME exacte d’une valeur de type de média identifiée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag, using xsd:token or appending charset or other parameters."
-msgstr "Éviter de placer ce code sur le support comme propriété textuelle parallèle de type de média, de lui ajouter une langue, d’utiliser xsd:token ou d’ajouter charset ou d’autres paramètres."
+msgid "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag or appending charset or other parameters."
+msgstr "Éviter de placer ce code sur le support comme propriété textuelle parallèle de type de média, de lui ajouter une langue ou d’ajouter charset ou d’autres paramètres."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record the exact type/subtype string on the MediaType value; retain source spelling evidence separately when a source header contains casing, parameters or other syntax beyond that identity."
