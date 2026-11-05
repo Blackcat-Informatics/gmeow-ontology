@@ -628,3 +628,423 @@ msgstr "不要替换 indexLocator 文本，不要混淆目标块与 indexConcept
 msgctxt "https://blackcatinformatics.ca/gmeow/indexTarget|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the entry to each supplied ContentBlock and retain its original indexLocator and navigationSource. Preserve the target's own navigationSource and revision evidence when supplied; never fabricate a missing revision. Attribute each indexTarget assertion through its exact native reifier rather than propagating record metadata to outgoing assertions."
 msgstr "将条目关联到每个所提供的 ContentBlock，并保留其原始 indexLocator 及 navigationSource。若提供了目标自己的 navigationSource 及修订依据，应予保留；绝不臆造缺失修订。通过每个 indexTarget 断言确切的原生具体化节点记录归属，不要将记录上的元数据传播到其向外断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verbatim recognizer label"
+msgstr "识别器原样标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact label string a recognizer reported for this original source occurrence, retained as a reading under that recognizer's actual vantage."
+msgstr "识别器为此原始来源出现所报告的确切标签字符串，作为该识别器实际视角下的解读予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence may cross block boundaries and need not be a block-local Mention. The code preserves spelling and case without asserting class membership, a resolved referent, a score or a model run. Competing attributed labels may coexist."
+msgstr "此出现可以跨越多个块的边界，不必是限定在单个块内的 Mention。代码保留其拼写和大小写，不断言类成员关系、已解析的指称对象、分数或模型运行。带有归属信息的相互竞争的标签可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "With its actual recognizer vantage retained on the statement, record ex:occ gmeow:recognizerLabel \"PERSON\" ."
+msgstr "在语句上保留识别器的实际视角，并记录 ex:occ gmeow:recognizerLabel \"PERSON\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a recognizer's supplied label for the exact occurrence it recognized."
+msgstr "用于保留识别器为其所识别的确切出现提供的标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the code as an entity name, GMEOW class assertion or resolved identity, or copying the original occurrence's label to fragments as if each were independently recognized."
+msgstr "避免将代码用作实体名称、GMEOW 类断言或已解析的身份，也不要将原始出现的标签复制到片段上，仿佛每个片段都被独立识别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recognizerLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied xsd:string to the original EvidenceSpan occurrence and retain the actual recognizer vantage on that exact RDF 1.2 statement. Keep unavailable metadata absent and preserve separate attributed readings."
+msgstr "将所提供的 xsd:string 附于原始 EvidenceSpan 出现，并在该条确切的 RDF 1.2 语句上保留识别器的实际视角。不可得的元数据保持缺失，并保留彼此独立且带有归属信息的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported parse of occurrence root token"
+msgstr "出现根词元的报告解析"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied TokenParseReport about the parser-selected root token of this original recognized occurrence, under the report's actual analysis context."
+msgstr "所提供的 TokenParseReport，描述解析器为此原始识别出现选择的根词元，并保留报告的实际分析上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence is not equated with its root token. The report can retain supplied syntax without a token identifier, token position, composed form or head slot. Several attributed reports may describe the same occurrence."
+msgstr "此出现不等同于其根词元。报告可以在没有词元标识符、词元位置、组合形式或中心词槽位的情况下保留所提供的句法信息。多个带有归属信息的报告可以描述同一出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+msgstr "记录 ex:occ gmeow:rootTokenParse ex:parse . ex:parse lang:parseInAnalysis ex:analysis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recognizer supplies syntax for the root token of an occurrence without supplying a composed-form slot tree."
+msgstr "用于识别器提供某个出现的根词元句法信息，却未提供组合形式槽位树的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the occurrence as a token or assuming its original root is the root of every block-local fragment."
+msgstr "避免将出现视为词元，也不要假定其原始根词元是每个块内片段的根词元。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTokenParse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original occurrence to the supplied report, retain the report's parseInAnalysis and actual recognizer attribution, and keep competing reports distinct. Do not manufacture token or head identities."
+msgstr "将原始出现链接到所提供的报告，保留报告的 parseInAnalysis 和识别器的实际归属信息，并使相互竞争的报告保持独立。不要虚构词元或中心词的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occurrence in analysis input"
+msgstr "分析输入中的出现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Identifies the Analysis whose selected input text is the context of this reported original occurrence."
+msgstr "标识所选输入文本构成此报告原始出现上下文的 Analysis。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects the input context of the named analysis; it does not make the Analysis result a text carrier. It supplies no input bytes, offset conversion or authentication, and multiple attributed analysis contexts may coexist."
+msgstr "此关系选择所指分析的输入上下文，不会将 Analysis 结果变成文本载体。它不提供输入字节、偏移转换或认证，多个带有归属信息的分析上下文可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:occ gmeow:occurrenceInAnalysisInput ex:analysis while retaining the supplied input-context descriptors on ex:analysis."
+msgstr "记录 ex:occ gmeow:occurrenceInAnalysisInput ex:analysis，并在 ex:analysis 上保留所提供的输入上下文描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which analysis input a recognizer's original occurrence report concerns."
+msgstr "用于保留识别器的原始出现报告所涉及的分析输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the containing block for a larger analysis input, treating Analysis as source text, or inferring coordinates in another context."
+msgstr "避免用包含该出现的块替代更大范围的分析输入、将 Analysis 视为来源文本，或推断另一上下文中的坐标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceInAnalysisInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence to the actual supplied Analysis context and retain any supplied source-key, construction and granularity descriptors there. Attribute each association without forcing all reports of the occurrence into one analysis."
+msgstr "将出现链接到实际提供的 Analysis 上下文，并在该上下文上保留所提供的来源键、构造和粒度描述。为每个关联保留归属信息，不要强制将该出现的所有报告归入同一个分析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curated bibliographic description"
+msgstr "编目书目描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object retaining one coherent source-supplied bibliographic account as independent title, author and authority-reference sequences and reported descriptive wording."
+msgstr "保留来源提供的一份内容一致的书目记述的信息对象，包括彼此独立的标题、作者文字和权威记录引用序列，以及报告的描述文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This record groups supplied fields without interpreting title objects, Agents, authorship, kinds or dates. Its sequence and scalar roles are optional and locally single-valued; separate coherent accounts remain separate records."
+msgstr "此条目汇集已提供字段，不据此解释标题对象、Agent、作者关系、类别或日期。其序列角色和标量角色均可省略，且在条目内至多取一个值；不同的独立完整记述保留为不同条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional curation supplies `ex:description a gmeow:CuratedBibliographicDescription .` with two title occurrences and one author-wording occurrence."
+msgstr "一个虚构编目提供 `ex:description a gmeow:CuratedBibliographicDescription .`，其中有两个标题出现项和一个作者文字出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when supplied bibliographic fields must remain together as one curation account without inventing interpreted entities or relationships."
+msgstr "当已提供书目字段需要作为一份编目记述保持在一起，且不能编造经解释的实体或关系时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the described work, its title or its author as this record, or merging different accounts because their words agree."
+msgstr "避免将被描述作品、其标题或作者归类为此条目，或因文字相同而合并不同记述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CuratedBibliographicDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain a distinct description for each coherent supplied account and its actual subject. Preserve each sequence independently, the supplied wording and exact-statement attribution."
+msgstr "为每份内容一致的已提供记述及其实际主体保留独立描述。分别保留各序列、已提供文字和每条精确陈述的归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curated bibliographic description"
+msgstr "编目书目描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual InformationObject to a CuratedBibliographicDescription supplied for it in a curation context."
+msgstr "将实际 InformationObject 关联到在编目语境中为其提供的 CuratedBibliographicDescription。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional association preserves independent accounts. It does not turn the subject into a CreativeWork, collection, title, author or authority target."
+msgstr "此关联可省略且不具有函数性，用于保留彼此独立的记述。它不将主体转化为 CreativeWork、集合、标题、作者或权威记录目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source associates `ex:subject gmeow:curatedBibliographicDescription ex:description .`"
+msgstr "一个虚构来源提供关联 `ex:subject gmeow:curatedBibliographicDescription ex:description .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a curation explicitly supplies a bibliographic description for an actual information object."
+msgstr "当编目明确为实际信息对象提供书目描述时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this association from matching words or treating it as hasTitle, hasAuthor, authorityReference or an identity assertion."
+msgstr "避免从相同文字推导此关联，或将其视为 hasTitle、hasAuthor、authorityReference 或身份断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/curatedBibliographicDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the subject to each actual supplied description and attribute each association separately. Do not propagate the description’s provenance to its fields or subject."
+msgstr "将主体关联到每份实际提供的描述，并分别记录每个关联的归属信息。不将描述的溯源信息传播到其字段或主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic title wording"
+msgstr "报告的书目标题文字"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete title-wording strings supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的完整标题文字字符串的独立有序序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Each item is a complete supplied title variant, not a word token; positions establish no pairing with author wording or title identity."
+msgstr "此序列可省略，在条目内至多有一个。每项是完整的已提供标题变体，不是词元；位置不建立与作者文字的配对或标题身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicTitleWords ex:titles .` and retains two equal strings as distinct occurrences."
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicTitleWords ex:titles .`，并将两个相同字符串保留为不同出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered title-wording sequence, including an explicitly supplied empty sequence."
+msgstr "当编目提供有序标题文字序列时使用，包括明确提供的空序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplication, sorting, tokenization, title-object fabrication or pairing title and author items by index."
+msgstr "避免去重、排序、分词、编造标题对象，或按索引配对标题项和作者项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicTitleWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied StructuredSequence and retain distinct scalar StructuredValue items with complete word literals and entryOrdinal. Preserve repetitions, blank strings, language, direction and actual attribution."
+msgstr "关联已提供 StructuredSequence，保留独立的标量 StructuredValue 项及其完整文字字面量和 entryOrdinal。保留重复、空字符串、语言、方向和实际归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic author wording"
+msgstr "报告的书目作者文字"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete author-wording strings supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的完整作者文字字符串的独立有序序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Each item is complete supplied wording, not a resolved Agent, Appellation or author paired with the title at the same position."
+msgstr "此序列可省略，在条目内至多有一个。每项是完整的已提供文字，不是已解析的 Agent、Appellation，也不是与同一位置标题配对的作者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicAuthorWords ex:authors .` with one author-wording item and two title-wording items."
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicAuthorWords ex:authors .`，其中有一个作者文字项和两个标题文字项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered sequence of author variants as wording, with no interpreted author identity required."
+msgstr "当编目以文字形式提供有序作者变体序列，且不要求解释作者身份时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring hasAuthor, person identity, translation, transliteration or title/author pairing from the strings or their positions."
+msgstr "避免从字符串或位置推断 hasAuthor、人物身份、翻译、转写或标题与作者的配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied StructuredSequence independently of the title sequence. Retain each complete word literal on a distinct scalar item with entryOrdinal and actual attribution; leave unavailable sequences absent."
+msgstr "独立于标题序列保留已提供 StructuredSequence。将每个完整文字字面量保留在独立标量项上，并保留 entryOrdinal 和实际归属信息；未提供序列时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic authority references"
+msgstr "报告的书目权威记录引用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered sequence of actual AuthorityReferenceRecord resources supplied with this curated bibliographic description."
+msgstr "随此编目书目描述提供的实际 AuthorityReferenceRecord 资源的有序序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional sequence is locally at most one. Distinct item occurrences preserve repeated references to the same record; sequence membership asserts no direct authorityReference or identity link on the described subject."
+msgstr "此序列可省略，在条目内至多有一个。独立项出现项保留对同一条目的重复引用；序列成员关系不断言被描述主体具有直接 authorityReference 或身份链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicAuthorityReferences ex:references .` whose scalar terms point to two distinct authority-reference records."
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicAuthorityReferences ex:references .`，其标量项值指向两个独立权威引用条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies an ordered authority-reference inventory associated with its bibliographic account."
+msgstr "当编目提供与其书目记述相关的有序权威记录引用清单时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid literal IRI strings, opaque serialized records, invented record fields, identity merges or an inferred authorityReference property chain."
+msgstr "避免使用 IRI 字面量字符串、不透明序列化记录、编造的条目字段、身份合并，或推断 authorityReference 属性链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicAuthorityReferences|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual record resource through structuredTerm on a distinct StructuredValue occurrence with entryOrdinal. Keep every record’s own required target, source wording and exact-statement attribution; do not propagate provenance."
+msgstr "通过独立 StructuredValue 出现项上的 structuredTerm 保留每个实际条目资源，并保留 entryOrdinal。保留每个条目自身必需的目标、来源文字和每条精确陈述的归属信息；不传播溯源信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic work kind"
+msgstr "报告的书目作品类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The work-kind wording supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的作品类别文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a reported classification without assigning a type to the subject or description."
+msgstr "此文字字面量可省略，在条目内至多取一个值，用于保留报告的分类，不据此给主体或描述赋予类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional curation supplies `ex:description gmeow:bibliographicWorkKind \"reference volume\"@en .`"
+msgstr "一个虚构编目提供 `ex:description gmeow:bibliographicWorkKind \"reference volume\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation explicitly supplies wording for a work’s kind."
+msgstr "当编目明确提供作品类别文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the wording into rdf:type, a controlled concept or a CreativeWork assertion without separate evidence."
+msgstr "避免在缺少独立证据时将文字转化为 rdf:type、受控概念或 CreativeWork 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicWorkKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal with its actual language, direction and attribution. Preserve blank wording; leave an unavailable kind absent."
+msgstr "保留一个完整的已提供文字字面量及其实际语言、方向和归属信息。保留空文字；未提供类别时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported original author wording"
+msgstr "报告的原文作者文字"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original-author wording supplied as a distinct field in this curated bibliographic description."
+msgstr "此编目书目描述中作为独立字段提供的原文作者文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued wording can retain original script without establishing a name object, Agent, original-language analysis or relation to any author-sequence item."
+msgstr "此文字可省略，在条目内至多取一个值，可以保留原文书写形式，不据此建立名称对象、Agent、原始语言分析或与任何作者序列项的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicOriginalAuthorWording \"ソラ\"@ja .`"
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicOriginalAuthorWording \"ソラ\"@ja .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies its distinct original-author wording field."
+msgstr "当编目提供其独立的原文作者文字字段时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting an original author from the sequence, guessing script or language, or deriving transliteration and authorship from matching text."
+msgstr "避免从序列中选定原作者、猜测文字系统或语言，或从相同文本推导转写和作者关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicOriginalAuthorWording|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied word literal and actual attribution. Retain supplied language and direction, keep untagged wording untagged, and omit unavailable wording."
+msgstr "保留完整的已提供文字字面量和实际归属信息。保留实际提供的语言和方向，未标注语言的文字保持未标注，未提供文字时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic collection kind"
+msgstr "报告的书目集合类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The collection-kind wording supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的集合类别文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a source classification without creating a Collection, membership relation or controlled kind. It is distinct from the music slice’s collectionKind."
+msgstr "此文字字面量可省略，在条目内至多取一个值，用于保留来源分类，不创建 Collection、成员关系或受控类别。它不同于 music 切片的 collectionKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicCollectionKind \"coastal studies\"@en .`"
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicCollectionKind \"coastal studies\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation explicitly supplies collection-kind wording with its bibliographic account."
+msgstr "当编目明确随其书目记述提供集合类别文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing collectionKind, interpreting the words as collection identity or inferring that the subject belongs to a collection."
+msgstr "避免复用 collectionKind、将文字解释为集合身份，或推断主体属于某集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal with its actual language, direction and attribution. Do not invent a collection resource or fill missing wording."
+msgstr "保留一个完整的已提供文字字面量及其实际语言、方向和归属信息。不编造集合资源，也不补造缺失文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic collection note"
+msgstr "报告的书目集合备注"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The collection-note wording supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的集合备注文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued note preserves source commentary without endorsing it or asserting a collection, membership or relationship to another note."
+msgstr "此备注可省略，在条目内至多取一个值，保留来源评论，不认可其内容，也不断言集合、成员关系或与其他备注的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicCollectionNote \"Retain the catalogue grouping.\"@en .`"
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicCollectionNote \"Retain the catalogue grouping.\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies a collection note as part of its bibliographic account."
+msgstr "当编目在其书目记述中提供集合备注时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the note as a membership rule, inferred classification, authority-reference note or proof that its content is true."
+msgstr "避免将备注解释为成员规则、推断分类、权威引用备注，或其内容真实的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicCollectionNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve one complete supplied word literal, including blank text, language, direction and actual attribution. Keep separate notes on separate coherent accounts."
+msgstr "保留一个完整的已提供文字字面量，包括空文本、语言、方向和实际归属信息。不同独立完整记述中的备注保持分离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported bibliographic publication-date text"
+msgstr "报告的书目出版日期文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The publication-date wording supplied in this curated bibliographic description."
+msgstr "此编目书目描述中提供的出版日期文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal preserves the source’s precision and wording. It asserts no dateTime, midnight, season boundary, timezone or temporal object."
+msgstr "此文字字面量可省略，在条目内至多取一个值，保留来源的精度和文字。它不断言 dateTime、午夜、季节边界、时区或时间对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:description gmeow:bibliographicPublicationDateText \"Spring, year of the amber tide\"@en .`"
+msgstr "一个虚构来源提供 `ex:description gmeow:bibliographicPublicationDateText \"Spring, year of the amber tide\"@en .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when curation supplies publication-date wording that must remain intact independently of any later temporal interpretation."
+msgstr "当编目提供的出版日期文字需要保持原样，且独立于任何后续时间解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting datePublished, parsing an instant, assigning seasonal boundaries or inventing missing calendar and timezone context."
+msgstr "避免用 datePublished 替代、解析出时刻、指定季节边界，或编造缺失的历法和时区语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bibliographicPublicationDateText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied word literal with actual language, direction and attribution. Preserve blank wording and leave an unavailable date absent; model justified temporal interpretation separately."
+msgstr "保留完整的已提供文字字面量及其实际语言、方向和归属信息。保留空文字，未提供日期时省略；有依据的时间解释另行建模。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bibliographic word-sequence constraint"
+msgstr "书目文字序列约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through bibliographicTitleWords or bibliographicAuthorWords has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal."
+msgstr "通过 bibliographicTitleWords 或 bibliographicAuthorWords 选取的每项都具有 structuredTerm，且每个这样的项值都是 xsd:string、rdf:langString 或 rdf:dirLangString 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law checks each supplied scalar independently and permits blank strings. Empty selected sequences are valid; generic branch, whole-term identity and ordinal laws remain unchanged."
+msgstr "此规则仅适用于所选角色，分别检查每个已提供标量，并允许空字符串。所选空序列有效；通用分支、完整项身份和序位规则保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A title item carrying an empty xsd:string is valid; an item without structuredTerm or with a numeric term fails this law."
+msgstr "标题项承载空 xsd:string 时有效；缺少 structuredTerm 或项值为数值时违反此规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every supplied title-wording and author-wording occurrence without pairing the sequences."
+msgstr "用于验证每个已提供标题文字和作者文字出现项，不配对两个序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an extra malformed term, coercing resources or numbers into wording, or interpreting strings as analyzed names."
+msgstr "避免接纳额外的格式错误项值、将资源或数值强制转换为文字，或将字符串解释为经过分析的名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow each selected sequence and structuredItem. Require a term, then compare every supplied term’s datatype with the three admitted word datatypes through termSameComponent; report failures without rewriting input."
+msgstr "沿每个所选序列和 structuredItem 遍历。要求具有项值，再通过 termSameComponent 将每个已提供项值的数据类型与三种允许的文字数据类型比较；报告失败，不改写输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bibliographic authority-sequence constraint"
+msgstr "书目权威引用序列约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through bibliographicAuthorityReferences has a structuredTerm, and every such term is an actual resource typed AuthorityReferenceRecord."
+msgstr "通过 bibliographicAuthorityReferences 选取的每项都具有 structuredTerm，且每个这样的项值都是类型为 AuthorityReferenceRecord 的实际资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law requires record resources rather than literal locators or nested payloads. Each record keeps its own target and source contract; empty selected sequences remain valid."
+msgstr "此规则仅适用于所选角色，要求使用条目资源，而不是字面量定位符或嵌套载荷。每个条目保留自身的目标和来源契约；所选空序列仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A scalar term pointing to an actual AuthorityReferenceRecord is valid; an IRI-shaped string or item without a term fails this law."
+msgstr "标量项值指向实际 AuthorityReferenceRecord 时有效；形似 IRI 的字符串或缺少项值的项违反此规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the actual record resource carried by every supplied bibliographic authority-reference occurrence."
+msgstr "用于验证每个已提供书目权威引用出现项承载的实际条目资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a literal locator as a record, discarding extra bad terms or inferring authorityReference, match strength or identity from sequence membership."
+msgstr "避免将字面量定位符视为条目、丢弃额外错误项值，或从序列成员关系推断 authorityReference、匹配强度或身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BibliographicAuthoritySequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow bibliographicAuthorityReferences and structuredItem. Require a structuredTerm and check every supplied term’s AuthorityReferenceRecord type; retain generic scalar and ordering laws and report failure without substitution."
+msgstr "沿 bibliographicAuthorityReferences 和 structuredItem 遍历。要求具有 structuredTerm，并检查每个已提供项值的 AuthorityReferenceRecord 类型；保留通用标量和序位规则，报告失败，不替换项值。"

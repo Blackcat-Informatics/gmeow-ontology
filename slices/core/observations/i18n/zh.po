@@ -1176,3 +1176,59 @@ msgstr "不要用于要求缺失、检查器不可用、值未经检查或结果
 msgctxt "https://blackcatinformatics.ca/gmeow/policyFindingValueOutsideDeclaredForm|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this individual through observationResult and retain the exact submitted value, declared form requirement, completed check result and policy vantage. Keep a genuine native validation result separate when one is supplied; the kind performs no validation."
 msgstr "通过 observationResult 引用此个体，并保留确切提交值、已声明形式要求、已完成检查结果及策略 vantage。若提供真实原生验证结果，应另行保留；该种类不执行验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement metric"
+msgstr "测量指标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the identified metric, formula or weighting whose value this Measurement reports."
+msgstr "指明此 Measurement 所报告数值对应的指标、公式或加权方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, non-functional role preserves the supplied metric IRI without declaring its internal representation or execution."
+msgstr "此角色可选且非函数性，保留所提供的指标 IRI，不声明其内部表示或执行情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a Measurement reports a value for an identified metric, formula or weighting."
+msgstr "用于 Measurement 报告某个已标识的指标、公式或加权方案的数值时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing observedFeature, observationMethod or observationResult, or inferring a metric's mathematical structure from its label."
+msgstr "不要用它替代 observedFeature、observationMethod 或 observationResult，也不要根据标签推断指标的数学结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Measurement to the exact supplied metric IRI. Preserve supplied labels, including any language tag and direction; absent labels remain absent."
+msgstr "将 Measurement 连接到所提供的原始指标 IRI。保留提供的标签及其已有的语言标签和方向；缺失的标签保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied metric identity: ex:reading gmeow:measurementMetric ex:metricA ."
+msgstr "记录所提供的指标标识：ex:reading gmeow:measurementMetric ex:metricA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement metric IRI constraint"
+msgstr "测量指标 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied gmeow:measurementMetric value must be an IRI."
+msgstr "每个已提供的 gmeow:measurementMetric 值都必须是 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The positive measurementMetric relation binds both variables. Missing measurementMetric values create no violation under this constraint."
+msgstr "正向 measurementMetric 关系绑定两个变量。缺少 measurementMetric 值不会违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the named identity of a supplied measurement metric."
+msgstr "用于检查所提供的测量指标是否具有命名标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this check as metric presence, uniqueness, label, formula or execution validation."
+msgstr "不要将此检查理解为对指标是否存在、是否唯一、标签、公式或执行情况的验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Author the condition as an ordinary logic:Formula with measurementMetric(this, metric) implying termIsIri(metric)."
+msgstr "使用普通 logic:Formula 编写条件：measurementMetric(this, metric) 蕴含 termIsIri(metric)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasurementMetricIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:measurementMetric ex:metricA satisfies the IRI condition; a blank node or literal value does not."
+msgstr "ex:reading gmeow:measurementMetric ex:metricA 满足 IRI 条件；空白节点或字面量值不满足该条件。"

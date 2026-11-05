@@ -4930,8 +4930,8 @@ msgid "Avoid inferring tool availability, permission, purity or execution from a
 msgstr "避免从公布行动推断工具可用性、许可、无副作用性或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link its owning InformationObject with affordsAction; retain the exact tool name, targets and attributed tags."
-msgstr "通过 affordsAction 关联所属 InformationObject，保留精确工具名、目标和带归属标签。"
+msgid "Link the catalog-bearing InformationObject with affordsAction, whether it is a direct object representation or a linked state-specific catalog artifact; retain the exact tool name, targets and attributed tags."
+msgstr "通过 affordsAction 关联承载目录的 InformationObject，无论它是直接对象表征还是关联的特定状态目录制品；保留精确工具名、目标和带归属的标签。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The entry is a record, not an Activity or a replacement for the core ActionPolicy."
@@ -4946,20 +4946,20 @@ msgid "affords action"
 msgstr "提供可供行动"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates an object-representing InformationObject to an actual entry of its advertised action catalog."
-msgstr "将表征对象的 InformationObject 关联到其实际公布行动目录条目。"
+msgid "Relates a catalog-bearing InformationObject, either an object representation or an artifact linked through worldObjectAffordances, to an actual entry of its advertised action catalog."
+msgstr "将承载目录的 InformationObject，即对象表征或通过 worldObjectAffordances 关联的制品，关联到其所公布行动目录的实际条目。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when an object representation supplies an action-catalog entry."
-msgstr "用于对象表征提供行动目录条目时。"
+msgid "Use when a source supplies an action-catalog entry on a direct object representation or its linked state-specific catalog artifact."
+msgstr "用于来源在直接对象表征或其关联的特定状态目录制品上提供行动目录条目时。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid coercing a physical object into InformationObject to attach a catalog; retain its actual representation."
 msgstr "避免为附加目录将物理对象强制归为 InformationObject；保留实际表征。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the actual catalog-bearing InformationObject to WorldAffordance records and keep its part structure."
-msgstr "将实际承载目录的 InformationObject 关联到 WorldAffordance，并保留其部件结构。"
+msgid "Link the actual catalog bearer to WorldAffordance records. In set mode retain worldObjectAffordances from each represented object; targets use that object’s hasPart inventory, not the catalog artifact’s parts."
+msgstr "将实际目录载体关联到 WorldAffordance 记录。在集合模式下保留来自每个所表征对象的 worldObjectAffordances；目标使用该对象的 hasPart 清单，而非目录制品的部分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Advertising an action neither provides an implementation nor grants the agent permission to call it."
@@ -5002,8 +5002,8 @@ msgid "affordance target"
 msgstr "可供行动目标"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a catalog affordance to an actual supplied part of its owning object representation on which the action acts."
-msgstr "将目录可供行动关联到其所属对象表征中行动作用的实际已提供部件。"
+msgid "Relates a catalog affordance to an actual supplied part of the represented object on which the action acts, whether the catalog is carried directly by that representation or by its linked state-specific artifact."
+msgstr "将目录中的可供行动关联到所表征对象的一个来源提供的实际部分，行动作用于该部分；目录可直接由该表征承载，也可由其关联的特定状态制品承载。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use only when the source supplies a target part and its owning catalog context."
@@ -5014,8 +5014,8 @@ msgid "Avoid minting a part from a handle or reusing a target from another objec
 msgstr "避免从句柄创建部件或复用其他对象目录的目标。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the owner's affordsAction and hasPart relationships; the native law checks every owning catalog."
-msgstr "保留所属者的 affordsAction 和 hasPart，原生规则检查每个所属目录。"
+msgid "Retain affordsAction on every catalog bearer and hasPart on every applicable represented object, following worldObjectAffordances in set mode. The source constraint checks all direct bearers and all objects linked to each set."
+msgstr "在每个目录载体上保留 affordsAction，在每个适用的所表征对象上保留 hasPart，并在集合模式下沿 worldObjectAffordances 查找。来源约束检查所有直接载体及关联到每个集合的所有对象。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Target binding is structural source evidence, not execution or proof that the advertised effect succeeded."
@@ -5892,8 +5892,8 @@ msgid "Affordance target scope constraint"
 msgstr "可供行动目标范围约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
-msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个目录所属者。WorldAffordanceCatalogConstraint 另行要求实际所属者及工具名。目标不能跨对象目录泄漏。"
+msgid "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动且没有传入 worldObjectAffordances 的每个直接目录载体，也属于关联到公布该可供行动的集合载体的每个所表征对象。目录类法则另行要求载体和工具名；不能以一个方便的对象验证共享条目属于其他对象的目标。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to validate the source's advertised action-to-part binding."
@@ -5904,8 +5904,8 @@ msgid "Avoid satisfying a shared entry with one convenient owner's unrelated tar
 msgstr "避免用某个方便所属者的无关目标满足共享条目。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Check hasPart for every affordsAction owner of this entry; use WorldAffordanceCatalogConstraint for owner existence and tool naming."
-msgstr "检查该条目每个 affordsAction 所属者的 hasPart；由 WorldAffordanceCatalogConstraint 检查所属者存在及工具名。"
+msgid "Check hasPart on the bearer when it has no incoming worldObjectAffordances, and on every object supplying that link otherwise. Keep every action-to-target binding local to its catalog path; use WorldAffordanceCatalogConstraint for bearer existence and tool naming."
+msgstr "若载体没有传入的 worldObjectAffordances，则检查载体上的 hasPart；否则检查提供该关联的每个对象。将每个行动与目标的绑定保持在其自身目录路径内；通过 WorldAffordanceCatalogConstraint 检查载体存在及工具命名。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The binary target checks source structure, not whether an advertised tool executed successfully."
@@ -5916,8 +5916,8 @@ msgid "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:p
 msgstr "例如：ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/logic/message"
-msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
-msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个目录所属者。WorldAffordanceCatalogConstraint 另行要求实际所属者及工具名。目标不能跨对象目录泄漏。"
+msgid "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动且没有传入 worldObjectAffordances 的每个直接目录载体，也属于关联到公布该可供行动的集合载体的每个所表征对象。目录类法则另行要求载体和工具名；不能以一个方便的对象验证共享条目属于其他对象的目标。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Recorded cognition mode carrier constraint"
@@ -6022,3 +6022,91 @@ msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:stri
 msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditionally releases attention from"
+msgstr "有条件地将注意力从实体移开"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Event to the Entity from which it conditionally releases attention: the event ends attention on that entity if it rested there, and otherwise asserts nothing about attention."
+msgstr "将 Event 关联到其有条件移开注意力的 Entity：若注意力原本落在该实体上，事件则结束对它的注意；否则不对注意力作出任何断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records a conditional release, not an observed departing focus. It establishes no prior focus, Agent, slot assignment, successor focus or timeline and does not mutate an attention store."
+msgstr "此关系记录有条件的注意力移开，而非观测到的离开焦点。它不确立先前焦点、Agent、槽位分配、后继焦点或时间线，也不改变注意力存储。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a provider failure releases attention from its object if attention rested there; it does not report whether that object was the focus."
+msgstr "一个来源报告：若注意力原本落在某提供者的对象上，提供者故障会将注意力从该对象移开；来源并未报告该对象是否为焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual Event’s source-reported conditional attention release from an Entity, without asserting prior attention on that entity through this relation."
+msgstr "用于保留来源报告的实际 Event 有条件地将注意力从某 Entity 移开的陈述，不通过此关系断言先前注意力落在该实体上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a departing or arriving focus, an Agent, a slot assignment or a timeline, or treating this relation as evidence of performed attention-store mutation."
+msgstr "避免推断离开或到达的焦点、Agent、槽位分配或时间线，也避免把此关系当作已执行注意力存储修改的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the supplied Entity and preserve source and viewpoint on the exact statement. Use attentionFrom separately only when the actual departing focus is supplied; unknown prior focus remains unknown."
+msgstr "将实际 Event 关联到已提供的 Entity，并在精确陈述上保留来源和视角。仅在实际离开焦点已提供时另行使用 attentionFrom；未知先前焦点仍保持未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object affordances"
+msgstr "世界对象可供行动目录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an object-representing InformationObject in its supplied state and account context to the InformationObject artifact recording that context’s advertised affordance inventory."
+msgstr "将处于来源所提供状态和叙述语境中的对象表征 InformationObject，关联到记录该语境下所公布可供行动清单的 InformationObject 制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation preserves supplied state and account associations. It supplies no current-state winner or replacement history; an absent relation is not an empty inventory, and a lack of visible entries alone does not prove emptiness."
+msgstr "此关系可选且非函数式，保留来源提供的状态和叙述关联。它不指定唯一当前状态，也不提供替换历史；关系缺失不等于清单为空，仅无可见条目也不能证明清单为空。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies an object’s advertised action inventory for one reported state and identifies the catalog artifact’s encoded bytes and algorithm-typed content digest."
+msgstr "一个来源提供某对象在一个所报告状态下公布的行动清单，并标明目录制品的编码字节及带算法数据类型的内容摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a particular state’s affordance catalog artifact and its actual association with the object representation and account context."
+msgstr "用于来源提供某一特定状态的可供行动目录制品，以及它与对象表征和叙述语境的实际关联时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a state, encoding, digest, identifier mapping or replacement claim, treating partial capture as empty, or combining historical catalogs into a current inventory."
+msgstr "避免编造状态、编码、摘要、标识符映射或替换声明，将部分记录视为空清单，或将历史目录合并为当前清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual object representation to its supplied catalog artifact, attach entries to that artifact with affordsAction, and retain its contentDigest for the exact identified encoded bytes. Preserve statement attribution and any supplied content-addressed identifier without claiming verified identifier agreement."
+msgstr "将实际对象表征关联到来源提供的目录制品，通过 affordsAction 将条目附于该制品，并保留其针对确切已标明编码字节的 contentDigest。保留陈述归属和来源提供的任何内容寻址标识符，不声称已验证标识符的一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World object affordances digest constraint"
+msgstr "世界对象可供行动目录摘要约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
+msgstr "worldObjectAffordances 选中的每个目录制品均带有来源提供的 contentDigest，用以标识其确切编码字节原像；既有摘要准入检查算法数据类型和词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Digest presence neither computes a hash nor verifies bytes, entry correspondence or identifier agreement. Several admitted algorithms may coexist; no universal encoding or producer is prescribed."
+msgstr "摘要存在既不计算哈希，也不验证字节、条目对应关系或标识符一致性。多个准入算法可并存；不规定统一编码或生产程序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly reports an empty inventory and supplies a digest of its identified encoded catalog artifact; the artifact has no action entries."
+msgstr "一个来源明确报告清单为空，并提供其已标明编码目录制品的摘要；该制品没有行动条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require supplied byte-content identity on each artifact actually linked as a state-specific affordance catalog."
+msgstr "用于要求每个实际关联为特定状态可供行动目录的制品均具有来源提供的字节内容身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an untyped digest string, guessing a byte preimage, substituting worldObjectState, or treating a digest assertion as a verification receipt."
+msgstr "避免接受无类型摘要字符串、猜测字节原像、以 worldObjectState 替代，或将摘要断言视为验证凭证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each worldObjectAffordances object for at least one supplied contentDigest. Retain the actual admitted algorithm datatype and exact lexical value; Sources governs their admission, and missing source inputs must not be invented."
+msgstr "检查每个 worldObjectAffordances 对象是否至少有一个来源提供的 contentDigest。保留实际准入算法数据类型和确切词法值；由 Sources 管理其准入，不得编造缺失的来源输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
+msgstr "worldObjectAffordances 选中的每个目录制品均带有来源提供的 contentDigest，用以标识其确切编码字节原像；既有摘要准入检查算法数据类型和词法形式。"

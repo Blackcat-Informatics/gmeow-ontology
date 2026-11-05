@@ -151,7 +151,9 @@ These are format values, grounded as `logic:QualityValue` individuals rather
 than carrier subclasses (Principles 4 and 17).
 
 `gmeow:mediaTypeName` carries the value's exact parameter-free MIME
-`type/subtype` spelling as xsd:string. The spelling belongs to the value;
+`type/subtype` spelling as xsd:string or explicitly supplied xsd:token.
+Preserve the supplied literal's lexical form and datatype without whitespace
+normalization or inferred token typing. The spelling belongs to the value;
 there is no parallel string media-type property on the carrier. A registered
 IRI can be used without repeating its external metadata on each carrier.
 The name is optional; supplied names retain their exact machine spelling and
@@ -278,3 +280,391 @@ channelLayout preserves a MediaObject image's exact source channel-layout
 string, such as RGBA. It is independent of colour space, image decoding and
 pixel verification. Keep original case and spaces; the property provides no
 parser, closed code list or inferred channel count.
+
+## Source content modes
+
+`contentMode` records how a ContentBlock's content is expressed, independently
+of its structural `segmentType`. `ContentMode` is an open value category;
+`contentModeProse`, `contentModeVerse`, `contentModeDialogue` and
+`contentModeCode` are initial individuals rather than block subclasses or
+an exhaustive inventory.
+
+The relation is optional and nonfunctional. Mixed content and coexisting
+attributed classifications may retain several modes without selecting a winner.
+When a source supplies paragraph structure and dialogue expressed in verse,
+the independent axes can be retained together:
+
+```turtle
+ex:block a gmeow:ContentBlock ;
+    gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:contentMode gmeow:contentModeDialogue, gmeow:contentModeVerse .
+```
+
+Keep each mode assertion's actual source and viewpoint on that exact RDF 1.2
+statement. The example shows the two axes; the block's existing identity,
+container and source index obligations remain in force. A mode on this block
+does not classify every internal fragment or propagate to its containers,
+descendants or retrieval chunks. Missing mode metadata remains absent.
+
+Structural verse, dialogue and code-listing values keep their existing roles.
+Content mode supplies no line boundary, meter, actual speaker, conversation
+event, programming-language identity, code execution, validity or safety result.
+No mode follows from layout, markup or another classification alone.
+
+Media format, language and genre remain separate axes. In particular,
+`lang:UnanalyzedProse` describes surface analysis status, while
+`lang:renderingProse` identifies a rendering kind; neither is this block's
+prose mode. Retain independently supplied speaker and programming-language
+wording through their existing apparatus properties (Principles 2, 4, 9, 17
+and 19).
+
+## Source heading levels
+
+Use `headingLevel` for the integer a source or attributed analysis actually
+reports as a heading block's level code. The property is optional and
+nonfunctional: distinct attributed readings can coexist. Preserve the supplied
+integer on the actual `ContentBlock`, retaining its existing `segmentType` and
+the exact assertion's source, viewpoint and supplied convention.
+
+```turtle
+ex:heading gmeow:segmentType gmeow:segmentTypeHeading ;
+    gmeow:segmentIndex 7 ;
+    gmeow:headingLevel 2 .
+```
+
+Here the supplied heading-level code is independent of the block's structural
+position. Neither value computes containment depth. This field supplies no
+numbering origin, positivity requirement, bound, universal ordering or default;
+it does not infer a heading kind or propagate a level to other blocks.
+
+An unknown convention stays unknown. An actual explicit reference frame is
+required before interpreting these codes as ranks, depths, conversions or
+comparable values. Recording a supplied integer alone provides no such frame.
+Retain an actually supplied convention and attribution without inventing missing
+context or choosing a preferred reading (Principles 2, 4, 9, 11, 12, 17 and 19).
+
+## Reported original media-format text
+
+`originalMediaTypeText` preserves the exact source string reporting a format
+before reencoding, on the actual stored MediaObject. It belongs with source
+artifact metadata such as originalFilename and channelLayout. Keep case,
+spaces and blank strings exactly as supplied. Do not collapse whitespace into
+a token, trim the string or add a language tag.
+
+The stored carrier’s actual `mediaType` remains its existing format identity.
+`mediaTypeName` belongs on that MediaType value and requires its own exact
+parameter-free MIME spelling. Neither property is an alias for arbitrary
+pre-reencoding source text. This raw evidence field performs no MIME parsing,
+normalization, registration lookup or conversion and establishes no original
+asset, original bytes, successful transformation or independently identified
+original-format resource.
+
+The field is optional and nonfunctional. Identical held bytes can have different
+source histories, so preserve each supplied original-format claim with its own
+exact-statement source and any actual supplied viewpoint. Do not choose one
+winning history or impose a universal predecessor format on a content-addressed
+carrier. Missing text stays absent; a supplied empty string remains a value.
+The existing carrier, colour-space and format obligations remain unchanged.
+
+Raw evidence retention is the selected operation. It is not a fallback from
+an attempted format-identity mapping. Any separately selected identity mapping
+must validate its actual input and fail invalid input; it must never substitute
+this text silently. No original-format IRI role, MIME parser or registry is
+introduced here. [Reported image analyses](../ai/docs.md#reported-image-analyses)
+show multiple supplied histories on one actual stored carrier (Principles 4,
+5, 9, 17 and 19).
+
+## Source-supplied EPUB spine accounts
+
+EpubSpineEntry is an information-record account supplied by a source. It retains
+one reported order descriptor and one exact href string, plus an optional TOC
+path. It neither certifies that an EPUB was parsed nor claims a complete package
+inventory or a resolved content target. Different coherent accounts remain
+separate even when their order descriptors and hrefs match.
+
+When an actual source InformationObject is identified, epubSpineEntry associates
+it with the account. That optional, nonfunctional link requires no invented
+package, base URI, immutable revision or digest. An account remains representable
+when source identity is unavailable. Keep the actual source and viewpoint on
+exact statements, including the association; a source on one record does not
+automatically attribute all its fields.
+
+Retain epubSpineHref as the exact supplied xsd:string. Relative references,
+fragments, case, spaces and supplied blanks survive. Do not resolve, fetch,
+decode or normalize it, add a language tag or construct an IRI from matching
+words. A separately supplied resolved target is different evidence and is not
+computed by this vocabulary.
+
+epubSpineOrder and each step's epubTocDepth are reported integer descriptors
+under the source's actual convention. They are not computed counts, canonical
+tree depth or universal sequence positions. All thirteen XSD integer-family
+datatypes are admitted without retyping: integer, nonPositiveInteger,
+negativeInteger, long, int, short, byte, nonNegativeInteger, unsignedLong,
+unsignedInt, unsignedShort, unsignedByte and positiveInteger. Preserve each
+supplied literal's lexical form and datatype. Do not infer a base or bound,
+coerce strings or fractional values, or treat an arbitrary code as interpreted
+order or depth. Invalid selected input fails rather than becoming a default.
+
+A supplied epubTocPath is one StructuredSequence of actual EpubTocPathStep
+occurrences. Each step specializes the existing StructuredValue: its single
+scalar structuredTerm is the complete title, and epubTocDepth describes that
+same occurrence. There is no separate title property or wrapper identity.
+Both title and depth are required on every typed step, including one with no
+supplied path membership. This lets the title/depth pair remain intact without
+minting a distinct target entity. Every role-selected path item is a step;
+a generic item cannot silently evade those requirements.
+
+Use entryOrdinal only for the actual zero-based occurrence position in the
+supplied path. Keep that position separate from the reported spine order and
+depth. Distinct occurrence nodes retain repeated equal titles. Generic sequence
+laws still require admitted nonnegative positions, one numeric position per
+member and distinct positions for distinct members in a sequence; they add no
+contiguous-index rule, inferred prefix, parent-child tree or pairing across
+accounts. Do not copy a reported order or depth into entryOrdinal.
+
+Titles admit the full xsd:string, rdf:langString and RDF 1.2 rdf:dirLangString
+word union through structuredTerm. Keep complete whitespace and blank strings,
+actual language and direction. Untagged input stays xsd:string. The existing
+scalar branch and whole-term laws reject a conflicting payload branch or an
+additional different scalar; the new title law checks every supplied term, so
+a good string cannot hide a malformed extra value. No analyzed Form, translation,
+preferred title or referent is inferred.
+
+A supplied current zero-item sequence and an absent path are different. Preserve
+a known empty current path when supplied; do not manufacture one from a missing
+field or use a code default to claim historical source-field presence. Nothing
+reconstructs wording or whitespace lost before the current input was supplied.
+This source-record model adds no EPUB parser, URI resolver or execution engine
+(Principles 2, 4, 9, 17 and 19).
+
+### A fictional source scene
+
+The scenario explicitly supplies the source records, one actually identified
+source information object and a standpoint. A and B are independent accounts
+for that actual source; C has no supplied package/source association. A retains
+five ordered title occurrences: a repeated spaced string, a blank, a French
+literal and an Arabic directional literal. Its reported order is 12 and its
+first reported depth is 4, while the first occurrence position is 0. These
+values belong to different fields and no ancestry or indexing convention is
+inferred. B supplies an empty path; C supplies no path and explicitly supplies
+a blank href. A standalone typed step has its own title and depth, with no
+invented path, position or package. This is ordinary illustrative usage, not
+a fixture, parser receipt or executed validation result.
+
+```turtle
+@prefix ex: <https://example.org/epub-spine-accounts/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Actual supplied background and account assertions.
+ex:reportA rdf:type gmeow:InformationObject .
+ex:reportB rdf:type gmeow:InformationObject .
+ex:reportC rdf:type gmeow:InformationObject .
+ex:actualSource rdf:type gmeow:InformationObject .
+ex:view rdf:type gmeow:Standpoint .
+ex:view rdf:type gmeow:Entity .
+ex:view gmeow:sharpens gmeow:universalStandpoint .
+ex:accountA rdf:type gmeow:EpubSpineEntry .
+ex:accountA gmeow:epubSpineOrder "12"^^xsd:int .
+ex:accountA gmeow:epubSpineHref "Text/Part.xhtml#Opening" .
+ex:accountB rdf:type gmeow:EpubSpineEntry .
+ex:accountB gmeow:epubSpineOrder "12"^^xsd:positiveInteger .
+ex:accountB gmeow:epubSpineHref "Text/Part.xhtml#Opening" .
+ex:accountC rdf:type gmeow:EpubSpineEntry .
+ex:accountC gmeow:epubSpineOrder "1"^^xsd:integer .
+ex:accountC gmeow:epubSpineHref "" .
+ex:actualSource gmeow:epubSpineEntry ex:accountA .
+ex:accountA gmeow:epubTocPath ex:pathA .
+ex:pathA rdf:type gmeow:StructuredSequence .
+ex:actualSource gmeow:epubSpineEntry ex:accountB .
+ex:accountB gmeow:epubTocPath ex:pathB .
+ex:pathB rdf:type gmeow:StructuredSequence .
+ex:pathA gmeow:structuredItem ex:step0 .
+ex:step0 rdf:type gmeow:EpubTocPathStep .
+ex:step0 gmeow:structuredTerm " Opening " .
+ex:step0 gmeow:epubTocDepth "4"^^xsd:int .
+ex:step0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:pathA gmeow:structuredItem ex:step1 .
+ex:step1 rdf:type gmeow:EpubTocPathStep .
+ex:step1 gmeow:structuredTerm " Opening " .
+ex:step1 gmeow:epubTocDepth "4"^^xsd:int .
+ex:step1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:pathA gmeow:structuredItem ex:step2 .
+ex:step2 rdf:type gmeow:EpubTocPathStep .
+ex:step2 gmeow:structuredTerm "" .
+ex:step2 gmeow:epubTocDepth "6"^^xsd:integer .
+ex:step2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+ex:pathA gmeow:structuredItem ex:step3 .
+ex:step3 rdf:type gmeow:EpubTocPathStep .
+ex:step3 gmeow:structuredTerm "Retrouvailles"@fr .
+ex:step3 gmeow:epubTocDepth "9"^^xsd:short .
+ex:step3 gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger .
+ex:pathA gmeow:structuredItem ex:step4 .
+ex:step4 rdf:type gmeow:EpubTocPathStep .
+ex:step4 gmeow:structuredTerm "عودة"@ar--rtl .
+ex:step4 gmeow:epubTocDepth "9"^^xsd:short .
+ex:step4 gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger .
+ex:standalone rdf:type gmeow:EpubTocPathStep .
+ex:standalone gmeow:structuredTerm "Unattached"@en .
+ex:standalone gmeow:epubTocDepth "2"^^xsd:integer .
+
+# Local exact-statement source and viewpoint; no propagation is implied.
+ex:claim1 rdf:reifies <<( ex:reportA rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim2 rdf:reifies <<( ex:reportB rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim3 rdf:reifies <<( ex:reportC rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim4 rdf:reifies <<( ex:actualSource rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim5 rdf:reifies <<( ex:view rdf:type gmeow:Standpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim6 rdf:reifies <<( ex:view rdf:type gmeow:Entity )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim7 rdf:reifies <<( ex:view gmeow:sharpens gmeow:universalStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:view .
+ex:claim8 rdf:reifies <<( ex:accountA rdf:type gmeow:EpubSpineEntry )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim9 rdf:reifies <<( ex:accountA gmeow:epubSpineOrder "12"^^xsd:int )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim10 rdf:reifies <<( ex:accountA gmeow:epubSpineHref "Text/Part.xhtml#Opening" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim11 rdf:reifies <<( ex:accountB rdf:type gmeow:EpubSpineEntry )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim12 rdf:reifies <<( ex:accountB gmeow:epubSpineOrder "12"^^xsd:positiveInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim13 rdf:reifies <<( ex:accountB gmeow:epubSpineHref "Text/Part.xhtml#Opening" )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim14 rdf:reifies <<( ex:accountC rdf:type gmeow:EpubSpineEntry )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+ex:claim15 rdf:reifies <<( ex:accountC gmeow:epubSpineOrder "1"^^xsd:integer )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+ex:claim16 rdf:reifies <<( ex:accountC gmeow:epubSpineHref "" )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+ex:claim17 rdf:reifies <<( ex:actualSource gmeow:epubSpineEntry ex:accountA )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim18 rdf:reifies <<( ex:accountA gmeow:epubTocPath ex:pathA )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim19 rdf:reifies <<( ex:pathA rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim20 rdf:reifies <<( ex:actualSource gmeow:epubSpineEntry ex:accountB )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim21 rdf:reifies <<( ex:accountB gmeow:epubTocPath ex:pathB )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim22 rdf:reifies <<( ex:pathB rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:view .
+ex:claim23 rdf:reifies <<( ex:pathA gmeow:structuredItem ex:step0 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim24 rdf:reifies <<( ex:step0 rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim25 rdf:reifies <<( ex:step0 gmeow:structuredTerm " Opening " )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim26 rdf:reifies <<( ex:step0 gmeow:epubTocDepth "4"^^xsd:int )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim27 rdf:reifies <<( ex:step0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim28 rdf:reifies <<( ex:pathA gmeow:structuredItem ex:step1 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim29 rdf:reifies <<( ex:step1 rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim30 rdf:reifies <<( ex:step1 gmeow:structuredTerm " Opening " )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim31 rdf:reifies <<( ex:step1 gmeow:epubTocDepth "4"^^xsd:int )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim32 rdf:reifies <<( ex:step1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim33 rdf:reifies <<( ex:pathA gmeow:structuredItem ex:step2 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim34 rdf:reifies <<( ex:step2 rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim35 rdf:reifies <<( ex:step2 gmeow:structuredTerm "" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim36 rdf:reifies <<( ex:step2 gmeow:epubTocDepth "6"^^xsd:integer )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim37 rdf:reifies <<( ex:step2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim38 rdf:reifies <<( ex:pathA gmeow:structuredItem ex:step3 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim39 rdf:reifies <<( ex:step3 rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim40 rdf:reifies <<( ex:step3 gmeow:structuredTerm "Retrouvailles"@fr )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim41 rdf:reifies <<( ex:step3 gmeow:epubTocDepth "9"^^xsd:short )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim42 rdf:reifies <<( ex:step3 gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim43 rdf:reifies <<( ex:pathA gmeow:structuredItem ex:step4 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim44 rdf:reifies <<( ex:step4 rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim45 rdf:reifies <<( ex:step4 gmeow:structuredTerm "عودة"@ar--rtl )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim46 rdf:reifies <<( ex:step4 gmeow:epubTocDepth "9"^^xsd:short )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim47 rdf:reifies <<( ex:step4 gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:view .
+ex:claim48 rdf:reifies <<( ex:standalone rdf:type gmeow:EpubTocPathStep )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+ex:claim49 rdf:reifies <<( ex:standalone gmeow:structuredTerm "Unattached"@en )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+ex:claim50 rdf:reifies <<( ex:standalone gmeow:epubTocDepth "2"^^xsd:integer )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:view .
+```
+
+All 50 asserted scene facts have matching exact-statement reifiers: 7 supplied
+background facts, 31 from A, 6 from B and 6 from C. The scene asserts no model,
+run, Agent, base URI, resolved content resource, immutable revision or digest.
+It supplies no evidence of EPUB XML conformance, parser execution or semantic
+validation. Standalone steps remain subject to the title and depth requirements;
+leaving either missing would violate the selected step contract.

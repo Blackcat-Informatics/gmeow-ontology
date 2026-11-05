@@ -69,3 +69,32 @@ code-point space; no physical quantity or duplicate mathematical coordinate
 system is introduced. All validation obligations remain logic axioms or
 realized formula trees. No existing owner module, test, fixture, competency
 case, producer or parser is changed.
+
+## Recognition reports on the original occurrence
+
+The general `EvidenceSpan` category can retain an original recognition span
+crossing several blocks. It does not inherit the block-local Mention
+requirements upward. `recognizerLabel`, `rootTokenParse` and
+`occurrenceInAnalysisInput` therefore have EvidenceSpan domains; none adds
+a second Mention domain or changes Mention's existing identity contract
+(Principles 4 and 19).
+
+These relations preserve reported recognition meaning. The label is an exact
+string, the root relation selects a descriptive token report, and the input
+association selects the input context of an Analysis result. They infer no
+recognizer-code taxonomy, referent, token identity, source conversion or model
+invocation. Actual source and viewpoint remain on the exact statements.
+Their nonfunctional declarations preserve competing analyses and attributed
+reports (Principles 9 and 17).
+
+The report's own Analysis context keeps its supplied fields paired. An
+occurrence can have reports from several analyses, so a universal equality
+join across all report links and all input associations would erase lawful
+multiplicity. No such law is introduced.
+
+Original occurrences and their block-local fragments remain distinct.
+Broader vocabulary coverage supplies no warrant to label every fragment or
+assign every fragment the original root. Existing offset and source contracts
+still apply where their properties are asserted; no synthetic carrier,
+digest, surface metadata or coordinate conversion is required to retain the
+descriptive recognition fields.

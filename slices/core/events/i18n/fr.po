@@ -412,3 +412,63 @@ msgstr "Éviter de traiter une granularité de gestion sans restriction comme un
 msgctxt "https://blackcatinformatics.ca/gmeow/interruptibilityAtAnyPoint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set interruptibility to gmeow:interruptibilityAtAnyPoint and retain the declaration’s source and context."
 msgstr "Renseigner interruptibility avec gmeow:interruptibilityAtAnyPoint et conserver la source et le contexte de la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "named-period or season resolution"
+msgstr "résolution à l’échelle d’une période nommée ou d’une saison"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Temporal resolution reported at named-period or season level, without asserting a period identity, its boundaries or an exact occurrence instant."
+msgstr "Résolution temporelle rapportée à l’échelle d’une période nommée ou d’une saison, sans affirmer l’identité d’une période, ses bornes ou un instant exact d’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This TemporalPrecision value describes reported dating resolution. It supplies no NamedPeriod, calendar, hemisphere, seasonal boundary, temporal placement or valid EDTF expression."
+msgstr "Cette valeur TemporalPrecision décrit la résolution rapportée d’une datation. Elle ne fournit ni NamedPeriod, ni calendrier, ni hémisphère, ni borne saisonnière, ni placement temporel, ni expression EDTF valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly reports season-level precision for an already identified event; its raw wording \"`fall2025`\" supplies no boundary conversion."
+msgstr "Une source rapporte explicitement une précision à l’échelle d’une saison pour un événement déjà identifié ; sa formulation brute \"`fall2025`\" ne fournit aucune conversion en bornes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly supplies named-period or season-level dating resolution for an Event, independently of whether its actual period or exact bounds are known."
+msgstr "Utiliser lorsqu’une source fournit explicitement une résolution de datation à l’échelle d’une période nommée ou d’une saison pour un Event, indépendamment du fait que sa période réelle ou ses bornes exactes soient connues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this value or a temporal placement from raw wording alone, inventing a NamedPeriod or season boundaries, or treating the tag as an exact instant or validated EDTF value."
+msgstr "Éviter de déduire cette valeur ou un placement temporel de la seule formulation brute, d’inventer un NamedPeriod ou des bornes de saison, ou de traiter l’étiquette comme un instant exact ou une valeur EDTF validée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precisionNamedPeriod|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through temporalPrecision on the actual Event with exact-statement attribution. Retain independently supplied placement through existing temporal carriers; leave unknown boundaries and calendar context unknown."
+msgstr "Référencer cette valeur par temporalPrecision sur l’Event réel avec l’attribution de l’énoncé exact. Conserver le placement fourni indépendamment par les supports temporels existants ; laisser inconnus les bornes et le contexte calendaire inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemporalPrecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resolution at which an event’s time is reported, including day, month, year, decade, circa or named-period/season level. The precision value does not itself place the event in time or require fabricated dateTime bounds."
+msgstr "La résolution à laquelle le temps d’un événement est rapporté, notamment jour, mois, année, décennie, circa ou période nommée/saison. La valeur de précision ne place pas elle-même l’événement dans le temps et n’exige pas de bornes dateTime inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemporalPrecision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using granularity as a date, period identity or epistemic confidence, reviving a free-text eventDate shortcut, or inventing bounds or calendar context from a precision tag."
+msgstr "Éviter d’utiliser la granularité comme date, identité de période ou confiance épistémique, de rétablir un raccourci eventDate en texte libre ou d’inventer des bornes ou un contexte calendaire à partir d’une étiquette de précision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemporalPrecision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a supplied TemporalPrecision individual through temporalPrecision. Preserve independently supported placement through eventTime, eventInterval, eventDuring or source-supplied earliestStart/latestEnd bounds; leave unknown boundaries unknown."
+msgstr "Référencer un individu TemporalPrecision fourni par temporalPrecision. Conserver le placement étayé indépendamment par eventTime, eventInterval, eventDuring ou des bornes earliestStart/latestEnd fournies par la source ; laisser inconnues les bornes inconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TemporalPrecision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the open value vocabulary for reported dating resolution, including named-period or seasonal precision, independently of whether exact placement or dateTime bounds are known."
+msgstr "Utiliser comme vocabulaire ouvert de valeurs pour la résolution de datation rapportée, y compris la précision de période nommée ou saisonnière, indépendamment du fait qu’un placement exact ou des bornes dateTime soient connus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The TemporalPrecision value describing the reported resolution of this Event’s dating, including named-period/season level as well as day, month, year, decade or circa."
+msgstr "La valeur TemporalPrecision décrivant la résolution rapportée de la datation de cet Event, à l’échelle d’une période nommée/saison ainsi que du jour, du mois, de l’année, de la décennie ou de circa."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this precision value as a date, an identified period, a calendar or hemisphere choice, or epistemic confidence, or inferring exact instants or bounds from it."
+msgstr "Éviter de traiter cette valeur de précision comme une date, une période identifiée, un choix de calendrier ou d’hémisphère, ou une confiance épistémique, ou d’en inférer des instants exacts ou des bornes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event at the supplied precision value with exact-statement attribution. Retain a temporal placement separately only when independently supplied; do not invent midnight, a calendar or season boundaries."
+msgstr "Relier l’Event réel à la valeur de précision fournie avec l’attribution de l’énoncé exact. Conserver séparément un placement temporel uniquement lorsqu’il est fourni indépendamment ; ne pas inventer minuit, un calendrier ou des bornes de saison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state how precisely an actual Event is dated, including named-period or season-level resolution, without claiming missing temporal placement."
+msgstr "Utiliser pour indiquer la précision de datation d’un Event réel, y compris une résolution à l’échelle d’une période nommée ou d’une saison, sans affirmer un placement temporel manquant."

@@ -2050,3 +2050,1348 @@ msgstr "Éviter de typer le document source entier comme Chunk (la source est un
 msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."
 msgstr "Utiliser pour un segment adapté à la recherche, découpé dans une source plus grande : l’unité renvoyée par la recherche, lue par un modèle et ancrée par une plage de preuve ; le type d’objet informationnel manquant dans la chaîne Source → Chunk → EvidenceSpan → nœud d’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis first source-chunk key"
+msgstr "clé du premier fragment source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this Analysis's selected input unit."
+msgstr "La clé entière fournie identifiant le premier fragment source rapporté pour l’unité d’entrée sélectionnée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Interpret the key only under the supplied source context and key convention. It is not entryOrdinal or spanStart and imposes no global key origin, numeric ordering, continuity or input-byte identity."
+msgstr "N’interpréter la clé que selon le contexte source et la convention de clés fournis. Elle n’est ni entryOrdinal ni spanStart et n’impose aucune origine globale des clés, aucun ordre numérique, aucune continuité ni identité des octets d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 when those endpoint keys were supplied."
+msgstr "Consigner ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 lorsque ces clés d’extrémité ont été fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key reported for the unit an analysis read."
+msgstr "Utiliser pour conserver la clé du premier fragment source rapportée pour l’unité lue par une analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a canonical chunk ordinal, treating it as a code-point start, or assuming the emitted retrieval chunk has the original input text."
+msgstr "Éviter de convertir la clé en ordinal canonique de fragment, de la traiter comme une position initiale en points de code ou de supposer que le fragment de recherche émis contient le texte d’entrée original."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFirstChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the Analysis with any supplied last key, source-key frame, construction, chapter and source context. Leave unavailable endpoints and conventions absent rather than inventing them."
+msgstr "Garder l’entier fourni sur l’Analysis avec toute clé de fin, tout repère de clés source et tout contexte de construction, de chapitre ou de source fournis. Laisser absentes les extrémités et conventions indisponibles plutôt que de les inventer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis last source-chunk key"
+msgstr "clé du dernier fragment source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this Analysis's selected input unit."
+msgstr "La clé entière fournie identifiant le dernier fragment source rapporté pour l’unité d’entrée sélectionnée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reported endpoint does not impose a universal inclusive or exclusive convention, consecutive membership, numeric ordering or equality with the first key at chunk granularity. It is not spanEnd."
+msgstr "L’extrémité rapportée n’impose aucune convention universelle inclusive ou exclusive, appartenance consécutive, ordre numérique ni égalité avec la première clé à la granularité fragment. Elle n’est pas spanEnd."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisLastChunkKey 18 while retaining the separately supplied first key and source convention."
+msgstr "Consigner ex:analysis gmeow:analysisLastChunkKey 18 en conservant la première clé et la convention source fournies séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the unit an analysis read."
+msgstr "Utiliser pour préserver la clé du dernier fragment source fournie pour l’unité lue par une analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to obtain a half-open endpoint, equating the key with a code-point bound, or claiming all intervening chunks were present."
+msgstr "Éviter d’ajouter un pour obtenir une extrémité semi-ouverte, d’assimiler la clé à une borne en points de code ou d’affirmer la présence de tous les fragments intermédiaires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisLastChunkKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the Analysis and preserve any supplied input-context descriptors. Interpret endpoint inclusion or source membership only when the source convention actually supplies it."
+msgstr "Conserver l’entier sans modification sur l’Analysis et préserver tous les descripteurs de contexte d’entrée fournis. N’interpréter l’inclusion d’extrémité ou l’appartenance source que lorsque la convention source les fournit réellement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source-chunk key frame descriptor"
+msgstr "descripteur du repère des clés de fragments source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this Analysis's reported chunk keys."
+msgstr "Une chaîne fournie décrivant l’espace de noms des clés source ou la convention d’indexation des clés de fragments rapportées de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptor preserves stated context; it is not an authenticated coordinate system, complete key inventory or mandatory source artifact. Multiple supplied descriptions may coexist without making the keys globally comparable."
+msgstr "Ce descripteur conserve le contexte énoncé ; il n’est ni un système de coordonnées authentifié, ni un inventaire complet des clés, ni un artefact source obligatoire. Plusieurs descriptions fournies peuvent coexister sans rendre les clés globalement comparables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" when that descriptor is supplied."
+msgstr "Conserver ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" lorsque ce descripteur est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for an analysis input."
+msgstr "Utiliser lorsqu’une source fournit un descripteur textuel d’espace de noms des clés ou de convention d’indexation pour une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, treating descriptive text as an executable frame or requiring an artifact when only a descriptor was supplied."
+msgstr "Éviter d’inventer un schéma d’origine zéro, de traiter du texte descriptif comme un repère exécutable ou d’exiger un artefact lorsque seul un descripteur a été fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChunkKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the Analysis alongside its reported keys. Keep an unknown frame unknown; the descriptor does not authenticate a source or compute a key mapping."
+msgstr "Copier la chaîne xsd:string fournie sur l’Analysis à côté de ses clés rapportées. Laisser inconnu un repère inconnu ; le descripteur n’authentifie pas une source et ne calcule pas une correspondance de clés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input construction description"
+msgstr "description de construction de l’entrée d’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this Analysis's input text was assembled, such as its trimming, omission or separator conventions."
+msgstr "Une description fournie de la façon dont le texte d’entrée de cette Analysis a été assemblé, par exemple ses conventions de suppression des espaces en début et en fin de texte, d’omission ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This specifically named descriptive field preserves its complete string literal. It is not a structured parameter blob, executable profile, frozen artifact, historical-byte witness or claim that a construction was executed."
+msgstr "Ce champ descriptif explicitement nommé conserve son littéral chaîne complet. Il n’est ni un bloc de paramètres structurés, ni un profil exécutable, ni un artefact figé, ni un témoin d’octets historiques, ni une affirmation qu’une construction a été exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en when that description is supplied."
+msgstr "Conserver ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en lorsque cette description est fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing how the selected analysis input was assembled."
+msgstr "Utiliser pour conserver la prose fournie décrivant comment l’entrée d’analyse sélectionnée a été assemblée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable input text or assembly rules, or treating this description as proof that historical input bytes match."
+msgstr "Éviter d’inventer du texte d’entrée ou des règles d’assemblage indisponibles, ou de traiter cette description comme preuve que les octets d’entrée historiques concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisInputConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied description and its language and direction on the Analysis. Retain distinct attributed descriptions as given and leave unknown construction details absent."
+msgstr "Conserver la description fournie ainsi que sa langue et sa direction sur l’Analysis. Retenir les descriptions attribuées distinctes telles quelles et laisser absents les détails de construction inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis source chapter key"
+msgstr "clé de chapitre source de l’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this Analysis's input."
+msgstr "La clé entière de chapitre ou de groupe de chapitres fournie qui influe sur la sélection source pour l’entrée de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The key retains the source's grouping context without creating a ContentSegment, chapter ordinal or universal numbering scheme. It need not describe a chapter-granularity analysis; another input unit may also be selected within a chapter."
+msgstr "La clé conserve le contexte de regroupement de la source sans créer de ContentSegment, d’ordinal de chapitre ni de schéma de numérotation universel. Elle ne décrit pas nécessairement une analyse à granularité chapitre ; une autre unité d’entrée peut aussi être sélectionnée dans un chapitre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:analysis gmeow:analysisChapterKey 4 when that source chapter key accompanies the selected input."
+msgstr "Conserver ex:analysis gmeow:analysisChapterKey 4 lorsque cette clé de chapitre source accompagne l’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks an analysis input selects."
+msgstr "Utiliser lorsqu’une clé de chapitre ou de groupe fournie influe sur les fragments source sélectionnés par une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a chapter position, inferring a structural chapter object or assuming it is independent of the source-key frame."
+msgstr "Éviter de convertir la clé en position de chapitre, d’inférer un objet chapitre structurel ou de supposer son indépendance vis-à-vis du repère des clés source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied integer with any reported chunk endpoints and source context. Do not add a missing chapter key or change the analysis granularity merely because this descriptor is present."
+msgstr "Préserver l’entier fourni avec toutes les extrémités de fragments et le contexte source rapportés. Ne pas ajouter de clé de chapitre manquante ni changer la granularité de l’analyse du seul fait que ce descripteur est présent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysis input source context"
+msgstr "contexte source de l’entrée d’analyse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source information object associated with the reported input keys or source selection of this Analysis."
+msgstr "Un objet informationnel source réellement identifié, associé aux clés d’entrée ou à la sélection source rapportées de cette Analysis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link records supplied source context. It does not by itself identify immutable analyzer-input bytes, certify an exact source revision or turn the Analysis result into a text carrier. Several attributed source-context links may coexist."
+msgstr "Le lien enregistre le contexte source fourni. À lui seul, il n’identifie pas des octets d’entrée immuables de l’analyseur, ne certifie pas une révision source exacte et ne transforme pas le résultat Analysis en support de texte. Plusieurs liens de contexte source attribués peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:analysisSourceContext ex:sourceRecord when that source information object is actually identified."
+msgstr "Consigner ex:analysis gmeow:analysisSourceContext ex:sourceRecord lorsque cet objet informationnel source est réellement identifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for an analysis input's chunk keys or selection."
+msgstr "Utiliser pour conserver un objet source identifié fourni comme contexte des clés de fragments ou de la sélection d’une entrée d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence, treating a mutable source identity as authenticated input bytes or requiring an unsupported digest."
+msgstr "Éviter de créer un objet source pour combler une preuve manquante, de traiter une identité source mutable comme des octets d’entrée authentifiés ou d’exiger une empreinte non étayée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied InformationObject and retain its stated role alongside any input descriptors. Omit the relation when no source object is supplied; this property neither reconstructs nor authenticates text."
+msgstr "Ne relier que l’InformationObject réellement fourni et conserver son rôle déclaré avec tous les descripteurs d’entrée. Omettre la relation lorsqu’aucun objet source n’est fourni ; cette propriété ne reconstruit ni n’authentifie le texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk input granularity"
+msgstr "granularité d’entrée par fragment"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chunk resolution under its source's chunk convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution fragment selon la convention de fragments de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a resolution individual, not a class of chunks or a fixed text length. It does not equate source keys with retrieval chunks, require equal endpoint keys or establish a universal granularity ordering."
+msgstr "Il s’agit d’un individu de résolution, non d’une classe de fragments ni d’une longueur de texte fixe. Il n’assimile pas les clés source aux fragments de recherche, n’exige pas de clés d’extrémité égales et n’établit pas d’ordre universel de granularité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChunk when chunk input granularity was supplied."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityChunk lorsque la granularité d’entrée par fragment a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chunk granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à la granularité fragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chunk size, source coordinates, key conventions or a specific chunking solely from this value."
+msgstr "Éviter d’inférer la taille des fragments, des coordonnées source, des conventions de clés ou un découpage particulier à partir de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChunk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and preserve the supplied source and input descriptors separately. Keep other attributed granularity values without selecting a winner."
+msgstr "Référencer cet individu par hasGranularity et conserver séparément les descripteurs de source et d’entrée fournis. Garder les autres valeurs de granularité attribuées sans désigner de gagnant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "passage input granularity"
+msgstr "granularité d’entrée par passage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at passage resolution under its source's passage convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution passage selon la convention de passages de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A passage has no universal size, chunk count or required position in a granularity ladder. This individual supplies no assembly rule, contiguous-source-cut claim or identity with a structural ContentSegment."
+msgstr "Un passage n’a ni taille universelle, ni nombre universel de fragments, ni position obligatoire dans une échelle de granularité. Cet individu ne fournit ni règle d’assemblage, ni affirmation de découpe source contiguë, ni identité avec un ContentSegment structurel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityPassage while retaining any supplied first and last source-chunk keys."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityPassage en conservant toutes les clés de premier et dernier fragments source fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly describes the selected input unit as a passage."
+msgstr "Utiliser lorsque la source décrit explicitement l’unité d’entrée sélectionnée comme un passage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a passage's text, boundaries, size or relation to chapter granularity from this value alone."
+msgstr "Éviter de déduire le texte, les limites, la taille ou le rapport d’un passage à la granularité chapitre à partir de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityPassage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use hasGranularity to retain this supplied resolution and keep source-key, construction and grouping descriptors separately. Do not invent a fixed passage segmentation or a coarserThan edge."
+msgstr "Utiliser hasGranularity pour conserver cette résolution fournie et garder séparément les descripteurs de clés source, de construction et de regroupement. Ne pas inventer de segmentation fixe des passages ni d’arête coarserThan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chapter input granularity"
+msgstr "granularité d’entrée par chapitre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at chapter resolution under its source's chapter convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à la résolution chapitre selon la convention de chapitres de sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify a chapter ContentSegment, select a numbering origin or prove that the input equals a structural chapter's exact text. Chapter grouping and input construction remain separate supplied context."
+msgstr "Cette valeur de résolution ne crée ni n’identifie un ContentSegment de chapitre, ne sélectionne pas d’origine de numérotation et ne prouve pas que l’entrée est égale au texte exact d’un chapitre structurel. Le regroupement en chapitres et la construction de l’entrée restent des contextes fournis distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityChapter and retain a supplied analysisChapterKey separately."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityChapter et conserver séparément un analysisChapterKey fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at chapter granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à la granularité chapitre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring chapter identity, chapter order, input bytes or a universal relation to passage or chunk granularity."
+msgstr "Éviter d’inférer l’identité d’un chapitre, l’ordre des chapitres, les octets d’entrée ou un rapport universel à la granularité passage ou fragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityChapter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."
+msgstr "Conserver cet individu par hasGranularity avec tous les descripteurs de contexte source et de clé de chapitre fournis. Préserver les autres résolutions attribuées sans fusionner leurs conventions."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk in source division"
+msgstr "fragment dans une division source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source division containing the whole particular occurrence of source content represented by this Chunk under the supplied segmentation."
+msgstr "La division source contenant la totalité de l’occurrence particulière du contenu source représentée par ce Chunk dans la segmentation fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is optional and nonfunctional; nested divisions genuinely containing the whole occurrence can coexist. It specializes broad partOf without changing chunkOf or making a Chunk a structural ContentSegment. Recording containment does not prove it, compute a nearest ancestor or convert coordinates."
+msgstr "La relation est facultative et non fonctionnelle ; des divisions imbriquées contenant réellement toute l’occurrence peuvent coexister. Elle spécialise le partOf général sans modifier chunkOf ni faire d’un Chunk un ContentSegment structurel. Consigner la contenance ne la prouve pas, ne calcule pas l’ancêtre le plus proche et ne convertit aucune coordonnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|http://www.w3.org/2004/02/skos/core#example"
+msgid "With actual attribution retained, record ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . The section contains the whole represented source occurrence."
+msgstr "En conservant l’attribution réelle, consigner ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . La section contient toute l’occurrence source représentée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."
+msgstr "Utiliser lorsqu’une source ou une analyse attribuée fournit une division contenant toute l’occurrence de contenu source représentée par un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."
+msgstr "Éviter de l’utiliser pour une division seulement intersectée, une formulation identique ailleurs, une association arbitraire ou la division sur laquelle porte un résumé généré sans contenance réelle de tout le contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkInDivision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."
+msgstr "Relier le Chunk concerné à chaque ContentSegment fourni comme contenant, en conservant la source réelle et l’attribution de l’assertion exacte. Préserver tout contexte inChunking existant et laisser inchangés chunkOf, les bornes d’étendue et les ancrages de source et d’empreinte ; ne pas inventer un conteneur inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "whole-work input granularity"
+msgstr "granularité d’entrée à l’échelle de l’œuvre entière"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open text-unit granularity value for an input reported at whole-work resolution under its source's work convention."
+msgstr "La valeur ouverte de granularité d’unité textuelle pour une entrée rapportée à l’échelle de l’œuvre entière selon la convention de sa source concernant l’unité « œuvre »."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This resolution value does not create or identify an abstract Work or a particular realization. A whole file or document does not establish whole-work scope. The value does not authenticate complete coverage or imply that every edition, language or realization was read."
+msgstr "Cette valeur de résolution ne crée ni n’identifie un Work abstrait ou une réalisation particulière. Un fichier ou document entier n’établit pas une portée couvrant l’œuvre entière. La valeur n’authentifie pas une couverture complète et n’implique pas que chaque édition, langue ou réalisation a été lue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:analysis gmeow:hasGranularity gmeow:granularityWork only when whole-work input granularity was supplied."
+msgstr "Consigner ex:analysis gmeow:hasGranularity gmeow:granularityWork uniquement lorsqu’une granularité d’entrée à l’échelle de l’œuvre entière a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."
+msgstr "Utiliser lorsqu’une entrée d’analyse ou un autre enregistrement d’unité textuelle est explicitement décrit à l’échelle de l’œuvre entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."
+msgstr "Éviter d’inférer cette valeur à partir d’un fichier entier, d’un document, d’un titre ou de l’identité d’un Work, ou de l’utiliser pour affirmer que les octets d’entrée ont été reconstitués ou que la couverture de la source est complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/granularityWork|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."
+msgstr "Référencer cet individu par hasGranularity et conserver séparément les descripteurs de source, de clés source et de construction fournis. Laisser inconnues les conventions d’œuvre inconnues et préserver les autres résolutions attribuées sans en privilégier une."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker name"
+msgstr "nom du segmenteur rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact name supplied for the chunker associated with this Chunking."
+msgstr "Le nom exact fourni pour le segmenteur associé à ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text preserves a reported label, not an executable identity or proof that a named implementation ran. Equal names do not identify algorithms, rules artifacts or chunkings."
+msgstr "Ce texte facultatif et non fonctionnel conserve une étiquette rapportée, non une identité exécutable ni la preuve qu’une implémentation nommée a été exécutée. Des noms identiques n’identifient pas des algorithmes, des artefacts de règles ou des segmentations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+msgstr "Conserver le libellé fourni : ex:segmentation gmeow:chunkerName \"Outline cutter\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a chunker name for the recorded segmentation."
+msgstr "Utiliser lorsqu’une source fournit un nom de segmenteur pour la segmentation consignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a name from the rules artifact, normalizing its spelling or treating it as a callable signature, model run or preferred implementation."
+msgstr "Éviter de déduire un nom de l’artefact de règles, de normaliser sa graphie ou de le traiter comme une signature appelable, une exécution de modèle ou une implémentation privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied string with its original lexical form, language and direction on the actual Chunking. Retain exact-statement attribution and leave a missing name absent."
+msgstr "Conserver chaque chaîne fournie, avec sa forme lexicale, sa langue et sa direction originales, sur le Chunking concerné. Conserver l’attribution de l’assertion exacte et laisser absent un nom manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker version"
+msgstr "version du segmenteur rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact version wording supplied for the chunker associated with this Chunking."
+msgstr "Le libellé exact de version fourni pour le segmenteur associé à ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional text imposes no version grammar, ordering or identity rule. It neither replaces the frozen rules-artifact digest nor pairs every reported name with every version or parameter map."
+msgstr "Ce texte facultatif et non fonctionnel n’impose ni grammaire de version, ni ordre, ni règle d’identité. Il ne remplace pas l’empreinte de l’artefact de règles figé et n’associe pas chaque nom rapporté à chaque version ou table de paramètres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain supplied wording: ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+msgstr "Conserver le libellé fourni : ex:segmentation gmeow:chunkerVersion \"edition amber\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies version wording for the recorded chunker."
+msgstr "Utiliser lorsqu’une source fournit un libellé de version pour le segmenteur consigné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a missing version, parsing it as a numeric magnitude or using a name and version as proof of implementation identity or execution."
+msgstr "Éviter d’inventer une version manquante, de l’analyser comme une grandeur numérique ou d’utiliser un nom et une version comme preuve d’identité d’implémentation ou d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied string and its exact-statement source and viewpoint. Keep the actual rules artifact and its selected digest pin separately; leave unknown version information absent."
+msgstr "Conserver la chaîne fournie complète ainsi que la source et le point de vue de son assertion exacte. Garder séparément l’artefact de règles réel et son empreinte sélectionnée ; laisser absentes les informations de version inconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunker parameters"
+msgstr "paramètres du segmenteur rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied map occurrence retaining the descriptive parameter strings reported for this Chunking."
+msgstr "Une occurrence de table fournie conservant les chaînes descriptives de paramètres rapportées pour ce Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredMap of exact string keys and descriptive text values. A typed empty map differs from an absent map. Independent maps remain separate; the relation asserts neither executable arguments nor a complete external inventory."
+msgstr "Cette relation facultative et non fonctionnelle sélectionne un StructuredMap de clés textuelles exactes et de valeurs textuelles descriptives. Une table vide typée diffère d’une table absente. Les tables indépendantes restent distinctes ; la relation n’affirme ni arguments exécutables ni inventaire externe complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link a supplied map: ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+msgstr "Relier une table fournie : ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each supplied parameter key and its descriptive string as queryable graph content for a Chunking."
+msgstr "Utiliser pour conserver chaque clé de paramètre fournie et sa chaîne descriptive comme contenu de graphe interrogeable pour un Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an opaque JSON blob, keys turned into predicates, numeric coercion, invented units or order, or replacing the actual rules artifact with these descriptions."
+msgstr "Éviter un bloc JSON opaque, la transformation des clés en prédicats, la coercition numérique, des unités ou un ordre inventés, ou le remplacement de l’artefact de règles réel par ces descriptions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkerParameters|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Chunking to each supplied StructuredMap. Retain one LabelledFacet per entry with its exact xsd:string facetLabel and complete facetText; preserve attribution, empty strings and any supplied language or direction without inventing ordinals."
+msgstr "Relier le Chunking à chaque StructuredMap fourni. Conserver un LabelledFacet par entrée avec son facetLabel xsd:string exact et son facetText complet ; préserver l’attribution, les chaînes vides et toute langue ou direction fournie, sans inventer d’ordinaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter descriptive text"
+msgstr "texte descriptif des paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText."
+msgstr "Chaque entrée de facette d’une table sélectionnée par chunkerParameters porte son texte descriptif par facetText."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The requirement is scoped to selected chunker maps. Generic label-only facets remain valid elsewhere; an empty parameter map requires no invented entry."
+msgstr "L’exigence est limitée aux tables de segmenteur sélectionnées. Les facettes génériques ne portant qu’une étiquette restent valides ailleurs ; une table de paramètres vide n’exige aucune entrée inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected map entry retains ex:entry gmeow:facetText \"Keep headings together.\" ."
+msgstr "Une entrée de table sélectionnée conserve ex:entry gmeow:facetText \"Keep headings together.\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject a selected parameter entry whose descriptive value is missing."
+msgstr "Utiliser pour rejeter une entrée de paramètre sélectionnée dont la valeur descriptive manque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with a null, typed numeric value, nested payload or fabricated empty string."
+msgstr "Éviter de satisfaire cette loi par une valeur nulle, une valeur numérique typée, un contenu imbriqué ou une chaîne vide fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkerParameters and hasFacet, then require facetText on each supplied entry. Reuse the existing text range, functionality and payload-exclusion laws without changing generic facet semantics."
+msgstr "Suivre chunkerParameters et hasFacet, puis exiger facetText sur chaque entrée fournie. Réutiliser la plage de texte, la fonctionnalité et les lois d’exclusion de contenu existantes sans modifier la sémantique générique des facettes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter exact string key"
+msgstr "clé textuelle exacte des paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype."
+msgstr "Chaque facetLabel fourni dans une table sélectionnée par chunkerParameters possède exactement le type de données xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks the original literal datatype without trimming, retyping or interpreting the key. Empty string keys remain valid; generic maps retain their existing key types."
+msgstr "Ce contrôle vérifie le type de données du littéral original sans supprimer d’espaces, changer son type ou interpréter la clé. Les clés vides restent valides ; les tables génériques conservent leurs types de clés existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied plain key remains ex:entry gmeow:facetLabel \"section policy\" ."
+msgstr "Une clé simple fournie reste ex:entry gmeow:facetLabel \"section policy\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that selected chunker parameter keys retain the source string datatype."
+msgstr "Utiliser pour vérifier que les clés de paramètres du segmenteur sélectionnées conservent le type textuel de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting token, language-tagged, numeric or resource keys by converting them into strings."
+msgstr "Éviter d’accepter des clés token, marquées d’une langue, numériques ou ressources en les convertissant en chaînes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyDatatypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each selected entry and its facetLabel, then compare the label's datatype component with xsd:string through termSameComponent. Keep the supplied term unchanged and report a mismatch."
+msgstr "Lier chaque entrée sélectionnée et son facetLabel, puis comparer le composant de type de données de l’étiquette à xsd:string par termSameComponent. Garder inchangé le terme fourni et signaler toute différence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunker parameter map key uniqueness"
+msgstr "unicité des clés de table de paramètres du segmenteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term."
+msgstr "Des occurrences d’entrée distinctes dans une même table sélectionnée par chunkerParameters ne partagent pas le même terme RDF complet comme clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The comparison is local to one selected map and uses whole-term identity for both keys and entry occurrences. Equal keys in different maps remain independent; no identity merge or preferred value follows."
+msgstr "La comparaison est locale à une table sélectionnée et utilise l’identité du terme entier pour les clés comme pour les occurrences d’entrée. Des clés identiques dans des tables différentes restent indépendantes ; il n’en découle ni fusion d’identité ni valeur privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two different entries of ex:parameters cannot both carry the same complete facetLabel literal."
+msgstr "Deux entrées différentes de ex:parameters ne peuvent pas porter toutes deux le même littéral facetLabel complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject duplicate key occurrences within a supplied chunker parameter map."
+msgstr "Utiliser pour rejeter les occurrences de clé en double dans une table de paramètres de segmenteur fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid global key uniqueness, key-derived entry identities, sameAs merging, last-value selection or SPARQL value equality in place of RDF term identity."
+msgstr "Éviter l’unicité globale des clés, les identités d’entrée dérivées des clés, la fusion sameAs, la sélection de la dernière valeur ou l’égalité de valeurs SPARQL à la place de l’identité des termes RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkerParameterKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."
+msgstr "Lier deux entrées et leurs deux clés par la même table sélectionnée. Comparer les termes de clé complets avec termSameComponent ; des clés identiques exigent le même terme d’entrée complet ; sinon, conserver les enregistrements et signaler le conflit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "regression score"
+msgstr "score de régression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model-predicted scalar for the output dimension identified by the emitted ClassifierLabel, rather than a probability."
+msgstr "Un scalaire prédit par un modèle pour la dimension de sortie identifiée par le ClassifierLabel émis, et non une probabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declares regression meaning for the raw decimal classifierScore. It supplies no universal range, scale, unit, calibration, epistemic confidence, evidence strength or decision policy. The named output dimension is a model output identity, not an invented mathematical dimension."
+msgstr "Cette valeur déclare le sens de régression du classifierScore décimal brut. Elle ne fournit aucune plage, échelle ou unité universelle, ni étalonnage, confiance épistémique, force probante ou politique de décision. La dimension de sortie nommée est une identité de sortie du modèle, et non une dimension mathématique inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Retain the actual run and source attribution separately."
+msgstr "Consigner ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Conserver séparément l’exécution réelle et l’attribution à la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a model emits a scalar regression prediction for an explicitly identified output dimension."
+msgstr "Utiliser lorsqu’un modèle émet une prédiction scalaire de régression pour une dimension de sortie explicitement identifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the score as a probability, calibration, confidence or evidence strength, assuming a unit interval, argmax or threshold, or replacing actual quantity measurements with this raw model score."
+msgstr "Éviter de traiter le score comme une probabilité, un étalonnage, une confiance ou une force probante, de supposer un intervalle unité, un argmax ou un seuil, ou de remplacer des mesures réelles de quantités par ce score brut du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreRegression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."
+msgstr "Déclarer cet individu par scoreSemantics sur la sortie, conserver ses classifierScore et emittedLabel exacts et préserver producedBy avec le ModelInferenceRun réel, la révision du modèle, l’entrée et la provenance de la source. Conserver tout contexte d’interprétation fourni séparément sans inventer d’échelle, d’unité ou de règle de décision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunk Span"
+msgstr "Plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified source-text input unit reported as a range of source chunks under its supplied selection context."
+msgstr "Une unité d’entrée de texte source identifiée, rapportée comme une plage de fragments source dans son contexte de sélection fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This EvidenceSpan specialization identifies the selected content unit and inherits InformationObject. Its supplied identity is not determined by endpoint integers, wording or granularity alone, and it need not be a contiguous retrieval Chunk."
+msgstr "Cette spécialisation d’EvidenceSpan identifie l’unité de contenu sélectionnée et hérite d’InformationObject. Son identité fournie n’est pas déterminée par les seuls entiers de bornes, le texte ou la granularité ; il ne s’agit pas nécessairement d’un Chunk de récupération contigu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a classifier or Measurement reports an input unit spanning source chunks under a supplied selection context."
+msgstr "À utiliser lorsqu’un classifieur ou une Measurement rapporte une unité d’entrée couvrant des fragments source dans un contexte de sélection fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing an output or an input descriptor as the selected content, wrapping every existing Chunk, or adding a second ultimate Kind to a Chunk or ContentSegment."
+msgstr "Ne typez pas une sortie ou un descripteur d’entrée comme le contenu sélectionné, n’enveloppez pas chaque Chunk existant et n’ajoutez pas un second Kind ultime à un Chunk ou ContentSegment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point classifiedTarget or observedFeature to the actual supplied unit identity. Keep granularity and supplied descriptors on that unit; keep outputs, runs and results separate. Reuse an actual existing Chunk with its complete contract."
+msgstr "Faites pointer classifiedTarget ou observedFeature vers l’identité réellement fournie de l’unité. Conservez sur cette unité la granularité et les descripteurs fournis ; séparez sorties, exécutions et résultats. Réutilisez un véritable Chunk existant avec son contrat complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkSpan|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the selected content: ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+msgstr "Identifiez le contenu sélectionné : ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span first source-chunk key"
+msgstr "clé du premier fragment source de la plage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the first source chunk reported for this ChunkSpan."
+msgstr "La clé entière fournie identifiant le premier fragment source rapporté pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It is a source identifier, not an ordinal, code-point coordinate, count or numeric magnitude."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. C’est un identifiant source, pas un ordinal, une coordonnée de point de code, un compte ou une grandeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the first source-chunk key supplied for the selected input unit."
+msgstr "À utiliser pour conserver la clé fournie du premier fragment source de l’unité d’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into entryOrdinal or spanStart, inventing a key origin or inferring continuity from endpoint values."
+msgstr "Ne convertissez pas la clé en entryOrdinal ou spanStart, n’inventez pas d’origine des clés et ne déduisez pas la continuité des valeurs des bornes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied integer on the ChunkSpan with any supplied last key, chapter key, key frame, construction and source context. Leave an unavailable first key absent."
+msgstr "Conservez l’entier fourni sur la ChunkSpan avec les autres éléments fournis : dernière clé, clé de chapitre, repère des clés, construction et contexte source. Laissez absente une première clé indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanFirstKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported first key: ex:unit gmeow:chunkSpanFirstKey 12 ."
+msgstr "Conservez la première clé rapportée : ex:unit gmeow:chunkSpanFirstKey 12 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span last source-chunk key"
+msgstr "clé du dernier fragment source de la plage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer key identifying the last source chunk reported for this ChunkSpan."
+msgstr "La clé entière fournie identifiant le dernier fragment source rapporté pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It establishes no inclusive or exclusive convention, numeric order, consecutive membership or equality with the first key."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. Elle n’établit ni convention inclusive ou exclusive, ni ordre numérique, ni appartenance consécutive, ni égalité avec la première clé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the last source-chunk key supplied for the selected input unit."
+msgstr "À utiliser pour conserver la clé fournie du dernier fragment source de l’unité d’entrée sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding one to form a half-open bound, treating the key as spanEnd or claiming every intervening chunk was selected."
+msgstr "N’ajoutez pas un pour former une borne semi-ouverte, ne traitez pas la clé comme spanEnd et n’affirmez pas que chaque fragment intermédiaire a été sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the integer unchanged on the ChunkSpan and keep any supplied first key and selection context. Interpret endpoint inclusion only under an actually supplied convention."
+msgstr "Conservez l’entier inchangé sur la ChunkSpan avec l’éventuelle première clé et le contexte de sélection fournis. N’interprétez l’inclusion de la borne que selon une convention réellement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanLastKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the reported last key: ex:unit gmeow:chunkSpanLastKey 18 ."
+msgstr "Conservez la dernière clé rapportée : ex:unit gmeow:chunkSpanLastKey 18 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source chapter key"
+msgstr "clé de chapitre source de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied integer chapter or chapter-group key affecting the source selection for this ChunkSpan."
+msgstr "La clé entière fournie de chapitre ou de groupe de chapitres qui intervient dans la sélection source de cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional key is at most one per coherent ChunkSpan. It retains grouping context without creating a ContentSegment, chapter ordinal or numbering convention."
+msgstr "Cette clé facultative est unique au plus pour une ChunkSpan cohérente. Elle conserve le contexte de regroupement sans créer de ContentSegment, d’ordinal de chapitre ou de convention de numérotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied chapter or group key affects which source chunks the input selects."
+msgstr "À utiliser lorsqu’une clé fournie de chapitre ou de groupe intervient dans le choix des fragments source de l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the key into a structural chapter position or inferring chapter granularity solely from its presence."
+msgstr "Ne convertissez pas la clé en position structurelle de chapitre et ne déduisez pas la granularité de chapitre de sa seule présence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the integer with the ChunkSpan's supplied endpoint and source descriptors. A different grouping selection uses its own actual unit identity."
+msgstr "Conservez l’entier avec les descripteurs de bornes et de source fournis pour la ChunkSpan. Une sélection dans un autre regroupement utilise sa propre identité réelle d’unité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanChapterKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied grouping key: ex:unit gmeow:chunkSpanChapterKey 4 ."
+msgstr "Conservez la clé de regroupement fournie : ex:unit gmeow:chunkSpanChapterKey 4 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span source-key frame descriptor"
+msgstr "descripteur du repère des clés source de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied string describing the source-key namespace or indexing convention of this ChunkSpan's reported chunk keys."
+msgstr "Une chaîne fournie décrivant l’espace de noms des clés source ou la convention d’indexation des clés de fragments rapportées pour cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptor preserves stated context without authenticating a coordinate system or complete key inventory. Several attributed descriptions may coexist."
+msgstr "Ce descripteur facultatif conserve le contexte énoncé sans authentifier un système de coordonnées ou un inventaire complet des clés. Plusieurs descriptions attribuées peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a textual key namespace or indexing-convention descriptor for a selected chunk span."
+msgstr "À utiliser lorsqu’une source fournit une description textuelle de l’espace de noms des clés ou de la convention d’indexation d’une plage de fragments sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a zero-origin scheme, computing a key mapping from prose or treating equal descriptions as shared source identity."
+msgstr "N’inventez pas de schéma commençant à zéro, ne calculez pas de correspondance des clés à partir de prose et ne traitez pas des descriptions égales comme une identité source commune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string onto the ChunkSpan alongside its reported keys. Keep an unknown key frame unknown and retain exact-statement attribution."
+msgstr "Copiez le xsd:string fourni sur la ChunkSpan avec ses clés rapportées. Laissez inconnu un repère de clés inconnu et conservez l’attribution de l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanKeyFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a supplied key descriptor: ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+msgstr "Conservez un descripteur de clés fourni : ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input construction description"
+msgstr "description de construction de l’entrée de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied description of how this ChunkSpan's selected input text was assembled, including stated trimming, omission or separator conventions."
+msgstr "Une description fournie de l’assemblage du texte d’entrée sélectionné de cette ChunkSpan, notamment les conventions déclarées de suppression d’espaces, d’omission ou de séparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional descriptive field preserves the complete literal, including actual language and direction. It is not an executable profile, structured parameter blob or historical-byte witness."
+msgstr "Ce champ descriptif facultatif conserve le littéral complet, y compris sa langue et sa direction réelles. Ce n’est ni un profil exécutable, ni un bloc de paramètres structurés, ni un témoin des octets historiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve supplied prose describing the assembly of a reported chunk-span input."
+msgstr "À utiliser pour conserver la prose fournie décrivant l’assemblage d’une entrée rapportée comme plage de fragments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing unavailable text or assembly rules, interpreting the prose as execution evidence or normalizing its supplied literal."
+msgstr "N’inventez pas de texte ou de règles d’assemblage indisponibles, n’interprétez pas cette prose comme une preuve d’exécution et ne normalisez pas le littéral fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied string and any actual language tag and direction on the ChunkSpan. Retain competing attributed descriptions separately; leave unknown construction details absent."
+msgstr "Conservez sur la ChunkSpan la chaîne fournie ainsi que son éventuelle étiquette de langue et sa direction réelles. Conservez séparément les descriptions attribuées concurrentes ; laissez absents les détails de construction inconnus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanConstruction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied assembly description: ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+msgstr "Conservez la description d’assemblage fournie : ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunk span input source context"
+msgstr "contexte source de l’entrée de la plage de fragments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actually identified source InformationObject supplied as context for this ChunkSpan's reported keys or source selection."
+msgstr "Un InformationObject source réellement identifié, fourni comme contexte des clés rapportées ou de la sélection source de cette ChunkSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional link records supplied source context without certifying an immutable source revision, historical input bytes or derivation. Several attributed source-context links may coexist."
+msgstr "Ce lien facultatif consigne le contexte source fourni sans certifier une révision source immuable, les octets historiques d’entrée ou une dérivation. Plusieurs liens de contexte source attribués peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an identified source object supplied as context for a selected chunk span."
+msgstr "À utiliser pour conserver un objet source identifié fourni comme contexte d’une plage de fragments sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source object to fill missing evidence or using chunkOf, navigationSource, segmentOf or wasDerivedFrom for a merely contextual link."
+msgstr "Ne créez pas d’objet source pour combler une preuve manquante et n’utilisez pas chunkOf, navigationSource, segmentOf ou wasDerivedFrom pour un lien simplement contextuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only an actual supplied InformationObject and retain its stated contextual role. Keep absent source identity absent; this relation reconstructs no text and requires no invented digest."
+msgstr "Reliez uniquement un InformationObject réellement fourni et conservez son rôle contextuel déclaré. Laissez absente une identité source absente ; cette relation ne reconstruit aucun texte et n’exige aucun condensat inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSpanSourceContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."
+msgstr "Conservez le contexte source identifié : ex:unit gmeow:chunkSpanSourceContext ex:source ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measured keyword wording"
+msgstr "formulation du mot-clé mesuré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The keyword wording supplied for this Measurement, retaining its complete string literal."
+msgstr "La formulation du mot-clé fournie pour cette Measurement, en conservant son littéral textuel complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Preserve lexical form, datatype and supplied language and direction; infer no Form, concept, entity, name, tokenization, occurrence identity or source span."
+msgstr "Facultatif et non fonctionnel. Conserver la forme lexicale, le type de données, la langue et la direction fournies ; ne déduire aucune Form, concept, entité, nom, segmentation en tokens, identité d’occurrence ou intervalle source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:measuredTerm \"silver river\" when that untagged wording was supplied."
+msgstr "Conserver ex:reading gmeow:measuredTerm \"silver river\" lorsque cette formulation sans étiquette de langue a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep supplied keyword wording beside the separate size, source rank and weight of the actual Measurement."
+msgstr "Utiliser pour conserver la formulation fournie du mot-clé avec la taille, le rang source et le poids distincts de la Measurement réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalization, translation, guessed language, referent resolution from equal spelling or replacement of the observed unit or weight result."
+msgstr "Éviter la normalisation, la traduction, la langue devinée, la résolution du référent à partir d’une graphie identique ou le remplacement de l’unité observée ou du résultat de poids."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied literal on the source row's Measurement with observedFeature, measurementMetric, vantage, observationMethod and the separate observationResult. Use distinct records for different rows or conventions."
+msgstr "Conserver le littéral complet fourni sur la Measurement de la ligne source avec observedFeature, measurementMetric, vantage, observationMethod et l’observationResult distinct. Utiliser des enregistrements distincts pour des lignes ou conventions différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size"
+msgstr "taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimensionless positive integral count of gram positions for this keyword Measurement under its actual segmentation and counting convention, carried by a math:Quantity."
+msgstr "Le nombre entier strictement positif et sans dimension des positions du gramme pour cette Measurement de mot-clé, selon sa convention réelle de segmentation et de comptage, porté par une math:Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The count Quantity is separate from the keyword weight observationResult. Each selected count requires a positive integer-family magnitude, math:dimensionless and an actual applicable reference frame. Repeated positions remain counted."
+msgstr "La Quantity de comptage est distincte de l’observationResult du poids du mot-clé. Chaque comptage sélectionné exige une grandeur strictement positive d’un type de la famille des entiers, math:dimensionless et un référentiel réellement applicable. Les positions répétées restent comptées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|http://www.w3.org/2004/02/skos/core#example"
+msgid "Link ex:reading gmeow:ngramSize ex:count, retaining quantityValue 2, dimension math:dimensionless and the supplied counting frame on ex:count."
+msgstr "Lier ex:reading gmeow:ngramSize ex:count, en conservant quantityValue 2, la dimension math:dimensionless et le référentiel de comptage fourni sur ex:count."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual keyword gram size and its segmentation/counting convention are available as a positive integral count."
+msgstr "Utiliser lorsque la taille réelle du gramme du mot-clé et sa convention de segmentation et de comptage sont disponibles sous forme de comptage entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting a raw code or sentinel as size, deriving size from whitespace, substituting character length or keyword-row count, deduplicating positions or inventing a missing frame."
+msgstr "Éviter d’affirmer qu’un code brut ou une sentinelle est une taille, de déduire la taille des espaces, de lui substituer la longueur en caractères ou le nombre de lignes de mots-clés, de dédupliquer les positions ou d’inventer un référentiel manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ngramSize|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the Measurement to its count Quantity with original integer-family quantityValue, dimensionless dimension and actual hasReferenceFrame. Keep wording, source rank and weight separate, preserving distinct rows and conventions without inferring execution."
+msgstr "Relier la Measurement à sa Quantity de comptage avec le quantityValue original d’un type de la famille des entiers, la dimension sans dimension et le hasReferenceFrame réel. Garder formulation, rang source et poids séparés, en conservant des lignes et conventions distinctes sans déduire d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported keyword rank"
+msgstr "rang rapporté du mot-clé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported integer ordering position or rank of this keyword Measurement within its actual observed unit and producing context."
+msgstr "La position d’ordre ou le rang entier rapporté par la source pour cette Measurement de mot-clé dans son unité réellement observée et son contexte de production."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Unknown origin, direction, gaps and tie conventions stay unknown. An integer datatype does not turn an unrelated code into a rank or equate source order with relevance rank."
+msgstr "Facultatif et non fonctionnel. L’origine, la direction, les lacunes et les conventions d’ex æquo inconnues restent inconnues. Un type entier ne transforme pas un code sans rapport en rang et n’assimile pas l’ordre source au rang de pertinence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain ex:reading gmeow:termRank 4 when the source reported that keyword rank, without shifting it to an assumed origin."
+msgstr "Conserver ex:reading gmeow:termRank 4 lorsque la source a rapporté ce rang du mot-clé, sans le décaler vers une origine supposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's stated keyword ordering position or rank within the Measurement's actual unit and source context."
+msgstr "Utiliser pour la position d’ordre ou le rang du mot-clé déclaré par la source dans l’unité réelle et le contexte source de la Measurement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing rank from weight or row order, assuming zero or one origin, imposing bounds, continuity, uniqueness or tie rules, treating rank as confidence or copying it unchanged into entryOrdinal."
+msgstr "Éviter d’inventer un rang à partir du poids ou de l’ordre des lignes, de supposer une origine zéro ou un, d’imposer des bornes, une continuité, une unicité ou des règles d’ex æquo, de traiter le rang comme une confiance ou de le copier sans conversion dans entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/termRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:integer ordering descriptor on its source row's Measurement with actual observedFeature, method, vantage and attribution. Preserve supplied ranking conventions; comparison, renumbering and list reconstruction require the actual convention."
+msgstr "Conserver le descripteur d’ordre xsd:integer fourni sur la Measurement de sa ligne source avec observedFeature, méthode, vantage et attribution réels. Préserver les conventions de classement fournies ; comparaison, renumérotation et reconstruction de liste exigent la convention réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size context constraint"
+msgstr "contrainte de contexte de la taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every count selected by ngramSize has a magnitude, only the dimensionless dimension, a reference-frame witness and numerically agreeing magnitude values."
+msgstr "Tout comptage sélectionné par ngramSize possède une grandeur, uniquement la dimension sans dimension, un témoin de référentiel et des valeurs de grandeur numériquement concordantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The condition follows each supplied ngramSize edge. It neither requires size on every Measurement nor constrains unrelated Quantities, merges rows or authenticates a frame's actual applicability."
+msgstr "La condition suit chaque lien ngramSize fourni. Elle n’exige pas de taille sur chaque Measurement, ne contraint pas les Quantities sans rapport, ne fusionne pas les lignes et n’authentifie pas l’applicabilité réelle d’un référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected gram-count Quantity with no quantityValue or hasReferenceFrame violates this context condition; an unrelated weight Quantity is outside its guard."
+msgstr "Une Quantity de comptage de gramme sélectionnée sans quantityValue ou hasReferenceFrame viole cette condition de contexte ; une Quantity de poids sans rapport est hors de sa garde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require explicit context for an actual count supplied through ngramSize."
+msgstr "Utiliser pour exiger le contexte explicite d’un comptage réel fourni par ngramSize."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."
+msgstr "Éviter de considérer un lien de référentiel comme une preuve de segmentation historique, d’inventer un référentiel par défaut, d’exiger une ligne unique de mot-clé globalement ou de remplacer le résultat de poids distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeContextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."
+msgstr "Lier chaque comptage par ngramSize ; exiger quantityValue, math:dimensionless et hasReferenceFrame. Comparer chaque dimension par identité RDF complète et chaque paire de grandeurs par égalité numérique, en conservant des lignes sources et conventions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "n-gram size value constraint"
+msgstr "contrainte de valeur de la taille du n-gramme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every magnitude of every Quantity selected by ngramSize is a valid finite RDF integer-family literal whose numeric value is strictly greater than zero."
+msgstr "Toute grandeur de toute Quantity sélectionnée par ngramSize est un littéral RDF valide et fini d’un type de la famille des entiers, dont la valeur numérique est strictement supérieure à zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Datatype-component identity, shared numeric lexical/value admission and strict positivity are all required. Every supplied magnitude is checked with its original lexical form and datatype, without coercion."
+msgstr "L’identité du composant de type de données, l’admission lexicale et numérique partagée et la positivité stricte sont toutes requises. Chaque grandeur fournie est vérifiée avec sa forme lexicale et son type de données d’origine, sans coercition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A valid positive xsd:integer is admitted without retyping. Zero, negative zero, negative sentinels, malformed integers and decimal or floating literals do not satisfy this count condition."
+msgstr "Un xsd:integer valide et strictement positif est admis sans changement de type. Zéro, zéro négatif, les sentinelles négatives, les entiers mal formés et les littéraux décimaux ou flottants ne satisfont pas cette condition de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual positive gram counts while retaining supplied RDF integer-family representations."
+msgstr "Utiliser pour valider des comptages réels et strictement positifs de grammes tout en conservant les représentations RDF fournies de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting numeric-looking strings, decimals, floats, nonfinite values or sentinels as counts, checking only one of several magnitudes or normalizing a rejected value into apparent validity."
+msgstr "Éviter d’accepter comme comptages des chaînes d’apparence numérique, des décimaux, des flottants, des valeurs non finies ou des sentinelles, de vérifier une seule grandeur parmi plusieurs ou de normaliser une valeur rejetée pour lui donner une validité apparente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NgramSizeValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."
+msgstr "Lier chaque quantityValue par sa Quantity sélectionnée par ngramSize. Exiger termIsFiniteNumeric, la disjonction exacte du composant de type pour treize types de la famille XSD des entiers, et termGreater par rapport à zéro de type entier. Garder la présence et le référentiel dans la loi de contexte distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported block HTML"
+msgstr "HTML de bloc rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The HTML source string reported for this ContentBlock in an extraction or source-presentation context."
+msgstr "La chaîne source HTML rapportée pour ce ContentBlock dans un contexte d’extraction ou de présentation de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional field retains markup as xsd:string. It asserts no parsed DOM, Rendering, sanitization or execution, and does not redefine the block’s structural identity."
+msgstr "Ce champ facultatif et non fonctionnel conserve le balisage comme xsd:string. Il n’affirme ni DOM analysé, ni Rendering, ni assainissement, ni exécution, et ne redéfinit pas l’identité structurelle du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional extraction reports the exact string `<p>Amber</p>` for a paragraph block."
+msgstr "Une extraction fictive rapporte la chaîne exacte `<p>Amber</p>` pour un bloc de paragraphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an extraction or source-presentation report supplies HTML text for an actual ContentBlock."
+msgstr "Utiliser lorsqu’un rapport d’extraction ou de présentation de la source fournit du texte HTML pour un ContentBlock réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring HTML from plain text, constructing a Rendering merely to hold markup, or treating reported markup as safe to execute."
+msgstr "Éviter de déduire du HTML à partir de texte brut, de construire un Rendering uniquement pour porter du balisage ou de considérer le balisage rapporté comme sûr à exécuter."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHtml|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string unchanged on the ContentBlock, including blank strings, and retain the assertion’s actual source and viewpoint. Leave unavailable HTML absent."
+msgstr "Conserver sur le ContentBlock la chaîne xsd:string fournie sans modification, y compris les chaînes vides, et garder la source et le point de vue réels de l’assertion. Ne pas ajouter de HTML indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section tag"
+msgstr "étiquette de section du fragment rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-tag string reported by the chunker for this Chunk."
+msgstr "La chaîne d’étiquette de section rapportée par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional xsd:string retains a source descriptor. It establishes no controlled tag identity, document hierarchy, heading level or source position."
+msgstr "Ce champ xsd:string facultatif et non fonctionnel conserve un descripteur de la source. Il n’établit ni identité d’étiquette contrôlée, ni hiérarchie documentaire, ni niveau de titre, ni position dans la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section tag opening for one Chunk."
+msgstr "Un segmenteur fictif rapporte l’étiquette de section opening pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies a section-tag string for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit une chaîne d’étiquette de section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting the string to a token, a Tag individual, a structural segment type or an inferred heading level."
+msgstr "Éviter de convertir la chaîne en jeton, en individu Tag, en type de segment structurel ou en niveau de titre déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact xsd:string on the Chunk with its actual attribution. Preserve blank strings and leave missing tags absent without inventing defaults."
+msgstr "Conserver la chaîne xsd:string exacte sur le Chunk avec son attribution réelle. Préserver les chaînes vides et omettre les étiquettes manquantes sans inventer de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk chapter heading"
+msgstr "titre de chapitre du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The chapter-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de chapitre rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a chapter entity, nesting, heading depth or membership in a division."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Son rôle n’établit ni entité de chapitre, ni imbrication, ni profondeur de titre, ni appartenance à une division."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the chapter heading Amber coast for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de chapitre Amber coast pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the chapter-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de chapitre pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a chapter from another heading, using this wording as a chapter identifier or inferring document structure from its presence."
+msgstr "Éviter de deviner un chapitre à partir d’un autre titre, d’utiliser ce libellé comme identifiant de chapitre ou de déduire la structure du document de sa présence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkChapterHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable chapter heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de chapitre indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk section heading"
+msgstr "titre de section du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The section-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de section rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. It is distinct from the section tag and does not establish a structural section, heading level or containing chapter."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Il se distingue de l’étiquette de section et n’établit ni section structurelle, ni niveau de titre, ni chapitre contenant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the section heading Tidal garden for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de section Tidal garden pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the section-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the section tag for the heading, inventing a missing chapter heading or treating equal wording as shared section identity."
+msgstr "Éviter de substituer l’étiquette de section au titre, d’inventer un titre de chapitre manquant ou de traiter des libellés identiques comme une identité de section commune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable section heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de section indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk subsection heading"
+msgstr "titre de sous-section du fragment rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsection-heading wording reported by the chunker for this Chunk."
+msgstr "Le libellé du titre de sous-section rapporté par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a subsection entity, structural nesting or any particular numeric heading level."
+msgstr "Ce libellé facultatif et non fonctionnel préserve la langue et la direction lorsqu’elles sont fournies. Son rôle n’établit ni entité de sous-section, ni imbrication structurelle, ni niveau numérique particulier de titre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional chunker reports the subsection heading Quiet pools for one Chunk."
+msgstr "Un segmenteur fictif rapporte le titre de sous-section Quiet pools pour un Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chunker report supplies wording in the subsection-heading role for an actual Chunk."
+msgstr "Utiliser lorsqu’un rapport de segmenteur fournit un libellé dans le rôle de titre de sous-section pour un Chunk réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this heading from indentation, fabricating its parent headings or converting the role into a numeric document depth."
+msgstr "Éviter de déduire ce titre de l’indentation, de fabriquer ses titres parents ou de convertir ce rôle en profondeur numérique du document."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkSubsectionHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable subsection heading absent."
+msgstr "Conserver le littéral textuel fourni en entier sur le Chunk avec sa langue, sa direction et son attribution réelles. Préserver les chaînes vides et omettre tout titre de sous-section indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker lines"
+msgstr "lignes de marqueur du fragment rapportées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An ordered sequence of marker-line strings reported by the chunker for this Chunk."
+msgstr "Une séquence ordonnée de chaînes de lignes de marqueur rapportée par le segmenteur pour ce Chunk."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation selects a StructuredSequence of distinct scalar string occurrences. Repetition, order and blank strings remain intact. An explicitly supplied empty sequence differs from omission; a schema default alone proves no historical presence."
+msgstr "Cette relation facultative et non fonctionnelle sélectionne une StructuredSequence d’occurrences distinctes de chaînes scalaires. Les répétitions, l’ordre et les chaînes vides restent intacts. Une séquence vide explicitement fournie diffère de l’omission ; une valeur par défaut du schéma ne prouve à elle seule aucune présence historique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies two marker occurrences containing the same string, followed by a blank marker occurrence."
+msgstr "Un rapport fictif fournit deux occurrences de marqueur contenant la même chaîne, suivies d’une occurrence de marqueur vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source report supplies an ordered marker-line sequence for a Chunk, including an explicitly supplied empty sequence."
+msgstr "Utiliser lorsqu’un rapport source réel fournit une séquence ordonnée de lignes de marqueur pour un Chunk, y compris une séquence vide explicitement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid collapsing repeated strings, sorting markers, splitting a string at newlines, admitting maps or null items, or inferring field presence from a schema default."
+msgstr "Éviter de fusionner les chaînes répétées, de trier les marqueurs, de découper une chaîne aux sauts de ligne, d’admettre des tables ou des éléments nuls, ou de déduire la présence du champ d’une valeur par défaut du schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkMarkerLines|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied sequence to the Chunk. Retain each item as a distinct StructuredValue with its exact xsd:string structuredTerm and zero-based entryOrdinal. Assert an empty sequence only with actual supplied evidence, and retain attribution."
+msgstr "Relier chaque séquence fournie au Chunk. Conserver chaque élément comme une StructuredValue distincte avec son structuredTerm xsd:string exact et son entryOrdinal commençant à zéro. N’affirmer une séquence vide qu’avec des éléments probants réellement fournis, et conserver l’attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported chunk marker string constraint"
+msgstr "contrainte de chaîne des marqueurs de fragment rapportés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype."
+msgstr "Chaque élément d’une séquence sélectionnée par chunkMarkerLines possède un structuredTerm, et chacun de ces termes a exactement le type de données xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped constraint reuses the generic scalar-branch, whole-term identity and ordinal laws. An empty selected sequence is valid. It adds no required marker relation and changes no generic structured-value contract."
+msgstr "Cette contrainte limitée au rôle réutilise les lois génériques de branche scalaire, d’identité du terme entier et d’ordre. Une séquence sélectionnée vide est valide. Elle n’impose aucune relation de marqueur et ne modifie aucun contrat générique de valeur structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected sequence item with a blank xsd:string term is valid; an item with no term or a language-tagged term fails this constraint."
+msgstr "Un élément de séquence sélectionnée portant un terme xsd:string vide est valide ; un élément sans terme ou portant un terme avec étiquette de langue échoue à cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the scalar string payload of each supplied chunk marker occurrence."
+msgstr "Utiliser pour valider la charge utile scalaire de type chaîne de chaque occurrence de marqueur de fragment fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting malformed items by coercing terms, omitting bad values or replacing a missing term with an empty string."
+msgstr "Éviter d’accepter des éléments mal formés en convertissant les termes, en omettant les valeurs incorrectes ou en remplaçant un terme manquant par une chaîne vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkMarkerLineTextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."
+msgstr "Suivre chunkMarkerLines et structuredItem. Exiger un structuredTerm pour chaque élément sélectionné, puis comparer le composant de type de données de chaque terme fourni à xsd:string au moyen de termSameComponent. Signaler les échecs sans réécrire la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mathematical expression finding"
+msgstr "constat d’expression mathématique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Observation retaining one pass’s reported mathematical-expression occurrence in an actual ContentBlock, with supplied LaTeX wording and displayed status."
+msgstr "Une Observation conservant une occurrence d’expression mathématique signalée par une passe dans un ContentBlock réel, avec le texte LaTeX et le statut d’affichage fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This finding is neither a mathematical syntax tree nor a Rendering. It requires exactly one actual block, one string and one boolean, an actual method and at least one supplied vantage; raw pass confidence is optional."
+msgstr "Ce constat n’est ni un arbre syntaxique mathématique ni un Rendering. Il exige exactement un bloc réel, une chaîne et un booléen, une méthode réelle et au moins un point de vue fourni ; l’indice brut de confiance de la passe est facultatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass supplies `ex:finding a gmeow:MathematicalExpressionFinding .` about its actual block."
+msgstr "Une passe fictive fournit `ex:finding a gmeow:MathematicalExpressionFinding .` à propos de son bloc réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source reports a mathematical-expression occurrence and supplies its block, LaTeX string, displayed boolean, method and vantage."
+msgstr "Utiliser lorsqu’une source signale une occurrence d’expression mathématique et fournit son bloc, sa chaîne LaTeX, son booléen d’affichage, sa méthode et son point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging findings from different passes, interpreting LaTeX as a Math AST, or inventing an Agent, invocation, model revision or time."
+msgstr "Éviter de fusionner les constats de passes différentes, d’interpréter le LaTeX comme un Math AST ou d’inventer un Agent, une invocation, une révision de modèle ou une date."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MathematicalExpressionFinding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep a distinct finding for each supplied occurrence and pass. Bind observedFeature to its actual ContentBlock, observationMethod to HOW and vantage to the actual supplied WHO or standpoint context; retain joint vantages."
+msgstr "Conserver un constat distinct pour chaque occurrence et chaque passe fournies. Relier observedFeature au ContentBlock réel, observationMethod au COMMENT et vantage au QUI ou au contexte de point de vue réellement fourni ; conserver les points de vue conjoints."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding LaTeX"
+msgstr "LaTeX du constat d’expression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact xsd:string LaTeX wording supplied for this mathematical-expression finding, including a blank string."
+msgstr "Le texte LaTeX exact de type xsd:string fourni pour ce constat d’expression mathématique, y compris une chaîne vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one value is required per finding. This literal carrier neither parses nor repairs the wording and does not create a mathematical expression object."
+msgstr "Une seule valeur est exigée par constat. Ce support littéral n’analyse ni ne corrige le texte et ne crée pas d’objet d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional finding retains `ex:finding gmeow:expressionFindingLatex \"\" .` when a blank string was supplied."
+msgstr "Un constat fictif conserve `ex:finding gmeow:expressionFindingLatex \"\" .` lorsqu’une chaîne vide a été fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the supplied LaTeX string of a mathematical-expression finding."
+msgstr "Utiliser pour préserver la chaîne LaTeX fournie pour un constat d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping blank strings, adding language tags, normalizing notation or treating matching strings as finding identity."
+msgstr "Éviter de supprimer les chaînes vides, d’ajouter des étiquettes de langue, de normaliser la notation ou de déduire l’identité des constats de chaînes identiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingLatex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy the supplied xsd:string through this specialization of lang:literalValue and attribute that exact statement to its actual source."
+msgstr "Copier le xsd:string fourni par cette spécialisation de lang:literalValue et attribuer cet énoncé exact à sa source réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding displayed status"
+msgstr "statut d’affichage du constat d’expression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The xsd:boolean displayed-math status supplied for this mathematical-expression finding."
+msgstr "Le statut de formule affichée de type xsd:boolean fourni pour ce constat d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one value is required, including false when supplied. This status has no default and does not determine truth, correctness or general displayability."
+msgstr "Une seule valeur est exigée, y compris false si fourni. Ce statut n’a pas de valeur par défaut et ne détermine ni la vérité, ni l’exactitude, ni l’affichabilité générale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass supplies `ex:finding gmeow:expressionFindingDisplayed false .`"
+msgstr "Une passe fictive fournit `ex:finding gmeow:expressionFindingDisplayed false .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual displayed boolean reported for a mathematical-expression occurrence."
+msgstr "Utiliser pour conserver le booléen d’affichage réellement signalé pour une occurrence d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing strings or numbers to booleans, replacing false with absence or guessing a value from layout or LaTeX delimiters."
+msgstr "Éviter de convertir des chaînes ou des nombres en booléens, de remplacer false par une absence ou de deviner une valeur d’après la mise en page ou les délimiteurs LaTeX."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:boolean unchanged. Missing or invalid selected input fails the finding contract without a synthesized default."
+msgstr "Conserver sans modification le xsd:boolean fourni. Une entrée sélectionnée absente ou invalide fait échouer le contrat du constat sans valeur par défaut synthétisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expression finding raw pass confidence"
+msgstr "indice brut de confiance de la passe pour le constat d’expression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw xsd:decimal confidence value supplied by the pass for this mathematical-expression finding."
+msgstr "La valeur brute de confiance de type xsd:decimal fournie par la passe pour ce constat d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and locally at most one; zero differs from absence. No bounds, probability, calibration, unit, frame, credence or decision semantics are established."
+msgstr "Facultative et localement limitée à une valeur ; zéro diffère de l’absence. Aucune borne ni sémantique de probabilité, d’étalonnage, d’unité, de référentiel, de degré de croyance ou de décision n’est établie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional pass retains `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`"
+msgstr "Une passe fictive conserve `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the pass supplies a valid raw decimal confidence value for this finding."
+msgstr "Utiliser uniquement lorsque la passe fournit une valeur décimale brute de confiance valide pour ce constat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring probability, normalizing, bounding, filling an absent value with zero or substituting a value for invalid decimal input."
+msgstr "Éviter d’en déduire une probabilité, de normaliser, de borner, de remplacer une valeur absente par zéro ou de substituer une valeur à une entrée décimale invalide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionFindingPassConfidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain a supplied valid xsd:decimal or omit an absent value. Invalid selected decimal input fails; NaN and INF have no decimal representation and never become zero."
+msgstr "Conserver un xsd:decimal valide fourni ou omettre une valeur absente. Une entrée décimale sélectionnée invalide échoue ; NaN et INF n’ont pas de représentation décimale et ne deviennent jamais zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block expression findings"
+msgstr "constats d’expressions du bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual ContentBlock to a source-supplied StructuredSequence of mathematical-expression finding occurrences."
+msgstr "Relie un ContentBlock réel à une StructuredSequence d’occurrences de constats d’expressions mathématiques fournie par une source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional nonfunctional relation permits independent source rosters to coexist. An explicitly supplied empty roster differs from a missing roster; no universal list or historical presence is inferred."
+msgstr "Cette relation facultative et non fonctionnelle permet la coexistence de listes de sources indépendantes. Une liste vide explicitement fournie diffère d’une liste absente ; aucune liste universelle ni présence historique n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies `ex:block gmeow:blockExpressionFindings ex:roster .`"
+msgstr "Une source fictive fournit `ex:block gmeow:blockExpressionFindings ex:roster .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source actually supplies an ordered finding roster for a block, including an explicit empty roster."
+msgstr "Utiliser lorsqu’une source fournit réellement une liste ordonnée de constats pour un bloc, y compris une liste explicitement vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplication, sorting, unioning independent rosters, deriving presence from defaults or inferring provenance on findings from this link."
+msgstr "Éviter la déduplication, le tri, l’union de listes indépendantes, la déduction de présence à partir de valeurs par défaut ou l’inférence de provenance des constats à partir de ce lien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockExpressionFindings|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep distinct scalar StructuredValue items with entryOrdinal and structuredTerm pointing to actual finding resources. Retain order, repetition and exact-statement attribution separately for each roster and finding."
+msgstr "Conserver des éléments scalaires StructuredValue distincts avec entryOrdinal et structuredTerm pointant vers les ressources réelles des constats. Préserver l’ordre, les répétitions et l’attribution des énoncés exacts séparément pour chaque liste et chaque constat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block expression finding sequence constraint"
+msgstr "contrainte de séquence des constats d’expressions du bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through blockExpressionFindings has a structuredTerm; every supplied term is typed MathematicalExpressionFinding and has the roster’s actual block as observedFeature."
+msgstr "Chaque élément sélectionné par blockExpressionFindings possède un structuredTerm ; chaque terme fourni est typé MathematicalExpressionFinding et a pour observedFeature le bloc réel de la liste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This scoped law requires scalar finding payloads and block agreement, alongside the generic branch and ordering laws and the finding’s exact-one feature law. Explicit empty rosters remain valid."
+msgstr "Cette règle locale exige des valeurs scalaires de constat et l’accord sur le bloc, en complément des règles génériques de branche et d’ordre et de la règle d’unicité obligatoire de la caractéristique du constat. Les listes explicitement vides restent valides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An item with a valid finding and an extra untyped term fails; a good payload never hides a bad extra payload."
+msgstr "Un élément avec un constat valide et un terme supplémentaire non typé échoue ; une valeur valide ne masque jamais une valeur supplémentaire invalide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every occurrence in each actually supplied block finding roster."
+msgstr "Utiliser pour valider chaque occurrence de chaque liste de constats réellement fournie pour un bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid skipping missing terms, extra bad terms or wrong-block findings, or manufacturing a finding to repair a malformed roster."
+msgstr "Éviter d’ignorer les termes manquants, les termes supplémentaires invalides ou les constats liés au mauvais bloc, ou de fabriquer un constat pour réparer une liste mal formée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow blockExpressionFindings and structuredItem. Require a scalar payload, check every supplied term’s finding type and observedFeature agreement, and report failure without substitution."
+msgstr "Suivre blockExpressionFindings et structuredItem. Exiger une valeur scalaire, vérifier pour chaque terme fourni le type de constat et l’accord de observedFeature, et signaler l’échec sans substitution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image analysis"
+msgstr "analyse d’image"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Observation retaining one coherent supplied analysis of an actual stored MediaObject through reported category, description or passage-boundary readings."
+msgstr "Une Observation conservant une analyse cohérente fournie d’un MediaObject réellement stocké, au moyen de lectures rapportées de catégorie, de description ou de limite de passage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each analysis requires one actual media feature, one method, at least one supplied vantage and at least one reported field. Shared media or a coarse stage label establishes no shared invocation, report or model revision."
+msgstr "Chaque analyse exige une caractéristique média réelle, une méthode, au moins un point de vue fourni et au moins un champ rapporté. Un média partagé ou une étiquette grossière d’étape n’établit ni invocation, ni rapport, ni révision de modèle communs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies `ex:analysis a gmeow:ImageAnalysis .` for its actual stored image and supplied analysis context."
+msgstr "Un rapport fictif fournit `ex:analysis a gmeow:ImageAnalysis .` pour son image réellement stockée et son contexte d’analyse fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when at least one image reading and an actual coherent analysis context, media target, method and vantage are supplied."
+msgstr "Utiliser lorsqu’au moins une lecture d’image et un contexte d’analyse réellement cohérent, une cible média, une méthode et un point de vue sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating an analysis from all missing defaults, merging independent readings or inventing an Agent, run, model revision, time or depicted Scene."
+msgstr "Éviter de créer une analyse à partir de valeurs par défaut toutes absentes, de fusionner des lectures indépendantes ou d’inventer un Agent, une exécution, une révision de modèle, une date ou une Scene représentée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual stored MediaObject, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Keep coherent fields together only with supplied context and attribute each actual statement separately."
+msgstr "Relier observedFeature au MediaObject réellement stocké, observationMethod au COMMENT fourni et vantage au QUI ou au point de vue réel. Ne regrouper les champs cohérents qu’avec un contexte fourni et attribuer chaque énoncé réel séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image-analysis category"
+msgstr "catégorie d’analyse d’image rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The category wording supplied by this image analysis for its actual media feature."
+msgstr "Le libellé de catégorie fourni par cette analyse d’image pour sa caractéristique média réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a reported label, not an enum member, canonical type, depicted entity or verified image classification."
+msgstr "Ce littéral textuel facultatif et localement monovalué conserve une étiquette rapportée, pas un membre d’énumération, un type canonique, une entité représentée ni une classification d’image vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report retains `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` as untagged supplied wording."
+msgstr "Un rapport fictif conserve `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` comme libellé fourni sans étiquette de langue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual analysis supplies category wording, including a blank string."
+msgstr "Utiliser lorsque l’analyse réelle fournit un libellé de catégorie, y compris une chaîne vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the label into rdf:type, a controlled category, a depiction or a preferred classification, or adding an invented language tag."
+msgstr "Éviter de transformer l’étiquette en rdf:type, en catégorie contrôlée, en représentation ou en classification préférée, ou d’ajouter une étiquette de langue inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal through lang:literalValue, preserving actual language, direction and blank text. Retain exact-statement attribution and leave missing wording absent."
+msgstr "Conserver un littéral textuel fourni complet par lang:literalValue, en préservant la langue, la direction et le texte vide réels. Garder l’attribution de l’énoncé exact et omettre le libellé manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image-analysis description"
+msgstr "description d’analyse d’image rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The image-description wording supplied by this image analysis for its actual media feature."
+msgstr "Le libellé de description d’image fourni par cette analyse d’image pour sa caractéristique média réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains reported image commentary. It is not a generic description of the analysis process, an asserted Scene or proof that its content is true."
+msgstr "Ce littéral textuel facultatif et localement monovalué conserve un commentaire d’image rapporté. Ce n’est ni une description générique du processus d’analyse, ni une Scene affirmée, ni une preuve de véracité de son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report retains `ex:analysis gmeow:imageAnalysisDescription \"\" .` because it explicitly supplied blank description text."
+msgstr "Un rapport fictif conserve `ex:analysis gmeow:imageAnalysisDescription \"\" .` parce qu’il a explicitement fourni un texte de description vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual image analysis supplies its own descriptive wording, with or without a supplied language tag."
+msgstr "Utiliser lorsqu’une analyse d’image réelle fournit son propre libellé descriptif, avec ou sans étiquette de langue fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming away blank text, hardcoding English, endorsing the description or moving it onto the media as an unattributed global fact."
+msgstr "Éviter de supprimer le texte vide en le rognant, d’imposer l’anglais, d’approuver la description ou de la transférer sur le média comme un fait global non attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve one complete supplied word literal through lang:literalValue with its actual language, direction and attribution. Keep independent descriptions on their own coherent analyses."
+msgstr "Préserver un littéral textuel fourni complet par lang:literalValue avec sa langue, sa direction et son attribution réelles. Garder les descriptions indépendantes sur leurs propres analyses cohérentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image passage-boundary flag"
+msgstr "indicateur de limite de passage d’image rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The xsd:boolean supplied by this image analysis to report whether its media marks a passage boundary."
+msgstr "Le xsd:boolean fourni par cette analyse d’image pour indiquer si son média marque une limite de passage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional flag is locally at most one. Supplied false remains a value; absence remains unknown. No default, structural division, boundary coordinate or actual segmentation is inferred."
+msgstr "Cet indicateur facultatif est localement limité à une valeur. Un false fourni reste une valeur ; l’absence reste inconnue. Aucune valeur par défaut, division structurelle, coordonnée de limite ni segmentation réelle n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies `ex:analysis gmeow:imageAnalysisPassageBoundary false .`"
+msgstr "Un rapport fictif fournit `ex:analysis gmeow:imageAnalysisPassageBoundary false .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual analysis explicitly supplies its passage-boundary boolean, including false."
+msgstr "Utiliser lorsque l’analyse réelle fournit explicitement son booléen de limite de passage, y compris false."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing false with absence, coercing text or numbers to booleans, or deriving a boundary from category, description or missing output."
+msgstr "Éviter de remplacer false par une absence, de convertir du texte ou des nombres en booléens, ou de déduire une limite de la catégorie, de la description ou d’une sortie manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:boolean unchanged on its actual ImageAnalysis and attribute the exact statement. Omit an unavailable flag without synthesizing false or an analysis record."
+msgstr "Conserver le xsd:boolean fourni sans modification sur son ImageAnalysis réelle et attribuer l’énoncé exact. Omettre un indicateur indisponible sans synthétiser false ni notice d’analyse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image-analysis reported-content constraint"
+msgstr "contrainte de contenu rapporté d’analyse d’image"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ImageAnalysis has at least one supplied category, description or passage-boundary value."
+msgstr "Chaque ImageAnalysis possède au moins une valeur fournie de catégorie, de description ou de limite de passage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The three roles remain independently optional, but an analysis cannot consist only of missing defaults. Blank wording and false satisfy presence; separate datatype, cardinality and context laws still apply."
+msgstr "Les trois rôles restent indépendamment facultatifs, mais une analyse ne peut se composer uniquement de valeurs par défaut absentes. Un libellé vide et false satisfont la présence ; les lois distinctes de type de données, de cardinalité et de contexte restent applicables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An analysis with only `ex:analysis gmeow:imageAnalysisPassageBoundary false .` as its reported field satisfies this presence law."
+msgstr "Une analyse dont le seul champ rapporté est `ex:analysis gmeow:imageAnalysisPassageBoundary false .` satisfait cette loi de présence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual reported reading before a complete image-analysis record is asserted."
+msgstr "Utiliser pour exiger une lecture réellement rapportée avant d’affirmer une notice complète d’analyse d’image."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating default absence as an analysis, discarding blank or false values, or assuming this law establishes a common invocation for independently supplied fields."
+msgstr "Éviter de traiter l’absence par défaut comme une analyse, d’écarter les valeurs vides ou false, ou de supposer que cette loi établit une invocation commune pour des champs fournis indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."
+msgstr "Vérifier pour chaque ImageAnalysis l’existence d’au moins une des trois relations de champ. Préserver le contexte réellement cohérent et appliquer les obligations distinctes de type de valeur, de caractéristique, de méthode et de point de vue."

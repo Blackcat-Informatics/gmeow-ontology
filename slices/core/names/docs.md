@@ -283,8 +283,10 @@ A place's names are not a flat literal. A `gmeow:Place` bears co-equal
 `gmeow:PlaceName` toponyms via **`gmeow:hasPlaceName`** (the place-scoped
 specialization of `gmeow:hasAppellation`, mirroring `gmeow:hasName` for persons) —
 the structured replacement for the **retired** flat `gmeow:alternateName` literal
-(Principle 6, greenfield). Each `PlaceName` carries its own first-class
-`gmeow:nameLanguage` (a `gmeow:Language`, never a bare tag) and an optional
+(Principle 6, greenfield). Each `PlaceName` records `gmeow:nameLanguage` when
+its actual first-class `gmeow:Language` is identified, never as a bare tag.
+Unknown source language stays unknown and does not support language-sensitive
+matching. It can also carry an optional
 `gmeow:namePurpose` of **`namePurposeEndonym`** (the name a place's own inhabitants
 use) or **`namePurposeExonym`** (the name outsiders use) — co-equal, never a
 preferred-vs-alternate pair. So *München* (endonym, German) and *Munich* (exonym,
@@ -357,7 +359,7 @@ A `gmeow:NamePart`'s kind is the **value** `gmeow:namePartType` (a `gmeow:NamePa
 
 ### gmeow:fullName · gmeow:nameLanguage · gmeow:nameScript · gmeow:romanization · gmeow:namePurpose · gmeow:NamePurpose · gmeow:displayable · gmeow:conferredByEvent
 
-`gmeow:fullName` is the complete surface form in the culture's natural order, authoritative for display. `gmeow:nameLanguage` is the appellation's single first-class `gmeow:Language` (functional — co-equal multilingual names are separate appellations, never one multi-tagged name), `gmeow:nameScript` the first-class **`lang:Script`** its surface is written in (regrounded onto the shared lang: script layer under Principle 19 — the ISO 15924 code rides the script's `skos:notation`, never a bare per-name tag), and `gmeow:romanization` a Latin transliteration of *this same* name that never bridges two co-equal names. `gmeow:namePurpose` tags the intrinsic kind(s) of a name (a `gmeow:NamePurpose` value — legal, chosen, deadname, endonym/exonym, …); `gmeow:displayable` is the **only** display control — there is deliberately no preferred/primary marker, so a superseded name or deadname sets it `false` and consumers MUST honour that. `gmeow:conferredByEvent` is the seam to the events spine, linking an appellation to the `gmeow:LifeEvent` that conferred or changed it.
+`gmeow:fullName` retains the complete supplied surface form in its original order, authoritative for recorded display wording. `gmeow:nameLanguage` records an actually identified first-class `gmeow:Language` and is functional across asserted and entailed values: at most one language value, without requiring its presence. Co-equal multilingual names are separate appellations, never one multi-tagged name. `gmeow:nameScript` records the actually identified first-class **`lang:Script`** its surface is written in (regrounded onto the shared lang: script layer under Principle 19 — the ISO 15924 code rides the script's `skos:notation`, never a bare per-name tag), and `gmeow:romanization` is a Latin transliteration of *this same* name that never bridges two co-equal names. `gmeow:namePurpose` tags the intrinsic kind(s) of a name (a `gmeow:NamePurpose` value — legal, chosen, deadname, endonym/exonym, …); `gmeow:displayable` is the **only** display control — there is deliberately no preferred/primary marker, so a superseded name or deadname sets it `false` and consumers MUST honour that. `gmeow:conferredByEvent` is the seam to the events spine, linking an appellation to the `gmeow:LifeEvent` that conferred or changed it.
 
 ### gmeow:appellationDenotation — the naming→referent bridge (lang: graft)
 
@@ -389,3 +391,44 @@ A name-usage's social register is the value `gmeow:usageRegister` (a `gmeow:Name
 | Pronouns/honorifics independent of sex | derive pronoun from gender | Conflates distinct facets; erases self-identification |
 | `partOrder` descriptive, surname optional | given + family, in that order | Parochial; breaks for the majority of the world's naming systems |
 | Claimed vs detected media type coexist | trust the extension | The name can lie; the model should record disagreement, not hide it |
+
+## Supplied aliases and unknown name language
+
+A source's supplied alias text can use the existing generic bearing route:
+an Entity bears a co-equal Appellation through `hasAppellation`, and the
+Appellation retains the wording through `fullName`. For example, this synthetic
+source name has no supplied language:
+
+```turtle
+ex:entity a gmeow:Entity ;
+    gmeow:hasAppellation ex:sourceName .
+ex:sourceName a gmeow:Appellation ;
+    gmeow:fullName "N7" .
+```
+
+Retain another supplied name as another co-equal name, without a preferred
+winner or an invented nickname classification. `hasAppellation` applies to a
+fictional Character because Character is an Entity. The person-scoped
+`hasName` would incorrectly infer Person, from which Character is disjoint.
+The bearing relates an entity to a name object; matching strings do not
+establish entity identity or a `sameAs` relation. A source occurrence of the
+wording is separately represented by Mention, with optional actual resolution.
+
+Preserve the complete supplied literal, including datatype, language and
+RDF 1.2 direction. When only an untagged string was supplied, keep its source
+language unknown. Do not infer it merely from the wording, script, containing document
+or another name, or invent a Language or unknown-language profile. When the
+actual language is identified, record its first-class `Language` through
+`nameLanguage`; actual script identity belongs in `nameScript`.
+
+Functionality constrains all asserted and entailed language values to at most
+one per Appellation. It does not require a language value. Retaining raw wording
+is source evidence, not a completed interpreted-language claim. Language-sensitive
+interpretation, locale matching, comparison and denotation still require their
+actual frames under Principle 11. An Appellation is not automatically an analyzed
+language Form, and this pattern supplies no missing form metadata.
+
+Keep source, viewpoint and any validity on the actual bearing statement, or
+use the existing NameUsage relator when that context must be first-class.
+Honor `displayable false` on suppressed names. This pattern changes no content,
+frame, suppression or co-equality obligation (Principles 2, 4, 9, 10, 11 and 19).

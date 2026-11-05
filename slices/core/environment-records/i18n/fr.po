@@ -4930,8 +4930,8 @@ msgid "Avoid inferring tool availability, permission, purity or execution from a
 msgstr "Éviter de déduire disponibilité d’outil, permission, pureté ou exécution des actions annoncées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link its owning InformationObject with affordsAction; retain the exact tool name, targets and attributed tags."
-msgstr "Relier son InformationObject propriétaire par affordsAction ; conserver le nom exact d’outil, les cibles et les étiquettes attribuées."
+msgid "Link the catalog-bearing InformationObject with affordsAction, whether it is a direct object representation or a linked state-specific catalog artifact; retain the exact tool name, targets and attributed tags."
+msgstr "Relier l’InformationObject porteur du catalogue par affordsAction, qu’il s’agisse d’une représentation directe de l’objet ou d’un artefact de catalogue relié pour un état particulier ; conserver le nom exact d’outil, les cibles et les étiquettes attribuées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The entry is a record, not an Activity or a replacement for the core ActionPolicy."
@@ -4946,20 +4946,20 @@ msgid "affords action"
 msgstr "offre une action"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates an object-representing InformationObject to an actual entry of its advertised action catalog."
-msgstr "Relie un InformationObject représentant un objet à une entrée réelle de son catalogue d’actions annoncées."
+msgid "Relates a catalog-bearing InformationObject, either an object representation or an artifact linked through worldObjectAffordances, to an actual entry of its advertised action catalog."
+msgstr "Relie un InformationObject porteur de catalogue, soit une représentation d’objet, soit un artefact relié par worldObjectAffordances, à une entrée réelle de son catalogue d’actions annoncées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when an object representation supplies an action-catalog entry."
-msgstr "À employer lorsqu’une représentation d’objet fournit une entrée de catalogue d’actions."
+msgid "Use when a source supplies an action-catalog entry on a direct object representation or its linked state-specific catalog artifact."
+msgstr "Utiliser lorsqu’une source fournit une entrée de catalogue d’actions sur une représentation directe d’objet ou sur son artefact de catalogue relié pour un état particulier."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid coercing a physical object into InformationObject to attach a catalog; retain its actual representation."
 msgstr "Éviter de contraindre un objet physique en InformationObject pour joindre un catalogue ; conserver sa représentation réelle."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the actual catalog-bearing InformationObject to WorldAffordance records and keep its part structure."
-msgstr "Relier l’InformationObject réel porteur du catalogue aux WorldAffordance et conserver sa structure de parties."
+msgid "Link the actual catalog bearer to WorldAffordance records. In set mode retain worldObjectAffordances from each represented object; targets use that object’s hasPart inventory, not the catalog artifact’s parts."
+msgstr "Relier le porteur réel du catalogue aux enregistrements WorldAffordance. En mode ensemble, conserver worldObjectAffordances depuis chaque objet représenté ; les cibles relèvent de l’inventaire hasPart de cet objet et non des parties de l’artefact de catalogue."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Advertising an action neither provides an implementation nor grants the agent permission to call it."
@@ -5002,8 +5002,8 @@ msgid "affordance target"
 msgstr "cible d’affordance"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a catalog affordance to an actual supplied part of its owning object representation on which the action acts."
-msgstr "Relie une affordance de catalogue à une partie réelle fournie de sa représentation d’objet propriétaire sur laquelle l’action agit."
+msgid "Relates a catalog affordance to an actual supplied part of the represented object on which the action acts, whether the catalog is carried directly by that representation or by its linked state-specific artifact."
+msgstr "Relie une affordance de catalogue à une partie réelle fournie de l’objet représenté sur laquelle l’action agit, que le catalogue soit porté directement par cette représentation ou par son artefact relié pour un état particulier."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use only when the source supplies a target part and its owning catalog context."
@@ -5014,8 +5014,8 @@ msgid "Avoid minting a part from a handle or reusing a target from another objec
 msgstr "Éviter de créer une partie d’après un identifiant ou de réutiliser une cible d’un autre catalogue."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the owner's affordsAction and hasPart relationships; the native law checks every owning catalog."
-msgstr "Conserver les liens affordsAction et hasPart du propriétaire ; la loi native contrôle chaque catalogue propriétaire."
+msgid "Retain affordsAction on every catalog bearer and hasPart on every applicable represented object, following worldObjectAffordances in set mode. The source constraint checks all direct bearers and all objects linked to each set."
+msgstr "Conserver affordsAction sur chaque porteur de catalogue et hasPart sur chaque objet représenté concerné, en suivant worldObjectAffordances en mode ensemble. La contrainte de source vérifie tous les porteurs directs et tous les objets reliés à chaque ensemble."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Target binding is structural source evidence, not execution or proof that the advertised effect succeeded."
@@ -5892,8 +5892,8 @@ msgid "Affordance target scope constraint"
 msgstr "Contrainte de portée de cible d’affordance"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
-msgstr "Chaque affordanceTarget appartient par hasPart à tout propriétaire de catalogue annonçant cette affordance. WorldAffordanceCatalogConstraint exige séparément un propriétaire réel et un nom d’outil. Les cibles ne peuvent passer entre catalogues."
+msgid "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."
+msgstr "Chaque affordanceTarget appartient par hasPart à tout porteur direct de catalogue qui annonce cette affordance sans recevoir de lien worldObjectAffordances, ainsi qu’à tout objet représenté relié à un porteur d’ensemble qui l’annonce. La loi de classe du catalogue exige séparément un porteur et un nom d’outil ; un objet commode ne peut valider la cible étrangère d’une entrée partagée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to validate the source's advertised action-to-part binding."
@@ -5904,8 +5904,8 @@ msgid "Avoid satisfying a shared entry with one convenient owner's unrelated tar
 msgstr "Éviter de satisfaire une entrée partagée avec la cible sans rapport d’un propriétaire opportun."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Check hasPart for every affordsAction owner of this entry; use WorldAffordanceCatalogConstraint for owner existence and tool naming."
-msgstr "Contrôler hasPart pour chaque propriétaire affordsAction de cette entrée ; employer WorldAffordanceCatalogConstraint pour l’existence du propriétaire et le nom de l’outil."
+msgid "Check hasPart on the bearer when it has no incoming worldObjectAffordances, and on every object supplying that link otherwise. Keep every action-to-target binding local to its catalog path; use WorldAffordanceCatalogConstraint for bearer existence and tool naming."
+msgstr "Vérifier hasPart sur le porteur lorsqu’il ne reçoit aucun lien worldObjectAffordances, et sinon sur chaque objet fournissant ce lien. Conserver chaque liaison entre action et cible dans son propre chemin de catalogue ; utiliser WorldAffordanceCatalogConstraint pour l’existence du porteur et le nom d’outil."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The binary target checks source structure, not whether an advertised tool executed successfully."
@@ -5916,8 +5916,8 @@ msgid "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:p
 msgstr "Par exemple : ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/logic/message"
-msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
-msgstr "Chaque affordanceTarget appartient par hasPart à tout propriétaire de catalogue annonçant cette affordance. WorldAffordanceCatalogConstraint exige séparément un propriétaire réel et un nom d’outil. Les cibles ne peuvent passer entre catalogues."
+msgid "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."
+msgstr "Chaque affordanceTarget appartient par hasPart à tout porteur direct de catalogue qui annonce cette affordance sans recevoir de lien worldObjectAffordances, ainsi qu’à tout objet représenté relié à un porteur d’ensemble qui l’annonce. La loi de classe du catalogue exige séparément un porteur et un nom d’outil ; un objet commode ne peut valider la cible étrangère d’une entrée partagée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Recorded cognition mode carrier constraint"
@@ -6022,3 +6022,91 @@ msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string 
 msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditionally releases attention from"
+msgstr "détache conditionnellement l’attention de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Event to the Entity from which it conditionally releases attention: the event ends attention on that entity if it rested there, and otherwise asserts nothing about attention."
+msgstr "Relie un Event à l’Entity de laquelle il détache conditionnellement l’attention : l’événement met fin à l’attention portée à cette entité si elle s’y portait, et sinon n’affirme rien au sujet de l’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records a conditional release, not an observed departing focus. It establishes no prior focus, Agent, slot assignment, successor focus or timeline and does not mutate an attention store."
+msgstr "Cette relation consigne une libération conditionnelle et non un foyer d’attention dont le départ a été observé. Elle n’établit ni foyer antérieur, ni Agent, ni affectation de case attentionnelle, ni foyer suivant, ni chronologie et ne modifie pas un stockage d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a provider failure releases attention from its object if attention rested there; it does not report whether that object was the focus."
+msgstr "Une source rapporte qu’une défaillance de fournisseur détache l’attention de son objet si elle s’y portait ; elle ne rapporte pas si cet objet était le foyer d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual Event’s source-reported conditional attention release from an Entity, without asserting prior attention on that entity through this relation."
+msgstr "Utiliser lorsqu’une source rapporte qu’un Event réel détache conditionnellement l’attention d’une Entity, sans que cette relation affirme que l’attention se portait auparavant sur cette entité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a departing or arriving focus, an Agent, a slot assignment or a timeline, or treating this relation as evidence of performed attention-store mutation."
+msgstr "Éviter d’inférer un foyer d’attention quitté ou atteint, un Agent, une affectation de case attentionnelle ou une chronologie, ou de traiter cette relation comme une preuve de modification effectuée d’un stockage d’attention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the supplied Entity and preserve source and viewpoint on the exact statement. Use attentionFrom separately only when the actual departing focus is supplied; unknown prior focus remains unknown."
+msgstr "Relier l’Event réel à l’Entity fournie et conserver la source et le point de vue sur l’énoncé exact. Utiliser attentionFrom séparément uniquement lorsque le foyer d’attention réellement quitté est fourni ; un foyer antérieur inconnu reste inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object affordances"
+msgstr "affordances de l’objet du monde"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an object-representing InformationObject in its supplied state and account context to the InformationObject artifact recording that context’s advertised affordance inventory."
+msgstr "Relie un InformationObject représentant un objet, dans le contexte d’état et de compte rendu fourni, à l’artefact InformationObject qui consigne l’inventaire des affordances annoncées dans ce contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional relation preserves supplied state and account associations. It supplies no current-state winner or replacement history; an absent relation is not an empty inventory, and a lack of visible entries alone does not prove emptiness."
+msgstr "Cette relation facultative et non fonctionnelle conserve les associations d’état et de compte rendu fournies. Elle ne désigne aucun état courant privilégié ni historique de remplacement ; une relation absente n’est pas un inventaire vide, et l’absence d’entrées visibles ne prouve pas à elle seule que l’inventaire est vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies an object’s advertised action inventory for one reported state and identifies the catalog artifact’s encoded bytes and algorithm-typed content digest."
+msgstr "Une source fournit l’inventaire des actions annoncées d’un objet pour un état rapporté et identifie les octets encodés de l’artefact de catalogue ainsi que son condensat de contenu typé par algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a particular state’s affordance catalog artifact and its actual association with the object representation and account context."
+msgstr "Utiliser lorsque la source fournit l’artefact de catalogue d’affordances d’un état particulier et son association réelle avec la représentation de l’objet et le contexte du compte rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a state, encoding, digest, identifier mapping or replacement claim, treating partial capture as empty, or combining historical catalogs into a current inventory."
+msgstr "Éviter d’inventer un état, un encodage, un condensat, une correspondance d’identifiants ou une affirmation de remplacement, de traiter une saisie partielle comme vide ou de réunir des catalogues historiques en un inventaire courant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectAffordances|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual object representation to its supplied catalog artifact, attach entries to that artifact with affordsAction, and retain its contentDigest for the exact identified encoded bytes. Preserve statement attribution and any supplied content-addressed identifier without claiming verified identifier agreement."
+msgstr "Relier la représentation réelle de l’objet à l’artefact de catalogue fourni, rattacher les entrées à cet artefact par affordsAction et conserver son contentDigest pour les octets encodés exacts identifiés. Conserver l’attribution de l’énoncé et tout identifiant adressé par contenu fourni sans prétendre que sa concordance a été vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World object affordances digest constraint"
+msgstr "Contrainte de condensat des affordances de l’objet du monde"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
+msgstr "Chaque artefact de catalogue sélectionné par worldObjectAffordances porte un contentDigest fourni qui identifie sa préimage exacte en octets encodés ; le contrôle existant des condensats vérifie le type de données de l’algorithme et la forme lexicale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Digest presence neither computes a hash nor verifies bytes, entry correspondence or identifier agreement. Several admitted algorithms may coexist; no universal encoding or producer is prescribed."
+msgstr "La présence d’un condensat ne calcule aucun hachage et ne vérifie ni les octets, ni la correspondance des entrées, ni la concordance des identifiants. Plusieurs algorithmes admis peuvent coexister ; aucun encodage ni producteur universel n’est prescrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly reports an empty inventory and supplies a digest of its identified encoded catalog artifact; the artifact has no action entries."
+msgstr "Une source rapporte explicitement un inventaire vide et fournit un condensat de son artefact de catalogue encodé et identifié ; cet artefact ne comporte aucune entrée d’action."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require supplied byte-content identity on each artifact actually linked as a state-specific affordance catalog."
+msgstr "Utiliser pour exiger une identité de contenu en octets fournie pour chaque artefact réellement relié comme catalogue d’affordances d’un état particulier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an untyped digest string, guessing a byte preimage, substituting worldObjectState, or treating a digest assertion as a verification receipt."
+msgstr "Éviter d’accepter une chaîne de condensat non typée, de deviner une préimage en octets, de substituer worldObjectState ou de traiter une affirmation de condensat comme une attestation de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each worldObjectAffordances object for at least one supplied contentDigest. Retain the actual admitted algorithm datatype and exact lexical value; Sources governs their admission, and missing source inputs must not be invented."
+msgstr "Vérifier que chaque objet de worldObjectAffordances porte au moins un contentDigest fourni. Conserver le type de données réel de l’algorithme admis et la valeur lexicale exacte ; Sources régit leur admission et les données manquantes de la source ne doivent pas être inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
+msgstr "Chaque artefact de catalogue sélectionné par worldObjectAffordances porte un contentDigest fourni qui identifie sa préimage exacte en octets encodés ; le contrôle existant des condensats vérifie le type de données de l’algorithme et la forme lexicale."

@@ -2132,3 +2132,143 @@ msgstr "La règle existante de rassemblement vérifie sa propre borne d’activi
 msgctxt "https://blackcatinformatics.ca/gmeow/StoryStructuringPrerequisiteConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."
 msgstr "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "division narrative reading"
+msgstr "lecture narrative d’une division"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Observation retaining active-character wording or thematic-tag wording supplied by one coherent reading of an actual ContentSegment."
+msgstr "Une Observation conservant les formulations de personnages actifs ou d’étiquettes thématiques fournies par une lecture cohérente d’un ContentSegment réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One actual division, one method, at least one supplied vantage and at least one supplied roster are required. Joint vantages coexist; a shared stage label establishes no shared invocation or model revision."
+msgstr "Une division réelle, une méthode, au moins un point de vue fourni et au moins une liste fournie sont exigés. Des points de vue conjoints coexistent ; une étiquette d’étape commune n’établit ni invocation ni révision de modèle communes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies a reading with active-character words and a separate thematic-tag roster for its actual source division."
+msgstr "Un rapport fictif fournit une lecture avec des formulations de personnages actifs et une liste distincte d’étiquettes thématiques pour sa division source réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual division, method, vantage and at least one current wording roster are supplied as a coherent reading."
+msgstr "Utiliser lorsqu’une division réelle, une méthode, un point de vue et au moins une liste actuelle de formulations sont fournis comme une lecture cohérente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a Character, Tag, Agent, realm, invocation or missing context, or treating current output as a reconstruction of unavailable source history."
+msgstr "Éviter d’inventer un Character, un Tag, un Agent, un univers, une invocation ou un contexte manquant, ou de traiter la sortie actuelle comme une reconstitution d’un historique source indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual ContentSegment, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Preserve each supplied roster and attribute its actual statements separately."
+msgstr "Relier observedFeature au ContentSegment réel, observationMethod au COMMENT fourni et vantage au QUI ou au point de vue réel. Conserver chaque liste fournie et attribuer séparément ses énoncés réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported active-character wording roster"
+msgstr "liste rapportée de formulations de personnages actifs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete strings naming characters reported as active by this division narrative reading."
+msgstr "La séquence ordonnée indépendamment de chaînes complètes nommant les personnages que cette lecture narrative de division rapporte comme actifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued sequence retains supplied wording, not resolved Character identities or a narrative realm. Its positions establish no pairing with thematic-tag positions."
+msgstr "Cette séquence facultative et localement monovaluée conserve les formulations fournies, pas des identités Character résolues ni un univers narratif. Ses positions n’établissent aucun appariement avec les positions des étiquettes thématiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional reading retains the strings Sora, blank text and Sora again as three distinct ordered occurrences."
+msgstr "Une lecture fictive conserve les chaînes Sora, un texte vide, puis encore Sora comme trois occurrences ordonnées distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the coherent reading supplies its active-character wording tuple, including a current zero-item tuple with known actual context."
+msgstr "Utiliser lorsque la lecture cohérente fournit son tuple de formulations de personnages actifs, y compris un tuple actuel sans élément dont le contexte réel est connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming, sorting, deduplicating, resolving names or inferring narrates, NarrationUsage, activity in a realm or absence of characters from an empty tuple."
+msgstr "Éviter de supprimer les espaces, de trier, de dédupliquer, de résoudre les noms ou d’inférer narrates, NarrationUsage, une activité dans un univers ou l’absence de personnages à partir d’un tuple vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionActiveCharacterWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one supplied StructuredSequence and retain complete word literals through structuredTerm on distinct StructuredValue occurrences with entryOrdinal. Preserve repeats, blanks and actual language or direction; keep untagged input xsd:string."
+msgstr "Relier une StructuredSequence fournie et conserver les littéraux textuels complets par structuredTerm sur des occurrences StructuredValue distinctes avec entryOrdinal. Préserver répétitions, textes vides, langue ou direction réelles ; garder les entrées sans étiquette de langue en xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported thematic-tag wording roster"
+msgstr "liste rapportée de formulations d’étiquettes thématiques"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered sequence of complete thematic-tag strings supplied by this division narrative reading."
+msgstr "La séquence ordonnée indépendamment de chaînes complètes d’étiquettes thématiques fournies par cette lecture narrative de division."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued sequence follows tagAsWritten’s preservation of exact wording without a Tag, scheme match, hasTag or preferred spelling. structuredTerm is its sole lexical carrier."
+msgstr "Cette séquence facultative et localement monovaluée suit la conservation de la formulation exacte de tagAsWritten, sans Tag, correspondance de schéma, hasTag ni graphie préférée. structuredTerm est son seul support lexical."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional reading retains the thematic strings return, doubt and return again without creating three Tag resources or pairing them with character words."
+msgstr "Une lecture fictive conserve les chaînes thématiques return, doubt, puis encore return sans créer trois ressources Tag ni les apparier avec des formulations de personnages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the coherent reading supplies its thematic-tag wording tuple, independently of whether an active-character tuple is supplied."
+msgstr "Utiliser lorsque la lecture cohérente fournit son tuple de formulations d’étiquettes thématiques, indépendamment de la présence d’un tuple de personnages actifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a controlled Tag, Tagging, scheme, tagger or hasTag, duplicating wording through tagAsWritten, or treating an empty tuple as proof that the division has no theme."
+msgstr "Éviter d’inférer un Tag contrôlé, un Tagging, un schéma, un auteur d’étiquetage ou hasTag, de dupliquer les formulations par tagAsWritten ou de traiter un tuple vide comme une preuve que la division n’a aucun thème."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionThematicTagWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link its own StructuredSequence and retain every supplied complete word literal once through structuredTerm, with distinct occurrences and entryOrdinal preserving order and repetition. Attribute the actual roster and payload statements."
+msgstr "Relier sa propre StructuredSequence et conserver une seule fois chaque littéral textuel complet fourni par structuredTerm, avec des occurrences distinctes et entryOrdinal préservant l’ordre et la répétition. Attribuer les énoncés réels de la liste et de ses contenus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "division narrative word-sequence constraint"
+msgstr "contrainte de séquence textuelle narrative de division"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every item selected through divisionActiveCharacterWords or divisionThematicTagWords has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal."
+msgstr "Chaque élément sélectionné par divisionActiveCharacterWords ou divisionThematicTagWords possède un structuredTerm, et chacun de ces termes est un littéral xsd:string, rdf:langString ou rdf:dirLangString."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law checks presence and every supplied term independently, permits blanks and empty sequences, and preserves the existing branch, whole-term identity and ordinal contracts."
+msgstr "Cette règle limitée aux rôles vérifie séparément la présence et chaque terme fourni, autorise les textes vides et les séquences vides, et préserve les contrats existants de branche, d’identité du terme entier et de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected item with blank xsd:string is valid; a missing structuredTerm, numeric term, resource or extra malformed term violates this word law."
+msgstr "Un élément sélectionné contenant un xsd:string vide est valide ; un structuredTerm manquant, un terme numérique, une ressource ou un terme mal formé supplémentaire viole cette règle textuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate supplied character and thematic wording occurrences without resolving referents or pairing the two rosters."
+msgstr "Utiliser pour valider les occurrences fournies de formulations de personnages et de thèmes sans résoudre les référents ni apparier les deux listes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting one good term as cover for an extra invalid term, coercing nonwords into strings or requiring nonempty rosters."
+msgstr "Éviter d’accepter un terme correct pour couvrir un terme supplémentaire invalide, de convertir des valeurs non textuelles en chaînes ou d’exiger des listes non vides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeWordSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow each selected role, sequence and structuredItem. Require a scalar term, then compare every term’s datatype through termSameComponent against the three admitted word datatypes without rewriting input."
+msgstr "Suivre chaque rôle sélectionné, sa séquence et structuredItem. Exiger un terme scalaire, puis comparer le type de données de chaque terme par termSameComponent aux trois types textuels admis sans réécrire l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "division narrative reported-content constraint"
+msgstr "contrainte de contenu rapporté de lecture narrative de division"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every DivisionNarrativeReading has at least one actually supplied active-character wording roster or thematic-tag wording roster."
+msgstr "Chaque DivisionNarrativeReading possède au moins une liste réellement fournie de formulations de personnages actifs ou d’étiquettes thématiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A current zero-item roster counts as supplied content when its actual context is known. Missing rosters do not manufacture a reading or reveal original column presence, blanks or earlier discarded wording."
+msgstr "Une liste actuelle sans élément compte comme contenu fourni lorsque son contexte réel est connu. Des listes manquantes ne créent pas une lecture et ne révèlent ni la présence des colonnes d’origine, ni leurs valeurs vides, ni des formulations éliminées auparavant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading with an explicitly supplied current empty thematic roster satisfies presence; a typed reading with neither roster violates this law."
+msgstr "Une lecture dont la liste thématique actuelle vide est explicitement fournie satisfait la présence ; une lecture typée dépourvue des deux listes viole cette règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an all-missing reading while retaining independently supplied nonempty, blank-item or zero-item roster representations."
+msgstr "Utiliser pour rejeter une lecture dont toutes les listes sont manquantes tout en conservant les représentations fournies indépendamment : listes non vides, à éléments textuels vides ou sans élément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting absent historical fields into evidenced empty source columns or interpreting empty reported output as a negative fact about characters or themes."
+msgstr "Éviter de convertir des champs historiques absents en colonnes sources vides attestées ou d’interpréter une sortie rapportée vide comme un fait négatif sur les personnages ou les thèmes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DivisionNarrativeReportedContentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each typed reading, require one actual edge through either roster property. Keep the other role absent when unavailable; retain known current output without reconstructing unavailable earlier text or field history."
+msgstr "Pour chaque lecture typée, exiger un lien réel par l’une des deux propriétés de liste. Omettre l’autre rôle lorsqu’il est indisponible ; conserver la sortie actuelle connue sans reconstituer un texte antérieur indisponible ni l’historique des champs."

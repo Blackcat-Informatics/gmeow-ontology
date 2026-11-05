@@ -180,3 +180,59 @@ msgstr "范围：该记录仅承载关于 gmeow:postalAddressFrame 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:tenuredContactPoint and nothing else. It is not a definition of gmeow:tenuredContactPoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:tenuredContactPoint 的一项完整性义务，别无其他。它不是 gmeow:tenuredContactPoint 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Email Address Normalization Policy"
+msgstr "电子邮件地址规范化策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified specification of the transformation used to produce an email address's normalized addr-spec. A policy individual is named by IRI so a store can retain policy identity together with the resulting gmeow:addressValue when deriving its own address identifier."
+msgstr "一种已标识的转换规范，用于生成电子邮件地址的规范化 addr-spec。策略个体以 IRI 命名，使存储系统在推导自己的地址标识符时，能将策略身份与所得 gmeow:addressValue 一同保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It is an information object, not a contact point, address holder or normalization execution. Its specification must state the actual transformation; a changed transformation requires a distinct policy identity. The class supplies no default case conversion, dot removal, Unicode normalization or domain encoding."
+msgstr "它是信息对象，而非联系点、地址持有人或规范化执行。其规范必须说明实际转换；转换发生变化时必须使用不同的策略身份。此类不提供默认的大小写转换、点号移除、Unicode 规范化或域名编码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied specification named ex:preserveCaseV1 can be typed as gmeow:EmailAddressNormalizationPolicy and state that its addr-spec transformation preserves the supplied spelling. That name alone does not prove that the policy was applied."
+msgstr "名为 ex:preserveCaseV1 的已提供规范可定型为 gmeow:EmailAddressNormalizationPolicy，并说明其 addr-spec 转换保留所提供的原始写法。仅有该名称不能证明策略已被应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual normalization specification that qualifies an EmailAddress's normalized value in a selected store identity context."
+msgstr "用于在所选存储身份上下文中标识限定 EmailAddress 规范化值的实际规范化规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use as a default normalizer, an execution receipt, a disclosure policy or an address identity key by itself. Equal-looking values under different policies do not establish comparable address identities or the same person."
+msgstr "不要将其用作默认规范化器、执行收据、披露策略，也不要单独将其作为地址身份键。不同策略下看似相同的值不能确立可比较的地址身份，也不能确立同一人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmailAddressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the complete policy specification by IRI, preserve its source and transformation meaning, and link the EmailAddress through gmeow:addressNormalizationPolicy. Retain the original spelling as source evidence. The selected store must obtain an unambiguous policy and normalized-value pair before deriving its own identifier; missing or ambiguous evidence cannot trigger silent normalization."
+msgstr "以 IRI 命名完整策略规范，保留其来源及转换含义，并通过 gmeow:addressNormalizationPolicy 关联 EmailAddress。将原始写法保留为来源证据。所选存储系统必须先获得无歧义的策略与规范化值配对，才能推导自己的标识符；证据缺失或有歧义时不得触发静默规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "address normalization policy"
+msgstr "地址规范化策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an EmailAddress to the identified EmailAddressNormalizationPolicy recorded as producing its normalized gmeow:addressValue. It preserves the policy component of a selected store's policy-and-value identity pair without asserting that normalization was executed or verified."
+msgstr "将 EmailAddress 关联到已标识的 EmailAddressNormalizationPolicy，该策略被记录为生成其规范化 gmeow:addressValue 的策略。它保留所选存储系统的策略与值身份配对中的策略部分，而不宣称规范化已被执行或验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the email address resource, not its literal value, holder, account or message occurrence. No global functional characteristic, identity key or address equality is asserted. Distinct scoped policy assertions may coexist; a selected identity operation must resolve its actual policy and value rather than choose silently."
+msgstr "主语是电子邮件地址资源，而非其字面值、持有人、账户或消息中的出现记录。不声明全局函数性、身份键或地址相等。不同作用域的策略断言可以共存；所选身份操作必须确定其实际策略及值，不得静默选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "An EmailAddress ex:address carrying gmeow:addressValue \"Case@example.org\" and gmeow:addressNormalizationPolicy ex:preserveCaseV1 records a supplied policy and value. A separate MessageParticipant can point to that address with gmeow:participantAddress and retain the original occurrence through gmeow:rawAddressValue."
+msgstr "具有 gmeow:addressValue \"Case@example.org\" 及 gmeow:addressNormalizationPolicy ex:preserveCaseV1 的 EmailAddress ex:address 记录所提供的策略与值。另一个 MessageParticipant 可通过 gmeow:participantAddress 指向该地址，并通过 gmeow:rawAddressValue 保留原始出现记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state which named normalization policy qualifies this email address's normalized value for store-relative identity."
+msgstr "用于说明哪一具名规范化策略限定该电子邮件地址的规范化值，以形成相对于存储系统的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach the property to an address literal or person, apply it to other contact-point kinds, infer the same address from value equality alone, or merge source nodes or address holders. The policy edge is not a normalization proof or a permission to discard original spelling."
+msgstr "不要将此属性附于地址字面值或人，不要将其用于其他种类的联系点，不要仅由值相等推断同一地址，也不要合并来源节点或地址持有人。策略边不是规范化证明，也不许可丢弃原始写法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressNormalizationPolicy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the EmailAddress to its supplied policy IRI and retain the existing functional gmeow:addressValue in the same selected identity context. Keep occurrence spelling on MessageParticipant through gmeow:rawAddressValue or retain other exact source evidence. Record any source-to-store correspondence explicitly; do not add transformations or change policy meaning during lookup."
+msgstr "将 EmailAddress 关联到所提供的策略 IRI，并在同一所选身份上下文中保留现有具函数性的 gmeow:addressValue。通过 gmeow:rawAddressValue 在 MessageParticipant 上保留该次出现的原始写法，或保留其他确切来源证据。明确记录来源到存储系统的任何对应；查询时不要添加转换或改变策略含义。"

@@ -178,11 +178,12 @@ ex:firstTwo a gmeow:ChunkingMember ;
 
 ## A summary’s carrier is distinct from what it summarizes
 
-A generated summary is a condensed account derived from its division. It is not
-a contiguous cut of that division. `wasDerivedFrom` records the summarized
-division; `chunkOf` records the actual carrier containing retrieved summary text.
-A separate `Summary` artifact and retrieval `Chunk` express both meanings without
-inventing a new summary relation or moving the GraphRAG community boundary.
+A generated summary is a condensed account of an identified source division.
+`summaryOf` identifies that summarized source and specializes the generic
+`wasDerivedFrom` lineage relation. Another derivation input does not automatically
+become a summarized source. `chunkOf` keeps the actual carrier containing the
+retrieved summary text. A separate `Summary` artifact and retrieval `Chunk`
+retain these roles without moving the GraphRAG community boundary.
 
 The next carrier contains `Summary: Alpha and beta.` followed by one newline.
 Its exact UTF-8 content digest is shown. The retrieved account occupies
@@ -190,7 +191,7 @@ Its exact UTF-8 content digest is shown. The retrieved account occupies
 
 ```turtle
 ex:summaryCarrier a gmeow:Summary ;
-    gmeow:wasDerivedFrom ex:division ;
+    gmeow:summaryOf ex:division ;
     lang:literalValue "Summary: Alpha and beta.\n" ;
     gmeow:contentDigest "cb3ad665f702398b477870fae600fe52503aa8f8df79f0195f6746f4ceed64df"^^gmeow:sha256Digest .
 ex:retrievedSummary a gmeow:Chunk ;
@@ -201,7 +202,224 @@ ex:retrievedSummary a gmeow:Chunk ;
 
 One node may also be both `Summary` and `Chunk` when its own text is a condensed
 account and a contiguous cut of its actual carrier. In that case it retains
-`wasDerivedFrom ex:division` separately from `chunkOf ex:summaryCarrier`. Dual
+`summaryOf ex:division` separately from `chunkOf ex:summaryCarrier`. Dual
 typing never licenses `chunkOf ex:division` merely because the text summarizes
 that division. `CommunitySummary` continues to mean a summary of a GraphRAG
 community, not an arbitrary reference-work division (Principles 2 and 9).
+
+## Analysis input descriptors and chunk identities
+
+Reported Analysis inputs and contract-bound retrieval chunkings have
+different roles. An Analysis can carry its supplied first and last source
+keys, chapter key, source-key frame description, construction description
+and actual source context directly. Those optional fields do not make it a
+Chunk, Chunking, text carrier or execution event.
+
+The integer descriptors preserve source values. Do not reuse `entryOrdinal`
+without its zero-based sequence-position meaning or reinterpret keys as
+half-open code-point bounds. Different source-key and text-assembly
+conventions may describe inputs that cannot be compared or reconstructed from
+their endpoints alone. Construction descriptions and identified source
+contexts retain what was supplied without requiring a profile, digest or
+input artifact.
+
+The three text-unit granularity individuals reuse the kernel's open
+GranularityLevel category and nonfunctional `hasGranularity`. They imply no
+fixed size, endpoint equality or universal resolution order. Existing Chunk
+and ChunkingMember source, rules, carrier, ordinal and extent obligations
+remain unchanged (Principles 4, 9 and 19).
+
+Only the optional first, last and chapter integer fields receive local
+qualified maxima on Analysis; no required-path closure is added for these
+descriptors. Existing literal ranges and canonical logic axioms provide their
+value contracts without a new input class, global functional carrier or
+hand-authored shape (Principle 17).
+
+## Whole-content division containment
+
+`chunkInDivision` directly asserts that a source division contains the
+whole particular occurrence of source content represented by a Chunk. Its
+ContentSegment target is a genuine containing source division, not a convenient
+topic, a merely intersected division or identical wording elsewhere. The
+relation is optional and nonfunctional; supplied nested containers may coexist
+without a unique or nearest choice.
+
+Whole-content containment justifies the broad `partOf` superproperty. That
+information-content parthood leaves the Chunk's retrieval identity intact;
+it does not type the subject as a structural ContentSegment or ContentBlock.
+The relation therefore does not specialize `segmentOf` or `blockOf`. Its
+own declaration has no transitive characteristic or property chain, even
+though generic `partOf` retains its existing transitivity.
+
+`chunkOf` continues to name the actual text carrier and coordinate origin.
+For a ChunkingMember it must still equal the selected `chunkingSource`.
+Source and rules-artifact digest pins, member ordinals, span bounds,
+BlockExtent origins and every existing boundary law remain unchanged.
+If a division genuinely is that carrier, both relations may name it; a
+division link alone never rebinds the carrier or converts coordinates.
+
+When a chunk crosses divisions, a child containing only part of its occurrence
+is not a whole-chunk container. A supplied common ancestor qualifies only
+when it genuinely contains the entire occurrence. The vocabulary chooses no
+ancestor and adds no default when that information is absent. Existing
+covered-block and structural-parent joins can expose candidate divisions,
+but neither those joins nor represented extents supply an exhaustive source
+inventory or a universal nearest-container policy.
+
+The assertion preserves a supplied containment claim with its actual source,
+segmentation and exact-statement attribution. It requires no new division
+extent record merely to state the claim and establishes no solver-verified
+geometry, byte authentication or executed selection algorithm. A separately
+requested containment computation would need its own complete inputs and
+proof contract; the declarative link is not that operation.
+
+A generated summary remains distinct from the source content it summarizes.
+Its original subject division is not automatically a container of the new
+summary-text occurrence. Even when Summary and Chunk genuinely share a node,
+retain derivation or summarized-subject information separately from the
+actual carrier and any actual containing division. No new summary relation,
+identity merger or structural inference follows from this containment term
+(Principles 2, 4, 7, 9, 17 and 19).
+
+## Whole-work reported input granularity
+
+The additional `granularityWork` individual reuses `GranularityLevel` and the
+nonfunctional `hasGranularity` relation alongside the existing chunk, passage
+and chapter values. It describes an explicitly reported whole-work input unit
+under the source's own work convention. It adds one resolution value without
+changing the kernel axis, introducing a per-level class or imposing an order
+on text units.
+
+An Analysis retaining this value remains the coherent analysis result. It does
+not become an abstract Work, a realization, a Chunk or an input text carrier.
+The reported unit and the actual source remain separate: a complete file or
+document is not evidence of whole-work resolution, and a Work identity supplies
+no particular language, edition, copy or analyzer-input bytes.
+
+Retain any supplied source context, source-key endpoints, key convention,
+chapter context and input-construction description through the existing
+optional Analysis descriptors. Unknown source conventions stay unknown. The
+whole-work value records a supplied resolution; it does not authenticate
+complete coverage, reconstruct input or imply that all realizations were read.
+It neither requires absent descriptors nor changes source-key interpretation,
+Chunking membership, carrier pins or extent laws (Principles 4, 7, 9 and 19).
+
+## Reported chunker descriptors
+
+The optional `chunkerName`, `chunkerVersion` and `chunkerParameters` roles
+preserve supplied descriptions of a Chunking. Names and versions are complete
+text literals specialized through `lang:literalValue`; they provide no version
+grammar, executable identity or evidence of a model run. Independent attributed
+claims do not form an inferred name/version/map tuple.
+
+Parameters use the existing [record-metadata map model](../../record-metadata/docs.md#preserve-payload-structure-and-native-terms).
+The selected `StructuredMap` is a particular supplied map occurrence, with one
+`LabelledFacet` per entry linked by `hasFacet`. Its `facetLabel` preserves the
+exact source string key and `facetText` preserves the complete descriptive value,
+including any supplied language and direction. Keys remain data; they do not
+become ontology predicates, declared API slots, units or quantities.
+
+Three AI-owned Formula contracts apply only to maps selected by
+`chunkerParameters`. Every selected entry requires `facetText`. Each supplied
+key's datatype component must be exactly `xsd:string`. Two entries of the same
+selected map with identical whole RDF key terms must be the same whole RDF
+entry term. Both comparisons use `logic:termSameComponent` with positively bound
+operands. They test the recorded terms and report conflicts; they never infer
+`sameAs`, merge entries or choose an overriding value. Existing generic facet
+key requiredness, payload exclusion and at-most-one slots are reused unchanged.
+
+A typed map without entries records an explicit empty map. A missing relation
+does not. Empty keys and descriptive strings are valid supplied data. No source
+order follows from sorted transport, and no ordinal or key grammar is imposed.
+Distinct map occurrences keep their own entries and may reuse the same keys;
+the uniqueness law is local to each selected map, not to every Chunking or map.
+
+The map relation does not specialize `contextIncluded` and therefore introduces
+no additional digest-bearing context artifact. The actual `chunkingRulesArtifact`,
+source artifact, selected digest pins, granularity and all member, carrier,
+extent and span laws remain unchanged. Descriptive metadata neither executes
+the rules nor authenticates bytes or proves an exhaustive external inventory
+(Principles 2, 4, 7, 9, 11, 12, 17 and 19).
+
+## Chunk-span input content
+
+ChunkSpan is the identified selected source-text content unit reported across
+source chunks, owned by the AI slice. It specializes the existing EvidenceSpan category, inherits InformationObject
+and is the target of existing classifiedTarget or observedFeature links. This keeps a
+classifier output or Measurement distinct from its actual input, with run,
+vantage, method, metric, label, score and Quantity result on their existing
+records. The Analysis-only input descriptors retain their original domains and
+constraints.
+
+EvidenceSpan is the existing anchored-target owner, so this specialization
+avoids a parallel span model. Its category classification adds no second
+ultimate Kind. Existing selector properties retain their actual domains and
+constraints; the subclass declaration itself requires no citation selector,
+retrieval-chunk pin, polarity, offsets or digests.
+
+The six optional chunkSpan roles preserve supplied first and last source keys,
+chapter or grouping key, key-frame description, construction description and
+source context. All roles are globally nonfunctional. Only the three integer
+keys receive local allValuesFrom and datatype-qualified maxima of one on
+ChunkSpan, using onDataRange xsd:integer. No required-path closure is added.
+The five literal roles specialize the existing domain-free lang:literalValue.
+
+Supplied unit identity is not an endpoint tuple, label or granularity match.
+Selections differing by source, grouping, assembly or producer context retain
+their actual distinct unit identities and separate output records. Unknown
+descriptors remain unknown; a mapper retaining a supplied field uses its
+specific role rather than silently discarding it. Several attributed descriptive
+or source-context statements can coexist without forming an inferred tuple.
+
+Source keys are not ChunkingMember ordinals or Unicode-code-point coordinates.
+No key origin, ordering, continuity, endpoint inclusion or intervening membership
+is imposed. Source context names only an actually identified InformationObject;
+it does not assert structural parthood, actual carrier identity, derivation,
+digest pins or an immutable revision. Construction prose is descriptive and
+supplies no executable profile, authenticated input artifact or reconstruction.
+
+Existing Chunk and ChunkingMember identities, carrier relations, source and rules
+pins, ordinals and all extent laws remain unchanged. Reuse a genuine existing
+Chunk as the target with its complete contract. Do not wrap each Chunk or infer
+a second ultimate Kind for a Chunk or ContentSegment from input use. An
+endpoint-only range is insufficient evidence for Chunk typing.
+
+The existing open granularityChunk, granularityPassage, granularityChapter and
+granularityWork individuals describe explicitly supplied resolution through
+hasGranularity. They impose no per-level class, fixed size, universal order,
+structural division or complete-source coverage. The focused AI guide's
+fictional scene supplies selection descriptors and separate output records;
+it does not claim executed inference, reconstruction or byte authentication.
+
+No new dependency, runtime mechanism, mathematical quantity alias or generated
+authoring surface is introduced (Principles 2, 4, 7, 9, 11, 12, 15, 17 and 19).
+
+## Reported source-presentation descriptors
+
+These descriptors report how source content was presented during processing.
+They are AI-owned applied reporting roles, following BlockExtent and reported
+chunker descriptors. Their ownership does not transfer structural document
+identity or general HTML semantics into AI.
+
+Use `blockHtml` on the actual ContentBlock for a supplied HTML source string.
+Use the five chunk descriptor roles on the actual Chunk, rather than on
+Chunking, Analysis or ContentBlock. `chunkSectionTag` is an exact `xsd:string`;
+the three heading roles admit the complete word-literal union. The fixed roles
+do not require a new tuple carrier, and one missing role supplies no value for
+another role. No tag or heading derives a structural division or coordinate.
+
+Use StructuredSequence for `chunkMarkerLines`, preserving each string occurrence
+with structuredTerm and entryOrdinal. Preserve order, repetitions and blank
+strings. Do not sort, deduplicate, split strings, invent keys or admit map,
+nested-sequence or null marker items. The role-scoped Formula requires a
+structuredTerm for each selected item and checks the exact `xsd:string` datatype
+of every such term. Generic branch, whole-term identity and order laws continue
+to apply without changes.
+
+An actually supplied empty sequence is valid; no marker relation is required.
+Only evidence that a source actually supplied the empty sequence supports that
+assertion. A default empty tuple in a source schema does not establish historical
+presence. Leave unavailable report values absent and retain actual attribution.
+No descriptor verifies execution, authenticates bytes, parses HTML or changes
+the existing chunking, atomic-boundary or source-carrier laws (Principles 4, 9,
+17 and 19).

@@ -168,23 +168,49 @@ Details are InformationObjects; stirring occurrences are Events; embedded roles
 remain contextual to supplied partOf membership and source attribution.
 
 WorldAffordance specializes InformationObject as an actual catalog-entry kind.
-Its class-guarded law requires a catalog owner and supplied tool name, while
-incomplete fragments can remain plain InformationObjects. The target law checks
-universal agreement over every advertising owner's hasPart inventory. The named
-affordanceTarget domain and closure admit the WorldAffordance subject; its
-catalog class law separately requires owner existence and tool naming.
-A convenient owner cannot validate a shared entry's
-foreign target. These are source-record laws, not an implementation, purity
-proof or access-control mechanism. Tags are checked as affordance metadata and
-do not replace ActionPolicy or admit a call.
+Its class-guarded law requires an InformationObject catalog bearer and supplied
+tool name, while incomplete fragments can remain plain InformationObjects.
+affordsAction admits either a direct object representation or an artifact
+linked from that representation through worldObjectAffordances. The optional,
+nonfunctional link preserves the source's actual state/account association and
+statement attribution; no global current state, profile or replacement history
+is inferred. Select the supplied catalog before reading its entries. A supplied
+supersedes claim can retain replacement history; changed bytes alone cannot.
+
+The linked artifact carries a supplied contentDigest of its exact identified
+encoded catalog bytes. Existing Sources admission retains the actual algorithm
+datatype and lexical value; several algorithms may coexist. Encoding, preimage
+and any content-addressed identifier mapping are supplied source inputs, not a
+universal producer invented here. No byte read, entry correspondence, digest
+computation or IRI agreement is certified. worldObjectState retains its different
+preimage contract. A supplied empty encoded catalog may have zero entries and
+an actual digest; an absent relation supplies no catalog, and zero visible entry
+triples alone cannot turn partial capture into evidence of emptiness.
+The link and digest carry no explicit claim that the inventory is empty or capture is complete.
+Such a source claim needs separately supplied evidence; these roles do not
+encode a queryable indicator for it.
+
+The target law checks every direct bearer's hasPart inventory when that bearer
+has no incoming worldObjectAffordances link. For a set bearer, it instead checks
+every represented object supplying that link. Each guarded Formula arm binds
+its own target through affordanceTarget and its bearer through affordsAction;
+the linked arm also binds worldObjectAffordances. The direct arm's obligation
+is an incoming link or the direct bearer's hasPart, preserving the two modes
+without a negative existence guard. A convenient object cannot validate a shared
+entry's foreign target. Domain/range closure admits the named endpoints; the
+catalog class law separately requires bearer existence and tool naming.
+These canonical source-record constraints use generated validation, without
+new native markers, runtime effects, purity proofs or access-control decisions.
+Tags remain affordance metadata and do not replace ActionPolicy or admit a call.
 
 The prose ranges preserve untagged source wording and actual language/base
 direction when supplied. glanceText specifically requires language through the
-native termHasLang relation. Machine fields channelLayout, affordanceToolName,
-cognitionModeAsRecorded and defeatedWorkDigest are exact xsd:string values,
-because token whitespace collapse would destroy source content. The latter
-three do not resolve a tool, a cognition category or a work identity.
-No range declaration is represented as a parser or cryptographic verifier.
+native termHasLang relation. The declared ranges of channelLayout,
+affordanceToolName, cognitionModeAsRecorded and defeatedWorkDigest each admit
+xsd:string or xsd:token. Retain the supplied lexical form and datatype without
+normalizing, retyping or inferring token typing. The latter three do not resolve
+a tool, a cognition category or a work identity. No range declaration is
+represented as a parser or cryptographic verifier.
 
 The cognition-mode carrier is InformationObject or Desire, with an explicit
 property-targeted disjunctive type law. Desire wording retains actual
@@ -205,3 +231,20 @@ by its bowl parent; the ontology does not claim every repaired vessel is a bowl.
 Virtual desktop and the raft's craft meaning deliberately receive no invented
 physical-surface or container parent. Inherited kind assertions remain inferred,
 with attribution to the original source description (Principles 2, 4, 9, 17 and 19).
+
+## Conditional release and departing focus
+
+EnvironmentRecords owns releasesAttentionFrom beside its attention endpoint
+roles. The Event-to-Entity relation records a conditional effect: the event ends
+attention on the target if attention rested there and otherwise asserts nothing
+about attention. attentionFrom instead reports an actual departing focus. No
+subproperty, chain or implication connects the new relation to attentionFrom,
+attentionTo or the state endpoint roles; unknown prior attention remains unknown.
+
+The canonical logic:ObjectProperty declaration and provided-value closure reuse
+the existing endpoint validation pattern. Optional, nonfunctional release facts
+remain attributed source claims. They require no new class, event type, Agent,
+slot, state history or dependency, and do not weaken existing Event constraints.
+The property supplies no runtime clearing or mutation operation. Actual slot
+assignments or transition evidence, when supplied independently, keep their own
+existing contracts (Principles 4, 9, 12, 17 and 19).

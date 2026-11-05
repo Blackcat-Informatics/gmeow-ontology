@@ -5,6 +5,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Chunk
@@ -2569,3 +2570,1104 @@ gmeow:HeldRecord logic:subClassOf
 
 # Explicit property-range validation; no required path on unrelated records.
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/textHeldRecord" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:analysisFirstChunkKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis first source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the first source chunk reported for this Analysis's selected input unit."@x-gmeow-english ;
+    skos:scopeNote "Interpret the key only under the supplied source context and key convention. It is not entryOrdinal or spanStart and imposes no global key origin, numeric ordering, continuity or input-byte identity."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisFirstChunkKey 12 ; gmeow:analysisLastChunkKey 18 when those endpoint keys were supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the first source-chunk key reported for the unit an analysis read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a canonical chunk ordinal, treating it as a code-point start, or assuming the emitted retrieval chunk has the original input text."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied integer on the Analysis with any supplied last key, source-key frame, construction, chapter and source context. Leave unavailable endpoints and conventions absent rather than inventing them."@x-gmeow-english .
+
+gmeow:analysisLastChunkKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis last source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the last source chunk reported for this Analysis's selected input unit."@x-gmeow-english ;
+    skos:scopeNote "The reported endpoint does not impose a universal inclusive or exclusive convention, consecutive membership, numeric ordering or equality with the first key at chunk granularity. It is not spanEnd."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisLastChunkKey 18 while retaining the separately supplied first key and source convention."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the last source-chunk key supplied for the unit an analysis read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding one to obtain a half-open endpoint, equating the key with a code-point bound, or claiming all intervening chunks were present."@x-gmeow-english ;
+    gmeow:howToUse "Retain the integer unchanged on the Analysis and preserve any supplied input-context descriptors. Interpret endpoint inclusion or source membership only when the source convention actually supplies it."@x-gmeow-english .
+
+gmeow:analysisChunkKeyFrame
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis source-chunk key frame descriptor"@x-gmeow-english ;
+    skos:definition "A supplied string describing the source-key namespace or indexing convention of this Analysis's reported chunk keys."@x-gmeow-english ;
+    skos:scopeNote "This descriptor preserves stated context; it is not an authenticated coordinate system, complete key inventory or mandatory source artifact. Multiple supplied descriptions may coexist without making the keys globally comparable."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisChunkKeyFrame \"source chunk sequence keys\" when that descriptor is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a textual key namespace or indexing-convention descriptor for an analysis input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a zero-origin scheme, treating descriptive text as an executable frame or requiring an artifact when only a descriptor was supplied."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string onto the Analysis alongside its reported keys. Keep an unknown frame unknown; the descriptor does not authenticate a source or compute a key mapping."@x-gmeow-english .
+
+gmeow:analysisInputConstruction
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis input construction description"@x-gmeow-english ;
+    skos:definition "A supplied description of how this Analysis's input text was assembled, such as its trimming, omission or separator conventions."@x-gmeow-english ;
+    skos:scopeNote "This specifically named descriptive field preserves its complete string literal. It is not a structured parameter blob, executable profile, frozen artifact, historical-byte witness or claim that a construction was executed."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisInputConstruction \"Join the supplied texts without trimming.\"@en when that description is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve supplied prose describing how the selected analysis input was assembled."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing unavailable input text or assembly rules, or treating this description as proof that historical input bytes match."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied description and its language and direction on the Analysis. Retain distinct attributed descriptions as given and leave unknown construction details absent."@x-gmeow-english .
+
+gmeow:analysisChapterKey
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain lang:Analysis ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis source chapter key"@x-gmeow-english ;
+    skos:definition "The supplied integer chapter or chapter-group key affecting the source selection for this Analysis's input."@x-gmeow-english ;
+    skos:scopeNote "The key retains the source's grouping context without creating a ContentSegment, chapter ordinal or universal numbering scheme. It need not describe a chapter-granularity analysis; another input unit may also be selected within a chapter."@x-gmeow-english ;
+    skos:example "Retain ex:analysis gmeow:analysisChapterKey 4 when that source chapter key accompanies the selected input."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied chapter or group key affects which source chunks an analysis input selects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a chapter position, inferring a structural chapter object or assuming it is independent of the source-key frame."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied integer with any reported chunk endpoints and source context. Do not add a missing chapter key or change the analysis granularity merely because this descriptor is present."@x-gmeow-english .
+
+gmeow:analysisSourceContext
+    a logic:ObjectProperty ;
+    logic:domain lang:Analysis ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "analysis input source context"@x-gmeow-english ;
+    skos:definition "An actually identified source information object associated with the reported input keys or source selection of this Analysis."@x-gmeow-english ;
+    skos:scopeNote "The link records supplied source context. It does not by itself identify immutable analyzer-input bytes, certify an exact source revision or turn the Analysis result into a text carrier. Several attributed source-context links may coexist."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:analysisSourceContext ex:sourceRecord when that source information object is actually identified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an identified source object supplied as context for an analysis input's chunk keys or selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a source object to fill missing evidence, treating a mutable source identity as authenticated input bytes or requiring an unsupported digest."@x-gmeow-english ;
+    gmeow:howToUse "Link only the actual supplied InformationObject and retain its stated role alongside any input descriptors. Omit the relation when no source object is supplied; this property neither reconstructs nor authenticates text."@x-gmeow-english .
+
+gmeow:granularityChunk
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "chunk input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at chunk resolution under its source's chunk convention."@x-gmeow-english ;
+    skos:scopeNote "This is a resolution individual, not a class of chunks or a fixed text length. It does not equate source keys with retrieval chunks, require equal endpoint keys or establish a universal granularity ordering."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityChunk when chunk input granularity was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at chunk granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring chunk size, source coordinates, key conventions or a specific chunking solely from this value."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through hasGranularity and preserve the supplied source and input descriptors separately. Keep other attributed granularity values without selecting a winner."@x-gmeow-english .
+
+gmeow:granularityPassage
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "passage input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at passage resolution under its source's passage convention."@x-gmeow-english ;
+    skos:scopeNote "A passage has no universal size, chunk count or required position in a granularity ladder. This individual supplies no assembly rule, contiguous-source-cut claim or identity with a structural ContentSegment."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityPassage while retaining any supplied first and last source-chunk keys."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly describes the selected input unit as a passage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a passage's text, boundaries, size or relation to chapter granularity from this value alone."@x-gmeow-english ;
+    gmeow:howToUse "Use hasGranularity to retain this supplied resolution and keep source-key, construction and grouping descriptors separately. Do not invent a fixed passage segmentation or a coarserThan edge."@x-gmeow-english .
+
+gmeow:granularityChapter
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "chapter input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at chapter resolution under its source's chapter convention."@x-gmeow-english ;
+    skos:scopeNote "This resolution value does not create or identify a chapter ContentSegment, select a numbering origin or prove that the input equals a structural chapter's exact text. Chapter grouping and input construction remain separate supplied context."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityChapter and retain a supplied analysisChapterKey separately."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at chapter granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring chapter identity, chapter order, input bytes or a universal relation to passage or chunk granularity."@x-gmeow-english ;
+    gmeow:howToUse "Retain this individual through hasGranularity alongside any supplied source-context and chapter-key descriptors. Preserve other attributed resolutions without merging their conventions."@x-gmeow-english .
+
+
+lang:Analysis logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisFirstChunkKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisFirstChunkKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisLastChunkKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisLastChunkKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:analysisChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+
+gmeow:chunkInDivision
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range gmeow:ContentSegment ;
+    logic:subPropertyOf gmeow:partOf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk in source division"@x-gmeow-english ;
+    skos:definition "The source division containing the whole particular occurrence of source content represented by this Chunk under the supplied segmentation."@x-gmeow-english ;
+    skos:scopeNote "The relation is optional and nonfunctional; nested divisions genuinely containing the whole occurrence can coexist. It specializes broad partOf without changing chunkOf or making a Chunk a structural ContentSegment. Recording containment does not prove it, compute a nearest ancestor or convert coordinates."@x-gmeow-english ;
+    skos:example "With actual attribution retained, record ex:chunk gmeow:chunkOf ex:source ; gmeow:chunkInDivision ex:section . The section contains the whole represented source occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source or attributed analysis supplies a division containing the whole occurrence of source content represented by a Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a merely intersected division, matching wording elsewhere, an arbitrary association or a generated summary's subject division without actual whole-content containment."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Chunk to each supplied containing ContentSegment, preserving the actual source and exact-statement attribution. Retain any existing inChunking context and leave chunkOf, span bounds and source/digest pins unchanged; keep an unknown container absent."@x-gmeow-english .
+
+gmeow:granularityWork
+    a logic:NamedIndividual, gmeow:GranularityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox ;
+    rdfs:label "whole-work input granularity"@x-gmeow-english ;
+    skos:definition "The open text-unit granularity value for an input reported at whole-work resolution under its source's work convention."@x-gmeow-english ;
+    skos:scopeNote "This resolution value does not create or identify an abstract Work or a particular realization. A whole file or document does not establish whole-work scope. The value does not authenticate complete coverage or imply that every edition, language or realization was read."@x-gmeow-english ;
+    skos:example "Record ex:analysis gmeow:hasGranularity gmeow:granularityWork only when whole-work input granularity was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when an analysis input or another text-unit record is explicitly described at whole-work granularity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this value from a whole file, document, title or Work identity, or using it to claim reconstructed input bytes or complete source coverage."@x-gmeow-english ;
+    gmeow:howToUse "Reference this individual through hasGranularity and retain any supplied source, source-key and construction descriptors separately. Leave unknown work conventions unknown and preserve other attributed resolutions without selecting a winner."@x-gmeow-english .
+
+gmeow:chunkerName
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker name"@x-gmeow-english ;
+    skos:definition "The exact name supplied for the chunker associated with this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional text preserves a reported label, not an executable identity or proof that a named implementation ran. Equal names do not identify algorithms, rules artifacts or chunkings."@x-gmeow-english ;
+    skos:example "Retain supplied wording: ex:segmentation gmeow:chunkerName \"Outline cutter\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a chunker name for the recorded segmentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a name from the rules artifact, normalizing its spelling or treating it as a callable signature, model run or preferred implementation."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied string with its original lexical form, language and direction on the actual Chunking. Retain exact-statement attribution and leave a missing name absent."@x-gmeow-english .
+
+gmeow:chunkerVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker version"@x-gmeow-english ;
+    skos:definition "The exact version wording supplied for the chunker associated with this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional text imposes no version grammar, ordering or identity rule. It neither replaces the frozen rules-artifact digest nor pairs every reported name with every version or parameter map."@x-gmeow-english ;
+    skos:example "Retain supplied wording: ex:segmentation gmeow:chunkerVersion \"edition amber\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies version wording for the recorded chunker."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a missing version, parsing it as a numeric magnitude or using a name and version as proof of implementation identity or execution."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete supplied string and its exact-statement source and viewpoint. Keep the actual rules artifact and its selected digest pin separately; leave unknown version information absent."@x-gmeow-english .
+
+gmeow:chunkerParameters
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunking ;
+    logic:range gmeow:StructuredMap ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunker parameters"@x-gmeow-english ;
+    skos:definition "A supplied map occurrence retaining the descriptive parameter strings reported for this Chunking."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation selects a StructuredMap of exact string keys and descriptive text values. A typed empty map differs from an absent map. Independent maps remain separate; the relation asserts neither executable arguments nor a complete external inventory."@x-gmeow-english ;
+    skos:example "Link a supplied map: ex:segmentation gmeow:chunkerParameters ex:parameters . ex:parameters a gmeow:StructuredMap ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each supplied parameter key and its descriptive string as queryable graph content for a Chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an opaque JSON blob, keys turned into predicates, numeric coercion, invented units or order, or replacing the actual rules artifact with these descriptions."@x-gmeow-english ;
+    gmeow:howToUse "Link the Chunking to each supplied StructuredMap. Retain one LabelledFacet per entry with its exact xsd:string facetLabel and complete facetText; preserve attribution, empty strings and any supplied language or direction without inventing ordinals."@x-gmeow-english .
+
+gmeow:ChunkerParameterTextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter descriptive text"@x-gmeow-english ;
+    skos:definition "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText."@x-gmeow-english ;
+    skos:scopeNote "The requirement is scoped to selected chunker maps. Generic label-only facets remain valid elsewhere; an empty parameter map requires no invented entry."@x-gmeow-english ;
+    skos:example "A selected map entry retains ex:entry gmeow:facetText \"Keep headings together.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a selected parameter entry whose descriptive value is missing."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with a null, typed numeric value, nested payload or fabricated empty string."@x-gmeow-english ;
+    gmeow:howToUse "Follow chunkerParameters and hasFacet, then require facetText on each supplied entry. Reuse the existing text range, functionality and payload-exclusion laws without changing generic facet semantics."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Every facet entry in a map selected by chunkerParameters carries its descriptive text through facetText." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:facetText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+gmeow:ChunkerParameterKeyDatatypeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter exact string key"@x-gmeow-english ;
+    skos:definition "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype."@x-gmeow-english ;
+    skos:scopeNote "This checks the original literal datatype without trimming, retyping or interpreting the key. Empty string keys remain valid; generic maps retain their existing key types."@x-gmeow-english ;
+    skos:example "A supplied plain key remains ex:entry gmeow:facetLabel \"section policy\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that selected chunker parameter keys retain the source string datatype."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting token, language-tagged, numeric or resource keys by converting them into strings."@x-gmeow-english ;
+    gmeow:howToUse "Bind each selected entry and its facetLabel, then compare the label's datatype component with xsd:string through termSameComponent. Keep the supplied term unchanged and report a mismatch."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Every supplied facetLabel in a map selected by chunkerParameters has exactly the xsd:string datatype." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] , [ logic:termIndex 3 ; logic:termVariable "key" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:string ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .
+
+gmeow:ChunkerParameterKeyUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "chunker parameter map key uniqueness"@x-gmeow-english ;
+    skos:definition "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term."@x-gmeow-english ;
+    skos:scopeNote "The comparison is local to one selected map and uses whole-term identity for both keys and entry occurrences. Equal keys in different maps remain independent; no identity merge or preferred value follows."@x-gmeow-english ;
+    skos:example "Two different entries of ex:parameters cannot both carry the same complete facetLabel literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate key occurrences within a supplied chunker parameter map."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid global key uniqueness, key-derived entry identities, sameAs merging, last-value selection or SPARQL value equality in place of RDF term identity."@x-gmeow-english ;
+    gmeow:howToUse "Bind two entries and both keys through the same selected map. Compare complete key terms with termSameComponent; matching keys require the same complete entry term, otherwise preserve the records and report the conflict."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkerParameters ;
+    logic:message "Distinct entry occurrences in one map selected by chunkerParameters do not share the same complete RDF key term." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] , [ logic:termIndex 2 ; logic:termVariable "entry" ] , [ logic:termIndex 3 ; logic:termVariable "other" ] , [ logic:termIndex 4 ; logic:termVariable "key" ] , [ logic:termIndex 5 ; logic:termVariable "otherKey" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:chunkerParameters ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "map" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] , [ a logic:Formula ; logic:relation gmeow:hasFacet ; logic:argument [ logic:termIndex 0 ; logic:termVariable "map" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "key" ] ] , [ a logic:Formula ; logic:relation gmeow:facetLabel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "otherKey" ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termVariable "otherKey" ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] , [ logic:termIndex 2 ; logic:termVariable "other" ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .
+
+gmeow:scoreRegression
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "regression score"@x-gmeow-english ;
+    skos:definition "A model-predicted scalar for the output dimension identified by the emitted ClassifierLabel, rather than a probability."@x-gmeow-english ;
+    skos:scopeNote "This declares regression meaning for the raw decimal classifierScore. It supplies no universal range, scale, unit, calibration, epistemic confidence, evidence strength or decision policy. The named output dimension is a model output identity, not an invented mathematical dimension."@x-gmeow-english ;
+    skos:example "Record ex:output gmeow:classifierScore -1.25 ; gmeow:scoreSemantics gmeow:scoreRegression ; gmeow:emittedLabel ex:dimensionLabel . Retain the actual run and source attribution separately."@x-gmeow-english ;
+    gmeow:useWhen "Use when a model emits a scalar regression prediction for an explicitly identified output dimension."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the score as a probability, calibration, confidence or evidence strength, assuming a unit interval, argmax or threshold, or replacing actual quantity measurements with this raw model score."@x-gmeow-english ;
+    gmeow:howToUse "Declare this individual through scoreSemantics on the output, retain its exact classifierScore and emittedLabel, and preserve producedBy with the actual ModelInferenceRun, model revision, input and source provenance. Keep any separately supplied interpretation context without inventing a scale, unit or decision rule."@x-gmeow-english .
+
+gmeow:ChunkSpan
+    a logic:Kind, logic:Class ;
+    logic:subClassOf gmeow:EvidenceSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chunk Span"@x-gmeow-english ;
+    skos:definition "An identified source-text input unit reported as a range of source chunks under its supplied selection context."@x-gmeow-english ;
+    skos:scopeNote "This EvidenceSpan specialization identifies the selected content unit and inherits InformationObject. Its supplied identity is not determined by endpoint integers, wording or granularity alone, and it need not be a contiguous retrieval Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a classifier or Measurement reports an input unit spanning source chunks under a supplied selection context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing an output or an input descriptor as the selected content, wrapping every existing Chunk, or adding a second ultimate Kind to a Chunk or ContentSegment."@x-gmeow-english ;
+    gmeow:howToUse "Point classifiedTarget or observedFeature to the actual supplied unit identity. Keep granularity and supplied descriptors on that unit; keep outputs, runs and results separate. Reuse an actual existing Chunk with its complete contract."@x-gmeow-english ;
+    skos:example "Identify the selected content: ex:output gmeow:classifiedTarget ex:unit . ex:unit a gmeow:ChunkSpan ."@x-gmeow-english .
+
+gmeow:chunkSpanFirstKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span first source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the first source chunk reported for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It is a source identifier, not an ordinal, code-point coordinate, count or numeric magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the first source-chunk key supplied for the selected input unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into entryOrdinal or spanStart, inventing a key origin or inferring continuity from endpoint values."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied integer on the ChunkSpan with any supplied last key, chapter key, key frame, construction and source context. Leave an unavailable first key absent."@x-gmeow-english ;
+    skos:example "Retain the reported first key: ex:unit gmeow:chunkSpanFirstKey 12 ."@x-gmeow-english .
+
+gmeow:chunkSpanLastKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span last source-chunk key"@x-gmeow-english ;
+    skos:definition "The supplied integer key identifying the last source chunk reported for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It establishes no inclusive or exclusive convention, numeric order, consecutive membership or equality with the first key."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the last source-chunk key supplied for the selected input unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding one to form a half-open bound, treating the key as spanEnd or claiming every intervening chunk was selected."@x-gmeow-english ;
+    gmeow:howToUse "Retain the integer unchanged on the ChunkSpan and keep any supplied first key and selection context. Interpret endpoint inclusion only under an actually supplied convention."@x-gmeow-english ;
+    skos:example "Retain the reported last key: ex:unit gmeow:chunkSpanLastKey 18 ."@x-gmeow-english .
+
+gmeow:chunkSpanChapterKey
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span source chapter key"@x-gmeow-english ;
+    skos:definition "The supplied integer chapter or chapter-group key affecting the source selection for this ChunkSpan."@x-gmeow-english ;
+    skos:scopeNote "This optional key is at most one per coherent ChunkSpan. It retains grouping context without creating a ContentSegment, chapter ordinal or numbering convention."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied chapter or group key affects which source chunks the input selects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the key into a structural chapter position or inferring chapter granularity solely from its presence."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the integer with the ChunkSpan's supplied endpoint and source descriptors. A different grouping selection uses its own actual unit identity."@x-gmeow-english ;
+    skos:example "Retain the supplied grouping key: ex:unit gmeow:chunkSpanChapterKey 4 ."@x-gmeow-english .
+
+gmeow:chunkSpanKeyFrame
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span source-key frame descriptor"@x-gmeow-english ;
+    skos:definition "A supplied string describing the source-key namespace or indexing convention of this ChunkSpan's reported chunk keys."@x-gmeow-english ;
+    skos:scopeNote "This optional descriptor preserves stated context without authenticating a coordinate system or complete key inventory. Several attributed descriptions may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a textual key namespace or indexing-convention descriptor for a selected chunk span."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a zero-origin scheme, computing a key mapping from prose or treating equal descriptions as shared source identity."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string onto the ChunkSpan alongside its reported keys. Keep an unknown key frame unknown and retain exact-statement attribution."@x-gmeow-english ;
+    skos:example "Retain a supplied key descriptor: ex:unit gmeow:chunkSpanKeyFrame \"source sequence keys\" ."@x-gmeow-english .
+
+gmeow:chunkSpanConstruction
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span input construction description"@x-gmeow-english ;
+    skos:definition "A supplied description of how this ChunkSpan's selected input text was assembled, including stated trimming, omission or separator conventions."@x-gmeow-english ;
+    skos:scopeNote "This optional descriptive field preserves the complete literal, including actual language and direction. It is not an executable profile, structured parameter blob or historical-byte witness."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve supplied prose describing the assembly of a reported chunk-span input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing unavailable text or assembly rules, interpreting the prose as execution evidence or normalizing its supplied literal."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied string and any actual language tag and direction on the ChunkSpan. Retain competing attributed descriptions separately; leave unknown construction details absent."@x-gmeow-english ;
+    skos:example "Retain the supplied assembly description: ex:unit gmeow:chunkSpanConstruction \"Join without trimming.\"@en ."@x-gmeow-english .
+
+gmeow:chunkSpanSourceContext
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ChunkSpan ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chunk span input source context"@x-gmeow-english ;
+    skos:definition "An actually identified source InformationObject supplied as context for this ChunkSpan's reported keys or source selection."@x-gmeow-english ;
+    skos:scopeNote "This optional link records supplied source context without certifying an immutable source revision, historical input bytes or derivation. Several attributed source-context links may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an identified source object supplied as context for a selected chunk span."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a source object to fill missing evidence or using chunkOf, navigationSource, segmentOf or wasDerivedFrom for a merely contextual link."@x-gmeow-english ;
+    gmeow:howToUse "Link only an actual supplied InformationObject and retain its stated contextual role. Keep absent source identity absent; this relation reconstructs no text and requires no invented digest."@x-gmeow-english ;
+    skos:example "Retain the identified source context: ex:unit gmeow:chunkSpanSourceContext ex:source ."@x-gmeow-english .
+
+gmeow:ChunkSpan logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanFirstKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanFirstKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanLastKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanLastKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:allValuesFrom xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSpanChapterKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+gmeow:measuredTerm
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:Measurement ;
+    logic:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "measured keyword wording"@x-gmeow-english ;
+    skos:definition "The keyword wording supplied for this Measurement, retaining its complete string literal."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Preserve lexical form, datatype and supplied language and direction; infer no Form, concept, entity, name, tokenization, occurrence identity or source span."@x-gmeow-english ;
+    skos:example "Retain ex:reading gmeow:measuredTerm \"silver river\" when that untagged wording was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep supplied keyword wording beside the separate size, source rank and weight of the actual Measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalization, translation, guessed language, referent resolution from equal spelling or replacement of the observed unit or weight result."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete supplied literal on the source row's Measurement with observedFeature, measurementMetric, vantage, observationMethod and the separate observationResult. Use distinct records for different rows or conventions."@x-gmeow-english .
+
+gmeow:ngramSize
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Measurement ;
+    logic:range math:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "n-gram size"@x-gmeow-english ;
+    skos:definition "The dimensionless positive integral count of gram positions for this keyword Measurement under its actual segmentation and counting convention, carried by a math:Quantity."@x-gmeow-english ;
+    skos:scopeNote "The count Quantity is separate from the keyword weight observationResult. Each selected count requires a positive integer-family magnitude, math:dimensionless and an actual applicable reference frame. Repeated positions remain counted."@x-gmeow-english ;
+    skos:example "Link ex:reading gmeow:ngramSize ex:count, retaining quantityValue 2, dimension math:dimensionless and the supplied counting frame on ex:count."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual keyword gram size and its segmentation/counting convention are available as a positive integral count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a raw code or sentinel as size, deriving size from whitespace, substituting character length or keyword-row count, deduplicating positions or inventing a missing frame."@x-gmeow-english ;
+    gmeow:howToUse "Point the Measurement to its count Quantity with original integer-family quantityValue, dimensionless dimension and actual hasReferenceFrame. Keep wording, source rank and weight separate, preserving distinct rows and conventions without inferring execution."@x-gmeow-english .
+
+gmeow:termRank
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:Measurement ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported keyword rank"@x-gmeow-english ;
+    skos:definition "The source-reported integer ordering position or rank of this keyword Measurement within its actual observed unit and producing context."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Unknown origin, direction, gaps and tie conventions stay unknown. An integer datatype does not turn an unrelated code into a rank or equate source order with relevance rank."@x-gmeow-english ;
+    skos:example "Retain ex:reading gmeow:termRank 4 when the source reported that keyword rank, without shifting it to an assumed origin."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source's stated keyword ordering position or rank within the Measurement's actual unit and source context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing rank from weight or row order, assuming zero or one origin, imposing bounds, continuity, uniqueness or tie rules, treating rank as confidence or copying it unchanged into entryOrdinal."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied xsd:integer ordering descriptor on its source row's Measurement with actual observedFeature, method, vantage and attribution. Preserve supplied ranking conventions; comparison, renumbering and list reconstruction require the actual convention."@x-gmeow-english .
+
+gmeow:NgramSizeContextConstraint
+    a logic:Constraint ;
+    logic:formalizes gmeow:ngramSize ;
+    logic:message "Each ngramSize count needs a magnitude, only math:dimensionless, a reference frame and numerically agreeing magnitudes." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-gram size context constraint"@x-gmeow-english ;
+    skos:definition "Every count selected by ngramSize has a magnitude, only the dimensionless dimension, a reference-frame witness and numerically agreeing magnitude values."@x-gmeow-english ;
+    skos:scopeNote "The condition follows each supplied ngramSize edge. It neither requires size on every Measurement nor constrains unrelated Quantities, merges rows or authenticates a frame's actual applicability."@x-gmeow-english ;
+    skos:example "A selected gram-count Quantity with no quantityValue or hasReferenceFrame violates this context condition; an unrelated weight Quantity is outside its guard."@x-gmeow-english ;
+    gmeow:useWhen "Use to require explicit context for an actual count supplied through ngramSize."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a frame edge as proof of historical segmentation, inventing a default frame, demanding one keyword row globally or replacing the separate weight result."@x-gmeow-english ;
+    gmeow:howToUse "Bind each count through ngramSize; require quantityValue, math:dimensionless and hasReferenceFrame. Compare every dimension by complete RDF identity and every pair of magnitudes by numeric equality, retaining distinct source rows and conventions."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectedQuantity" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:ngramSize ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedQuantity" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "dimensionPresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "dimensionPresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation math:hasDimension ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "dimensionPresenceQuantity" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri math:dimensionless ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "magnitudePresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "magnitudePresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentMagnitude" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation math:quantityValue ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "magnitudePresenceQuantity" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentMagnitude" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "framePresenceQuantity" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:relation gmeow:ngramSize ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "framePresenceQuantity" ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentFrame" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:hasReferenceFrame ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "framePresenceQuantity" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentFrame" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "dimensionQuantity" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "dimensionValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:ngramSize ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "dimensionQuantity" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:hasDimension ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "dimensionQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "dimensionValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termSameComponent ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "dimensionValue" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                    [ logic:termIndex 2 ; logic:termIri math:dimensionless ] ,
+                                    [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "leftMagnitude" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "rightMagnitude" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:ngramSize ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "agreementQuantity" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:quantityValue ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "leftMagnitude" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation math:quantityValue ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "agreementQuantity" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "rightMagnitude" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termEqual ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "leftMagnitude" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "rightMagnitude" ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
+
+gmeow:NgramSizeValueConstraint
+    a logic:Constraint ;
+    logic:formalizes gmeow:ngramSize ;
+    logic:message "Every magnitude of a selected ngramSize count must be a valid finite RDF integer-family literal strictly greater than zero." ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "n-gram size value constraint"@x-gmeow-english ;
+    skos:definition "Every magnitude of every Quantity selected by ngramSize is a valid finite RDF integer-family literal whose numeric value is strictly greater than zero."@x-gmeow-english ;
+    skos:scopeNote "Datatype-component identity, shared numeric lexical/value admission and strict positivity are all required. Every supplied magnitude is checked with its original lexical form and datatype, without coercion."@x-gmeow-english ;
+    skos:example "A valid positive xsd:integer is admitted without retyping. Zero, negative zero, negative sentinels, malformed integers and decimal or floating literals do not satisfy this count condition."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate actual positive gram counts while retaining supplied RDF integer-family representations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting numeric-looking strings, decimals, floats, nonfinite values or sentinels as counts, checking only one of several magnitudes or normalizing a rejected value into apparent validity."@x-gmeow-english ;
+    gmeow:howToUse "Bind every quantityValue through its selected ngramSize Quantity. Require termIsFiniteNumeric, the exact datatype-component disjunction for thirteen XSD integer-family datatypes, and termGreater against typed integer zero. Keep presence and frame in the separate context law."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:ngramSize ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] ] , [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] , [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:integer ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:nonPositiveInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:negativeInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:long ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:int ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:short ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:byte ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedLong ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedInt ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedShort ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:unsignedByte ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] , [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:positiveInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] , [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termLiteral "0"^^xsd:integer ] ] ] ] ] .
+
+gmeow:Measurement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredTerm ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:blockHtml
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported block HTML"@x-gmeow-english ;
+    skos:definition "The HTML source string reported for this ContentBlock in an extraction or source-presentation context."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional field retains markup as xsd:string. It asserts no parsed DOM, Rendering, sanitization or execution, and does not redefine the block’s structural identity."@x-gmeow-english ;
+    skos:example "A fictional extraction reports the exact string `<p>Amber</p>` for a paragraph block."@x-gmeow-english ;
+    gmeow:useWhen "Use when an extraction or source-presentation report supplies HTML text for an actual ContentBlock."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring HTML from plain text, constructing a Rendering merely to hold markup, or treating reported markup as safe to execute."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string unchanged on the ContentBlock, including blank strings, and retain the assertion’s actual source and viewpoint. Leave unavailable HTML absent."@x-gmeow-english .
+
+gmeow:chunkSectionTag
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk section tag"@x-gmeow-english ;
+    skos:definition "The section-tag string reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional xsd:string retains a source descriptor. It establishes no controlled tag identity, document hierarchy, heading level or source position."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the section tag opening for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies a section-tag string for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting the string to a token, a Tag individual, a structural segment type or an inferred heading level."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact xsd:string on the Chunk with its actual attribution. Preserve blank strings and leave missing tags absent without inventing defaults."@x-gmeow-english .
+
+gmeow:chunkChapterHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk chapter heading"@x-gmeow-english ;
+    skos:definition "The chapter-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a chapter entity, nesting, heading depth or membership in a division."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the chapter heading Amber coast for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the chapter-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a chapter from another heading, using this wording as a chapter identifier or inferring document structure from its presence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable chapter heading absent."@x-gmeow-english .
+
+gmeow:chunkSectionHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk section heading"@x-gmeow-english ;
+    skos:definition "The section-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. It is distinct from the section tag and does not establish a structural section, heading level or containing chapter."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the section heading Tidal garden for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the section-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the section tag for the heading, inventing a missing chapter heading or treating equal wording as shared section identity."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable section heading absent."@x-gmeow-english .
+
+gmeow:chunkSubsectionHeading
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk subsection heading"@x-gmeow-english ;
+    skos:definition "The subsection-heading wording reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional wording preserves language and direction when supplied. Its role does not establish a subsection entity, structural nesting or any particular numeric heading level."@x-gmeow-english ;
+    skos:example "A fictional chunker reports the subsection heading Quiet pools for one Chunk."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chunker report supplies wording in the subsection-heading role for an actual Chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this heading from indentation, fabricating its parent headings or converting the role into a numeric document depth."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied word literal on the Chunk with its actual language, direction and attribution. Preserve blank strings; leave an unavailable subsection heading absent."@x-gmeow-english .
+
+gmeow:Chunk logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkChapterHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSectionHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkSubsectionHeading ;
+      logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf
+          ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:chunkMarkerLines
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Chunk ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chunk marker lines"@x-gmeow-english ;
+    skos:definition "An ordered sequence of marker-line strings reported by the chunker for this Chunk."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation selects a StructuredSequence of distinct scalar string occurrences. Repetition, order and blank strings remain intact. An explicitly supplied empty sequence differs from omission; a schema default alone proves no historical presence."@x-gmeow-english ;
+    skos:example "A fictional report supplies two marker occurrences containing the same string, followed by a blank marker occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source report supplies an ordered marker-line sequence for a Chunk, including an explicitly supplied empty sequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing repeated strings, sorting markers, splitting a string at newlines, admitting maps or null items, or inferring field presence from a schema default."@x-gmeow-english ;
+    gmeow:howToUse "Link each supplied sequence to the Chunk. Retain each item as a distinct StructuredValue with its exact xsd:string structuredTerm and zero-based entryOrdinal. Assert an empty sequence only with actual supplied evidence, and retain attribution."@x-gmeow-english .
+
+gmeow:ChunkMarkerLineTextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reported chunk marker string constraint"@x-gmeow-english ;
+    skos:definition "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped constraint reuses the generic scalar-branch, whole-term identity and ordinal laws. An empty selected sequence is valid. It adds no required marker relation and changes no generic structured-value contract."@x-gmeow-english ;
+    skos:example "A selected sequence item with a blank xsd:string term is valid; an item with no term or a language-tagged term fails this constraint."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the scalar string payload of each supplied chunk marker occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting malformed items by coercing terms, omitting bad values or replacing a missing term with an empty string."@x-gmeow-english ;
+    gmeow:howToUse "Follow chunkMarkerLines and structuredItem. Require a structuredTerm for every selected item, then compare every supplied term’s datatype component with xsd:string through termSameComponent. Report failures without rewriting the source."@x-gmeow-english ;
+    logic:formalizes gmeow:chunkMarkerLines ;
+    logic:message "Every item in a sequence selected by chunkMarkerLines has a structuredTerm, and every such term has exactly the xsd:string datatype." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:chunkMarkerLines ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:chunkMarkerLines ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "presenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "presentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "presenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "presentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "payloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:chunkMarkerLines ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadSequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:relation logic:termSameComponent ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadValue" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                    [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                    [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
+
+gmeow:MathematicalExpressionFinding
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "mathematical expression finding"@x-gmeow-english ;
+    skos:definition "An Observation retaining one pass’s reported mathematical-expression occurrence in an actual ContentBlock, with supplied LaTeX wording and displayed status."@x-gmeow-english ;
+    skos:scopeNote "This finding is neither a mathematical syntax tree nor a Rendering. It requires exactly one actual block, one string and one boolean, an actual method and at least one supplied vantage; raw pass confidence is optional."@x-gmeow-english ;
+    skos:example "A fictional pass supplies `ex:finding a gmeow:MathematicalExpressionFinding .` about its actual block."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source reports a mathematical-expression occurrence and supplies its block, LaTeX string, displayed boolean, method and vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging findings from different passes, interpreting LaTeX as a Math AST, or inventing an Agent, invocation, model revision or time."@x-gmeow-english ;
+    gmeow:howToUse "Keep a distinct finding for each supplied occurrence and pass. Bind observedFeature to its actual ContentBlock, observationMethod to HOW and vantage to the actual supplied WHO or standpoint context; retain joint vantages."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:expressionFindingLatex
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding LaTeX"@x-gmeow-english ;
+    skos:definition "The exact xsd:string LaTeX wording supplied for this mathematical-expression finding, including a blank string."@x-gmeow-english ;
+    skos:scopeNote "Exactly one value is required per finding. This literal carrier neither parses nor repairs the wording and does not create a mathematical expression object."@x-gmeow-english ;
+    skos:example "A fictional finding retains `ex:finding gmeow:expressionFindingLatex \"\" .` when a blank string was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the supplied LaTeX string of a mathematical-expression finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping blank strings, adding language tags, normalizing notation or treating matching strings as finding identity."@x-gmeow-english ;
+    gmeow:howToUse "Copy the supplied xsd:string through this specialization of lang:literalValue and attribute that exact statement to its actual source."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:string ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:expressionFindingDisplayed
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding displayed status"@x-gmeow-english ;
+    skos:definition "The xsd:boolean displayed-math status supplied for this mathematical-expression finding."@x-gmeow-english ;
+    skos:scopeNote "Exactly one value is required, including false when supplied. This status has no default and does not determine truth, correctness or general displayability."@x-gmeow-english ;
+    skos:example "A fictional pass supplies `ex:finding gmeow:expressionFindingDisplayed false .`"@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual displayed boolean reported for a mathematical-expression occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing strings or numbers to booleans, replacing false with absence or guessing a value from layout or LaTeX delimiters."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied xsd:boolean unchanged. Missing or invalid selected input fails the finding contract without a synthesized default."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:boolean ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:expressionFindingPassConfidence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expression finding raw pass confidence"@x-gmeow-english ;
+    skos:definition "The raw xsd:decimal confidence value supplied by the pass for this mathematical-expression finding."@x-gmeow-english ;
+    skos:scopeNote "Optional and locally at most one; zero differs from absence. No bounds, probability, calibration, unit, frame, credence or decision semantics are established."@x-gmeow-english ;
+    skos:example "A fictional pass retains `ex:finding gmeow:expressionFindingPassConfidence \"0\"^^xsd:decimal .`"@x-gmeow-english ;
+    gmeow:useWhen "Use only when the pass supplies a valid raw decimal confidence value for this finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring probability, normalizing, bounding, filling an absent value with zero or substituting a value for invalid decimal input."@x-gmeow-english ;
+    gmeow:howToUse "Retain a supplied valid xsd:decimal or omit an absent value. Invalid selected decimal input fails; NaN and INF have no decimal representation and never become zero."@x-gmeow-english ;
+    logic:domain gmeow:MathematicalExpressionFinding ;
+    logic:range xsd:decimal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:blockExpressionFindings
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "block expression findings"@x-gmeow-english ;
+    skos:definition "Relates an actual ContentBlock to a source-supplied StructuredSequence of mathematical-expression finding occurrences."@x-gmeow-english ;
+    skos:scopeNote "This optional nonfunctional relation permits independent source rosters to coexist. An explicitly supplied empty roster differs from a missing roster; no universal list or historical presence is inferred."@x-gmeow-english ;
+    skos:example "A fictional source supplies `ex:block gmeow:blockExpressionFindings ex:roster .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when a source actually supplies an ordered finding roster for a block, including an explicit empty roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deduplication, sorting, unioning independent rosters, deriving presence from defaults or inferring provenance on findings from this link."@x-gmeow-english ;
+    gmeow:howToUse "Keep distinct scalar StructuredValue items with entryOrdinal and structuredTerm pointing to actual finding resources. Retain order, repetition and exact-statement attribution separately for each roster and finding."@x-gmeow-english ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:StructuredSequence .
+
+gmeow:BlockExpressionFindingSequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "block expression finding sequence constraint"@x-gmeow-english ;
+    skos:definition "Every item selected through blockExpressionFindings has a structuredTerm; every supplied term is typed MathematicalExpressionFinding and has the roster’s actual block as observedFeature."@x-gmeow-english ;
+    skos:scopeNote "This scoped law requires scalar finding payloads and block agreement, alongside the generic branch and ordering laws and the finding’s exact-one feature law. Explicit empty rosters remain valid."@x-gmeow-english ;
+    skos:example "An item with a valid finding and an extra untyped term fails; a good payload never hides a bad extra payload."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate every occurrence in each actually supplied block finding roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid skipping missing terms, extra bad terms or wrong-block findings, or manufacturing a finding to repair a malformed roster."@x-gmeow-english ;
+    gmeow:howToUse "Follow blockExpressionFindings and structuredItem. Require a scalar payload, check every supplied term’s finding type and observedFeature agreement, and report failure without substitution."@x-gmeow-english ;
+    logic:formalizes gmeow:blockExpressionFindings ;
+    logic:message "Every selected item must carry a scalar MathematicalExpressionFinding payload whose observedFeature is the roster's actual block; every supplied payload is checked." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:blockExpressionFindings ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectedSequence" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ;
+                                logic:relation gmeow:blockExpressionFindings ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presenceSequence" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredItem ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "presenceSequence" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presenceItem" ] ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable
+                                [ logic:termIndex 0 ; logic:termVariable "presentTerm" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "presenceItem" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presentTerm" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ,
+                        [ logic:termIndex 2 ; logic:termVariable "payloadTerm" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ;
+                                logic:relation gmeow:blockExpressionFindings ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "block" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadSequence" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredItem ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadSequence" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadItem" ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadItem" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payloadTerm" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ;
+                                logic:relation rdf:type ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadTerm" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:MathematicalExpressionFinding ] ] ,
+                            [ a logic:Formula ;
+                                logic:relation gmeow:observedFeature ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "payloadTerm" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "block" ] ] ] ] ] ] ] ] .
+
+gmeow:MathematicalExpressionFinding logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ContentBlock ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingLatex ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingLatex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingDisplayed ; logic:allValuesFrom xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingDisplayed ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingPassConfidence ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionFindingPassConfidence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/expressionFindingLatex" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MathematicalExpressionFinding ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/expressionFindingDisplayed" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ContentBlock logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:blockExpressionFindings ;
+        logic:allValuesFrom gmeow:StructuredSequence ] .
+
+gmeow:ImageAnalysis
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "image analysis"@x-gmeow-english ;
+    skos:definition "An Observation retaining one coherent supplied analysis of an actual stored MediaObject through reported category, description or passage-boundary readings."@x-gmeow-english ;
+    skos:scopeNote "Each analysis requires one actual media feature, one method, at least one supplied vantage and at least one reported field. Shared media or a coarse stage label establishes no shared invocation, report or model revision."@x-gmeow-english ;
+    skos:example "A fictional report supplies `ex:analysis a gmeow:ImageAnalysis .` for its actual stored image and supplied analysis context."@x-gmeow-english ;
+    gmeow:useWhen "Use when at least one image reading and an actual coherent analysis context, media target, method and vantage are supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating an analysis from all missing defaults, merging independent readings or inventing an Agent, run, model revision, time or depicted Scene."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual stored MediaObject, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Keep coherent fields together only with supplied context and attribute each actual statement separately."@x-gmeow-english ;
+    a logic:SubKind , logic:Class ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:imageAnalysisCategory
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image-analysis category"@x-gmeow-english ;
+    skos:definition "The category wording supplied by this image analysis for its actual media feature."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains a reported label, not an enum member, canonical type, depicted entity or verified image classification."@x-gmeow-english ;
+    skos:example "A fictional report retains `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` as untagged supplied wording."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual analysis supplies category wording, including a blank string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning the label into rdf:type, a controlled category, a depiction or a preferred classification, or adding an invented language tag."@x-gmeow-english ;
+    gmeow:howToUse "Keep one complete supplied word literal through lang:literalValue, preserving actual language, direction and blank text. Retain exact-statement attribution and leave missing wording absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:imageAnalysisDescription
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image-analysis description"@x-gmeow-english ;
+    skos:definition "The image-description wording supplied by this image analysis for its actual media feature."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains reported image commentary. It is not a generic description of the analysis process, an asserted Scene or proof that its content is true."@x-gmeow-english ;
+    skos:example "A fictional report retains `ex:analysis gmeow:imageAnalysisDescription \"\" .` because it explicitly supplied blank description text."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual image analysis supplies its own descriptive wording, with or without a supplied language tag."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid trimming away blank text, hardcoding English, endorsing the description or moving it onto the media as an unattributed global fact."@x-gmeow-english ;
+    gmeow:howToUse "Preserve one complete supplied word literal through lang:literalValue with its actual language, direction and attribution. Keep independent descriptions on their own coherent analyses."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:imageAnalysisPassageBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image passage-boundary flag"@x-gmeow-english ;
+    skos:definition "The xsd:boolean supplied by this image analysis to report whether its media marks a passage boundary."@x-gmeow-english ;
+    skos:scopeNote "This optional flag is locally at most one. Supplied false remains a value; absence remains unknown. No default, structural division, boundary coordinate or actual segmentation is inferred."@x-gmeow-english ;
+    skos:example "A fictional report supplies `ex:analysis gmeow:imageAnalysisPassageBoundary false .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual analysis explicitly supplies its passage-boundary boolean, including false."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing false with absence, coercing text or numbers to booleans, or deriving a boundary from category, description or missing output."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:boolean unchanged on its actual ImageAnalysis and attribute the exact statement. Omit an unavailable flag without synthesizing false or an analysis record."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range xsd:boolean .
+
+gmeow:ImageAnalysisReportedContentConstraint
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "image-analysis reported-content constraint"@x-gmeow-english ;
+    skos:definition "Every ImageAnalysis has at least one supplied category, description or passage-boundary value."@x-gmeow-english ;
+    skos:scopeNote "The three roles remain independently optional, but an analysis cannot consist only of missing defaults. Blank wording and false satisfy presence; separate datatype, cardinality and context laws still apply."@x-gmeow-english ;
+    skos:example "An analysis with only `ex:analysis gmeow:imageAnalysisPassageBoundary false .` as its reported field satisfies this presence law."@x-gmeow-english ;
+    gmeow:useWhen "Use to require an actual reported reading before a complete image-analysis record is asserted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating default absence as an analysis, discarding blank or false values, or assuming this law establishes a common invocation for independently supplied fields."@x-gmeow-english ;
+    gmeow:howToUse "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."@x-gmeow-english ;
+    a logic:Constraint ;
+    logic:formalizes gmeow:ImageAnalysis ;
+    logic:message "Every ImageAnalysis has at least one supplied category, description or passage-boundary value." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:ImageAnalysis ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "category" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisCategory ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "category" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisDescription ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "description" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "boundary" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisPassageBoundary ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "boundary" ] ] ] ] ] ] .
+
+gmeow:ImageAnalysis logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:MediaObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisCategory ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisCategory ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisDescription ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisDescription ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisPassageBoundary ; logic:allValuesFrom xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisPassageBoundary ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .

@@ -131,3 +131,100 @@ interpretation without replacing this evidence. The affect producer continues to
 emit affect-specialized classes and apply its existing registry checks. EmotionML
 continues to enumerate affect categories and axes with its declared losses;
 general genre evidence does not broaden that projection.
+
+## Scalar regression interpretation
+
+`scoreRegression` is one additional individual of the existing open
+`ScoreSemantics` vocabulary, which is grounded in `logic:QualityValue`. It
+declares a model-predicted scalar for the named output dimension represented
+by the output's actual ClassifierLabel. The existing one-output, one-target,
+one-label, one-raw-decimal and one-declared-meaning obligations remain unchanged.
+Model identity, exact revision, run record, inputs and source attribution stay
+on their existing paths.
+
+The declared model output dimension is not a physical or mathematical dimension.
+`classifierScore` remains the established raw decimal carrier, with no
+`math:quantityValue` specialization or new quantity subject. Actual measured
+quantities and tool/formula measurements retain their own modeling obligations.
+
+No `impliesLabelSetDecision` edge is added. The existing decision-consistency
+law is guarded by an actual such edge and does not infer one from the name of
+this individual or its model task. The calibration-presence law selects exactly
+`scoreCalibratedProbability`, and the hypothesis-template law selects exactly
+`scoreEntailment`; neither is selected merely by declaring regression semantics.
+Registered label-set requirements and explicit run-label membership remain
+unchanged. No probability bound, normalization, decision rule, threshold,
+default, calibration or confidence conversion follows (Principles 4, 9, 11,
+12, 17 and 19).
+
+The current native affect adapter has a finite supported-semantics capture
+model. Its recovery path rejects an unrecognized semantics IRI; it does not
+substitute probability, a threshold or another meaning. This source value does
+not extend that API. No native admission, producer, generated, installed or
+runtime result is established by the ontology declaration.
+
+## Keyword measurement roles
+
+AI owns the extraction-specific `measuredTerm`, `ngramSize` and `termRank`
+roles on the existing `Measurement` spine. Lang owns the complete literal
+carrier; math owns Quantity, dimension and magnitude; observations owns the
+actual unit, observer, method, metric and result roles. This adds no keyword
+class, count class, numeric-value alias, ranking or tokenization engine.
+
+Each source row and convention remains on its own actual Measurement.
+The three roles are optional and nonfunctional, with no global uniqueness,
+tuple pairing or equality rule. Equal terms, targets, magnitudes, ranks or
+weights do not collapse records. `measuredTerm` specializes `lang:literalValue`
+and admits the canonical plain, language-tagged and directional string kinds;
+wording alone has no interpreted Form, concept, referent or occurrence identity.
+`termRank` also specializes the complete literal carrier but retains the
+source's integer ordering descriptor. An unknown origin, direction, tie scheme
+or gap policy remains unknown; an unrelated integer code is not a rank.
+
+The `ngramSize` object role names a separate actual positive integral count
+Quantity. Its mathematical dimension is dimensionless; its actual segmentation
+and counting convention is an applicable existing ReferenceFrame. Counting
+positions preserves repetition. A distinct-word set, character length,
+keyword-row count, whitespace split or unqualified integer report cannot
+substitute for that meaning. The existing weight remains the separate
+`observationResult`; the size role is not its subproperty and introduces no
+probability, normalization or confidence interpretation.
+
+Two ordinary Formula constraints specify the selected-count contract.
+The context law follows each `ngramSize(this, q)` and requires a magnitude,
+the dimensionless dimension and a frame edge. Its guarded universal leaves
+reject every different dimension by complete RDF identity and every genuinely
+unequal pair of magnitudes by numeric value equality. Different retained
+lexical/datatype representations of the same valid numeric magnitude do not
+require rewriting. The value law binds every magnitude through the selected
+Quantity and conjunctively requires finite numeric admission, the exact
+datatype-component disjunction for the thirteen XSD integer-family datatypes
+and `logic:termGreater` against typed integer zero. A positive integer is not
+retyped to pass, and a valid magnitude cannot hide an additional malformed,
+zero, negative, fractional, floating or unknown-typed value.
+
+The Formula trees bind each variable operand through a positive stored
+relation. The integer-type disjunction reads the original datatype IRI through
+`termSameComponent`; it does not introduce a datatype coercion. Numeric lexical
+and derived-type validity remains with the existing shared finite-numeric
+admission path. Context and value checks stay scoped to actual size edges;
+no global property characteristic or unrelated Quantity restriction is added
+(Principles 4, 9, 11, 12, 17 and 19).
+
+The bound greater-than predicate is logic-owned and uses its already
+implemented integrity-comparison path. Its canonical declaration supplies
+ownership and annotation for that existing predicate; it does not install a
+new instruction, ordinary-rule numeric relation or engine. The logical
+validation design records its binding, numeric error and projection contract.
+AI consumes its existing logic, math, Lang and observations dependencies and
+the Places-owned frame role explicitly. No grounding peerage or seam changes
+are needed.
+
+The selected enforcement surface is ordinary generated procedural validation.
+Neither law carries `enforcesFailureClass`, so native violation-marker
+production is unselected. A frame witness must satisfy the existing generic
+frame profile, but its graph structure cannot certify actual source
+applicability, segmentation execution or historical bytes. A source integer
+without its counting convention does not qualify this actual count. The
+vocabulary can describe fully specified supplied counts without requiring
+consumer adoption, inventing missing context or claiming runtime qualification.

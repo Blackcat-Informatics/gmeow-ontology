@@ -48,8 +48,8 @@ job, not the open ontology's.
 
 ### gmeow:observationResult · gmeow:isResultOf
 
-The entity-valued result (a coordinate set, an instant, a quantity) and its inverse — the
-explicit provenance leg of the measurement bundle. Uniformly entity-valued: scalar literals
+The individual-valued result (a coordinate set, an instant, a quantity) and its inverse — the
+explicit provenance leg of the measurement bundle. Uniformly individual-valued: scalar literals
 live on a `math:Quantity`, never directly on the observation. Non-functional: one
 observation may yield results in several frames; one consensus result may flow from many
 observations. A property chain (`isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame`)
@@ -247,3 +247,53 @@ See [encounters and worlds](examples/encounters-and-worlds.ttl) for two meetings
 and two virtual worlds sharing a head spelling. Generic observation queries still
 follow vantage and observedFeature; the spatial specialization does not replace
 the event's participants or location.
+
+### gmeow:measurementMetric
+
+Use measurementMetric to name the metric, formula or weighting whose value a Measurement reports. Keep observedFeature for the actual target, vantage for the observer, observationMethod for the constitutive protocol, and observationResult for the individual-valued result. A scalar result remains a math:Quantity.
+
+The metric role retains the supplied IRI. It does not type that resource as an InformationObject, Function, Measure or Quantity, and supplies no formula, unit, scale or execution claim. The role is optional and non-functional; the IRI constraint checks every supplied value without requiring a metric on every Measurement.
+
+Preserve any supplied label as its original RDF literal, including its actual language tag and direction. Do not add a label or infer a language or direction where none was supplied. Equal labels provide no identity-merge rule.
+
+In the fictional example below, two readings share their target, observer and protocol while retaining their separate metric IRIs and Quantity results. Both labels are deliberately plain literals in this invented graph. The dimensionless results are supplied fictional context, not a default or an inference from a metric IRI or label. Retain actual reported frames, scales, units and provenance through their existing roles. These supplied results are example records, not verified executions.
+
+```turtle
+@prefix ex: <https://example.org/measurement/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:target a gmeow:InformationObject .
+ex:observer a gmeow:Agent .
+ex:protocol a gmeow:ObservationMethod .
+
+ex:metricA rdfs:label "Example metric" .
+ex:metricB rdfs:label "Example metric" .
+
+ex:readingA
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:target ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measurementMetric ex:metricA ;
+    gmeow:observationResult ex:resultA .
+
+ex:readingB
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:target ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measurementMetric ex:metricB ;
+    gmeow:observationResult ex:resultB .
+
+ex:resultA
+    a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 3.0 .
+
+ex:resultB
+    a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 5.0 .
+```

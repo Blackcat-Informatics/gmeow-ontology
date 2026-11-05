@@ -27,8 +27,13 @@ contact half of the slice-dependency doctrine email split.
 
 ## Channels
 
-Address node identity is store-relative under an explicit normalization policy;
-the functional value is not a global key and never identifies its holders. See
+Address node identity is store-relative under an explicit normalization policy.
+Name the specification as `gmeow:EmailAddressNormalizationPolicy` and link the
+EmailAddress through `gmeow:addressNormalizationPolicy`. A selected store identity
+operation requires an unambiguous policy IRI and normalized `addressValue` pair;
+the functional value alone is not a global key and never identifies its holders.
+The link does not execute normalization or merge source nodes. Retain original
+occurrence spelling separately. See
 [address identity and reader disclosure](../../../docs/identity-and-disclosure.md).
 
 ### gmeow:ContactPoint

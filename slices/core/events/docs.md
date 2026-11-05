@@ -83,9 +83,15 @@ lexical form, datatype and timezone. A day, month or year supplies neither an
 unstated midnight nor an event duration. Coexisting standpoint-indexed placements
 remain separate statements, with their own confidence and provenance.
 
-A crisp span uses `eventInterval`; a fuzzy date uses source-supplied
-`earliestStart`/`latestEnd` bounds and `temporalPrecision`. These alternatives
-do not authorize deriving bounds from a coarse point. The
+A crisp span uses `eventInterval`; a fuzzy date retains source-supplied
+`earliestStart`/`latestEnd` dateTime bounds when actually supplied.
+`temporalPrecision` describes reported resolution, including
+`precisionNamedPeriod` for named-period or season-level resolution; it neither
+places the event nor requires invented bounds. Use `eventDuring` only for an
+actually established interval or NamedPeriod with its existing contracts.
+Raw wording such as "`fall2025`" alone supplies no period identity, calendar,
+hemisphere, season boundaries, exact instant or valid EDTF expression. Precision
+alone does not satisfy the existing event type-or-placement warning. The
 [wedding example](examples/wedding.ttl) includes source day, month and year
 placements on the same occurrence.
 

@@ -21,8 +21,10 @@ The seeded values are an open inventory used by the existing authored corpus,
 not a closed registry or an enumeration of every MIME type.
 
 `mediaTypeName` is the exact parameter-free MIME machine spelling on the
-value, with canonical domain MediaType and range xsd:string. It is neither
-natural-language prose nor a whitespace-normalizing token. It remains optional:
+value, with canonical domain MediaType and range xsd:string or xsd:token.
+It is a machine code, not natural-language prose. Preserve the supplied literal's
+lexical form and datatype without whitespace normalization, string retyping or
+inferred token typing. It remains optional:
 using an IANA IRI does not oblige a consumer to redeclare external metadata.
 Charset belongs to the carrier's existing `charset`; other parameters remain
 in their actual source header or parameter records. The media identity never
@@ -33,7 +35,8 @@ The supplied-value integrity laws are authored once in `logic:`.
 `MediaTypeIriConstraint` checks IRI node kind and the two permitted
 namespace/path shapes on present mediaType assertions.
 `MediaTypeNameSyntaxConstraint` checks supplied names for a parameter-free
-type/subtype spelling. The property range supplies the xsd:string contract.
+type/subtype spelling. The property range admits supplied xsd:string or
+xsd:token without retyping or whitespace normalization.
 Neither law introduces a presence requirement. Regex behavior remains a
 projection-dialect limit. These checks do not consult IANA, parse a MIME header,
 normalize strings, authenticate bytes, or prove that a supplied name matches

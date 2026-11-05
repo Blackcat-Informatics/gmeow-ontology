@@ -363,3 +363,918 @@ actual RDF 1.2 syntax and explicit reifier evidence through the existing path.
 Use the established type and subproperty closure before inherited facet
 validation, and completed statement-metadata lowering before its component
 binding laws. No execution or authenticity is claimed by the declarations.
+
+## Reported analysis inputs
+
+An existing `lang:Analysis` can retain the supplied context of the unit it
+read without becoming an input text artifact or model invocation.
+
+| Property | Descriptive input context |
+| --- | --- |
+| `analysisFirstChunkKey` | Supplied first source-chunk integer key. |
+| `analysisLastChunkKey` | Supplied last source-chunk integer key. |
+| `analysisChapterKey` | Supplied integer chapter or grouping key affecting selection. |
+| `analysisChunkKeyFrame` | Supplied string describing the source-key namespace or indexing convention. |
+| `analysisInputConstruction` | Supplied string description of assembly conventions, retaining language and direction. |
+| `analysisSourceContext` | An actually identified source InformationObject associated with the keys or selection. |
+
+These fields are optional. The first, last and chapter keys are individually
+at most one per Analysis; frame and construction descriptions and
+source-context links can coexist as supplied. Unknown conventions and missing
+metadata stay absent. The literal properties specialize `lang:literalValue`.
+
+Reuse `hasGranularity` with the open individuals `granularityChunk`,
+`granularityPassage` and `granularityChapter`. These are resolution values,
+not per-level classes, fixed text sizes or a universal `coarserThan` ladder.
+Other attributed granularity values remain coequal.
+
+A source key is not a ChunkingMember's zero-based `entryOrdinal` or a
+`spanStart`/`spanEnd` code-point bound. The descriptors impose no global key
+origin, inclusive or exclusive endpoint convention, continuity or numeric
+ordering. They do not establish that a carried retrieval chunk contains the
+original analyzer input.
+
+Construction prose is not an executable profile or historical-byte witness.
+A source-context link requires no invented artifact or digest. These fields
+retain the reported unit's context; they do not reconstruct input text,
+authenticate its bytes or perform coordinate conversion.
+
+## Containing source divisions
+
+`chunkInDivision` names a supplied ContentSegment containing the whole
+particular occurrence of source content represented by a Chunk. It records
+an attributed containment claim, rather than an arbitrary association or a
+division that contributes only some of the chunk's content. Identical wording
+elsewhere is a different occurrence.
+
+The relation is optional and nonfunctional. Genuinely containing nested
+divisions may coexist without a unique or nearest choice. When the supplied
+section and chapter both contain the whole occurrence, retain both claims:
+
+```turtle
+ex:chunk a gmeow:Chunk ;
+    gmeow:chunkOf ex:source ;
+    gmeow:chunkInDivision ex:section, ex:chapter .
+```
+
+Keep the actual source, segmentation context and each assertion's actual
+viewpoint. The snippet shows the division links alongside the unchanged
+carrier relation; the chunk's existing span and source obligations still
+apply. A chunk crossing two child divisions may name a supplied common
+container only when it contains the whole occurrence. Neither merely
+intersected child qualifies. Keep an unknown container absent.
+
+`chunkInDivision` specializes broad `partOf` for this containment of source
+content. It does not specialize `chunkOf`, `segmentOf` or `blockOf`, change
+the coordinate origin, or infer a structural segment type for the Chunk.
+The specialized relation has no transitive characteristic or ancestor-selection
+chain. Recorded containment neither proves geometry nor selects a nearest
+ancestor, converts coordinates or authenticates bytes.
+
+A generated summary's original subject division is not automatically a
+container of the summary's actual text. Keep that subject and derivation
+separate from the actual carrier and any genuine containing division
+(Principles 2, 4, 9, 17 and 19).
+
+## Whole-work analysis input resolution
+
+Use `granularityWork` through the existing `hasGranularity` when a source
+explicitly reports an analysis input at whole-work resolution. It extends the
+open text-unit values already supplied for chunk, passage and chapter input.
+Other attributed resolutions can coexist without a preferred value.
+
+```turtle
+ex:analysis a lang:Analysis ;
+    gmeow:hasGranularity gmeow:granularityWork .
+```
+
+This states the reported resolution of the selected input. It does not identify
+an abstract Work, a particular realization or the text carrier. A Work survives
+changes of language, edition and copy; those are not interchangeable input
+identities. Reading a whole file or document does not by itself establish that
+the input was reported at whole-work resolution.
+
+Keep any supplied `analysisSourceContext`, source-chunk keys, key-frame,
+chapter-key and `analysisInputConstruction` descriptors separately. These
+fields remain optional, and unknown source conventions remain unknown. The
+granularity value neither reconstructs historical input bytes nor authenticates
+complete source coverage or consumption of every realization of the work.
+
+No fixed text size, source selection, default, required metadata or universal
+`coarserThan` relationship follows from this value. Existing Chunk and Chunking
+carrier, source, extent and digest obligations remain in force (Principles 4,
+9, 11 and 19).
+
+## Reported chunker descriptors
+
+`chunkerName` and `chunkerVersion` retain the exact supplied name and version
+wording on a Chunking. Both are optional and nonfunctional. Preserve each complete
+string and its supplied language or direction; unknown wording stays absent.
+These labels do not identify an executable implementation or define a version
+grammar, and equal names or versions do not identify the same algorithm.
+
+`chunkerParameters` links the result to a supplied `StructuredMap` occurrence.
+Its entries use existing `hasFacet`, `LabelledFacet`, `facetLabel` and
+`facetText`, so keys and complete descriptive strings remain queryable:
+
+```turtle
+ex:segmentation gmeow:chunkerName "Outline cutter" ;
+    gmeow:chunkerVersion "edition amber" ;
+    gmeow:chunkerParameters ex:parameters .
+ex:parameters a gmeow:StructuredMap ; gmeow:hasFacet ex:entry .
+ex:entry a gmeow:LabelledFacet ;
+    gmeow:facetLabel "section policy" ;
+    gmeow:facetText "Keep headings together." .
+```
+
+The snippet illustrates descriptors; the existing result's source, frozen rules
+artifact, digest pins and granularity obligations remain in force. Descriptions
+neither replace that artifact nor certify that a chunker ran or that an external
+parameter inventory was completely imported.
+
+Within each selected map, every entry requires descriptive `facetText` and an
+exact `xsd:string` key. Different entry occurrences cannot share the same complete
+RDF key term in that map. A conflict is retained and reported, never resolved by
+merging entries or choosing a last value. The same key in different maps remains
+independent. Generic maps and label-only facets keep their existing semantics.
+
+Preserve empty keys and strings. A supplied typed empty map has no entries;
+an absent map makes no empty-map assertion. Retain original case, spacing and
+punctuation without token retyping, number extraction, unit assignment or
+invented ordinals. Transport sorting is not source order. Several attributed
+name, version and map claims do not create a cross-product identity or pairing.
+
+The [chunking design](design/CHUNKING.md#reported-chunker-descriptors) records
+the scoped laws and the existing first-class map model (Principles 2, 4, 9, 11,
+12, 17 and 19).
+
+## Regression output semantics
+
+Use `scoreRegression` through the existing `scoreSemantics` when a model emits
+a scalar regression prediction for the output dimension identified by its
+actual `emittedLabel`. Retain that exact ClassifierLabel and its label-set
+membership; it is an external output identity, not a canonical category or
+mathematical dimension.
+
+Keep the raw `classifierScore` as the existing decimal carrier, with the actual
+`classifiedTarget`, `producedBy` ModelInferenceRun, model identifier and revision,
+recorded input and source attribution. The new semantics adds no universal
+range, scale, unit, unit interval, calibration, confidence or evidence-strength
+interpretation. A value between zero and one does not establish probability.
+Comparison or interpretation under a particular scale still needs its actual
+source and frame; do not invent missing context (Principles 9, 11 and 19).
+
+This individual implies no argmax, threshold, activation function or workflow.
+Any actually supplied decision policy remains separate; existing label-set and
+run obligations remain in force. A model score is not an actual quantity
+measurement, and this value does not turn the score or its output into a
+`math:Quantity`.
+
+The current native affect capture/recovery API does not admit `scoreRegression`.
+This vocabulary value does not extend that adapter or enable model execution.
+It supplies the canonical score meaning; runtime support requires its own
+implementation and qualification.
+
+## Reported classifier and measurement inputs
+
+### gmeow:ChunkSpan
+
+A ChunkSpan identifies the selected source-text content unit reported as input
+across source chunks. The classifier's classifiedTarget and a Measurement's
+observedFeature can name that unit when both records actually concern the same
+input. The unit is separate from each output, the model-run record, the metric
+and the resulting Quantity. Do not put descriptors on an output and then name
+that output as the content that was read.
+
+Use the actual supplied unit identity. Endpoint integers, equal wording and
+granularity do not establish identity across source, grouping, assembly or
+producer contexts. ChunkSpan specializes the existing EvidenceSpan category and inherits
+InformationObject, reusing the common anchored-target model without requiring
+historical input bytes. It does not classify an input descriptor, a structural
+division, a mathematical set or an execution event.
+
+This category reuse does not assert Selector typing or require citation
+selectors, spanOfChunk, code-point offsets, support polarity or digests.
+Separately supplied anchoring facts retain their existing domain and validation
+contracts; a source key is not automatically a citation selector or offset.
+
+If the actual input already is a Chunk, reuse that identity and its complete
+existing contract. Do not wrap every Chunk or add ChunkSpan as a second ultimate
+Kind to a Chunk or ContentSegment. A reported source-key range alone does not
+establish the contiguous cut, carrier and coordinate facts required by Chunk.
+
+The optional domain-specific roles preserve supplied selection context:
+
+| Property | Supplied descriptor |
+| --- | --- |
+| chunkSpanFirstKey | First source-chunk integer key. |
+| chunkSpanLastKey | Last source-chunk integer key. |
+| chunkSpanChapterKey | Integer chapter or chapter-group key affecting selection. |
+| chunkSpanKeyFrame | String describing the source-key namespace or indexing convention. |
+| chunkSpanConstruction | Assembly description retaining its complete literal, language and direction. |
+| chunkSpanSourceContext | Actually identified source InformationObject associated with the selection. |
+
+Only first, last and chapter keys are locally at most one per coherent ChunkSpan.
+The roles remain globally nonfunctional. Attributed frame descriptions,
+construction descriptions and source-context links may coexist. Retain every
+supplied field; an absent field remains unknown. Competing selections use their
+own actual unit identities and separate output records so endpoint tuples do not
+lose their pairing.
+
+The five literal roles specialize lang:literalValue. The integer keys are
+identifiers, not quantities, zero-based entryOrdinal positions or half-open
+spanStart/spanEnd code-point coordinates. No origin, numeric ordering,
+continuity, endpoint inclusion or membership enumeration is inferred.
+Source context is descriptive: the link does not assert chunkOf, navigationSource,
+segmentOf, wasDerivedFrom or authenticated source bytes. Construction prose
+neither executes assembly nor proves historical input identity.
+
+Reuse hasGranularity with the existing open granularityChunk,
+granularityPassage, granularityChapter and granularityWork individuals when
+those resolutions are supplied. They provide no fixed size, universal order or
+automatic structural identity. Unknown granularity remains unknown.
+
+### A fictional shared input
+
+This invented scene supplies one passage input with its source, grouping,
+endpoint keys and assembly description. The classifier output and Measurement
+are separate records sharing that actual supplied unit. Their target links do
+not arise from matching key integers. A second supplied unit changes the source
+and grouping while retaining equal endpoints; its identity is independently
+given, not computed from a universal tuple rule.
+
+The classifier keeps its label-set membership, raw score interpretation and
+pinned run record. The Measurement keeps its own vantage, method, metric IRI and
+Quantity result. The fictional dimensionless result, unit and scalar reference
+frame are explicitly supplied context, not defaults inferred from the metric,
+key values or granularity. The frame follows the existing
+[Places profile](../places/docs.md#gmeowreferenceframe): one declared axis agrees
+with dimensionCount, and the realm, kind, determinacy and host requirement are
+supplied example facts. Keep actual reported units, frames and provenance
+through existing roles.
+No classifier execution, measurement computation, reconstruction or byte
+authentication was performed for this scene.
+
+```turtle
+@prefix ex: <https://example.org/chunk-span/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:sourceA a gmeow:InformationObject .
+ex:sourceB a gmeow:InformationObject .
+
+ex:unitA a gmeow:ChunkSpan ;
+    gmeow:hasGranularity gmeow:granularityPassage ;
+    gmeow:chunkSpanFirstKey 12 ;
+    gmeow:chunkSpanLastKey 18 ;
+    gmeow:chunkSpanChapterKey 4 ;
+    gmeow:chunkSpanKeyFrame "example source keys" ;
+    gmeow:chunkSpanConstruction "Join the supplied texts without trimming."@en ;
+    gmeow:chunkSpanSourceContext ex:sourceA .
+
+ex:unitB a gmeow:ChunkSpan ;
+    gmeow:hasGranularity gmeow:granularityPassage ;
+    gmeow:chunkSpanFirstKey 12 ;
+    gmeow:chunkSpanLastKey 18 ;
+    gmeow:chunkSpanChapterKey 5 ;
+    gmeow:chunkSpanSourceContext ex:sourceB .
+
+ex:labels a gmeow:ClassifierLabelSet .
+ex:label a gmeow:ClassifierLabel ;
+    rdfs:label "Fictional label" ;
+    gmeow:memberOfLabelSet ex:labels .
+ex:run a gmeow:ModelInferenceRun ;
+    gmeow:modelIdentifier "example/classifier"^^xsd:token ;
+    gmeow:modelRevision "revision-a"^^xsd:token ;
+    gmeow:runLabelSet ex:labels ;
+    gmeow:usedInput ex:unitA .
+ex:output a gmeow:ClassifierOutput ;
+    gmeow:classifiedTarget ex:unitA ;
+    gmeow:vantage ex:run ;
+    gmeow:producedBy ex:run ;
+    gmeow:emittedLabel ex:label ;
+    gmeow:classifierScore 0.25 ;
+    gmeow:scoreSemantics gmeow:scoreLogit .
+
+ex:reader a gmeow:Agent .
+ex:reading a gmeow:Measurement ;
+    gmeow:observedFeature ex:unitA ;
+    gmeow:vantage ex:reader ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:observationResult ex:value .
+ex:value a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 3.0 ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> ;
+    gmeow:hasReferenceFrame ex:resultFrame .
+
+ex:resultFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis ex:metricAxis ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:requiresHost false .
+ex:metricAxis a gmeow:Axis ;
+    rdfs:label "Example metric scalar axis"@en .
+```
+
+## Keyword measurement evidence
+
+Keep each supplied keyword row on its actual `Measurement`. Its
+`observedFeature` is the unit the source analyzed; `measurementMetric` names
+the reported metric or weighting, `vantage` identifies the observer and
+`observationMethod` retains the constitutive protocol. Preserve attribution
+on the exact assertions. Equal wording, size, rank, weight or target never
+merges separate source rows or creates a tuple across their values.
+
+`measuredTerm` retains the supplied keyword wording as a complete string
+literal. Preserve lexical form, datatype and any supplied language and
+direction; an untagged string still has unspecified language. The wording
+does not establish a Form, concept, entity, name, referent, tokenization or
+source span. Interpreted language structure needs its actual Lang context.
+
+`ngramSize` points to a separate `math:Quantity` for the actual positive
+integral number of gram positions under the actual segmentation/counting
+convention. The count carries its original integer-family `math:quantityValue`,
+`math:hasDimension math:dimensionless` and an actual applicable
+`hasReferenceFrame`. It counts positions, including repeated positions, rather
+than distinct word values. It is neither character length nor a count of
+keyword rows; do not derive it by splitting the wording on whitespace or
+reinterpret a raw code, zero or negative sentinel as a gram size. A source
+integer without its required counting context does not qualify the actual
+count. An actual-count mapping must fail when the required counting context is unavailable. Retain the original supplied source record and its provenance without coercing its value or inventing a frame.
+
+The weight remains the existing `observationResult` Quantity. The size edge
+does not replace it or specialize `observationResult`, and a positive count
+does not give the weight a probability, unit interval or confidence meaning.
+Different source rows and counting conventions use distinct Measurement
+records; no default tokenizer or universal counting frame is supplied.
+
+`termRank` retains the integer ordering position or rank the source actually
+reports within that unit and producing context. It is an ordering descriptor,
+not an arbitrary integer code. Unknown origin, direction, gaps and tie rules
+remain unknown. Do not infer rank from weight or row order, renumber retained
+rows, infer comparisons across conventions or copy an unconverted rank into
+the strictly zero-based `entryOrdinal`.
+
+These three roles are optional and nonfunctional. A selected mapping still
+preserves every supplied field it handles; vocabulary optionality does not
+authorize silent information loss. Actual use of the size role requires its
+count profile. The context law requires a magnitude, only the dimensionless
+dimension, a frame witness and numeric agreement among magnitudes. The value
+law checks every magnitude for its original integer-family datatype, valid
+finite numeric admission and strict positivity. A valid value cannot conceal
+another malformed value on the same selected Quantity. Generic weights and
+unselected Quantities retain their existing contracts (Principles 4, 9, 11,
+12, 17 and 19).
+
+The following is an invented source report. This source explicitly states
+that its gram has two word positions in the supplied wording `echo echo`,
+counting the repeated word twice. The frame describes that supplied convention;
+the example performs no tokenization or inference from whitespace. Its rank
+four is source-reported, with no assumed origin or tie policy. The two rows
+remain distinct even though the reported values agree. Their dimensionless
+weight and weight frame are separately supplied fictional context and imply
+no probability interpretation.
+
+```turtle
+@prefix ex: <https://example.org/keyword/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:unit a gmeow:InformationObject .
+ex:observer a gmeow:Agent .
+ex:protocol a gmeow:ObservationMethod .
+ex:metric rdfs:label "Fictional keyword weight" .
+
+ex:countFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Supplied word-position count convention" ;
+    skos:definition "Count each source-declared word position in the reported gram, retaining repetitions. This fictional source explicitly declares two positions for echo echo." ;
+    gmeow:frameRealm gmeow:frameRealmLinguistic ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false .
+
+ex:weightFrame
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Supplied fictional keyword-weight scale" ;
+    skos:definition "The dimensionless weight scale explicitly supplied by this fictional report; it is separate from the gram-position counting convention and has no probability meaning." ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false .
+
+ex:rowA
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:unit ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measuredTerm "echo echo" ;
+    gmeow:ngramSize ex:countA ;
+    gmeow:termRank 4 ;
+    gmeow:observationResult ex:weightA .
+
+ex:rowB
+    a gmeow:Measurement ;
+    gmeow:observedFeature ex:unit ;
+    gmeow:measurementMetric ex:metric ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod ex:protocol ;
+    gmeow:measuredTerm "echo echo" ;
+    gmeow:ngramSize ex:countB ;
+    gmeow:termRank 4 ;
+    gmeow:observationResult ex:weightB .
+
+ex:countA
+    a math:Quantity ;
+    math:quantityValue "2"^^xsd:integer ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:countFrame .
+
+ex:countB
+    a math:Quantity ;
+    math:quantityValue "2"^^xsd:int ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:countFrame .
+
+ex:weightA
+    a math:Quantity ;
+    math:quantityValue 0.75 ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:weightFrame .
+
+ex:weightB
+    a math:Quantity ;
+    math:quantityValue 0.75 ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:weightFrame .
+```
+
+The count laws use the ordinary `logic:Constraint` and generated procedural
+validation pattern. They do not select a native violation-marker class.
+Declaring the vocabulary does not establish that a producer, generated bundle,
+installed consumer or runtime has been qualified. Structural frame presence
+does not authenticate its historical applicability, and no consumer adoption
+or original-byte witness is implied.
+
+## Reported source presentation
+
+The AI slice records applied extraction and chunker reports alongside its
+existing block extents and source-analysis descriptors. `blockHtml` retains
+the exact reported HTML source string on a ContentBlock. It is machine markup
+stored as `xsd:string`; reporting it makes no DOM, Rendering, sanitization or
+execution claim. The block’s existing structural obligations remain in force.
+
+On an actual Chunk, `chunkSectionTag` retains the reported `xsd:string` section
+tag. `chunkChapterHeading`, `chunkSectionHeading` and `chunkSubsectionHeading`
+retain the three distinct reported heading roles as complete word literals:
+`xsd:string`, `rdf:langString` or `rdf:dirLangString`. Language and direction are
+preserved when supplied; no language is guessed. The roles do not infer heading
+depth, hierarchy, structural divisions, source offsets or containing chapters.
+
+`chunkMarkerLines` selects a StructuredSequence. Each supplied marker has its
+own StructuredValue occurrence, exact `xsd:string` structuredTerm and zero-based
+entryOrdinal. Equal strings at different positions remain separate occurrences.
+Blank strings remain valid. Existing structured-value and ordering laws apply;
+ChunkMarkerLineTextConstraint additionally requires a string scalar for every
+selected item. Its ordinary Formula generates procedural validation; no new
+native failure class or reasoner-discharge claim is added.
+
+All six report roles are optional and nonfunctional. Keep their actual
+exact-statement source and viewpoint. A supplied empty sequence is represented
+explicitly only when actual evidence establishes it. An omitted relation makes
+no empty or null assertion, and a schema default does not prove historical field
+presence. These descriptors leave the Chunk’s carrier, extent, digest and
+chunking contracts unchanged (Principles 4, 9, 17 and 19).
+
+The following fictional reports explicitly supply the shown descriptors. The
+first supplies repeated markers and a blank marker. A second explicitly reports
+an empty marker sequence. A third supplies no marker information. The example
+shows descriptors only: paragraph is already a valid ContentBlock, and chunkA,
+chunkB and chunkC are already valid Chunks in the surrounding graph. These
+additions do not replace their existing complete source contracts.
+
+```turtle
+@prefix ex: <https://example.org/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:paragraph gmeow:blockHtml "<p>Amber</p>" .
+
+ex:chunkA
+    gmeow:chunkSectionTag "opening" ;
+    gmeow:chunkChapterHeading "Amber coast" ;
+    gmeow:chunkSectionHeading "Tidal garden" ;
+    gmeow:chunkSubsectionHeading "Quiet pools" ;
+    gmeow:chunkMarkerLines ex:markersA .
+ex:markersA a gmeow:StructuredSequence ;
+    gmeow:structuredItem ex:markerA0 , ex:markerA1 , ex:markerA2 .
+ex:markerA0 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "***" .
+ex:markerA1 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "***" .
+ex:markerA2 a gmeow:StructuredValue ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ; gmeow:structuredTerm "" .
+
+# The fictional second report explicitly supplies an empty sequence.
+ex:chunkB gmeow:chunkMarkerLines ex:markersB .
+ex:markersB a gmeow:StructuredSequence .
+
+# The fictional third report supplies a section tag and no marker information.
+ex:chunkC gmeow:chunkSectionTag "closing" .
+```
+
+## Mathematical-expression pass findings
+
+Keep the finding, its block and its supplied contexts distinct. The method says
+HOW; vantage says WHO or the actual named perspective holding the observation.
+Method wording such as model-based, regex-based or MathML-based never identifies
+an Agent or supplies a vantage. A stage perspective may be coarse: it supplies
+no invocation, model revision or time. If method or vantage is unknown, do not
+claim a complete finding by fabricating it. Joint supplied vantages coexist.
+Different passes retain different findings even when their LaTeX agrees.
+
+The three ContentBlocks already satisfy their existing structural contracts in the surrounding graph; this snippet adds finding and roster facts only.
+
+The scene below is entirely fictional. It explicitly supplies three actual
+ContentBlocks, three named stage standpoints, three method individuals and
+three report InformationObjects. Each standpoint’s label and sharpens edge
+are supplied background context, not inferred from a method name. A model-based
+report supplies finding A with zero confidence and displayed false; a regex-based
+report supplies finding B with blank LaTeX, displayed false and no confidence;
+a MathML-based report supplies finding C with displayed true and raw confidence
+-2.5. The last number illustrates that the vocabulary imposes no score bound;
+it does not establish any source’s score range. Their method and standpoint
+identities are actually supplied in the scene. No method is a run class or a
+closed public pass enumeration.
+
+The model-based report supplies roster A containing A, B, A in that order. Its
+reference to B does not adopt or propagate B’s field provenance. The MathML-based
+report independently supplies roster C for the same block. The regex-based
+report explicitly supplies an empty roster for a second block. The third block
+has no supplied roster. Typed empty sequence and absent relation remain
+different; no schema default proves that either was historically present.
+
+Every report assertion below is asserted separately and has its own native
+RDF 1.2 reifier carrying wasDerivedFrom for that exact triple. Background scene
+declarations are explicitly supplied framing, separately marked. Provenance
+never propagates from roster to finding, from finding to its fields, or from a
+quoted triple to another assertion. The quoted triples alone do not assert
+facts; each underlying triple is present too. The scene contains no private production identifiers.
+
+```turtle
+@prefix ex: <https://example.org/math-finding-scene/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Explicit fictional background supplied by this scene.
+ex:block a gmeow:ContentBlock .
+ex:emptyBlock a gmeow:ContentBlock .
+ex:unknownBlock a gmeow:ContentBlock .
+ex:modelReport a gmeow:InformationObject .
+ex:regexReport a gmeow:InformationObject .
+ex:mathmlReport a gmeow:InformationObject .
+ex:modelStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional model-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:regexStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional regex-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:mathmlStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional MathML-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:modelMethod a gmeow:ObservationMethod ; rdfs:label "Fictional model-based method"@en .
+ex:regexMethod a gmeow:ObservationMethod ; rdfs:label "Fictional regex-based method"@en .
+ex:mathmlMethod a gmeow:ObservationMethod ; rdfs:label "Fictional MathML-based method"@en .
+
+# Underlying assertions supplied by the three fictional reports.
+ex:findingA rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingA gmeow:observedFeature ex:block .
+ex:findingA gmeow:observationMethod ex:modelMethod .
+ex:findingA gmeow:vantage ex:modelStageStandpoint .
+ex:findingA gmeow:expressionFindingLatex "x + 1" .
+ex:findingA gmeow:expressionFindingDisplayed false .
+ex:findingA gmeow:expressionFindingPassConfidence "0"^^xsd:decimal .
+ex:findingB rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingB gmeow:observedFeature ex:block .
+ex:findingB gmeow:observationMethod ex:regexMethod .
+ex:findingB gmeow:vantage ex:regexStageStandpoint .
+ex:findingB gmeow:expressionFindingLatex "" .
+ex:findingB gmeow:expressionFindingDisplayed false .
+ex:findingC rdf:type gmeow:MathematicalExpressionFinding .
+ex:findingC gmeow:observedFeature ex:block .
+ex:findingC gmeow:observationMethod ex:mathmlMethod .
+ex:findingC gmeow:vantage ex:mathmlStageStandpoint .
+ex:findingC gmeow:expressionFindingLatex "x + 1" .
+ex:findingC gmeow:expressionFindingDisplayed true .
+ex:findingC gmeow:expressionFindingPassConfidence "-2.5"^^xsd:decimal .
+ex:block gmeow:blockExpressionFindings ex:rosterA .
+ex:rosterA rdf:type gmeow:StructuredSequence .
+ex:rosterA gmeow:structuredItem ex:rosterAItem0 .
+ex:rosterAItem0 rdf:type gmeow:StructuredValue .
+ex:rosterAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:rosterAItem0 gmeow:structuredTerm ex:findingA .
+ex:rosterA gmeow:structuredItem ex:rosterAItem1 .
+ex:rosterAItem1 rdf:type gmeow:StructuredValue .
+ex:rosterAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:rosterAItem1 gmeow:structuredTerm ex:findingB .
+ex:rosterA gmeow:structuredItem ex:rosterAItem2 .
+ex:rosterAItem2 rdf:type gmeow:StructuredValue .
+ex:rosterAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+ex:rosterAItem2 gmeow:structuredTerm ex:findingA .
+ex:block gmeow:blockExpressionFindings ex:rosterC .
+ex:rosterC rdf:type gmeow:StructuredSequence .
+ex:rosterC gmeow:structuredItem ex:rosterCItem0 .
+ex:rosterCItem0 rdf:type gmeow:StructuredValue .
+ex:rosterCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:rosterCItem0 gmeow:structuredTerm ex:findingC .
+ex:emptyBlock gmeow:blockExpressionFindings ex:emptyRoster .
+ex:emptyRoster rdf:type gmeow:StructuredSequence .
+
+# Exact-statement provenance; no propagation is implied.
+ex:claim1 rdf:reifies <<( ex:findingA rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim2 rdf:reifies <<( ex:findingA gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim3 rdf:reifies <<( ex:findingA gmeow:observationMethod ex:modelMethod )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim4 rdf:reifies <<( ex:findingA gmeow:vantage ex:modelStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim5 rdf:reifies <<( ex:findingA gmeow:expressionFindingLatex "x + 1" )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim6 rdf:reifies <<( ex:findingA gmeow:expressionFindingDisplayed false )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim7 rdf:reifies <<( ex:findingA gmeow:expressionFindingPassConfidence "0"^^xsd:decimal )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim8 rdf:reifies <<( ex:findingB rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim9 rdf:reifies <<( ex:findingB gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim10 rdf:reifies <<( ex:findingB gmeow:observationMethod ex:regexMethod )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim11 rdf:reifies <<( ex:findingB gmeow:vantage ex:regexStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim12 rdf:reifies <<( ex:findingB gmeow:expressionFindingLatex "" )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim13 rdf:reifies <<( ex:findingB gmeow:expressionFindingDisplayed false )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim14 rdf:reifies <<( ex:findingC rdf:type gmeow:MathematicalExpressionFinding )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim15 rdf:reifies <<( ex:findingC gmeow:observedFeature ex:block )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim16 rdf:reifies <<( ex:findingC gmeow:observationMethod ex:mathmlMethod )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim17 rdf:reifies <<( ex:findingC gmeow:vantage ex:mathmlStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim18 rdf:reifies <<( ex:findingC gmeow:expressionFindingLatex "x + 1" )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim19 rdf:reifies <<( ex:findingC gmeow:expressionFindingDisplayed true )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim20 rdf:reifies <<( ex:findingC gmeow:expressionFindingPassConfidence "-2.5"^^xsd:decimal )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim21 rdf:reifies <<( ex:block gmeow:blockExpressionFindings ex:rosterA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim22 rdf:reifies <<( ex:rosterA rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim23 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem0 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim24 rdf:reifies <<( ex:rosterAItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim25 rdf:reifies <<( ex:rosterAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim26 rdf:reifies <<( ex:rosterAItem0 gmeow:structuredTerm ex:findingA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim27 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem1 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim28 rdf:reifies <<( ex:rosterAItem1 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim29 rdf:reifies <<( ex:rosterAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim30 rdf:reifies <<( ex:rosterAItem1 gmeow:structuredTerm ex:findingB )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim31 rdf:reifies <<( ex:rosterA gmeow:structuredItem ex:rosterAItem2 )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim32 rdf:reifies <<( ex:rosterAItem2 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim33 rdf:reifies <<( ex:rosterAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim34 rdf:reifies <<( ex:rosterAItem2 gmeow:structuredTerm ex:findingA )>> ;
+    gmeow:wasDerivedFrom ex:modelReport .
+ex:claim35 rdf:reifies <<( ex:block gmeow:blockExpressionFindings ex:rosterC )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim36 rdf:reifies <<( ex:rosterC rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim37 rdf:reifies <<( ex:rosterC gmeow:structuredItem ex:rosterCItem0 )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim38 rdf:reifies <<( ex:rosterCItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim39 rdf:reifies <<( ex:rosterCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim40 rdf:reifies <<( ex:rosterCItem0 gmeow:structuredTerm ex:findingC )>> ;
+    gmeow:wasDerivedFrom ex:mathmlReport .
+ex:claim41 rdf:reifies <<( ex:emptyBlock gmeow:blockExpressionFindings ex:emptyRoster )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+ex:claim42 rdf:reifies <<( ex:emptyRoster rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:regexReport .
+```
+
+All 42 report assertions have exact-statement attribution. The scene preserves
+three separate findings, two independent rosters for one block, the repeated A
+reference through distinct occurrences, the empty second-block roster and the
+third block’s missing roster. Blank LaTeX is supplied, false is supplied, zero
+is supplied, and absent confidence is left absent. No coercion or default is
+introduced. A joint observation can carry several actual vantages under the
+same inherited nonfunctional contract; this single-vantage scene neither caps
+nor synthesizes them.
+
+An item without structuredTerm fails the roster Formula. An item with a valid
+finding plus an untyped resource or a literal payload fails its universal
+check as well as any applicable generic scalar integrity. A finding with the
+wrong observedFeature fails block agreement. A finding with the right block
+and an extra block fails the local exact-one law. Missing or invalid required
+LaTeX or displayed input fails the local finding contract; malformed confidence
+fails when selected, with no substitution or partial successful finding.
+
+## Reported image analyses
+
+`ImageAnalysis` is an Observation retaining one actual coherent interpretation
+of a stored MediaObject. The method identifies HOW; vantage identifies the
+actual supplied WHO or standpoint. Require the actual stored image through
+`observedFeature`, an actual `observationMethod` and at least one actual
+`vantage`. Preserve joint viewpoints without selecting a winner. Method text
+or a coarse stage label does not supply an Agent, invocation, model revision,
+run, time or calibration context.
+
+Keep `imageAnalysisCategory`, `imageAnalysisDescription` and
+`imageAnalysisPassageBoundary` on that analysis rather than flattening the
+readings onto the image as global facts. Category retains reported wording,
+not a controlled enum, canonical rdf:type or depiction. Description retains
+image commentary, not a description of the processing act or an asserted
+Scene. Both use complete `xsd:string`, `rdf:langString` or `rdf:dirLangString`
+literals through Lang. Untagged wording stays untagged. Preserve actual
+language, direction and blank text; no language is guessed or hardcoded.
+
+The passage-boundary flag is an optional `xsd:boolean`. Supplied false is a
+value and remains distinct from absence. The flag reports this analysis’s
+reading; it does not create a structural division, coordinate or segmentation.
+Never derive it from a category, description, missing field or default.
+
+Each field is independently optional and locally at most one within a coherent
+analysis. ImageAnalysisReportedContentConstraint requires at least one actual
+reported field. A blank category, blank description or false flag satisfies
+presence; separate datatype and cardinality laws still apply. Do not fabricate
+an analysis from all missing fields. Actual method, feature and vantage are
+also required through class-scoped closed paths. These are ordinary canonical
+axioms and a Formula selecting generated procedural validation, not a native
+failure marker, independently discharged reasoner case or executed acceptance
+result.
+
+Group fields only when their actual supplied context establishes a coherent
+analysis. Equal held-image identity, method, stage label or wording does not
+establish one shared invocation or report. Distinct supplied readings retain
+distinct records. Attribute each actual statement separately; provenance on an
+analysis does not propagate to its fields, its image or other analyses.
+
+The held image is a MediaObject; a structural figure remains a distinct
+ContentBlock when supplied. The original-format text is source evidence on the
+actual held artifact. It invents no original file or byte identity. Use any
+actual supplied figure/media association through its existing contract; neither
+the original-format field nor the analysis creates such a link (Principles 4,
+5, 9, 17 and 19).
+
+The entirely fictional scene below supplies one actual stored image and three
+distinct coherent analysis contexts. The MediaObject already satisfies its
+complete carrier, colour-space and other existing contracts in the surrounding
+graph; this snippet adds only the shown metadata and analysis facts. Background
+source artifacts, method and stage perspective are expressly supplied framing.
+The standpoint label and sharpens edge are supplied, not inferred from method
+wording. No extra Agent, invocation, model revision or time is manufactured.
+
+The held-format claim identifies PNG. Separate source claims retain original
+text with spaces, a second format spelling and a blank string. Those claims
+can coexist without replacing the held format or authenticating a predecessor.
+Analysis A reports category, description and a true boundary flag. Analysis B
+supplies only blank description text, and analysis C supplies only false. Both
+B and C satisfy the presence law while retaining their actual contexts.
+
+All three analyses share the supplied media, method and coarse standpoint;
+the scene separately supplies their distinct coherent contexts. That shared
+identity therefore does not merge them or establish a shared invocation. The
+category and description readings are deliberately untagged because that is
+what this fictional source supplies. If all three readings are absent, no
+ImageAnalysis is created
+from defaults; no such empty analysis is asserted here.
+
+Each of the 21 supplied facts below is both explicitly asserted and individually
+reified with its own actual report source. Background declarations are separate
+scene framing. The report attribution on a raw original-format claim does not
+invent an analysis viewpoint for that metadata. The quoted triples alone would
+not assert their content, so the underlying triples are separately present.
+
+```turtle
+@prefix ex: <https://example.org/image-analysis-scene/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Supplied fictional background; complete carrier obligations remain in force.
+ex:image a gmeow:MediaObject .
+ex:reportA a gmeow:InformationObject .
+ex:reportB a gmeow:InformationObject .
+ex:reportC a gmeow:InformationObject .
+ex:imageStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional image-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:imageMethod a gmeow:ObservationMethod ;
+    rdfs:label "Fictional model-based image method"@en .
+
+# Actual assertions supplied by the distinct fictional reports.
+ex:image gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> .
+ex:image gmeow:originalMediaTypeText " JPEG " .
+ex:image gmeow:originalMediaTypeText "TIFF" .
+ex:image gmeow:originalMediaTypeText "" .
+ex:analysisA rdf:type gmeow:ImageAnalysis .
+ex:analysisA gmeow:observedFeature ex:image .
+ex:analysisA gmeow:observationMethod ex:imageMethod .
+ex:analysisA gmeow:vantage ex:imageStageStandpoint .
+ex:analysisA gmeow:imageAnalysisCategory "diagram" .
+ex:analysisA gmeow:imageAnalysisDescription "Contrasting shapes" .
+ex:analysisA gmeow:imageAnalysisPassageBoundary true .
+ex:analysisB rdf:type gmeow:ImageAnalysis .
+ex:analysisB gmeow:observedFeature ex:image .
+ex:analysisB gmeow:observationMethod ex:imageMethod .
+ex:analysisB gmeow:vantage ex:imageStageStandpoint .
+ex:analysisB gmeow:imageAnalysisDescription "" .
+ex:analysisC rdf:type gmeow:ImageAnalysis .
+ex:analysisC gmeow:observedFeature ex:image .
+ex:analysisC gmeow:observationMethod ex:imageMethod .
+ex:analysisC gmeow:vantage ex:imageStageStandpoint .
+ex:analysisC gmeow:imageAnalysisPassageBoundary false .
+
+# Exact-statement source attribution; no propagation is implied.
+ex:claim1 rdf:reifies <<( ex:image gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim2 rdf:reifies <<( ex:image gmeow:originalMediaTypeText " JPEG " )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim3 rdf:reifies <<( ex:image gmeow:originalMediaTypeText "TIFF" )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim4 rdf:reifies <<( ex:image gmeow:originalMediaTypeText "" )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim5 rdf:reifies <<( ex:analysisA rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim6 rdf:reifies <<( ex:analysisA gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim7 rdf:reifies <<( ex:analysisA gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim8 rdf:reifies <<( ex:analysisA gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim9 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisCategory "diagram" )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim10 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisDescription "Contrasting shapes" )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim11 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisPassageBoundary true )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim12 rdf:reifies <<( ex:analysisB rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim13 rdf:reifies <<( ex:analysisB gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim14 rdf:reifies <<( ex:analysisB gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim15 rdf:reifies <<( ex:analysisB gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim16 rdf:reifies <<( ex:analysisB gmeow:imageAnalysisDescription "" )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim17 rdf:reifies <<( ex:analysisC rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim18 rdf:reifies <<( ex:analysisC gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim19 rdf:reifies <<( ex:analysisC gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim20 rdf:reifies <<( ex:analysisC gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim21 rdf:reifies <<( ex:analysisC gmeow:imageAnalysisPassageBoundary false )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+```
+
+All 21 asserted report facts have matching exact-statement source reifiers.
+The background resource declarations provide the explicitly supplied framing,
+not an inferred execution record. The shared standpoint supplies no model or
+run identity. Source words and flags establish no depicted Scene, canonical
+classification, validated pixels, authenticated bytes or segmentation result.
+No generated, installed, consumer or runtime acceptance is demonstrated by this
+source example.
