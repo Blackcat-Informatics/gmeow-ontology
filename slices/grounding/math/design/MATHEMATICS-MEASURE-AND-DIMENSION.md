@@ -108,7 +108,7 @@ ex:expectedEnergy
 
 ex:energyDimension
     a math:DerivedDimension ;
-    math:dimensionVector "M·L2·T-2" ;
+    math:dimensionVector "L2·M·T-2" ;
     math:baseDimensionExponent ex:massExp1 , ex:lengthExp2 , ex:timeExpMinus2 .
 ```
 

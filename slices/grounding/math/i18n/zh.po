@@ -10978,5 +10978,89 @@ msgid "Avoid an RDF list in place of direct cell edges, an empty product as an a
 msgstr "不要以 RDF 列表替代直接单元边，不要把空乘积当作编写模式，不要为同一被表示的基本量纲重复设单元，也不要把 dimensionVector 字符串当作第二份真相来源。不要仅因成功返回原生向量就推断良构性。"
 
 msgctxt "https://blackcatinformatics.ca/math/DerivedDimension|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. Detected malformed or unrepresentable input raises Math's MalformedDimension error; the physical dimension reader instead leaves an unresolved mode gap. Keep those limits separate from complete source validation and preserve the existing cardinality rules."
-msgstr "通过 baseDimensionExponent 直接链接所提供单元，保留每个实际基本量纲以及整数分子、非零整数分母。检测到格式不合要求或无法表示的输入时，Math 抛出 MalformedDimension 错误；物理执行层的量纲读取器则留下未解析的模式缺口。将这些限制与完整来源验证分开，保留现有基数规则。"
+msgid "Link the supplied cells directly through baseDimensionExponent, retaining each actual base and integer numerator/nonzero integer denominator. The Math reader reports MalformedDimension for detected structural faults and failed construction of an individual rational exponent; exponent accumulation can instead propagate ArithmeticOverflow or RationalDomain. The physical dimension reader leaves an unresolved mode gap on these failures. Keep those limits separate from complete source validation and preserve the existing cardinality rules."
+msgstr "通过 baseDimensionExponent 直接链接所提供单元，保留每个实际基本量纲以及整数分子、非零整数分母。Math 读取器对检测到的结构缺陷和单个有理数指数构造失败报告 MalformedDimension；指数累加则可能传播 ArithmeticOverflow 或 RationalDomain。物理执行层的量纲读取器在这些失败时留下未解析的模式缺口。将这些限制与完整来源验证分开，保留现有基数规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimensionless"
+msgstr "无量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimensionless dimension: the identity element of the dimension vector space, whose exponent vector is zero on every base dimension. A ratio of commensurable quantities, a probability, a correlation, and an angle all carry this dimension. The distinguished individual is math:dimensionless."
+msgstr "无量纲：量纲向量空间的单位元，其每个基本量纲上的指数均为零。可通约量之比、概率、相关系数和角都具有此量纲。指定个体为 math:dimensionless。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class concerns dimensions with the all-zero SI exponent vector. Zero exponents express the identity for products of dimensions; they say nothing about whether a quantity's numeric magnitude is zero. A zero-valued time quantity still carries timeDimension."
+msgstr "此类描述 SI 指数向量全为零的量纲。零指数表示量纲乘积的单位元，并不说明量的数值大小是否为零。数值为零的时间量仍具有 timeDimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|http://www.w3.org/2004/02/skos/core#example"
+msgid "A probability and a correlation both carry math:dimensionless, while their permitted ranges and interpretation remain different. Neither becomes the dimension resource itself."
+msgstr "概率和相关系数都具有 math:dimensionless，但各自的允许取值范围和解释仍然不同。两者都不会成为量纲资源本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an actual dimension resource with zero exponents, while leaving the quantity carrying that dimension typed by its own quantity kind."
+msgstr "用于将指数全为零的实际量纲资源归入此类；具有该量纲的量仍按自身的量的种类标注类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a probability, angle or ratio quantity as this dimension class, inferring a dimensionless dimension from zero magnitude, or inferring probability from a dimensionless confidence score."
+msgstr "不要将概率、角或比值量标为此量纲类，不要因数值为零就认定其无量纲，也不要从无量纲置信分数推断概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/Dimensionless|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put the actual dimension resource on hasDimension. The native readers recognize the seven canonical basis IRIs first, then the distinguished dimensionless IRI or a Dimensionless type; this dispatch supplies no validation of stray exponent cells or contradictory source typing."
+msgstr "在 hasDimension 上使用实际量纲资源。原生读取器先识别七个规范基 IRI，再识别指定的 dimensionless IRI 或 Dimensionless 类型；这种分派不验证多余的指数单元或相互矛盾的来源类型标注。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dimensionless (1)"
+msgstr "无量纲（1）"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimensionless dimension: the zero vector, the identity of the dimension vector space. The dimension of a ratio of commensurable quantities, a probability, a correlation, or an angle."
+msgstr "无量纲：零向量，量纲向量空间的单位元。它是可通约量之比、概率、相关系数或角所具有的量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual denotes the zero exponent vector; its canonical rendered string is \"1\". The vector, string and RDF resource are distinct from a quantity's numeric value 0 or 1, and vector equality does not establish RDF identity."
+msgstr "此个体表示零指数向量，其规范渲染字符串为 \"1\"。该向量、字符串和 RDF 资源与量的数值 0 或 1 各不相同，向量相等并不确立 RDF 身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|http://www.w3.org/2004/02/skos/core#example"
+msgid "A quantity with hasDimension math:dimensionless may have numeric magnitude 0, 1 or another value allowed by its quantity kind. The dimension does not supply that magnitude."
+msgstr "具有 hasDimension math:dimensionless 的量，其数值大小可以是 0、1 或该量的种类所允许的其他值。量纲不提供这一数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use this existing distinguished individual when a source explicitly supplies the dimensionless dimension, retaining the source quantity's own magnitude and meaning."
+msgstr "当来源明确提供无量纲时，使用这一现有指定个体，并保留来源量本身的数值大小和含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting a missing dimension to this individual, interpreting it as a numeric literal or a unit conversion, or discarding distinctions of quantity kind, unit, scale, reference frame, probability and confidence."
+msgstr "不要在缺少量纲时默认使用此个体，不要将其解释为数值字面量或单位换算，也不要抹去量的种类、单位、标度、参考系、概率与置信之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionless|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the quantity through hasDimension to this IRI and keep its other source qualifications. The selected exact-decimal scalar profile requires this distinguished IRI; another resource that a native reader maps to the zero vector does not satisfy that identity check."
+msgstr "通过 hasDimension 将量链接到此 IRI，并保留来源的其他限定信息。所选精确十进制标量配置要求使用这一指定 IRI；即使原生读取器将另一资源映射为零向量，该资源也不满足此身份检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dimension vector"
+msgstr "量纲向量"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The human-readable canonical rendering of a dimension's exponent vector, for example \"L2·M·T-2\" for energy. Domain math:Dimension, range xsd:string (stated in prose). A computed projection of the exact exponent vector obtained from direct math:baseDimensionExponent cells or recognized base or dimensionless cases, never an independent authored source: where present it must match the canonical render of the structured exponents, or the dimension is malformed."
+msgstr "量纲指数向量的人类可读规范渲染，例如能量的 \"L2·M·T-2\"。定义域为 math:Dimension，值域为 xsd:string（以文字说明）。它是从直接的 math:baseDimensionExponent 单元或已识别的基本量纲或无量纲情形获得的精确指数向量的计算投影，绝不是独立编写的来源：若存在，它必须与结构化指数的规范渲染一致，否则量纲为畸形。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current native renderer uses L M T I Θ N J order, skips zero coordinates, elides exponent 1 and writes other exponents as signed integer or reduced num/den suffixes. It joins the resulting factors with ·. The all-zero vector renders as \"1\"; this display text supplies neither a quantity magnitude nor an RDF identity."
+msgstr "当前原生渲染器采用 L M T I Θ N J 顺序，跳过零坐标，省略指数 1，将其他指数写为带符号整数或约分后的 num/den 后缀，并以 · 连接各因子。全零向量渲染为 \"1\"；此显示文本既不提供量的数值大小，也不提供 RDF 身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing force cells render as \"L·M·T-2\" in native order; energy with length exponent 2, mass exponent 1 and time exponent -2 renders as \"L2·M·T-2\". Reordering product factors preserves a mathematical dimension but changes this canonical string."
+msgstr "现有力量纲单元按原生顺序渲染为 \"L·M·T-2\"；长度指数为 2、质量指数为 1、时间指数为 -2 的能量量纲渲染为 \"L2·M·T-2\"。重排乘积因子保留数学上的量纲，但会改变此规范字符串。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as a computed human-readable view of an actual dimension's exact vector, derived from its direct exponent cells or recognized basis or dimensionless case."
+msgstr "用作实际量纲精确向量的计算所得人类可读视图，向量来自直接指数单元或已识别的基或无量纲情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this property to author an RDF list, supply an independent exponent string or identify a dimension by its display text. Presence of a matching string does not prove complete validation, quantity-kind compatibility or aligned units, scales and frames."
+msgstr "不要用此属性编写 RDF 列表、提供独立的指数字符串或按显示文本标识量纲。存在匹配的字符串，不证明已完成全面验证、量的种类相容或单位、标度和参考系已对齐。"
+
+msgctxt "https://blackcatinformatics.ca/math/dimensionVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source dimension and cells and, where this rendering is supplied, match the current canonical output. The drift scan compares only the first literal's lexical text and skips a dimension it cannot load; it does not check every value, certify datatype and language identity or replace source validation."
+msgstr "保留来源量纲和单元；若提供此渲染，则须与当前规范输出一致。漂移扫描仅比较第一个字面量的词法文本，并跳过无法加载的量纲；它不检查每个值，不认证数据类型和语言身份，也不替代来源验证。"
