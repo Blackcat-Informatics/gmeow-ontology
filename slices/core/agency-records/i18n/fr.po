@@ -6394,3 +6394,31 @@ msgstr "Appliquer la garde BudgetReading et quinze gardes positives indépendant
 msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
 msgstr "Chaque quantité budgetEstimatedMillicents fournie possède des grandeurs xsd:nonNegativeInteger valides et finies ayant une seule valeur numérique, la dimension sans dimension du comptage d’unités et un unique référentiel complet de rapport. Son relevé déclare un unique référentiel monétaire complet, scalaire et unidimensionnel dans l’unité principale, ainsi qu’au moins une version réelle de table tarifaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported duration of episode left"
+msgstr "durée rapportée de l’épisode quitté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported duration of the actual episode Activity named by episodeLeft in this EpisodeTransition report's supplied context. A source-computed span retains its actual derivation; GMEOW does not compute or verify timestamp subtraction."
+msgstr "La durée rapportée par la source pour l’Activity réelle d’épisode nommée par episodeLeft dans le contexte fourni de ce rapport EpisodeTransition. Une durée calculée par la source conserve sa dérivation réelle ; GMEOW ne calcule ni ne vérifie la soustraction d’horodatages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly supplies a measured or computed duration for the episode reported as left."
+msgstr "Utiliser lorsqu’une source fournit explicitement une durée mesurée ou calculée pour l’épisode rapporté comme quitté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a duration, episode endpoint, input claim, clock precision, epoch or timezone, or reading this value as time spent changing episodes."
+msgstr "Éviter d’inventer une durée, une extrémité d’épisode, une assertion d’entrée, une précision d’horloge, une époque ou un fuseau horaire, ou de lire cette valeur comme le temps passé à changer d’épisode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact literal, datatype, lexical form and units. On the exact duration assertion's native RDF 1.2 reifier, retain wasDerivedFrom for the documentary source, wasAttributedTo for the recorder and accordingTo for the declaring frame. For a source-computed span, preserve the supplied calculation and input roles with statedRationale and link only actual supplied inputs with wasDerivedFrom; create no missing input claims."
+msgstr "Conserver le littéral exact, son type de données, sa forme lexicale et ses unités. Sur le réificateur RDF 1.2 natif de l’assertion exacte de durée, conserver wasDerivedFrom pour la source documentaire, wasAttributedTo pour l’agent qui consigne et accordingTo pour le cadre déclarant. Pour une durée calculée par la source, préserver le calcul fourni et les rôles des entrées avec statedRationale et ne relier avec wasDerivedFrom que les entrées réelles fournies ; ne créer aucune assertion d’entrée manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Missing values are unspecified; historical and competing attributed durations coexist. This relation requires no endpoint or input claim and establishes no computed timestamps, execution, completion, causal order or global current winner."
+msgstr "Facultative et non fonctionnelle. Les valeurs absentes restent non spécifiées ; les durées historiques et concurrentes, avec leurs attributions, coexistent. Cette relation n’exige aucune extrémité ni assertion d’entrée et n’établit ni horodatage calculé, ni exécution, ni achèvement, ni ordre causal, ni sélection actuelle globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies fifteen minutes for the episode named by episodeLeft; the report retains the supplied xsd:duration and its exact assertion provenance without deriving timestamps."
+msgstr "Une source fournit quinze minutes pour l’épisode nommé par episodeLeft ; le rapport conserve le xsd:duration fourni et la provenance de son assertion exacte sans dériver d’horodatages."

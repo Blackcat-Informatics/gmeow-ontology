@@ -3506,3 +3506,19 @@ gmeow:BudgetEstimatedCostConstraint
         [ a logic:Formula ; logic:relation gmeow:budgetEstimatedMillicents ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTableTypeQuantity" ] ] ,
         [ a logic:Formula ; logic:relation gmeow:budgetCostPriceTable ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ] , [ logic:termIndex 1 ; logic:termVariable "costTypedTableRelease" ] ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "costTypedTableRelease" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] ] .
+
+gmeow:episodeLasted
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported duration of episode left"@x-gmeow-english ;
+    skos:definition "The source-reported duration of the actual episode Activity named by episodeLeft in this EpisodeTransition report's supplied context. A source-computed span retains its actual derivation; GMEOW does not compute or verify timestamp subtraction."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly supplies a measured or computed duration for the episode reported as left."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a duration, episode endpoint, input claim, clock precision, epoch or timezone, or reading this value as time spent changing episodes."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact literal, datatype, lexical form and units. On the exact duration assertion's native RDF 1.2 reifier, retain wasDerivedFrom for the documentary source, wasAttributedTo for the recorder and accordingTo for the declaring frame. For a source-computed span, preserve the supplied calculation and input roles with statedRationale and link only actual supplied inputs with wasDerivedFrom; create no missing input claims."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Missing values are unspecified; historical and competing attributed durations coexist. This relation requires no endpoint or input claim and establishes no computed timestamps, execution, completion, causal order or global current winner."@x-gmeow-english ;
+    skos:example "A source supplies fifteen minutes for the episode named by episodeLeft; the report retains the supplied xsd:duration and its exact assertion provenance without deriving timestamps."@x-gmeow-english ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range xsd:duration .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/episodeLasted" ; logic:closureValue logic:ClosedWorldClosure ] .

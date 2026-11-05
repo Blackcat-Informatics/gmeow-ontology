@@ -716,3 +716,28 @@ operation cannot silently omit it, substitute zero or claim complete success.
 This vocabulary adds no importer, arithmetic engine or source-adoption claim.
 The existing request/call counts, UTC day, schema and spender meanings remain
 unchanged (Principles 4, 9, 11, 17 and 19).
+
+## Reported duration of the episode left
+
+`episodeLasted` retains a source-reported `xsd:duration` on an
+`EpisodeTransition` report. It concerns the actual episode Activity named by
+`episodeLeft` in that report's supplied context, rather than time spent changing
+episodes. Keep the exact literal, datatype, lexical form and units. The property
+is optional and nonfunctional: absence is unspecified, and historical or
+competing attributed durations coexist without a global current winner.
+
+On the exact duration assertion's native RDF 1.2 reifier, retain documentary
+source through `wasDerivedFrom`, recorder through `wasAttributedTo` and
+declaring frame through `accordingTo`. Report-level provenance does not
+propagate to that assertion. For a source-computed span, preserve the supplied
+calculation and input roles through `statedRationale`, and link the actual
+supplied inputs through `wasDerivedFrom`. Do not synthesize an episode endpoint,
+input claim, clock precision, epoch or timezone to complete the account.
+
+The global supplied-value closure checks the report domain and duration
+datatype when the property is used; it requires no duration, endpoint or input
+claim. Source correspondence and calculation provenance remain source-review
+obligations. Retaining a source calculation does not compute or verify timestamp
+subtraction or establish execution, completion or causal order. This term does
+not assert equivalence with a consumer's private extension (Principles 4, 9,
+11 and 17).
