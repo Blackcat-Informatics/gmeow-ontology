@@ -10616,3 +10616,199 @@ msgstr "不要使用零、小数分母或猜测的默认值，也不要仅因符
 msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."
 msgstr "将提供的非零整数与 exponentNumerator 及单元实际基本量纲目标保存在一起。对于零分母或无法表示的数对，保留现有量纲格式错误处理；不要通过替换为一或将商转换为浮点数来修复来源数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "length (L)"
+msgstr "长度（L）"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of length, L — realized by the metre. A generator of the dimension vector space."
+msgstr "长度的 SI 基本量纲 L，由米实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "L denotes the physical dimension of length. Area and volume involve powers of this generator; the number of coordinates of a geometric space is a different notion. The dimension identity supplies no length magnitude or chosen unit."
+msgstr "L 表示长度的物理量纲。面积和体积涉及此生成元的次幂；几何空间的坐标个数是另一概念。量纲身份不提供长度数值或所选单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+msgstr "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a quantity whose actual physical dimension is length, or as the base target of an existing derived-dimension exponent cell involving length."
+msgstr "用于实际物理量纲为长度的量，或用作涉及长度的现有派生量纲指数单元的基本量纲目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this individual as a metre unit, a distance value, a geometric dimension count or the complete dimension of area or volume. A label containing length does not establish a quantity's dimension."
+msgstr "不要将此个体用作米单位、距离值、几何维数或面积、体积的完整量纲。标签含有长度一词，并不能确立一个量的量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference math:lengthDimension through hasDimension for an actual length quantity, or through exponentOfDimension on its existing power cell. Keep the supplied magnitude, unit and applicable measurement context separate; the base IRI performs no unit or frame conversion."
+msgstr "对实际长度量通过 hasDimension 引用 math:lengthDimension，或在其现有次幂单元上通过 exponentOfDimension 引用。将所提供的数值、单位和适用测量上下文分开保留；基本量纲 IRI 不执行单位或参考系转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mass (M)"
+msgstr "质量（M）"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of mass, M — realized by the kilogram. A generator of the dimension vector space."
+msgstr "质量的 SI 基本量纲 M，由千克实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "M is the mass generator. A weight force has a derived dimension involving mass, length and time; it is not this base dimension alone. The mass dimension is independent of which mass unit the source actually supplies."
+msgstr "M 是质量生成元。作为力的重量具有涉及质量、长度和时间的派生量纲，并不只是此基本量纲。质量量纲独立于来源实际提供的质量单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+msgstr "math:forceMassExponent math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the physical dimension of a mass quantity or the mass factor in a derived-dimension product, retaining its exact rational exponent separately."
+msgstr "用于标识质量量的物理量纲，或派生量纲乘积中的质量因子，并另行保留其精确有理数指数。"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting massDimension for forceDimension, treating kilogram as this individual, or inferring mass from a bare number or a source's informal weight wording. No gravitational conversion follows from the dimension edge."
+msgstr "不要以 massDimension 替代 forceDimension，不要将千克当作此个体，也不要根据裸数或来源中非正式的重量措辞推断质量。量纲边不会执行任何重力换算。"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:massDimension as the canonical base identity and connect the actual quantity or exponent cell through the existing dimension vocabulary. Preserve the source's mass magnitude and unit without calculating a force or inserting an acceleration."
+msgstr "以 math:massDimension 保留规范基本量纲身份，并通过现有量纲词表连接实际量或指数单元。保留来源质量数值和单位，不计算力，也不插入加速度。"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time (T)"
+msgstr "时间（T）"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of time, T — realized by the second. A generator of the dimension vector space."
+msgstr "时间的 SI 基本量纲 T，由秒实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "T denotes physical time in dimension products. It is distinct from a dated instant, an epoch, a calendar convention or a clock reading. A time exponent says nothing about the source's elapsed-versus-calendar arithmetic."
+msgstr "T 表示量纲乘积中的物理时间，不等同于带日期的时刻、纪元、历法约定或时钟读数。时间指数不说明来源采用的是经过时长算术还是日历算术。"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+msgstr "math:forceTimeExponent math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual physical-time quantity or the exact time power in a derived dimension, such as inverse time squared in the existing force product."
+msgstr "用于实际物理时间量，或派生量纲中的精确时间次幂，例如现有力量纲乘积中的时间负二次幂。"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this generator as a timestamp, timezone, scheduler window, unit second or duration literal. Do not turn a calendar month into fixed seconds or infer an ordering of events from a shared time dimension."
+msgstr "不要将此生成元用作时间戳、时区、调度窗口、秒单位或时长字面量。不要将日历月转换为固定秒数，也不要因共有时间量纲而推断事件顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain math:timeDimension through hasDimension or the actual exponentOfDimension cell. Leave reported temporal literals and their real clock, calendar and reference-frame interpretation with their existing owners; the SI basis identity performs no temporal calculation."
+msgstr "通过 hasDimension 或实际 exponentOfDimension 单元保留 math:timeDimension。报告的时间字面量及其实际时钟、历法和参考系解释仍归现有所有者负责；SI 基本量纲身份不执行时间计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "electric current (I)"
+msgstr "电流（I）"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of electric current, I — realized by the ampere. A generator of the dimension vector space."
+msgstr "电流的 SI 基本量纲 I，由安培实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "I is the electric-current dimension symbol; ampere is the unit realizing it. Charge involves current and time, so this generator alone does not represent the complete charge dimension or identify an amount of charge."
+msgstr "I 是电流量纲符号；安培是实现该量纲的单位。电荷涉及电流和时间，因此仅此生成元不表示完整电荷量纲，也不标识电荷量。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing math:electricCurrentDimension a math:BaseDimension declaration names the current generator. Its native dimension-vector symbol is I, while ampere names its realizing unit."
+msgstr "现有声明 math:electricCurrentDimension a math:BaseDimension 指定电流生成元。其原生量纲向量符号是 I，安培则是实现该量纲的单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source quantity is physically an electric current, or when a derived-dimension exponent cell explicitly names current as one of its factors."
+msgstr "当来源量在物理上是电流，或派生量纲指数单元明确将电流列为因子之一时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting this dimension merely because a record concerns electricity, counts charged particles or carries a voltage or power label. It is not an ampere value, a charge count or an electrical conversion rule."
+msgstr "不要仅因记录涉及电、计数带电粒子或带有电压、功率标签就选择此量纲。它不是安培数值、电荷计数或电学换算规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the declared math:electricCurrentDimension IRI through the actual quantity's hasDimension or a cell's exponentOfDimension. Supply the source magnitude, unit and any other dimensional factors independently; the I symbol alone supplies none of them."
+msgstr "通过实际量的 hasDimension 或单元的 exponentOfDimension 引用已声明的 math:electricCurrentDimension IRI。另行提供来源数值、单位和其他量纲因子；仅有 I 符号并不提供这些内容。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thermodynamic temperature (Θ)"
+msgstr "热力学温度（Θ）"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of thermodynamic temperature, Θ — realized by the kelvin. A generator of the dimension vector space."
+msgstr "热力学温度的 SI 基本量纲 Θ，由开尔文实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thermodynamic temperature and a temperature difference share the physical dimension Θ. Their point-versus-difference meaning and numerical scale remain separate: a dimension edge does not apply an affine temperature offset or make an offset appropriate for a difference."
+msgstr "热力学温度和温差具有相同物理量纲 Θ。它们作为温度点或温差的含义及数值标度仍须分开；量纲边不应用温度仿射偏移，也不使该偏移适用于温差。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source temperature difference can carry math:temperatureDimension while retaining its actual difference and scale interpretation. The shared Θ coordinate does not authorize adding an absolute-temperature offset to that difference."
+msgstr "来源温差可以具有 math:temperatureDimension，同时保留其实际温差和标度解释。共有的 Θ 坐标不授权向该温差添加绝对温度偏移。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the physical thermodynamic-temperature dimension of an actual quantity or its rational power in a derived product, without selecting a numerical temperature scale."
+msgstr "用于陈述实际量的热力学温度物理量纲，或其在派生乘积中的有理数次幂，而不选择数值温标。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this individual as a kelvin unit, a temperature value, a Celsius offset or a rule that treats every temperature quantity as an interchangeable absolute reading. Equal dimensions do not settle point/difference or scale semantics."
+msgstr "不要将此个体用作开尔文单位、温度值、摄氏偏移，或使所有温度量都能与绝对读数互换的规则。量纲相同并不能决定温度点、温差或温标语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:temperatureDimension as the base target and retain the source quantity's actual scale, reference frame and point-or-difference interpretation separately. Use existing exponent cells for derived powers; perform no offset or scale conversion from this IRI."
+msgstr "以 math:temperatureDimension 作为基本量纲目标，另行保留来源量的实际温标、参考系及温度点或温差解释。派生次幂使用现有指数单元；不要根据此 IRI 进行偏移或温标转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "amount of substance (N)"
+msgstr "物质的量（N）"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of amount of substance, N — realized by the mole. A generator of the dimension vector space."
+msgstr "物质的量的 SI 基本量纲 N，由摩尔实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "N is the amount-of-substance dimension symbol, not the newton unit symbol. An amount of specified entities and a bare entity count are different quantity roles; the dimension identity alone supplies neither the entity kind nor a count-to-amount conversion."
+msgstr "N 是物质的量的量纲符号，不是牛顿单位符号。指定实体的物质的量与单纯实体计数是不同的量角色；仅有量纲身份不提供实体种类，也不执行计数到物质的量的换算。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:amountOfSubstanceDimension uses N in the declared basis. The existing math:forceDimension instead uses its mass, length and time cells; the N dimension symbol does not name a newton force unit."
+msgstr "math:amountOfSubstanceDimension 在已声明的基中使用 N。现有 math:forceDimension 使用质量、长度和时间单元；量纲符号 N 不表示牛顿力单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual amount-of-substance quantity or as that dimension's factor in an existing rational exponent product; retain the source's supplied entity interpretation separately from any bare count."
+msgstr "用于实际物质的量，或用作现有有理数指数乘积中该量纲的因子；将来源提供的实体解释与任何单纯计数分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting every count as amount of substance, using this IRI as the mole unit or the newton unit, or deriving a substance amount from an unlabeled numerical tally. Keep source entity meaning and actual units explicit."
+msgstr "不要将每个计数解释为物质的量，不要将此 IRI 用作摩尔或牛顿单位，也不要从无说明的数字计数推导物质的量。明确保留来源实体含义及实际单位。"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual quantity to math:amountOfSubstanceDimension through hasDimension, or name it in the relevant exponentOfDimension cell. Retain the supplied amount, unit and entity interpretation; add no invented particle count, conversion factor or chemical assertion."
+msgstr "通过 hasDimension 将实际量连接到 math:amountOfSubstanceDimension，或在相关 exponentOfDimension 单元中指定它。保留提供的物质的量、单位和实体解释；不添加编造的粒子计数、换算系数或化学断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "luminous intensity (J)"
+msgstr "发光强度（J）"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of luminous intensity, J — realized by the candela. A generator of the dimension vector space."
+msgstr "发光强度的 SI 基本量纲 J，由坎德拉实现。它是量纲向量空间的一个生成元。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the SI luminous-intensity basis dimension. The dimension vector alone does not determine the complete photometric quantity role, spectral weighting or solid-angle interpretation. A dimensionless angular factor can leave dimensions equal while the measured roles differ."
+msgstr "这是 SI 发光强度基本量纲。仅有量纲向量不能确定完整光度量角色、光谱加权或立体角解释。无量纲角度因子可以使量纲保持相同，而所测量的角色仍然不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native basis pairs math:luminousIntensityDimension with the dimension symbol J. That coordinate is not the joule unit used for energy and is not a supplied luminous-intensity magnitude."
+msgstr "原生基将 math:luminousIntensityDimension 与量纲符号 J 配对。此坐标不是能量使用的焦耳单位，也不是所提供的发光强度数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source quantity with the actual physical role of luminous intensity, or the corresponding factor in a derived-dimension product. Keep the source's photometric meaning alongside its dimension."
+msgstr "用于实际物理角色为发光强度的来源量，或派生量纲乘积中的对应因子。在量纲之外保留来源光度含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating J as joule, equating this generator with radiometric power or image brightness, or using equal dimensions as proof that distinct photometric quantity roles are interchangeable. No spectral or geometric computation follows from the IRI."
+msgstr "不要将 J 读作焦耳，不要将此生成元等同于辐射功率或图像亮度，也不要以量纲相同证明不同光度量角色可以互换。此 IRI 不执行光谱或几何计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference math:luminousIntensityDimension through the existing hasDimension or exponentOfDimension role. Retain the actual measurement magnitude, realizing unit and supplied photometric context separately; the fixed basis entry neither supplies that context nor converts an energy value."
+msgstr "通过现有 hasDimension 或 exponentOfDimension 角色引用 math:luminousIntensityDimension。另行保留实际测量数值、实现单位及提供的光度上下文；固定基条目既不提供该上下文，也不转换能量值。"

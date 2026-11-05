@@ -18061,3 +18061,52 @@ math:exponentDenominator
     gmeow:useWhen "Use to retain the exact integer divisor of a dimension exponent's rational power; denominator one expresses an integral power without a decimal encoding."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid zero, a decimal denominator, a guessed default or a sign-based rejection of all negative denominators. The denominator is not a duration, count, unit or reference-frame scale."@x-gmeow-english ;
     gmeow:howToUse "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."@x-gmeow-english .
+
+math:lengthDimension
+    skos:scopeNote "L denotes the physical dimension of length. Area and volume involve powers of this generator; the number of coordinates of a geometric space is a different notion. The dimension identity supplies no length magnitude or chosen unit."@x-gmeow-english ;
+    skos:example "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a quantity whose actual physical dimension is length, or as the base target of an existing derived-dimension exponent cell involving length."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this individual as a metre unit, a distance value, a geometric dimension count or the complete dimension of area or volume. A label containing length does not establish a quantity's dimension."@x-gmeow-english ;
+    gmeow:howToUse "Reference math:lengthDimension through hasDimension for an actual length quantity, or through exponentOfDimension on its existing power cell. Keep the supplied magnitude, unit and applicable measurement context separate; the base IRI performs no unit or frame conversion."@x-gmeow-english .
+
+math:massDimension
+    skos:scopeNote "M is the mass generator. A weight force has a derived dimension involving mass, length and time; it is not this base dimension alone. The mass dimension is independent of which mass unit the source actually supplies."@x-gmeow-english ;
+    skos:example "math:forceMassExponent math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the physical dimension of a mass quantity or the mass factor in a derived-dimension product, retaining its exact rational exponent separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting massDimension for forceDimension, treating kilogram as this individual, or inferring mass from a bare number or a source's informal weight wording. No gravitational conversion follows from the dimension edge."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:massDimension as the canonical base identity and connect the actual quantity or exponent cell through the existing dimension vocabulary. Preserve the source's mass magnitude and unit without calculating a force or inserting an acceleration."@x-gmeow-english .
+
+math:timeDimension
+    skos:scopeNote "T denotes physical time in dimension products. It is distinct from a dated instant, an epoch, a calendar convention or a clock reading. A time exponent says nothing about the source's elapsed-versus-calendar arithmetic."@x-gmeow-english ;
+    skos:example "math:forceTimeExponent math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual physical-time quantity or the exact time power in a derived dimension, such as inverse time squared in the existing force product."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this generator as a timestamp, timezone, scheduler window, unit second or duration literal. Do not turn a calendar month into fixed seconds or infer an ordering of events from a shared time dimension."@x-gmeow-english ;
+    gmeow:howToUse "Retain math:timeDimension through hasDimension or the actual exponentOfDimension cell. Leave reported temporal literals and their real clock, calendar and reference-frame interpretation with their existing owners; the SI basis identity performs no temporal calculation."@x-gmeow-english .
+
+math:electricCurrentDimension
+    skos:scopeNote "I is the electric-current dimension symbol; ampere is the unit realizing it. Charge involves current and time, so this generator alone does not represent the complete charge dimension or identify an amount of charge."@x-gmeow-english ;
+    skos:example "The existing math:electricCurrentDimension a math:BaseDimension declaration names the current generator. Its native dimension-vector symbol is I, while ampere names its realizing unit."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source quantity is physically an electric current, or when a derived-dimension exponent cell explicitly names current as one of its factors."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting this dimension merely because a record concerns electricity, counts charged particles or carries a voltage or power label. It is not an ampere value, a charge count or an electrical conversion rule."@x-gmeow-english ;
+    gmeow:howToUse "Reference the declared math:electricCurrentDimension IRI through the actual quantity's hasDimension or a cell's exponentOfDimension. Supply the source magnitude, unit and any other dimensional factors independently; the I symbol alone supplies none of them."@x-gmeow-english .
+
+math:temperatureDimension
+    skos:scopeNote "Thermodynamic temperature and a temperature difference share the physical dimension Θ. Their point-versus-difference meaning and numerical scale remain separate: a dimension edge does not apply an affine temperature offset or make an offset appropriate for a difference."@x-gmeow-english ;
+    skos:example "A source temperature difference can carry math:temperatureDimension while retaining its actual difference and scale interpretation. The shared Θ coordinate does not authorize adding an absolute-temperature offset to that difference."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the physical thermodynamic-temperature dimension of an actual quantity or its rational power in a derived product, without selecting a numerical temperature scale."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this individual as a kelvin unit, a temperature value, a Celsius offset or a rule that treats every temperature quantity as an interchangeable absolute reading. Equal dimensions do not settle point/difference or scale semantics."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:temperatureDimension as the base target and retain the source quantity's actual scale, reference frame and point-or-difference interpretation separately. Use existing exponent cells for derived powers; perform no offset or scale conversion from this IRI."@x-gmeow-english .
+
+math:amountOfSubstanceDimension
+    skos:scopeNote "N is the amount-of-substance dimension symbol, not the newton unit symbol. An amount of specified entities and a bare entity count are different quantity roles; the dimension identity alone supplies neither the entity kind nor a count-to-amount conversion."@x-gmeow-english ;
+    skos:example "math:amountOfSubstanceDimension uses N in the declared basis. The existing math:forceDimension instead uses its mass, length and time cells; the N dimension symbol does not name a newton force unit."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual amount-of-substance quantity or as that dimension's factor in an existing rational exponent product; retain the source's supplied entity interpretation separately from any bare count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting every count as amount of substance, using this IRI as the mole unit or the newton unit, or deriving a substance amount from an unlabeled numerical tally. Keep source entity meaning and actual units explicit."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual quantity to math:amountOfSubstanceDimension through hasDimension, or name it in the relevant exponentOfDimension cell. Retain the supplied amount, unit and entity interpretation; add no invented particle count, conversion factor or chemical assertion."@x-gmeow-english .
+
+math:luminousIntensityDimension
+    skos:scopeNote "This is the SI luminous-intensity basis dimension. The dimension vector alone does not determine the complete photometric quantity role, spectral weighting or solid-angle interpretation. A dimensionless angular factor can leave dimensions equal while the measured roles differ."@x-gmeow-english ;
+    skos:example "The native basis pairs math:luminousIntensityDimension with the dimension symbol J. That coordinate is not the joule unit used for energy and is not a supplied luminous-intensity magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source quantity with the actual physical role of luminous intensity, or the corresponding factor in a derived-dimension product. Keep the source's photometric meaning alongside its dimension."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating J as joule, equating this generator with radiometric power or image brightness, or using equal dimensions as proof that distinct photometric quantity roles are interchangeable. No spectral or geometric computation follows from the IRI."@x-gmeow-english ;
+    gmeow:howToUse "Reference math:luminousIntensityDimension through the existing hasDimension or exponentOfDimension role. Retain the actual measurement magnitude, realizing unit and supplied photometric context separately; the fixed basis entry neither supplies that context nor converts an energy value."@x-gmeow-english .
