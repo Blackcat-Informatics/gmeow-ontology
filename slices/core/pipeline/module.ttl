@@ -70,7 +70,7 @@ gmeow:PipelineStage
         [
             a logic:Restriction ;
             logic:onProperty gmeow:stageImpl ;
-            logic:someValuesFrom xsd:string ;
+            logic:someValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
         ] ;
     skos:definition "One node in a gmeow:Pipeline build graph: a logic:ActionSchema — a typed unit of work that consumes the products of the stages it gmeow:dataflowConsumes and produces one product, passed in memory to its consumers rather than re-parsed from disk. Its gmeow:stageImpl binds it to a Rust Stage implementation, and the scheduler reads its declarations rather than a kind enum: each gmeow:requiresResource it declares is a shared resource it must hold exclusively while running (the scheduler serializes stages that compete for the same resource), and each gmeow:hasCapability it holds names a role the executor acts on — gmeow:sinkCapability (the single serialization exit) or gmeow:sourceOrigin (the authored-source loader). Its typed dataflow rides reified gmeow:BuildDataFlow edges."@x-gmeow-english ;
     skos:example "gmeow:stage-reason a gmeow:PipelineStage ; gmeow:stageImpl \"reason\" ; gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
