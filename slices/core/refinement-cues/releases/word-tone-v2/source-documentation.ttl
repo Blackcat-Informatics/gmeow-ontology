@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53>
+    a gmeow:InformationObject ;
+    rdfs:label "Pinned original cue source module"@en ;
+    gmeow:versionOf <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl> ;
+    gmeow:versionLabel "f89ada3d6b34d792b8b386013642f77d99a7ed53" ;
+    gmeow:contentDigest "51ddd28721cfba6494102778001b13d0abb07d53a3f4c9d213fbb1872e1e2078"^^gmeow:sha256Digest ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    gmeow:description "Exact source module snapshot. Checkout: /home/paudley/Active/lillith_memetics; repository-relative path: slices/extensions/lillith-observations/module.ttl; Git revision: f89ada3d6b34d792b8b386013642f77d99a7ed53; cue declaration lines: 894-973. Observed SPDX notice: # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n# SPDX-License-Identifier: CC-BY-4.0. This is source evidence; it supplies no new release accountability or signoff."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:worried:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:worried> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:worried. Definition: A declared word cue for a troubled reading, using worried, worrying, anxious. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:afraid:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:afraid> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:afraid. Definition: A declared word cue for a troubled reading, using afraid, scared. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:troubled:2:cue:upset:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:troubled:2:cue:upset> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:troubled:2:cue:upset. Definition: A declared word cue for a troubled reading, using upset, distressed. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:troubled:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:tired:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:weary:2:cue:tired> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:weary:2:cue:tired. Definition: A declared word cue for a weary reading, using tired, exhausted. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:weary:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .
+
+<urn:gmeow:word-tone-cues:weary:2:cue:wornOut:documentation>
+    a gmeow:InformationObject ;
+    rdfs:label "Cue adaptation documentation"@en ;
+    rdfs:seeAlso <urn:gmeow:word-tone-cues:weary:2:cue:wornOut> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "Documentation for cue urn:gmeow:word-tone-cues:weary:2:cue:wornOut. Definition: A declared word cue for a weary reading, using worn out, long day. It supplies evidence about attributed words and does not assert the speaker's state. Original owning source: https://blackcatinformatics.ca/gmeow/slices/lillith-observations. Defining release: urn:gmeow:word-tone-cues:weary:2. Original declaration graph role: https://blackcatinformatics.ca/gmeow/boxABox. These are explanatory source metadata, not additional direct Cue predicates."@en .

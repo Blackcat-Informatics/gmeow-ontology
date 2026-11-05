@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+gmeow:cueLexiconToneTroubled
+    a gmeow:CueLexicon ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "tone: troubled"@x-gmeow-english ;
+    skos:definition "The cues by which memetics' refiner reads words said to a mind as troubled: whole words, ignoring case. Words phrased otherwise are not read so, and every tone reading made with this lexicon says it rests on word match (docs/design/cues.md)."@x-gmeow-english ;
+    gmeow:hasCue gmeow:cueToneWorried , gmeow:cueToneAfraid , gmeow:cueToneUpset ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueToneWorried
+    a gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "worried"@en ;
+    gmeow:description "Evidence that the speaker is troubled: the words say the speaker is worried or anxious. The refiner reads a counted match as troubled words, a reading and never how the speaker is."@en ;
+    gmeow:detectionGuidance "Find \"worried\", \"worrying\" or \"anxious\" where the speaker says it of themself now (\"I'm worried about the roof\", \"feeling anxious tonight\"). It is not the cue when it is said of someone else, denied (\"not worried at all\"), in the past and over (\"I was worried, but it's fine now\"), or reported or quoted speech. Report as missed any words of the speaker's present worry using these words that were not reported."@en ;
+    gmeow:cuePhrase "worried"@en , "worrying"@en , "anxious"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:contentLanguageCode "en"^^xsd:token ;
+    gmeow:cueExample "I'm worried about the roof leaking again tonight."@en ;
+    gmeow:cueCounterExample "The roof held up fine in the storm."@en ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueToneAfraid
+    a gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "afraid"@en ;
+    gmeow:description "Evidence that the speaker is troubled: the words say the speaker is afraid or scared. Read as troubled words."@en ;
+    gmeow:detectionGuidance "Find \"afraid\" or \"scared\" where the speaker says it of themself now (\"I'm scared of what the doctor will say\"). It is not the cue in the polite idiom of regret (\"I'm afraid we're out of milk\"), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present fear using these words that were not reported."@en ;
+    gmeow:cuePhrase "afraid"@en , "scared"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:contentLanguageCode "en"^^xsd:token ;
+    gmeow:cueExample "I'm scared of what the doctor will say tomorrow."@en ;
+    gmeow:cueCounterExample "The doctor said everything looks good."@en ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueToneUpset
+    a gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "upset"@en ;
+    gmeow:description "Evidence that the speaker is troubled: the words say the speaker is upset or distressed. Read as troubled words."@en ;
+    gmeow:detectionGuidance "Find \"upset\" or \"distressed\" where the speaker says it of themself now (\"I'm so upset about the letter\"). It is not the cue as an upset stomach or an upset in a game, when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present distress using these words that were not reported."@en ;
+    gmeow:cuePhrase "upset"@en , "distressed"@en ;
+    gmeow:cueEvidenceFor gmeow:toneTroubled ;
+    gmeow:contentLanguageCode "en"^^xsd:token ;
+    gmeow:cueExample "I'm so upset about the letter from the council."@en ;
+    gmeow:cueCounterExample "The letter from the council came this morning."@en ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueLexiconToneWeary
+    a gmeow:CueLexicon ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "tone: weary"@x-gmeow-english ;
+    skos:definition "The cues by which memetics' refiner reads words said to a mind as weary: whole words, ignoring case. Words phrased otherwise are not read so, and every tone reading made with this lexicon says it rests on word match (docs/design/cues.md)."@x-gmeow-english ;
+    gmeow:hasCue gmeow:cueToneTired , gmeow:cueToneWornOut ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueToneTired
+    a gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "tired"@en ;
+    gmeow:description "Evidence that the speaker is weary: the words say the speaker is tired or exhausted. The refiner reads a counted match as weary words, a reading and never how the speaker is."@en ;
+    gmeow:detectionGuidance "Find \"tired\" or \"exhausted\" where the speaker says it of themself now (\"so tired tonight\", \"I'm exhausted\"). It is not the cue as tired of something (\"tired of the rain\" is not weariness), when said of someone else, denied, or in reported speech. Report as missed any words of the speaker's present weariness using these words that were not reported."@en ;
+    gmeow:cuePhrase "tired"@en , "exhausted"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:contentLanguageCode "en"^^xsd:token ;
+    gmeow:cueExample "I'm exhausted after the drive back from the coast."@en ;
+    gmeow:cueCounterExample "The drive back from the coast was lovely."@en ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cueToneWornOut
+    a gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lillith-observations> ;
+    rdfs:label "worn out"@en ;
+    gmeow:description "Evidence that the speaker is weary: the words say the speaker is worn out or had a long day. Read as weary words."@en ;
+    gmeow:detectionGuidance "Find \"worn out\" or \"long day\" where the speaker says it of themself now (\"I'm worn out\", \"it's been a long day\"). It is not the cue when said of a thing (\"the rug is worn out\"), of someone else, or in reported speech. Report as missed any words of the speaker's present weariness using these phrases that were not reported."@en ;
+    gmeow:cuePhrase "worn out"@en , "long day"@en ;
+    gmeow:cueEvidenceFor gmeow:toneWeary ;
+    gmeow:contentLanguageCode "en"^^xsd:token ;
+    gmeow:cueExample "It's been a long day at the workshop."@en ;
+    gmeow:cueCounterExample "The workshop opens early on Saturdays."@en ;
+    gmeow:graphBoxRole gmeow:boxABox .

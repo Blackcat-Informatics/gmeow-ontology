@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:gmeow:word-tone-cues:troubled> a gmeow:InformationObject ;
+    rdfs:label "troubled word-tone cue lineage"@en .
+
+<urn:gmeow:word-tone-cues:troubled:2>
+    a gmeow:CueLexicon ;
+    rdfs:label "troubled word-tone cue release"@en ;
+    gmeow:versionOf <urn:gmeow:word-tone-cues:troubled> ;
+    gmeow:versionLabel "2" ;
+    gmeow:contentDigest "e33516e14a746f3802aff5225a4756226afc4d1b36772d5ac12c6308bd427770"^^gmeow:sha256Digest ;
+    gmeow:hasCue <urn:gmeow:word-tone-cues:troubled:2:cue:worried>, <urn:gmeow:word-tone-cues:troubled:2:cue:afraid>, <urn:gmeow:word-tone-cues:troubled:2:cue:upset> ;
+    gmeow:writtenInLanguage <https://blackcatinformatics.ca/lang/english> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "English word-evidence declarations for a troubled reading. Phrase matches do not execute the judge guidance or assert a person state."@en ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:cueReview <urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> .
+
+<urn:gmeow:word-tone-cues:weary> a gmeow:InformationObject ;
+    rdfs:label "weary word-tone cue lineage"@en .
+
+<urn:gmeow:word-tone-cues:weary:2>
+    a gmeow:CueLexicon ;
+    rdfs:label "weary word-tone cue release"@en ;
+    gmeow:versionOf <urn:gmeow:word-tone-cues:weary> ;
+    gmeow:versionLabel "2" ;
+    gmeow:contentDigest "d9bdfd0ead31a0c07534d86663d203d60e3031d9b14408ed559bbb956b414ccd"^^gmeow:sha256Digest ;
+    gmeow:hasCue <urn:gmeow:word-tone-cues:weary:2:cue:tired>, <urn:gmeow:word-tone-cues:weary:2:cue:wornOut> ;
+    gmeow:writtenInLanguage <https://blackcatinformatics.ca/lang/english> ;
+    gmeow:wasDerivedFrom <file:///home/paudley/Active/lillith_memetics/slices/extensions/lillith-observations/module.ttl?git-revision=f89ada3d6b34d792b8b386013642f77d99a7ed53> ;
+    gmeow:description "English word-evidence declarations for a weary reading. Phrase matches do not execute the judge guidance or assert a person state."@en ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:cueReview <urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> .
+
+<https://blackcatinformatics.ca/gmeow/self#patrick-audley> a gmeow:Person, gmeow:Agent ;
+    rdfs:label "Patrick Audley"@en .
+
+<urn:gmeow:word-tone-cues:event-type:review-approval> a gmeow:EventType ;
+    rdfs:label "Cue release review approval"@en ;
+    skos:definition "Approval of an exact cue inventory for release by its accountable reviewer and curator."@en .
+
+<urn:gmeow:word-tone-cues:review-approval:2026-11-05T17:59:52Z> a gmeow:Activity ;
+    rdfs:label "Patrick Audley approval of the troubled and weary cue inventories, version 2"@en ;
+    gmeow:wasAssociatedWith <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
+    gmeow:eventType <urn:gmeow:word-tone-cues:event-type:review-approval> ;
+    gmeow:eventTime "2026-11-05T17:59:52Z"^^xsd:dateTime ;
+    gmeow:description "Patrick Audley approved review and publication of both exact version 2 cue payloads and designated himself reviewer and curator. Approval was observed at the recorded instant; this activity does not assert that external data validation or publication has occurred."@en .
