@@ -662,3 +662,523 @@ msgstr "Conserver le littéral source et son profil déclaré. Pour les métadon
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#example"
 msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
 msgstr "Les médias opaques d’arguments et de résultat sont décrits sur des occurrences de charge distinctes liées à leur rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive definition"
+msgstr "définition de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information specification of a behavioral drive, with an actual history-accumulation program, relieving activity descriptions, a circadian expression, a mode-selection program and declared result dimensions."
+msgstr "Une spécification informationnelle d’une pulsion comportementale, avec un programme réel d’accumulation depuis l’historique, des descriptions d’activités de soulagement, une expression circadienne, un programme de sélection du mode et les dimensions déclarées des résultats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The specification does not assert a physiological state, an evaluated level or a performed call."
+msgstr "La spécification n’affirme ni état physiologique, ni niveau évalué, ni appel effectué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied sleep-pressure definition retains its own actual accumulation and mode clauses."
+msgstr "Une définition fournie de la pression de sommeil conserve ses propres clauses réelles d’accumulation et de mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to publish all four components of an actual drive specification together."
+msgstr "À utiliser pour publier ensemble les quatre composantes d’une spécification réelle de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a default scale, initial zero, thresholds or executable consumer from the name."
+msgstr "Ne déduisez du nom ni échelle par défaut, ni zéro initial, ni seuils, ni consommateur exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual component resources and dimensions; retain their source and context."
+msgstr "Fournissez les ressources réelles des composantes et les dimensions ; conservez leur source et leur contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive stage"
+msgstr "stade de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open named quality value used as a stage input or result for a behavioral drive. Actual stageOfDrive memberships identify the definitions in which it is admitted."
+msgstr "Une valeur qualitative nommée et ouverte utilisée comme stade d’entrée ou de résultat d’une pulsion comportementale. Les appartenances réelles stageOfDrive identifient les définitions qui l’admettent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple legitimate definition memberships coexist; each selected invocation requires its exact positive membership."
+msgstr "Plusieurs appartenances légitimes à des définitions coexistent ; chaque invocation sélectionnée exige son appartenance positive exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A named stage may be admitted by two actual drive definitions without equating those definitions."
+msgstr "Un stade nommé peut être admis par deux définitions réelles sans assimiler ces définitions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly named stage in an actual drive rule."
+msgstr "À utiliser pour un stade explicitement nommé dans une règle réelle de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer severity, order or numeric boundaries from a stage label."
+msgstr "Ne déduisez d’une étiquette de stade ni gravité, ni ordre, ni bornes numériques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the stage identity and assert each actual stageOfDrive membership."
+msgstr "Conservez l’identité du stade et affirmez chaque appartenance réelle stageOfDrive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call mode"
+msgstr "mode d’appel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open named quality value returned by an activity call-mode selection program."
+msgstr "Une valeur qualitative nommée et ouverte renvoyée par un programme de sélection du mode d’appel d’une activité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A named result does not assert a performed call, transition or globally current mode."
+msgstr "Un résultat nommé n’affirme ni appel effectué, ni transition, ni mode courant global."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source rule returns its actual named brief-response mode for one admitted input tuple."
+msgstr "Une règle source renvoie son mode nommé réel de réponse brève pour un tuple d’entrée admis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual named output of a declared mode mapping."
+msgstr "À utiliser pour la sortie nommée réelle d’une correspondance de modes déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute ontological logic:Mode, interruptibility or task status."
+msgstr "Ne remplacez pas cette valeur par logic:Mode ontologique, l’interruptibilité ou l’état d’une tâche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied mode identity and the program that derives it."
+msgstr "Conservez l’identité fournie du mode et le programme qui le dérive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage of drive"
+msgstr "stade de la pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a DriveStage to an actual DriveDefinition admitting it. The relation is nonfunctional; a selected invocation requires the membership in its exact selected definition."
+msgstr "Relie un DriveStage à une DriveDefinition réelle qui l’admet. La relation n’est pas fonctionnelle ; une invocation sélectionnée exige l’appartenance à sa définition sélectionnée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other actual memberships remain valid and are not universally equated."
+msgstr "Les autres appartenances réelles restent valides et ne sont pas universellement assimilées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#example"
+msgid "One stage has an explicit membership in each of two source definitions."
+msgstr "Un stade possède une appartenance explicite à chacune de deux définitions sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state an actual stage-definition membership."
+msgstr "À utiliser pour énoncer une appartenance réelle entre stade et définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer membership from matching labels or globally cap the stage to one definition."
+msgstr "Ne déduisez pas l’appartenance d’étiquettes identiques et ne limitez pas globalement le stade à une définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual stage and definition; check this exact positive link when selecting inputs."
+msgstr "Reliez le stade et la définition réels ; vérifiez ce lien positif exact lors de la sélection des entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive accumulation program"
+msgstr "programme d’accumulation de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual ReasoningProgram for deriving a level and stage from the supplied history, evaluation instant and circadian quantity."
+msgstr "Relie une DriveDefinition à son unique ReasoningProgram réel pour dériver un niveau et un stade depuis l’historique fourni, l’instant d’évaluation et la quantité circadienne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual clauses specify history, relief and circadian combination; the link supplies no execution or arithmetic default."
+msgstr "Les clauses réelles spécifient la combinaison de l’historique, du soulagement et du terme circadien ; le lien ne fournit ni exécution ni valeur arithmétique par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linked program queries driveAccumulationResult with two distinct output variables."
+msgstr "Le programme lié interroge driveAccumulationResult avec deux variables de sortie distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual formal accumulation body of a complete drive definition."
+msgstr "À utiliser pour le corps formel réel d’accumulation d’une définition complète de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach a rule name, integrity constraint or empty program as a substitute."
+msgstr "N’utilisez pas un nom de règle, une contrainte d’intégrité ou un programme vide comme substitut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual clauses, query and evaluation mode; preserve all selected inputs."
+msgstr "Fournissez les clauses, la requête et le mode d’évaluation réels ; conservez toutes les entrées sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relieving activity description"
+msgstr "description d’activité de soulagement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a DriveDefinition to an actual EventDescription of an activity declared to relieve that drive."
+msgstr "Relie une DriveDefinition à une EventDescription réelle d’une activité déclarée soulager cette pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is not a historical Event. Relief amount, timing and matching are supplied by the actual accumulation clauses."
+msgstr "La description n’est pas un Event historique. La quantité, le moment et la correspondance du soulagement sont fournis par les clauses réelles d’accumulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual rest-activity description is declared to relieve one supplied drive."
+msgstr "Une description réelle d’activité de repos est déclarée soulager une pulsion fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each actual relieving activity specification."
+msgstr "À utiliser pour chaque spécification réelle d’activité de soulagement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not assert that the activity occurred or infer reset, subtraction or permission."
+msgstr "N’affirmez pas que l’activité a eu lieu et ne déduisez ni remise à zéro, ni soustraction, ni autorisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual EventDescription and retain the rule’s explicit relief semantics."
+msgstr "Reliez l’EventDescription réelle et conservez la sémantique explicite de soulagement de la règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian expression"
+msgstr "expression circadienne de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual concrete mathematical expression AST for its circadian term."
+msgstr "Relie une DriveDefinition à son unique AST réel d’expression mathématique concrète pour son terme circadien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual symbols, bindings, operators and quantities remain required; no period, phase or amplitude is inferred."
+msgstr "Les symboles, liaisons, opérateurs et quantités réels restent requis ; aucune période, phase ou amplitude n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied expression retains its actual time input and explicitly authored parameters."
+msgstr "Une expression fournie conserve son entrée temporelle réelle et ses paramètres explicitement rédigés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the structured circadian expression of a complete drive specification."
+msgstr "À utiliser pour l’expression circadienne structurée d’une spécification complète de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a formula string or infer a daily cosine or supported evaluator."
+msgstr "Ne substituez pas une formule textuelle et ne déduisez ni cosinus quotidien ni évaluateur pris en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual AST and bind each selected external symbol to its actual Quantity."
+msgstr "Fournissez l’AST réel et liez chaque symbole externe sélectionné à sa Quantity réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive mode program"
+msgstr "programme de mode de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual ReasoningProgram mapping definition, activity description, drive stage and supplied draw to a named CallMode."
+msgstr "Relie une DriveDefinition à son unique ReasoningProgram réel associant définition, description d’activité, stade de pulsion et tirage fourni à un CallMode nommé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same actual program declares the drive’s call-mode effect and selection. A constant-output branch remains valid."
+msgstr "Le même programme réel déclare l’effet de la pulsion sur le mode d’appel et sa sélection. Une branche à sortie constante reste valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#example"
+msgid "The actual query uses activityCallModeResult and retains the supplied draw unchanged."
+msgstr "La requête réelle utilise activityCallModeResult et conserve le tirage fourni sans modification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual data-authored activity, stage and draw mapping."
+msgstr "À utiliser pour une correspondance réelle d’activité, de stade et de tirage rédigée comme données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not drop an input, choose a first row, invent a default mode or imply PRNG execution."
+msgstr "Ne supprimez pas une entrée, ne choisissez pas une première ligne, n’inventez pas de mode par défaut et n’impliquez pas l’exécution d’un générateur pseudoaléatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Publish actual clauses and query; require one named result for each completed selected invocation."
+msgstr "Publiez les clauses et la requête réelles ; exigez un résultat nommé pour chaque invocation sélectionnée achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive level dimension"
+msgstr "dimension du niveau de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to the one actual mathematical Dimension required of its level result Quantity."
+msgstr "Relie une DriveDefinition à l’unique Dimension mathématique réelle exigée pour la Quantity de son résultat de niveau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declaring a dimension supplies neither a magnitude, unit, scale nor evaluated result."
+msgstr "Déclarer une dimension ne fournit ni grandeur, ni unité, ni échelle, ni résultat évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual level Quantity retains the dimension explicitly selected by its definition."
+msgstr "Une Quantity réelle de niveau conserve la dimension explicitement sélectionnée par sa définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the actual dimensional contract of a drive level."
+msgstr "À utiliser pour déclarer le contrat dimensionnel réel d’un niveau de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer dimensionless pressure or convert an original duration into a numeric level."
+msgstr "Ne déduisez pas une pression sans dimension et ne convertissez pas une durée originale en niveau numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied Math Dimension and check the actual returned Quantity against it."
+msgstr "Reliez la Dimension Math fournie et vérifiez la Quantity réellement renvoyée par rapport à elle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian dimension"
+msgstr "dimension circadienne de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to the one actual mathematical Dimension required of its circadian result Quantity."
+msgstr "Relie une DriveDefinition à l’unique Dimension mathématique réelle exigée pour la Quantity de son résultat circadien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This dimension need not equal the level dimension; their combination requires actual formal clauses."
+msgstr "Cette dimension ne doit pas nécessairement égaler celle du niveau ; leur combinaison exige des clauses formelles réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied circadian Quantity carries its definition’s actual declared dimension."
+msgstr "Une Quantity circadienne fournie porte la dimension réelle déclarée par sa définition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the actual output dimension of the selected circadian expression."
+msgstr "À utiliser pour énoncer la dimension réelle de sortie de l’expression circadienne sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a dimensionless default or direct addition to the accumulated level."
+msgstr "Ne déduisez ni valeur sans dimension par défaut ni addition directe au niveau accumulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Dimension and require its positive link on a selected result Quantity."
+msgstr "Conservez la Dimension réelle et exigez son lien positif sur une Quantity de résultat sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive history clause"
+msgstr "clause d’historique de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual InformationObject history-source record to a selected Formula fact used as drive-history input."
+msgstr "Relie un enregistrement source réel d’historique de type InformationObject à un fait Formula sélectionné comme entrée d’historique de pulsion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional. Actual source identities and supplied order or multiplicity facts are retained without asserting completeness."
+msgstr "La relation n’est pas fonctionnelle. Les identités sources réelles et les faits fournis d’ordre ou de multiplicité sont conservés sans affirmer la complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unordered history source selects its actual event facts without synthesizing a sequence."
+msgstr "Une source d’historique non ordonnée sélectionne ses faits réels d’événements sans synthétiser de séquence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify actual selected history facts for an accumulation invocation."
+msgstr "À utiliser pour identifier les faits réels d’historique sélectionnés pour une invocation d’accumulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent events, total order, duplicate occurrences, a snapshot or complete-history claims."
+msgstr "N’inventez ni événements, ni ordre total, ni occurrences dupliquées, ni instantané, ni affirmation d’historique complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link actual atomic Formula trees; preserve source records and only their supplied ordering and repetition."
+msgstr "Reliez les arbres Formula atomiques réels ; conservez les enregistrements sources et uniquement leur ordre et leurs répétitions fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian input relation"
+msgstr "relation d’entrée circadienne de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified four-place relation (definition, evaluation instant, mathematical symbol, quantity) binding an actual selected expression symbol to its supplied Quantity."
+msgstr "La relation réifiée à quatre places (définition, instant d’évaluation, symbole mathématique, quantité) liant un symbole réel de l’expression sélectionnée à sa Quantity fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bindings are scoped by the actual definition and evaluation instant. The relation is a Formula symbol, not a binary RDF property or input-injection API."
+msgstr "Les liaisons sont délimitées par la définition réelle et l’instant d’évaluation. La relation est un symbole Formula, pas une propriété RDF binaire ni une API d’injection d’entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "One actual symbol is bound to its supplied time Quantity at the actual evaluation instant."
+msgstr "Un symbole réel est lié à sa Quantity temporelle fournie à l’instant réel d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logic:relation on an actual four-argument Formula atom."
+msgstr "À utiliser comme logic:relation sur un atome Formula réel à quatre arguments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a clock coordinate, unit, phase or default binding from the symbol’s name."
+msgstr "Ne déduisez du nom du symbole ni coordonnée d’horloge, ni unité, ni phase, ni liaison par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply four indexed TermCarriers and preserve the actual symbol identity and Quantity."
+msgstr "Fournissez quatre TermCarriers indexés et conservez l’identité réelle du symbole et la Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian result relation"
+msgstr "relation de résultat circadien de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified three-place relation (definition, evaluation instant, circadian quantity) identifying the actual selected expression result."
+msgstr "La relation réifiée à trois places (définition, instant d’évaluation, quantité circadienne) identifiant le résultat réel de l’expression sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An asserted result atom alone does not prove expression evaluation or dimensional correctness."
+msgstr "Un atome de résultat affirmé ne prouve pas à lui seul l’évaluation de l’expression ou la correction dimensionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "An evaluated circadian Quantity is associated with the same definition and supplied instant."
+msgstr "Une Quantity circadienne évaluée est associée à la même définition et à l’instant fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logic:relation on the actual three-argument result atom."
+msgstr "À utiliser comme logic:relation sur l’atome réel de résultat à trois arguments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not certify an arbitrary supplied quantity as an evaluated result."
+msgstr "Ne certifiez pas une quantité fournie arbitrairement comme résultat évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact definition, instant, Quantity and actual evaluation evidence."
+msgstr "Conservez la définition, l’instant et la Quantity exacts ainsi que les preuves réelles d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive accumulation result relation"
+msgstr "relation de résultat d’accumulation de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified six-place relation (definition, history, evaluation instant, circadian quantity, level quantity, stage) fixing accumulation inputs and its two output roles."
+msgstr "La relation réifiée à six places (définition, historique, instant d’évaluation, quantité circadienne, quantité de niveau, stade) fixant les entrées d’accumulation et ses deux rôles de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The first four positions are inputs; the last two are distinct query variables. Actual execution must return one admitted level-stage pair."
+msgstr "Les quatre premières positions sont des entrées ; les deux dernières sont des variables de requête distinctes. L’exécution réelle doit renvoyer une paire niveau-stade admise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual accumulation query binds its level and stage through the authored clauses."
+msgstr "Une requête réelle d’accumulation lie son niveau et son stade par les clauses rédigées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the actual accumulation program’s query relation."
+msgstr "À utiliser comme relation de requête du programme réel d’accumulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer arithmetic, stage thresholds, source completeness or completed evaluation from the signature."
+msgstr "Ne déduisez de la signature ni arithmétique, ni seuils de stade, ni complétude des sources, ni évaluation achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply six indexed arguments and actual clauses; check result dimensions and the selected stage membership."
+msgstr "Fournissez six arguments indexés et des clauses réelles ; vérifiez les dimensions des résultats et l’appartenance du stade sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activity call-mode result relation"
+msgstr "relation de résultat du mode d’appel d’activité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified five-place relation (definition, activity description, stage, draw, mode) fixing the four inputs and named CallMode output of mode selection."
+msgstr "La relation réifiée à cinq places (définition, description d’activité, stade, tirage, mode) fixant les quatre entrées et la sortie CallMode nommée de la sélection du mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The draw retains its original supported RDF term. Constant-mode branches are valid; input preservation remains mandatory."
+msgstr "Le tirage conserve son terme RDF original pris en charge. Les branches à mode constant sont valides ; la conservation des entrées reste obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "A completed admitted input tuple derives exactly one named mode from actual clauses."
+msgstr "Un tuple d’entrée admis dont l’évaluation est achevée dérive exactement un mode nommé depuis les clauses réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the actual mode program’s query relation."
+msgstr "À utiliser comme relation de requête du programme réel de mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer randomness, draw generation, output variation or a performed activity."
+msgstr "Ne déduisez ni hasard, ni génération du tirage, ni variation des sorties, ni activité effectuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply five indexed arguments, bind the exact selected inputs and return the actual named mode."
+msgstr "Fournissez cinq arguments indexés, liez les entrées sélectionnées exactes et renvoyez le mode nommé réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive program query constraint"
+msgstr "contrainte de requête des programmes de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."
+msgstr "Exige que chaque requête de programme de pulsion liée utilise sa relation exacte de résultat, les positions requises des arguments, les rôles admis des porteurs d’entrée et des noms distincts de variables de sortie ; l’entrée de définition est une variable de modèle ou l’IRI exacte de la définition sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks actual Formula and TermCarrier metadata; it supplies no caller-input injection executor."
+msgstr "La loi vérifie les métadonnées réelles Formula et TermCarrier ; elle ne fournit pas d’exécuteur d’injection des entrées de l’appelant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mode query missing its draw argument violates the required-position law."
+msgstr "Une requête de mode dépourvue de son argument de tirage viole la loi des positions requises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject malformed selected drive query declarations."
+msgstr "À utiliser pour refuser les déclarations mal formées de requêtes de pulsion sélectionnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a signature label as arity validation or a valid declaration as completed execution."
+msgstr "Ne traitez pas une étiquette de signature comme validation de l’arité ni une déclaration valide comme exécution achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate actual query relations and indexed carriers under the selected DriveDefinition."
+msgstr "Validez les relations réelles de requête et les porteurs indexés sous la DriveDefinition sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."
+msgstr "Exige que chaque requête de programme de pulsion liée utilise sa relation exacte de résultat, les positions requises des arguments, les rôles admis des porteurs d’entrée et des noms distincts de variables de sortie ; l’entrée de définition est une variable de modèle ou l’IRI exacte de la définition sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive ground-input constraint"
+msgstr "contrainte des entrées closes de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."
+msgstr "Exige que les entrées ressources closes réelles des requêtes de pulsion aient leurs types sources déclarés, la dimension sélectionnée de la quantité circadienne et l’appartenance positive exacte du stade à la définition sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Template variables remain unbound source variables; the selected consumer must check their actual later bindings."
+msgstr "Les variables de modèle restent des variables sources non liées ; le consommateur sélectionné doit vérifier leurs liaisons réelles ultérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ground stage input lacking membership in the selected definition is rejected."
+msgstr "Une entrée close de stade sans appartenance à la définition sélectionnée est refusée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check actual supplied ground resources without inventing missing source facts."
+msgstr "À utiliser pour vérifier les ressources closes réellement fournies sans inventer les faits sources manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not cap other stage memberships or infer a time coordinate, dimension or activity occurrence."
+msgstr "Ne limitez pas les autres appartenances du stade et ne déduisez ni coordonnée temporelle, ni dimension, ni occurrence d’activité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind actual stored query carriers and require each exact positive source association."
+msgstr "Liez les porteurs réels stockés de la requête et exigez chaque association source positive exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."
+msgstr "Exige que les entrées ressources closes réelles des requêtes de pulsion aient leurs types sources déclarés, la dimension sélectionnée de la quantité circadienne et l’appartenance positive exacte du stade à la définition sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive history clause constraint"
+msgstr "contrainte des clauses d’historique de pulsion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."
+msgstr "Exige que chaque clause sélectionnée d’historique de pulsion soit un fait Formula réel avec une relation et sans constructeur de quantification ou de connecteur fourni à sa racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complete Formula and carrier admission remains with Logic; selecting a fact does not assert complete history or execute it."
+msgstr "L’admission complète des Formula et des porteurs reste du ressort de Logic ; sélectionner un fait n’affirme pas un historique complet et ne l’exécute pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected history root carrying an implication constructor violates this fact-only contract."
+msgstr "Une racine d’historique sélectionnée portant un constructeur d’implication viole ce contrat limité aux faits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish supplied history facts from derivation rules."
+msgstr "À utiliser pour distinguer les faits d’historique fournis des règles de dérivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not linearize partial order, count duplicate triples as occurrences or fabricate a source event."
+msgstr "Ne linéarisez pas un ordre partiel, ne comptez pas les triplets dupliqués comme occurrences et ne fabriquez pas d’événement source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the actual selected Formula root and preserve its source context and record identity."
+msgstr "Examinez la racine Formula réellement sélectionnée et conservez son contexte source et l’identité de l’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."
+msgstr "Exige que chaque clause sélectionnée d’historique de pulsion soit un fait Formula réel avec une relation et sans constructeur de quantification ou de connecteur fourni à sa racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agentic|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Agentic tool-call provenance — the ModelInvocation idiom one level down.\n\nDOCTRINE.\n  * THE MODELINVOCATION IDIOM, EXACTLY: ToolCall is a gufo:EventType under gmeow:Activity with one functional agent link (usedTool, mirroring usedModel) and verbatim call parameters as datatype properties (mirroring the sampling trio). 'Which tool, called by which invocation, with what arguments, at what time?' is answerable after the fact.\n  * NO FORWARD OUTPUT ENTITY PROPERTY (Principle 5): an entity the call produced — a stored claim, a written file, a minted node — links BACK via gmeow:wasGeneratedBy, exactly as claims link back to their ModelInvocation. gmeow:toolResult records the verbatim PAYLOAD of the event itself, never an entity link.\n  * PAYLOAD REPRESENTATIONS: toolArguments/toolResult retain opaque literals or locators defined by an explicit recording profile. A prefixed locator string is not the generic contentDigest contract. toolArgumentsStructured/toolResultStructured instead link role-bound StructuredValue occurrences; opaque media metadata belongs on the individual payload occurrence. Coexisting representations do not imply equivalence or conversion.\n  * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, register/persona design). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.\n  * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.\n  * THIN MEANS THIN (Principle 15): the named consumer is the agentic runtime's tool-call mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Growth requires a concrete consumer; structured payload companions serve callers that admit native RDF instead of opaque JSON objects. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the aggregate remains in the grounding kernel (worked example: examples/trajectory-audit.ttl).\n  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (the Workflow Run Crate worked example and the OpenLineage precedent), recorded in the mapping trailer."
+msgstr "Provenance des appels d’outils agentiques — l’idiome ModelInvocation un niveau plus bas.\n\nDOCTRINE.\n  * L’IDIOME MODELINVOCATION, EXACTEMENT : ToolCall est un gufo:EventType sous gmeow:Activity, avec un lien fonctionnel vers l’agent (usedTool, en miroir de usedModel) et les paramètres d’appel verbatim comme propriétés de données (en miroir du trio d’échantillonnage). « Quel outil, appelé par quelle invocation de modèle, avec quels arguments, à quel moment ? » trouve une réponse après les faits.\n  * AUCUNE PROPRIÉTÉ D’ENTITÉ DE SORTIE VERS L’AVANT (Principe 5) : une entité produite par l’appel — une assertion stockée, un fichier écrit, un nœud créé — renvoie EN ARRIÈRE par gmeow:wasGeneratedBy, exactement comme les assertions renvoient à leur ModelInvocation. gmeow:toolResult enregistre la CHARGE verbatim de l’événement lui-même, jamais un lien vers une entité.\n  * REPRÉSENTATIONS DES CHARGES : toolArguments/toolResult conservent des littéraux opaques ou des localisateurs définis par un profil explicite d’enregistrement. Une chaîne de localisation préfixée n’est pas le contrat générique contentDigest. toolArgumentsStructured/toolResultStructured relient plutôt des occurrences StructuredValue liées à leur rôle ; les métadonnées des médias opaques appartiennent à chaque occurrence de charge. Des représentations coexistantes n’impliquent ni équivalence ni conversion.\n  * LES OUTILS SONT DES AGENTS LOGICIELS — aucune sous-classe Tool, délibérément : le statut d’outil est le rôle joué par l’agent dans cet événement d’appel, pas une identité (les rôles classent sans jamais réifier — la leçon Persona, conception register/persona). Un outil MCP, un service de recherche et un exécuteur de code sont des SoftwareAgents qui sont appelés.\n  * calledByInvocation EST OPTIONNEL : un harnais d’enregistrement peut ne pas exposer l’invocation de modèle demandeuse ; un ToolCall sans elle reste une provenance auditable. Le résultat alimente une invocation ULTÉRIEURE — cet ordre est temporel (atTime), pas un lien TBox.\n  * MINIMAL SIGNIFIE MINIMAL (Principe 15) : le consommateur nommé est le mode d’appel d’outils de l’environnement d’exécution agentique ; la triade MCP de mémoire gmeow est le premier producteur actif (ses appels store/revise s’enregistrent eux-mêmes). Toute extension exige un consommateur concret ; les compagnons de charge structurée servent les appelants qui admettent du RDF natif plutôt que des objets JSON opaques. L’audit T6 des trajectoires en lecture seule est le consommateur de vérification qui exerce enfin une SÉQUENCE enregistrée de ToolCall — mais il ne crée AUCUN terme d’agrégat ici : une séquence enregistrée est auditée en traitant chaque appel comme une instance de logic:ActionSchema (logic:instantiatesSchema) ancrée dans la méréologie logic: existante, exécutée par le moteur Transaction-Logic. La structure de l’agrégat réside dans le cœur logic:, pas dans un nouveau vocabulaire agentique ; l’agrégat reste dans le noyau d’ancrage (exemple détaillé : examples/trajectory-audit.ttl).\n  * ALIGNEMENTS : ToolCall est une prov:Activity par héritage (l’ensemble de provenance). Les appels de fonctions OpenAI, tool_use d’Anthropic et les schémas d’outils MCP sont des spécifications JSON sans espace de noms RDF stable — leur mise en correspondance relève de la projection (l’exemple détaillé Workflow Run Crate et le précédent OpenLineage), consignée par des cellules REFUSED dans la section finale des correspondances."
