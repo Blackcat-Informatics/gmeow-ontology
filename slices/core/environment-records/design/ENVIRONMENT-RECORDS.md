@@ -248,3 +248,30 @@ slot, state history or dependency, and do not weaken existing Event constraints.
 The property supplies no runtime clearing or mutation operation. Actual slot
 assignments or transition evidence, when supplied independently, keep their own
 existing contracts (Principles 4, 9, 12, 17 and 19).
+
+## Attributed cause and independent source roles
+
+EnvironmentRecords owns changeCausedBy as the source-attributed cause role for
+the change recorded by an actual world Activity. Its meaning is independent of
+the envelope actor, performer and recorder. Provenance's wasAssociatedWith
+retains its Activity-performer contract; wasAttributedTo retains its enduring
+Entity-credit contract. No inverse, subproperty, identity, inequality or chain
+equates any of these roles. Actual source actors and their statement attribution
+must survive independently; the cause relation supplies no replacement policy.
+
+The single logic:ObjectProperty has Activity domain and Agent range, with no
+closed-world opt-in, required path, maximum, restriction, new class or dependency.
+It is optional and nonfunctional, admitting multiple explicitly attributed agents
+and conflicting source accounts without a global winner. Ordinary open-world
+endpoint semantics permit an opaque Agent reference without an existing raw
+Agent type triple. Missing cause attribution remains unspecified; type inference
+does not verify the reference's identity or its actual causal responsibility.
+
+The complete coat distinguishes reported causal responsibility from verified
+causality, intention and actual performer identity. Existing native statement
+metadata carries the actual source and standpoint on the exact claim. This
+source vocabulary supplies no runtime actor mutation or producer adoption.
+Generic informal tagging and occurrence kinds remain independent axes; this
+property introduces no tag, Boolean assessment or event kind. Its bounded source
+contract does not settle any separate requirement for a real Tag identity or
+legal Activity tagging (Principles 4, 7, 9, 12, 17 and 19).
