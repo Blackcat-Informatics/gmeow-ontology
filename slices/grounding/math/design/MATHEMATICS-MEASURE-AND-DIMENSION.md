@@ -28,7 +28,7 @@ mis-dimensioned parameter is caught, not silently propagated.
 
 Core classes: `math:MeasurableSpace`, `math:SigmaAlgebra` (shared with the probability layer),
 `math:MeasurableSet`, `math:Measure`, `math:LebesgueMeasure`, `math:CountingMeasure`,
-`math:MeasureEvaluation`, `math:MeasurableFunction`, `math:Integral`, and `math:IntegrationOperator`.
+`math:ProbabilityMeasure`, `math:MeasureEvaluation`, `math:MeasurableFunction`, `math:Integral`, and `math:IntegrationOperator`.
 
 Core properties: `math:measurableSpaceOf`, `math:measureOn`, `math:totalMass`, `math:evaluatedMeasure`,
 `math:measuredSubset`, `math:measureResult`, `math:integrand`, `math:integrationDomain`,
@@ -55,6 +55,13 @@ measure.
 > that omits any of the three roles is ill-formed (`math:UnderspecifiedMeasureEvaluation`); a result of
 > `math:NegativeInfinity` is a non-negativity violation caught by the `logic:` gate
 > `math:MeasureResultNonNegativeConstraint`.
+>
+> This frame records a supplied μ(A); it does not calculate the mass. Classifying a measure or
+> evaluation and naming its roles do not prove countable additivity, establish that A belongs to the
+> named measure's σ-algebra, or provide a numerical evaluator. The existing measure and evaluation
+> restrictions and value constraints remain the validation sources; this guidance adds no class-local
+> required closure or claim of native/projection parity. Results use finite non-negative numeric
+> literals or the named `math:PositiveInfinity`, rather than floating `INF` or `NaN`.
 
 <!-- -->
 

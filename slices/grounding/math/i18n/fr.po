@@ -1136,43 +1136,43 @@ msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
 msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
 msgstr "Un sous-ensemble mesurable : un élément de la math:SigmaAlgebra d'un math:MeasurableSpace — l'un des sous-ensembles clos par complémentation et union dénombrable que la σ-algèbre rassemble, et donc le genre de sous-ensemble auquel une math:Measure peut attribuer une masse. C'est l'argument individuel A d'une évaluation μ(A) : là où un math:MeasurableSpace est le sol entier (X, Σ) sur lequel une mesure agit, un ensemble mesurable en est un morceau mesurable, la bande ou la région dont une math:MeasureEvaluation lit la masse. Partagé avec la charte des probabilités, où un ensemble mesurable est un événement."
 
-msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure Evaluation"
 msgstr "Évaluation de mesure"
 
-msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."
 msgstr "L'évaluation structurée μ(A) d'une mesure sur un sous-ensemble mesurable nommé, réifiée comme objet de première classe : elle nomme la mesure via math:evaluatedMeasure, le sous-ensemble via math:measuredSubset (un math:MeasurableSet) et la masse résultante via math:measureResult (un nombre fini non négatif ou math:PositiveInfinity, JAMAIS math:NegativeInfinity — une mesure est non négative). Ce n'est PAS la math:totalMass de l'espace entier, qui est la mesure de l'espace TOUT ENTIER μ(X) : une évaluation de mesure est la mesure d'un sous-ensemble NOMMÉ A ⊆ X, de sorte que des sous-ensembles distincts d'une même mesure peuvent être évalués et comparés côte à côte — la masse de Lebesgue d'une boule bidimensionnelle μ(B²) face à celle d'une boule tridimensionnelle μ(B³), ou la probabilité d'un événement face à un autre. Nommer les trois — la mesure, le sous-ensemble et le résultat — est ce qui fait de μ(A) une donnée interrogeable plutôt qu'une chaîne d'affichage ; une évaluation à laquelle manque l'un des trois est mal formée (math:UnderspecifiedMeasureEvaluation)."
 
-msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "evaluated measure"
 msgstr "mesure évaluée"
 
-msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."
 msgstr "Nomme la math:Measure qu'une math:MeasureEvaluation lit — le μ dans μ(A). Domaine math:MeasureEvaluation, portée math:Measure (précisé en prose). Toute évaluation en nomme exactement une ; une évaluation sans la mesure qu'elle évalue ne dit pas de quelle masse elle rend compte et est mal formée (math:UnderspecifiedMeasureEvaluation)."
 
-msgctxt "https://blackcatinformatics.ca/math/measuredSubset|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measured subset"
 msgstr "sous-ensemble mesuré"
 
-msgctxt "https://blackcatinformatics.ca/math/measuredSubset|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."
 msgstr "Nomme le math:MeasurableSet auquel une math:MeasureEvaluation attribue une masse — le A dans μ(A). Domaine math:MeasureEvaluation, portée math:MeasurableSet (précisé en prose). Toute évaluation en nomme exactement un ; nommer le sous-ensemble est ce qui permet de comparer deux évaluations d'une même mesure sur des sous-ensembles différents, de sorte qu'une évaluation sans son sous-ensemble est mal formée (math:UnderspecifiedMeasureEvaluation)."
 
-msgctxt "https://blackcatinformatics.ca/math/measureResult|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/measureResult|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measure result"
 msgstr "résultat de mesure"
 
-msgctxt "https://blackcatinformatics.ca/math/measureResult|skos:definition"
-msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."
-msgstr "La masse qu'une math:MeasureEvaluation lit — la valeur de μ(A), un nombre fini non négatif ou le réel étendu math:PositiveInfinity, JAMAIS math:NegativeInfinity car une mesure est non négative. Domaine math:MeasureEvaluation, portée un littéral numérique non négatif ou math:PositiveInfinity (précisé en prose). Comme math:totalMass, c'est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la masse finie) et un individu (math:PositiveInfinity) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Toute évaluation en nomme exactement un ; une évaluation sans son résultat est mal formée (math:UnderspecifiedMeasureEvaluation), et un résultat de math:NegativeInfinity est une violation de non-négativité (math:MalformedExtendedReal ou math:UnderspecifiedMeasureEvaluation)."
+msgctxt "https://blackcatinformatics.ca/math/measureResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:UnderspecifiedMeasureEvaluation)."
+msgstr "La masse qu'une math:MeasureEvaluation lit — la valeur de μ(A), un nombre fini non négatif ou le réel étendu math:PositiveInfinity, JAMAIS math:NegativeInfinity car une mesure est non négative. Domaine math:MeasureEvaluation, portée un littéral numérique non négatif ou math:PositiveInfinity (précisé en prose). Comme math:totalMass, c'est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la masse finie) et un individu (math:PositiveInfinity) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Toute évaluation en nomme exactement un ; une évaluation sans son résultat est mal formée (math:UnderspecifiedMeasureEvaluation), et un résultat de math:NegativeInfinity est une violation de non-négativité (math:UnderspecifiedMeasureEvaluation)."
 
-msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Underspecified Measure Evaluation"
 msgstr "Évaluation de mesure sous-spécifiée"
 
-msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
 msgstr "L'échec levé lorsqu'une math:MeasureEvaluation ne nomme pas la totalité de ses trois éléments — la mesure qu'elle évalue (math:evaluatedMeasure), le sous-ensemble mesurable sur lequel elle l'évalue (math:measuredSubset) et la masse résultante (math:measureResult). Une évaluation μ(A) est la masse qu'une mesure nommée attribue à un sous-ensemble nommé ; sans la mesure, le sous-ensemble et le résultat, elle ne dit pas quelle mesure, de quel sous-ensemble, a donné quelle valeur, de sorte qu'elle ne peut être comparée à une autre évaluation et est mal formée."
 
@@ -11288,3 +11288,329 @@ msgstr "Éviter de lire l’ordre de la relation comme celui des opérandes, de 
 msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain at least two distinct targets on a DimensionalExpression and each actual hasDimension, including non-Quantity targets reached by the dimension-presence constraint. Keep source typing and cardinalities unchanged. The native law compares vectors; it neither validates every source structure nor compares the expression's result dimension with its operands."
 msgstr "Conserver au moins deux cibles distinctes sur une DimensionalExpression et chaque hasDimension réel, y compris pour les cibles non Quantity atteintes par la contrainte de présence de dimension. Garder inchangés les typages et cardinalités sources. La loi native compare les vecteurs ; elle ne valide pas toutes les structures sources et ne compare pas la dimension de résultat de l’expression à ses opérandes."
+
+# --- Measure and evaluation guidance --------------------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measure"
+msgstr "Mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measure μ: a countably-additive assignment of non-negative extended-real mass to the measurable sets of a math:MeasurableSpace. Names the space it acts on through math:measureOn and its total mass through math:totalMass — which may be a finite non-negative number or math:PositiveInfinity. Lebesgue measure on the whole real line and counting measure on a discrete countably infinite space (all singletons measurable) are examples of σ-finite measures with infinite total mass; σ-finitude alone does not imply infinite total mass. The general object every mass-bearing construction specializes: a math:ProbabilityMeasure is a measure of total mass one, and a math:Integral integrates a math:MeasurableFunction against a measure."
+msgstr "Une mesure μ : une attribution dénombrablement additive de masse réelle étendue non négative aux ensembles mesurables d’un math:MeasurableSpace. Elle nomme l’espace sur lequel elle agit par math:measureOn et sa masse totale par math:totalMass, qui peut être un nombre fini non négatif ou math:PositiveInfinity. La mesure de Lebesgue sur toute la droite réelle et la mesure de comptage sur un espace discret dénombrablement infini (dont tous les singletons sont mesurables) sont des exemples de mesures σ-finies de masse totale infinie ; la σ-finitude seule n’implique pas une masse totale infinie. C’est l’objet général que spécialise toute construction portant une masse : une math:ProbabilityMeasure est une mesure de masse totale un, et une math:Integral intègre une math:MeasurableFunction par rapport à une mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The measure frame records a space and whole-space mass. Classifying an object as a Measure does not prove countable additivity, establish which subsets belong to its σ-algebra, or provide a numerical evaluator for μ(A)."
+msgstr "Le cadre de la mesure consigne un espace et la masse de l’espace entier. Classer un objet comme Measure ne prouve pas l’additivité dénombrable, n’établit pas quels sous-ensembles appartiennent à sa σ-algèbre et ne fournit pas d’évaluateur numérique de μ(A)."
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|http://www.w3.org/2004/02/skos/core#example"
+msgid "In measure-evaluation-framed.ttl, volumeMeasure names space through measureOn and PositiveInfinity through totalMass; muRegionA separately records the finite subset result 2.0 as an xsd:double."
+msgstr "Dans measure-evaluation-framed.ttl, volumeMeasure nomme space par measureOn et PositiveInfinity par totalMass ; muRegionA consigne séparément le résultat fini 2.0 pour un sous-ensemble, comme xsd:double."
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied measure with its measurable-space interpretation, retaining the distinction between the whole-space mass and results on named subsets."
+msgstr "À utiliser pour une mesure fournie avec son interprétation en espace mesurable, en distinguant la masse de l’espace entier des résultats sur des sous-ensembles nommés."
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a class assertion as evidence of additivity or treating totalMass as the mass of every subset. A σ-finite measure can have finite or infinite total mass."
+msgstr "Éviter de prendre une assertion de classe pour une preuve d’additivité ou de traiter totalMass comme la masse de chaque sous-ensemble. Une mesure σ-finie peut avoir une masse totale finie ou infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/Measure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare measureOn to the MeasurableSpace and totalMass to a finite non-negative numeric literal or PositiveInfinity, retaining the existing Measure restrictions. Record a named subset's supplied result in a separate MeasureEvaluation."
+msgstr "Déclarer measureOn vers le MeasurableSpace et totalMass vers un littéral numérique fini non négatif ou PositiveInfinity, en conservant les restrictions existantes de Measure. Consigner le résultat fourni pour un sous-ensemble nommé dans une MeasureEvaluation distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lebesgue Measure"
+msgstr "Mesure de Lebesgue"
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Lebesgue measure: the canonical translation-invariant measure on ℝⁿ that assigns to an interval its length (area, volume). A subclass of math:Measure; the continuous counterpart of the discrete math:CountingMeasure. Its total mass over the whole ℝⁿ, for positive n, is math:PositiveInfinity, though it is σ-finite; an unbounded measurable restriction need not have infinite mass. Integration against it recovers the ordinary Riemann integral where that exists."
+msgstr "La mesure de Lebesgue : la mesure canonique invariante par translation sur ℝⁿ, qui attribue à un intervalle sa longueur (aire, volume). Sous-classe de math:Measure ; pendant continu de la mesure discrète math:CountingMeasure. Sa masse totale sur tout ℝⁿ, pour n strictement positif, est math:PositiveInfinity, bien qu’elle soit σ-finie ; une restriction mesurable non bornée n’a pas nécessairement une masse infinie. L’intégration par rapport à elle retrouve l’intégrale de Riemann ordinaire lorsque celle-ci existe."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the supplied Lebesgue measure and inherits the Measure frame. Whole ℝⁿ has infinite mass for positive n; unboundedness alone does not determine the mass of a measurable restriction, and the class does not compute volumes."
+msgstr "Cette classe identifie la mesure de Lebesgue fournie et hérite du cadre de Measure. Tout ℝⁿ a une masse infinie pour n strictement positif ; le seul caractère non borné ne détermine pas la masse d’une restriction mesurable, et la classe ne calcule pas les volumes."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing volumeMeasure example has totalMass PositiveInfinity, while its volumeOfRegionA evaluation records the finite result 2.0 as an xsd:double for regionA."
+msgstr "L’exemple existant volumeMeasure porte totalMass PositiveInfinity, tandis que son évaluation volumeOfRegionA consigne le résultat fini 2.0 comme xsd:double pour regionA."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies Lebesgue length, area or volume, preserving the actual ambient space or measurable restriction."
+msgstr "À utiliser lorsque la source identifie une longueur, une aire ou un volume de Lebesgue, en conservant l’espace ambiant réel ou la restriction mesurable."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every unbounded measurable region has infinite mass or that a LebesgueMeasure assertion computes a region's volume."
+msgstr "Éviter de supposer que toute région mesurable non bornée a une masse infinie ou qu’une assertion LebesgueMeasure calcule le volume d’une région."
+
+msgctxt "https://blackcatinformatics.ca/math/LebesgueMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited measureOn and totalMass declarations for the actual space. Use PositiveInfinity for the whole positive-dimensional Euclidean space and MeasureEvaluation for supplied subset results; do not infer those results from the class alone."
+msgstr "Conserver les déclarations héritées measureOn et totalMass pour l’espace réel. Utiliser PositiveInfinity pour l’espace euclidien entier de dimension strictement positive et MeasureEvaluation pour les résultats fournis sur des sous-ensembles ; ne pas déduire ces résultats de la seule classe."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Counting Measure"
+msgstr "Mesure de comptage"
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The counting measure: the measure that assigns to a set the number of its elements. A subclass of math:Measure; the discrete counterpart of the continuous math:LebesgueMeasure. Its total mass over an infinite set is math:PositiveInfinity. Integration against it turns an integral into a sum, unifying the continuous and discrete cases under one math:Integral object."
+msgstr "La mesure de comptage : la mesure qui attribue à un ensemble le nombre de ses éléments. Sous-classe de math:Measure ; pendant discret de la mesure continue math:LebesgueMeasure. Sa masse totale sur un ensemble infini est math:PositiveInfinity. L’intégration par rapport à elle transforme une intégrale en somme, unifiant les cas continu et discret sous un même objet math:Integral."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counting measure assigns each measurable set its finite cardinality or PositiveInfinity. On a discrete countably infinite space (all singletons measurable) it is σ-finite with infinite total mass; counting measure on an uncountable set is not σ-finite. The class assertion performs no enumeration."
+msgstr "La mesure de comptage attribue à chaque ensemble mesurable son cardinal fini ou PositiveInfinity. Sur un espace discret dénombrablement infini (dont tous les singletons sont mesurables), elle est σ-finie de masse totale infinie ; sur un ensemble non dénombrable, elle n’est pas σ-finie. L’assertion de classe n’effectue aucune énumération."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Counting measure on a three-element space has totalMass 3; on the natural numbers it has totalMass PositiveInfinity. These are declared mathematical examples, not a request to enumerate either space."
+msgstr "La mesure de comptage sur un espace à trois éléments a totalMass 3 ; sur les entiers naturels, elle a totalMass PositiveInfinity. Ce sont des exemples mathématiques déclarés, non une demande d’énumérer ces espaces."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source measure that counts elements, distinguishing it from a probability measure that assigns normalized weights."
+msgstr "À utiliser pour une mesure source qui compte les éléments, en la distinguant d’une mesure de probabilité attribuant des poids normalisés."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a count as a probability or inferring σ-finitude for counting measure on an arbitrary infinite set."
+msgstr "Éviter de traiter un comptage comme une probabilité ou de déduire la σ-finitude de la mesure de comptage sur un ensemble infini quelconque."
+
+msgctxt "https://blackcatinformatics.ca/math/CountingMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the underlying MeasurableSpace through measureOn and supply its whole-space count through totalMass, using PositiveInfinity for an infinite count. Record a supplied count for a named measurable subset through MeasureEvaluation."
+msgstr "Nommer le MeasurableSpace sous-jacent par measureOn et fournir le comptage de l’espace entier par totalMass, avec PositiveInfinity pour un comptage infini. Consigner un comptage fourni pour un sous-ensemble mesurable nommé par MeasureEvaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Measure"
+msgstr "Mesure de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability measure: a math:Measure of total mass one (math:totalMass 1). The probability bridge — the probability charter specializes this class rather than re-minting it, so a probability space is a math:MeasurableSpace carrying a probability measure and an expectation is a math:Integral against it. A probability measure that does not have total mass one is ill-formed (math:ProbabilityMeasureMassViolation)."
+msgstr "Une mesure de probabilité : une math:Measure de masse totale un (math:totalMass 1). C’est le pont vers les probabilités : le cadre probabiliste spécialise cette classe plutôt que d’en créer une autre ; un espace probabilisé est donc un math:MeasurableSpace portant une mesure de probabilité, et une espérance est une math:Integral par rapport à elle. Une mesure de probabilité dont la masse totale n’est pas un est mal formée (math:ProbabilityMeasureMassViolation)."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing totalMass restriction requires the supplied value 1, in addition to inherited Measure obligations. This declared normalization neither proves countable additivity nor computes event probabilities or establishes subset membership."
+msgstr "La restriction existante sur totalMass exige la valeur fournie 1, en plus des obligations héritées de Measure. Cette normalisation déclarée ne prouve pas l’additivité dénombrable, ne calcule pas les probabilités d’événements et n’établit pas l’appartenance des sous-ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing uniformProbability example names configSpace through measureOn and uses totalMass 1. Its frame records the supplied normalization without defining a numerical probability evaluator."
+msgstr "L’exemple existant uniformProbability nomme configSpace par measureOn et utilise totalMass 1. Son cadre consigne la normalisation fournie sans définir d’évaluateur numérique de probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied probability measure of total mass one, retaining its actual measurable space and the evidence for its probabilistic interpretation."
+msgstr "À utiliser pour une mesure de probabilité fournie de masse totale un, en conservant son espace mesurable réel et les éléments probants de son interprétation probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for an unnormalized mass or inferring individual event probabilities from totalMass 1. Do not assume unverified equivalence between differently typed literal spellings of one."
+msgstr "Éviter de l’utiliser pour une masse non normalisée ou de déduire des probabilités d’événements de totalMass 1. Ne pas supposer une équivalence non vérifiée entre des écritures littérales de un de types différents."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited measureOn frame and declare totalMass 1 using the literal shown by the existing hasValue obligation. Record supplied event results separately through MeasureEvaluation; retain the source's probability law and evidence."
+msgstr "Conserver le cadre hérité measureOn et déclarer totalMass 1 avec le littéral indiqué par l’obligation hasValue existante. Consigner séparément les résultats fournis pour des événements par MeasureEvaluation ; conserver la loi de probabilité et les éléments probants de la source."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records a supplied μ(A), rather than executing a measure. Its three roles do not prove additivity, establish that A belongs to the named measure's σ-algebra, or compute the result. The result must be a finite non-negative numeric literal or the named PositiveInfinity individual, not floating INF or NaN."
+msgstr "Cet objet consigne un μ(A) fourni, sans exécuter une mesure. Ses trois rôles ne prouvent pas l’additivité, n’établissent pas que A appartient à la σ-algèbre de la mesure nommée et ne calculent pas le résultat. Celui-ci doit être un littéral numérique fini non négatif ou l’individu nommé PositiveInfinity, non une valeur flottante INF ou NaN."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:muRegionA a math:MeasureEvaluation ; math:evaluatedMeasure ex:volumeMeasure ; math:measuredSubset ex:regionA ; math:measureResult \"2.0\"^^xsd:double ."
+msgstr "ex:muRegionA a math:MeasureEvaluation ; math:evaluatedMeasure ex:volumeMeasure ; math:measuredSubset ex:regionA ; math:measureResult \"2.0\"^^xsd:double ."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to reify μ(A) — the mass one named measure assigns one named subset — as a queryable datum, so distinct subsets can be evaluated and compared side by side."
+msgstr "À utiliser pour réifier μ(A), la masse qu’une mesure nommée attribue à un sous-ensemble nommé, comme donnée interrogeable, afin de comparer côte à côte des sous-ensembles distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for the whole-space math:totalMass μ(X); an evaluation is the mass of a NAMED subset A ⊆ X, and it must name all three of measure, subset, and result or it is math:UnderspecifiedMeasureEvaluation."
+msgstr "Ne pas l’utiliser pour la masse math:totalMass μ(X) de l’espace entier ; une évaluation est la masse d’un sous-ensemble NOMMÉ A ⊆ X et doit nommer la mesure, le sous-ensemble et le résultat, faute de quoi elle est math:UnderspecifiedMeasureEvaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name math:evaluatedMeasure, math:measuredSubset, and math:measureResult; the result is a finite non-negative number or math:PositiveInfinity, never math:NegativeInfinity."
+msgstr "Nommer math:evaluatedMeasure, math:measuredSubset et math:measureResult ; le résultat est un nombre fini non négatif ou math:PositiveInfinity, jamais math:NegativeInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Measure"
+msgstr "Mesure incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Measure does not declare the measurable space it acts on (math:measureOn) or its total mass (math:totalMass, a finite non-negative number or math:PositiveInfinity). A measure without its space and mass is ill-formed."
+msgstr "L’échec levé lorsqu’une math:Measure ne déclare pas l’espace mesurable sur lequel elle agit (math:measureOn) ou sa masse totale (math:totalMass, un nombre fini non négatif ou math:PositiveInfinity). Une mesure sans espace et masse est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure belongs to the whole-measure frame and the existing total-mass value constraint. Native numeric comparison admits finite numeric literals; its generated SPARQL comparison is a different implementation surface. This guidance adds no closure requirement or claim of projection parity."
+msgstr "Cet échec relève du cadre de la mesure entière et de la contrainte existante sur la valeur de masse totale. La comparaison numérique native admet les littéraux numériques finis ; sa comparaison SPARQL générée constitue une autre surface d’implémentation. Cette notice n’ajoute aucune exigence de clôture ni affirmation de parité des projections."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A Measure declaration that names its space but supplies no totalMass illustrates an incomplete measure frame; it is distinct from an evaluation that omits measuredSubset."
+msgstr "Une déclaration Measure qui nomme son espace mais ne fournit pas totalMass illustre un cadre de mesure incomplet ; elle se distingue d’une évaluation qui omet measuredSubset."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify findings owned by the existing Measure restrictions or MeasureTotalMassValueConstraint, retaining the actual diagnostic and supplied frame."
+msgstr "À utiliser pour identifier les constats relevant des restrictions existantes de Measure ou de MeasureTotalMassValueConstraint, en conservant le diagnostic réel et le cadre fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a missing mass with zero, treating PositiveInfinity as missing, or using this failure for a subset evaluation's missing roles."
+msgstr "Éviter de remplacer une masse absente par zéro, de traiter PositiveInfinity comme une absence ou d’utiliser cet échec pour les rôles manquants d’une évaluation de sous-ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect measureOn and totalMass on the reported measure and repair the source declaration. The existing logic restrictions and MeasureTotalMassValueConstraint own validation and generated projections; do not author a second shape rule or fabricate a result."
+msgstr "Examiner measureOn et totalMass sur la mesure signalée et corriger la déclaration source. Les restrictions logic existantes et MeasureTotalMassValueConstraint portent la validation et les projections générées ; ne pas créer de seconde règle de forme ni inventer de résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing evaluation restrictions own the three-role frame, and MeasureResultNonNegativeConstraint maps invalid result values to this same failure. In particular, NegativeInfinity is invalid here even though it is a valid pole of the signed extended real line; no numerical evaluation is performed."
+msgstr "Les restrictions existantes de l’évaluation portent le cadre à trois rôles, et MeasureResultNonNegativeConstraint associe les valeurs de résultat invalides à ce même échec. En particulier, NegativeInfinity est invalide ici bien que ce soit un pôle valide de la droite réelle étendue signée ; aucune évaluation numérique n’est effectuée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:eval a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue . # no subset, no result -> math:UnderspecifiedMeasureEvaluation"
+msgstr "exf:eval a math:MeasureEvaluation ; math:evaluatedMeasure exf:lebesgue . # aucun sous-ensemble ni résultat -> math:UnderspecifiedMeasureEvaluation"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it as the typed violation object when a math:MeasureEvaluation omits any of its measure, its subset, or its result."
+msgstr "À utiliser comme objet typé de violation lorsqu’une math:MeasureEvaluation omet sa mesure, son sous-ensemble ou son résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for a whole-space mass carried correctly by math:totalMass; this failure is specific to the three-role evaluation object μ(A)."
+msgstr "Ne pas l’utiliser pour une masse d’espace entier correctement portée par math:totalMass ; cet échec est propre à l’objet d’évaluation μ(A) à trois rôles."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "The existing logic restrictions on MeasureEvaluation and MeasureResultNonNegativeConstraint associate this failure through gmeow:enforcesFailureClass; validation shapes are generated from those sources. Inspect the supplied measure, subset and result, and repair the source data rather than authoring another shape rule."
+msgstr "Les restrictions logic existantes sur MeasureEvaluation et MeasureResultNonNegativeConstraint associent cet échec par gmeow:enforcesFailureClass ; les formes de validation sont générées à partir de ces sources. Examiner la mesure, le sous-ensemble et le résultat fournis, puis corriger les données sources au lieu de créer une autre règle de forme."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability-Measure Mass Violation"
+msgstr "Violation de masse d’une mesure de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:ProbabilityMeasure does not have math:totalMass one. A probability measure is exactly a measure of total mass one; any other total mass is ill-formed."
+msgstr "L’échec levé lorsqu’une math:ProbabilityMeasure n’a pas math:totalMass un. Une mesure de probabilité est exactement une mesure de masse totale un ; toute autre masse totale est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the existing probability-measure total-mass obligation, not a proof about every event's probability. The canonical hasValue uses literal 1; equivalence with other datatype spellings is not established by this guidance."
+msgstr "Il s’agit de l’obligation existante sur la masse totale d’une mesure de probabilité, non d’une preuve sur la probabilité de chaque événement. Le hasValue canonique utilise le littéral 1 ; cette notice n’établit pas l’équivalence avec des écritures d’autres types de données."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared ProbabilityMeasure with totalMass 2 conflicts with the existing requirement for totalMass 1, regardless of whether a separate subset evaluation reports a value below one."
+msgstr "Une ProbabilityMeasure déclarée avec totalMass 2 contredit l’exigence existante totalMass 1, même si une évaluation distincte de sous-ensemble rapporte une valeur inférieure à un."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a diagnostic owned by the ProbabilityMeasure totalMass restrictions, keeping it distinct from a general incomplete measure or subset-evaluation failure."
+msgstr "À utiliser pour un diagnostic relevant des restrictions totalMass de ProbabilityMeasure, en le distinguant d’une mesure générale incomplète ou d’un échec d’évaluation de sous-ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing source masses silently, labelling an infinite counting measure as a probability measure, or using this failure to claim that event probabilities were computed."
+msgstr "Éviter de normaliser silencieusement les masses sources, de qualifier une mesure de comptage infinie de mesure de probabilité ou d’utiliser cet échec pour prétendre que les probabilités des événements ont été calculées."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityMeasureMassViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the supplied totalMass and the intended measure type. Repair the source declaration under the existing max-cardinality and hasValue 1 obligations; retain any genuine normalization derivation separately instead of changing values to hide the finding."
+msgstr "Examiner le totalMass fourni et le type de mesure visé. Corriger la déclaration source selon les obligations existantes de cardinalité maximale et hasValue 1 ; conserver séparément toute véritable dérivation de normalisation plutôt que de modifier les valeurs pour masquer le constat."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measure on"
+msgstr "mesure sur"
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:MeasurableSpace a measure assigns mass over. Domain math:Measure, range math:MeasurableSpace (stated in prose). Every math:Measure declares one; a measure without its space is ill-formed."
+msgstr "Nomme le math:MeasurableSpace sur lequel une mesure attribue une masse. Domaine math:Measure, portée math:MeasurableSpace (énoncés en prose). Chaque math:Measure en déclare un ; une mesure sans espace est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the whole measurable space on which the measure is defined, not the individual subset of an evaluation. The link does not itself establish the space's σ-algebra membership relation or compute a mass."
+msgstr "Cette propriété nomme l’espace mesurable entier sur lequel la mesure est définie, non le sous-ensemble individuel d’une évaluation. Le lien n’établit pas à lui seul la relation d’appartenance à la σ-algèbre de l’espace et ne calcule aucune masse."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "In measure-evaluation-framed.ttl, volumeMeasure has measureOn space, while muRegionA has measuredSubset regionA; the space and the subset have different roles."
+msgstr "Dans measure-evaluation-framed.ttl, volumeMeasure porte measureOn space, tandis que muRegionA porte measuredSubset regionA ; l’espace et le sous-ensemble ont des rôles différents."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual measurable space associated with a supplied measure, including a Lebesgue, counting or probability measure."
+msgstr "À utiliser pour conserver l’espace mesurable réel associé à une mesure fournie, notamment une mesure de Lebesgue, de comptage ou de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at a numeric result or using it in place of measuredSubset on an evaluation. A space declaration alone is not evidence that a chosen subset is measurable there."
+msgstr "Éviter de la faire pointer vers un résultat numérique ou de l’utiliser à la place de measuredSubset sur une évaluation. La seule déclaration d’un espace ne prouve pas qu’un sous-ensemble choisi y est mesurable."
+
+msgctxt "https://blackcatinformatics.ca/math/measureOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set measureOn on the Measure to its MeasurableSpace under the existing Measure restrictions, keeping totalMass on that measure and subset-specific roles on their MeasureEvaluation objects."
+msgstr "Définir measureOn sur la Measure vers son MeasurableSpace selon les restrictions existantes de Measure, en gardant totalMass sur cette mesure et les rôles propres aux sous-ensembles sur leurs objets MeasureEvaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "total mass"
+msgstr "masse totale"
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one."
+msgstr "La masse totale qu’une mesure attribue à son espace entier : un nombre fini non négatif ou le réel étendu math:PositiveInfinity. Domaine math:Measure, portée un littéral numérique non négatif ou math:PositiveInfinity (énoncés en prose). C’est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée comprend à la fois un littéral de type de données (la masse finie) et un individu (math:PositiveInfinity) : aucun des deux types de propriété DL n’admet les deux ; le supertype RDF exprime donc cette portée réelle étendue sans contradiction DL. Une math:ProbabilityMeasure a une masse totale un."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records μ(X) for the whole named space, separately from μ(A) on a subset. The value contract uses finite non-negative numeric literals or the named PositiveInfinity individual; floating INF and NaN are not substitutes. Native and generated comparison paths must not be assumed identical."
+msgstr "Cette propriété consigne μ(X) pour l’espace nommé entier, séparément de μ(A) sur un sous-ensemble. Le contrat de valeur utilise des littéraux numériques finis non négatifs ou l’individu nommé PositiveInfinity ; les valeurs flottantes INF et NaN ne les remplacent pas. Les chemins de comparaison natif et généré ne doivent pas être supposés identiques."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing volumeMeasure has totalMass PositiveInfinity while uniformProbability has totalMass 1; volumeOfRegionA carries its separate finite value through measureResult."
+msgstr "L’exemple existant volumeMeasure porte totalMass PositiveInfinity, tandis que uniformProbability porte totalMass 1 ; volumeOfRegionA porte sa valeur finie distincte par measureResult."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied mass of the measure's entire declared space, preserving zero, finite positive mass and the named positive-infinity pole as distinct values."
+msgstr "À utiliser pour la masse fournie de l’espace déclaré entier de la mesure, en conservant zéro, les masses positives finies et le pôle nommé d’infini positif comme valeurs distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing an arbitrary resource as a finite mass, encoding PositiveInfinity as floating INF, substituting zero for a missing value, or putting a subset result here."
+msgstr "Éviter de stocker une ressource quelconque comme masse finie, d’encoder PositiveInfinity comme une valeur flottante INF, de remplacer une valeur absente par zéro ou de placer ici un résultat de sous-ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/totalMass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply totalMass on the Measure under its existing restrictions and MeasureTotalMassValueConstraint. Use a finite non-negative numeric literal or PositiveInfinity; for a ProbabilityMeasure retain literal 1 as required by its existing hasValue obligation."
+msgstr "Fournir totalMass sur la Measure selon ses restrictions existantes et MeasureTotalMassValueConstraint. Utiliser un littéral numérique fini non négatif ou PositiveInfinity ; pour une ProbabilityMeasure, conserver le littéral 1 exigé par son obligation hasValue existante."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selects whose supplied mass the evaluation records; it does not invoke a numerical implementation. The selected measure's space and whole-space mass remain on the measure, and the subset and result remain separate evaluation roles."
+msgstr "Cette propriété sélectionne la mesure dont l’évaluation consigne la masse fournie ; elle n’invoque pas d’implémentation numérique. L’espace et la masse de l’espace entier restent sur la mesure sélectionnée, tandis que le sous-ensemble et le résultat restent des rôles distincts de l’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:evalB2 math:evaluatedMeasure exf:lebesgue ."
+msgstr "exf:evalB2 math:evaluatedMeasure exf:lebesgue ."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the measure a math:MeasureEvaluation reads — the μ in μ(A)."
+msgstr "À utiliser pour nommer la mesure qu’une math:MeasureEvaluation lit, le μ de μ(A)."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point it at the subset (that is math:measuredSubset) or the result; and do not omit it, an evaluation without it is math:UnderspecifiedMeasureEvaluation."
+msgstr "Ne pas la faire pointer vers le sous-ensemble (rôle de math:measuredSubset) ou le résultat ; ne pas l’omettre non plus, car une évaluation sans elle est math:UnderspecifiedMeasureEvaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:MeasureEvaluation to the math:Measure whose mass is being read; exactly one per evaluation."
+msgstr "La définir sur une math:MeasureEvaluation vers la math:Measure dont la masse est lue ; exactement une par évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names A in a supplied μ(A), not the measure's whole-space declaration. A MeasurableSet type and this edge alone do not prove that A belongs to the particular σ-algebra of the evaluated measure; retain that interpretation and its source evidence."
+msgstr "Cette propriété nomme A dans un μ(A) fourni, non la déclaration de l’espace entier de la mesure. Le type MeasurableSet et ce seul lien ne prouvent pas que A appartient à la σ-algèbre particulière de la mesure évaluée ; conserver cette interprétation et les éléments probants sources."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:evalB2 math:measuredSubset exf:ballB2 ."
+msgstr "exf:evalB2 math:measuredSubset exf:ballB2 ."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the measurable subset a math:MeasureEvaluation assigns mass to — the A in μ(A) — so two evaluations of one measure over different subsets can be compared."
+msgstr "À utiliser pour nommer le sous-ensemble mesurable auquel une math:MeasureEvaluation attribue une masse, le A de μ(A), afin de comparer deux évaluations d’une même mesure sur des sous-ensembles différents."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not point it at the whole space or the measure itself; the range is a math:MeasurableSet, and omitting it yields math:UnderspecifiedMeasureEvaluation."
+msgstr "Ne pas la faire pointer vers l’espace entier ou la mesure elle-même ; la portée est un math:MeasurableSet, et son omission entraîne math:UnderspecifiedMeasureEvaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:MeasureEvaluation to a math:MeasurableSet; exactly one per evaluation."
+msgstr "La définir sur une math:MeasureEvaluation vers un math:MeasurableSet ; exactement un par évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing MeasureResultNonNegativeConstraint admits finite non-negative numeric literals or exactly PositiveInfinity. An arbitrary IRI, NegativeInfinity, NaN or floating INF is not a valid result. Recording an admitted value does not compute it or prove that it is the correct mass of the named subset."
+msgstr "La contrainte existante MeasureResultNonNegativeConstraint admet les littéraux numériques finis non négatifs ou exactement PositiveInfinity. Une IRI quelconque, NegativeInfinity, NaN ou une valeur flottante INF n’est pas un résultat valide. Consigner une valeur admise ne la calcule pas et ne prouve pas qu’elle est la masse correcte du sous-ensemble nommé."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:muRegionA math:measureResult \"2.0\"^^xsd:double ."
+msgstr "ex:muRegionA math:measureResult \"2.0\"^^xsd:double ."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to carry the mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or math:PositiveInfinity."
+msgstr "À utiliser pour porter la masse lue par une math:MeasureEvaluation, la valeur de μ(A), un nombre fini non négatif ou math:PositiveInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not carry math:NegativeInfinity here — a measure is non-negative, so a negative result is a violation; and do not use it for the whole-space math:totalMass."
+msgstr "Ne pas y placer math:NegativeInfinity : une mesure est non négative, donc un résultat négatif constitue une violation ; ne pas non plus l’utiliser pour la math:totalMass de l’espace entier."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:MeasureEvaluation to a non-negative numeric literal or math:PositiveInfinity; its rdf:Property typing spans literal and the pole individual."
+msgstr "La définir sur une math:MeasureEvaluation vers un littéral numérique non négatif ou math:PositiveInfinity ; son type rdf:Property couvre le littéral et l’individu représentant le pôle."
