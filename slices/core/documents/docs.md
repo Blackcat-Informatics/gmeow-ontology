@@ -106,6 +106,37 @@ per-appellation language tag, which is the language of a *name*. Non-functional 
 multilingual work has several); projects to `schema:inLanguage` / `schema:iso6391Code`
 by reconstructing the BCP-47 / ISO 639-1 code from the `gmeow:Language`.
 
+### gmeow:contentLanguageCode
+
+Record a source or producer's supplied content-language code on the actual
+`gmeow:InformationObject`. Keep the complete untagged `xsd:string` or `xsd:token`
+literal, including original case and all region and private-use subtags. Preserve
+its exact lexical form and supplied datatype: do not normalize, retype, extract a
+primary subtag or turn the code into a prose language tag. This is reported
+metadata, without registry certification or a claim that the reported language
+is correct.
+
+The property is optional and non-functional. Omission means unstated, and
+coexisting supplied codes remain distinct attributable claims. Retain each
+assertion's actual source, declaring perspective and recorder on its exact-statement
+reifier through `gmeow:wasDerivedFrom`, `gmeow:accordingTo` and
+`gmeow:wasAttributedTo`; invent no missing context.
+
+A code alone identifies no `gmeow:Language` or `lang:LanguageVariety`. If a real
+Language identity is independently supplied, an information object may separately
+use `gmeow:writtenInLanguage`; an actual `gmeow:Work` may use
+`gmeow:contentLanguage`. Neither relation follows from the code, and no equivalence
+between the literal metadata and either identity relation is asserted.
+`gmeow:languageCode` remains registry alignment on a Language; `lang:carrierTag`
+remains internal source-prose machinery.
+
+The [ordinary source example](examples/content-language-codes.ttl) preserves two
+supplied full codes and their exact-statement context, while another information
+object has no supplied code. Its source identities and observations are
+hypothetical. It is neither a test nor evidence of a parser, registry lookup,
+consumer migration, generated projection or executed validation (Principles 2,
+4, 9 and 17).
+
 ## Manifestations and the image-depiction spine
 
 ### gmeow:MediaObject
@@ -183,9 +214,11 @@ content, including a web page, a document carrier or a MIME body part. Keep the
 supplied charset label as a literal, such as `"utf-8"` or `"iso-8859-1"`; the
 property does not enumerate a closed registry or normalize that label.
 
-Keep the encoding separate from `gmeow:mediaType` and from the content's natural
-language (`gmeow:contentLanguage` or `gmeow:contentLanguageCode`). Compression and
-MIME content-transfer encoding are different metadata. The
+Keep the encoding separate from `gmeow:mediaType` and from a supplied
+content-language code (`gmeow:contentLanguageCode`). An independently supplied
+Language identity uses `gmeow:writtenInLanguage`, or `gmeow:contentLanguage` on an
+actual Work. Compression and MIME content-transfer encoding are different
+metadata. The
 [web presence example](examples/web-presence.ttl) records the IANA media IRI
 `<https://www.iana.org/assignments/media-types/text/html>` and the separate
 charset literal `"utf-8"` on a web page. Email uses this same charset property

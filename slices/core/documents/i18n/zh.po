@@ -34,8 +34,8 @@ msgid "Avoid using it for natural language, media type, compression or MIME cont
 msgstr "避免将其用于自然语言、媒体类型、压缩或 MIME 内容传输编码。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."
-msgstr "在具体信息对象上记录所提供的字符集标签；将 mediaType 与 contentLanguage 或 contentLanguageCode 分开记录。对于 MIME 部分，在此记录其 Content-Type 的 charset 参数。"
+msgid "Record the supplied charset label on the concrete information object; keep mediaType separate. A supplied content-language code belongs on contentLanguageCode; an independently supplied Language identity uses writtenInLanguage, or contentLanguage on an actual Work. For a MIME part, record its Content-Type charset parameter here."
+msgstr "在具体信息对象上记录所提供的字符集标签；将 mediaType 分开记录。所提供的内容语言代码应记录在 contentLanguageCode 上；独立提供的 Language 身份使用 writtenInLanguage，或在实际 Work 上使用 contentLanguage。对于 MIME 部分，在此记录其 Content-Type 的 charset 参数。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#example"
 msgid "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."
@@ -2078,3 +2078,31 @@ msgstr "应用外层组成项守卫及九个独立正向守卫分支。复用继
 msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
 msgstr "每个 FigurePart 必须保留实际的 MediaObject 标量载荷，以及有效有限数值索引 Quantity；该索引量具有唯一数值和恰好一个带类型的索引参考系；任何提供的图件父项必须具有 segmentTypeFigure。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content language code"
+msgstr "内容语言代码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied content-language code on an InformationObject, retained as the complete untagged xsd:string or xsd:token literal. It records the producer's reported spelling, including original case, region and private-use subtags, without identifying a Language or certifying registry validity."
+msgstr "来源为 InformationObject 提供的内容语言代码，完整保留为不带语言标签的 xsd:string 或 xsd:token 字面量。它记录生产者报告的拼写，包括原始大小写、地区和私用子标签，不据此标识 Language，也不认证注册表有效性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or producer supplies a content-language tag for the actual information object, including a full region-qualified or private-use tag, whether or not a Language identity is independently known."
+msgstr "当来源或生产者为实际信息对象提供内容语言标签时使用，包括完整的带地区限定或私用标签，无论是否独立获知 Language 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this field as a Language identity, registry alignment on a Language, internal carrierTag or RDF prose language tag, and avoid generating a code from text, locale, filename, charset or an assumed language."
+msgstr "避免将此字段用作 Language 身份、Language 上的注册表对齐、内部 carrierTag 或 RDF 散文语言标签，也避免根据文本、区域设置、文件名、charset 或假定语言生成代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the original literal on the actual InformationObject. On its exact-statement reifier, retain the supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. An independently supplied real Language identity may separately use writtenInLanguage, or contentLanguage on an actual Work; never infer either relation from this code."
+msgstr "在实际 InformationObject 上记录原始字面量。在该精确语句的重述节点上，通过 wasDerivedFrom 保留提供的来源，通过 accordingTo 保留声明视角，通过 wasAttributedTo 保留记录者。独立提供的真实 Language 身份可以另行使用 writtenInLanguage，或在实际 Work 上使用 contentLanguage；绝不根据此代码推断任一关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and non-functional: omission means unstated; coexisting supplied codes remain separate attributable claims. Preserve the exact lexical form and supplied datatype without normalization, retyping or primary-subtag extraction. This property infers no Language or LanguageVariety, no equivalence with contentLanguage or writtenInLanguage, and no language tag on prose."
+msgstr "可选且非函数性：省略表示未说明；同时提供的代码仍是可分别归属的断言。保留精确词法形式和所提供的数据类型，不规范化、不改换类型，也不提取主要子标签。此属性不推断 Language 或 LanguageVariety，不推断与 contentLanguage 或 writtenInLanguage 的等价关系，也不为散文添加语言标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report a gmeow:InformationObject ; gmeow:contentLanguageCode \"FR-ca-x-Desk\"^^xsd:token ."
+msgstr "ex:report a gmeow:InformationObject ; gmeow:contentLanguageCode \"FR-ca-x-Desk\"^^xsd:token ."

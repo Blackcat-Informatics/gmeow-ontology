@@ -866,8 +866,22 @@ gmeow:charset
     skos:scopeNote "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."@x-gmeow-english ;
     gmeow:useWhen "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."@x-gmeow-english ;
-    gmeow:howToUse "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."@x-gmeow-english ;
+    gmeow:howToUse "Record the supplied charset label on the concrete information object; keep mediaType separate. A supplied content-language code belongs on contentLanguageCode; an independently supplied Language identity uses writtenInLanguage, or contentLanguage on an actual Work. For a MIME part, record its Content-Type charset parameter here."@x-gmeow-english ;
     skos:example "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+gmeow:contentLanguageCode
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "content language code"@x-gmeow-english ;
+    skos:definition "A source-supplied content-language code on an InformationObject, retained as the complete untagged xsd:string or xsd:token literal. It records the producer's reported spelling, including original case, region and private-use subtags, without identifying a Language or certifying registry validity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source or producer supplies a content-language tag for the actual information object, including a full region-qualified or private-use tag, whether or not a Language identity is independently known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this field as a Language identity, registry alignment on a Language, internal carrierTag or RDF prose language tag, and avoid generating a code from text, locale, filename, charset or an assumed language."@x-gmeow-english ;
+    gmeow:howToUse "Record the original literal on the actual InformationObject. On its exact-statement reifier, retain the supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. An independently supplied real Language identity may separately use writtenInLanguage, or contentLanguage on an actual Work; never infer either relation from this code."@x-gmeow-english ;
+    skos:scopeNote "Optional and non-functional: omission means unstated; coexisting supplied codes remain separate attributable claims. Preserve the exact lexical form and supplied datatype without normalization, retyping or primary-subtag extraction. This property infers no Language or LanguageVariety, no equivalence with contentLanguage or writtenInLanguage, and no language tag on prose."@x-gmeow-english ;
+    skos:example "ex:report a gmeow:InformationObject ; gmeow:contentLanguageCode \"FR-ca-x-Desk\"^^xsd:token ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
