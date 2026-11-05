@@ -361,9 +361,14 @@ reported later retry/order. Missing success, source loss or unreadability is
 never an unsuccessful outcome. Missing required evidence prevents a complete
 selected reading; it is not filled with a default.
 
-`frictionArguments` uses the existing `StructuredValue` carrier. Reuse an actual
-`toolArgumentsStructured` occurrence, or keep an opaque original `toolArguments`
-literal through `structuredTerm` on a source-identified scalar occurrence.
+`frictionArguments` uses the existing `StructuredValue` carrier and is
+intrinsically associated with the earlier call. Select that call's actual
+`toolArgumentsStructured` occurrence, or retain an opaque original
+`toolArguments` literal through `structuredTerm` on a source-identified scalar
+occurrence. If the selected evidence is not that call's structured occurrence,
+it must carry `structuredTerm` and that identical RDF term must occur in the
+earlier call's `toolArguments`. An unrelated map, null or scalar does not
+qualify merely because the call has some arguments elsewhere.
 Preserve each call’s actual payloads, media metadata and declared interpretation.
 Coexisting opaque and structured representations do not become equivalent,
 and a reading does not make one globally primary. No JSON canonicalizer,
@@ -403,7 +408,8 @@ value, roster or equality with receipt membership is synthesized.
 
 The canonical laws check direct required fields, distinct calls, consistent
 tool identities, retained receipt-scope references, source containment,
-argument-evidence presence, selected parameters and numeric/frame consistency.
+argument-evidence presence and its intrinsic association with the earlier call,
+selected parameters and numeric/frame consistency.
 They do not execute receipt parsing, field selection, tool resolution,
 semantic argument comparison, outcome interpretation or chronology. A valid
 graph is not proof that the teller ran, its interpretation is true, or the

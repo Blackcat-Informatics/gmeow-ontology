@@ -2409,8 +2409,8 @@ msgid "High-friction correction bindings constraint"
 msgstr "高摩擦纠正绑定约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."
-msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据。"
+msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence and frictionArguments bound to the earlier call’s actual structured occurrence or exact opaque source term."
+msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据，且将 frictionArguments 绑定到较早调用的实际结构化出现项或确切不透明来源项。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The law checks retained references and intrinsic consistency. Positive unsuccessful-outcome and reported-order evidence remains mandatory source content under the selected rule; no receipt lookup, semantic argument comparison, chronology engine or truth certificate is claimed."
@@ -2429,12 +2429,12 @@ msgid "Avoid treating a valid graph as proof that the reader ran, the source is 
 msgstr "避免将有效图视为读取者已运行、来源真实、参数语义相等或较晚尝试成功的证明。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Apply each independent positive guard to actual supplied calls, receipts, scope and containers. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."
-msgstr "将每个独立正向守卫应用于实际提供的调用、回执、范围及容器。保留支持所报告未成功结果及较晚重试的原始字段和来源归属；对缺失的必需证据作出诊断，不编造证据。"
+msgid "Apply each independent focused guard to actual supplied calls, receipts, scope and containers. If frictionArguments is not the earlier call’s actual toolArgumentsStructured occurrence, require structuredTerm on the selected evidence and that identical RDF term in the call’s toolArguments. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."
+msgstr "将每个独立且以读数为焦点的守卫应用于实际提供的调用、回执、范围及容器。如果 frictionArguments 不是较早调用的实际 toolArgumentsStructured 出现项，则要求所选证据带有 structuredTerm，且该调用的 toolArguments 中存在同一 RDF 项。保留支持所报告未成功结果及较晚重试的原始字段和来源归属；对缺失的必需证据作出诊断，不编造证据。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCorrectionBindingsConstraint|https://blackcatinformatics.ca/logic/message"
-msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."
-msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据。"
+msgid "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence and frictionArguments bound to the earlier call’s actual structured occurrence or exact opaque source term."
+msgstr "HighFrictionCorrection 保留不同的较早及较晚调用、一致的实际工具身份、非空的实际输入回执清单及实际片段包含关系，并保留每个调用所提供的参数证据，且将 frictionArguments 绑定到较早调用的实际结构化出现项或确切不透明来源项。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HighFrictionCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "High-friction count value constraint"

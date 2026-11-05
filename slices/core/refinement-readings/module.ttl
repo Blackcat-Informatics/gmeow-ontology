@@ -1681,14 +1681,14 @@ gmeow:HighFrictionCorrectionBindingsConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "High-friction correction bindings constraint"@x-gmeow-english ;
-    skos:definition "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."@x-gmeow-english ;
+    skos:definition "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence and frictionArguments bound to the earlier call’s actual structured occurrence or exact opaque source term."@x-gmeow-english ;
     skos:scopeNote "The law checks retained references and intrinsic consistency. Positive unsuccessful-outcome and reported-order evidence remains mandatory source content under the selected rule; no receipt lookup, semantic argument comparison, chronology engine or truth certificate is claimed."@x-gmeow-english ;
     skos:example "A rule release is retained separately from a nonempty receipt roster; a missing outcome does not become a failure."@x-gmeow-english ;
     gmeow:useWhen "Use to validate the intrinsic bindings of an actual attributed correction reading."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a valid graph as proof that the reader ran, the source is true, the arguments are semantically equal or the later attempt succeeded."@x-gmeow-english ;
-    gmeow:howToUse "Apply each independent positive guard to actual supplied calls, receipts, scope and containers. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."@x-gmeow-english ;
+    gmeow:howToUse "Apply each independent focused guard to actual supplied calls, receipts, scope and containers. If frictionArguments is not the earlier call’s actual toolArgumentsStructured occurrence, require structuredTerm on the selected evidence and that identical RDF term in the call’s toolArguments. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."@x-gmeow-english ;
     logic:formalizes gmeow:HighFrictionCorrection, gmeow:frictionCorrection, gmeow:frictionTool, gmeow:frictionArguments, gmeow:frictionWithin, gmeow:readingScope ;
-    logic:message "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."@x-gmeow-english ;
+    logic:message "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence and frictionArguments bound to the earlier call’s actual structured occurrence or exact opaque source term."@x-gmeow-english ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bindingReport" ] ;
         logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termIri gmeow:HighFrictionCorrection ] ] ;
             logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "distinctEarlier" ], [ logic:termIndex 1 ; logic:termVariable "distinctLater" ] ;
@@ -1761,7 +1761,60 @@ gmeow:HighFrictionCorrectionBindingsConstraint
             logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterArgumentsOpaque" ] ;
         logic:exists [ a logic:Formula ; logic:relation gmeow:toolArguments ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsOpaque" ] ] ],
                 [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterArgumentsStructured" ] ;
-        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsStructured" ] ] ] ] ] ] ] ] ] .
+        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsStructured" ] ] ] ] ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "associationEarlierCall" ],
+                        [ logic:termIndex 1 ; logic:termVariable "associationEvidence" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "bindingReport" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "associationEarlierCall" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:frictionArguments ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "bindingReport" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "associationEvidence" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:or
+                            [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "associationEarlierCall" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "associationEvidence" ] ],
+                            [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "associationOpaqueWitness" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "associationEvidence" ],
+                                        [ logic:termIndex 1 ; logic:termVariable "associationOpaqueWitness" ] ] ] ] ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "opaqueBindingCall" ],
+                        [ logic:termIndex 1 ; logic:termVariable "opaqueBindingEvidence" ],
+                        [ logic:termIndex 2 ; logic:termVariable "opaqueBindingTerm" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "bindingReport" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "opaqueBindingCall" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:frictionArguments ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "bindingReport" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "opaqueBindingEvidence" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "opaqueBindingEvidence" ],
+                                    [ logic:termIndex 1 ; logic:termVariable "opaqueBindingTerm" ] ],
+                            [ a logic:Formula ; logic:not
+                                [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "opaqueBindingCall" ],
+                                        [ logic:termIndex 1 ; logic:termVariable "opaqueBindingEvidence" ] ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:toolArguments ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "opaqueBindingCall" ],
+                                [ logic:termIndex 1 ; logic:termVariable "opaqueBindingTerm" ] ] ] ] ] ] ] .
 
 gmeow:HighFrictionCountValueConstraint
     a logic:Constraint ;
