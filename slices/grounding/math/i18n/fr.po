@@ -11064,3 +11064,227 @@ msgstr "Éviter d’utiliser cette propriété pour rédiger une liste RDF, four
 msgctxt "https://blackcatinformatics.ca/math/dimensionVector|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the source dimension and cells and, where this rendering is supplied, match the current canonical output. The drift scan compares only the first literal's lexical text and skips a dimension it cannot load; it does not check every value, certify datatype and language identity or replace source validation."
 msgstr "Conserver la dimension source et les cellules et, lorsque ce rendu est fourni, respecter la sortie canonique actuelle. Le contrôle de dérive compare seulement le texte lexical du premier littéral et ignore une dimension qu’il ne peut pas charger ; il ne vérifie pas chaque valeur, ne certifie pas l’identité de type de données et de langue et ne remplace pas la validation source."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measurable Function"
+msgstr "Fonction mesurable"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measurable function: a function between measurable spaces under which the preimage of every measurable set is measurable. A subclass of math:Function, so it declares its math:domain and math:codomain. The integrand of a math:Integral is a measurable function; density and mass functions in the probability charter are measurable functions."
+msgstr "Une fonction mesurable : une fonction entre espaces mesurables pour laquelle l’image réciproque de tout ensemble mesurable est mesurable. Sous-classe de math:Function, elle déclare donc ses math:domain et math:codomain. L’intégrande d’une math:Integral est une fonction mesurable ; les fonctions de densité et de masse du cadre probabiliste sont des fonctions mesurables."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The mathematical measurability condition is distinct from a declared function frame. The inherited domain and codomain name sets; a class assertion and those links alone neither prove measurability nor supply an executable numerical body."
+msgstr "La condition mathématique de mesurabilité est distincte du cadre déclaré d’une fonction. Le domaine et le codomaine hérités nomment des ensembles ; une assertion de classe et ces seuls liens ne prouvent pas la mesurabilité et ne fournissent pas de corps numérique exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing energyDensityFn example names configSet as domain and realValues as codomain. This illustrates its function frame, not a measurability proof or a complete numerical definition of the energy-density function."
+msgstr "L’exemple existant energyDensityFn nomme configSet comme domaine et realValues comme codomaine. Il illustre le cadre de la fonction, non une preuve de mesurabilité ni une définition numérique complète de la fonction de densité d’énergie."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied measurable function, including an integral's integrand, while retaining its actual set-valued frame, measurable-space interpretation and source evidence."
+msgstr "À utiliser pour une fonction mesurable fournie, notamment l’intégrande d’une intégrale, en conservant son cadre réel d’ensembles, son interprétation en espaces mesurables et les éléments probants sources."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring measurability from a label, replacing the function's domain or codomain set with a measure or integral, or assuming this class registers a numerical implementation."
+msgstr "Éviter de déduire la mesurabilité d’une étiquette, de remplacer l’ensemble du domaine ou du codomaine par une mesure ou une intégrale, ou de supposer que cette classe enregistre une implémentation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the function's inherited exactly-one domain and codomain Set frame and name the function through integrand where applicable. If that integral declares a result dimension, the function must also carry hasDimension. Preserve other source bodies and evidence through their existing surfaces and selected profiles."
+msgstr "Conserver le cadre hérité de la fonction avec exactement un domaine et un codomaine de type Set, et nommer la fonction par integrand lorsque cela s’applique. Si cette intégrale déclare une dimension de résultat, la fonction doit aussi porter hasDimension. Préserver les autres corps et éléments probants sources par leurs surfaces existantes et leurs profils sélectionnés."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Integral"
+msgstr "Intégrale"
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An integral ∫_D f dμ as a first-class object: the application of a math:IntegrationOperator naming its integrand (math:integrand, a math:MeasurableFunction), its domain (math:integrationDomain, a math:MeasurableSpace or measurable set), and the measure it integrates against (math:withRespectTo, a math:Measure). Where it declares a result dimension through math:hasDimension, the dimensional-composition law requires that dimension to equal the integrand's dimension combined with the measure's. An expectation in the probability charter is an integral against a probability measure."
+msgstr "Une intégrale ∫_D f dμ comme objet à part entière : l’application d’un math:IntegrationOperator nommant son intégrande (math:integrand, une math:MeasurableFunction), son domaine (math:integrationDomain, un math:MeasurableSpace ou un ensemble mesurable) et la mesure par rapport à laquelle elle intègre (math:withRespectTo, une math:Measure). Lorsqu’elle déclare une dimension de résultat par math:hasDimension, la loi de composition dimensionnelle exige que cette dimension soit égale à la dimension de l’intégrande combinée à celle de la mesure. Une espérance dans le cadre probabiliste est une intégrale par rapport à une mesure de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An integral records f, D and μ and inherits the existing BindingExpression structure. A framed integral may omit a result dimension; once hasDimension is supplied, its integrand and measure each need a dimension and the result dimension must equal their dimension product."
+msgstr "Une intégrale consigne f, D et μ et hérite de la structure BindingExpression existante. Une intégrale cadrée peut omettre la dimension de résultat ; dès que hasDimension est fourni, son intégrande et sa mesure doivent chacun porter une dimension, et la dimension du résultat doit égaler leur produit de dimensions."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing expectedEnergy example names energyDensityFn, configSpace and volumeMeasure and declares energyDimension. This illustrates the integration and dimension frame; without an explicit operator, bound declaration and body slots it is not a complete native binder."
+msgstr "L’exemple existant expectedEnergy nomme energyDensityFn, configSpace et volumeMeasure et déclare energyDimension. Il illustre le cadre d’intégration et de dimension ; sans opérateur explicite, déclaration liée et emplacements de corps, ce n’est pas un lieur natif complet."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an actual integral as source structure with separate function, domain and measure roles, preserving whether the source supplies a result dimension and a complete binder AST."
+msgstr "À utiliser pour conserver une intégrale réelle comme structure source avec des rôles distincts de fonction, de domaine et de mesure, en préservant la présence ou l’absence, dans la source, d’une dimension de résultat et d’un AST de lieur complet."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating dimensional agreement as a computed integral value, integrability or convergence proof. The three integration links alone supply no operator, lexical scope or body; equal dimensions do not align units, scales or reference frames."
+msgstr "Éviter de traiter l’accord dimensionnel comme une valeur d’intégrale calculée, une preuve d’intégrabilité ou de convergence. Les trois liens d’intégration seuls ne fournissent ni opérateur, ni portée lexicale, ni corps ; des dimensions égales n’alignent pas les unités, les échelles ou les référentiels."
+
+msgctxt "https://blackcatinformatics.ca/math/Integral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exactly-one integration roles and inherited binder requirements. Native structural lowering needs one actual operator IRI, one boundVariable declaration and nonempty contiguous zero-based argumentSlot bodies. Retain explicit source dimensions where present; numerical integration requires an admitted implementation beyond these checks."
+msgstr "Préserver les rôles d’intégration à valeur unique obligatoire et les exigences héritées du lieur. La traduction structurelle native exige un IRI d’opérateur réel, une déclaration boundVariable et des corps argumentSlot non vides, contigus et indexés à partir de zéro. Conserver les dimensions sources explicites lorsqu’elles existent ; l’intégration numérique exige une implémentation admise au-delà de ces contrôles."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Integration Operator"
+msgstr "Opérateur d’intégration"
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integration operator ∫ · dμ: a binder over the integration variable that a math:Integral applies. A subclass of math:Operation; because it binds the integration variable it is a binding form (a binder in the sense of the mathematical-expression surface this bedrock builds on), which is why an integral is a first-class expression object rather than a display string."
+msgstr "L’opérateur d’intégration ∫ · dμ : un lieur sur la variable d’intégration qu’une math:Integral applique. Sous-classe de math:Operation ; parce qu’il lie la variable d’intégration, c’est une forme de liaison au sens de la surface des expressions mathématiques sur laquelle ce socle s’appuie, ce qui fait de l’intégrale un objet d’expression à part entière plutôt qu’une chaîne d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the class of integration operations, not a distinguished operation individual or an integral application. Binding structure belongs on the expression using the operation. A source operation's identity and classification do not provide its numerical integration algorithm."
+msgstr "C’est la classe des opérations d’intégration, non un individu d’opération distingué ni une application d’intégrale. La structure de liaison appartient à l’expression qui utilise l’opération. L’identité et la classification d’une opération source ne fournissent pas son algorithme d’intégration numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source integration operation can occupy an integral's operator role while the integral separately names its declaration and body. This describes roles, not a complete record; the IntegrationOperator class IRI is not that operation individual."
+msgstr "Une opération d’intégration source peut remplir le rôle operator d’une intégrale tandis que celle-ci nomme séparément sa déclaration et son corps. Cela décrit des rôles, non un enregistrement complet ; l’IRI de classe IntegrationOperator n’est pas cet individu d’opération."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify an actual integration operation supplied by the source, keeping its identity separate from the integral application, measure and bound declaration."
+msgstr "À utiliser pour classer une opération d’intégration réelle fournie par la source, en gardant son identité distincte de l’application d’intégrale, de la mesure et de la déclaration liée."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting this class IRI for a source operation individual, treating an integral glyph as a well-formed binder, or assuming classification registers a numerical integrator."
+msgstr "Éviter de substituer cet IRI de classe à un individu d’opération source, de traiter un glyphe d’intégrale comme un lieur bien formé ou de supposer que la classification enregistre un intégrateur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/IntegrationOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual source operation individual through operator on the binder. Keep withRespectTo for the measure and boundVariable/argumentSlot for lexical structure. The generic native lowerer retains operator identity and checks binder structure; it does not compute the integral."
+msgstr "Référencer l’individu d’opération source réel par operator sur le lieur. Garder withRespectTo pour la mesure et boundVariable/argumentSlot pour la structure lexicale. La traduction native générique conserve l’identité de l’opérateur et vérifie la structure du lieur ; elle ne calcule pas l’intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "integrand"
+msgstr "intégrande"
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:MeasurableFunction a math:Integral integrates — the f in ∫_D f dμ. Domain math:Integral, range math:MeasurableFunction (stated in prose). Every integral names one."
+msgstr "Nomme la math:MeasurableFunction qu’une math:Integral intègre — le f de ∫_D f dμ. Domaine math:Integral, portée math:MeasurableFunction (énoncés en prose). Toute intégrale en nomme une."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the function in the f role, not a numerical result or a complete function definition. The integration role and the binder's indexed body are distinct links; naming a function here does not automatically construct its body slots."
+msgstr "Cela nomme la fonction dans le rôle f, non un résultat numérique ni une définition complète de fonction. Le rôle d’intégration et le corps indexé du lieur sont des liens distincts ; nommer une fonction ici ne construit pas automatiquement les emplacements de son corps."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|http://www.w3.org/2004/02/skos/core#example"
+msgid "An integral can name f through integrand while a body slot names a separate expression representing a use of f. Typing a resource MeasurableFunction alone does not make it an admitted body expression. This illustrates roles only; a complete binder and numerical execution have their own structure and profile requirements."
+msgstr "Une intégrale peut nommer f par integrand tandis qu’un emplacement de corps nomme une expression distincte représentant une utilisation de f. Le seul typage d’une ressource comme MeasurableFunction n’en fait pas une expression de corps admise. Cela illustre seulement les rôles ; un lieur complet et l’exécution numérique ont leurs propres exigences de structure et de profil."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied measurable function being integrated, alongside the separate integrationDomain and withRespectTo roles."
+msgstr "À utiliser pour nommer la fonction mesurable fournie qui est intégrée, aux côtés des rôles distincts integrationDomain et withRespectTo."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling this role with a numeric mass or result value, using it instead of slotExpression, or inferring a function body or successful integration from this edge alone."
+msgstr "Éviter de remplir ce rôle avec une masse numérique ou une valeur de résultat, de l’utiliser à la place de slotExpression ou de déduire un corps de fonction ou une intégration réussie de cette seule arête."
+
+msgctxt "https://blackcatinformatics.ca/math/integrand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve one actual MeasurableFunction target and its own domain and codomain. If the integral declares a result dimension, retain the integrand's required actual hasDimension; do not invent a dimension or copy the result dimension onto f, since the measure also contributes to composition."
+msgstr "Préserver une cible MeasurableFunction réelle et ses propres domaine et codomaine. Si l’intégrale déclare une dimension de résultat, conserver le hasDimension réel exigé de l’intégrande ; ne pas inventer de dimension ni copier celle du résultat sur f, puisque la mesure contribue aussi à la composition."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "integration domain"
+msgstr "domaine d’intégration"
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the domain a math:Integral integrates over — the D in ∫_D f dμ, a math:MeasurableSpace or measurable set. Domain math:Integral, range math:MeasurableSpace or math:Set (stated in prose). Every integral names one."
+msgstr "Nomme le domaine sur lequel une math:Integral intègre — le D de ∫_D f dμ, un math:MeasurableSpace ou un ensemble mesurable. Domaine math:Integral, portée math:MeasurableSpace ou math:Set (énoncés en prose). Toute intégrale en nomme un."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the region D of the integral, distinct from the integrand's full domain, the measure and the bound variable's declared sort. This edge alone establishes no containment, measurability or convergence relationship among those objects."
+msgstr "C’est la région D de l’intégrale, distincte du domaine complet de l’intégrande, de la mesure et de la sorte déclarée de la variable liée. Cette arête seule n’établit aucune relation d’inclusion, de mesurabilité ou de convergence entre ces objets."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing expectedEnergy example uses configSpace as integrationDomain, while energyDensityFn declares configSet as its function domain. These are different roles; any relationship between the space and its underlying set must be retained through its own source links."
+msgstr "L’exemple existant expectedEnergy utilise configSpace comme integrationDomain, tandis que energyDensityFn déclare configSet comme domaine de fonction. Ce sont des rôles différents ; toute relation entre l’espace et son ensemble sous-jacent doit être conservée par ses propres liens sources."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual region or measurable space over which the source integral is taken, separately from the function's domain, the measure and the reference frame."
+msgstr "À utiliser pour conserver la région réelle ou l’espace mesurable sur lequel porte l’intégrale source, séparément du domaine de la fonction, de la mesure et du référentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this link as a variable-binding declaration, measure target, automatic subset proof or numerical integration limit inferred from a label."
+msgstr "Éviter d’utiliser ce lien comme déclaration de liaison de variable, cible de mesure, preuve automatique de sous-ensemble ou borne numérique d’intégration déduite d’une étiquette."
+
+msgctxt "https://blackcatinformatics.ca/math/integrationDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual source D alongside integrand and withRespectTo, preserving the exactly-one domain role. Retain measurable-space, set and containment evidence on their existing surfaces. The current Integral all-values restriction here is Thing; this guidance adds no narrower type constraint or inferred binding sort."
+msgstr "Nommer le D source réel avec integrand et withRespectTo, en préservant le rôle de domaine à valeur unique obligatoire. Conserver les éléments probants d’espace mesurable, d’ensemble et d’inclusion sur leurs surfaces existantes. La restriction allValuesFrom actuelle de Integral sur ce lien est Thing ; ces indications n’ajoutent ni contrainte de type plus étroite ni sorte de liaison déduite."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "with respect to"
+msgstr "par rapport à"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:Measure a math:Integral integrates against — the μ in ∫_D f dμ. Domain math:Integral, range math:Measure (stated in prose). Every integral names exactly one; it is the single measure property of an integral (an expectation integrates against a probability measure). The homogeneity gate combines the integrand's dimension with this measure's to check the integral's declared result dimension."
+msgstr "Nomme la math:Measure par rapport à laquelle une math:Integral intègre — le μ de ∫_D f dμ. Domaine math:Integral, portée math:Measure (énoncés en prose). Toute intégrale en nomme exactement une ; c’est l’unique propriété de mesure d’une intégrale (une espérance intègre par rapport à une mesure de probabilité). Le contrôle d’homogénéité combine la dimension de l’intégrande à celle de cette mesure pour vérifier la dimension de résultat déclarée de l’intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The chosen measure μ is part of the integral's meaning and contributes its own dimension to dimensional composition. Measures with equal dimensions can still assign different masses; this relation performs no normalization or change of measure."
+msgstr "La mesure μ choisie fait partie du sens de l’intégrale et contribue sa propre dimension à la composition dimensionnelle. Des mesures de dimensions égales peuvent encore attribuer des masses différentes ; cette relation n’effectue ni normalisation ni changement de mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the existing examples, volumeMeasure carries volumeDimension while uniformProbability carries dimensionless. Integrating the same function against those different measures would change the measure role; the function alone establishes no equality of the resulting integrals."
+msgstr "Dans les exemples existants, volumeMeasure porte volumeDimension tandis que uniformProbability porte dimensionless. Intégrer la même fonction par rapport à ces mesures différentes changerait le rôle de mesure ; la fonction seule n’établit aucune égalité entre les intégrales obtenues."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual source measure μ of an integral, including a probability measure for an expectation, while retaining the measure's identity, declared space and total mass on their own records."
+msgstr "À utiliser pour la mesure μ source réelle d’une intégrale, notamment une mesure de probabilité pour une espérance, en conservant l’identité de la mesure, son espace déclaré et sa masse totale sur leurs propres enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a second measure property, replacing μ with its numeric totalMass or measureResult, or swapping measures because their labels or dimension vectors agree."
+msgstr "Éviter d’ajouter une seconde propriété de mesure, de remplacer μ par son totalMass ou measureResult numérique, ou d’échanger des mesures parce que leurs étiquettes ou vecteurs de dimension concordent."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain one Measure target. If the integral carries a result hasDimension, this measure must carry hasDimension for the product check. Keep withRespectTo distinct from measureOn and evaluatedMeasure; this edge supplies no implicit conversion, normalization or numerical integration."
+msgstr "Conserver une cible Measure. Si l’intégrale porte un hasDimension de résultat, cette mesure doit porter hasDimension pour le contrôle de produit. Garder withRespectTo distinct de measureOn et evaluatedMeasure ; cette arête ne fournit ni conversion implicite, ni normalisation, ni intégration numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimensional Expression"
+msgstr "Expression dimensionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An expression whose operands must be dimensionally homogeneous — an addition, a subtraction, an equation, or a comparison, where every operand must share one dimension. Names its operands through math:homogeneousOperand (at least two — dimensional homogeneity is vacuous for zero or one operand, math:MalformedDimension). The homogeneity gate collects the dimensions of the operands and raises math:DimensionalInhomogeneity if they are not all equal. This is the first-class carrier of the homogeneity invariant; the existing expression grammar uses concrete expression forms and indexed argument slots, which these homogeneity links alone do not supply."
+msgstr "Une expression dont les opérandes doivent être dimensionnellement homogènes — une addition, une soustraction, une équation ou une comparaison où tous les opérandes doivent partager une dimension. Elle nomme ses opérandes par math:homogeneousOperand (au moins deux — l’homogénéité dimensionnelle est triviale pour zéro ou un opérande, math:MalformedDimension). Le contrôle d’homogénéité recueille les dimensions des opérandes et signale math:DimensionalInhomogeneity si elles ne sont pas toutes égales. C’est le porteur de l’invariant d’homogénéité à part entière ; la grammaire d’expression existante utilise des formes d’expression concrètes et des emplacements d’argument indexés, que ces seuls liens d’homogénéité ne fournissent pas."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This carries a dimensional obligation over operand targets, not an executable arithmetic application. Each target needs a dimension even when it is not a Quantity. The law compares operand dimensions with one another, not with the expression's own declared result dimension."
+msgstr "Cela porte une obligation dimensionnelle sur les cibles d’opérandes, non une application arithmétique exécutable. Chaque cible doit porter une dimension même lorsqu’elle n’est pas une Quantity. La loi compare les dimensions des opérandes entre elles, non avec la dimension de résultat déclarée de l’expression elle-même."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing totalEnergy example has two distinct homogeneousOperand targets, restEnergy and kineticEnergy. It illustrates dimensional agreement; it supplies no complete operator/slot AST and computes no sum."
+msgstr "L’exemple existant totalEnergy possède deux cibles homogeneousOperand distinctes, restEnergy et kineticEnergy. Il illustre l’accord dimensionnel ; il ne fournit pas d’AST opérateur/emplacements complet et ne calcule aucune somme."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state dimensional agreement among actual summands, equation sides or comparison terms, while retaining their source quantity kinds and reference frames."
+msgstr "À utiliser pour exprimer l’accord dimensionnel entre des termes réels d’une somme, les membres d’une équation ou les termes d’une comparaison, en conservant leurs natures de grandeur et référentiels sources."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this carrier as a numerical result or assuming agreement aligns units, scales and frames. Class typing and homogeneous links do not select a numeric runtime profile, and an unresolved native comparison is no proof of agreement."
+msgstr "Éviter d’utiliser ce porteur comme résultat numérique ou de supposer que l’accord aligne unités, échelles et référentiels. Le typage de classe et les liens d’homogénéité ne sélectionnent pas de profil d’exécution numérique, et une comparaison native non résolue ne prouve pas l’accord."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain at least two distinct dimensioned targets and preserve the actual expression AST separately. Missing dimensions remain validation obligations; resolvable unequal vectors produce dimensional inhomogeneity. Failure to resolve a native dimension leaves the comparison unresolved, so absence of a violation is not complete admission."
+msgstr "Conserver au moins deux cibles dimensionnées distinctes et préserver séparément l’AST réel de l’expression. Les dimensions manquantes restent des obligations de validation ; des vecteurs inégaux résolus produisent une inhomogénéité dimensionnelle. L’impossibilité de résoudre une dimension native laisse la comparaison non résolue ; l’absence de violation n’est donc pas une admission complète."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "homogeneous operand"
+msgstr "opérande homogène"
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DimensionalExpression to one of the operands whose dimensions must agree with one another — a summand of an addition, a side of an equation, a term of a comparison. Domain math:DimensionalExpression, range a dimensioned object (a math:Quantity or another dimensioned expression) (stated in prose). An expression carries at least two; the homogeneity gate raises math:DimensionalInhomogeneity when their dimensions are not all equal."
+msgstr "Relie une math:DimensionalExpression à l’un des opérandes dont les dimensions doivent concorder entre elles — un terme d’une addition, un membre d’une équation, un terme d’une comparaison. Domaine math:DimensionalExpression, portée un objet dimensionné (une math:Quantity ou une autre expression dimensionnée) (énoncés en prose). Une expression en porte au moins deux ; le contrôle d’homogénéité signale math:DimensionalInhomogeneity lorsque leurs dimensions ne sont pas toutes égales."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an unordered relation to distinct operand targets, not a sequence of positions or occurrences. Repeating one RDF edge adds no target. Indexed argument slots carry order and multiplicity separately; the dimensional law concerns the target dimensions rather than the expression's own result dimension."
+msgstr "C’est une relation non ordonnée vers des cibles d’opérandes distinctes, non une séquence de positions ou d’occurrences. Répéter une arête RDF n’ajoute aucune cible. Les emplacements d’argument indexés portent séparément l’ordre et la multiplicité ; la loi dimensionnelle concerne les dimensions des cibles plutôt que la dimension de résultat propre de l’expression."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two indexed argument slots may reference one quantity twice, but repeating its homogeneousOperand triple still gives only one distinct target. This partial illustration does not meet this class's requirement for at least two targets."
+msgstr "Deux emplacements d’argument indexés peuvent référencer deux fois une même grandeur, mais répéter son triplet homogeneousOperand ne donne toujours qu’une cible distincte. Cette illustration partielle ne satisfait pas l’obligation d’au moins deux cibles de cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect an actual object participating in the dimensional-agreement requirement, keeping the separate AST slots for operand positions and repetitions."
+msgstr "À utiliser pour relier un objet réel participant à l’exigence d’accord dimensionnel, en gardant les emplacements AST distincts pour les positions et répétitions des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading relation order as operand order, manufacturing duplicate edges to satisfy the target count, or copying Quantity's exactly-one dimension rule onto every target class. Equal exponent vectors do not identify source resources."
+msgstr "Éviter de lire l’ordre de la relation comme celui des opérandes, de fabriquer des arêtes dupliquées pour satisfaire le nombre de cibles ou de copier la règle de dimension unique de Quantity sur toutes les classes cibles. Des vecteurs d’exposants égaux n’identifient pas les ressources sources."
+
+msgctxt "https://blackcatinformatics.ca/math/homogeneousOperand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain at least two distinct targets on a DimensionalExpression and each actual hasDimension, including non-Quantity targets reached by the dimension-presence constraint. Keep source typing and cardinalities unchanged. The native law compares vectors; it neither validates every source structure nor compares the expression's result dimension with its operands."
+msgstr "Conserver au moins deux cibles distinctes sur une DimensionalExpression et chaque hasDimension réel, y compris pour les cibles non Quantity atteintes par la contrainte de présence de dimension. Garder inchangés les typages et cardinalités sources. La loi native compare les vecteurs ; elle ne valide pas toutes les structures sources et ne compare pas la dimension de résultat de l’expression à ses opérandes."
