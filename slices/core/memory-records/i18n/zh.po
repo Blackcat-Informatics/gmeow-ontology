@@ -1104,3 +1104,87 @@ msgstr "报告内在违例时保留原始记录及证据；不得编造缺失输
 msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain this governing law: gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
 msgstr "保留此法则：gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark class"
+msgstr "轨迹标记类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for a curator’s trace-retention classification of an Annotation."
+msgstr "一个开放的性质值词汇表，用于整理者为保留轨迹而对 Annotation 作出的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Members are classification values, not EventTypes, event occurrences, confidence levels or a closed taxonomy. A classification belongs to the annotation and does not assert the target’s content or a globally preferred importance rank."
+msgstr "成员是分类值，不是 EventType、事件发生实例、置信等级或封闭分类体系。分类属于注解，不断言目标内容，也不确定全局优先的重要性等级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator supplies a trace-retention category on an actual annotation while retaining its source target, motivation and attribution."
+msgstr "整理者在实际注解上提供轨迹保留类别，同时保留来源目标、动机及归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to type actual curator-supplied categories for trace-retention annotations."
+msgstr "用于为整理者实际提供的轨迹保留注解类别声明类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning local category names into a universal enumeration, EventType subclasses, confidence or proof that an event occurred or traces were retained."
+msgstr "避免将本地类别名称变成通用枚举、EventType 子类、置信值，或事件已发生及轨迹已被保留的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type an actual classification value as TraceMarkClass and attach it through traceMarkClass to the actual Annotation. Preserve its target, motivation, curator attribution and source-specific meaning; mint additional values without imposing a preferred category."
+msgstr "将实际分类值声明为 TraceMarkClass，并通过 traceMarkClass 关联到实际 Annotation。保留其目标、动机、整理者归属及来源特定含义；可增设其他值，但不强加优先类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark class"
+msgstr "轨迹标记类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The curator-supplied trace-retention classification of this Annotation."
+msgstr "整理者为保留轨迹而给此 Annotation 提供的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role permits coexisting attributed classifications. It does not require a category on every Annotation, identify the target with an Event or replace the existing target and motivation obligations."
+msgstr "此可选且不具函数性的关系允许带归属的分类并存。它不要求每个 Annotation 都有类别，不将目标等同于 Event，也不替代现有的目标及动机义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual source annotation retains the curator’s supplied category without inventing a missing annotation target or motivation."
+msgstr "实际来源注解保留整理者提供的类别，不编造缺失的注解目标或动机。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a curator explicitly classifies an actual annotation for trace retention."
+msgstr "当整理者明确为轨迹保留而对实际注解分类时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a category, event occurrence, successful trace join, finality, retention or permission to delete from an annotation or its absence."
+msgstr "避免从注解或注解缺失推断类别、事件发生、成功的轨迹关联、终局性、保留状态或删除许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied TraceMarkClass value and preserve the Annotation’s actual target, motivation, curator and standpoint. Do not select a default motivation, manufacture a body or use an Observation vantage to type the annotation."
+msgstr "仅关联实际提供的 TraceMarkClass 值，并保留 Annotation 的实际目标、动机、整理者及立场。不要选择默认动机、编造正文，或使用 Observation 的 vantage 关系来确定注解类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "high-friction correction trace class"
+msgstr "高摩擦纠正轨迹类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A curator’s trace-retention classification of a teller’s reading that one act, using the same tool and arguments, was tried again in an episode after an earlier attempt did not succeed."
+msgstr "整理者为保留轨迹而对讲述者的一项读数作出的分类：读数认为，同一行为在先前一次尝试未成功后，在一个片段中使用相同工具及参数再次被尝试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies the teller’s reading. It does not assert the underlying event, tool or argument equality, retry execution, truth, curator endorsement, an EventType or a confidence value."
+msgstr "此值对讲述者的读数分类。它不断言底层事件、工具或参数相等、重试执行、真实性或整理者认可，也不是 EventType 或置信值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator classifies an annotation of a teller’s reported retry reading while leaving its actual attempt identities, evidence and interpretation on the source reading."
+msgstr "整理者对讲述者所报告的重试读数的注解分类，实际尝试身份、证据及解释仍保留在来源读数中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the curator actually supplies this trace-retention classification for the teller’s reading of an earlier unsuccessful attempt and a later retry of the same tool and arguments in an episode."
+msgstr "仅当整理者实际提供此轨迹保留分类，用于讲述者关于先前尝试未成功、随后在一个片段中以相同工具及参数重试的读数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the classification from repeated labels, matching argument spellings, missing success evidence or a bare failed event, or treating it as proof that the reading or correction occurred."
+msgstr "避免根据重复标签、相同的参数拼写、缺失的成功证据或单独的失败事件推导此分类，也不要将其视为读数或纠正已发生的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this actual TraceMarkClass value through traceMarkClass on the source-backed Annotation. Retain the actual target, motivation, curator and teller attribution; keep the reading’s attempt, episode, tool, argument and outcome evidence without asserting it from the category alone."
+msgstr "在有来源依据的 Annotation 上通过 traceMarkClass 引用此实际 TraceMarkClass 值。保留实际目标、动机、整理者及讲述者归属；保留读数的尝试、片段、工具、参数及结果证据，不从类别本身断言这些内容。"

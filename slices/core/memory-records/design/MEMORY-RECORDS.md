@@ -52,3 +52,34 @@ These are semantic reuse claims, not asserted exact equivalences to an external
 memory or review vocabulary. The canonical observation, audience, provenance,
 source, event and coreference owners supply meaningful grounding without erasing
 their distinctions (Principles 4, 5, 9, 11, 17 and 19).
+
+## Trace-retention classification axis
+
+MemoryRecords owns the retention-domain classification vocabulary and consumes
+the Notes owner’s actual Annotation carrier. `TraceMarkClass` specializes
+`logic:QualityValue`; its open members classify annotations rather than events
+or source content. The optional, nonfunctional `traceMarkClass` role names
+actual supplied values on an Annotation, without a preferred category or a
+closed local taxonomy (Principles 4 and 9).
+
+The single property-global closure validates supplied Annotation subjects and
+TraceMarkClass values. No class-local requiredness, cardinality, functionality,
+Constraint, generic annotation Kind or partially specified mark class is added.
+Existing Annotation target and motivation obligations remain intact. The actual
+curator and standpoint use existing provenance rather than an Observation
+vantage; no target, motivation or body is manufactured to satisfy a parent
+contract. The direct Notes dependency reflects this real formal reuse.
+
+The high-friction correction value classifies a teller’s reading of an earlier
+unsuccessful attempt followed by another attempt of the same tool and arguments
+in an episode. It supplies no formal class or event type for that reading and
+no rule that derives attempts, equality, chronology, truth or endorsement from
+the value. Evidence and attribution remain on the actual source reading and
+annotation. The category neither carries confidence nor executes retention.
+
+The classification foundation is separate from packet identity and trace
+finality. Existing record identifiers and ordinals do not supply a packet’s
+digest algorithm, preimage or comparator. A finalized committed journal head,
+distributed-ledger settlement and a trace watermark below a continuing packet
+order are different contracts. No alias, generic protocol carrier or finality
+claim is introduced by these classification terms (Principles 5, 11, 17 and 19).
