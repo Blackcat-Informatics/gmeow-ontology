@@ -59,3 +59,36 @@ these source declarations alone do not establish an executable round trip.
 Existing ordinary scenes, authored fixture assertions and their current
 conformance assertions use the resource-valued model directly. No parallel
 carrier string property or compatibility path is retained.
+
+## Source artifact coverage
+
+The documentary source-file-type role reuses `mediaType`; it introduces no
+parallel carrier string property, class or identity scheme. The existing Entity
+domain admits the actual source InformationObject reached through a documentary
+object's `sourceLocus`, its EvidenceSpan and that span's `locusSource`. The
+[owning guide](../docs.md#source-artifact-file-type) makes this route explicit
+(Principles 4, 7, 11 and 17).
+
+An independently supplied source format is asserted on the source artifact.
+A converted held artifact and an original source retain their respective supplied
+media identities. The route supplies no format for the derived block, span or
+abstract work. Optional locus/source relations and the existing at-most-one
+media identity remain unchanged. Missing identity remains absent; a filename,
+href, extension or extractor code supplies no artifact, revision or default.
+`mediaTypeName` remains optional and parameter-free on the MediaType value,
+with its existing literal preservation rules.
+
+Raw extension text, full headers and extractor codes are source-record evidence,
+kept separately from format identity. Existing RecordMetadata facets and
+structured carriers admit actually supplied run-time keys, literal terms,
+structure, repeated keys and explicit null under their existing contracts.
+They authorize no invented key or inferred mapping. Preserve actual source
+association and attribution where supplied; do not invent either. A raw code
+alone establishes no MIME identity. `originalMediaTypeText` continues to mean
+reported pre-reencoding history on the stored MediaObject only.
+
+This settles vocabulary coverage without choosing an unknown private encoding.
+Any local-field mapping or migration must establish its actual artifact and
+value meanings independently. No parser, normalization, parameter extraction,
+registry lookup, importer, byte verification or migration acceptance follows from
+these source declarations. No numeric, region, figure or EPUB model is changed.

@@ -1325,3 +1325,130 @@ There is no fixed-width/case lexical Constraint, complete-receipt profile,
 modelRevision generalization, wrapper, hash producer, verification routine,
 receipt lookup or runtime executor. Existing classifier records and invocation
 provenance remain intact (Principles 2, 4, 7, 9, 12, 17 and 19).
+
+## Extraction reclassification readings
+
+`ExtractionReclassificationReading` is a `Refinement` about one actual
+`ContentBlock`. It retains the extraction pass's actual prior
+`ContentSegmentType` through `reclassifiedFrom` and its actual supplied resulting
+kind through existing `observationResult`. These are kind individuals, not
+subclasses or labels resolved by matching text. No law requires the identifiers
+to differ: the record retains the source's reading rather than certifying that
+a change occurred.
+
+Each coherent reading requires exactly one block, prior kind, resulting kind
+and actual `ObservationMethod`. It also requires at least one supplied `vantage`
+and actual source record through `wasDerivedFrom`. HOW remains separate from
+the actual named, versioned process or standpoint context. Preserve genuine
+joint vantages and all real source derivations; neither has a maximum. The
+block itself can also be the source only when actually supplied in that role.
+No `InformationObject`, model run, model revision, invocation, agent or recording
+time is invented merely to populate context.
+
+The reading is distinct from the block's structural `segmentType`. It does not
+overwrite that functional property, choose a current global kind, invalidate an
+older reading or merge competing readings. Keep actual source revisions and
+process contexts distinguishable. Attribute each exact source assertion
+separately; metadata on a reading does not automatically authenticate or
+attribute every constituent statement.
+
+`refinementOutcome` is optional and retains all explicitly supplied existing
+outcomes without a new maximum. A supplied resulting kind does not establish
+resolved versus best-guess support, and missing outcome is not unresolved.
+Unselected alternatives remain `refinementCandidate`, distinct from selected
+`observationResult`. No qualitative or numeric confidence default is created.
+
+`readingScope` is optional, locally at most one actual
+[ReadingScope](../refinement-readings/docs.md) for the coherent reading. Its
+existing required `scopeChronology` retains exactly one actual `TemporalFrame`;
+do not invent UTC or an ordering merely to provide a scope. Offered scope
+records remain distinct from actual derivation sources and do not prove
+consumption or completeness of the surrounding store. Different actual scopes
+or pass versions retain separate readings.
+
+`reclassificationPassConfidence` is an optional object role to the existing
+[Math Quantity](../../grounding/math/docs.md), locally at most one per reading.
+Retain each original valid finite RDF numeric literal on `math:quantityValue`,
+with its datatype and lexical form unchanged. Equal numeric lexical aliases
+may coexist. No source datatype is guessed: this new role does not copy the
+existing expression-finding decimal field or `classifierScore` contract.
+A valid finite zero, negative value or value above one stays intact; absence
+is not zero, and malformed or nonfinite selected input fails without substitution.
+
+The score's actual declared mathematical dimension is mandatory under
+Quantity's existing dimension presence/type/uniqueness laws. Reuse that authority;
+do not duplicate it or infer `math:dimensionless`. Its one actual complete
+[ReferenceFrame](../places/docs.md) must support the pass-specific score
+interpretation. Labels such as confidence establish no probability, bounds,
+normalization, calibration, rank, decision threshold or confidence conversion.
+Generic provenance `confidence` remains a bounded statement annotation and is
+not a raw score. These roles establish no certainty about the block's kind.
+
+The score constraint has six independent positive magnitude/frame guards:
+magnitude presence, finite numeric validity, numeric-value equality and frame
+presence/type/uniqueness. It introduces no datatype-component restriction,
+dimensional law or new native mechanism. Existing frame profiles remain
+authoritative; structure alone cannot authenticate the source's interpretation.
+
+A raw label without a resolved kind identity remains in its source record;
+a raw confidence lacking actual dimension/frame interpretation remains
+explicitly incomplete for this selected normalized role. Preserve the original
+source evidence rather than minting kinds, inventing frames, clamping a score,
+silently dropping selected data or claiming complete normalization. No adapter,
+classifier executor, chronology computation or source adoption is implemented
+by this vocabulary (Principles 4, 9, 11, 17 and 19).
+
+## OCR source-image digest evidence
+
+`ocrSourceImageDigest` retains the source-supplied digest of the exact identified
+image byte representation from which an actual `ContentBlock`'s text was read
+by OCR. This is an attributed source interpretation. The property is optional
+and nonfunctional: several algorithms and source claims can coexist. No digest
+is required on every block, and no value per algorithm is selected as a winner
+(Principles 2, 4 and 9).
+
+Preserve the complete supplied `blake3_256Digest`, `sha256Digest` or `md5Digest`
+literal. The first two have exactly sixty-four bare lowercase hexadecimal
+digits; MD5 has thirty-two. Algorithm identity is part of the datatype, so equal
+hexadecimal spelling under different algorithms remains different evidence.
+The existing [Math digest contracts](../../grounding/math/docs.md#algorithm-tagged-digest-literals)
+fix plain unkeyed default-length BLAKE3, SHA-256 and MD5. They do not admit
+keyed BLAKE3, other output lengths, HMAC, perceptual hashes or scheme identifiers
+as substitutes. MD5 admission makes no cryptographic security claim.
+
+For the selected assertion, the source must establish the actual block/OCR-input
+relation and identify the algorithm construction and exact byte preimage.
+Retain that evidence with the exact statement's source and viewpoint. An
+original encoded image file, a transformed or cropped image file and a
+serialized pixel buffer have different byte meanings. A pixel digest requires
+its actual byte serialization; an image label supplies no layout, channel order,
+stride, bit depth, colour model, endianness or encoding. No decoder, image
+canonicalizer or default pixel representation is implied.
+
+The digest is about the OCR source representation, so this property does not
+specialize [Sources' contentDigest](../sources/docs.md#gmeowcontentdigest).
+A `contentDigest` on the block would identify the block's own byte preimage.
+No image resource is created from this literal. If an actual image artifact
+identity is independently supplied, preserve it separately and put its own
+`contentDigest` only on the artifact whose bytes it identifies. A concrete
+stored image file may be a Documents `MediaObject`; decoded pixels do not
+establish such a file. Keep any actual derivation separately through
+`wasDerivedFrom`. The literal role does not pair several image resources and
+digests, resolve a location or establish image identity.
+
+`OcrSourceImageDigestValueConstraint` selects every actual
+`ocrSourceImageDigest` statement and requires one complete algorithm-datatype
+and hexadecimal-width branch. A property-global supplied-value closure also
+checks ContentBlock/range endpoints. These checks do not require a value on an
+unrelated block. They compute no hash and verify no source content, byte
+preimage, OCR execution or digest agreement. The canonical Formula and generated
+validation view retain their own projection limits (Principles 17 and 19).
+
+An importer selecting this relation must fail when its required algorithm,
+construction, OCR-input evidence, identified byte preimage or literal contract
+is missing or invalid. Those actual source-content obligations are not proved
+by the datatype/lexical law. Do not infer an algorithm from width, normalize
+spelling, retype historical literals, fabricate missing evidence or publish a
+weaker string on this property. Preserve original raw source material under its
+actual meaning without treating it as an admitted OCR digest. The
+[design contract](design/OCR-SOURCE.md) states these boundaries together.

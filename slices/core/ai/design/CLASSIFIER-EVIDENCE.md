@@ -228,3 +228,57 @@ applicability, segmentation execution or historical bytes. A source integer
 without its counting convention does not qualify this actual count. The
 vocabulary can describe fully specified supplied counts without requiring
 consumer adoption, inventing missing context or claiming runtime qualification.
+
+## Extraction reclassification is a separate process reading
+
+ExtractionReclassificationReading specializes the existing Refinement spine,
+distinct from its actual ContentBlock and any ClassifierOutput execution
+evidence. reclassifiedFrom retains an actual prior ContentSegmentType identity
+on the reading; observationResult retains the actual supplied resulting kind.
+No kind identity is inferred from a label, current segmentType, matching text or
+stage name. The source reading does not prove the identifiers differ, overwrite
+structural kind or choose a current global winner.
+
+One coherent record requires exactly one actual block, prior kind, resulting
+kind and observation method, with at least one real derivation source and
+supplied vantage. Genuine joint vantages and multiple sources remain allowed.
+The named versioned process/standpoint context, actual source and HOW have
+separate identities; source support does not invent an InformationObject,
+Agent, model invocation, ModelInferenceRun, revision or clock value.
+
+Existing refinement outcomes remain optional, supplied-only and nonfunctional;
+the result kind establishes no resolved/best-guess default. The optional
+ReadingScope retains its existing complete scopeChronology contract and local
+maximum one, without a manufactured temporal frame. Offered input scope is
+neither actual consumption nor store completeness. The direct RefinementReadings
+dependency names this actual reused owner rather than copying an input model.
+
+The new raw pass-confidence role uses existing math:Quantity instead of copying
+scalar debt from the older expression-finding confidence. Every original finite
+numeric literal remains intact, with no guessed source datatype, unit interval,
+calibration or probability semantics. Numeric lexical aliases can coexist with
+one value. Exact dimension presence/type/uniqueness remain inherited from Math
+Quantity; actual dimension and complete score-frame applicability must be
+justified by source interpretation, never defaulted to dimensionless.
+
+The score Formula has one outer reading type guard and six independent
+positively guarded arms: magnitude presence, finite validity, numeric equality,
+frame presence, frame type and frame uniqueness. Every binder is fresh and
+both existential bodies are atomic. No termSameComponent or duplicate dimension
+arm is present. Ordinary negative projection keeps each arm's positive score
+relation, so the outer violation conjunction has independently scoped UNION
+arms rather than an unsupported positive universal fallback.
+
+Direct all-values restrictions, class-local required-path closure and qualified
+maxima express the reading's source contract. Only the two new roles gain
+property-global supplied-endpoint closure. Existing generic observation/result/
+method/provenance properties are not globally narrowed, and no old classifier,
+model, raw decimal confidence, kind or frame law is changed. Outcome and scope
+absence stay valid without inventing missing data or chronology.
+
+The selected surface is canonical logic with generated validation, not a new
+classifier or native failure-marker lane. No source-adapter migration, literal
+retyping, confidence normalization, kind-history reconstruction, model execution,
+global winner or source authentication follows. Unknown raw source values and
+unperformed operations retain their actual limits (Principles 4, 7, 9, 11,
+17 and 19).
