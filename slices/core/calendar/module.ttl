@@ -1114,3 +1114,19 @@ gmeow:timeZoneIanaIdFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeZoneIanaId and nothing else. It is not a definition of gmeow:timeZoneIanaId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:timeZoneIanaIdFunctionality logic:characterizes gmeow:timeZoneIanaId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:positionTimeZone
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "position time zone"@x-gmeow-english ;
+    skos:definition "Relates a civil-time ReferencePosition to the actual TimeZone used to interpret local civil time at that position."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional link does not identify ReferencePosition with TimeZone or require a zone on every position. Noncivil positions may have no link; each supplied zone remains subject to the existing TimeZone identifier contract."@x-gmeow-english ;
+    skos:example "A supplied civil reference position links to the source’s TimeZone resource, which retains its declared IANA identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly associates a civil reference position with an actual IANA-identified time zone."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the zone from a matching label or fixed numeric offset, inventing a missing identifier, or claiming daylight-saving expansion from this link alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual ReferencePosition to the actual TimeZone and retain exactly one supplied timeZoneIanaId as xsd:string or xsd:token under the existing Calendar constraints. Preserve the literal; registry lookup, daylight-saving expansion and civil-time conversion require their own actual inputs and computation."@x-gmeow-english ;
+    logic:domain gmeow:ReferencePosition ;
+    logic:range gmeow:TimeZone .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/positionTimeZone" ; logic:closureValue logic:ClosedWorldClosure ] .
