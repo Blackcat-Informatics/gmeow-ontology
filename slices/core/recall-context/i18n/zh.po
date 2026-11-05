@@ -2508,3 +2508,63 @@ msgstr "解读不是话语本身，也不是持有方自身状态。请求不执
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2004/02/skos/core#example"
 msgid "An actual refiner’s tone reading remains attributed separately from the addressed words and speaker."
 msgstr "实际细化过程的语气解读与被致以话语及说话者分别保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "held document served without search"
+msgstr "未搜索即提供已持有文档"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported answer that serves a document the memory system already holds without searching recall records."
+msgstr "来源报告的一种回答：提供记忆系统已持有的文档，而不搜索回忆记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual source evidence records document service without a recall-record search."
+msgstr "当实际来源依据记录了未搜索回忆记录即提供文档的情况时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this outcome for failed document acquisition, complete empty search or search that returned records."
+msgstr "避免将此结果用于文档获取失败、完整但无结果的搜索，或返回了记录的搜索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through recallOutcome on the actual RecallAnswer and retain its question, asker and document-service evidence. Keep recallComplete truthfully false-valued for search completeness, independently of delivery or shortfall status."
+msgstr "通过实际 RecallAnswer 上的 recallOutcome 选择此值，并保留其问题、提问者及文档提供依据。针对搜索完整性，如实将 recallComplete 声明为假值，独立于交付状态或缺失情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Successful document service is not complete search. Direct document acquisition may read storage; this value implies no content truth, access permission or consumer adoption."
+msgstr "成功提供文档不等于完成搜索。直接获取文档可以读取存储；此值不意味着内容真实、访问许可或使用方已采纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#example"
+msgid "An answer supplies a held guide for a cue naming it without performing a recall-record search."
+msgstr "回答针对指名某指南的提示提供已持有的该指南，而不执行回忆记录搜索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "served-document search-completeness constraint"
+msgstr "文档提供结果的搜索完整性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."
+msgstr "提供文档的回答上，每个已提供 recallComplete 标志都在值上等于假。现有 RecallAnswer 契约要求提供布尔值；假描述搜索完整性，而非文档提供失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the actual search-completeness values of an answer reporting document service without search."
+msgstr "用于检查报告了未搜索即提供文档的回答上的实际搜索完整性值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching a stored triple by the spelling of a false literal, rewriting source literals or treating delivery completeness as search completeness."
+msgstr "避免按假值字面量的写法匹配存储三元组、改写来源字面量，或将交付完整性视为搜索完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual answer and each supplied boolean through the outcome/completeness guard; compare the flag by termEqual to typed false, retaining legal false lexical forms unchanged."
+msgstr "通过结果及完整性守卫绑定实际回答和每个已提供布尔值；使用 termEqual 将标志与有类型的假值比较，原样保留合法的假值词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing datatype, presence and local maximum remain unchanged. The law adds no returned-count rule, search flag or delivery validator and certifies no producer adoption."
+msgstr "现有数据类型、存在要求及局部数量上限保持不变。该定律不新增返回数量规则、搜索标志或交付验证器，也不认证生产方已采纳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A false boolean written as zero keeps its source spelling under value comparison; a true-valued flag violates this law."
+msgstr "以零书写的假布尔值在值比较下保留来源写法；真值标志违反该定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."
+msgstr "提供文档的回答上，每个已提供 recallComplete 标志都在值上等于假。现有 RecallAnswer 契约要求提供布尔值；假描述搜索完整性，而非文档提供失败。"

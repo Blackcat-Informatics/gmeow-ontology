@@ -138,9 +138,35 @@ The outcome and completeness fields keep these reports distinct:
 | `recallOutcomeEmptyComplete` | Declared scope searched completely, no returned records | True |
 | `recallOutcomeDeadline` | Deadline interrupted the search | False |
 | `recallOutcomePartial` | Some declared scope was not searched | False |
+| `recallOutcomeServed` | Held document served without recall-record search | False for search completeness |
 
 A complete empty result does not prove absence outside its scope. An incomplete
 answer can retain useful selected records. No outcome asserts their truth.
+
+`recallOutcomeServed` reports service of a document already held by the memory
+system without recall-record search. Directly locating and acquiring the named
+document may read storage metadata and content; the outcome does not claim that
+no I/O or underlying query occurred. It is neither a complete empty search nor
+a search returning recollections, and failed document acquisition is not a
+served answer.
+
+For this no-search service, `recallComplete` is false-valued because it retains
+its existing search-completeness meaning. False does not say that the document
+service failed or that the held document is incomplete. Delivery success or
+transport completeness based on no shortfalls is a separate report.
+
+The canonical served constraint binds every actual supplied completeness flag
+and compares its value with typed false. A legal false boolean written as zero
+retains its original lexical form. Existing RecallAnswer datatype, required
+presence and local maximum remain unchanged; the new law does not relax them.
+It adds no search flag or universal returned-membership count. Preserve actual
+document-service and source evidence without inventing selected records.
+
+A producer that maps successful delivery to true search completeness violates
+this contract. Diagnose that mapping rather than rewriting source literals
+merely to pass validation. The source vocabulary does not repair or qualify
+that producer, execute document service, prove content truth or grant access.
+The served RecallAnswer can still be judged by its asker's ordinary verdict.
 
 A `RecallVerdict` is a separate information object: `verdictOn` identifies the
 particular answer, `wasAttributedTo` identifies the same agent as its

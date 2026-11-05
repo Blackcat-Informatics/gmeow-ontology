@@ -2508,3 +2508,63 @@ msgstr "Une lecture n’est ni les mots ni l’état propre du détenteur. La de
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeHolderAddressedToneReading|http://www.w3.org/2004/02/skos/core#example"
 msgid "An actual refiner’s tone reading remains attributed separately from the addressed words and speaker."
 msgstr "La lecture du ton par un processus réel de raffinement conserve une attribution séparée des mots adressés et du locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "held document served without search"
+msgstr "document détenu servi sans recherche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported answer that serves a document the memory system already holds without searching recall records."
+msgstr "Une réponse rapportée par la source qui sert un document déjà détenu par le système de mémoire sans rechercher de dossiers de rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual source evidence records document service without a recall-record search."
+msgstr "Utiliser lorsque des éléments sources réels attestent le service d’un document sans recherche de dossiers de rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this outcome for failed document acquisition, complete empty search or search that returned records."
+msgstr "Éviter d’utiliser ce résultat pour une acquisition de document échouée, une recherche complète vide ou une recherche ayant retourné des dossiers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select through recallOutcome on the actual RecallAnswer and retain its question, asker and document-service evidence. Keep recallComplete truthfully false-valued for search completeness, independently of delivery or shortfall status."
+msgstr "Sélectionner par recallOutcome sur la RecallAnswer réelle et conserver sa question, son demandeur et les éléments de service du document. Garder recallComplete véridiquement à une valeur fausse pour la complétude de recherche, indépendamment de l’état de livraison ou des insuffisances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Successful document service is not complete search. Direct document acquisition may read storage; this value implies no content truth, access permission or consumer adoption."
+msgstr "Un service de document réussi n’est pas une recherche complète. L’acquisition directe du document peut lire le stockage ; cette valeur n’implique ni vérité du contenu, ni permission d’accès, ni adoption par un consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeServed|http://www.w3.org/2004/02/skos/core#example"
+msgid "An answer supplies a held guide for a cue naming it without performing a recall-record search."
+msgstr "Une réponse fournit un guide détenu pour une demande le nommant sans effectuer de recherche de dossiers de rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "served-document search-completeness constraint"
+msgstr "contrainte de complétude de recherche pour document servi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."
+msgstr "Chaque indicateur recallComplete fourni sur une réponse servant un document est égal en valeur à faux. Le contrat existant de RecallAnswer exige le booléen ; faux décrit la complétude de recherche, non un échec du service du document."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the actual search-completeness values of an answer reporting document service without search."
+msgstr "Utiliser pour vérifier les valeurs réelles de complétude de recherche d’une réponse rapportant le service d’un document sans recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching a stored triple by the spelling of a false literal, rewriting source literals or treating delivery completeness as search completeness."
+msgstr "Éviter de rechercher un triplet stocké selon la seule graphie d’un littéral faux, de réécrire les littéraux sources ou d’assimiler la complétude de livraison à celle de recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual answer and each supplied boolean through the outcome/completeness guard; compare the flag by termEqual to typed false, retaining legal false lexical forms unchanged."
+msgstr "Lier la réponse réelle et chaque booléen fourni par la garde de résultat et de complétude ; comparer l’indicateur à faux typé par termEqual, en conservant inchangées les formes lexicales légales de faux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Existing datatype, presence and local maximum remain unchanged. The law adds no returned-count rule, search flag or delivery validator and certifies no producer adoption."
+msgstr "Le type de données, la présence et le maximum local existants restent inchangés. La loi n’ajoute ni règle de nombre de retours, ni indicateur de recherche, ni validateur de livraison et ne certifie aucune adoption par un producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A false boolean written as zero keeps its source spelling under value comparison; a true-valued flag violates this law."
+msgstr "Un booléen faux écrit sous la forme zéro conserve son écriture source lors de la comparaison de valeurs ; un indicateur de valeur vraie viole cette loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallServedIsNotSearchCompleteConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."
+msgstr "Chaque indicateur recallComplete fourni sur une réponse servant un document est égal en valeur à faux. Le contrat existant de RecallAnswer exige le booléen ; faux décrit la complétude de recherche, non un échec du service du document."
