@@ -228,9 +228,11 @@ metadata remains unspecified. Conflicting and historical state claims retain
 their exact tuples, writer frames and provenance; no default, global winner or
 latest-timestamp selection is inferred. Existing native RDF 1.2 `rdf:reifies`
 can retain an entry's exact triple content without asserting that proposition.
-Aboutness remains a separate subject-matter relation. No additional statement
-field, state-assignment wrapper or permission protocol is introduced
-(Principles 4 and 17).
+Aboutness remains a separate subject-matter relation. For the dedicated
+quotation binding, use `notebookStatement` and `rdf:reifies` on the same entry
+with the exact same native RDF 1.2 triple term, as described below. No
+state-assignment wrapper or permission protocol is introduced (Principles 4
+and 17).
 
 The ordinary [notebook scene](examples/notebook-kind-state.ttl) records all four
 kinds and five states, including competing writer assessments and retained
