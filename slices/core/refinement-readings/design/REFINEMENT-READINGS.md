@@ -164,3 +164,36 @@ invented merely to write a prohibition Formula, and no new holder role is added.
 The vocabulary does not certify that a reading or its rules ran. All three roles
 use existing generic literal/class endpoint projection; no runtime or dependency
 change is needed (Principles 4, 9, 10, 17 and 19).
+
+## Framed presence and offered counts
+
+The presence and offered roles retain distinct source-reported counts of
+situations. They use the sole canonical `math:Quantity` rather than parallel
+scalar fields or a new mathematical carrier. Their source values remain exact
+`xsd:nonNegativeInteger` literals, with valid finite numeric interpretation,
+numeric-value equality for any retained lexical aliases, the dimensionless
+dimension and one actual complete counting frame (Principles 4, 11 and 17).
+
+The figure’s existing holder, activity designation, DayPart, TemporalFrame and
+source scope remain distinct from the counted population and its declared
+grouping. `habitMember` retains actual Activity evidence; its membership does
+not define a situation denominator. Offered counts also retain the guidance in
+force. No choice/presence/offered inequality, member-count equality, preference
+judgment or source-subject assertion follows from these reported values.
+
+Two global supplied-value closures carry actual HabitFigure and Quantity
+endpoint obligations. Direct figure-local allValuesFrom restrictions and
+qualified maximum-one bounds admit at most one quantity per supplied role.
+There is no class-local presence closure, global functionality or requirement
+to supply either role. The grouped Formula’s outer class guard selects actual
+HabitFigures; sixteen independent role-guarded arms bind their own variables
+and require magnitudes, dimensions and frames without positive joined
+existentials. Original literal identity remains separate from numeric equality.
+
+The existing Math, Places and logic owners supply the actual carrier, complete
+frame profile, numeric admission and validation projection. The counting frame’s
+source-supported meaning remains an evidence obligation; endpoint and value
+checks do not certify population selection, grouping, source truth, guidance
+history or execution. A temporal civil frame is not silently substituted for a
+counting interpretation. No counter engine, rule/window parameter, boundary
+calculator or new external correspondence is implied (Principles 5 and 19).

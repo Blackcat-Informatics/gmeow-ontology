@@ -2035,3 +2035,91 @@ msgstr "Éviter d’inférer cette valeur de règles ou de résultats absents, d
 msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this value through contactRingOutcome, retain the actual decision context and leave the relationship ring unstated."
 msgstr "Référencer cette valeur par contactRingOutcome, conserver le contexte réel de décision et laisser le cercle relationnel non énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported presence count"
+msgstr "nombre de présences rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported number of situations in this HabitFigure’s selected population in which the holder was in the designated activity, whoever chose it, retained as a math:Quantity."
+msgstr "Le nombre rapporté par la source de situations, dans la population sélectionnée par ce HabitFigure, où le titulaire participait à l’activité désignée, quel que soit l’auteur du choix, conservé comme math:Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this optional role. Situations are counted under the source’s declared grouping; habitMember Activity occurrences do not define the count or its denominator."
+msgstr "Au plus une Quantity remplit ce rôle facultatif. Les situations sont comptées selon le regroupement déclaré par la source ; les occurrences Activity de habitMember ne définissent ni le nombre ni son dénominateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains a supplied count of situations where the holder was in an activity that someone else had chosen."
+msgstr "Une lecture conserve un nombre fourni de situations où le titulaire participait à une activité choisie par quelqu’un d’autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported count of situations where the holder was in the designated activity, independently of who chose it."
+msgstr "Utiliser pour un nombre réellement rapporté de situations où le titulaire participait à l’activité désignée, indépendamment de l’auteur du choix."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting chosen acts, Activity membership or an invented missing-value zero, or inferring preference, a denominator equality or an inequality between counts."
+msgstr "Éviter de substituer les actes choisis, l’appartenance d’Activity ou un zéro inventé pour une valeur manquante, ou de déduire une préférence, une égalité de dénominateurs ou une inégalité entre nombres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitPresenceCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity and retain the original xsd:nonNegativeInteger on math:quantityValue with math:dimensionless and one complete actual counting frame. Preserve this reading’s holder, activity designation, DayPart, TemporalFrame, input scope and declared situation grouping as the count’s interpretation context."
+msgstr "Relier la Quantity réelle et conserver le xsd:nonNegativeInteger original sur math:quantityValue avec math:dimensionless et un seul cadre de comptage réel complet. Conserver le titulaire, la désignation d’activité, le DayPart, le TemporalFrame, la portée des entrées et le regroupement déclaré des situations de cette lecture comme contexte d’interprétation du nombre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported offered count"
+msgstr "nombre d’offres rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported number of situations in this HabitFigure’s selected population in which the guidance in force offered the designated activity to the holder, retained as a math:Quantity."
+msgstr "Le nombre rapporté par la source de situations, dans la population sélectionnée par ce HabitFigure, où les consignes alors en vigueur proposaient l’activité désignée au titulaire, conservé comme math:Quantity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this optional role. The source’s situation grouping and guidance in force determine its interpretation; an offered activity need not have been chosen or performed."
+msgstr "Au plus une Quantity remplit ce rôle facultatif. Le regroupement des situations et les consignes en vigueur de la source déterminent son interprétation ; une activité proposée n’a pas nécessairement été choisie ou réalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains a supplied count of situations where the guidance offered an activity, including situations where the holder did something else."
+msgstr "Une lecture conserve un nombre fourni de situations où les consignes proposaient une activité, y compris lorsque le titulaire a fait autre chose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual reported count of situations where the guidance in force offered the designated activity."
+msgstr "Utiliser pour un nombre réellement rapporté de situations où les consignes alors en vigueur proposaient l’activité désignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an offer from a chosen or performed act, treating missing guidance evidence as zero, or inventing a denominator relationship to other counts."
+msgstr "Éviter de déduire une offre d’un acte choisi ou réalisé, de traiter l’absence de preuve des consignes comme un zéro ou d’inventer une relation de dénominateur avec d’autres nombres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitOfferedCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with its original xsd:nonNegativeInteger, dimensionless dimension and one complete actual counting frame. Retain the holder, activity designation, DayPart, TemporalFrame, input scope, situation grouping and actual guidance in force; the temporal frame alone does not supply this counting interpretation."
+msgstr "Relier la Quantity réelle avec son xsd:nonNegativeInteger original, sa dimension sans dimension et un seul cadre de comptage réel complet. Conserver le titulaire, la désignation d’activité, le DayPart, le TemporalFrame, la portée des entrées, le regroupement des situations et les consignes réellement en vigueur ; le cadre temporel seul ne fournit pas cette interprétation de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Habit count value constraint"
+msgstr "contrainte de valeur des compteurs d’activité habituelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "Chaque Quantity fournie par habitPresenceCount ou habitOfferedCount sur un HabitFigure possède une grandeur xsd:nonNegativeInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Neither count role is required. Equivalent retained lexical aliases may coexist under numeric value equality. Existing frame obligations apply; source truth, population, grouping and counting interpretation remain evidence obligations."
+msgstr "Aucun des deux rôles de comptage n’est requis. Des variantes lexicales conservées équivalentes peuvent coexister selon l’égalité de valeur numérique. Les obligations existantes des cadres s’appliquent ; la véracité de la source, la population, le regroupement et l’interprétation du comptage restent des obligations de preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A HabitFigure may omit both roles; when a presence count is supplied, its actual Quantity must satisfy the same magnitude, dimension and frame obligations as an offered count."
+msgstr "Un HabitFigure peut omettre les deux rôles ; lorsqu’un nombre de présences est fourni, sa Quantity réelle doit respecter les mêmes obligations de grandeur, de dimension et de cadre qu’un nombre d’offres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate actual supplied presence and offered count quantities without requiring either role."
+msgstr "Utiliser pour valider les quantités de présence et d’offre réellement fournies sans exiger l’un ou l’autre rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a count, zero, dimension or frame, imposing count inequalities, or using habitMember size as a hidden denominator."
+msgstr "Éviter de fabriquer un nombre, un zéro, une dimension ou un cadre, d’imposer des inégalités entre nombres ou d’utiliser la taille de habitMember comme dénominateur implicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer HabitFigure guard and each independent positive count guard, preserve original literals and validate both roles with the same canonical obligations. Retain actual source evidence for their distinct situation-counting meanings."
+msgstr "Appliquer la garde externe HabitFigure et chaque garde positive indépendante de comptage, conserver les littéraux originaux et valider les deux rôles selon les mêmes obligations canoniques. Conserver les preuves réelles de la source pour leurs sens distincts de comptage des situations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitCountValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each Quantity supplied through habitPresenceCount or habitOfferedCount on a HabitFigure has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "Chaque Quantity fournie par habitPresenceCount ou habitOfferedCount sur un HabitFigure possède une grandeur xsd:nonNegativeInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé."
