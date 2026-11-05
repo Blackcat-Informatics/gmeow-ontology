@@ -176,13 +176,13 @@ gmeow:TemporalPrecision
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Temporal Precision"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The granularity to which an event's time is known — day, month, year, decade, or circa. A value carried by gmeow:temporalPrecision; pairs with gmeow:earliestStart / gmeow:latestEnd to express a fuzzy date without abandoning DL-clean xsd:dateTime base triples."@x-gmeow-english ;
+    skos:definition "The resolution at which an event’s time is reported, including day, month, year, decade, circa or named-period/season level. The precision value does not itself place the event in time or require fabricated dateTime bounds."@x-gmeow-english ;
     skos:example "ex:battle gmeow:temporalPrecision gmeow:precisionDecade ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it as the date itself (the bounds are gmeow:earliestStart / gmeow:latestEnd) and avoid the former free-text gmeow:eventDate string; precision is an explicit value, not prose, and is distinct from epistemic gmeow:confidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using granularity as a date, period identity or epistemic confidence, reviving a free-text eventDate shortcut, or inventing bounds or calendar context from a precision tag."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Reference one gmeow:TemporalPrecision individual via gmeow:temporalPrecision alongside the gmeow:earliestStart + gmeow:latestEnd bounds that bracket the fuzzy date, keeping the base triples DL-clean xsd:dateTime."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the dating-granularity axis — the levels (day / month / year / decade / circa) that gmeow:temporalPrecision draws from to say how precisely an event's time is known."@x-gmeow-english .
+    gmeow:howToUse "Reference a supplied TemporalPrecision individual through temporalPrecision. Preserve independently supported placement through eventTime, eventInterval, eventDuring or source-supplied earliestStart/latestEnd bounds; leave unknown boundaries unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for reported dating resolution, including named-period or seasonal precision, independently of whether exact placement or dateTime bounds are known."@x-gmeow-english .
 
 gmeow:after
     a logic:ObjectProperty ,
@@ -1515,13 +1515,13 @@ gmeow:temporalPrecision
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "temporal precision"@x-gmeow-english ;
     rdfs:range gmeow:TemporalPrecision ;
-    skos:definition "The granularity to which an event's time is known — a gmeow:TemporalPrecision value (day / month / year / decade / circa). Makes the determinacy of a date explicit instead of pretending every date is to-the-day."@x-gmeow-english ;
+    skos:definition "The TemporalPrecision value describing the reported resolution of this Event’s dating, including named-period/season level as well as day, month, year, decade or circa."@x-gmeow-english ;
     skos:example "ex:battle gmeow:temporalPrecision gmeow:precisionCirca ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as the date itself (the bounds are gmeow:earliestStart / gmeow:latestEnd) or as epistemic gmeow:confidence; precision is the ontic granularity of the dating, an orthogonal facet (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this precision value as a date, an identified period, a calendar or hemisphere choice, or epistemic confidence, or inferring exact instants or bounds from it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Point the gmeow:Event at one gmeow:TemporalPrecision value alongside its date bounds; consumers read it to render 'c. 1850' rather than a spurious to-the-second figure."@x-gmeow-english ;
-    gmeow:useWhen "Use to declare HOW PRECISELY an event's time is known — to the day, month, year, decade, or circa — making date determinacy explicit rather than pretending every date is to-the-day."@x-gmeow-english .
+    gmeow:howToUse "Point the actual Event at the supplied precision value with exact-statement attribution. Retain a temporal placement separately only when independently supplied; do not invent midnight, a calendar or season boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use to state how precisely an actual Event is dated, including named-period or season-level resolution, without claiming missing temporal placement."@x-gmeow-english .
 
 gmeow:tenseFuture
     a gmeow:GrammaticalTense ;
@@ -1839,3 +1839,15 @@ gmeow:interruptibilityAtAnyPoint
 gmeow:Event logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:requiresLocation ; logic:allValuesFrom gmeow:Location ],
     [ a logic:Restriction ; logic:onProperty gmeow:interruptibility ; logic:allValuesFrom gmeow:Interruptibility ] .
+
+gmeow:precisionNamedPeriod
+    a gmeow:TemporalPrecision ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "named-period or season resolution"@x-gmeow-english ;
+    skos:definition "Temporal resolution reported at named-period or season level, without asserting a period identity, its boundaries or an exact occurrence instant."@x-gmeow-english ;
+    skos:scopeNote "This TemporalPrecision value describes reported dating resolution. It supplies no NamedPeriod, calendar, hemisphere, seasonal boundary, temporal placement or valid EDTF expression."@x-gmeow-english ;
+    skos:example "A source explicitly reports season-level precision for an already identified event; its raw wording \"`fall2025`\" supplies no boundary conversion."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly supplies named-period or season-level dating resolution for an Event, independently of whether its actual period or exact bounds are known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this value or a temporal placement from raw wording alone, inventing a NamedPeriod or season boundaries, or treating the tag as an exact instant or validated EDTF value."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through temporalPrecision on the actual Event with exact-statement attribution. Retain independently supplied placement through existing temporal carriers; leave unknown boundaries and calendar context unknown."@x-gmeow-english .

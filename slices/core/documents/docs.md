@@ -151,7 +151,9 @@ These are format values, grounded as `logic:QualityValue` individuals rather
 than carrier subclasses (Principles 4 and 17).
 
 `gmeow:mediaTypeName` carries the value's exact parameter-free MIME
-`type/subtype` spelling as xsd:string. The spelling belongs to the value;
+`type/subtype` spelling as xsd:string or explicitly supplied xsd:token.
+Preserve the supplied literal's lexical form and datatype without whitespace
+normalization or inferred token typing. The spelling belongs to the value;
 there is no parallel string media-type property on the carrier. A registered
 IRI can be used without repeating its external metadata on each carrier.
 The name is optional; supplied names retain their exact machine spelling and

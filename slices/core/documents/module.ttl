@@ -890,7 +890,7 @@ gmeow:mediaTypeName
     rdfs:label "media type name"@x-gmeow-english ;
     skos:definition "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string or xsd:token. It is a machine code, separate from the carrier's charset and other MIME parameters."@x-gmeow-english ;
     gmeow:useWhen "Use when the exact MIME spelling of an identified media-type value is needed by a consumer or at a serialization boundary."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag, using xsd:token or appending charset or other parameters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag or appending charset or other parameters."@x-gmeow-english ;
     gmeow:howToUse "Record the exact type/subtype string on the MediaType value; retain source spelling evidence separately when a source header contains casing, parameters or other syntax beyond that identity."@x-gmeow-english ;
     skos:scopeNote "The name does not establish IANA registration or authenticate a resource. No MIME parser, registry service, parameter extraction or string normalization is implied."@x-gmeow-english ;
     skos:example "Record the machine spelling on the value: <https://www.iana.org/assignments/media-types/application/pdf> gmeow:mediaTypeName \"application/pdf\" ."@x-gmeow-english ;
