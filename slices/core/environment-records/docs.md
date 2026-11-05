@@ -244,14 +244,53 @@ stirringKind belongs on the actual Event and distinguishes beheld and wound
 
 ## Advertised affordances and reported tool outcomes
 
-WorldAffordance is an InformationObject catalog entry. affordsAction connects its
-owning object representation, also an InformationObject. Keep an actual physical
-object separate from that representation. A qualified entry has its supplied
-affordanceToolName; this exact string is not a resolved endpoint or ToolCall.
-affordanceTarget names a supplied part of that owner. The catalog class law
-requires an actual owner and tool name; the target law checks hasPart for every
-catalog owner advertising a shared entry, preventing targets from leaking across
-object catalogs.
+WorldAffordance is an InformationObject catalog entry. affordsAction connects
+the catalog-bearing InformationObject to its entries. The bearer can be a
+direct object representation or a state-specific catalog artifact linked from
+the representation by worldObjectAffordances. Keep the actual physical object,
+its representation and the catalog artifact distinct. A qualified entry has
+its supplied affordanceToolName; this exact string is not a resolved endpoint
+or ToolCall.
+
+worldObjectAffordances records the actual supplied association for a particular
+state and account context. Preserve source and viewpoint on the exact statement;
+the relation is optional and nonfunctional. Attach that inventory's entries to
+the artifact with affordsAction. Select the supplied context and catalog before
+querying actions, rather than union historical catalogs into a current inventory.
+No state, profile or replacement history is inferred. Use supersedes only for
+an independently supplied replacement claim.
+
+Every linked catalog artifact requires a supplied contentDigest of its exact
+identified encoded byte preimage. Retain the actual admitted algorithm datatype,
+lexical value and source identification of those bytes. These are the supplied
+encoded catalog bytes identifying its entries, not the object's worldObjectState
+preimage or the enclosing claim's bytes. Sources governs digest admission;
+several algorithms may coexist. No universal encoding, hash producer or IRI
+spelling is prescribed. Preserve a supplied content-addressed identifier without
+claiming verified agreement between it and the digest. The constraint checks
+digest presence; it computes no hash and verifies neither bytes, entry
+correspondence nor identifier agreement. Missing inputs must not be invented.
+
+An absent worldObjectAffordances relation supplies no inventory. An explicitly
+reported empty encoded inventory can have a real digest and zero entries;
+there is no minimum-one affordsAction requirement. Zero visible entry triples
+alone do not prove emptiness, and partial capture must not be presented as an
+empty catalog. For example, a source may explicitly report an empty inventory
+and identify its encoded catalog artifact and algorithm-typed digest, without
+supplying any action entry.
+These roles expose no assertion that capture is complete or that the catalog
+is empty. A consumer needs separately supplied source evidence for either claim;
+the catalog link and digest alone do not make those claims queryable.
+
+affordanceTarget names a supplied part of the represented object. For a direct
+catalog bearer with no incoming worldObjectAffordances link, the target law
+checks the bearer's hasPart inventory. For a set bearer, it checks hasPart on
+every object representation linked to that set. The catalog class law separately
+requires a bearer and tool name. A shared entry cannot borrow one convenient
+object's parts to satisfy another object's target obligation; neither mode
+fabricates hasPart between a catalog artifact and an object part. The canonical
+Formula constraints use generated validation surfaces; no native violation
+marker is selected here.
 
 tagReadOnlyAction and tagDreamEligible annotate the catalog entry. Their laws
 check WorldAffordance carriers, not effect purity, access permission or runtime

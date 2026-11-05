@@ -2980,7 +2980,7 @@ gmeow:WorldAffordance
     skos:definition "An InformationObject catalog entry for an action a represented object advertises to an agent, naming its tool and supplied target parts. It is distinct from a capability, actual execution and an action-policy proof."@x-gmeow-english ;
     gmeow:useWhen "Use for an actual object-scoped action-catalog entry."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring tool availability, permission, purity or execution from advertised actions."@x-gmeow-english ;
-    gmeow:howToUse "Link its owning InformationObject with affordsAction; retain the exact tool name, targets and attributed tags."@x-gmeow-english ;
+    gmeow:howToUse "Link the catalog-bearing InformationObject with affordsAction, whether it is a direct object representation or a linked state-specific catalog artifact; retain the exact tool name, targets and attributed tags."@x-gmeow-english ;
     skos:scopeNote "The entry is a record, not an Activity or a replacement for the core ActionPolicy."@x-gmeow-english ;
     skos:example "For example: ex:action a gmeow:WorldAffordance ; gmeow:affordanceToolName \"object.inspect\" ."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject .
@@ -2990,10 +2990,10 @@ gmeow:affordsAction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "affords action"@x-gmeow-english ;
-    skos:definition "Relates an object-representing InformationObject to an actual entry of its advertised action catalog."@x-gmeow-english ;
-    gmeow:useWhen "Use when an object representation supplies an action-catalog entry."@x-gmeow-english ;
+    skos:definition "Relates a catalog-bearing InformationObject, either an object representation or an artifact linked through worldObjectAffordances, to an actual entry of its advertised action catalog."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies an action-catalog entry on a direct object representation or its linked state-specific catalog artifact."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid coercing a physical object into InformationObject to attach a catalog; retain its actual representation."@x-gmeow-english ;
-    gmeow:howToUse "Link the actual catalog-bearing InformationObject to WorldAffordance records and keep its part structure."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual catalog bearer to WorldAffordance records. In set mode retain worldObjectAffordances from each represented object; targets use that object’s hasPart inventory, not the catalog artifact’s parts."@x-gmeow-english ;
     skos:scopeNote "Advertising an action neither provides an implementation nor grants the agent permission to call it."@x-gmeow-english ;
     skos:example "For example: ex:objectRecord a gmeow:InformationObject ; gmeow:affordsAction ex:action ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
@@ -3022,10 +3022,10 @@ gmeow:affordanceTarget
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "affordance target"@x-gmeow-english ;
-    skos:definition "Relates a catalog affordance to an actual supplied part of its owning object representation on which the action acts."@x-gmeow-english ;
+    skos:definition "Relates a catalog affordance to an actual supplied part of the represented object on which the action acts, whether the catalog is carried directly by that representation or by its linked state-specific artifact."@x-gmeow-english ;
     gmeow:useWhen "Use only when the source supplies a target part and its owning catalog context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a part from a handle or reusing a target from another object's catalog."@x-gmeow-english ;
-    gmeow:howToUse "Retain the owner's affordsAction and hasPart relationships; the native law checks every owning catalog."@x-gmeow-english ;
+    gmeow:howToUse "Retain affordsAction on every catalog bearer and hasPart on every applicable represented object, following worldObjectAffordances in set mode. The source constraint checks all direct bearers and all objects linked to each set."@x-gmeow-english ;
     skos:scopeNote "Target binding is structural source evidence, not execution or proof that the advertised effect succeeded."@x-gmeow-english ;
     skos:example "For example: ex:objectRecord gmeow:hasPart ex:plate ; gmeow:affordsAction ex:action . ex:action gmeow:affordanceTarget ex:plate ."@x-gmeow-english ;
     logic:domain gmeow:WorldAffordance ;
@@ -3450,15 +3450,15 @@ gmeow:AffordanceTargetScopeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Affordance target scope constraint"@x-gmeow-english ;
-    skos:definition "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."@x-gmeow-english ;
+    skos:definition "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."@x-gmeow-english ;
     gmeow:useWhen "Use to validate the source's advertised action-to-part binding."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying a shared entry with one convenient owner's unrelated target."@x-gmeow-english ;
-    gmeow:howToUse "Check hasPart for every affordsAction owner of this entry; use WorldAffordanceCatalogConstraint for owner existence and tool naming."@x-gmeow-english ;
+    gmeow:howToUse "Check hasPart on the bearer when it has no incoming worldObjectAffordances, and on every object supplying that link otherwise. Keep every action-to-target binding local to its catalog path; use WorldAffordanceCatalogConstraint for bearer existence and tool naming."@x-gmeow-english ;
     skos:scopeNote "The binary target checks source structure, not whether an advertised tool executed successfully."@x-gmeow-english ;
     skos:example "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."@x-gmeow-english ;
-    logic:message "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."@x-gmeow-english ;
+    logic:message "Every affordanceTarget belongs through hasPart to every advertising direct catalog bearer without an incoming worldObjectAffordances link and to every represented object linked to an advertising set bearer. The catalog class law separately requires a bearer and tool name; one convenient object cannot validate a shared entry’s foreign target."@x-gmeow-english ;
     logic:formalizes gmeow:affordanceTarget ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "owner" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "action" ] , [ logic:termIndex 1 ; logic:termVariable "selectedTarget" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "action" ] , [ logic:termIndex 1 ; logic:termVariable "selectedTarget" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "directCatalog" ] , [ logic:termIndex 1 ; logic:termVariable "directTarget" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "action" ] , [ logic:termIndex 1 ; logic:termVariable "directTarget" ] ] , [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "directCatalog" ] , [ logic:termIndex 1 ; logic:termVariable "action" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "setObject" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:worldObjectAffordances ; logic:argument [ logic:termIndex 0 ; logic:termVariable "setObject" ] , [ logic:termIndex 1 ; logic:termVariable "directCatalog" ] ] ] , [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "directCatalog" ] , [ logic:termIndex 1 ; logic:termVariable "directTarget" ] ] ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "setCatalog" ] , [ logic:termIndex 1 ; logic:termVariable "representedObject" ] , [ logic:termIndex 2 ; logic:termVariable "setTarget" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "action" ] , [ logic:termIndex 1 ; logic:termVariable "setTarget" ] ] , [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "setCatalog" ] , [ logic:termIndex 1 ; logic:termVariable "action" ] ] , [ a logic:Formula ; logic:relation gmeow:worldObjectAffordances ; logic:argument [ logic:termIndex 0 ; logic:termVariable "representedObject" ] , [ logic:termIndex 1 ; logic:termVariable "setCatalog" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "representedObject" ] , [ logic:termIndex 1 ; logic:termVariable "setTarget" ] ] ] ] ] ] ] .
 
 gmeow:RecordedCognitionModeCarrierConstraint
     a logic:Constraint ;
@@ -3524,3 +3524,34 @@ gmeow:releasesAttentionFrom
     logic:range gmeow:Entity .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/releasesAttentionFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:worldObjectAffordances
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "world object affordances"@x-gmeow-english ;
+    skos:definition "Relates an object-representing InformationObject in its supplied state and account context to the InformationObject artifact recording that context’s advertised affordance inventory."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional relation preserves supplied state and account associations. It supplies no current-state winner or replacement history; an absent relation is not an empty inventory, and a lack of visible entries alone does not prove emptiness."@x-gmeow-english ;
+    skos:example "A source supplies an object’s advertised action inventory for one reported state and identifies the catalog artifact’s encoded bytes and algorithm-typed content digest."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a particular state’s affordance catalog artifact and its actual association with the object representation and account context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a state, encoding, digest, identifier mapping or replacement claim, treating partial capture as empty, or combining historical catalogs into a current inventory."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual object representation to its supplied catalog artifact, attach entries to that artifact with affordsAction, and retain its contentDigest for the exact identified encoded bytes. Preserve statement attribution and any supplied content-addressed identifier without claiming verified identifier agreement."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:InformationObject .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldObjectAffordances" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:WorldObjectAffordancesDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "World object affordances digest constraint"@x-gmeow-english ;
+    skos:definition "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."@x-gmeow-english ;
+    skos:scopeNote "Digest presence neither computes a hash nor verifies bytes, entry correspondence or identifier agreement. Several admitted algorithms may coexist; no universal encoding or producer is prescribed."@x-gmeow-english ;
+    skos:example "A source explicitly reports an empty inventory and supplies a digest of its identified encoded catalog artifact; the artifact has no action entries."@x-gmeow-english ;
+    gmeow:useWhen "Use to require supplied byte-content identity on each artifact actually linked as a state-specific affordance catalog."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting an untyped digest string, guessing a byte preimage, substituting worldObjectState, or treating a digest assertion as a verification receipt."@x-gmeow-english ;
+    gmeow:howToUse "Check each worldObjectAffordances object for at least one supplied contentDigest. Retain the actual admitted algorithm datatype and exact lexical value; Sources governs their admission, and missing source inputs must not be invented."@x-gmeow-english ;
+    logic:message "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."@x-gmeow-english ;
+    logic:formalizes gmeow:worldObjectAffordances ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "object" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:worldObjectAffordances ; logic:argument [ logic:termIndex 0 ; logic:termVariable "object" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
