@@ -10812,3 +10812,87 @@ msgstr "Éviter de lire J comme joule, d’assimiler ce générateur à une puis
 msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference math:luminousIntensityDimension through the existing hasDimension or exponentOfDimension role. Retain the actual measurement magnitude, realizing unit and supplied photometric context separately; the fixed basis entry neither supplies that context nor converts an energy value."
 msgstr "Référencer math:luminousIntensityDimension par le rôle existant hasDimension ou exponentOfDimension. Conserver séparément la valeur réelle de mesure, l’unité qui la réalise et le contexte photométrique fourni ; l’entrée de base fixe ne fournit pas ce contexte et ne convertit aucune valeur d’énergie."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quantity"
+msgstr "Grandeur"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sole canonical class authority for a dimensioned quantity: an object that carries exactly one math:Dimension through math:hasDimension and, where measured, a numeric magnitude through math:quantityValue. Observation-specific unit, reference-frame, determinacy, provenance, and uncertainty properties may further qualify the same math:Quantity; they do not mint a parallel quantity class or value property. Every quantity carries a dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units live within a dimension. Equal dimension vectors establish dimensional compatibility (math:commensurableWith). They do not by themselves certify compatible quantity kinds or aligned units, scales and reference frames for an arithmetic or comparison operation."
+msgstr "L’unique classe canonique faisant autorité pour une grandeur dimensionnée : un objet qui porte exactement une math:Dimension par math:hasDimension et, lorsqu’il est mesuré, une valeur numérique par math:quantityValue. Les propriétés d’unité, de référentiel, de détermination, de provenance et d’incertitude propres à une observation peuvent qualifier cette même math:Quantity ; elles ne créent pas une classe de grandeur ou une propriété de valeur parallèles. Toute grandeur porte une dimension — une grandeur sans dimension déclarée est mal formée (math:UndimensionedQuantity). Les unités se situent au sein d’une dimension. Des vecteurs de dimensions égaux établissent une compatibilité dimensionnelle (math:commensurableWith). Ils ne certifient pas à eux seuls des natures de grandeur compatibles ni des unités, échelles et référentiels alignés pour une opération arithmétique ou une comparaison."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The exactly-one dimension obligation is local to Quantity. A numeric magnitude is retained where measured; this class does not require a magnitude on every quantity. Dimensional compatibility leaves the source's quantity kind, units, scales and frames to their actual separate contracts."
+msgstr "L’obligation d’exactement une dimension est locale à Quantity. Une valeur numérique est conservée lorsqu’elle est mesurée ; cette classe n’exige pas une valeur sur toute grandeur. La compatibilité dimensionnelle laisse la nature de grandeur, les unités, les échelles et les référentiels sources à leurs contrats distincts réels."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-reported temperature point and a temperature difference may both carry temperatureDimension. Keep their actual roles and scales distinct before selecting an operation; the shared dimension supplies no permission to apply a point offset to a difference."
+msgstr "Un point de température rapporté par la source et une différence de température peuvent tous deux porter temperatureDimension. Garder distincts leurs rôles et échelles réels avant de sélectionner une opération ; la dimension commune ne permet pas d’appliquer à une différence un décalage propre aux points."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use the existing canonical carrier for an actual dimensioned quantity, including a dimensionless quantity with its actual dimension supplied. Existing measurement and uncertainty properties qualify that same object without creating another quantity class."
+msgstr "Utiliser le support canonique existant pour une grandeur dimensionnée réelle, y compris une grandeur adimensionnelle dont la dimension réelle est fournie. Les propriétés existantes de mesure et d’incertitude qualifient ce même objet sans créer une autre classe de grandeur."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating parallel quantity classes or value properties, forcing unrelated hasDimension subjects into Quantity, or treating dimension agreement as permission for arithmetic on arbitrary source magnitudes."
+msgstr "Éviter de créer des classes de grandeur ou propriétés de valeur parallèles, de forcer dans Quantity des sujets sans rapport utilisant hasDimension, ou de traiter l’accord dimensionnel comme une autorisation d’effectuer de l’arithmétique sur des valeurs sources arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Dimension through hasDimension and any measured numeric literal through quantityValue. Keep the source's supplied unit, scale, frame and quantity-kind meaning separately. The existing native numeric profile is unchanged and does not infer or validate those identities from the dimension vector."
+msgstr "Conserver la Dimension réelle par hasDimension et tout littéral numérique mesuré par quantityValue. Garder séparément l’unité, l’échelle, le référentiel et le sens de nature de grandeur fournis par la source. Le profil numérique natif existant reste inchangé et n’infère ni ne valide ces identités à partir du vecteur de dimensions."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has dimension"
+msgstr "a pour dimension"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed."
+msgstr "Nomme la math:Dimension portée par une grandeur, une intégrale ou un objet dimensionné. Domaine math:Quantity (ou un autre objet dimensionné tel qu’une math:Integral), portée math:Dimension (énoncés en prose). Toute math:Quantity en déclare exactement une — une grandeur sans dimension déclarée est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared role also serves integrals, measurable functions and other dimensioned objects under their actual owner contracts. Quantity's local dimension restrictions do not make the property globally functional or require every subject of this role to be a Quantity."
+msgstr "Ce rôle partagé sert aussi aux intégrales, aux fonctions mesurables et aux autres objets dimensionnés selon leurs contrats de propriétaire réels. Les restrictions locales de dimension de Quantity ne rendent pas la propriété globalement fonctionnelle et n’exigent pas que tout sujet de ce rôle soit une Quantity."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing measure/dimension design assigns ex:expectedEnergy math:hasDimension ex:energyDimension to a math:Integral. This dimension link does not turn the integral into a Quantity or supply a measured magnitude."
+msgstr "La conception existante de mesure et dimension attribue ex:expectedEnergy math:hasDimension ex:energyDimension à une math:Integral. Ce lien de dimension ne transforme pas l’intégrale en Quantity et ne fournit pas de valeur mesurée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an object's actual declared physical dimension while preserving that object's existing class and source context. Select the dimension resource independently of its magnitude, unit name or displayed symbol."
+msgstr "À utiliser pour conserver la dimension physique réellement déclarée d’un objet tout en préservant sa classe existante et son contexte source. Sélectionner la ressource de dimension indépendamment de sa valeur, du nom d’unité ou du symbole affiché."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying a unit IRI or a rendered dimensionVector string in place of a Dimension, guessing dimensionless when data is absent, or copying Quantity's local exactly-one rule onto every dimensioned subject."
+msgstr "Éviter de fournir un IRI d’unité ou une chaîne dimensionVector rendue à la place d’une Dimension, de supposer une dimension sans exposants non nuls lorsque les données manquent, ou de copier la règle locale d’exactement une dimension de Quantity sur tout sujet dimensionné."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the subject to the actual existing base, derived or dimensionless Dimension resource. Retain the applicable source class restrictions and the derived dimension's original exponent cells; create no default dimension, second quantity carrier or automatic unit/scale/frame alignment."
+msgstr "Relier le sujet à la ressource Dimension réelle existante, de base, dérivée ou sans exposants non nuls. Conserver les restrictions de classe sources applicables et les cellules d’exposant originales de la dimension dérivée ; ne créer ni dimension par défaut, ni second support de grandeur, ni alignement automatique d’unité, d’échelle ou de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commensurable with"
+msgstr "commensurable avec"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates two quantities whose exact-rational dimension vectors are equal: dimensional compatibility. The relation alone does not certify quantity-kind agreement or aligned units, scales and reference frames for adding, subtracting or comparing magnitudes. Domain and range math:Quantity (stated in prose). This relation is derived, not asserted: it is computed as the kernel-equivalence of the dimension map (quantities whose exact-rational exponent vectors are equal), so its reflexivity, symmetry, and transitivity are properties of the derivation, carried by no OWL characteristic (symmetric properties are outside the EL profile) — the competency query reads the computed equivalence classes."
+msgstr "Relie deux grandeurs dont les vecteurs de dimensions rationnels exacts sont égaux : une compatibilité dimensionnelle. La relation seule ne certifie ni l’accord de nature de grandeur ni l’alignement des unités, échelles et référentiels pour additionner, soustraire ou comparer les valeurs. Domaine et portée math:Quantity (énoncés en prose). Cette relation est dérivée, non affirmée : elle est calculée comme la relation d’équivalence définie par l’égalité des images de l’application de dimension (les grandeurs dont les vecteurs d’exposants rationnels exacts sont égaux) ; sa réflexivité, sa symétrie et sa transitivité sont donc des propriétés de la dérivation, portées par aucune caractéristique OWL (les propriétés symétriques sont hors du profil EL) — la requête de compétence lit les classes d’équivalence calculées."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The native dimensional decision compares resolved exact exponent vectors. It carries no source quantity-kind, unit, scale or reference-frame identities. Unresolved or malformed dimensions leave a declared native mode gap; they do not prove dimensional compatibility or authorize an operation."
+msgstr "La décision dimensionnelle native compare des vecteurs d’exposants exacts résolus. Elle ne porte aucune identité source de nature de grandeur, d’unité, d’échelle ou de référentiel. Les dimensions non résolues ou mal formées laissent une lacune de mode native déclarée ; elles ne prouvent pas la compatibilité dimensionnelle et n’autorisent aucune opération."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "Energy and torque can have equal SI dimension vectors while describing different quantity kinds. Their dimensional agreement alone does not justify adding their source magnitudes or identifying the quantities."
+msgstr "L’énergie et le couple peuvent avoir des vecteurs de dimensions SI égaux tout en décrivant des natures de grandeur différentes. Leur accord dimensionnel seul ne justifie ni l’addition de leurs valeurs sources ni l’identification des grandeurs."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe or query derived dimensional compatibility between actual quantities whose dimensions have been resolved. Keep the selected arithmetic or comparison contract separate from this dimensional relation."
+msgstr "À utiliser pour décrire ou interroger une compatibilité dimensionnelle dérivée entre des grandeurs réelles dont les dimensions ont été résolues. Garder le contrat de l’opération arithmétique ou de comparaison sélectionnée distinct de cette relation dimensionnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this relation as a manual override, treating equal vectors as RDF resource identity, or using it as a unit converter or a certificate that arbitrary source quantities may be added, subtracted or compared."
+msgstr "Éviter d’affirmer cette relation comme dérogation manuelle, de traiter des vecteurs égaux comme identité de ressources RDF ou de l’utiliser comme convertisseur d’unités ou certificat autorisant l’addition, la soustraction ou la comparaison de grandeurs sources arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each quantity's actual hasDimension link and use the existing exact-vector decision for dimensional compatibility. Assess the source quantity kinds and actual unit, scale, frame and numeric-admission requirements separately; no conversion, additional native validation or materialized relation output is promised by these annotations."
+msgstr "Conserver le lien hasDimension réel de chaque grandeur et utiliser la décision existante sur les vecteurs exacts pour la compatibilité dimensionnelle. Évaluer séparément les natures de grandeur sources et les exigences réelles d’unité, d’échelle, de référentiel et d’admission numérique ; ces annotations ne promettent ni conversion, ni validation native supplémentaire, ni sortie de relation matérialisée."
