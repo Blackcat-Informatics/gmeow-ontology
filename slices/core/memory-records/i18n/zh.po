@@ -1188,3 +1188,383 @@ msgstr "避免根据重复标签、相同的参数拼写、缺失的成功证据
 msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this actual TraceMarkClass value through traceMarkClass on the source-backed Annotation. Retain the actual target, motivation, curator and teller attribution; keep the reading’s attempt, episode, tool, argument and outcome evidence without asserting it from the category alone."
 msgstr "在有来源依据的 Annotation 上通过 traceMarkClass 引用此实际 TraceMarkClass 值。保留实际目标、动机、整理者及讲述者归属；保留读数的尝试、片段、工具、参数及结果证据，不从类别本身断言这些内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark"
+msgstr "轨迹标记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A curator's Annotation of an actual event record for trace retention, carrying classifications, source event placement and explicit packet-anchor evidence without trace content."
+msgstr "策展者为保留轨迹而对实际事件记录作出的 Annotation，承载分类、来源报告的事件时间位置及明确的包锚点证据，不承载轨迹内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The sole target is annotationTarget, an actual InformationObject record rather than an Event occurrence. Actual motivation, curator, event placement and complete TemporalFrame are required; supplied classifications coexist."
+msgstr "唯一目标通过 annotationTarget 指向实际的 InformationObject 记录，而非 Event 事件发生。必须有实际动机、策展者、事件时间位置及完整 TemporalFrame；提供的分类可并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator marks the supplied event record and retains its actual motivation, time interpretation and packet anchors separately from the recorder's trace bytes."
+msgstr "策展者标记所提供的事件记录，并保留实际动机、时间解释及包锚点，与记录器的轨迹字节分离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-backed curator mark whose event record and required annotation context are supplied."
+msgstr "用于有来源依据且提供了事件记录及必要注释上下文的实际策展标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a target, motivation, curator, clock, classification, packet identity or finality commitment to complete a mark."
+msgstr "不要为补全标记而虚构目标、动机、策展者、时钟、分类、包身份或终局承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual record through annotationTarget, supplied traceMarkClass values, curator attribution and source event placement in its actual frame. Supply anchors or explicit without-packet evidence; keep statement provenance separate."
+msgstr "通过 annotationTarget 保留实际记录、提供的 traceMarkClass 值、策展者归属及实际参考框架中的事件时间位置。提供锚点或明确的无包证据，并分别保留语句溯源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace anchor"
+msgstr "轨迹锚点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An InformationObject descriptor retaining one original source-packet digest and its actual source-profile interpretation for a trace recorder's join."
+msgstr "一种 InformationObject 描述记录，保留一个原始源包摘要及其实际来源配置解释，供轨迹记录器关联使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original xsd:hexBinary anchorPacket and actual anchorSourceProfile are required. Optional episode and round fields retain original scalar RDF terms without resolving them into Activity occurrences."
+msgstr "必须各有一个原始 xsd:hexBinary anchorPacket 和实际 anchorSourceProfile。可选的回合段及轮次字段保留原始标量 RDF 项，不将其解析为 Activity 的发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-backed anchor retains its packet digest unchanged and names the actual declaration of digest construction and packet byte representation."
+msgstr "有来源依据的锚点原样保留包摘要，并指向实际声明摘要构造及包字节表示的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a packet digest and complete applicable interpretation for the selected anchor."
+msgstr "当来源提供包摘要及适用于所选锚点的完整解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an algorithm from digest width, manufacturing a packet artifact, or treating a descriptor as a successful trace join or finality proof."
+msgstr "不要根据摘要长度推断算法、虚构包工件，或把描述记录视为成功的轨迹关联或终局证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete digest literal and actual profile on this anchor. Preserve any supplied episode or round term in its own scalar StructuredValue occurrence; inherit the existing scalar integrity laws."
+msgstr "在此锚点上保留完整摘要字面量及实际配置。将提供的回合段或轮次项保存在各自的标量 StructuredValue 载体中，并继承现有标量完整性规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark event placement"
+msgstr "轨迹标记的事件时间位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied temporal placement of the event described by this TraceMark's actual annotationTarget record."
+msgstr "此 TraceMark 的实际 annotationTarget 记录所描述事件的、由来源提供的时间位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original dateTime, date, gYearMonth or gYear literal per coherent mark, interpreted in its actual complete TemporalFrame. This is not mark creation or record transaction time."
+msgstr "每个一致标记恰有一个原始 dateTime、date、gYearMonth 或 gYear 字面量，在其实际完整 TemporalFrame 中解释。它不是标记创建时间或记录事务时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark retains the source's supplied date without inventing midnight, a timezone or a more precise event instant."
+msgstr "标记保留来源提供的日期，不虚构午夜、时区或更精确的事件时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied placement of the described event at its actual source precision."
+msgstr "用于按来源实际精度提供的所述事件时间位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting recordedAt, marking time, Events' UTC default or a computed calendar conversion."
+msgstr "不要用 recordedAt、标记时间、Events 的默认 UTC 或计算的历法转换替代此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source datatype, lexical form and timezone information; bind hasReferenceFrame to the actual complete TemporalFrame without reinterpreting the XSD datatype's calendar."
+msgstr "保留来源数据类型、词法形式及时区信息；通过 hasReferenceFrame 指向实际完整 TemporalFrame，不重新解释 XSD 数据类型的历法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark anchor"
+msgstr "轨迹标记锚点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-backed TraceAnchor supplied for this curator's TraceMark."
+msgstr "为此策展者的 TraceMark 提供的、有来源依据的实际 TraceAnchor。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several anchors may coexist. Any anchor excludes an affirmative traceMarkWithoutPacket value; absence of anchors requires explicit affirmative without-packet evidence."
+msgstr "多个锚点可并存。任何锚点都不能与肯定的 traceMarkWithoutPacket 值共存；缺少锚点时必须有明确肯定的无包证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "One event-record mark retains the several actual packet anchors supplied for it."
+msgstr "一个事件记录标记保留为其提供的多个实际包锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an actual supplied anchor with its own packet digest and source interpretation."
+msgstr "仅用于实际提供且具有自身包摘要及来源解释的锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing one preferred packet, fabricating a missing anchor or deriving trace retention, finality or deletion permission from this link."
+msgstr "不要选择首选包、虚构缺失锚点，或从此链接推导轨迹保留、终局或删除许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every actual TraceAnchor supplied for the mark, retaining each anchor's own required profile and optional source terms."
+msgstr "链接为该标记实际提供的每个 TraceAnchor，保留各锚点自身必需的配置及可选来源项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark without packet"
+msgstr "无包的轨迹标记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied Boolean declaration of whether this TraceMark is held without a packet identity."
+msgstr "提供的布尔声明，表示此 TraceMark 是否在没有包身份的情况下保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one original xsd:boolean literal. True requires no anchors; false requires an actual anchor. Each lexical alias is admitted individually unchanged, without claiming simultaneous alias coexistence."
+msgstr "可选，至多一个原始 xsd:boolean 字面量。真要求没有锚点；假要求有实际锚点。每个词法别名单独原样准入，不声称多个别名可同时存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual affirmative source flag records a mark held without packet identity; an omitted flag does not create that status."
+msgstr "实际的来源肯定标志记录无包身份保留的标记；省略标志不会产生此状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this Boolean status for the mark."
+msgstr "当来源明确为标记提供此布尔状态时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting absence to false or true, treating false alone as an anchor, or confusing without-packet status with lost-mark give-up or finality."
+msgstr "不要把缺失默认成假或真、把单独的假视为锚点，或将无包状态与丢失标记的放弃或终局混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original Boolean lexical form and datatype. Apply Boolean value comparison: individual true/1 and false/0 aliases retain their source identity and the same status meaning."
+msgstr "保留原始布尔词法形式及数据类型。按布尔值比较：各自的 true/1 和 false/0 别名保留来源身份及相同状态含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor packet digest"
+msgstr "锚点包摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original xsd:hexBinary digest supplied for the exact source-packet byte representation identified by this TraceAnchor's actual source profile."
+msgstr "为此 TraceAnchor 的实际来源配置所标识的精确源包字节表示提供的原始 xsd:hexBinary 摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original literal per coherent anchor. Its datatype supplies no digest algorithm, construction, preimage encoding, packet resource identity or verification receipt."
+msgstr "每个一致锚点恰有一个原始字面量。其数据类型不提供摘要算法、构造、原像编码、包资源身份或验证凭证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An anchor keeps the supplied hexBinary literal intact beside the actual declaration explaining which packet bytes and digest construction it denotes."
+msgstr "锚点原样保留提供的 hexBinary 字面量，并附实际声明说明其所指包字节及摘要构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the original digest and full applicable source interpretation are both supplied."
+msgstr "仅在原始摘要及完整适用的来源解释均已提供时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an algorithm from width, retyping to an algorithm digest datatype, normalizing spelling or using the anchor descriptor's own contentDigest."
+msgstr "不要根据长度推断算法、重设为算法摘要数据类型、规范化拼写，或使用锚点描述记录自身的 contentDigest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete source literal unchanged and identify its actual construction and exact byte preimage through anchorSourceProfile. Do not compute or claim a verified trace join from these fields."
+msgstr "原样保留完整来源字面量，通过 anchorSourceProfile 标识其实际构造及精确字节原像。不要根据这些字段计算或声称已验证的轨迹关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor source profile"
+msgstr "锚点来源配置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual InformationObject declaration providing this TraceAnchor's complete source-specific digest, packet-byte and selected episode/round interpretation."
+msgstr "实际的 InformationObject 声明，为此 TraceAnchor 提供完整、特定于来源的摘要、包字节及所选回合段或轮次解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one actual applicable profile per coherent anchor. It identifies algorithm/construction, exact byte-preimage representation and selected field meanings; a name or typed link alone does not establish its content."
+msgstr "每个一致锚点恰有一个实际适用配置。它标识算法及构造、精确字节原像表示和所选字段含义；名称或有类型的链接本身不确立其内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "The anchor names the actual source declaration explaining digest construction, packet encoding and any retained identifier or ordinal convention."
+msgstr "锚点指向实际来源声明，解释摘要构造、包编码及所保留的标识符或序数约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for the full actual source declaration applicable to this anchor."
+msgstr "仅用于适用于此锚点的完整实际来源声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a profile, borrowing a sibling anchor's interpretation, inferring defaults or treating a typed profile link as source authentication or execution."
+msgstr "不要虚构配置、借用其他锚点的解释、推断默认值，或将有类型的配置链接视为来源认证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual supplied profile identity and evidence for its full applicable meaning. A selecting importer fails on missing or invalid interpretation; preserve raw incomplete evidence outside the normalized anchor role."
+msgstr "保留实际提供的配置身份及其完整适用含义的证据。选择此角色的导入器在解释缺失或无效时必须失败；将不完整原始证据保留在规范化锚点角色之外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor episode evidence"
+msgstr "锚点回合段证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar StructuredValue occurrence retaining the original source episode identifier term supplied for this TraceAnchor."
+msgstr "一个标量 StructuredValue 载体，保留为此 TraceAnchor 提供的原始来源回合段标识项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one occurrence per coherent anchor. Its structuredTerm preserves the exact RDF term under the anchor's actual source profile, without inferring an Activity occurrence."
+msgstr "可选，每个一致锚点至多一个载体。其 structuredTerm 在锚点实际来源配置下保留精确 RDF 项，不推断 Activity 的发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unresolved source episode IRI remains an IRI in structuredTerm rather than an invented episode event or string."
+msgstr "未解析的来源回合段 IRI 在 structuredTerm 中仍为 IRI，而非虚构的回合段事件或字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an episode identifier term with its actual profile interpretation."
+msgstr "当来源提供回合段标识项及其实际配置解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing episode identity, stringifying resources, inventing a missing field or admitting null/map/sequence as a scalar identifier."
+msgstr "不要猜测回合段身份、将资源字符串化、虚构缺失字段，或将 null、map、sequence 准入为标量标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the scalar occurrence with its original structuredTerm; inherit existing whole-term uniqueness and branch exclusivity. Keep any separately supplied resolved episode evidence distinct."
+msgstr "链接带有原始 structuredTerm 的标量载体，继承现有整项唯一性及分支互斥规则。分别保留另行提供的已解析回合段证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor round evidence"
+msgstr "锚点轮次证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar StructuredValue occurrence retaining the original source round identifier or ordinal term supplied for this TraceAnchor."
+msgstr "一个标量 StructuredValue 载体，保留为此 TraceAnchor 提供的原始来源轮次标识项或序数项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one occurrence per coherent anchor. The actual source profile interprets its exact structuredTerm; no numeric datatype, ordinal base, chronology or Activity endpoint is guessed."
+msgstr "可选，每个一致锚点至多一个载体。实际来源配置解释其精确 structuredTerm；不猜测数值数据类型、序数基数、时序或 Activity 端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied round ordinal keeps its original typed literal while its source profile retains the actual numbering convention."
+msgstr "提供的轮次序数保留原始有类型字面量，其来源配置保留实际编号约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source round term and its applicable interpretation are supplied."
+msgstr "当提供了实际来源轮次项及适用解释时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting an identifier to an integer, guessing zero-based or one-based numbering, inferring order or treating an omitted round as zero."
+msgstr "不要将标识符转成整数、猜测从零或一开始的编号、推断顺序，或将省略的轮次视为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original RDF term in the linked scalar occurrence under the actual profile. Require its structuredTerm witness and reuse existing scalar integrity without retyping or numeric coercion."
+msgstr "在实际配置下，将原始 RDF 项保留在链接的标量载体中。要求 structuredTerm 见证并复用现有标量完整性规则，不重设类型或强制数值转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark packet evidence presence"
+msgstr "轨迹标记包证据存在性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every TraceMark has an actual traceMarkAnchor or an explicitly supplied traceMarkWithoutPacket flag; neither may be silently omitted together."
+msgstr "每个 TraceMark 都有实际 traceMarkAnchor 或明确提供的 traceMarkWithoutPacket 标志；二者不能同时缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two existence probes are atomic. A false flag still requires an anchor under its separate obligation, and an affirmative flag excludes anchors under the exclusivity law."
+msgstr "两个存在性检查均为原子形式。假标志仍受单独义务约束而要求锚点，肯定标志则按互斥规则排除锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark with neither anchor nor explicit flag fails instead of acquiring an invented without-packet status."
+msgstr "既无锚点也无明确标志的标记失败，不会获得虚构的无包状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check explicit packet evidence on actual TraceMark records."
+msgstr "用于检查实际 TraceMark 记录上的明确包证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating flag presence as an affirmative Boolean value, trace availability or completed recorder work."
+msgstr "不要将标志存在视为肯定布尔值、轨迹可用性或记录器已完成工作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Guard the actual TraceMark and require the disjunction of atomic anchor and flag witnesses, with separate Boolean-value laws and no default."
+msgstr "以实际 TraceMark 为守卫，要求原子锚点见证或标志见证的析取，并使用独立布尔值规则，不设默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark false flag anchor obligation"
+msgstr "轨迹标记假标志的锚点义务"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean false has an actual traceMarkAnchor."
+msgstr "当 TraceMark 提供的 traceMarkWithoutPacket 值等于布尔假时，必须有实际 traceMarkAnchor。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison admits each original false/0 alias unchanged. The required anchor witness is atomic; a false flag alone is incomplete evidence."
+msgstr "布尔值比较允许每个原始 false/0 别名单独原样准入。所需锚点见证为原子形式；单独的假标志是证据不完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied false flag without an anchor fails; its lexical form is not rewritten to repair the mark."
+msgstr "提供假标志但没有锚点时失败，不通过重写词法形式修补标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the actual anchor required by a source-supplied false without-packet flag."
+msgstr "用于检查来源提供假无包标志时所必需的实际锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching only the spelling false, inventing an anchor or interpreting an absent flag as false."
+msgstr "不要只匹配 false 拼写、虚构锚点，或将缺失标志解释为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the actual mark and flag, compare through termEqual to a typed Boolean false, and require one atomic anchor existence probe."
+msgstr "正向绑定实际标记及标志，通过 termEqual 与有类型的布尔假比较，并要求一个原子锚点存在性检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark affirmative flag exclusivity"
+msgstr "轨迹标记肯定标志互斥性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean true has no traceMarkAnchor."
+msgstr "当 TraceMark 提供的 traceMarkWithoutPacket 值等于布尔真时，不得有 traceMarkAnchor。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison admits each original true/1 alias unchanged. This is explicit without-packet status, not a statement that no packet ever existed or a lost-mark give-up."
+msgstr "布尔值比较允许每个原始 true/1 别名单独原样准入。这是明确的无包状态，不断言包从未存在，也不是对丢失标记的放弃。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark carrying both an affirmative flag and an actual anchor fails instead of silently selecting one interpretation."
+msgstr "同时具有肯定标志和实际锚点的标记失败，不会静默选择一种解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the exclusion of anchors by an actual affirmative without-packet flag."
+msgstr "用于检查实际肯定无包标志对锚点的排除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching only the spelling true, deleting contradictory evidence or deriving finality, frontier advancement or deletion permission."
+msgstr "不要只匹配 true 拼写、删除矛盾证据，或推导终局、前沿推进或删除许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the mark and supplied flag, compare Boolean value through termEqual, and forbid atomic anchor existence without rewriting source data."
+msgstr "正向绑定标记及提供的标志，通过 termEqual 比较布尔值，并禁止原子锚点存在，不重写来源数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace anchor scalar evidence"
+msgstr "轨迹锚点标量证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
+msgstr "为 TraceAnchor 提供的每个 anchorEpisode 或 anchorRound 载体都必须有原始 structuredTerm 见证，并继承现有标量唯一性及分支互斥规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both optional roles use independent positive guards and atomic term witnesses. No field is required when absent, and no map, sequence or null becomes a scalar identifier."
+msgstr "两个可选角色使用独立正向守卫及原子项见证。字段缺失时不要求补造；map、sequence 或 null 不会成为标量标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied occurrence with an original IRI term passes the presence obligation; an empty occurrence does not become a default episode or round."
+msgstr "带有原始 IRI 项的载体满足存在性义务；空载体不会变成默认回合段或轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the actual scalar carriers selected for optional anchor episode and round evidence."
+msgstr "用于验证为可选锚点回合段及轮次证据选择的实际标量载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating structuredTerm identity laws, stringifying original resources or treating a scalar witness as source authentication or resolved Activity identity."
+msgstr "不要重复 structuredTerm 身份规则、将原始资源字符串化，或把标量见证视为来源认证或已解析的 Activity 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each actual optional role link, require an atomic structuredTerm witness with fresh local variables. Leave whole-term uniqueness and payload branch exclusivity to their existing owner."
+msgstr "对每个实际可选角色链接，用全新的局部变量要求原子 structuredTerm 见证。将整项唯一性及载荷分支互斥保留给其现有所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every TraceMark has an actual traceMarkAnchor or an explicitly supplied traceMarkWithoutPacket flag; neither may be silently omitted together."
+msgstr "每个 TraceMark 都有实际 traceMarkAnchor 或明确提供的 traceMarkWithoutPacket 标志；二者不能同时缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean false has an actual traceMarkAnchor."
+msgstr "当 TraceMark 提供的 traceMarkWithoutPacket 值等于布尔假时，必须有实际 traceMarkAnchor。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean true has no traceMarkAnchor."
+msgstr "当 TraceMark 提供的 traceMarkWithoutPacket 值等于布尔真时，不得有 traceMarkAnchor。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
+msgstr "为 TraceAnchor 提供的每个 anchorEpisode 或 anchorRound 载体都必须有原始 structuredTerm 见证，并继承现有标量唯一性及分支互斥规则。"

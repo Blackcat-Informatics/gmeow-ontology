@@ -165,3 +165,128 @@ ordering, finality watermark, producer frontier, lost-mark give-up or recorder
 deletion. A classification or absent category is no proof of retention,
 completeness, finality or permission to discard traces (Principles 4, 9, 11,
 17 and 19).
+
+## Curator trace marks and exact packet anchors
+
+`TraceMark` specializes the existing [Annotation](../notes/docs.md). Its sole
+`annotationTarget` is the actual `InformationObject` event record, not an
+`Event` occurrence. A local field naming the marked record corresponds to this
+existing target role; this vocabulary adds no second target predicate, adapter
+or migration. Do not manufacture a record resource from an unresolved identifier
+or type a record as an Event because it describes one.
+
+Each coherent mark requires its actual annotation target and motivation under
+Notes' inherited exactly-one contract. No motivation is primary, automatic or
+guessed from the mark's category. Keep at least one actual curator through
+`wasAttributedTo`, and retain source and standpoint attribution for each exact
+assertion separately. An inherited optional body may hold a real curator note;
+the mark does not carry the recorder's raw trace content and requires no body.
+No Observation-domain vantage or invented model run supplies curator context.
+
+At least one supplied `traceMarkClass` value is required locally on a TraceMark,
+without a maximum. The existing role stays optional and nonfunctional for other
+Annotations. The open `TraceMarkClass` vocabulary retains actual local category
+identities and source-specific meanings. A local category's name does not mint
+a universal member, EventType, event occurrence or preferred importance rank.
+Coexisting curator readings remain distinct marks; no global winner is chosen.
+
+`traceMarkAt` retains exactly one original temporal literal placing the event
+described by the target record: `xsd:dateTime`, `xsd:date`, `xsd:gYearMonth` or
+`xsd:gYear` at the supplied precision. Preserve datatype, lexical form and
+timezone information. This is not record creation, annotation creation or the
+time the recorder processed it. Exactly one actual complete
+[TemporalFrame](../temporal/docs.md) is required through `hasReferenceFrame`.
+It retains the actual temporal interpretation while inheriting the existing
+temporal and [reference-frame](../places/docs.md) profile laws. Do not borrow
+Events' UTC default, invent midnight or an unstated clock, increase precision,
+or use a frame to reinterpret an XSD datatype's calendar. Required actual
+interpretation is not a performed chronology or calendar conversion.
+
+### Explicit packet status
+
+`traceMarkAnchor` retains every actual supplied `TraceAnchor`, without a
+maximum or a preferred packet. Each anchor carries its own complete required
+packet/profile context. If a mark is held without a packet identity, retain
+the explicit affirmative `traceMarkWithoutPacket` flag instead. Missing anchors
+and missing flag together are invalid; absence never becomes an affirmative
+without-packet declaration or a default false value.
+
+The optional flag retains at most one original `xsd:boolean` literal per
+coherent mark. Each individual `true`/`1` or `false`/`0` lexical alias is admitted
+unchanged and interpreted by Boolean value. The literal maximum does not admit
+simultaneous alias assertions. An affirmative flag excludes every anchor. A
+false flag requires at least one actual anchor; false alone supplies no packet
+evidence. Contradictions fail rather than being repaired by dropping a source
+assertion, rewriting a literal or inventing a packet.
+
+The three packet laws stay separate. Presence is the disjunction of an atomic
+anchor witness and an atomic flag witness. A positively bound false flag
+requires an atomic anchor witness. A positively bound affirmative flag forbids
+atomic anchor existence. Boolean `termEqual` comparisons retain the meaning of
+individual lexical aliases without a joined affirmative existential or an
+absence-based default. These structural obligations establish no trace join,
+retention, deletion permission, ledger completeness or finality.
+
+### Source-packet interpretation
+
+`TraceAnchor` is an `InformationObject` descriptor, distinct from an actual
+packet artifact or trace. Exactly one `anchorPacket` retains the complete
+original `xsd:hexBinary` digest literal unchanged. Exactly one
+`anchorSourceProfile` names the actual applicable `InformationObject`
+declaration of its source interpretation. This profile belongs on each anchor;
+it is not inferred from a sibling anchor, surrounding mark, profile name or
+default. Several anchors may share an actual applicable profile without
+becoming the same anchor or packet.
+
+The actual full profile must identify the digest algorithm and construction,
+including any keyed, domain-tag, truncation or output convention, and the exact
+packet byte-preimage meaning, encoding and any canonicalization used. It must
+also explain the selected episode/round source fields. It need not embed the
+packet's bytes in the mark, but its actual meaning and applicability must be
+source-supported. A typed link or recognizable digest width does not establish
+those facts. An importer selecting the normalized role must fail if required
+source interpretation is absent or invalid; preserve raw incomplete evidence
+under its original meaning rather than inventing a profile or claiming success.
+
+`xsd:hexBinary` alone identifies no digest algorithm. Do not infer an algorithm
+from width, normalize the spelling or retype historical literals as the distinct
+[Math algorithm-digest datatypes](../../grounding/math/docs.md#algorithm-tagged-digest-literals).
+No literal is converted to BLAKE3, SHA-256 or MD5 by this role. This property
+does not specialize [contentDigest](../sources/docs.md): on the anchor descriptor,
+that property would identify the descriptor's own bytes. A supplied packet
+digest does not create a packet resource, establish byte verification or
+compute a trace join. Keep any independently supplied actual packet artifact
+and its own content digest separate.
+
+### Optional episode and round terms
+
+`anchorEpisode` and `anchorRound` each optionally link at most one scalar
+[StructuredValue](../record-metadata/docs.md) occurrence. The occurrence's
+`structuredTerm` preserves the exact original RDF term: IRI, blank node,
+literal or triple term, including literal datatype, lexical form, language and
+direction. A source resource identifier can remain unresolved; it is neither
+stringified nor inferred to be an Activity. A round ordinal is not retyped,
+renumbered or assigned an unstated zero/one base. The anchor's actual source
+profile interprets each supplied field.
+
+The scalar carrier exposes source evidence without manufacturing a source
+episode or round event. Existing `StructuredTermIntegrityConstraint` owns
+whole-term uniqueness, and `StructuredValueBranchConstraint` owns payload
+branch exclusivity. The new `TraceAnchorScalarConstraint` requires only an
+atomic positive `structuredTerm` witness for each selected optional occurrence,
+with fresh variables for episode and round. No required field is added when
+absent. A container or explicit null stays source evidence outside these
+selected scalar identifier/ordinal roles; an empty carrier fails instead of
+becoming a default value. Independently supplied resolved episode/round evidence
+remains distinct from the raw term and its interpretation.
+
+### Trace finality remains a separate contract
+
+A mark, flag, profile or anchor implements no ordered packet ledger, time/digest
+comparator, monotonic finality watermark, producer committed frontier or explicit
+lost-mark give-up with its reason. Without-packet status is not evidence that
+in-memory marks were lost, a producer committed, or a recorder may advance a
+frontier or discard traces. The vocabulary computes no digest, performs no
+join, authenticates no source and executes no storage action. Unknown source
+interpretation remains unknown rather than being hidden by a successful
+structural result (Principles 4, 7, 9, 11, 12, 17 and 19).
