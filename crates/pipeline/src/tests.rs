@@ -451,6 +451,7 @@ fn turtle_dag_round_trips_and_validates() {
     assert_eq!(g.order(), vec!["stageSource", "stageReason", "stageSink"]);
 }
 
+/// Native string/token admission preserves each machine field's supplied lexical bytes.
 #[test]
 fn pipeline_machine_strings_admit_native_string_and_token_without_rewriting() {
     for datatype in ["string", "token"] {
@@ -480,6 +481,7 @@ gmeow:stageSource gmeow:producesFormat " raw format " ;
     assert_eq!(source.attaches_blob_reps, vec![" raw representation "]);
 }
 
+/// Every supplied field value validates, including invalid companions of valid labels.
 #[test]
 fn pipeline_machine_strings_reject_each_invalid_native_declaration() {
     for property in ["stageImpl", "producesFormat", "attachesBlobRep"] {
@@ -518,6 +520,7 @@ fn pipeline_machine_strings_reject_each_invalid_native_declaration() {
     }
 }
 
+/// Implementation cardinality counts distinct RDF terms before extracting their text.
 #[test]
 fn pipeline_implementation_counts_native_terms_before_lexical_projection() {
     let missing = DAG_TTL.replacen(
@@ -542,6 +545,7 @@ fn pipeline_implementation_counts_native_terms_before_lexical_projection() {
     }
 }
 
+/// Optional labels retain their existing sorted, deduplicated lexical sets.
 #[test]
 fn pipeline_optional_machine_labels_keep_their_sorted_lexical_sets() {
     let original = PipelineSpec::from_turtle(&[DAG_TTL]).expect("base DAG");
@@ -561,10 +565,15 @@ gmeow:stageSource gmeow:producesFormat "z", "a", "a"^^xsd:token, ""^^xsd:token ;
     assert_eq!(source.attaches_blob_reps, vec!["", "a", "z"]);
 }
 
+/// An admitted unknown key reaches registry failure with its exact lexical bytes.
 #[test]
 fn native_admitted_unknown_implementation_keys_reach_registry_binding() {
-    for key in ["not_registered", ""] {
-        let literal = format!("\"{key}\"^^<http://www.w3.org/2001/XMLSchema#token>");
+    for (key, datatype) in [
+        ("not_registered", "token"),
+        ("", "token"),
+        (" source_load ", "string"),
+    ] {
+        let literal = format!("\"{key}\"^^<http://www.w3.org/2001/XMLSchema#{datatype}>");
         let dag = DAG_TTL.replacen("\"source_load\"", &literal, 1);
         let spec = PipelineSpec::from_turtle(&[&dag]).expect("native-valid key");
         assert_eq!(
@@ -575,7 +584,11 @@ fn native_admitted_unknown_implementation_keys_reach_registry_binding() {
         let err = bind(&spec, &graph, &StageRegistry::new())
             .map(|stages| stages.len())
             .expect_err("an unknown key must retain the registry binding failure");
-        assert!(err.is::<crate::error::UnknownStageImpl>(), "{err}");
+        let failure = err
+            .downcast_ref::<crate::error::UnknownStageImpl>()
+            .expect("registry binding failure");
+        assert_eq!(failure.impl_key, key);
+        assert_eq!(failure.stage, "stageSource");
     }
 }
 
