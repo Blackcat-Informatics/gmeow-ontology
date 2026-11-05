@@ -2053,3 +2053,96 @@ gmeow:reckoningFrame
     logic:range gmeow:TemporalFrame .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reckoningFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DayPartBoundary
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Day Part Boundary"@x-gmeow-english ;
+    skos:definition "A source-declared recurring civil-day configuration entry associating one DayPart with its supplied local civil start time in an actual reckoning configuration."@x-gmeow-english ;
+    skos:scopeNote "The latest applicable declared local civil start determines the continuing DayPart. A part continuing past midnight belongs to the civil date on which it began, until the next declared start; midnight alone does not relabel it to the new date. This information object is a recurring entry, not a dated boundary occurrence, Instant or TimeInterval."@x-gmeow-english ;
+    skos:example "A source’s final declared day part continues after midnight with its start civil date retained; no boundary hour or dated occurrence is invented."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an actual source entry defining a recurring start in its civil-day reckoning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid universal hours, seed ordering, invented dates, a completed roster, a tie-breaking rule or an unstated DST gap/fold policy."@x-gmeow-english ;
+    gmeow:howToUse "Retain exactly one supplied boundaryDayPart and one original xsd:time boundaryBegins, including any supplied offset. Link from the actual source configuration through dayPartBoundary and retain that configuration’s actual reckoningFrame."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:dayPartBoundary
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "day part boundary"@x-gmeow-english ;
+    skos:definition "An actual recurring DayPartBoundary entry retained by the supplied temporal reckoning rule or configuration resource."@x-gmeow-english ;
+    skos:scopeNote "This optional, many-valued role has no domain class. The selected configuration’s latest applicable declared local start continues across midnight under its start civil date until the next declared start. Linking a roster neither executes it nor classifies the subject as an executable rule."@x-gmeow-english ;
+    skos:example "A supplied reading-parameter release retains several actual boundary entries without being made a Temporal-specific rule class."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source reckoning configuration supplies recurring day-part starts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring a roster on every configuration, restricting it to one entry or inventing missing entries, frames or source assignments."@x-gmeow-english ;
+    gmeow:howToUse "Link every actually supplied entry and retain an actual reckoningFrame on that same configuration. Preserve the source roster and civil interpretation without a calendar, zone or execution default."@x-gmeow-english ;
+    logic:range gmeow:DayPartBoundary .
+
+gmeow:boundaryDayPart
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "boundary day part"@x-gmeow-english ;
+    skos:definition "The one supplied DayPart whose recurring local civil start is declared by this DayPartBoundary entry."@x-gmeow-english ;
+    skos:scopeNote "The latest applicable declared start selects this part, which continues past midnight under the civil date on which it began until the next declared start. DayPart remains open and imposes no universal hour or seed ordering."@x-gmeow-english ;
+    skos:example "A source names its own day-part value in the recurring entry; a familiar label supplies no missing clock boundary."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual day-part value named by a boundary entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a start time from a DayPart label or treating the seed vocabulary as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Keep exactly one supplied DayPart on the entry and retain its supplied boundaryBegins and parent configuration context separately."@x-gmeow-english ;
+    logic:domain gmeow:DayPartBoundary ;
+    logic:range gmeow:DayPart .
+
+gmeow:boundaryBegins
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "boundary begins"@x-gmeow-english ;
+    skos:definition "The exact supplied xsd:time declaring this DayPartBoundary entry’s recurring local civil start."@x-gmeow-english ;
+    skos:scopeNote "The latest applicable declared local civil start determines the DayPart continuing past midnight under its start civil date until the next declared start. xsd:time contains no start civil date: retain any supplied offset without conversion, fabricated date precision or inferred midnight."@x-gmeow-english ;
+    skos:example "A source supplies a recurring civil start with an offset; the entry retains that original time literal rather than creating a dated instant."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual local civil start supplied by the reckoning configuration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stripping offsets, converting to UTC, fabricating dates or hours, or imposing an unstated tie or DST gap/fold interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Keep exactly one supplied xsd:time literal, preserving its lexical form and datatype including any offset, and interpret it only under the actual parent configuration’s reckoningFrame and source rules."@x-gmeow-english ;
+    logic:domain gmeow:DayPartBoundary ;
+    logic:range xsd:time .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dayPartBoundary" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/boundaryDayPart" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/boundaryBegins" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DayPartBoundary logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:boundaryDayPart ; logic:allValuesFrom gmeow:DayPart ],
+    [ a logic:Restriction ; logic:onProperty gmeow:boundaryDayPart ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DayPart ],
+    [ a logic:Restriction ; logic:onProperty gmeow:boundaryBegins ; logic:allValuesFrom xsd:time ],
+    [ a logic:Restriction ; logic:onProperty gmeow:boundaryBegins ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:time ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DayPartBoundary ; logic:closureKey "https://blackcatinformatics.ca/gmeow/boundaryDayPart" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DayPartBoundary ; logic:closureKey "https://blackcatinformatics.ca/gmeow/boundaryBegins" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DayPartBoundaryFrameConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Day-part boundary frame constraint"@x-gmeow-english ;
+    skos:definition "Every configuration supplying a dayPartBoundary entry retains an actual reckoningFrame companion on that same configuration."@x-gmeow-english ;
+    skos:scopeNote "The selected link requires a frame without imposing one on unrelated configurations. The existing role validates TemporalFrame values; its optional calendar and reference-position components remain optional. This check does not execute the latest-start or start-civil-date assignment."@x-gmeow-english ;
+    skos:example "A configuration supplying boundary entries but no actual temporal frame fails the selected companion obligation instead of receiving a default frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the actual frame context of a selected recurring civil-boundary configuration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a frame, calendar, position, zone, complete roster or successful assignment to satisfy the constraint."@x-gmeow-english ;
+    gmeow:howToUse "Guard each supplied dayPartBoundary link and require an existing reckoningFrame value on its subject; apply existing TemporalFrame endpoint obligations without new component defaults."@x-gmeow-english ;
+    logic:formalizes gmeow:dayPartBoundary , gmeow:reckoningFrame ;
+    logic:severity "Violation" ;
+    logic:message "Every configuration supplying a dayPartBoundary entry retains an actual reckoningFrame companion on that same configuration."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "configuration" ], [ logic:termIndex 1 ; logic:termVariable "boundary" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:dayPartBoundary ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "configuration" ], [ logic:termIndex 1 ; logic:termVariable "boundary" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "frame" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:reckoningFrame ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "configuration" ], [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] ] .

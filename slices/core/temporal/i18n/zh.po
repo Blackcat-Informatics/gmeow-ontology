@@ -668,3 +668,147 @@ msgstr "避免猜测历法、时区或默认参考系，也不要将此关系视
 msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the actual supplied rule or configuration resource to its complete TemporalFrame. Retain the declared scale and any applicable calendar and reference position; the hasReferenceFrame relation follows by subproperty inheritance without performing a conversion."
 msgstr "将来源实际提供的规则或配置资源关联到其完整的 TemporalFrame。保留声明的时间尺度及适用的历法和参考位置；通过子属性继承可得到 hasReferenceFrame 关系，但不会执行时间转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day Part Boundary"
+msgstr "日段边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-declared recurring civil-day configuration entry associating one DayPart with its supplied local civil start time in an actual reckoning configuration."
+msgstr "来源声明的周期性民用日配置条目，在实际时间划分配置中，将一个 DayPart 与来源提供的本地民用起始时间关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The latest applicable declared local civil start determines the continuing DayPart. A part continuing past midnight belongs to the civil date on which it began, until the next declared start; midnight alone does not relabel it to the new date. This information object is a recurring entry, not a dated boundary occurrence, Instant or TimeInterval."
+msgstr "最近一个适用的已声明本地民用起始时间决定当前延续的 DayPart。跨越午夜延续的日段归属于其开始时的民用日期，直至下一个已声明起始时间；不能仅因午夜到来就将其改归新日期。此信息对象是周期性条目，不是带日期的边界发生事件、Instant 或 TimeInterval。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s final declared day part continues after midnight with its start civil date retained; no boundary hour or dated occurrence is invented."
+msgstr "来源声明的最后一个日段在午夜后继续延续，并保留其开始时的民用日期；不编造边界时刻或带日期的发生事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an actual source entry defining a recurring start in its civil-day reckoning."
+msgstr "用于保留来源中定义其民用日周期性起始时间的实际条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid universal hours, seed ordering, invented dates, a completed roster, a tie-breaking rule or an unstated DST gap/fold policy."
+msgstr "避免设定通用时刻、为种子值排序、编造日期、补全清单、规定平局处理规则，或补入未声明的夏令时空缺及重复时段策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exactly one supplied boundaryDayPart and one original xsd:time boundaryBegins, including any supplied offset. Link from the actual source configuration through dayPartBoundary and retain that configuration’s actual reckoningFrame."
+msgstr "保留恰好一个来源提供的 boundaryDayPart 和一个原始 xsd:time boundaryBegins，包括来源提供的任何偏移。通过 dayPartBoundary 从实际来源配置连接此条目，并保留该配置实际的 reckoningFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "day part boundary"
+msgstr "日段边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual recurring DayPartBoundary entry retained by the supplied temporal reckoning rule or configuration resource."
+msgstr "来源提供的时间划分规则或配置资源所保留的实际周期性 DayPartBoundary 条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, many-valued role has no domain class. The selected configuration’s latest applicable declared local start continues across midnight under its start civil date until the next declared start. Linking a roster neither executes it nor classifies the subject as an executable rule."
+msgstr "此可选多值关系没有定义域类。选定配置中最近一个适用的已声明本地起始时间所开始的日段跨越午夜时，仍归其开始时的民用日期，直至下一个已声明起始时间。连接清单不会执行该清单，也不会将主语归类为可执行规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied reading-parameter release retains several actual boundary entries without being made a Temporal-specific rule class."
+msgstr "来源提供的读取参数发布版保留多个实际边界条目，而不因此成为 Temporal 专属规则类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source reckoning configuration supplies recurring day-part starts."
+msgstr "用于实际来源时间划分配置提供周期性日段起始时间时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring a roster on every configuration, restricting it to one entry or inventing missing entries, frames or source assignments."
+msgstr "避免要求每个配置都提供清单、将其限制为单个条目，或编造缺失条目、参考系或来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every actually supplied entry and retain an actual reckoningFrame on that same configuration. Preserve the source roster and civil interpretation without a calendar, zone or execution default."
+msgstr "连接每个实际提供的条目，并在同一配置上保留实际的 reckoningFrame。保留来源清单及其民用时间解释，不添加默认历法、时区或执行行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "boundary day part"
+msgstr "边界日段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one supplied DayPart whose recurring local civil start is declared by this DayPartBoundary entry."
+msgstr "此 DayPartBoundary 条目声明其周期性本地民用起始时间的唯一来源所提供 DayPart。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The latest applicable declared start selects this part, which continues past midnight under the civil date on which it began until the next declared start. DayPart remains open and imposes no universal hour or seed ordering."
+msgstr "最近一个适用的已声明起始时间选定此日段；该日段跨越午夜时仍归其开始时的民用日期，直至下一个已声明起始时间。DayPart 保持开放，不规定通用时刻或种子值顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source names its own day-part value in the recurring entry; a familiar label supplies no missing clock boundary."
+msgstr "来源在周期性条目中指定自己的日段值；熟悉的标签不能补足缺失的时钟边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual day-part value named by a boundary entry."
+msgstr "用于保留边界条目实际指定的日段值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a start time from a DayPart label or treating the seed vocabulary as exhaustive."
+msgstr "避免从 DayPart 标签推导起始时间，或将种子词汇表视为穷举集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryDayPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exactly one supplied DayPart on the entry and retain its supplied boundaryBegins and parent configuration context separately."
+msgstr "在条目上保留恰好一个来源提供的 DayPart，并分别保留其提供的 boundaryBegins 和父配置上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "boundary begins"
+msgstr "边界起始时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied xsd:time declaring this DayPartBoundary entry’s recurring local civil start."
+msgstr "声明此 DayPartBoundary 条目周期性本地民用起始时间的来源所提供的确切 xsd:time。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The latest applicable declared local civil start determines the DayPart continuing past midnight under its start civil date until the next declared start. xsd:time contains no start civil date: retain any supplied offset without conversion, fabricated date precision or inferred midnight."
+msgstr "最近一个适用的已声明本地民用起始时间决定跨越午夜延续的 DayPart；该日段仍归其开始时的民用日期，直至下一个已声明起始时间。xsd:time 不包含开始时的民用日期：保留来源提供的任何偏移，不转换、不编造日期精度，也不推断午夜时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies a recurring civil start with an offset; the entry retains that original time literal rather than creating a dated instant."
+msgstr "来源提供带偏移的周期性民用起始时间；条目保留该原始时间字面量，不创建带日期的时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual local civil start supplied by the reckoning configuration."
+msgstr "用于时间划分配置实际提供的本地民用起始时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stripping offsets, converting to UTC, fabricating dates or hours, or imposing an unstated tie or DST gap/fold interpretation."
+msgstr "避免移除偏移、转换为 UTC、编造日期或时刻，或强加未声明的平局、夏令时空缺及重复时段解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boundaryBegins|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exactly one supplied xsd:time literal, preserving its lexical form and datatype including any offset, and interpret it only under the actual parent configuration’s reckoningFrame and source rules."
+msgstr "保留恰好一个来源提供的 xsd:time 字面量，保持其词法形式和数据类型，包括任何偏移；仅按实际父配置的 reckoningFrame 及来源规则解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day-part boundary frame constraint"
+msgstr "日段边界参考系约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every configuration supplying a dayPartBoundary entry retains an actual reckoningFrame companion on that same configuration."
+msgstr "每个提供 dayPartBoundary 条目的配置都必须在同一配置上保留实际的 reckoningFrame 配套关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected link requires a frame without imposing one on unrelated configurations. The existing role validates TemporalFrame values; its optional calendar and reference-position components remain optional. This check does not execute the latest-start or start-civil-date assignment."
+msgstr "选定关系要求提供参考系，但不要求无关配置也具有参考系。现有关系校验 TemporalFrame 值；其可选历法和参考位置分量仍保持可选。此检查不执行最近起始时间或开始时民用日期的归属计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A configuration supplying boundary entries but no actual temporal frame fails the selected companion obligation instead of receiving a default frame."
+msgstr "提供边界条目但没有实际时间参考系的配置不满足选定的配套义务，不会获得默认参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the actual frame context of a selected recurring civil-boundary configuration."
+msgstr "用于要求选定周期性民用边界配置具有实际的参考系上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a frame, calendar, position, zone, complete roster or successful assignment to satisfy the constraint."
+msgstr "避免为满足约束而制造参考系、历法、位置、时区、完整清单或成功的归属计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Guard each supplied dayPartBoundary link and require an existing reckoningFrame value on its subject; apply existing TemporalFrame endpoint obligations without new component defaults."
+msgstr "以每个提供的 dayPartBoundary 关系作为守卫，要求其主语具有现存的 reckoningFrame 值；应用现有 TemporalFrame 端点义务，不引入新的分量默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPartBoundaryFrameConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every configuration supplying a dayPartBoundary entry retains an actual reckoningFrame companion on that same configuration."
+msgstr "每个提供 dayPartBoundary 条目的配置都必须在同一配置上保留实际的 reckoningFrame 配套关系。"
