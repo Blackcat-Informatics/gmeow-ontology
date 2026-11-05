@@ -3671,3 +3671,19 @@ gmeow:ImageAnalysis logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
     logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
     logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:modelExecutionIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "model execution identity"@x-gmeow-english ;
+    skos:definition "The BLAKE3 execution-identity digest supplied by a provider’s inference receipt for this ModelInvocation, retained as carried under the receipt’s actual scheme for the weights, quantization and runtime configuration or build of that call."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional role records the provider’s reported execution identity. It does not certify complete capture of the execution context, verified digest agreement or deterministic equivalence of calls, outputs or model agents."@x-gmeow-english ;
+    skos:example "A provider’s receipt reports the execution identity of one call with its weights, quantization and runtime-build context; the invocation retains the supplied BLAKE3 digest and that receipt context."@x-gmeow-english ;
+    gmeow:useWhen "Use when the provider’s actual inference receipt supplies a BLAKE3 execution identity for a particular generative call, beyond the requested alias or model name."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting modelRevision, modelIdentifier, modelAlias or an artifact’s contentDigest, guessing BLAKE3 mode, output length, fixed case or preimage encoding, or retyping the supplied value to a narrower named digest datatype."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:hexBinary lexical form and datatype on the ModelInvocation. Preserve the provider receipt, source attribution and its actual weights, quantization and runtime context without inventing missing fields. Do not infer cross-scheme identity, hash verification or a whole weights-byte preimage from the digest alone."@x-gmeow-english ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:hexBinary .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .

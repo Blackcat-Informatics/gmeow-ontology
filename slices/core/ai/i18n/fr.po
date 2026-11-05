@@ -3395,3 +3395,31 @@ msgstr "Éviter de traiter l’absence par défaut comme une analyse, d’écart
 msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."
 msgstr "Vérifier pour chaque ImageAnalysis l’existence d’au moins une des trois relations de champ. Préserver le contexte réellement cohérent et appliquer les obligations distinctes de type de valeur, de caractéristique, de méthode et de point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model execution identity"
+msgstr "identité d’exécution du modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3 execution-identity digest supplied by a provider’s inference receipt for this ModelInvocation, retained as carried under the receipt’s actual scheme for the weights, quantization and runtime configuration or build of that call."
+msgstr "Le condensat BLAKE3 d’identité d’exécution fourni par le reçu d’inférence d’un fournisseur pour cette ModelInvocation, conservé tel qu’il y figure selon le schéma réel du reçu pour les poids, la quantification et la configuration ou la version de construction de l’environnement d’exécution de cet appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role records the provider’s reported execution identity. It does not certify complete capture of the execution context, verified digest agreement or deterministic equivalence of calls, outputs or model agents."
+msgstr "Ce rôle facultatif et non fonctionnel consigne l’identité d’exécution rapportée par le fournisseur. Il ne certifie ni la saisie complète du contexte d’exécution, ni la concordance vérifiée du condensat, ni l’équivalence déterministe des appels, des sorties ou des agents modèles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A provider’s receipt reports the execution identity of one call with its weights, quantization and runtime-build context; the invocation retains the supplied BLAKE3 digest and that receipt context."
+msgstr "Le reçu d’un fournisseur rapporte l’identité d’exécution d’un appel avec son contexte de poids, de quantification et de construction de l’environnement d’exécution ; l’invocation conserve le condensat BLAKE3 fourni et ce contexte du reçu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the provider’s actual inference receipt supplies a BLAKE3 execution identity for a particular generative call, beyond the requested alias or model name."
+msgstr "Utiliser lorsque le reçu d’inférence réel du fournisseur fournit une identité d’exécution BLAKE3 pour un appel génératif particulier, au-delà de l’alias demandé ou du nom du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting modelRevision, modelIdentifier, modelAlias or an artifact’s contentDigest, guessing BLAKE3 mode, output length, fixed case or preimage encoding, or retyping the supplied value to a narrower named digest datatype."
+msgstr "Éviter de substituer modelRevision, modelIdentifier, modelAlias ou le contentDigest d’un artefact, de deviner le mode BLAKE3, la longueur de sortie, une casse imposée ou l’encodage de la préimage, ou de changer le type de la valeur fournie pour un type de données de condensat nommé plus restrictif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelExecutionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:hexBinary lexical form and datatype on the ModelInvocation. Preserve the provider receipt, source attribution and its actual weights, quantization and runtime context without inventing missing fields. Do not infer cross-scheme identity, hash verification or a whole weights-byte preimage from the digest alone."
+msgstr "Conserver la forme lexicale et le type de données xsd:hexBinary fournis sur la ModelInvocation. Conserver le reçu du fournisseur, l’attribution de source et son contexte réel de poids, de quantification et d’exécution sans inventer les champs manquants. Ne pas inférer une identité entre schémas, une vérification de hachage ou une préimage constituée de tous les octets des poids à partir du seul condensat."
