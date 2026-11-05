@@ -1128,13 +1128,13 @@ msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
 msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an OWL ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
 msgstr "Relie une math:ConformalCompactification à son facteur conforme de remise à l'échelle Ω — une fonction positive qui multiplie la métrique de sorte que la distance métrique non bornée devienne finie au bord tout en préservant les angles. Domaine math:ConformalCompactification, portée une math:Function ou math:Quantity positive (un individu, jamais un simple littéral — donc une OWL ObjectProperty, non une propriété de type de données) (précisé en prose). Toute compactification conforme en nomme exactement un ; une sans lui est mal formée (math:UnderspecifiedCompactification)."
 
-msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measurable Set"
 msgstr "Ensemble mesurable"
 
-msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
-msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
-msgstr "Un sous-ensemble mesurable : un élément de la math:SigmaAlgebra d'un math:MeasurableSpace — l'un des sous-ensembles clos par complémentation et union dénombrable que la σ-algèbre rassemble, et donc le genre de sous-ensemble auquel une math:Measure peut attribuer une masse. C'est l'argument individuel A d'une évaluation μ(A) : là où un math:MeasurableSpace est le sol entier (X, Σ) sur lequel une mesure agit, un ensemble mesurable en est un morceau mesurable, la bande ou la région dont une math:MeasureEvaluation lit la masse. Partagé avec la charte des probabilités, où un ensemble mesurable est un événement."
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets that the σ-algebra collects into a family closed under complement and countable union, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "Un sous-ensemble mesurable : un élément de la math:SigmaAlgebra d'un math:MeasurableSpace — l'un des sous-ensembles que la σ-algèbre rassemble en une famille close par complémentation et union dénombrable, et donc le genre de sous-ensemble auquel une math:Measure peut attribuer une masse. C'est l'argument individuel A d'une évaluation μ(A) : là où un math:MeasurableSpace est le sol entier (X, Σ) sur lequel une mesure agit, un ensemble mesurable en est un morceau mesurable, la bande ou la région dont une math:MeasureEvaluation lit la masse. Partagé avec la charte des probabilités, où un ensemble mesurable est un événement."
 
 msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure Evaluation"
@@ -11614,3 +11614,107 @@ msgstr "Ne pas y placer math:NegativeInfinity : une mesure est non négative, do
 msgctxt "https://blackcatinformatics.ca/math/measureResult|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set it on a math:MeasureEvaluation to a non-negative numeric literal or math:PositiveInfinity; its rdf:Property typing spans literal and the pole individual."
 msgstr "La définir sur une math:MeasureEvaluation vers un littéral numérique non négatif ou math:PositiveInfinity ; son type rdf:Property couvre le littéral et l’individu représentant le pôle."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measurable Space"
+msgstr "Espace mesurable"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measurable space (X, Σ): a set X together with a σ-algebra Σ of its measurable subsets. Names its underlying set and its σ-algebra through math:measurableSpaceOf. The domain a math:Measure assigns mass over and the domain a math:Integral integrates over; shared with the probability charter, where a probability space is a measurable space carrying a probability measure."
+msgstr "Un espace mesurable (X, Σ) : un ensemble X muni d’une σ-algèbre Σ de ses sous-ensembles mesurables. Il nomme son ensemble sous-jacent et sa σ-algèbre par math:measurableSpaceOf. C’est le domaine sur lequel une math:Measure attribue une masse et sur lequel une math:Integral intègre ; il est partagé avec le cadre probabiliste, où un espace de probabilité est un espace mesurable portant une mesure de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the structured-space role (X, Σ), pairing an underlying set X with a family Σ of measurable subsets. The roles of space, underlying set, family and member subset have different meanings; those conceptual distinctions do not require pairwise distinct RDF resources or declare the classes disjoint."
+msgstr "C’est le rôle d’espace structuré (X, Σ), associant un ensemble sous-jacent X à une famille Σ de sous-ensembles mesurables. Les rôles d’espace, d’ensemble sous-jacent, de famille et de sous-ensemble membre ont des sens différents ; ces distinctions conceptuelles n’exigent pas des ressources RDF deux à deux distinctes et ne déclarent pas les classes disjointes."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing configSpace example links configSet and configSigma through measurableSpaceOf, with their Set and SigmaAlgebra types supplied separately. This names the components without enumerating measurable subsets or proving the σ-algebra laws."
+msgstr "L’exemple existant configSpace relie configSet et configSigma par measurableSpaceOf, leurs types Set et SigmaAlgebra étant fournis séparément. Cela nomme les composantes sans énumérer les sous-ensembles mesurables ni prouver les lois de σ-algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied measurable-space pairing used by a measure or integral, retaining the actual underlying set, σ-algebra and source evidence."
+msgstr "À utiliser pour un espace mesurable fourni, utilisé par une mesure ou une intégrale, en conservant l’ensemble sous-jacent réel, la σ-algèbre et les éléments probants sources."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting this role for an underlying set or one measurable region, treating a class label as a closure proof, or inferring a probability measure or normalization from measurable-space typing alone."
+msgstr "Éviter de substituer ce rôle à un ensemble sous-jacent ou à une région mesurable, de traiter une étiquette de classe comme une preuve de clôture ou de déduire une mesure de probabilité ou une normalisation du seul typage d’espace mesurable."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied component links through measurableSpaceOf and the source's measureOn or integrationDomain links where present. Preserve missing-component uncertainty rather than inventing a set or algebra from a label. This guidance supplies no new component-count gate or specialized native computation."
+msgstr "Conserver les liens de composantes fournis par measurableSpaceOf et les liens sources measureOn ou integrationDomain lorsqu’ils existent. Préserver l’incertitude sur les composantes manquantes plutôt que d’inventer un ensemble ou une algèbre à partir d’une étiquette. Ces indications ne fournissent ni nouveau contrôle du nombre de composantes ni calcul natif spécialisé."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "σ-Algebra"
+msgstr "σ-algèbre"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A σ-algebra over a set: a collection of subsets closed under complement and countable union (and hence countable intersection), containing the whole set. The measurable sets of a math:MeasurableSpace — the events a math:Measure can assign mass to. Shared with the probability charter, where the σ-algebra is the event space of a probability space."
+msgstr "Une σ-algèbre sur un ensemble : une collection de sous-ensembles fermée par complémentation et union dénombrable, donc aussi par intersection dénombrable, et contenant l’ensemble entier. Ce sont les ensembles mesurables d’un math:MeasurableSpace, les événements auxquels une math:Measure peut attribuer une masse. Le concept est partagé avec le cadre probabiliste, où la σ-algèbre est l’espace d’événements d’un espace de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The closure laws concern the family of subsets over its underlying set, with complements relative to that set. A member subset does not carry those family laws by itself. A few listed subsets or a SigmaAlgebra type alone do not prove the complete countable-closure conditions."
+msgstr "Les lois de clôture concernent la famille de sous-ensembles sur son ensemble sous-jacent, les compléments étant relatifs à cet ensemble. Un sous-ensemble membre ne porte pas à lui seul ces lois de famille. Quelques sous-ensembles énumérés ou un seul type SigmaAlgebra ne prouvent pas les conditions complètes de clôture dénombrable."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing configSigma resource is named as a SigmaAlgebra beside configSet in the configSpace example. Its Borel label does not supply a Borel construction, a member enumeration or a proof that every named region belongs to it."
+msgstr "La ressource existante configSigma est nommée comme SigmaAlgebra aux côtés de configSet dans l’exemple configSpace. Son étiquette de Borel ne fournit ni construction borélienne, ni énumération de membres, ni preuve que chaque région nommée lui appartient."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual supplied family of measurable subsets for a given underlying set, including a symbolic family whose members are not extensionally enumerated."
+msgstr "À utiliser pour nommer la famille réelle fournie de sous-ensembles mesurables d’un ensemble sous-jacent donné, y compris une famille symbolique dont les membres ne sont pas énumérés en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting a power-set or Borel construction from a label alone, treating one subset as evidence of family closure, or assuming classification proves measurability, measure evaluation or integral admission."
+msgstr "Éviter de choisir une construction d’ensemble des parties ou de Borel à partir d’une seule étiquette, de traiter un sous-ensemble comme preuve de clôture de la famille ou de supposer que la classification prouve la mesurabilité, l’évaluation d’une mesure ou l’admission d’une intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual family resource and its supplied measurableSpaceOf component link. Keep source evidence about its underlying set and members on the existing owning surfaces. The shared component relation does not supply a dedicated algebra-membership path, a unique underlying-set role or a native closure proof."
+msgstr "Conserver la ressource réelle de famille et son lien de composante measurableSpaceOf fourni. Garder les éléments probants sources sur son ensemble sous-jacent et ses membres sur les surfaces existantes qui les portent. La relation de composantes partagée ne fournit ni chemin dédié d’appartenance à l’algèbre, ni rôle unique d’ensemble sous-jacent, ni preuve native de clôture."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the member-subset role A within Σ. Closure under complement and countable union belongs to the family Σ. Both the whole underlying set X and the empty subset can be measurable members. The existing example gives only a subset/evaluation link, not a complete measure evaluation or membership proof."
+msgstr "C’est le rôle de sous-ensemble membre A dans Σ. La clôture par complémentation et union dénombrable appartient à la famille Σ. L’ensemble sous-jacent entier X et le sous-ensemble vide peuvent tous deux être des membres mesurables. L’exemple existant donne seulement un lien entre sous-ensemble et évaluation, non une évaluation de mesure complète ni une preuve d’appartenance."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:ballB2 a math:MeasurableSet . exf:evalB2 math:measuredSubset exf:ballB2 ."
+msgstr "Exemple de lien vers le sous-ensemble : exf:ballB2 a math:MeasurableSet . exf:evalB2 math:measuredSubset exf:ballB2 ."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name one measurable piece of a space — the individual argument A of an evaluation μ(A), the region whose mass a math:MeasureEvaluation reads."
+msgstr "À utiliser pour nommer une partie mesurable d’un espace — l’argument individuel A d’une évaluation μ(A), la région dont une math:MeasureEvaluation lit la masse."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for the whole ground (X, Σ) a measure acts over (that is math:MeasurableSpace); a measurable set is one element of the σ-algebra, not the space itself."
+msgstr "Ne pas l’utiliser pour le cadre entier (X, Σ) sur lequel une mesure agit (c’est math:MeasurableSpace) ; un ensemble mesurable est un élément de la σ-algèbre, non l’espace lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name it as the math:measuredSubset of a math:MeasureEvaluation; in the probability charter the same object is an event."
+msgstr "Le nommer comme math:measuredSubset d’une math:MeasureEvaluation ; dans le cadre probabiliste, le même objet est un événement."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurable space of"
+msgstr "espace mesurable de"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MeasurableSpace to its underlying set or its σ-algebra — the components (X, Σ) that constitute it. Domain math:MeasurableSpace, range math:Set or math:SigmaAlgebra (stated in prose)."
+msgstr "Relie un math:MeasurableSpace à son ensemble sous-jacent ou à sa σ-algèbre — les composantes (X, Σ) qui le constituent. Domaine math:MeasurableSpace, portée math:Set ou math:SigmaAlgebra (énoncés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records component links from the structured space to its underlying-set or σ-algebra role. The targets are unordered; writing one edge first assigns no position or role. Conceptual component roles do not impose resource inequality, class disjointness or a functional or exactly-two cardinality rule."
+msgstr "Cela consigne des liens de composantes depuis l’espace structuré vers les rôles d’ensemble sous-jacent ou de σ-algèbre. Les cibles ne sont pas ordonnées ; écrire une arête en premier n’attribue ni position ni rôle. Les rôles conceptuels de composantes n’imposent ni inégalité de ressources, ni disjonction de classes, ni règle de fonctionnalité ou de cardinalité d’exactement deux."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "An edge to a supplied Set component and another to a supplied SigmaAlgebra component illustrate the two conceptual roles. These ordinary component links are not an RDF list and establish neither subset membership nor a complete mathematical proof."
+msgstr "Une arête vers une composante Set fournie et une autre vers une composante SigmaAlgebra fournie illustrent les deux rôles conceptuels. Ces liens ordinaires de composantes ne sont pas une liste RDF et n’établissent ni appartenance d’un sous-ensemble ni preuve mathématique complète."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use this existing relation to retain the actual supplied components of a named MeasurableSpace, without inventing parallel role properties or positional cells."
+msgstr "Utiliser cette relation existante pour conserver les composantes réelles fournies d’un MeasurableSpace nommé, sans inventer de propriétés de rôle parallèles ni de cellules positionnelles."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating these edges as a list, imposing a new exact count, inferring a component's role from written order, or using a component edge as a claim that its target is a member subset A of Σ."
+msgstr "Éviter de traiter ces arêtes comme une liste, d’imposer un nouveau nombre exact, de déduire le rôle d’une composante de l’ordre écrit ou d’utiliser une arête de composante comme affirmation que sa cible est un sous-ensemble membre A de Σ."
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."
+msgstr "Garder les sujets et cibles sources ainsi que leurs typages fournis, en distinguant les liens de composantes de measureOn et measuredSubset. Préserver les éléments probants d’appartenance et d’inclusion sur les surfaces existantes qui les portent. Les déclarations actuelles ne fournissent par cette propriété aucun contrôle dédié de cardinalité, de type, de clôture ou d’appartenance des composantes."
