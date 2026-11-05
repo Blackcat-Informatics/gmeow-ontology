@@ -10476,3 +10476,143 @@ msgstr "Ne pas interpréter ce constat comme une réfutation d’une loi d’act
 msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply the actual single Group actor through math:actingGroup and preserve the target, operation, law and witness evidence. Qualify exact E8 identity separately."
 msgstr "Indiquer l’unique acteur Group réel par math:actingGroup et conserver la cible, l’opération, la loi et les témoins. Vérifier séparément l’identité exacte de l’acteur d’E8."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimension Exponent"
+msgstr "Exposant dimensionnel"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The raised dimension is a base dimension only, never a derived one, so the exponent vector is well-defined and acyclic; a zero denominator is not a rational power and is rejected here (math:MalformedDimension), not silently dropped downstream. The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."
+msgstr "Une cellule (dimension de base, puissance rationnelle exacte) de la forme produit d’une dimension physique dérivée : elle nomme la math:BaseDimension qu’elle élève à une puissance (math:exponentOfDimension) et cette puissance, comme rationnel exact, par math:exponentNumerator sur math:exponentDenominator (dénominateur non nul). La dimension élevée à une puissance est uniquement une dimension de base, jamais une dimension dérivée, de sorte que le vecteur d’exposants est bien défini et acyclique ; un dénominateur nul n’est pas une puissance rationnelle et est rejeté ici (math:MalformedDimension), sans être silencieusement omis en aval. Les cellules désignées par les arêtes math:baseDimensionExponent d’une math:DerivedDimension donnent ensemble son vecteur d’exposants sur les sept dimensions de base. Rationnel, non décimal : l’égalité des dimensions est donc exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This cell describes a physical dimension's rational exponent, not a geometric space dimension, unit or quantity magnitude. Current math loading reports invalid cells as math:MalformedDimension; the physical dimension builtin instead leaves a declared mode gap. Neither path certifies every datatype, cardinality or duplicate-field case."
+msgstr "Cette cellule décrit l’exposant rationnel d’une dimension physique, non la dimension d’un espace géométrique, une unité ou la valeur d’une grandeur. Le chargement mathématique actuel signale les cellules invalides par math:MalformedDimension ; la primitive de dimension de la couche d’exécution laisse plutôt une lacune de mode déclarée. Aucune de ces voies ne certifie tous les cas de type de données, de cardinalité ou de champ dupliqué."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+msgstr "math:forceTimeExponent a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record one exact power of an SI base dimension within an existing derived dimension's product form, including negative or fractional powers."
+msgstr "À utiliser pour consigner une puissance exacte d’une dimension de base SI dans la forme produit d’une dimension dérivée existante, y compris les puissances négatives ou fractionnaires."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the cell as a measured quantity, an ordered vector slot or an instruction to convert units, reference frames or currencies. Do not replace its rational power with a decimal approximation."
+msgstr "Éviter de traiter la cellule comme une grandeur mesurée, un emplacement vectoriel ordonné ou une instruction de conversion d’unités, de référentiels ou de devises. Ne pas remplacer sa puissance rationnelle par une approximation décimale."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual base dimension through exponentOfDimension and retain integer exponentNumerator and nonzero exponentDenominator. Attach the cell by a direct baseDimensionExponent edge; retain one cell per represented base dimension. The current i128/Rational profile is bounded and uses checked arithmetic, so exact authoring does not promise unlimited execution."
+msgstr "Nommer la dimension de base réelle par exponentOfDimension et conserver un exponentNumerator entier ainsi qu’un exponentDenominator entier non nul. Rattacher la cellule par une arête directe baseDimensionExponent ; conserver une cellule par dimension de base représentée. Le profil i128/Rational actuel est borné et utilise une arithmétique vérifiée : une écriture exacte ne promet donc pas une exécution sans limites."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "base dimension exponent"
+msgstr "exposant de dimension de base"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DerivedDimension to one math:DimensionExponent cell of its product form over the base dimensions — one such edge per base dimension involved (an unordered set, since a product commutes). Domain math:DerivedDimension, range math:DimensionExponent (stated in prose). A base dimension carries no such edge — it is a generator, not a product."
+msgstr "Relie une math:DerivedDimension à une cellule math:DimensionExponent de sa forme produit sur les dimensions de base — une telle arête par dimension de base impliquée (un ensemble non ordonné, puisque le produit commute). Domaine math:DerivedDimension, portée math:DimensionExponent (énoncés en prose). Une dimension de base ne porte aucune telle arête : c’est un générateur, non un produit."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The product cells are an unordered set with one cell per represented base dimension. Direct edges carry those cells; an RDF collection alone does not supply the cell fields. A link alone supplies no completed validation or arithmetic result."
+msgstr "Les cellules du produit forment un ensemble non ordonné, avec une cellule par dimension de base représentée. Des arêtes directes portent ces cellules ; une collection RDF seule ne fournit pas les champs des cellules. Un lien seul ne fournit ni validation achevée ni résultat arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceDimension math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+msgstr "math:forceDimension math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the existing structured product of base-dimension powers that defines a DerivedDimension, independently of any rendered dimensionVector text."
+msgstr "À utiliser pour exposer le produit structuré existant de puissances de dimensions de base qui définit une DerivedDimension, indépendamment de tout texte dimensionVector rendu."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid list syntax, ordinal positions, a second cell for the same base dimension or treating a dimensionVector string as the authored product. A BaseDimension is already a generator and needs no product cell of its own."
+msgstr "Éviter la syntaxe de liste, les positions ordinales, une deuxième cellule pour la même dimension de base ou le traitement d’une chaîne dimensionVector comme produit rédigé. Une BaseDimension est déjà un générateur et n’a pas besoin de sa propre cellule de produit."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the DerivedDimension directly to its actual DimensionExponent cells using comma-separated objects or repeated edges. Keep each cell's base and exact numerator/denominator together; preserve the existing source cells rather than inventing ordered membership or a new operation."
+msgstr "Relier directement la DerivedDimension à ses cellules DimensionExponent réelles, par des objets séparés par des virgules ou des arêtes répétées. Garder ensemble la base et le numérateur/dénominateur exacts de chaque cellule ; préserver les cellules sources existantes sans inventer d’appartenance ordonnée ni de nouvelle opération."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent of dimension"
+msgstr "dimension de base élevée à une puissance"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:BaseDimension that a math:DimensionExponent cell raises to a power. Domain math:DimensionExponent, range math:BaseDimension only (stated in prose) — never a derived dimension, so the exponent vector is well-defined and acyclic by construction."
+msgstr "Nomme la math:BaseDimension qu’une cellule math:DimensionExponent élève à une puissance. Domaine math:DimensionExponent, portée limitée à math:BaseDimension (énoncés en prose) — jamais une dimension dérivée, de sorte que le vecteur d’exposants est bien défini et acyclique par construction."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is a physical BaseDimension, not a DerivedDimension, unit, basis coordinate or geometric dimension count. Current native readers recognize the seven declared SI generator IRIs; typing another resource BaseDimension does not install a new native basis."
+msgstr "La cible est une BaseDimension physique, non une DerivedDimension, une unité, une coordonnée de base ou un nombre de dimensions géométriques. Les lecteurs natifs actuels reconnaissent les sept IRI de générateurs SI déclarés ; typer une autre ressource BaseDimension n’installe pas une nouvelle base native."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ."
+msgstr "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on a DimensionExponent to identify which SI base dimension its rational exponent raises, keeping that choice separate from the numerical power."
+msgstr "À utiliser sur un DimensionExponent pour identifier la dimension de base SI élevée à sa puissance rationnelle, en séparant ce choix de la puissance numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a derived-dimension target, a unit label or a coordinate-space dimension. Do not infer the base from a cell's local name or from a rendered dimension symbol."
+msgstr "Éviter une cible de dimension dérivée, une étiquette d’unité ou une dimension d’espace de coordonnées. Ne pas déduire la base du nom local d’une cellule ni d’un symbole de dimension rendu."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the cell at its actual declared SI base-dimension resource, then supply exponentNumerator and exponentDenominator on that same cell. Keep the source's base choice explicit; the existing base-target restriction is not a new generator-registration mechanism."
+msgstr "Faire pointer la cellule vers sa ressource réelle de dimension de base SI déclarée, puis fournir exponentNumerator et exponentDenominator sur cette même cellule. Garder explicite le choix source de la base ; la restriction de cible existante n’est pas un nouveau mécanisme d’enregistrement de générateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent numerator"
+msgstr "numérateur de l’exposant"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The numerator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose). Together with math:exponentDenominator it gives an exact math:RationalNumber power — ℚ, admitting fractional dimensions such as T^(−1/2) — never a floating-point or decimal approximation."
+msgstr "Le numérateur de la puissance rationnelle exacte à laquelle une math:DimensionExponent élève sa dimension de base. Domaine math:DimensionExponent, portée xsd:integer (énoncés en prose). Avec math:exponentDenominator, il donne une puissance math:RationalNumber exacte — ℚ, qui admet des dimensions fractionnaires telles que T^(−1/2) — jamais une approximation flottante ou décimale."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The numerator is an integer component of a rational exponent, not a measured magnitude or a complete exponent by itself. Negative and zero numerators retain their meanings; an absent numerator is not zero. Native i128 arithmetic does not certify every xsd:integer value."
+msgstr "Le numérateur est une composante entière d’un exposant rationnel, non une valeur mesurée ni un exposant complet à lui seul. Les numérateurs négatifs et nuls conservent leur sens ; un numérateur absent n’est pas zéro. L’arithmétique native i128 ne certifie pas toute valeur xsd:integer."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent math:exponentNumerator -2 ."
+msgstr "math:forceTimeExponent math:exponentNumerator -2 ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the exact integer numerator of a base dimension's rational power, including a negative power such as the time exponent in force."
+msgstr "À utiliser pour énoncer le numérateur entier exact d’une puissance rationnelle de dimension de base, y compris une puissance négative telle que l’exposant temporel dans la force."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid writing a fraction string or decimal approximation here, treating the numerator alone as the power, or interpreting it as a unit-conversion factor or geometric coordinate."
+msgstr "Éviter d’écrire ici une fraction textuelle ou une approximation décimale, de traiter le numérateur seul comme puissance ou de l’interpréter comme facteur de conversion d’unités ou coordonnée géométrique."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied integer numerator with its nonzero integer exponentDenominator on the same DimensionExponent. Read their quotient exactly under the existing Rational profile; preserve the source literal rather than replacing it with a calculated decimal."
+msgstr "Conserver le numérateur entier fourni avec son exponentDenominator entier non nul sur le même DimensionExponent. Lire leur quotient exactement selon le profil Rational existant ; préserver le littéral source au lieu de le remplacer par une décimale calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent denominator"
+msgstr "dénominateur de l’exposant"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The denominator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose), non-zero. Together with math:exponentNumerator it gives an exact math:RationalNumber power; a whole-number exponent uses denominator one."
+msgstr "Le dénominateur de la puissance rationnelle exacte à laquelle une math:DimensionExponent élève sa dimension de base. Domaine math:DimensionExponent, portée xsd:integer (énoncés en prose), non nul. Avec math:exponentNumerator, il donne une puissance math:RationalNumber exacte ; un exposant entier utilise le dénominateur un."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The denominator must be a nonzero integer; absence supplies no implicit one. Nonzero alone does not guarantee native admission: the current bounded Rational sign normalization and checked arithmetic can still refuse an unrepresentable pair. No positive-only denominator policy is added."
+msgstr "Le dénominateur doit être un entier non nul ; son absence ne fournit pas implicitement la valeur un. La non-nullité seule ne garantit pas l’admission native : la normalisation du signe et l’arithmétique vérifiée du Rational borné actuel peuvent encore refuser une paire non représentable. Aucune politique de dénominateur exclusivement positif n’est ajoutée."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentDenominator 1 ."
+msgstr "math:forceMassExponent math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact integer divisor of a dimension exponent's rational power; denominator one expresses an integral power without a decimal encoding."
+msgstr "À utiliser pour conserver le diviseur entier exact de la puissance rationnelle d’un exposant dimensionnel ; le dénominateur un exprime une puissance entière sans encodage décimal."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero, a decimal denominator, a guessed default or a sign-based rejection of all negative denominators. The denominator is not a duration, count, unit or reference-frame scale."
+msgstr "Éviter zéro, un dénominateur décimal, une valeur par défaut devinée ou le rejet de tous les dénominateurs négatifs sur la seule base du signe. Le dénominateur n’est ni une durée, ni un compte, ni une unité, ni une échelle de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."
+msgstr "Garder l’entier non nul fourni à côté d’exponentNumerator et de la cible réelle de dimension de base de la cellule. Préserver le traitement existant des dimensions mal formées pour les paires dont le dénominateur est nul ou qui ne sont pas représentables ; ne pas réparer les données sources en substituant un ou en convertissant le quotient en flottant."

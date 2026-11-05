@@ -10476,3 +10476,143 @@ msgstr "不应将此结果视为对作用定律的反证，也不应将声明验
 msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply the actual single Group actor through math:actingGroup and preserve the target, operation, law and witness evidence. Qualify exact E8 identity separately."
 msgstr "通过 math:actingGroup 指定实际且唯一的 Group 施动群，并保留作用对象、运算、定律和见证证据；另行验证 E8 施动群的具体身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimension Exponent"
+msgstr "量纲指数"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The raised dimension is a base dimension only, never a derived one, so the exponent vector is well-defined and acyclic; a zero denominator is not a rational power and is rejected here (math:MalformedDimension), not silently dropped downstream. The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."
+msgstr "派生量纲乘积形式中的一个（基本量纲，精确有理数次幂）单元：它通过 math:exponentOfDimension 指定被乘方的 math:BaseDimension，并通过 math:exponentNumerator 除以 math:exponentDenominator 表示精确有理数指数（分母非零）。被乘方的只能是基本量纲，不能是派生量纲，因此指数向量定义明确且无环；零分母不能构成有理数指数，必须在此拒绝（math:MalformedDimension），而不是在下游静默略过。由 math:DerivedDimension 的 math:baseDimensionExponent 边指定的单元共同给出其在七个基本量纲上的指数向量。使用有理数而非小数近似，使量纲相等判断保持精确。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This cell describes a physical dimension's rational exponent, not a geometric space dimension, unit or quantity magnitude. Current math loading reports invalid cells as math:MalformedDimension; the physical dimension builtin instead leaves a declared mode gap. Neither path certifies every datatype, cardinality or duplicate-field case."
+msgstr "此单元描述物理量纲的有理数指数，不表示几何空间维数、单位或量的数值。当前数学加载器以 math:MalformedDimension 报告无效单元；物理执行层的量纲内建操作则留下声明的模式缺口。这两条路径都不认证所有数据类型、基数或重复字段情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+msgstr "math:forceTimeExponent a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record one exact power of an SI base dimension within an existing derived dimension's product form, including negative or fractional powers."
+msgstr "用于在现有派生量纲的乘积形式中记录一个 SI 基本量纲的精确次幂，包括负指数和分数指数。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the cell as a measured quantity, an ordered vector slot or an instruction to convert units, reference frames or currencies. Do not replace its rational power with a decimal approximation."
+msgstr "不要将此单元视为测量量、有序向量槽位，或单位、参考系、货币转换指令；不要把有理数指数替换为小数近似。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionExponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual base dimension through exponentOfDimension and retain integer exponentNumerator and nonzero exponentDenominator. Attach the cell by a direct baseDimensionExponent edge; retain one cell per represented base dimension. The current i128/Rational profile is bounded and uses checked arithmetic, so exact authoring does not promise unlimited execution."
+msgstr "通过 exponentOfDimension 指定实际基本量纲，保留整数 exponentNumerator 和非零整数 exponentDenominator。使用直接的 baseDimensionExponent 边连接单元，每个被表示的基本量纲保留一个单元。当前 i128/Rational 配置有界并使用受检算术，因此精确编写不意味着可无限制执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "base dimension exponent"
+msgstr "基本量纲指数单元"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DerivedDimension to one math:DimensionExponent cell of its product form over the base dimensions — one such edge per base dimension involved (an unordered set, since a product commutes). Domain math:DerivedDimension, range math:DimensionExponent (stated in prose). A base dimension carries no such edge — it is a generator, not a product."
+msgstr "将 math:DerivedDimension 关联到其基本量纲乘积形式中的一个 math:DimensionExponent 单元——每个涉及的基本量纲对应一条这样的边（乘积可交换，因此这些边构成无序集合）。定义域为 math:DerivedDimension，值域为 math:DimensionExponent（以文字说明）。基本量纲不具有此类边，因为它本身是生成元，而不是乘积。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The product cells are an unordered set with one cell per represented base dimension. Direct edges carry those cells; an RDF collection alone does not supply the cell fields. A link alone supplies no completed validation or arithmetic result."
+msgstr "乘积单元构成无序集合，每个被表示的基本量纲对应一个单元。直接边承载这些单元；RDF 集合本身并不提供单元字段。仅有链接并不提供已完成的验证或算术结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceDimension math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+msgstr "math:forceDimension math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the existing structured product of base-dimension powers that defines a DerivedDimension, independently of any rendered dimensionVector text."
+msgstr "用于呈现定义 DerivedDimension 的现有基本量纲次幂结构化乘积，与渲染后的 dimensionVector 文本分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid list syntax, ordinal positions, a second cell for the same base dimension or treating a dimensionVector string as the authored product. A BaseDimension is already a generator and needs no product cell of its own."
+msgstr "不要使用列表语法、序数位置、同一基本量纲的第二个单元，也不要将 dimensionVector 字符串当作编写的乘积来源。BaseDimension 本身已是生成元，无须另设自身的乘积单元。"
+
+msgctxt "https://blackcatinformatics.ca/math/baseDimensionExponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the DerivedDimension directly to its actual DimensionExponent cells using comma-separated objects or repeated edges. Keep each cell's base and exact numerator/denominator together; preserve the existing source cells rather than inventing ordered membership or a new operation."
+msgstr "通过逗号分隔的对象或重复边，将 DerivedDimension 直接连接到其实际 DimensionExponent 单元。将每个单元的基本量纲及精确分子、分母保存在一起；保留现有来源单元，不编造有序成员关系或新操作。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent of dimension"
+msgstr "指数对应的基本量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:BaseDimension that a math:DimensionExponent cell raises to a power. Domain math:DimensionExponent, range math:BaseDimension only (stated in prose) — never a derived dimension, so the exponent vector is well-defined and acyclic by construction."
+msgstr "指定 math:DimensionExponent 单元所乘方的 math:BaseDimension。定义域为 math:DimensionExponent，值域仅为 math:BaseDimension（以文字说明），不能是派生量纲，因此指数向量在构造上定义明确且无环。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is a physical BaseDimension, not a DerivedDimension, unit, basis coordinate or geometric dimension count. Current native readers recognize the seven declared SI generator IRIs; typing another resource BaseDimension does not install a new native basis."
+msgstr "目标是物理基本量纲 BaseDimension，不是 DerivedDimension、单位、基坐标或几何维数。当前原生读取器识别已声明的七个 SI 生成元 IRI；仅将另一资源标为 BaseDimension 并不会安装新的原生基。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ."
+msgstr "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on a DimensionExponent to identify which SI base dimension its rational exponent raises, keeping that choice separate from the numerical power."
+msgstr "用于在 DimensionExponent 上标明有理数指数作用于哪个 SI 基本量纲，将基本量纲选择与指数数值分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a derived-dimension target, a unit label or a coordinate-space dimension. Do not infer the base from a cell's local name or from a rendered dimension symbol."
+msgstr "不要以派生量纲、单位标签或坐标空间维数为目标；不要根据单元局部名称或渲染的量纲符号推断基本量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentOfDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the cell at its actual declared SI base-dimension resource, then supply exponentNumerator and exponentDenominator on that same cell. Keep the source's base choice explicit; the existing base-target restriction is not a new generator-registration mechanism."
+msgstr "将单元指向实际已声明的 SI 基本量纲资源，再在同一单元上提供 exponentNumerator 和 exponentDenominator。明确保留来源对基本量纲的选择；现有目标限制不是新的生成元注册机制。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent numerator"
+msgstr "指数分子"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The numerator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose). Together with math:exponentDenominator it gives an exact math:RationalNumber power — ℚ, admitting fractional dimensions such as T^(−1/2) — never a floating-point or decimal approximation."
+msgstr "math:DimensionExponent 对其基本量纲取精确有理数次幂时的指数分子。定义域为 math:DimensionExponent，值域为 xsd:integer（以文字说明）。它与 math:exponentDenominator 共同给出精确的 math:RationalNumber 指数——属于 ℚ，允许 T^(−1/2) 等分数次幂量纲，绝不使用浮点或小数近似。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The numerator is an integer component of a rational exponent, not a measured magnitude or a complete exponent by itself. Negative and zero numerators retain their meanings; an absent numerator is not zero. Native i128 arithmetic does not certify every xsd:integer value."
+msgstr "分子是有理数指数的整数分量，不是测量值，本身也不是完整指数。负分子和零分子保留各自含义；缺失分子不等于零。原生 i128 算术并不认证每个 xsd:integer 值。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent math:exponentNumerator -2 ."
+msgstr "math:forceTimeExponent math:exponentNumerator -2 ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the exact integer numerator of a base dimension's rational power, including a negative power such as the time exponent in force."
+msgstr "用于陈述基本量纲有理数次幂的精确整数分子，包括力的时间量纲指数这样的负指数。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid writing a fraction string or decimal approximation here, treating the numerator alone as the power, or interpreting it as a unit-conversion factor or geometric coordinate."
+msgstr "不要在此写入分数字符串或小数近似，不要将分子独自当作指数，也不要将其解释为单位换算系数或几何坐标。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentNumerator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied integer numerator with its nonzero integer exponentDenominator on the same DimensionExponent. Read their quotient exactly under the existing Rational profile; preserve the source literal rather than replacing it with a calculated decimal."
+msgstr "将提供的整数分子与非零整数 exponentDenominator 保留在同一 DimensionExponent 上。依据现有 Rational 配置精确读取其商；保留来源字面量，不用计算得到的小数替换。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponent denominator"
+msgstr "指数分母"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The denominator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose), non-zero. Together with math:exponentNumerator it gives an exact math:RationalNumber power; a whole-number exponent uses denominator one."
+msgstr "math:DimensionExponent 对其基本量纲取精确有理数次幂时的非零指数分母。定义域为 math:DimensionExponent，值域为 xsd:integer（以文字说明）。它与 math:exponentNumerator 共同给出精确的 math:RationalNumber 指数；整数指数使用分母一。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The denominator must be a nonzero integer; absence supplies no implicit one. Nonzero alone does not guarantee native admission: the current bounded Rational sign normalization and checked arithmetic can still refuse an unrepresentable pair. No positive-only denominator policy is added."
+msgstr "分母必须是非零整数；缺失时不隐含提供一。仅非零并不保证原生准入：当前有界 Rational 的符号规范化和受检算术仍可能拒绝无法表示的数对。不新增分母必须为正的策略。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentDenominator 1 ."
+msgstr "math:forceMassExponent math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact integer divisor of a dimension exponent's rational power; denominator one expresses an integral power without a decimal encoding."
+msgstr "用于保留量纲有理数指数的精确整数除数；分母一表示整数次幂，无须小数编码。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero, a decimal denominator, a guessed default or a sign-based rejection of all negative denominators. The denominator is not a duration, count, unit or reference-frame scale."
+msgstr "不要使用零、小数分母或猜测的默认值，也不要仅因符号而拒绝所有负分母。分母不是时长、计数、单位或参考系刻度。"
+
+msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."
+msgstr "将提供的非零整数与 exponentNumerator 及单元实际基本量纲目标保存在一起。对于零分母或无法表示的数对，保留现有量纲格式错误处理；不要通过替换为一或将商转换为浮点数来修复来源数据。"
