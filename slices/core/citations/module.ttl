@@ -270,29 +270,31 @@ gmeow:references
 
 gmeow:selectorLocator
     a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Selector ;
+    logic:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector locator"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "A generic locator string within a cited work (e.g. 'section 3.2', 'image 4', 'entry 17'), expressed as a literal within a selector."@x-gmeow-english ;
-    skos:example "ex:loc gmeow:selectorLocator \"entry 17\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it where a page (gmeow:selectorPage) or character offset (gmeow:selectorTextPosition) is the natural anchor, and avoid overloading it to smuggle a verbatim quote — use gmeow:selectorTextQuote."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:selectorLocator on a gmeow:Selector to the structural locator string; combine with gmeow:selectorTextQuote when the passage must also be verifiable."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a structural or domain locator a gmeow:Selector pinpoints when neither a page nor a character offset fits — a section, figure, image, table, or register entry."@x-gmeow-english .
+    skos:definition "A supplied generic literal locator within the source resource anchored by an EvidenceSpan, shared with its citation Selector specialization."@x-gmeow-english ;
+    skos:scopeNote "This shared property has EvidenceSpan domain and literal range. A locator preserves source wording or a typed control descriptor without resolving a resource, authenticating a revision or creating a CitationAct. A specific href subproperty retains its exact original literal object."@x-gmeow-english ;
+    skos:example "A generic source span retains a supplied structural locator without becoming a citation act or forcing its subject to be a citation Selector."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual supplied structural or domain locator on an EvidenceSpan, including an explicitly typed citation Selector."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a specific page or framed region representation with an opaque locator, smuggling a quote or asserting a resolved target from source spelling."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete original literal on the actual span. Use a meaningful subproperty for a known href role, retain its original object and let ordinary subproperty entailment supply this generic relation once."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectorPage
     a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Selector ;
+    logic:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector page"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "A page number or page range expressed as a literal within a selector."@x-gmeow-english ;
-    skos:example "ex:page42 gmeow:selectorPage \"42-44\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for non-paginated loci (use gmeow:selectorTextPosition for an offset or gmeow:selectorLocator for a section) and avoid the bearing CitationAct — page sits on the Selector."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set gmeow:selectorPage on a gmeow:Selector as a literal page or range; combine with gmeow:selectorTextQuote when the exact passage also matters."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the page or page range a gmeow:Selector pinpoints within a cited work."@x-gmeow-english .
+    skos:definition "A supplied page number, label, index or range expressed as its original literal on an EvidenceSpan within a source resource, including a citation Selector."@x-gmeow-english ;
+    skos:scopeNote "This shared property has EvidenceSpan domain and literal range. It preserves the complete RDF literal without a page-index base, range decoding, count, normalization, source identity or CitationAct requirement; existing Selector uses remain valid."@x-gmeow-english ;
+    skos:example "A generic source span retains its supplied page label directly; an explicit citation Selector can retain the same kind of page descriptor through the same property."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source-supplied page descriptor on a generic EvidenceSpan or a citation Selector."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the page on the bearing CitationAct, converting an index convention, resolving a page resource or storing source-region coordinates as this descriptor."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied literal unchanged on the actual span. Use viaSelector only for an actual CitationAct and its explicitly selected Selector; a generic page span needs neither invented citation machinery nor a duplicate page property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectorTextPosition
     a logic:DatatypeProperty ;

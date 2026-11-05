@@ -100,3 +100,35 @@ compiler-arc window.
 Depends on `kernel`, `documents` (the CreativeWork range), and `evidence` (the
 EvidenceSpan that Selector specializes). Consumed by the citation/credit dogfood
 (source/claim refactor), slice manifests, and the norms slice's Exemplar.
+
+## Shared page and generic locator properties
+
+`selectorPage` and `selectorLocator` belong to the shared `EvidenceSpan` layer.
+Their canonical `logic:domain` is `EvidenceSpan`, with the existing literal
+ranges preserved. A generic documentary page span or structural locator does
+not become a citation Selector simply because it uses one of these properties.
+An explicitly typed `Selector` remains an EvidenceSpan and keeps its citation
+meaning through the unchanged `viaSelector` relation from an actual `CitationAct`
+(Principles 4, 9 and 17).
+
+Keep the complete original RDF literal on the span. A page number, label, index
+or range remains a source-control descriptor without index-base conversion,
+counting, range decoding, normalization or resolved page-resource identity.
+A generic locator retains its actual source wording or typed descriptor without
+an inferred immutable revision or source authentication. Neither shared property
+acquires global functionality, a maximum, requiredness or a closed-world
+provided-type policy from this repair.
+
+Documents’ [source-locus vocabulary](../documents/docs.md) reuses `selectorPage`
+directly. Its exact href role specializes `selectorLocator`, so the original
+literal object follows the generic relation by ordinary subproperty entailment.
+It does not need a second authored locator value, href resolution, invented
+base URI or datatype cast. Known source-region geometry uses framed Math
+quantities on the actual EvidenceSpan, rather than being hidden in a locator
+string.
+
+This repair changes only these two shared domains and their complete localized
+coats. Selector, CitationAct, viaSelector, selectorTextQuote and
+selectorTextPosition retain their existing contracts. The generic page/href
+path makes no claim that other selector-field authoring has been migrated.
+Existing explicit citation selectors and source-reference literals remain valid.

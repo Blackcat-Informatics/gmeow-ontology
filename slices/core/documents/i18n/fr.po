@@ -1706,3 +1706,259 @@ msgstr "Éviter d’accepter un conteneur vide à la place d’un titre manquant
 msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Require a structuredTerm on every typed step, then compare every supplied term’s datatype through termSameComponent with the three admitted word datatypes. Keep the original complete literal and reject violations without rewriting input."
 msgstr "Exiger un structuredTerm sur chaque étape typée, puis comparer le type de données de chaque terme fourni par termSameComponent aux trois types textuels admis. Garder le littéral complet d’origine et rejeter les violations sans réécrire l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source locus"
+msgstr "localisation dans la source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied EvidenceSpan locating this documentary information object within its source, retaining its actual page, href or region context."
+msgstr "Une EvidenceSpan fournie localisant cet objet informationnel documentaire dans sa source et conservant son contexte réel de page, de href ou de région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role supports ContentBlock and other documentary information objects without creating a CitationAct, retrieval Chunk or source revision. Preserve distinct supplied loci and their attribution; no missing locator becomes zero, blank or null."
+msgstr "Ce rôle facultatif et non fonctionnel concerne ContentBlock et d’autres objets informationnels documentaires sans créer de CitationAct, de Chunk de recherche ni de révision source. Conserver les localisations distinctes fournies et leur attribution ; un localisateur manquant ne devient ni zéro, ni blanc, ni nul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "A block retains a supplied page span; a region-bearing span uses the same locus route with four framed coordinate quantities."
+msgstr "Un bloc conserve une localisation de page fournie ; une localisation portant une région utilise la même relation avec quatre quantités de coordonnées référencées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual source locus supplied for documentary content."
+msgstr "Utiliser pour conserver la localisation réelle dans la source fournie pour un contenu documentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting viaSelector, inventing an immutable source, resolving hrefs or treating page geometry as Unicode offsets."
+msgstr "Éviter de substituer viaSelector, d’inventer une source immuable, de résoudre les href ou de traiter la géométrie de page comme des décalages Unicode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual span, reuse selectorPage for its original page literal and locusHref for its exact href, and type that same span SourceRegion when its four coordinate quantities are supplied."
+msgstr "Relier la localisation réelle, utiliser selectorPage pour son littéral de page original et locusHref pour son href exact, puis typer cette même localisation SourceRegion lorsque ses quatre quantités de coordonnées sont fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "locus source"
+msgstr "source de la localisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actually identified source information artifact within which this EvidenceSpan is located."
+msgstr "L’artefact informationnel source réellement identifié dans lequel se situe cette EvidenceSpan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The optional role retains at most one supplied artifact per coherent span. It does not infer an immutable revision, byte identity, format or source authentication from a work name, media identifier, href or path."
+msgstr "Ce rôle facultatif conserve au plus un artefact fourni par localisation cohérente. Il ne déduit ni révision immuable, ni identité d’octets, ni format, ni authentification de source à partir d’un nom d’œuvre, d’un identifiant de média, d’un href ou d’un chemin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "An independently identified source artifact is retained separately from the span’s unresolved href wording."
+msgstr "Un artefact source identifié indépendamment est conservé séparément du libellé href non résolu de la localisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source information artifact itself is actually identified."
+msgstr "Utiliser lorsque l’artefact informationnel source lui-même est réellement identifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating an artifact or revision from a filename, locator, digest resemblance or abstract work identity."
+msgstr "Éviter de créer un artefact ou une révision à partir d’un nom de fichier, d’un localisateur, d’une ressemblance de condensats ou d’une identité d’œuvre abstraite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied InformationObject artifact. Preserve any genuinely supplied revision or digest separately under its existing contract; leave unavailable artifact identity absent."
+msgstr "Relier uniquement l’artefact InformationObject réellement fourni. Conserver séparément toute révision ou tout condensat véritablement fourni selon son contrat existant ; laisser absente l’identité d’artefact indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "locus href"
+msgstr "href de la localisation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied textual href reference locating this EvidenceSpan within its source."
+msgstr "La référence href textuelle exacte fournie localisant cette EvidenceSpan dans sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role retains at most one original xsd:string, xsd:token or xsd:anyURI literal per coherent span. It specializes selectorLocator without resolving a target, supplying a base URI, normalizing the literal or establishing source-file identity."
+msgstr "Ce rôle facultatif conserve au plus un littéral original xsd:string, xsd:token ou xsd:anyURI par localisation cohérente. Il spécialise selectorLocator sans résoudre de cible, fournir d’URI de base, normaliser le littéral ni établir l’identité du fichier source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#example"
+msgid "A relative href with its supplied fragment and spacing remains source text rather than a newly resolved resource."
+msgstr "Un href relatif avec son fragment et ses espaces fournis reste du texte source plutôt qu’une ressource nouvellement résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual href reference supplied with a source locus."
+msgstr "Utiliser pour la référence href réelle fournie avec une localisation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the literal with an IRI object, casting between admitted datatypes, resolving a path or substituting sourceLocation."
+msgstr "Éviter de remplacer le littéral par un objet IRI, de convertir entre les types admis, de résoudre un chemin ou de substituer sourceLocation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied literal on the span once. Its unchanged object follows the generic selectorLocator relation by subproperty entailment; do not author a second locator copy."
+msgstr "Conserver une seule fois le littéral fourni complet sur la localisation. Son objet inchangé suit la relation générique selectorLocator par implication de sous-propriété ; ne pas rédiger une seconde copie du localisateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source Region"
+msgstr "Région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied region-bearing EvidenceSpan retaining the four source coordinate slots x0, y0, x1 and y1 as framed math:Quantity values in one actual declared coordinate frame."
+msgstr "Une EvidenceSpan fournie portant une région et conservant les quatre coordonnées source x0, y0, x1 et y1 comme valeurs math:Quantity référencées dans un même référentiel réel déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate roles preserve the source’s actual interpretation, not a guessed origin, axis direction, unit, pixel grid, normalized fraction, corner inclusion or geometric inequality. The same span retains any supplied selectorPage, locusHref and independently identified locusSource."
+msgstr "Les rôles de coordonnées préservent l’interprétation réelle de la source, non une origine, une direction d’axe, une unité, une grille de pixels, une fraction normalisée, une inclusion de bord ou une inégalité géométrique devinées. La même localisation conserve tout selectorPage, locusHref et locusSource identifié indépendamment qui sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A page region retains its original numeric literals and evidenced coordinate frame without converting corner slots into width and height."
+msgstr "Une région de page conserve ses littéraux numériques originaux et son référentiel de coordonnées étayé sans convertir les coordonnées de coins en largeur et hauteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source supplies all four numeric coordinate slots and their real interpretation is supported."
+msgstr "Utiliser lorsqu’une source réelle fournit les quatre coordonnées numériques et que leur interprétation réelle est étayée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid raw numeric aliases, opaque rectangle blobs, rational-vector coercion, invented frames or identifying the locus with a stored image or geographic observation."
+msgstr "Éviter les alias numériques bruts, les blocs rectangulaires opaques, la conversion forcée en vecteur rationnel, les référentiels inventés ou l’assimilation de la localisation à une image stockée ou à une observation géographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one Quantity per coordinate role and one complete actual hasReferenceFrame on the region. Retain original finite numeric magnitudes, each Quantity’s inherited dimension and a frame agreeing with the region; preserve actual source and interpretation evidence."
+msgstr "Fournir exactement une Quantity par rôle de coordonnée et un hasReferenceFrame réel complet sur la région. Conserver les grandeurs numériques finies originales, la dimension héritée de chaque Quantity et un référentiel concordant avec celui de la région ; préserver les éléments probants réels sur la source et l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source region coordinate constraint"
+msgstr "Contrainte des coordonnées de région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."
+msgstr "Chaque Quantity de coordonnée d’une SourceRegion possède une grandeur numérique finie originale valide, une seule valeur numérique et un référentiel réel égal au référentiel de coordonnées unique requis par la région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent retained source lexical aliases may coexist under numeric equality. Existing Quantity dimension requirements and ReferenceFrame obligations remain authoritative. This law supplies no dimension default, coordinate conversion, source authentication or geometric bound."
+msgstr "Des variantes lexicales source équivalentes conservées peuvent coexister selon l’égalité numérique. Les exigences existantes de dimension de Quantity et les obligations de ReferenceFrame restent l’autorité. Cette loi ne fournit ni dimension par défaut, ni conversion de coordonnées, ni authentification de source, ni borne géométrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two source spellings of the same valid numeric value remain intact on a compatible coordinate Quantity; an invented frame never repairs missing interpretation."
+msgstr "Deux graphies source d’une même valeur numérique valide restent intactes sur une Quantity de coordonnée compatible ; un référentiel inventé ne répare jamais une interprétation manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the magnitudes and same-frame context of every supplied source-region coordinate."
+msgstr "Utiliser pour valider les grandeurs et le contexte de référentiel commun de chaque coordonnée de région source fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping invalid coordinates, retyping values, manufacturing dimensions or frames, or adding page/axis bounds not stated by the source."
+msgstr "Éviter de supprimer les coordonnées invalides, de changer le type des valeurs, de fabriquer des dimensions ou des référentiels ou d’ajouter des bornes de page ou d’axe non déclarées par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer region guard and each independent positive coordinate-role guard. Require magnitude and frame presence, finite numeric validity, numeric-value equality and agreement of every coordinate frame with the region frame."
+msgstr "Appliquer la garde externe de région et chaque garde positive indépendante de rôle de coordonnée. Exiger la présence de grandeur et de référentiel, la validité numérique finie, l’égalité des valeurs numériques et la concordance de chaque référentiel de coordonnée avec celui de la région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."
+msgstr "Chaque Quantity de coordonnée d’une SourceRegion possède une grandeur numérique finie originale valide, une seule valeur numérique et un référentiel réel égal au référentiel de coordonnées unique requis par la région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region x0"
+msgstr "coordonnée x0 de région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the x0 coordinate slot of this SourceRegion."
+msgstr "La math:Quantity existante conservant la valeur numérique originale fournie dans la coordonnée x0 de cette SourceRegion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "Une seule Quantity remplit cette coordonnée source. Son littéral numérique fini conserve son type et sa graphie d’origine ; le rôle n’affirme ni origine d’axe, ni direction, ni unité, ni restriction de signe, ni convention de coin, ni conversion de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s x0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "Le terme numérique x0 d’une source reste inchangé sur sa Quantity au lieu d’être copié dans une chaîne rectangulaire brute."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the x0 slot."
+msgstr "Utiliser pour la valeur numérique réelle fournie pour la coordonnée x0."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "Éviter de déduire cette coordonnée d’une autre, de remplacer l’absence par zéro ou d’imposer une représentation en pixels, fractionnaire ou rationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "Relier la Quantity réelle, conserver sa grandeur originale par math:quantityValue, garder sa dimension réelle héritée et exiger que son référentiel concorde avec le référentiel réel de coordonnées de cette région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region y0"
+msgstr "coordonnée y0 de région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the y0 coordinate slot of this SourceRegion."
+msgstr "La math:Quantity existante conservant la valeur numérique originale fournie dans la coordonnée y0 de cette SourceRegion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "Une seule Quantity remplit cette coordonnée source. Son littéral numérique fini conserve son type et sa graphie d’origine ; le rôle n’affirme ni origine d’axe, ni direction, ni unité, ni restriction de signe, ni convention de coin, ni conversion de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s y0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "Le terme numérique y0 d’une source reste inchangé sur sa Quantity au lieu d’être copié dans une chaîne rectangulaire brute."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the y0 slot."
+msgstr "Utiliser pour la valeur numérique réelle fournie pour la coordonnée y0."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "Éviter de déduire cette coordonnée d’une autre, de remplacer l’absence par zéro ou d’imposer une représentation en pixels, fractionnaire ou rationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "Relier la Quantity réelle, conserver sa grandeur originale par math:quantityValue, garder sa dimension réelle héritée et exiger que son référentiel concorde avec le référentiel réel de coordonnées de cette région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region x1"
+msgstr "coordonnée x1 de région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the x1 coordinate slot of this SourceRegion."
+msgstr "La math:Quantity existante conservant la valeur numérique originale fournie dans la coordonnée x1 de cette SourceRegion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "Une seule Quantity remplit cette coordonnée source. Son littéral numérique fini conserve son type et sa graphie d’origine ; le rôle n’affirme ni origine d’axe, ni direction, ni unité, ni restriction de signe, ni convention de coin, ni conversion de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s x1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "Le terme numérique x1 d’une source reste inchangé sur sa Quantity au lieu d’être copié dans une chaîne rectangulaire brute."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the x1 slot."
+msgstr "Utiliser pour la valeur numérique réelle fournie pour la coordonnée x1."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "Éviter de déduire cette coordonnée d’une autre, de remplacer l’absence par zéro ou d’imposer une représentation en pixels, fractionnaire ou rationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "Relier la Quantity réelle, conserver sa grandeur originale par math:quantityValue, garder sa dimension réelle héritée et exiger que son référentiel concorde avec le référentiel réel de coordonnées de cette région."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region y1"
+msgstr "coordonnée y1 de région source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the y1 coordinate slot of this SourceRegion."
+msgstr "La math:Quantity existante conservant la valeur numérique originale fournie dans la coordonnée y1 de cette SourceRegion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "Une seule Quantity remplit cette coordonnée source. Son littéral numérique fini conserve son type et sa graphie d’origine ; le rôle n’affirme ni origine d’axe, ni direction, ni unité, ni restriction de signe, ni convention de coin, ni conversion de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s y1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "Le terme numérique y1 d’une source reste inchangé sur sa Quantity au lieu d’être copié dans une chaîne rectangulaire brute."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the y1 slot."
+msgstr "Utiliser pour la valeur numérique réelle fournie pour la coordonnée y1."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "Éviter de déduire cette coordonnée d’une autre, de remplacer l’absence par zéro ou d’imposer une représentation en pixels, fractionnaire ou rationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "Relier la Quantity réelle, conserver sa grandeur originale par math:quantityValue, garder sa dimension réelle héritée et exiger que son référentiel concorde avec le référentiel réel de coordonnées de cette région."
