@@ -747,3 +747,72 @@ wording and tag assertion retains exact source/frame metadata. Its unknown
 prompt endpoint has no invented type or holder. This is source illustration,
 not executed validation, private alias equivalence, consumer adoption or
 runtime isolation (Principles 2, 3, 4, 9, 10 and 17).
+
+## Inner-life wording and reported generation input state
+
+The retained entry is an existing InformationObject, distinct from the
+source-recorded Activity and any actual producing ModelInvocation. Source
+entry kinds classify that occurrence through eventType; affectsObject records
+only the supplied affected-object inventory. Actual generation provenance is
+separate. No entry wrapper, Experience subclass or new forward output role is
+needed. An independently source-described mental episode retains its own type
+and experiencer; an actual recollection uses the existing recollects contract.
+Generated words alone supply neither phenomenal character nor inference validity.
+
+thoughtText admits xsd:string, rdf:langString and rdf:dirLangString with exact
+lexical, language and base-direction identity. Explicit empty wording remains
+present; absent wording stays absent. JSON-looking text, quoted assertions and
+layer markers remain words. These declarations neither parse facts nor install
+an index or normalize a producer's language. Three optional, nonfunctional
+scalar roles across AgencyRecords and Dreaming have global supplied-value
+closures: thoughtText, generationInputStateIdentity and dreamLayer. Their range
+readings add no required field or globally singular interpretation.
+
+generationInputStateIdentity retains the producer's supplied xsd:hexBinary
+identity of the context slot state given to the record's generation. It is not
+an artifact-byte contentDigest, a model execution identity, a payload snapshot,
+a prompt copy, a reconstructed pointer set or an immutable history position.
+Returning to the same source pointer set need not identify a new history
+position. Equality of bytes alone establishes no cross-scheme state equality
+or global holder identity. The particular source's actual algorithm, domain
+bytes and canonical input convention are retained rather than turned into a
+new universal mode, width, case or preimage rule.
+
+For the exact generationInputStateIdentity assertion, its rdf:reifies node
+uses wasDerivedFrom for the real source record. Establishing a qualified
+interpretation additionally requires actually consulted, version-identified
+documentary evidence establishing algorithm, domain/preimage convention,
+source/version and holder scope, cited through wasDerivedFrom. accordingTo retains the real
+declaring frame and wasAttributedTo the recorder; neither alone supplies scheme
+evidence. No profile, ReferenceFrame or algorithm resource is manufactured merely
+to hold that evidence. If the real documents do not qualify the scheme, keep
+opaque bytes and withhold verified/comparable identity claims. An operation
+requiring qualified identity must refuse rather than guess. This is an explicit
+source boundary, not a claim that a datatype closure proves documentary truth.
+
+AI's modelExecutionIdentity is the existing opaque binary-identity pattern but
+has a different subject and meaning. Sources' contentDigest requires the exact
+artifact-byte preimage and algorithm-bearing datatype; Math's digest types
+retain their actual hash-mode, lexical and input-identity contracts, including
+genuine domain bytes when present. This unit neither weakens those owners nor
+silently retypes a supplied state identifier into their narrower contracts.
+No hashing implementation, cryptographic verification or new digest datatype is
+added. Documentary evidence does not itself certify a computed hash.
+
+The four source kinds preserve waking solitary monologue, dream entry, patrol
+note and pre-reply model-emitted reasoning categories. They create no automatic
+awareness mode, Experience, DreamReport, actual patrol, proof or runtime success.
+The pre-reply reasoning-entry value is not an alias for the general model
+generation occurrence marker. Existing ModelCallMechanics, ReplyHandlingReport,
+perception/prompt relations and holder-relative scopes remain independently
+owned and do not gain new defaults or inferred bindings.
+
+AgencyRecords already consumes the actual core owners. Dreaming owns only the
+dream-specific layer literal and already consumes AgencyRecords; no core slice
+gains a Dreaming dependency and no dependency edge changes. The source scene
+separates a known invocation and independently described experience from the
+retained information records, shows documentary support on the exact state
+claim and an unqualified opaque case, and preserves empty/JSON-looking/language/
+direction wording plus zero/nonzero/absent layers. Every hypothetical assertion
+has its own native source/recorder/frame metadata. No runtime or consumer
+adoption is claimed (Principles 2, 3, 4, 9, 10 and 17).

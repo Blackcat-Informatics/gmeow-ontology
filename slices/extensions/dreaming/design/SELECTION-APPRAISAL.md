@@ -70,3 +70,25 @@ kernel, entities, events, awareness, inquiry, inference and standpoint extend th
 mentation/provenance composition. Core inquiry owns questionContext and gains no
 dependency on dreaming. The Analogy union branch directly consumes inference,
 whose declared dependencies contain no return edge to dreaming.
+
+## Layer numbers are retained source annotations
+
+dreamLayer belongs on an actual dream-entry InformationObject, rather than
+forcing a generated entry into Experience or DreamReport. It retains only a
+separately stated source nonNegativeInteger. The ordinary domain/range and global
+supplied-value closure add no required path, functionality, new class or phase
+identity. A source may state zero or another number; omission remains unknown.
+
+The source's real numbering convention and frame stay with the exact assertion
+when available. No default zero, global wire-width cap, successor relation,
+nesting/depth measure or temporal order is inferred. Generated text markers do
+not supply or override a layer. Existing phase Event, subEventOf and actual
+recollection contracts therefore remain independent. A whole-dream prose
+artifact requires no synthetic layer or phase record.
+
+AgencyRecords owns thoughtText, reported generationInputStateIdentity and the
+four source entry kinds; this extension consumes those core surfaces without
+creating a return dependency. State identity documentary qualification remains
+separate from layer interpretation and from actual experience. No new dependency,
+primitive mental class, profile, algorithm or hashing implementation is added
+(Principles 2, 3, 4, 9, 10 and 17).

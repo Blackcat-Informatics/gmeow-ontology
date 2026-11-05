@@ -4716,3 +4716,85 @@ gmeow:eventTypeAgentSaw
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/promptedByAlias" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actUnprompted" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Retained inner-life records; canonical source assertions.
+
+gmeow:thoughtText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "thought text"@x-gmeow-english ;
+    skos:definition "The verbatim words of a retained inner-life or reasoning information record. The words remain literal content rather than an assertion of the facts they describe or evidence of phenomenal experience."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual words supplied for an inner-life entry or a model-emitted reasoning trace."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid parsing JSON-looking words or embedded markers into facts, inferring consciousness, or substituting a prompt or reply envelope for the entry's words."@x-gmeow-english ;
+    gmeow:howToUse "Place the exact literal on the InformationObject, preserving supplied language, base direction and explicit empty wording. Keep an independently supported experience and producing invocation separate."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: several attributed wordings may coexist. Missing text is not an empty literal, unspecified language stays unspecified, and text alone creates no Experience, DreamReport or valid inference."@x-gmeow-english ;
+    skos:example "A source supplies empty wording explicitly: ex:entry gmeow:thoughtText \"\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:generationInputStateIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "generation input state identity"@x-gmeow-english ;
+    skos:definition "The producer-supplied binary identity of the context slot state reported as given to the generation producing this information record. It is a source-scoped state identifier, not a snapshot payload, prompt copy or digest of this record's bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies the actual identity bytes of the context state given to this record's generation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing state contents, a history position, an algorithm or a profile; substituting contentDigest or modelExecutionIdentity; or treating equal bytes as verified cross-source state equality."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:hexBinary literal. Its exact rdf:reifies assertion cites the real source record through wasDerivedFrom. To establish a qualified interpretation, also cite actually consulted, version-identified documents establishing algorithm, domain/preimage convention, source/version and holder scope. Keep recorder and declaring frame separate; without that evidence the bytes remain opaque."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. No global width, case, preimage, current-state or success rule is imposed. Without documentary scheme qualification, retain opaque bytes and withhold verified or comparable identity claims; selected operations requiring qualification must refuse rather than guess."@x-gmeow-english ;
+    skos:example "The source reports opaque bytes without qualified comparison: ex:entry gmeow:generationInputStateIdentity \"00FF\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range xsd:hexBinary .
+
+gmeow:eventTypeAgentMonologueEntry
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent monologue entry"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported occurrence recording an agent's waking solitary monologue entry. The occurrence, retained words and any actual mental process remain distinct."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly classifies the occurrence as a waking monologue entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the category from wording or treating a generated first-person sentence as proof of consciousness or an actual Experience."@x-gmeow-english ;
+    gmeow:howToUse "Attach through eventType to the source-identified entry Activity. Retain its actual actor and affected information record separately, with exact assertion metadata."@x-gmeow-english ;
+    skos:scopeNote "A value, not an Experience subclass or a universal waking-state rule. It neither executes generation nor binds recall inputs, assigns a current slot or supplies a missing invocation."@x-gmeow-english ;
+    skos:example "A source classifies its entry occurrence: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentMonologueEntry ."@x-gmeow-english .
+
+gmeow:eventTypeAgentDreamEntry
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent dream entry"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported dream-entry occurrence. Its retained information record is distinct from a source-described dream Experience and from a later DreamReport recollection."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects a dream-entry category rather than a waking entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a dream from text markers, requiring a layer when unstated, or retyping generated text as Experience or DreamReport."@x-gmeow-english ;
+    gmeow:howToUse "Classify the actual entry Activity through eventType and keep its information record separate. Attach dreamLayer only when the source states one; genuine recollection links need independent evidence."@x-gmeow-english ;
+    skos:scopeNote "The value creates no phenomenal episode, phase structure, nesting order or automatic awareness-mode assertion. Missing layer and unspecified dream facts remain unknown."@x-gmeow-english ;
+    skos:example "A source selects its dream-entry kind: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentDreamEntry ."@x-gmeow-english .
+
+gmeow:eventTypeAgentPatrolNote
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent patrol note"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported occurrence recording a note of an agent's patrol. The retained note is not itself the patrol or proof of actual perception or successful action."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the entry category as a patrol note."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a route, place, observation, patrol occurrence or awareness mode merely from the note category."@x-gmeow-english ;
+    gmeow:howToUse "Attach through eventType to the source-recorded entry Activity. Retain actual actor, place and note wording only with their own source evidence."@x-gmeow-english ;
+    skos:scopeNote "An event-kind seed rather than an information-record or mental-process class. It supplies no missing state, invocation, time or location and runs no patrol or recall operation."@x-gmeow-english ;
+    skos:example "The source reports a patrol note: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentPatrolNote ."@x-gmeow-english .
+
+gmeow:eventTypeAgentReasoningTrace
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "agent reasoning trace"@x-gmeow-english ;
+    skos:definition "An open event-kind value for a source-reported entry of model-emitted reasoning before a reply in an exchange. The retained words are distinct from inference validity, a proof, a raw reply envelope or a transport event."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies this pre-reply reasoning-entry category."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating generated reasoning words as a valid inference or verified proof, or substituting the general model-generation trace kind for this specific entry meaning."@x-gmeow-english ;
+    gmeow:howToUse "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, prompt references and reply-handling reports under their existing independent contracts."@x-gmeow-english ;
+    skos:scopeNote "No inference engine, model call, output ownership, success verdict, temporal order or missing invocation identity is created. The value is neither equivalent to nor mutually exclusive with a general generation trace."@x-gmeow-english ;
+    skos:example "A source retains its reasoning-entry category: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/thoughtText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/generationInputStateIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
