@@ -933,8 +933,7 @@ RDF 1.2 reifier carrying wasDerivedFrom for that exact triple. Background scene
 declarations are explicitly supplied framing, separately marked. Provenance
 never propagates from roster to finding, from finding to its fields, or from a
 quoted triple to another assertion. The quoted triples alone do not assert
-facts; each underlying triple is present too. No actual source or consumer
-identity, path, key, class name or IRI is included in this fictional example.
+facts; each underlying triple is present too. The scene contains no private production identifiers.
 
 ```turtle
 @prefix ex: <https://example.org/math-finding-scene/> .
