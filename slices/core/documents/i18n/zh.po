@@ -1454,3 +1454,255 @@ msgstr "避免替换保存载体的 mediaType、编造原始资产、规范化 M
 msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep every supplied xsd:string exactly, including case, spaces and blank text, with its actual exact-statement source and any supplied viewpoint. Leave unavailable text absent."
 msgstr "原样保留每个已提供的 xsd:string，包括大小写、空格和空文本，并保留精确陈述的实际来源及任何已提供视角。未提供文本时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB spine-entry account"
+msgstr "EPUB spine 条目记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied information-record account of one EPUB spine entry, retaining its reported order descriptor, exact href and any supplied ordered TOC path."
+msgstr "由来源提供的单个 EPUB spine 条目信息记录，保留报告的顺序描述值、精确 href 以及任何已提供的有序目录路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each coherent account requires one reported integer order descriptor and one href string. Its path and actual source association are optional; matching descriptors or hrefs do not merge accounts or establish parsed EPUB conformance."
+msgstr "每个一致记录要求一个报告的整数顺序描述值和一个 href 字符串。路径及实际来源关联均可选；相同描述值或 href 不会合并记录，也不确立已解析 EPUB 的符合性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies two distinct entry accounts with the same relative href while preserving their separate order descriptors and attribution."
+msgstr "一个虚构来源提供两个具有相同相对 href 的不同条目记录，同时保留各自的顺序描述值和归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a coherent source-supplied EPUB spine-entry record without resolving its href or reconstructing its source package."
+msgstr "用于保留由来源提供的一致 EPUB spine 条目记录，不解析其 href，也不重建其源包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a package identity, base URI, immutable revision, digest, parser success, resolved content target or universal ordering convention from the record alone."
+msgstr "避免仅凭记录推断包身份、基础 URI、不可变修订版、摘要、解析成功、已解析内容目标或通用顺序约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied account distinct. Retain epubSpineOrder and epubSpineHref, add epubTocPath only when supplied, and associate an actually identified source through epubSpineEntry without inventing missing context."
+msgstr "保持每个已提供记录独立。保留 epubSpineOrder 和 epubSpineHref，仅在提供时添加 epubTocPath，并通过 epubSpineEntry 关联实际已识别来源，不虚构缺失语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC path step"
+msgstr "EPUB 目录路径步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StructuredValue occurrence representing one supplied EPUB TOC path step, whose sole scalar structuredTerm is its complete title and whose epubTocDepth retains the reported depth descriptor."
+msgstr "一种 StructuredValue 出现项，表示一个已提供的 EPUB 目录路径步骤；其唯一标量 structuredTerm 是完整标题，epubTocDepth 保留报告的深度描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every typed step requires its title and reported integer depth, even before path membership is supplied. Title identity is the complete RDF term; equal titles on distinct occurrences do not identify the same step."
+msgstr "每个已声明类型的步骤都要求标题和报告的整数深度，即使尚未提供路径成员关系。标题身份取决于完整 RDF 项；不同出现项上的相同标题不确立同一步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two distinct path steps retain the same spaced title at different entryOrdinal positions; a standalone typed step still supplies its own title and depth."
+msgstr "两个不同路径步骤在不同 entryOrdinal 位置保留同一含空格标题；独立的已声明类型步骤仍须提供其自身标题和深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual supplied TOC step occurrence with a complete word-literal title and its reported depth descriptor."
+msgstr "当提供实际目录步骤出现项、完整文字字面量标题及报告的深度描述值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a duplicate title field or wrapper identity, deriving depth from entryOrdinal, inferring a tree or replacing repeated or blank titles with missing data."
+msgstr "避免添加重复标题字段或包装身份，避免从 entryOrdinal 推导深度、推断树结构，或把重复标题及空标题替换为缺失数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the actual occurrence EpubTocPathStep, retain its complete title once through structuredTerm and its supplied integer depth through epubTocDepth. When it belongs to a path, retain its actual zero-based occurrence position through entryOrdinal."
+msgstr "将实际出现项声明为 EpubTocPathStep，通过 structuredTerm 仅保留一次完整标题，并通过 epubTocDepth 保留已提供的整数深度。当其属于路径时，通过 entryOrdinal 保留实际从零开始的出现位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine-entry account"
+msgstr "报告的 EPUB spine 条目记录关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actually identified source InformationObject to an EpubSpineEntry account supplied for that source."
+msgstr "将实际已识别的源 InformationObject 关联到为该来源提供的 EpubSpineEntry 记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional association retains supplied source context without identifying an immutable revision, declaring a media type or proving completeness of a package inventory. A source may have independent accounts."
+msgstr "此可选且非函数性的关联保留已提供来源语境，不识别不可变修订版、不声明媒体类型，也不证明包清单完整。一个来源可具有多个独立记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source links to two independently attributed entry accounts; another supplied entry remains unassociated when its actual source identity is unavailable."
+msgstr "一个虚构来源关联到两个各自记录归属的条目记录；另一个已提供条目在实际来源身份不可获取时不建立来源关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source information object and its supplied spine-entry account are identified."
+msgstr "当实际源信息对象及为其提供的 spine 条目记录均已识别时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source to fill missing evidence or substituting segmentOf, wasDerivedFrom or navigationSource for this supplied account association."
+msgstr "避免创建来源以填补证据缺失，也避免用 segmentOf、wasDerivedFrom 或 navigationSource 代替此已提供记录关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only an actual supplied InformationObject to each distinct entry account and attribute the association itself. Leave unavailable source identity absent; shared href wording does not create this link."
+msgstr "仅将实际已提供的 InformationObject 关联到各个不同条目记录，并记录该关联本身的归属。来源身份不可获取时保持缺失；相同 href 措辞不会生成此关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine order descriptor"
+msgstr "报告的 EPUB spine 顺序描述值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer descriptor supplied by the source for the order of this EPUB spine-entry account under its actual convention."
+msgstr "来源按其实际约定为此 EPUB spine 条目记录的顺序提供的整数描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one integer-family literal is required per account. Its supplied lexical form and datatype survive; no universal origin, bound, tie policy, comparison rule or canonical sequence position is established."
+msgstr "每个记录要求恰好一个整数族字面量。保留已提供词法形式和数据类型；不确立通用起点、边界、并列规则、比较规则或规范序列位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies order descriptor 12 while the first TOC step has entryOrdinal 0; the two integers describe different things."
+msgstr "来源提供顺序描述值 12，而首个目录步骤的 entryOrdinal 为 0；两个整数描述不同事项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the supplied integer spine-order descriptor independently of TOC depth and actual step position."
+msgstr "用于独立保留已提供的整数 spine 顺序描述值，使其与目录深度及实际步骤位置分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying this descriptor into entryOrdinal, inventing a numbering base or coercing a string, fractional value or arbitrary code into interpreted spine order."
+msgstr "避免把此描述值复制到 entryOrdinal、虚构编号基准，或将字符串、分数值及任意代码强制解释为 spine 顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied literal from the thirteen XSD integer-family datatypes, with its source convention and exact-statement attribution. Invalid selected input fails rather than being normalized or replaced."
+msgstr "保留来自十三种 XSD 整数族数据类型的精确已提供字面量，以及来源约定和精确陈述归属。选定输入无效时应失败，不做规范化或替换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine href"
+msgstr "报告的 EPUB spine href"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact href string supplied by the source for this EPUB spine-entry account, retained without URI resolution or normalization."
+msgstr "来源为此 EPUB spine 条目记录提供的精确 href 字符串，保留时不进行 URI 解析或规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one xsd:string is required, including a supplied blank string. Relative spelling, case, spaces and fragments remain source data; the string establishes no independent content-resource identity or base URI."
+msgstr "要求恰好一个 xsd:string，包括已提供的空字符串。相对拼写、大小写、空格和片段均保持为源数据；字符串不确立独立内容资源身份或基础 URI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source retains Text/Part.xhtml#Opening exactly as its relative href, without guessing a package location."
+msgstr "一个虚构来源将 Text/Part.xhtml#Opening 原样保留为相对 href，不猜测包位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the entry account supplies its exact href field, including relative or blank text."
+msgstr "当条目记录提供其精确 href 字段时使用，包括相对文本或空文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving or fetching the reference, decoding or rewriting its spelling, adding a language tag or treating matching strings as target identity."
+msgstr "避免解析或获取该引用、解码或改写其拼写、添加语言标签，或把相同字符串当作目标身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied xsd:string with its exact-statement source and viewpoint. Any separately supplied resolved target or base context remains distinct evidence, not a computed value of this property."
+msgstr "保留完整已提供 xsd:string，以及精确陈述的来源和视角。另行提供的已解析目标或基础语境属于独立证据，不是此属性的计算值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB TOC path"
+msgstr "报告的 EPUB 目录路径"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered StructuredSequence of TOC path-step occurrences supplied for this EPUB spine-entry account."
+msgstr "为此 EPUB spine 条目记录提供的目录路径步骤出现项所组成的独立有序 StructuredSequence。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional path is locally at most one. An actually supplied current empty sequence differs from absence; code defaults do not recover historical field presence. The path establishes no inferred navigation tree or resolved targets."
+msgstr "此可选路径局部至多一个。实际提供的当前空序列不同于缺失；代码默认值不能恢复历史字段是否存在。该路径不确立推断出的导航树或已解析目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#example"
+msgid "One account supplies an empty TOC path while another supplies no path; a third preserves equal titles as separate ordered step occurrences."
+msgstr "一个记录提供空目录路径，另一个记录未提供路径；第三个记录把相同标题保留为不同的有序步骤出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the entry account actually supplies its ordered TOC path, including a known current zero-item path."
+msgstr "当条目记录实际提供其有序目录路径时使用，包括已知当前零项路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a path for a missing field, removing repeated or blank titles, pairing positions across accounts or deriving parent-child relations from depth descriptors."
+msgstr "避免为缺失字段虚构路径、删除重复或空标题、跨记录配对位置，或从深度描述值推导父子关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one supplied StructuredSequence whose items are distinct EpubTocPathStep occurrences. Retain their actual zero-based positions with entryOrdinal and preserve each complete title and supplied depth under its own source attribution."
+msgstr "关联一个已提供的 StructuredSequence，其各项为不同 EpubTocPathStep 出现项。使用 entryOrdinal 保留实际从零开始的位置，并分别按其来源归属保留完整标题和已提供深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB TOC depth descriptor"
+msgstr "报告的 EPUB 目录深度描述值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer descriptor supplied by the source as the depth of this EPUB TOC path step under its actual convention."
+msgstr "来源按其实际约定作为此 EPUB 目录路径步骤深度提供的整数描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one integer-family literal is required per typed step. It is a reported descriptor, not a computed count, canonical tree depth or occurrence position; its actual source convention governs interpretation."
+msgstr "每个已声明类型步骤要求恰好一个整数族字面量。它是报告的描述值，不是计算出的计数、规范树深度或出现位置；应按实际来源约定解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The first path step retains reported depth 4 at entryOrdinal 0 without inferring four ancestors or a missing prefix."
+msgstr "首个路径步骤在 entryOrdinal 为 0 时保留报告的深度 4，不推断四个祖先或缺失前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual integer depth descriptor supplied with a TOC step, independently of path position and spine order."
+msgstr "用于保留随目录步骤实际提供的整数深度描述值，使其与路径位置及 spine 顺序分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing depth from path length, imposing an unreported origin or bound, copying it into entryOrdinal or accepting an arbitrary integer code as interpreted depth."
+msgstr "避免从路径长度计算深度、施加未报告起点或边界、将其复制到 entryOrdinal，或把任意整数代码接受为已解释深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact supplied integer-family literal and its actual source convention on this occurrence. Preserve lexical form and datatype; invalid or noninteger selected input fails without coercion or a synthesized default."
+msgstr "在此出现项上保留精确已提供整数族字面量及实际来源约定。保留词法形式和数据类型；选定输入无效或非整数时应失败，不做强制转换，也不生成默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC path-item constraint"
+msgstr "EPUB 目录路径项约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every structuredItem in a sequence selected through epubTocPath is an EpubTocPathStep occurrence."
+msgstr "通过 epubTocPath 选取的序列中，每个 structuredItem 都是 EpubTocPathStep 出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law checks every selected item without requiring an explicitly typed entry. Empty selected paths remain valid; generic sequence branch and ordinal contracts remain unchanged."
+msgstr "此按角色限定的规则检查每个选中项，不要求条目显式声明类型。选中的空路径仍有效；通用序列分支及序号契约保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected path item typed only as a generic StructuredValue does not bypass the EpubTocPathStep title and depth contract."
+msgstr "选中的路径项即使仅声明为通用 StructuredValue，也不能绕过 EpubTocPathStep 的标题和深度契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the step-occurrence contract on every supplied TOC path item without narrowing unrelated generic sequences."
+msgstr "用于将步骤出现项契约应用于每个已提供目录路径项，不收窄无关通用序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting one well-formed step as cover for another malformed item or interpreting a scalar title string as a resolved navigation resource."
+msgstr "避免用一个合规步骤掩盖另一个不合规项，也避免把标量标题字符串解释为已解析导航资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow epubTocPath and every structuredItem, requiring EpubTocPathStep membership for each item. Preserve its distinct occurrence, actual title, depth and canonical sequence position without inventing a target."
+msgstr "沿 epubTocPath 和每个 structuredItem 检查，要求各项属于 EpubTocPathStep。保留其不同出现项、实际标题、深度及规范序列位置，不虚构目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC step-title constraint"
+msgstr "EPUB 目录步骤标题约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed EpubTocPathStep has a scalar structuredTerm title, and every supplied title term is an xsd:string, rdf:langString or rdf:dirLangString literal."
+msgstr "每个已声明类型的 EpubTocPathStep 都具有标量 structuredTerm 标题，且每个已提供标题项都是 xsd:string、rdf:langString 或 rdf:dirLangString 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The title is required even for a standalone typed step. Blank titles are valid; generic StructuredValue laws still enforce one scalar branch and exact whole-term identity without a duplicate title authority."
+msgstr "即使是独立的已声明类型步骤，也必须具有标题。允许空标题；通用 StructuredValue 规则仍强制要求单一标量分支和精确完整项身份，不设置重复标题权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A standalone step with a blank string title satisfies title presence; a step missing structuredTerm or carrying a numeric, resource or extra malformed term violates this law."
+msgstr "独立步骤的标题为空字符串时满足标题存在要求；步骤缺少 structuredTerm，或带有数字项、资源项或额外不合规项值时，违反此规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require and validate every supplied title on each typed TOC step, whether or not path membership is present."
+msgstr "用于要求并验证每个已声明类型目录步骤上的每个已提供标题，不取决于是否存在路径成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an empty container as a missing title, coercing nonword values into strings or allowing a good title to hide another invalid supplied term."
+msgstr "避免用空容器代替缺失标题，避免把非文字值强制转换为字符串，也避免让合规标题掩盖另一个无效的已提供项值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a structuredTerm on every typed step, then compare every supplied term’s datatype through termSameComponent with the three admitted word datatypes. Keep the original complete literal and reject violations without rewriting input."
+msgstr "要求每个已声明类型步骤具有 structuredTerm，再通过 termSameComponent 将每个已提供项的数据类型与三个允许的文字数据类型比较。保留原始完整字面量，拒绝违规输入而不改写。"
