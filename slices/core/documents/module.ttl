@@ -5,6 +5,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Article
@@ -1888,3 +1889,262 @@ gmeow:EpubTocPathTitleConstraint
             ]
         ]
     ] .
+
+gmeow:sourceLocus
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source locus"@x-gmeow-english ;
+    skos:definition "A supplied EvidenceSpan locating this documentary information object within its source, retaining its actual page, href or region context."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional role supports ContentBlock and other documentary information objects without creating a CitationAct, retrieval Chunk or source revision. Preserve distinct supplied loci and their attribution; no missing locator becomes zero, blank or null."@x-gmeow-english ;
+    skos:example "A block retains a supplied page span; a region-bearing span uses the same locus route with four framed coordinate quantities."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual source locus supplied for documentary content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting viaSelector, inventing an immutable source, resolving hrefs or treating page geometry as Unicode offsets."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual span, reuse selectorPage for its original page literal and locusHref for its exact href, and type that same span SourceRegion when its four coordinate quantities are supplied."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:EvidenceSpan .
+
+gmeow:locusSource
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "locus source"@x-gmeow-english ;
+    skos:definition "The actually identified source information artifact within which this EvidenceSpan is located."@x-gmeow-english ;
+    skos:scopeNote "The optional role retains at most one supplied artifact per coherent span. It does not infer an immutable revision, byte identity, format or source authentication from a work name, media identifier, href or path."@x-gmeow-english ;
+    skos:example "An independently identified source artifact is retained separately from the span’s unresolved href wording."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source information artifact itself is actually identified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating an artifact or revision from a filename, locator, digest resemblance or abstract work identity."@x-gmeow-english ;
+    gmeow:howToUse "Link only the actual supplied InformationObject artifact. Preserve any genuinely supplied revision or digest separately under its existing contract; leave unavailable artifact identity absent."@x-gmeow-english ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range gmeow:InformationObject .
+
+gmeow:locusHref
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "locus href"@x-gmeow-english ;
+    skos:definition "The exact supplied textual href reference locating this EvidenceSpan within its source."@x-gmeow-english ;
+    skos:scopeNote "This optional role retains at most one original xsd:string, xsd:token or xsd:anyURI literal per coherent span. It specializes selectorLocator without resolving a target, supplying a base URI, normalizing the literal or establishing source-file identity."@x-gmeow-english ;
+    skos:example "A relative href with its supplied fragment and spacing remains source text rather than a newly resolved resource."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual href reference supplied with a source locus."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the literal with an IRI object, casting between admitted datatypes, resolving a path or substituting sourceLocation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the complete supplied literal on the span once. Its unchanged object follows the generic selectorLocator relation by subproperty entailment; do not author a second locator copy."@x-gmeow-english ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token xsd:anyURI ) ] ;
+    logic:subPropertyOf gmeow:selectorLocator .
+
+gmeow:SourceRegion
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source Region"@x-gmeow-english ;
+    skos:definition "A supplied region-bearing EvidenceSpan retaining the four source coordinate slots x0, y0, x1 and y1 as framed math:Quantity values in one actual declared coordinate frame."@x-gmeow-english ;
+    skos:scopeNote "The coordinate roles preserve the source’s actual interpretation, not a guessed origin, axis direction, unit, pixel grid, normalized fraction, corner inclusion or geometric inequality. The same span retains any supplied selectorPage, locusHref and independently identified locusSource."@x-gmeow-english ;
+    skos:example "A page region retains its original numeric literals and evidenced coordinate frame without converting corner slots into width and height."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source supplies all four numeric coordinate slots and their real interpretation is supported."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raw numeric aliases, opaque rectangle blobs, rational-vector coercion, invented frames or identifying the locus with a stored image or geographic observation."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one Quantity per coordinate role and one complete actual hasReferenceFrame on the region. Retain original finite numeric magnitudes, each Quantity’s inherited dimension and a frame agreeing with the region; preserve actual source and interpretation evidence."@x-gmeow-english ;
+    logic:subClassOf gmeow:EvidenceSpan .
+
+gmeow:sourceRegionX0
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source region x0"@x-gmeow-english ;
+    skos:definition "The existing math:Quantity retaining the original numeric value supplied in the x0 coordinate slot of this SourceRegion."@x-gmeow-english ;
+    skos:scopeNote "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."@x-gmeow-english ;
+    skos:example "A source’s x0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual numeric value supplied for the x0 slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."@x-gmeow-english ;
+    logic:domain gmeow:SourceRegion ;
+    logic:range math:Quantity .
+
+gmeow:sourceRegionY0
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source region y0"@x-gmeow-english ;
+    skos:definition "The existing math:Quantity retaining the original numeric value supplied in the y0 coordinate slot of this SourceRegion."@x-gmeow-english ;
+    skos:scopeNote "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."@x-gmeow-english ;
+    skos:example "A source’s y0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual numeric value supplied for the y0 slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."@x-gmeow-english ;
+    logic:domain gmeow:SourceRegion ;
+    logic:range math:Quantity .
+
+gmeow:sourceRegionX1
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source region x1"@x-gmeow-english ;
+    skos:definition "The existing math:Quantity retaining the original numeric value supplied in the x1 coordinate slot of this SourceRegion."@x-gmeow-english ;
+    skos:scopeNote "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."@x-gmeow-english ;
+    skos:example "A source’s x1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual numeric value supplied for the x1 slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."@x-gmeow-english ;
+    logic:domain gmeow:SourceRegion ;
+    logic:range math:Quantity .
+
+gmeow:sourceRegionY1
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source region y1"@x-gmeow-english ;
+    skos:definition "The existing math:Quantity retaining the original numeric value supplied in the y1 coordinate slot of this SourceRegion."@x-gmeow-english ;
+    skos:scopeNote "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."@x-gmeow-english ;
+    skos:example "A source’s y1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual numeric value supplied for the y1 slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."@x-gmeow-english ;
+    logic:domain gmeow:SourceRegion ;
+    logic:range math:Quantity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceLocus" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/locusSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/locusHref" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionX0" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionY0" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionX1" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionY1" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:EvidenceSpan logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:locusSource ; logic:allValuesFrom gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:locusSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ],
+    [ a logic:Restriction ; logic:onProperty gmeow:locusHref ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token xsd:anyURI ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:locusHref ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token xsd:anyURI ) ] ] .
+
+gmeow:SourceRegion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionX0 ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionX0 ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionY0 ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionY0 ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionX1 ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionX1 ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionY1 ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceRegionY1 ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReferenceFrame ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SourceRegion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionX0" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SourceRegion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionY0" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SourceRegion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionX1" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SourceRegion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceRegionY1" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SourceRegion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:SourceRegionCoordinateConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source region coordinate constraint"@x-gmeow-english ;
+    skos:definition "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."@x-gmeow-english ;
+    skos:scopeNote "Equivalent retained source lexical aliases may coexist under numeric equality. Existing Quantity dimension requirements and ReferenceFrame obligations remain authoritative. This law supplies no dimension default, coordinate conversion, source authentication or geometric bound."@x-gmeow-english ;
+    skos:example "Two source spellings of the same valid numeric value remain intact on a compatible coordinate Quantity; an invented frame never repairs missing interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the magnitudes and same-frame context of every supplied source-region coordinate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping invalid coordinates, retyping values, manufacturing dimensions or frames, or adding page/axis bounds not stated by the source."@x-gmeow-english ;
+    gmeow:howToUse "Apply the outer region guard and each independent positive coordinate-role guard. Require magnitude and frame presence, finite numeric validity, numeric-value equality and agreement of every coordinate frame with the region frame."@x-gmeow-english ;
+    logic:formalizes gmeow:SourceRegion , gmeow:sourceRegionX0 , gmeow:sourceRegionY0 , gmeow:sourceRegionX1 , gmeow:sourceRegionY1 ;
+    logic:severity "Violation" ;
+    logic:message "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "region" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termIri gmeow:SourceRegion ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0MagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionX0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0MagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0Magnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0MagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0Magnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0FiniteValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0FiniteQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0FiniteValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0FiniteValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0FirstValue" ], [ logic:termIndex 2 ; logic:termVariable "x0SecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0EqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0FirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0SecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0FirstValue" ], [ logic:termIndex 1 ; logic:termVariable "x0SecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0FrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionX0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0FrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0Frame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0FrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0Frame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x0AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0QuantityFrame" ], [ logic:termIndex 2 ; logic:termVariable "x0RegionFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0AgreementQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x0QuantityFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x0RegionFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x0QuantityFrame" ], [ logic:termIndex 1 ; logic:termVariable "x0RegionFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0MagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionY0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0MagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0Magnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0MagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0Magnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0FiniteValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0FiniteQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0FiniteValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0FiniteValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0FirstValue" ], [ logic:termIndex 2 ; logic:termVariable "y0SecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0EqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0FirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0SecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0FirstValue" ], [ logic:termIndex 1 ; logic:termVariable "y0SecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0FrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionY0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0FrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0Frame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0FrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0Frame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y0AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0QuantityFrame" ], [ logic:termIndex 2 ; logic:termVariable "y0RegionFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY0 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0AgreementQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y0QuantityFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y0RegionFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y0QuantityFrame" ], [ logic:termIndex 1 ; logic:termVariable "y0RegionFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1MagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionX1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1MagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1Magnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1MagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1Magnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1FiniteValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1FiniteQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1FiniteValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1FiniteValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1FirstValue" ], [ logic:termIndex 2 ; logic:termVariable "x1SecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1EqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1FirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1SecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1FirstValue" ], [ logic:termIndex 1 ; logic:termVariable "x1SecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1FrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionX1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1FrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1Frame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1FrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1Frame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x1AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1QuantityFrame" ], [ logic:termIndex 2 ; logic:termVariable "x1RegionFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionX1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1AgreementQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "x1QuantityFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "x1RegionFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "x1QuantityFrame" ], [ logic:termIndex 1 ; logic:termVariable "x1RegionFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1MagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionY1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1MagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1Magnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1MagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1Magnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1FiniteValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1FiniteQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1FiniteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1FiniteValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1FiniteValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1FirstValue" ], [ logic:termIndex 2 ; logic:termVariable "y1SecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1EqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1FirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1EqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1SecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1FirstValue" ], [ logic:termIndex 1 ; logic:termVariable "y1SecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1FrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceRegionY1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1FrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1Frame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1FrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1Frame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y1AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1QuantityFrame" ], [ logic:termIndex 2 ; logic:termVariable "y1RegionFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:sourceRegionY1 ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1AgreementQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1QuantityFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1RegionFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1QuantityFrame" ], [ logic:termIndex 1 ; logic:termVariable "y1RegionFrame" ] ] ] ] ] ] ] .

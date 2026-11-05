@@ -96,3 +96,59 @@ msgstr "范围：该记录仅承载关于 gmeow:citedEntity 的一项完整性�
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:citingEntity and nothing else. It is not a definition of gmeow:citingEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:citingEntity 的一项完整性义务，别无其他。它不是 gmeow:citingEntity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selector page"
+msgstr "选择器页面"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied page number, label, index or range expressed as its original literal on an EvidenceSpan within a source resource, including a citation Selector."
+msgstr "在来源资源中的 EvidenceSpan 上以原始字面量表示、来源提供的页码、页面标签、索引或范围，包括引文 Selector。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared property has EvidenceSpan domain and literal range. It preserves the complete RDF literal without a page-index base, range decoding, count, normalization, source identity or CitationAct requirement; existing Selector uses remain valid."
+msgstr "此共享属性的定义域为 EvidenceSpan，值域为字面量。它保留完整 RDF 字面量，不规定页面索引基数、不解析范围、不计数、不规范化、不确立来源身份，也不要求 CitationAct；现有 Selector 用法仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generic source span retains its supplied page label directly; an explicit citation Selector can retain the same kind of page descriptor through the same property."
+msgstr "通用来源位置直接保留所提供的页面标签；明确的引文 Selector 可通过同一属性保留同类页面描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied page descriptor on a generic EvidenceSpan or a citation Selector."
+msgstr "用于在通用 EvidenceSpan 或引文 Selector 上保留来源提供的页面描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the page on the bearing CitationAct, converting an index convention, resolving a page resource or storing source-region coordinates as this descriptor."
+msgstr "避免将页面放在承载的 CitationAct 上、转换索引约定、解析页面资源，或将来源区域坐标存为此描述值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied literal unchanged on the actual span. Use viaSelector only for an actual CitationAct and its explicitly selected Selector; a generic page span needs neither invented citation machinery nor a duplicate page property."
+msgstr "在实际位置上原样保留提供的字面量。仅对实际 CitationAct 及其明确选定的 Selector 使用 viaSelector；通用页面位置不需要编造引文机制或重复的页面属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selector locator"
+msgstr "选择器定位信息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied generic literal locator within the source resource anchored by an EvidenceSpan, shared with its citation Selector specialization."
+msgstr "在 EvidenceSpan 所锚定的来源资源中，来源提供的通用字面量定位信息，与其引文 Selector 特化共享。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared property has EvidenceSpan domain and literal range. A locator preserves source wording or a typed control descriptor without resolving a resource, authenticating a revision or creating a CitationAct. A specific href subproperty retains its exact original literal object."
+msgstr "此共享属性的定义域为 EvidenceSpan，值域为字面量。定位信息保留来源文本或带类型的控制描述值，不解析资源、不认证修订版，也不创建 CitationAct。专门的 href 子属性保留其确切原始字面量对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generic source span retains a supplied structural locator without becoming a citation act or forcing its subject to be a citation Selector."
+msgstr "通用来源位置保留提供的结构定位信息，不变成引文行为，也不强制将其主语标为引文 Selector。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual supplied structural or domain locator on an EvidenceSpan, including an explicitly typed citation Selector."
+msgstr "用于 EvidenceSpan 上实际提供的结构或领域定位信息，包括明确标型的引文 Selector。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a specific page or framed region representation with an opaque locator, smuggling a quote or asserting a resolved target from source spelling."
+msgstr "避免以不透明定位信息替代专门的页面或有参考系的区域表示、夹带引文，或从来源拼写断言已解析目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete original literal on the actual span. Use a meaningful subproperty for a known href role, retain its original object and let ordinary subproperty entailment supply this generic relation once."
+msgstr "在实际位置上保留完整原始字面量。对已知 href 关系使用有明确含义的子属性，保留其原始对象，并通过普通子属性蕴涵提供此通用关系一次。"

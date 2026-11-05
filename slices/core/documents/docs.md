@@ -668,3 +668,85 @@ run, Agent, base URI, resolved content resource, immutable revision or digest.
 It supplies no evidence of EPUB XML conformance, parser execution or semantic
 validation. Standalone steps remain subject to the title and depth requirements;
 leaving either missing would violate the selected step contract.
+
+## Source loci and framed source regions
+
+`sourceLocus` links a documentary `InformationObject`, including a `ContentBlock`,
+to its actual supplied `EvidenceSpan`. It is optional and nonfunctional, so old
+blocks need no fabricated locus and genuinely distinct supplied source accounts
+remain distinct. This direct documentary relation does not create a citation act,
+retrieval chunk, code-point extent or immutable source revision (Principles 2,
+4, 9, 11, 17 and 19).
+
+Reuse the shared `selectorPage` for the complete original page literal: a supplied
+number, index, label or range is preserved with its datatype, lexical form and
+any language or direction. It is a source-control descriptor, not a page count,
+normalized sequence position or resolved page resource. No zero/one index base,
+range decoding or numerical comparison is inferred. The shared property keeps
+its existing multiplicity and open-world admission; this unit adds no page alias,
+global page maximum or requirement on every span.
+
+`locusHref` specializes the shared `selectorLocator` for the exact textual href.
+It admits the original `xsd:string`, `xsd:token` or `xsd:anyURI` literal without
+casting. Keep relative spelling, case, whitespace and fragments. Ordinary
+subproperty entailment supplies the same object as a generic locator; do not
+write a second locator copy, resolve a target, invent a base URI or use the
+href as source-file identity. Each coherent span has at most one supplied href;
+absence differs from a supplied blank string.
+
+`locusSource` separately retains at most one actually identified source
+information artifact per coherent span. It is optional when the artifact’s
+identity is unavailable. An abstract work, path, media identifier, page descriptor
+or href does not manufacture that identity or an immutable revision. If actual
+revision or typed byte-digest evidence is supplied, preserve it under its
+existing [Sources contract](../sources/docs.md); this link computes and verifies
+no digest and authenticates no source. Source file type and OCR input-image
+identity remain separate meanings.
+
+When the source supplies its four numeric region slots, that same span is typed
+`SourceRegion`. It keeps `sourceRegionX0`, `sourceRegionY0`, `sourceRegionX1` and
+`sourceRegionY1`, each pointing to exactly one existing `math:Quantity`, plus
+exactly one complete actual `hasReferenceFrame` for the region. Page, href and
+source context stay on this same anchor. There is one region representation,
+not a second rectangle string, copied coordinate tuple or image-oriented selector.
+
+Each Quantity retains the original valid finite numeric literal through
+`math:quantityValue`. Its supplied datatype and lexical form remain unchanged;
+no integer, decimal or float type is guessed or coerced. All retained magnitudes
+of one Quantity must be numerically equal, allowing genuinely supplied equivalent
+lexical aliases. Reuse the [Math Quantity](../../grounding/math/docs.md) contract
+for exactly one actual mathematical dimension; do not invent another Quantity
+class, scalar value role or duplicate dimension requirement.
+
+Every coordinate Quantity requires an actual frame equal to the region’s single
+frame. Presence and agreement give one same-frame interpretation for the four
+slots, without forcing an invented dimension or unit. The complete
+[Places frame](../places/docs.md) and actual source or adapter interpretation
+must identify the coordinate substrate and axes and justify the dimensions and
+applicable units. Distinguish the actual page, figure extent, image grid or other
+source plane without inventing a carrier or revision from locator wording.
+
+The names x0/y0/x1/y1 do not establish an origin, upward/downward axis direction,
+pixels, PDF points, physical length, normalized fractions, corner inclusion,
+rotation, nonnegative values or inequalities between slots. No width/height,
+area, containment, overlap or conversion is computed. Source decimals and floats
+are not rewritten into exact rational vectors with a guessed basis. These are
+reported coordinate carriers, not an invented geographic observation, Place,
+observer, vantage or uncertainty model.
+
+`SourceRegionCoordinateConstraint` uses a typed-region guard and twenty
+independently positive coordinate-role guards. For each slot it checks magnitude
+presence, finite numeric validity, numeric-value equality, frame presence and
+agreement with the region frame. Existing Quantity dimension and ReferenceFrame
+obligations remain their owners’ authority. Missing or invalid interpretation
+cannot be repaired by dropping a coordinate, supplying zero or minting a default
+frame. Structural validation does not authenticate source bytes, certify the
+page/frame association or prove an unperformed geometry operation.
+
+The shared page/locator domain repair is described in the
+[Citations guide](../citations/docs.md). It generalizes only `selectorPage` and
+`selectorLocator` to the already shared EvidenceSpan layer. `viaSelector` still
+serves an actual CitationAct and its explicit Selector; other selector fields
+retain their existing contracts. A stored image and its documentary printed
+source region remain distinct. A future figure-part occurrence can reuse this
+same region model without creating a competing coordinate representation.

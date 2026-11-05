@@ -1706,3 +1706,259 @@ msgstr "避免用空容器代替缺失标题，避免把非文字值强制转换
 msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Require a structuredTerm on every typed step, then compare every supplied term’s datatype through termSameComponent with the three admitted word datatypes. Keep the original complete literal and reject violations without rewriting input."
 msgstr "要求每个已声明类型步骤具有 structuredTerm，再通过 termSameComponent 将每个已提供项的数据类型与三个允许的文字数据类型比较。保留原始完整字面量，拒绝违规输入而不改写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source locus"
+msgstr "来源位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied EvidenceSpan locating this documentary information object within its source, retaining its actual page, href or region context."
+msgstr "来源提供的 EvidenceSpan，用于定位此文献信息对象在其来源中的位置，并保留实际的页码、href 或区域上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role supports ContentBlock and other documentary information objects without creating a CitationAct, retrieval Chunk or source revision. Preserve distinct supplied loci and their attribution; no missing locator becomes zero, blank or null."
+msgstr "此可选且非函数式的关系适用于 ContentBlock 及其他文献信息对象，不创建 CitationAct、检索 Chunk 或来源修订版。保留不同的来源位置及其归属；缺失定位信息不变成零值、空白或空值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "A block retains a supplied page span; a region-bearing span uses the same locus route with four framed coordinate quantities."
+msgstr "块保留来源提供的页面位置；带区域的位置通过同一关系保留四个具有参考系的坐标量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual source locus supplied for documentary content."
+msgstr "用于保留文献内容实际提供的来源位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting viaSelector, inventing an immutable source, resolving hrefs or treating page geometry as Unicode offsets."
+msgstr "避免替换为 viaSelector、编造不可变来源、解析 href，或将页面几何位置视为 Unicode 偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceLocus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual span, reuse selectorPage for its original page literal and locusHref for its exact href, and type that same span SourceRegion when its four coordinate quantities are supplied."
+msgstr "连接实际位置，使用 selectorPage 保留原始页面字面量，使用 locusHref 保留确切 href；当提供四个坐标量时，将同一位置标为 SourceRegion。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "locus source"
+msgstr "位置所依据的来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actually identified source information artifact within which this EvidenceSpan is located."
+msgstr "此 EvidenceSpan 所处的、实际已标明的信息来源制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The optional role retains at most one supplied artifact per coherent span. It does not infer an immutable revision, byte identity, format or source authentication from a work name, media identifier, href or path."
+msgstr "此可选关系在每个一致的位置记录中至多保留一个来源制品。它不从作品名称、媒体标识、href 或路径推断不可变修订版、字节身份、格式或来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "An independently identified source artifact is retained separately from the span’s unresolved href wording."
+msgstr "独立标明的来源制品与位置中尚未解析的 href 文本分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source information artifact itself is actually identified."
+msgstr "用于实际标明信息来源制品本身时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating an artifact or revision from a filename, locator, digest resemblance or abstract work identity."
+msgstr "避免从文件名、定位信息、摘要相似性或抽象作品身份创建制品或修订版。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied InformationObject artifact. Preserve any genuinely supplied revision or digest separately under its existing contract; leave unavailable artifact identity absent."
+msgstr "仅连接实际提供的 InformationObject 制品。按现有契约分别保留确实提供的修订版或摘要；若制品身份不可得，则保持缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "locus href"
+msgstr "位置 href"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied textual href reference locating this EvidenceSpan within its source."
+msgstr "用于定位此 EvidenceSpan 在其来源中位置的、来源所提供的确切 href 文本引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role retains at most one original xsd:string, xsd:token or xsd:anyURI literal per coherent span. It specializes selectorLocator without resolving a target, supplying a base URI, normalizing the literal or establishing source-file identity."
+msgstr "此可选关系在每个一致的位置记录中至多保留一个原始 xsd:string、xsd:token 或 xsd:anyURI 字面量。它特化 selectorLocator，但不解析目标、不提供基准 URI、不规范化字面量，也不确立来源文件身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|http://www.w3.org/2004/02/skos/core#example"
+msgid "A relative href with its supplied fragment and spacing remains source text rather than a newly resolved resource."
+msgstr "相对 href 保留来源提供的片段和空白，仍是来源文本，而不是新解析出的资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual href reference supplied with a source locus."
+msgstr "用于随来源位置实际提供的 href 引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the literal with an IRI object, casting between admitted datatypes, resolving a path or substituting sourceLocation."
+msgstr "避免将字面量替换为 IRI 对象、在允许的数据类型之间转换、解析路径或替换为 sourceLocation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/locusHref|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete supplied literal on the span once. Its unchanged object follows the generic selectorLocator relation by subproperty entailment; do not author a second locator copy."
+msgstr "在位置上只保留一次完整的来源字面量。其原样对象通过子属性蕴涵满足通用 selectorLocator 关系；不要再编写一个定位值副本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source Region"
+msgstr "来源区域"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied region-bearing EvidenceSpan retaining the four source coordinate slots x0, y0, x1 and y1 as framed math:Quantity values in one actual declared coordinate frame."
+msgstr "来源提供的带区域 EvidenceSpan，将来源坐标槽 x0、y0、x1 和 y1 保留为处于同一实际声明坐标参考系中的 math:Quantity 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate roles preserve the source’s actual interpretation, not a guessed origin, axis direction, unit, pixel grid, normalized fraction, corner inclusion or geometric inequality. The same span retains any supplied selectorPage, locusHref and independently identified locusSource."
+msgstr "坐标关系保留来源的实际解释，不猜测原点、轴方向、单位、像素网格、归一化比例、边界包含关系或几何不等式。同一位置保留任何来源提供的 selectorPage、locusHref，以及独立标明的 locusSource。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A page region retains its original numeric literals and evidenced coordinate frame without converting corner slots into width and height."
+msgstr "页面区域保留原始数值字面量及有依据的坐标参考系，不将角点槽转换为宽度和高度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source supplies all four numeric coordinate slots and their real interpretation is supported."
+msgstr "用于实际来源提供全部四个数值坐标槽，且其实际解释有依据时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid raw numeric aliases, opaque rectangle blobs, rational-vector coercion, invented frames or identifying the locus with a stored image or geographic observation."
+msgstr "避免原始数值别名、不透明矩形数据块、强制有理向量转换、编造参考系，或将位置等同于已存储图像或地理观测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one Quantity per coordinate role and one complete actual hasReferenceFrame on the region. Retain original finite numeric magnitudes, each Quantity’s inherited dimension and a frame agreeing with the region; preserve actual source and interpretation evidence."
+msgstr "为每个坐标关系提供恰好一个 Quantity，并在区域上提供一个实际完整的 hasReferenceFrame。保留原始有限数值、每个 Quantity 继承的维度，以及与区域一致的参考系；保留实际来源及解释证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source region coordinate constraint"
+msgstr "来源区域坐标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."
+msgstr "每个 SourceRegion 坐标 Quantity 都必须具有有效的原始有限数值、唯一的数值，以及与区域所要求的唯一坐标参考系相同的实际参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent retained source lexical aliases may coexist under numeric equality. Existing Quantity dimension requirements and ReferenceFrame obligations remain authoritative. This law supplies no dimension default, coordinate conversion, source authentication or geometric bound."
+msgstr "保留的等价来源词法变体可在数值相等时并存。现有 Quantity 维度要求和 ReferenceFrame 义务仍为准。此规则不提供默认维度、坐标转换、来源认证或几何界限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two source spellings of the same valid numeric value remain intact on a compatible coordinate Quantity; an invented frame never repairs missing interpretation."
+msgstr "同一有效数值的两种来源拼写可在兼容的坐标 Quantity 上原样保留；编造参考系无法补足缺失的解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the magnitudes and same-frame context of every supplied source-region coordinate."
+msgstr "用于校验每个来源区域坐标的数值及共同参考系上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping invalid coordinates, retyping values, manufacturing dimensions or frames, or adding page/axis bounds not stated by the source."
+msgstr "避免丢弃无效坐标、改变数值类型、制造维度或参考系，或添加来源未声明的页面或坐标轴界限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer region guard and each independent positive coordinate-role guard. Require magnitude and frame presence, finite numeric validity, numeric-value equality and agreement of every coordinate frame with the region frame."
+msgstr "应用外层区域守卫及每个独立的正向坐标关系守卫。要求数值和参考系存在、有限数值有效、数值相等，以及每个坐标参考系与区域参考系一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceRegionCoordinateConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every SourceRegion coordinate Quantity has an original valid finite numeric magnitude, one numeric value and an actual frame equal to the region’s required single coordinate frame."
+msgstr "每个 SourceRegion 坐标 Quantity 都必须具有有效的原始有限数值、唯一的数值，以及与区域所要求的唯一坐标参考系相同的实际参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region x0"
+msgstr "来源区域 x0"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the x0 coordinate slot of this SourceRegion."
+msgstr "保留此 SourceRegion 的 x0 坐标槽中来源提供的原始数值的现有 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "此来源槽恰好关联一个 Quantity。其有限数值字面量保持原始数据类型和拼写；此关系不声明轴原点、方向、单位、正负限制、角点约定或坐标转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s x0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "来源的 x0 数值项在其 Quantity 上保持不变，不复制到原始矩形字符串中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the x0 slot."
+msgstr "用于来源实际提供的 x0 槽数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "避免从其他槽推断此坐标、以零补足缺失值，或强制使用像素、比例或有理数表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX0|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "连接实际 Quantity，通过 math:quantityValue 保留原始数值，保留其继承的实际维度，并要求其参考系与此区域实际的坐标参考系一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region y0"
+msgstr "来源区域 y0"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the y0 coordinate slot of this SourceRegion."
+msgstr "保留此 SourceRegion 的 y0 坐标槽中来源提供的原始数值的现有 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "此来源槽恰好关联一个 Quantity。其有限数值字面量保持原始数据类型和拼写；此关系不声明轴原点、方向、单位、正负限制、角点约定或坐标转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s y0 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "来源的 y0 数值项在其 Quantity 上保持不变，不复制到原始矩形字符串中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the y0 slot."
+msgstr "用于来源实际提供的 y0 槽数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "避免从其他槽推断此坐标、以零补足缺失值，或强制使用像素、比例或有理数表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY0|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "连接实际 Quantity，通过 math:quantityValue 保留原始数值，保留其继承的实际维度，并要求其参考系与此区域实际的坐标参考系一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region x1"
+msgstr "来源区域 x1"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the x1 coordinate slot of this SourceRegion."
+msgstr "保留此 SourceRegion 的 x1 坐标槽中来源提供的原始数值的现有 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "此来源槽恰好关联一个 Quantity。其有限数值字面量保持原始数据类型和拼写；此关系不声明轴原点、方向、单位、正负限制、角点约定或坐标转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s x1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "来源的 x1 数值项在其 Quantity 上保持不变，不复制到原始矩形字符串中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the x1 slot."
+msgstr "用于来源实际提供的 x1 槽数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "避免从其他槽推断此坐标、以零补足缺失值，或强制使用像素、比例或有理数表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionX1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "连接实际 Quantity，通过 math:quantityValue 保留原始数值，保留其继承的实际维度，并要求其参考系与此区域实际的坐标参考系一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source region y1"
+msgstr "来源区域 y1"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing math:Quantity retaining the original numeric value supplied in the y1 coordinate slot of this SourceRegion."
+msgstr "保留此 SourceRegion 的 y1 坐标槽中来源提供的原始数值的现有 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one Quantity fills this source slot. Its finite numeric literal keeps its original datatype and spelling; the role asserts no axis origin, direction, unit, sign restriction, corner convention or coordinate conversion."
+msgstr "此来源槽恰好关联一个 Quantity。其有限数值字面量保持原始数据类型和拼写；此关系不声明轴原点、方向、单位、正负限制、角点约定或坐标转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s y1 numeric term remains unchanged on its Quantity rather than being copied into a raw rectangle string."
+msgstr "来源的 y1 数值项在其 Quantity 上保持不变，不复制到原始矩形字符串中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual numeric value supplied for the y1 slot."
+msgstr "用于来源实际提供的 y1 槽数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this coordinate from another slot, replacing absence with zero or forcing a pixel, fractional or rational representation."
+msgstr "避免从其他槽推断此坐标、以零补足缺失值，或强制使用像素、比例或有理数表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceRegionY1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity, retain its original magnitude through math:quantityValue, keep its inherited actual dimension and require its frame to agree with this region’s actual coordinate frame."
+msgstr "连接实际 Quantity，通过 math:quantityValue 保留原始数值，保留其继承的实际维度，并要求其参考系与此区域实际的坐标参考系一致。"

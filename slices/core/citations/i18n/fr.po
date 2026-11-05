@@ -96,3 +96,59 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:citingEntity and nothing else. It is not a definition of gmeow:citingEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:citingEntity, et rien d'autre. Ce n'est pas une définition de gmeow:citingEntity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selector page"
+msgstr "page du sélecteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied page number, label, index or range expressed as its original literal on an EvidenceSpan within a source resource, including a citation Selector."
+msgstr "Un numéro, une étiquette, un indice ou une plage de pages fourni, exprimé par son littéral original sur une EvidenceSpan dans une ressource source, y compris un Selector de citation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared property has EvidenceSpan domain and literal range. It preserves the complete RDF literal without a page-index base, range decoding, count, normalization, source identity or CitationAct requirement; existing Selector uses remain valid."
+msgstr "Cette propriété partagée a pour domaine EvidenceSpan et pour plage les littéraux. Elle préserve le littéral RDF complet sans base d’index de page, décodage de plage, comptage, normalisation, identité de source ni exigence de CitationAct ; les usages existants de Selector restent valides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generic source span retains its supplied page label directly; an explicit citation Selector can retain the same kind of page descriptor through the same property."
+msgstr "Une localisation source générique conserve directement son étiquette de page fournie ; un Selector de citation explicite peut conserver le même type de descripteur avec la même propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied page descriptor on a generic EvidenceSpan or a citation Selector."
+msgstr "Utiliser pour conserver un descripteur de page fourni par la source sur une EvidenceSpan générique ou un Selector de citation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the page on the bearing CitationAct, converting an index convention, resolving a page resource or storing source-region coordinates as this descriptor."
+msgstr "Éviter de placer la page sur le CitationAct porteur, de convertir une convention d’index, de résoudre une ressource de page ou d’enregistrer des coordonnées de région source comme ce descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorPage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied literal unchanged on the actual span. Use viaSelector only for an actual CitationAct and its explicitly selected Selector; a generic page span needs neither invented citation machinery nor a duplicate page property."
+msgstr "Conserver le littéral fourni inchangé sur la localisation réelle. N’utiliser viaSelector que pour un CitationAct réel et son Selector explicitement choisi ; une localisation de page générique n’exige ni mécanisme de citation inventé ni propriété de page dupliquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selector locator"
+msgstr "localisateur du sélecteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied generic literal locator within the source resource anchored by an EvidenceSpan, shared with its citation Selector specialization."
+msgstr "Un localisateur littéral générique fourni dans la ressource source ancrée par une EvidenceSpan, partagé avec sa spécialisation Selector de citation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared property has EvidenceSpan domain and literal range. A locator preserves source wording or a typed control descriptor without resolving a resource, authenticating a revision or creating a CitationAct. A specific href subproperty retains its exact original literal object."
+msgstr "Cette propriété partagée a pour domaine EvidenceSpan et pour plage les littéraux. Un localisateur préserve le libellé source ou un descripteur de contrôle typé sans résoudre de ressource, authentifier de révision ni créer de CitationAct. Une sous-propriété spécifique de href conserve son objet littéral original exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generic source span retains a supplied structural locator without becoming a citation act or forcing its subject to be a citation Selector."
+msgstr "Une localisation source générique conserve un localisateur structurel fourni sans devenir un acte de citation ni imposer à son sujet le type Selector de citation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual supplied structural or domain locator on an EvidenceSpan, including an explicitly typed citation Selector."
+msgstr "Utiliser pour un localisateur structurel ou de domaine réellement fourni sur une EvidenceSpan, y compris un Selector de citation explicitement typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a specific page or framed region representation with an opaque locator, smuggling a quote or asserting a resolved target from source spelling."
+msgstr "Éviter de remplacer une représentation spécifique de page ou de région référencée par un localisateur opaque, d’y glisser une citation textuelle ou d’affirmer une cible résolue à partir de la graphie source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorLocator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete original literal on the actual span. Use a meaningful subproperty for a known href role, retain its original object and let ordinary subproperty entailment supply this generic relation once."
+msgstr "Préserver le littéral original complet sur la localisation réelle. Utiliser une sous-propriété porteuse de sens pour un rôle href connu, conserver son objet original et laisser l’implication ordinaire de sous-propriété fournir cette relation générique une seule fois."
