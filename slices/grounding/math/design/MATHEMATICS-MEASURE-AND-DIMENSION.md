@@ -32,7 +32,7 @@ Core classes: `math:MeasurableSpace`, `math:SigmaAlgebra` (shared with the proba
 
 Core properties: `math:measurableSpaceOf`, `math:measureOn`, `math:totalMass`, `math:evaluatedMeasure`,
 `math:measuredSubset`, `math:measureResult`, `math:integrand`, `math:integrationDomain`,
-`math:integrationMeasure`, and `math:withRespectTo`.
+and `math:withRespectTo`.
 
 A `math:MeasurableSpace` is a set with a σ-algebra; a `math:Measure` assigns non-negative extended-
 real mass to its measurable sets (`math:measureOn`, `math:totalMass`). A `math:MeasurableSet` is one
