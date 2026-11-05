@@ -1617,3 +1617,21 @@ gmeow:headingLevel
     gmeow:useWhen "Use to preserve an explicit integer heading level supplied for the source block being described."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing a level from typography, segmentIndex, printedLabel or containment, assuming an unreported numbering convention, or converting an unknown code into a globally comparable rank."@x-gmeow-english ;
     gmeow:howToUse "Keep the supplied xsd:integer on the actual ContentBlock with its existing segmentType. Retain source, viewpoint and any supplied convention on the exact assertion; keep missing context unknown without selecting a preferred level or changing other readings."@x-gmeow-english .
+
+gmeow:originalMediaTypeText
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported original media-format text"@x-gmeow-english ;
+    skos:definition "The exact source string reporting a pre-reencoding media format associated with this actual stored MediaObject."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional machine string preserves an attributed history claim, not an original asset or validated MIME identity. Different original-format claims can coexist on the same held carrier."@x-gmeow-english ;
+    skos:example "A fictional source retains `ex:image gmeow:originalMediaTypeText \" JPEG \" .` without trimming the spaces."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies original pre-reencoding format text for an actual stored media artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the held carrier’s mediaType, inventing an original asset, normalizing MIME syntax or selecting one source history as universal."@x-gmeow-english ;
+    gmeow:howToUse "Keep every supplied xsd:string exactly, including case, spaces and blank text, with its actual exact-statement source and any supplied viewpoint. Leave unavailable text absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediaObject ;
+    logic:range xsd:string .
+
+gmeow:MediaObject logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:originalMediaTypeText ;
+      logic:allValuesFrom xsd:string ] .

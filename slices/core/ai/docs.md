@@ -1109,3 +1109,172 @@ wrong observedFeature fails block agreement. A finding with the right block
 and an extra block fails the local exact-one law. Missing or invalid required
 LaTeX or displayed input fails the local finding contract; malformed confidence
 fails when selected, with no substitution or partial successful finding.
+
+## Reported image analyses
+
+`ImageAnalysis` is an Observation retaining one actual coherent interpretation
+of a stored MediaObject. The method identifies HOW; vantage identifies the
+actual supplied WHO or standpoint. Require the actual stored image through
+`observedFeature`, an actual `observationMethod` and at least one actual
+`vantage`. Preserve joint viewpoints without selecting a winner. Method text
+or a coarse stage label does not supply an Agent, invocation, model revision,
+run, time or calibration context.
+
+Keep `imageAnalysisCategory`, `imageAnalysisDescription` and
+`imageAnalysisPassageBoundary` on that analysis rather than flattening the
+readings onto the image as global facts. Category retains reported wording,
+not a controlled enum, canonical rdf:type or depiction. Description retains
+image commentary, not a description of the processing act or an asserted
+Scene. Both use complete `xsd:string`, `rdf:langString` or `rdf:dirLangString`
+literals through Lang. Untagged wording stays untagged. Preserve actual
+language, direction and blank text; no language is guessed or hardcoded.
+
+The passage-boundary flag is an optional `xsd:boolean`. Supplied false is a
+value and remains distinct from absence. The flag reports this analysis’s
+reading; it does not create a structural division, coordinate or segmentation.
+Never derive it from a category, description, missing field or default.
+
+Each field is independently optional and locally at most one within a coherent
+analysis. ImageAnalysisReportedContentConstraint requires at least one actual
+reported field. A blank category, blank description or false flag satisfies
+presence; separate datatype and cardinality laws still apply. Do not fabricate
+an analysis from all missing fields. Actual method, feature and vantage are
+also required through class-scoped closed paths. These are ordinary canonical
+axioms and a Formula selecting generated procedural validation, not a native
+failure marker, independently discharged reasoner case or executed acceptance
+result.
+
+Group fields only when their actual supplied context establishes a coherent
+analysis. Equal held-image identity, method, stage label or wording does not
+establish one shared invocation or report. Distinct supplied readings retain
+distinct records. Attribute each actual statement separately; provenance on an
+analysis does not propagate to its fields, its image or other analyses.
+
+The held image is a MediaObject; a structural figure remains a distinct
+ContentBlock when supplied. The original-format text is source evidence on the
+actual held artifact. It invents no original file or byte identity. Use any
+actual supplied figure/media association through its existing contract; neither
+the original-format field nor the analysis creates such a link (Principles 4,
+5, 9, 17 and 19).
+
+The entirely fictional scene below supplies one actual stored image and three
+distinct coherent analysis contexts. The MediaObject already satisfies its
+complete carrier, colour-space and other existing contracts in the surrounding
+graph; this snippet adds only the shown metadata and analysis facts. Background
+source artifacts, method and stage perspective are expressly supplied framing.
+The standpoint label and sharpens edge are supplied, not inferred from method
+wording. No extra Agent, invocation, model revision or time is manufactured.
+
+The held-format claim identifies PNG. Separate source claims retain original
+text with spaces, a second format spelling and a blank string. Those claims
+can coexist without replacing the held format or authenticating a predecessor.
+Analysis A reports category, description and a true boundary flag. Analysis B
+supplies only blank description text, and analysis C supplies only false. Both
+B and C satisfy the presence law while retaining their actual contexts.
+
+All three analyses share the supplied media, method and coarse standpoint;
+the scene separately supplies their distinct coherent contexts. That shared
+identity therefore does not merge them or establish a shared invocation. The
+category and description readings are deliberately untagged because that is
+what this fictional source supplies. If all three readings are absent, no
+ImageAnalysis is created
+from defaults; no such empty analysis is asserted here.
+
+Each of the 21 supplied facts below is both explicitly asserted and individually
+reified with its own actual report source. Background declarations are separate
+scene framing. The report attribution on a raw original-format claim does not
+invent an analysis viewpoint for that metadata. The quoted triples alone would
+not assert their content, so the underlying triples are separately present.
+
+```turtle
+@prefix ex: <https://example.org/image-analysis-scene/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Supplied fictional background; complete carrier obligations remain in force.
+ex:image a gmeow:MediaObject .
+ex:reportA a gmeow:InformationObject .
+ex:reportB a gmeow:InformationObject .
+ex:reportC a gmeow:InformationObject .
+ex:imageStageStandpoint a gmeow:Standpoint , gmeow:Entity ;
+    rdfs:label "Fictional image-stage perspective"@en ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:imageMethod a gmeow:ObservationMethod ;
+    rdfs:label "Fictional model-based image method"@en .
+
+# Actual assertions supplied by the distinct fictional reports.
+ex:image gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> .
+ex:image gmeow:originalMediaTypeText " JPEG " .
+ex:image gmeow:originalMediaTypeText "TIFF" .
+ex:image gmeow:originalMediaTypeText "" .
+ex:analysisA rdf:type gmeow:ImageAnalysis .
+ex:analysisA gmeow:observedFeature ex:image .
+ex:analysisA gmeow:observationMethod ex:imageMethod .
+ex:analysisA gmeow:vantage ex:imageStageStandpoint .
+ex:analysisA gmeow:imageAnalysisCategory "diagram" .
+ex:analysisA gmeow:imageAnalysisDescription "Contrasting shapes" .
+ex:analysisA gmeow:imageAnalysisPassageBoundary true .
+ex:analysisB rdf:type gmeow:ImageAnalysis .
+ex:analysisB gmeow:observedFeature ex:image .
+ex:analysisB gmeow:observationMethod ex:imageMethod .
+ex:analysisB gmeow:vantage ex:imageStageStandpoint .
+ex:analysisB gmeow:imageAnalysisDescription "" .
+ex:analysisC rdf:type gmeow:ImageAnalysis .
+ex:analysisC gmeow:observedFeature ex:image .
+ex:analysisC gmeow:observationMethod ex:imageMethod .
+ex:analysisC gmeow:vantage ex:imageStageStandpoint .
+ex:analysisC gmeow:imageAnalysisPassageBoundary false .
+
+# Exact-statement source attribution; no propagation is implied.
+ex:claim1 rdf:reifies <<( ex:image gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim2 rdf:reifies <<( ex:image gmeow:originalMediaTypeText " JPEG " )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim3 rdf:reifies <<( ex:image gmeow:originalMediaTypeText "TIFF" )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim4 rdf:reifies <<( ex:image gmeow:originalMediaTypeText "" )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim5 rdf:reifies <<( ex:analysisA rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim6 rdf:reifies <<( ex:analysisA gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim7 rdf:reifies <<( ex:analysisA gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim8 rdf:reifies <<( ex:analysisA gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim9 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisCategory "diagram" )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim10 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisDescription "Contrasting shapes" )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim11 rdf:reifies <<( ex:analysisA gmeow:imageAnalysisPassageBoundary true )>> ;
+    gmeow:wasDerivedFrom ex:reportA .
+ex:claim12 rdf:reifies <<( ex:analysisB rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim13 rdf:reifies <<( ex:analysisB gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim14 rdf:reifies <<( ex:analysisB gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim15 rdf:reifies <<( ex:analysisB gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim16 rdf:reifies <<( ex:analysisB gmeow:imageAnalysisDescription "" )>> ;
+    gmeow:wasDerivedFrom ex:reportB .
+ex:claim17 rdf:reifies <<( ex:analysisC rdf:type gmeow:ImageAnalysis )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim18 rdf:reifies <<( ex:analysisC gmeow:observedFeature ex:image )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim19 rdf:reifies <<( ex:analysisC gmeow:observationMethod ex:imageMethod )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim20 rdf:reifies <<( ex:analysisC gmeow:vantage ex:imageStageStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+ex:claim21 rdf:reifies <<( ex:analysisC gmeow:imageAnalysisPassageBoundary false )>> ;
+    gmeow:wasDerivedFrom ex:reportC .
+```
+
+All 21 asserted report facts have matching exact-statement source reifiers.
+The background resource declarations provide the explicitly supplied framing,
+not an inferred execution record. The shared standpoint supplies no model or
+run identity. Source words and flags establish no depicted Scene, canonical
+classification, validated pixels, authenticated bytes or segmentation result.
+No generated, installed, consumer or runtime acceptance is demonstrated by this
+source example.

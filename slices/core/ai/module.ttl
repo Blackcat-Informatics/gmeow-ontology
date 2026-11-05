@@ -3549,3 +3549,125 @@ gmeow:MathematicalExpressionFinding logic:subClassOf
 gmeow:ContentBlock logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:blockExpressionFindings ;
         logic:allValuesFrom gmeow:StructuredSequence ] .
+
+gmeow:ImageAnalysis
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "image analysis"@x-gmeow-english ;
+    skos:definition "An Observation retaining one coherent supplied analysis of an actual stored MediaObject through reported category, description or passage-boundary readings."@x-gmeow-english ;
+    skos:scopeNote "Each analysis requires one actual media feature, one method, at least one supplied vantage and at least one reported field. Shared media or a coarse stage label establishes no shared invocation, report or model revision."@x-gmeow-english ;
+    skos:example "A fictional report supplies `ex:analysis a gmeow:ImageAnalysis .` for its actual stored image and supplied analysis context."@x-gmeow-english ;
+    gmeow:useWhen "Use when at least one image reading and an actual coherent analysis context, media target, method and vantage are supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating an analysis from all missing defaults, merging independent readings or inventing an Agent, run, model revision, time or depicted Scene."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual stored MediaObject, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Keep coherent fields together only with supplied context and attribute each actual statement separately."@x-gmeow-english ;
+    a logic:SubKind , logic:Class ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:imageAnalysisCategory
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image-analysis category"@x-gmeow-english ;
+    skos:definition "The category wording supplied by this image analysis for its actual media feature."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains a reported label, not an enum member, canonical type, depicted entity or verified image classification."@x-gmeow-english ;
+    skos:example "A fictional report retains `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` as untagged supplied wording."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual analysis supplies category wording, including a blank string."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning the label into rdf:type, a controlled category, a depiction or a preferred classification, or adding an invented language tag."@x-gmeow-english ;
+    gmeow:howToUse "Keep one complete supplied word literal through lang:literalValue, preserving actual language, direction and blank text. Retain exact-statement attribution and leave missing wording absent."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:imageAnalysisDescription
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image-analysis description"@x-gmeow-english ;
+    skos:definition "The image-description wording supplied by this image analysis for its actual media feature."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued word literal retains reported image commentary. It is not a generic description of the analysis process, an asserted Scene or proof that its content is true."@x-gmeow-english ;
+    skos:example "A fictional report retains `ex:analysis gmeow:imageAnalysisDescription \"\" .` because it explicitly supplied blank description text."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual image analysis supplies its own descriptive wording, with or without a supplied language tag."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid trimming away blank text, hardcoding English, endorsing the description or moving it onto the media as an unattributed global fact."@x-gmeow-english ;
+    gmeow:howToUse "Preserve one complete supplied word literal through lang:literalValue with its actual language, direction and attribution. Keep independent descriptions on their own coherent analyses."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue .
+
+gmeow:imageAnalysisPassageBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported image passage-boundary flag"@x-gmeow-english ;
+    skos:definition "The xsd:boolean supplied by this image analysis to report whether its media marks a passage boundary."@x-gmeow-english ;
+    skos:scopeNote "This optional flag is locally at most one. Supplied false remains a value; absence remains unknown. No default, structural division, boundary coordinate or actual segmentation is inferred."@x-gmeow-english ;
+    skos:example "A fictional report supplies `ex:analysis gmeow:imageAnalysisPassageBoundary false .`"@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual analysis explicitly supplies its passage-boundary boolean, including false."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing false with absence, coercing text or numbers to booleans, or deriving a boundary from category, description or missing output."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:boolean unchanged on its actual ImageAnalysis and attribute the exact statement. Omit an unavailable flag without synthesizing false or an analysis record."@x-gmeow-english ;
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ImageAnalysis ;
+    logic:range xsd:boolean .
+
+gmeow:ImageAnalysisReportedContentConstraint
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "image-analysis reported-content constraint"@x-gmeow-english ;
+    skos:definition "Every ImageAnalysis has at least one supplied category, description or passage-boundary value."@x-gmeow-english ;
+    skos:scopeNote "The three roles remain independently optional, but an analysis cannot consist only of missing defaults. Blank wording and false satisfy presence; separate datatype, cardinality and context laws still apply."@x-gmeow-english ;
+    skos:example "An analysis with only `ex:analysis gmeow:imageAnalysisPassageBoundary false .` as its reported field satisfies this presence law."@x-gmeow-english ;
+    gmeow:useWhen "Use to require an actual reported reading before a complete image-analysis record is asserted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating default absence as an analysis, discarding blank or false values, or assuming this law establishes a common invocation for independently supplied fields."@x-gmeow-english ;
+    gmeow:howToUse "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."@x-gmeow-english ;
+    a logic:Constraint ;
+    logic:formalizes gmeow:ImageAnalysis ;
+    logic:message "Every ImageAnalysis has at least one supplied category, description or passage-boundary value." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:ImageAnalysis ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "category" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisCategory ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "category" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "description" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisDescription ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "description" ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "boundary" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:imageAnalysisPassageBoundary ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "boundary" ] ] ] ] ] ] .
+
+gmeow:ImageAnalysis logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:MediaObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisCategory ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisCategory ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisDescription ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisDescription ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisPassageBoundary ; logic:allValuesFrom xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:imageAnalysisPassageBoundary ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ImageAnalysis ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .

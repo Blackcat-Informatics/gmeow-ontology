@@ -340,3 +340,34 @@ required before interpreting these codes as ranks, depths, conversions or
 comparable values. Recording a supplied integer alone provides no such frame.
 Retain an actually supplied convention and attribution without inventing missing
 context or choosing a preferred reading (Principles 2, 4, 9, 11, 12, 17 and 19).
+
+## Reported original media-format text
+
+`originalMediaTypeText` preserves the exact source string reporting a format
+before reencoding, on the actual stored MediaObject. It belongs with source
+artifact metadata such as originalFilename and channelLayout. Keep case,
+spaces and blank strings exactly as supplied. Do not collapse whitespace into
+a token, trim the string or add a language tag.
+
+The stored carrier’s actual `mediaType` remains its existing format identity.
+`mediaTypeName` belongs on that MediaType value and requires its own exact
+parameter-free MIME spelling. Neither property is an alias for arbitrary
+pre-reencoding source text. This raw evidence field performs no MIME parsing,
+normalization, registration lookup or conversion and establishes no original
+asset, original bytes, successful transformation or independently identified
+original-format resource.
+
+The field is optional and nonfunctional. Identical held bytes can have different
+source histories, so preserve each supplied original-format claim with its own
+exact-statement source and any actual supplied viewpoint. Do not choose one
+winning history or impose a universal predecessor format on a content-addressed
+carrier. Missing text stays absent; a supplied empty string remains a value.
+The existing carrier, colour-space and format obligations remain unchanged.
+
+Raw evidence retention is the selected operation. It is not a fallback from
+an attempted format-identity mapping. Any separately selected identity mapping
+must validate its actual input and fail invalid input; it must never substitute
+this text silently. No original-format IRI role, MIME parser or registry is
+introduced here. [Reported image analyses](../ai/docs.md#reported-image-analyses)
+show multiple supplied histories on one actual stored carrier (Principles 4,
+5, 9, 17 and 19).

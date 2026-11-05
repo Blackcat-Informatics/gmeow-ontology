@@ -1426,3 +1426,31 @@ msgstr "Éviter d’inventer un niveau à partir de la typographie, de segmentIn
 msgctxt "https://blackcatinformatics.ca/gmeow/headingLevel|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied xsd:integer on the actual ContentBlock with its existing segmentType. Retain source, viewpoint and any supplied convention on the exact assertion; keep missing context unknown without selecting a preferred level or changing other readings."
 msgstr "Conserver le xsd:integer fourni sur le ContentBlock réel avec son segmentType existant. Conserver la source, le point de vue et toute convention fournie sur l’assertion exacte ; laisser inconnu le contexte manquant, sans choisir un niveau privilégié ni modifier les autres lectures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported original media-format text"
+msgstr "texte de format média d’origine rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source string reporting a pre-reencoding media format associated with this actual stored MediaObject."
+msgstr "La chaîne source exacte rapportant un format média antérieur au réencodage associé à ce MediaObject réellement stocké."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional machine string preserves an attributed history claim, not an original asset or validated MIME identity. Different original-format claims can coexist on the same held carrier."
+msgstr "Cette chaîne machine facultative et non fonctionnelle préserve une affirmation d’historique attribuée, pas un artefact d’origine ni une identité MIME validée. Des affirmations de format d’origine différentes peuvent coexister sur le même support conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source retains `ex:image gmeow:originalMediaTypeText \" JPEG \" .` without trimming the spaces."
+msgstr "Une source fictive conserve `ex:image gmeow:originalMediaTypeText \" JPEG \" .` sans supprimer les espaces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies original pre-reencoding format text for an actual stored media artifact."
+msgstr "Utiliser lorsqu’une source fournit le texte du format d’origine avant réencodage d’un artefact média réellement stocké."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the held carrier’s mediaType, inventing an original asset, normalizing MIME syntax or selecting one source history as universal."
+msgstr "Éviter de remplacer le mediaType du support conservé, d’inventer un artefact d’origine, de normaliser la syntaxe MIME ou de choisir un historique source comme universel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep every supplied xsd:string exactly, including case, spaces and blank text, with its actual exact-statement source and any supplied viewpoint. Leave unavailable text absent."
+msgstr "Conserver chaque xsd:string fourni exactement, y compris la casse, les espaces et le texte vide, avec la source réelle de l’énoncé exact et tout point de vue fourni. Omettre le texte indisponible."
