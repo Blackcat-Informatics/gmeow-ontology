@@ -2194,3 +2194,63 @@ msgstr "Conserver chaque occurrence originale et son intervalle semi-ouvert en p
 msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
 msgstr "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit window"
+msgstr "fenêtre de situations"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining an immutable ReadingRule release's configured positive bound on how many of the latest situations of one selected DayPart a habit figure counts over."
+msgstr "La math:Quantity qui conserve la borne positive configurée d’une version immuable de ReadingRule sur le nombre de situations les plus récentes d’un DayPart sélectionné prises en compte par un relevé d’activité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional on ReadingRule and at most one Quantity per release. This is a configured window size, not elapsed time, the number of available situations, a reported count or confidence. Changing the parameter requires a new immutable release."
+msgstr "Facultative sur ReadingRule, avec au plus une Quantity par version. Il s’agit d’une taille de fenêtre configurée, et non d’une durée écoulée, du nombre de situations disponibles, d’un comptage rapporté ou d’une confiance. Toute modification du paramètre exige une nouvelle version immuable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied rule release retains its declared window quantity without inventing a magnitude or a figure-to-rule link."
+msgstr "Une version de règle fournie conserve sa quantité de fenêtre déclarée sans inventer de grandeur ni de lien entre un relevé et une règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the actual reviewed latest-situations window parameter of an immutable reading rule release."
+msgstr "Utiliser pour exposer le paramètre réel et révisé de fenêtre des situations les plus récentes d’une version immuable de règle de lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying a default window, substituting habitSituationCount, treating a DayPart as a fixed number of hours or guessing which rule release produced a figure."
+msgstr "Éviter de fournir une fenêtre par défaut, de substituer habitSituationCount, de traiter un DayPart comme un nombre fixe d’heures ou de deviner quelle version de règle a produit un relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with its unchanged xsd:positiveInteger magnitude on math:quantityValue, math:dimensionless on math:hasDimension and one complete actual ReferenceFrame justified for this immutable release and its latest-situations counting convention. Keep the figure's selected DayPart and actual input scope separate."
+msgstr "Relier la Quantity réelle en conservant sa grandeur xsd:positiveInteger inchangée dans math:quantityValue, math:dimensionless dans math:hasDimension et un unique ReferenceFrame réel et complet justifié pour cette version immuable et sa convention de comptage des situations les plus récentes. Garder distincts le DayPart sélectionné et la portée réelle des entrées du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Habit window value constraint"
+msgstr "Contrainte sur la valeur de fenêtre de situations"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "Chaque habitWindow fourni par une version de ReadingRule possède une grandeur xsd:positiveInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent source-supported numeric lexical aliases may coexist unchanged. Existing complete ReferenceFrame obligations apply; these checks do not establish the release's counting interpretation, execute situation selection or require a window on every rule."
+msgstr "Des variantes lexicales numériques équivalentes et étayées par la source peuvent coexister sans modification. Les obligations existantes d’un ReferenceFrame complet s’appliquent ; ces vérifications n’établissent pas l’interprétation du comptage de la version, n’exécutent pas la sélection des situations et n’exigent pas de fenêtre sur chaque règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected release's supplied quantity is checked without filling an absent window or creating a release instance."
+msgstr "La quantité fournie par une version sélectionnée est vérifiée sans compléter une fenêtre absente ni créer d’instance de version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the supplied positive window quantity on its actual immutable ReadingRule release."
+msgstr "Utiliser pour vérifier la quantité positive de fenêtre fournie sur sa version immuable réelle de ReadingRule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a value, dimension, frame or release to satisfy the constraint, coercing numeric literals or inferring available situations from the configured bound."
+msgstr "Éviter de fabriquer une valeur, une dimension, un référentiel ou une version pour satisfaire la contrainte, de convertir les littéraux numériques ou de déduire les situations disponibles de la borne configurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the ReadingRule guard and eight independent positive habitWindow guards. Retain original magnitudes and require exact positiveInteger datatype, finite numeric validity, numeric value equality, the dimensionless dimension and one actual complete counting frame."
+msgstr "Appliquer la garde ReadingRule et huit gardes positives indépendantes sur habitWindow. Conserver les grandeurs originales et exiger le type exact positiveInteger, la validité numérique finie, l’égalité des valeurs numériques, la dimension sans dimension et un unique référentiel réel et complet de comptage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "Chaque habitWindow fourni par une version de ReadingRule possède une grandeur xsd:positiveInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé."

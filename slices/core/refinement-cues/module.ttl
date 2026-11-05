@@ -4,6 +4,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -1986,3 +1987,78 @@ rdf:Statement logic:subClassOf
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementCommonWord" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/echoRun" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/echoShare" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:habitWindow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "habit window"@x-gmeow-english ;
+    skos:definition "The math:Quantity retaining an immutable ReadingRule release's configured positive bound on how many of the latest situations of one selected DayPart a habit figure counts over."@x-gmeow-english ;
+    skos:scopeNote "Optional on ReadingRule and at most one Quantity per release. This is a configured window size, not elapsed time, the number of available situations, a reported count or confidence. Changing the parameter requires a new immutable release."@x-gmeow-english ;
+    skos:example "A supplied rule release retains its declared window quantity without inventing a magnitude or a figure-to-rule link."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the actual reviewed latest-situations window parameter of an immutable reading rule release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying a default window, substituting habitSituationCount, treating a DayPart as a fixed number of hours or guessing which rule release produced a figure."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity with its unchanged xsd:positiveInteger magnitude on math:quantityValue, math:dimensionless on math:hasDimension and one complete actual ReferenceFrame justified for this immutable release and its latest-situations counting convention. Keep the figure's selected DayPart and actual input scope separate."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ;
+    logic:range math:Quantity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitWindow" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:habitWindow ; logic:allValuesFrom math:Quantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:habitWindow ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .
+
+gmeow:HabitWindowValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Habit window value constraint"@x-gmeow-english ;
+    skos:definition "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."@x-gmeow-english ;
+    skos:scopeNote "Equivalent source-supported numeric lexical aliases may coexist unchanged. Existing complete ReferenceFrame obligations apply; these checks do not establish the release's counting interpretation, execute situation selection or require a window on every rule."@x-gmeow-english ;
+    skos:example "A selected release's supplied quantity is checked without filling an absent window or creating a release instance."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied positive window quantity on its actual immutable ReadingRule release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a value, dimension, frame or release to satisfy the constraint, coercing numeric literals or inferring available situations from the configured bound."@x-gmeow-english ;
+    gmeow:howToUse "Apply the ReadingRule guard and eight independent positive habitWindow guards. Retain original magnitudes and require exact positiveInteger datatype, finite numeric validity, numeric value equality, the dimensionless dimension and one actual complete counting frame."@x-gmeow-english ;
+    logic:formalizes gmeow:habitWindow ;
+    logic:message "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "release" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReadingRule ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winMagnitude" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winMagnitudeQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winMagnitude" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winTypedQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winTypedQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winTypedValue" ] , [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] , [ logic:termIndex 2 ; logic:termIri xsd:positiveInteger ] , [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ,
+        [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winTypedValue" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFirstValue" ] , [ logic:termIndex 2 ; logic:termVariable "winSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winEqualQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFirstValue" ] ] ,
+        [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winEqualQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winFirstValue" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondValue" ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winDimension" ] ; logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winDimension" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winOnlyDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winOnlyDimensionQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winOnlyDimensionQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winOnlyDimension" ] , [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winFrame" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFrame" ] ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winTypedFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winTypedFrame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ] ,
+        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "winUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFirstFrame" ] , [ logic:termIndex 2 ; logic:termVariable "winSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+        [ a logic:Formula ; logic:relation gmeow:habitWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "release" ] , [ logic:termIndex 1 ; logic:termVariable "winUniqueFrameQuantity" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winFirstFrame" ] ] ,
+        [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winUniqueFrameQuantity" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "winFirstFrame" ] , [ logic:termIndex 1 ; logic:termVariable "winSecondFrame" ] ] ] ] ] ] ] .

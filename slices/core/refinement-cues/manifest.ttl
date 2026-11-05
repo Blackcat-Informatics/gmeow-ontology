@@ -19,6 +19,8 @@
     gmeow:sliceConsumer "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/math>,
+        <https://blackcatinformatics.ca/gmeow/slices/places>,
         <https://blackcatinformatics.ca/gmeow/slices/lang>,
         <https://blackcatinformatics.ca/gmeow/slices/language>,
         <https://blackcatinformatics.ca/gmeow/slices/messaging>,

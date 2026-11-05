@@ -446,3 +446,41 @@ The [ordinary rule and reading scene](examples/reading-rules.ttl) retains
 immutable parameters, possible restatement, echo measurements and explicit
 empty-computation reports. Its declarations are synthetic source data, not
 executed word matching or authenticated computation.
+
+## Latest-situations window
+
+`habitWindow` retains an immutable `ReadingRule` release's configured positive
+bound on how many of the latest situations of one selected `DayPart` a habit
+figure counts over. Apply that bound within the selected day part, not across
+all day parts together. A day part imposes no fixed hours. The window is a
+parameter, not elapsed time, the number of available situations, the figure's
+reported `habitSituationCount` or confidence.
+
+The role is optional on `ReadingRule`; each release can supply at most one
+window quantity. Its absence supplies no default. Changing the parameter
+requires a new immutable release, retaining the existing `versionOf`,
+`versionLabel`, typed `contentDigest` and accountable `wasAttributedTo`
+metadata. The release stays distinct from its lineage and the reading process.
+
+Use the existing [Math Quantity](../../grounding/math/docs.md) with its original
+`xsd:positiveInteger` magnitude on `math:quantityValue` and
+`math:dimensionless` on `math:hasDimension`. Every retained magnitude must be
+valid and finite; all magnitudes of that quantity must have the same numeric
+value. Equivalent source-supported lexical forms may coexist unchanged.
+Do not add a parallel scalar slot or another quantity class.
+
+Require exactly one actual `gmeow:ReferenceFrame`, retaining the complete
+existing [Places frame profile](../places/docs.md). Its source-supported
+interpretation must identify the immutable rule release and the convention
+of counting the latest situations within a selected day part. A generic
+counting label or the figure's civil `TemporalFrame` alone does not supply
+that interpretation. Keep the figure's actual holder, activity, selected
+`DayPart`, grouping and input scope separate; these declarations create none
+of them and do not select situations.
+
+When a supplied figure was actually derived using that exact release,
+`wasDerivedFrom` can retain it as an additional derivation input. Keep the
+actual source records separately. Do not replace `observedFeature` with the
+rule, identify the process vantage with the release or invent a figure-to-rule
+link. No release instance, magnitude, frame, default window or executed
+selection is supplied by this vocabulary (Principles 4, 9, 11, 17 and 19).
