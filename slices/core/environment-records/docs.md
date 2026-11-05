@@ -385,3 +385,33 @@ for the Activity cause relation. Retain actual actor and recorder claims
 independently rather than replacing them with a source attribution. No required
 cause, maximum, closure or runtime actor-rewriting operation is introduced
 (Principles 4, 7, 9, 12 and 17).
+
+## Playful-surprise tagging of an act
+
+`tagTrick` is an informal Tag for an act described by its source as playful
+and meant to surprise. Apply the existing `hasTag` directly to the actual
+Activity. Tag identity, event kind, source description and actual intention
+remain different: the label proves neither successful surprise nor deception,
+permission, actor identity or causal responsibility. It does not replace
+`eventType`, `changeCausedBy` or an independently supplied performer relation.
+
+Retain source evidence, recorder and declaring frame on the exact native
+RDF 1.2 `hasTag` statement reifier. An actual performer, when independently
+supplied, uses `wasAssociatedWith` on the Activity. `wasAttributedTo` belongs
+on the enduring statement record, not the Activity. Other source claims do
+not inherit the tag statement's metadata automatically.
+
+A producer retaining this tag only for a true source flag supplies positive
+tagging. A flag without presence does not retain a distinct explicit negative
+assessment; its false/default value and a renderer's ordinary wording cannot
+supply one. Missing `hasTag tagTrick` remains unspecified. This vocabulary does
+not execute that producer, interpret its flags or establish consumer adoption.
+Several attributed tags and source accounts may coexist without a winner.
+
+The [playful-surprise source scene](examples/playful-surprise-tagging.ttl)
+keeps the Activity, supplied performer, documentary source, recorder and
+declaring frame distinct. A second reported gesture has no supplied trick
+classification; it is not a negative assessment. Every scene assertion has
+its exact source reifier. This is ordinary hypothetical source data, not a
+fixture, test result or verified account of intent or success
+(Principles 4, 7, 9, 10 and 17).

@@ -6138,3 +6138,31 @@ msgstr "Éviter de déduire une attribution causale de l’acteur nommé dans un
 msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."
 msgstr "Déclarer changeCausedBy de l’Activity réelle vers chaque référence à un Agent explicitement fournie. Conserver la source et le point de vue sur cet énoncé précis au moyen des métadonnées natives existantes ; préserver les affirmations fournies indépendamment sur l’acteur et l’agent qui consigne, sans les écraser ni fabriquer de preuve sur les extrémités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "playful surprise"
+msgstr "surprise ludique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An informal Tag for an act that its source describes as playful and meant to surprise. Applying this label records that description; it does not establish the actor's actual intention, successful surprise, deception, permission or an EventType classification."
+msgstr "Une étiquette informelle pour un acte que sa source décrit comme ludique et destiné à surprendre. Son application consigne cette description ; elle n’établit ni l’intention réelle de l’acteur, ni la réussite de la surprise, ni une tromperie, ni une permission, ni une classification EventType."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source applies the playful-surprise label to a retained Activity."
+msgstr "Utiliser lorsqu’une source réelle applique l’étiquette de surprise ludique à une Activity conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for fraud or arbitrary mischief, replacing it with an event kind or Boolean, or inferring a negative classification from an absent tag, a false/default source flag or a renderer's ordinary wording."
+msgstr "Éviter de l’utiliser pour une fraude ou une espièglerie quelconque, de la remplacer par un type d’événement ou une valeur booléenne, ou de déduire une classification négative d’une étiquette absente, d’un indicateur source faux ou par défaut, ou du libellé ordinaire d’un moteur de rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Activity through hasTag to tagTrick. Preserve source evidence, recorder and declaring frame on the exact native RDF 1.2 statement reifier. Retain an independently supplied performer through wasAssociatedWith; put wasAttributedTo on the reifier, not the Activity."
+msgstr "Relier l’Activity réelle à tagTrick par hasTag. Préserver les éléments sources, l’agent qui consigne et le cadre déclarant sur le réificateur natif RDF 1.2 de cet énoncé précis. Conserver un exécutant fourni indépendamment par wasAssociatedWith ; placer wasAttributedTo sur le réificateur, pas sur l’Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the exact tagTrick label identity, not an intention, outcome, causality claim or event-kind value. Several attributed tags may coexist. The tag alone identifies no performer, recipient or recorder and executes no provider; missing tagging remains unspecified."
+msgstr "Il s’agit de l’identité exacte de l’étiquette tagTrick, pas d’une intention, d’un résultat, d’une affirmation causale ou d’une valeur de type d’événement. Plusieurs étiquettes attribuées peuvent coexister. L’étiquette seule n’identifie aucun exécutant, destinataire ou agent qui consigne et n’exécute aucun fournisseur ; une étiquette absente ne précise rien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTrick|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source labels a retained act: ex:act gmeow:hasTag gmeow:tagTrick ."
+msgstr "Une source étiquette un acte conservé : ex:act gmeow:hasTag gmeow:tagTrick ."

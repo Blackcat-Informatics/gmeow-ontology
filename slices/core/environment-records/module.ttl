@@ -3571,3 +3571,15 @@ gmeow:changeCausedBy
     gmeow:howToUse "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."@x-gmeow-english ;
     logic:domain gmeow:Activity ;
     logic:range gmeow:Agent .
+
+gmeow:tagTrick
+    a gmeow:Tag ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "playful surprise"@x-gmeow-english ;
+    skos:definition "An informal Tag for an act that its source describes as playful and meant to surprise. Applying this label records that description; it does not establish the actor's actual intention, successful surprise, deception, permission or an EventType classification."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual source applies the playful-surprise label to a retained Activity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for fraud or arbitrary mischief, replacing it with an event kind or Boolean, or inferring a negative classification from an absent tag, a false/default source flag or a renderer's ordinary wording."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Activity through hasTag to tagTrick. Preserve source evidence, recorder and declaring frame on the exact native RDF 1.2 statement reifier. Retain an independently supplied performer through wasAssociatedWith; put wasAttributedTo on the reifier, not the Activity."@x-gmeow-english ;
+    skos:scopeNote "This is the exact tagTrick label identity, not an intention, outcome, causality claim or event-kind value. Several attributed tags may coexist. The tag alone identifies no performer, recipient or recorder and executes no provider; missing tagging remains unspecified."@x-gmeow-english ;
+    skos:example "A source labels a retained act: ex:act gmeow:hasTag gmeow:tagTrick ."@x-gmeow-english .
