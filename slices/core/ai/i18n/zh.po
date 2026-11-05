@@ -3255,3 +3255,143 @@ msgstr "避免跳过缺失项值、额外无效项值或指向错误块的发现
 msgctxt "https://blackcatinformatics.ca/gmeow/BlockExpressionFindingSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Follow blockExpressionFindings and structuredItem. Require a scalar payload, check every supplied term’s finding type and observedFeature agreement, and report failure without substitution."
 msgstr "沿 blockExpressionFindings 和 structuredItem 遍历。要求标量载荷，检查每个已提供项值的发现记录类型及 observedFeature 一致性，并报告失败，不替换项值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image analysis"
+msgstr "图像分析"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Observation retaining one coherent supplied analysis of an actual stored MediaObject through reported category, description or passage-boundary readings."
+msgstr "一种 Observation，通过报告的类别、描述或文段边界读数，保留对实际存储 MediaObject 的一次内容一致的已提供分析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each analysis requires one actual media feature, one method, at least one supplied vantage and at least one reported field. Shared media or a coarse stage label establishes no shared invocation, report or model revision."
+msgstr "每个分析要求一个实际媒体特征、一个方法、至少一个已提供视角以及至少一个报告字段。共享媒体或粗粒度阶段标签不确立共同调用、报告或模型修订版。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies `ex:analysis a gmeow:ImageAnalysis .` for its actual stored image and supplied analysis context."
+msgstr "一个虚构报告为其实际存储图像及已提供分析语境提供 `ex:analysis a gmeow:ImageAnalysis .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when at least one image reading and an actual coherent analysis context, media target, method and vantage are supplied."
+msgstr "当提供至少一个图像读数，以及实际一致的分析语境、媒体目标、方法和视角时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating an analysis from all missing defaults, merging independent readings or inventing an Agent, run, model revision, time or depicted Scene."
+msgstr "避免从全部缺失的默认值创建分析、合并独立读数，或编造 Agent、运行、模型修订版、时间或被描绘的 Scene。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual stored MediaObject, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Keep coherent fields together only with supplied context and attribute each actual statement separately."
+msgstr "将 observedFeature 关联到实际存储的 MediaObject，将 observationMethod 关联到已提供方法，将 vantage 关联到实际主体或立场。仅在有已提供语境时汇集一致字段，并分别记录每条实际陈述的归属信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image-analysis category"
+msgstr "报告的图像分析类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The category wording supplied by this image analysis for its actual media feature."
+msgstr "此图像分析为其实际媒体特征提供的类别文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains a reported label, not an enum member, canonical type, depicted entity or verified image classification."
+msgstr "此文字字面量可省略，在分析内至多取一个值，保留报告的标签，不表示枚举成员、规范类型、被描绘实体或已验证的图像分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report retains `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` as untagged supplied wording."
+msgstr "一个虚构报告将 `ex:analysis gmeow:imageAnalysisCategory \"diagram\" .` 保留为未标注语言的已提供文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual analysis supplies category wording, including a blank string."
+msgstr "当实际分析提供类别文字时使用，包括空字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the label into rdf:type, a controlled category, a depiction or a preferred classification, or adding an invented language tag."
+msgstr "避免将标签转化为 rdf:type、受控类别、描绘关系或首选分类，或添加编造的语言标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one complete supplied word literal through lang:literalValue, preserving actual language, direction and blank text. Retain exact-statement attribution and leave missing wording absent."
+msgstr "通过 lang:literalValue 保留一个完整的已提供文字字面量，保留实际语言、方向和空文本。保留精确陈述的归属信息；缺少文字时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image-analysis description"
+msgstr "报告的图像分析描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The image-description wording supplied by this image analysis for its actual media feature."
+msgstr "此图像分析为其实际媒体特征提供的图像描述文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, locally single-valued word literal retains reported image commentary. It is not a generic description of the analysis process, an asserted Scene or proof that its content is true."
+msgstr "此文字字面量可省略，在分析内至多取一个值，保留报告的图像评论。它不是对分析过程的一般描述、已断言的 Scene，也不是其内容真实的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report retains `ex:analysis gmeow:imageAnalysisDescription \"\" .` because it explicitly supplied blank description text."
+msgstr "一个虚构报告保留 `ex:analysis gmeow:imageAnalysisDescription \"\" .`，因为其明确提供了空描述文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual image analysis supplies its own descriptive wording, with or without a supplied language tag."
+msgstr "当实际图像分析提供其自身描述文字时使用，无论是否实际提供语言标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming away blank text, hardcoding English, endorsing the description or moving it onto the media as an unattributed global fact."
+msgstr "避免通过裁剪丢弃空文本、硬编码英语、认可描述，或将描述移到媒体上作为没有归属信息的全局事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve one complete supplied word literal through lang:literalValue with its actual language, direction and attribution. Keep independent descriptions on their own coherent analyses."
+msgstr "通过 lang:literalValue 保留一个完整的已提供文字字面量及其实际语言、方向和归属信息。独立描述保留在各自内容一致的分析上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported image passage-boundary flag"
+msgstr "报告的图像文段边界标志"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The xsd:boolean supplied by this image analysis to report whether its media marks a passage boundary."
+msgstr "此图像分析提供的 xsd:boolean，用于报告其媒体是否标记文段边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional flag is locally at most one. Supplied false remains a value; absence remains unknown. No default, structural division, boundary coordinate or actual segmentation is inferred."
+msgstr "此标志可省略，在分析内至多取一个值。已提供的 false 仍是一个值；缺失保持未知。不推断默认值、结构篇章、边界坐标或实际分段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional report supplies `ex:analysis gmeow:imageAnalysisPassageBoundary false .`"
+msgstr "一个虚构报告提供 `ex:analysis gmeow:imageAnalysisPassageBoundary false .`。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual analysis explicitly supplies its passage-boundary boolean, including false."
+msgstr "当实际分析明确提供其文段边界布尔值时使用，包括 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing false with absence, coercing text or numbers to booleans, or deriving a boundary from category, description or missing output."
+msgstr "避免将 false 替换为缺失、将文本或数值强制转换为布尔值，或从类别、描述或缺失输出推导边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageAnalysisPassageBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:boolean unchanged on its actual ImageAnalysis and attribute the exact statement. Omit an unavailable flag without synthesizing false or an analysis record."
+msgstr "在其实际 ImageAnalysis 上原样保留已提供的 xsd:boolean，并记录精确陈述的归属信息。未提供标志时省略，不合成 false 或分析记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image-analysis reported-content constraint"
+msgstr "图像分析报告内容约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ImageAnalysis has at least one supplied category, description or passage-boundary value."
+msgstr "每个 ImageAnalysis 至少具有一个已提供的类别、描述或文段边界值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The three roles remain independently optional, but an analysis cannot consist only of missing defaults. Blank wording and false satisfy presence; separate datatype, cardinality and context laws still apply."
+msgstr "三个角色各自仍可省略，但分析不能仅由缺失的默认值构成。空文字和 false 满足存在性要求；独立的数据类型、基数和语境规则仍适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An analysis with only `ex:analysis gmeow:imageAnalysisPassageBoundary false .` as its reported field satisfies this presence law."
+msgstr "分析仅以 `ex:analysis gmeow:imageAnalysisPassageBoundary false .` 作为报告字段时，满足此存在性规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual reported reading before a complete image-analysis record is asserted."
+msgstr "用于在断言完整图像分析记录之前要求存在实际报告的读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating default absence as an analysis, discarding blank or false values, or assuming this law establishes a common invocation for independently supplied fields."
+msgstr "避免将默认缺失视为分析、丢弃空值或 false，或假定此规则为独立提供的字段确立共同调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ImageAnalysisReportedContentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each ImageAnalysis for existence of at least one of the three field relations. Preserve the actual coherent context and enforce the separate value-type, feature, method and vantage obligations."
+msgstr "检查每个 ImageAnalysis 是否至少存在三个字段关系之一。保留实际一致的语境，并执行独立的值类型、特征、方法和视角义务。"
