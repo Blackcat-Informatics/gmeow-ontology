@@ -345,6 +345,7 @@ fn triple_values_do_not_masquerade_as_any_supported_node_kind() {
     }
 }
 
+/// Malformed node-kind laws retain diagnostics and cannot yield admitted integrity checks.
 #[test]
 fn malformed_kind_is_a_diagnostic_not_a_silently_omitted_check() {
     let source = purrdf::parse_dataset(

@@ -2373,6 +2373,9 @@ pub fn is_authoring_namespace(iri: &str) -> bool {
 
 /// Admit a supplied numeric range endpoint; only a missing predicate is unbounded.
 /// Validate all supplied objects before retaining the established first-value selection.
+///
+/// # Errors
+/// Refuses nonliteral, unsupported, malformed or nonfinite bounds with their source context.
 fn numeric_range_bound(
     store: &RdfDataset,
     owner: &Subject,
@@ -2411,6 +2414,11 @@ fn numeric_range_bound(
     Ok(selected)
 }
 
+/// Derive and merge closed-world validation shapes from the selected authored source.
+/// Closure declarations, restrictions and validation descriptors determine the projected paths.
+///
+/// # Errors
+/// Propagates malformed closure or restriction metadata and unsupported numeric range bounds.
 pub fn derive_validation_shapes(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
@@ -3182,9 +3190,10 @@ pub fn derive_validation_shapes(
                             }
                             Some(filler @ Node::Blank { .. }) => {
                                 let subject = term_as_subject(&filler).expect("blank data range");
+                                let facets = datatype_facets(&subject)?;
                                 let comps = match classify_filler(&subject) {
                                     Some(component) => vec![component],
-                                    None => datatype_facets(&subject)?,
+                                    None => facets,
                                 };
                                 if !comps.is_empty() {
                                     let pc = PropertyConstraintIr::new(
@@ -5298,6 +5307,11 @@ pub fn extract_all_constraints(
     extract_constraints_from_source(store, &StructuralSourceGraph::new(store))
 }
 
+/// Extract procedural constraints with the prepared source's ownership diagnostics.
+/// Malformed recoverable records remain excluded with their original diagnostics.
+///
+/// # Errors
+/// Propagates mandatory range-bound admission failures instead of returning partial constraints.
 fn extract_constraints_from_source(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
@@ -6614,6 +6628,9 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
 /// [`ConstraintIr`]s. Supplied numeric range bounds must be admitted before extraction;
 /// an unsupported bound refuses the source rather than weakening its constraint.
 /// Other malformed records retain the `MALFORMED_CONSTRAINT` warning policy.
+///
+/// # Errors
+/// Refuses any supplied range bound outside the finite numeric projection contract.
 fn extract_sugar_constraints(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
@@ -6723,6 +6740,11 @@ fn compile_canonical_source(
     Ok((program, diagnostics))
 }
 
+/// Compile source units into a canonical program with diagnostics and ownership traces.
+/// Recoverable exclusions retain diagnostics rather than contributing weaker records.
+///
+/// # Errors
+/// Propagates mandatory construction and range-bound admission failures.
 fn compile_source_graph(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,

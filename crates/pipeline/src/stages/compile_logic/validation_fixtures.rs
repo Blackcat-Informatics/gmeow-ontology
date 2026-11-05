@@ -148,6 +148,10 @@ pub(super) fn record(
     Ok(())
 }
 
+/// Produce a prepared module's typed shapes, procedural projection and diagnostic record.
+///
+/// # Errors
+/// Propagates constraint, facet and serialization failures without publishing a partial product.
 fn compile_module(source: &PreparedLogicSource) -> gmeow_errors::Result<ModuleProduct> {
     // Reuse the prepared ownership/formula analysis, extracting only the
     // procedural constraints this output needs. Unrelated axioms and programs

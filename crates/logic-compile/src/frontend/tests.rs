@@ -4211,6 +4211,7 @@ fn derive_union_of_filler_lowers_to_sh_or() {
     );
 }
 
+/// Numeric datatype facets preserve their endpoint values and projected inclusivity.
 #[test]
 fn derive_range_facets_lower_to_numeric_range() {
     // A faceted datatype filler carrying xsd:minInclusive/maxExclusive lowers to ONE NumericRange.
@@ -4247,6 +4248,7 @@ fn derive_range_facets_lower_to_numeric_range() {
     assert!(projected.contains("sh:maxExclusive 100"), "{projected}");
 }
 
+/// Unsupported supplied facets refuse derivation even when another component is preferred.
 #[test]
 fn supplied_datatype_range_bounds_cannot_disappear_from_derived_shapes() {
     for (predicate, bound, other) in [
@@ -4286,6 +4288,18 @@ fn supplied_datatype_range_bounds_cannot_disappear_from_derived_shapes() {
         assert!(message.contains("finite RDF numeric"), "{message}");
         assert!(message.contains("supplied"), "{message}");
     }
+    let qualified_union = shape_dataset(
+        "g:M a logic:Class ; logic:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:value ; \
+           logic:minQualifiedCardinality 1 ; logic:onDataRange \
+           [ a logic:Datarange ; logic:unionOf ( xsd:decimal xsd:integer ) ; \
+             logic:onDatatype xsd:decimal ; logic:withRestrictions ( g:facet ) ] ] . \
+         g:facet xsd:minInclusive \"PT0S\"^^xsd:duration .",
+    );
+    let error = derive_validation_shapes(qualified_union.as_ref())
+        .expect_err("a recognized qualifying union must not hide an unsupported facet");
+    assert!(error.message().contains("/facet"), "{error}");
+    assert!(error.message().contains("minInclusive"), "{error}");
 }
 
 #[test]
@@ -4413,6 +4427,7 @@ fn derive_value_range_record_lowers_to_min_and_max_inclusive_on_the_class_shape(
     );
 }
 
+/// Unsupported bounds refuse both shape projection and every procedural extraction entry.
 #[test]
 fn supplied_value_range_bounds_refuse_shape_and_source_extraction_together() {
     for fields in [
@@ -4450,6 +4465,7 @@ fn supplied_value_range_bounds_refuse_shape_and_source_extraction_together() {
     }
 }
 
+/// Missing endpoints stay unbounded and admitted inclusive peers retain declared precedence.
 #[test]
 fn value_range_absent_endpoints_and_inclusive_precedence_remain_supported() {
     for (fields, present, absent) in [

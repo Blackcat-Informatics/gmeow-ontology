@@ -68,6 +68,7 @@ fn malformed_constraints_remain_visible_in_the_record() {
     );
 }
 
+/// Result contracts check every supplied value without borrowing another record's witnesses.
 #[test]
 fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() {
     // Independently authored synthetic law: no repository module or corpus is loaded.
