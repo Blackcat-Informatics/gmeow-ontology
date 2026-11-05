@@ -213,3 +213,37 @@ does not pretend to be machine-checked RDF argument admission. The declarations
 establish neither read isolation, capabilities, retrieval, private alias
 equivalence nor migration; actual consumer evidence remains separate
 (Principles 4, 7, 9, 11, 12 and 17).
+
+## Held documents served without record search
+
+recallOutcomeServed extends the open RecallOutcome vocabulary with a source
+report that an answer served a held document without a recall-record search.
+Direct acquisition of a named document can still read storage metadata and
+content. It is not a claim that no I/O or underlying query occurred, and no
+cue, storage path or document identifier is part of this generic outcome.
+
+Search completeness retains its existing meaning. Successful document service
+or absence of transport shortfalls does not show that a recall scope was
+completely searched. The existing RecallAnswer profile requires recallComplete
+as a boolean and retains its local maximum. A served answer therefore has a
+false-valued search-completeness flag, independently of successful delivery.
+
+RecallServedIsNotSearchCompleteConstraint binds the actual answer and each
+supplied flag through the positive outcome/completeness conjunction. Its single
+consequence compares that flag to typed false with termEqual. Value equality
+admits legal false lexical forms such as zero without rewriting the original
+literal. It checks all supplied values and does not weaken datatype, presence
+or maximum obligations, or copy a lexical false triple into the validation law.
+
+The Formula has one universal node, two bound names, one conjunction, one
+implication and three binary atoms. It uses no count, search flag, existential,
+tuple-component operation or numeric-only comparison. No existing outcome or
+deadline/partial law is changed. Returned-record membership stays governed by
+its own actual evidence; this outcome adds no universal membership-count rule.
+
+An adapter that marks served service as search-complete because delivery had
+no shortfalls contradicts this contract. Vocabulary delivery does not repair
+or qualify that producer. Preserve actual source evidence and diagnose the
+mapping rather than rewriting source literals to pass validation. The outcome
+does not certify content truth, access permission, migration or consumer
+adoption (Principles 4, 7, 9, 11 and 17).

@@ -1355,3 +1355,36 @@ gmeow:recallScopeHolderAddressedToneReading
     skos:example "An actual refiner’s tone reading remains attributed separately from the addressed words and speaker."@x-gmeow-english .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contextPlanHolder" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:recallOutcomeServed
+    a gmeow:RecallOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "held document served without search"@x-gmeow-english ;
+    skos:definition "A source-reported answer that serves a document the memory system already holds without searching recall records."@x-gmeow-english ;
+    gmeow:useWhen "Use when actual source evidence records document service without a recall-record search."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this outcome for failed document acquisition, complete empty search or search that returned records."@x-gmeow-english ;
+    gmeow:howToUse "Select through recallOutcome on the actual RecallAnswer and retain its question, asker and document-service evidence. Keep recallComplete truthfully false-valued for search completeness, independently of delivery or shortfall status."@x-gmeow-english ;
+    skos:scopeNote "Successful document service is not complete search. Direct document acquisition may read storage; this value implies no content truth, access permission or consumer adoption."@x-gmeow-english ;
+    skos:example "An answer supplies a held guide for a cue naming it without performing a recall-record search."@x-gmeow-english .
+
+gmeow:RecallServedIsNotSearchCompleteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "served-document search-completeness constraint"@x-gmeow-english ;
+    skos:definition "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the actual search-completeness values of an answer reporting document service without search."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid matching a stored triple by the spelling of a false literal, rewriting source literals or treating delivery completeness as search completeness."@x-gmeow-english ;
+    gmeow:howToUse "Bind the actual answer and each supplied boolean through the outcome/completeness guard; compare the flag by termEqual to typed false, retaining legal false lexical forms unchanged."@x-gmeow-english ;
+    skos:scopeNote "Existing datatype, presence and local maximum remain unchanged. The law adds no returned-count rule, search flag or delivery validator and certifies no producer adoption."@x-gmeow-english ;
+    skos:example "A false boolean written as zero keeps its source spelling under value comparison; a true-valued flag violates this law."@x-gmeow-english ;
+    logic:formalizes gmeow:recallOutcomeServed ;
+    logic:message "Every supplied recallComplete flag on a served-document answer is value-equal to false. The existing RecallAnswer contract requires the boolean; false describes search completeness, not document-service failure."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "servedAnswer" ] , [ logic:termIndex 1 ; logic:termVariable "servedFlag" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:recallOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "servedAnswer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:recallOutcomeServed ] ] ,
+                [ a logic:Formula ; logic:relation gmeow:recallComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "servedAnswer" ] , [ logic:termIndex 1 ; logic:termVariable "servedFlag" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "servedFlag" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] .
