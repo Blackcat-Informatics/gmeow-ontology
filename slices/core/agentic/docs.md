@@ -12,14 +12,16 @@ the claims it produces: `gmeow:ToolCall` follows the ModelInvocation idiom exact
 payloads — so "which tool, called by which invocation, with what arguments, at what
 time?" is answerable after the fact, with no new provenance machinery (Principle 4).
 
-The named consumer is Project Lillith's agentic mode (Principle 15), and the first live
+The named consumer is the agentic runtime's tool-call mode (Principle 15), and the first live
 producer ships in this repo: the gmeow memory MCP triad records its own `store_claim`
 and `revise_belief` calls as ToolCall provenance, so the P14 memory flagship's actions
 are themselves grounded memory.
 
-The core surface covers tool-call provenance and the attention-request lifecycle used by
-memetics. Both retain their original records and actors rather than collapsing events
-into a mutable status.
+The core surface covers tool-call provenance, the attention-request lifecycle used by
+memetics, and behavioral drive and call-mode specifications. Calls and attention
+requests retain their original records and actors rather than collapsing events
+into a mutable status; drive specifications retain their actual rule and expression
+sources.
 
 ## The call event
 
@@ -106,7 +108,7 @@ subgraphs.
 provenance alignment set). Wikidata's nearest stable entity is the *mechanism*, not the
 event (`wd:Q62270`, remote procedure call — relatedMatch). OpenAI function-calling,
 Anthropic `tool_use`, and MCP tool schemas are JSON specifications with no stable RDF
-namespace: bridging them is a projection concern (Lillith worked example Workflow Run Crate, the
+namespace: bridging them is a projection concern (the Workflow Run Crate worked example and the
 OpenLineage precedent), recorded as REFUSED cells in the mapping trailer rather than
 papered over.
 
@@ -194,3 +196,143 @@ retaining its AttentionResolution Event domain. General record reasons use
 statedRationale directly. Neither path proves a cause or turns its Event into
 an Entity through description. Source attribution belongs to the original
 statement, including when the general relation is inferred from specialization.
+
+## Complete drive specifications and activity call modes
+
+`DriveDefinition` is an InformationObject specifying a behavioral drive. Its
+six required source components are one actual `driveAccumulationProgram`, one
+or more `relievingActivityDescription` values, one `driveCircadianExpression`,
+one `driveModeProgram`, one `driveLevelDimension` and one
+`driveCircadianDimension`. The two programs reuse actual
+`logic:ReasoningProgram` clauses, query and selected evaluation mode. Productive
+rules use Logic's existing Formula/Horn machinery; a name, empty clause set or
+integrity Constraint cannot replace a rule body (Principles 4 and 17).
+
+The definition is neither a physiological state nor proof of a computed level.
+Sleep pressure or hunger names supply no default scale, initial zero, decay,
+reset, saturation, coefficient, stage boundary or medical calibration. The
+actual clauses state how history, relief and the circadian quantity combine.
+The circadian and level quantities retain their actual Math dimensions; those
+dimensions need not match, and a direct addition is not inferred.
+
+`DriveStage` and `CallMode` are open named QualityValues. A stage may have
+several legitimate `stageOfDrive` memberships. Every selected invocation must
+positively bind its exact definition membership, without equating or capping
+other memberships. Neither labels nor equal lexical names infer severity,
+ordering, thresholds or identity (Principles 9 and 11). CallMode is separate
+from ontological `logic:Mode`, interruptibility and task status.
+
+### Actual history and anticipated activities
+
+The history input identifies an actual InformationObject source record. Its
+nonfunctional `driveHistoryClause` links select actual atomic Formula facts.
+Order-independent histories stay unordered; partial orders retain their
+actual supplied precedence facts. Supplied sequences and repeated references
+retain their actual source structures and record identities. Identical RDF
+facts do not become repeated event occurrences merely because a reader sees
+them twice. A rule needing multiplicity must receive the actual source
+occurrence/count structure. No list, total order, snapshot, complete archive or
+closed-world absence is invented. An actual empty history supplies no initial
+zero; its admitted rule must state the necessary initial semantics.
+
+Relieving activity specifications and the mode-selection activity input are
+actual `EventDescription` resources. EventDescription is an InformationObject
+disjoint from Event. A description neither asserts that an activity occurred
+nor creates a future occurrence. Actual historical Event facts and their
+source-provided connection to the relieving descriptions remain distinct.
+The clauses must explicitly state that matching and its relief effect; no
+permission, automatic subtraction or reset follows from the relief link.
+
+### Structured circadian expressions
+
+The selected circadian expression is a concrete Math AST, using actual
+ApplicationExpression/ArgumentSlot order, SymbolReference resolution and
+binding/declaration rules where applicable. A formula string, abstract type
+or function name alone is insufficient. The reified relation
+`driveCircadianInput(definition, evaluationInstant, symbol, quantity)` binds
+actual mathematical symbols used by that expression to supplied Quantities.
+Bindings are scoped by the actual definition and evaluation instant. Every
+selected external symbol requires exactly one binding; unused bindings are
+rejected by the selected consumer rather than silently ignored.
+
+The caller supplies the actual evaluation Instant with its temporal frame and
+the mathematical time/phase quantities the expression requires. It must retain
+the actual source connection between that instant and those quantities. The
+vocabulary does not invent a coordinate, epoch, unit, period, amplitude, phase
+or daily cosine, or convert an original duration into seconds.
+`driveCircadianResult(definition, evaluationInstant, circadianQuantity)`
+identifies the result at that same instant. An asserted result atom alone
+does not demonstrate evaluation or correct dimensions.
+
+### Exact program-query roles
+
+The result relations are reified `logic:Type` individuals used as
+`logic:relation` values on actual Formula atoms, with indexed TermCarriers:
+
+```text
+driveAccumulationResult(definition, history, evaluationInstant,
+                        circadianQuantity, levelQuantity, stage)
+activityCallModeResult(definition, activityDescription, stage, draw, mode)
+```
+
+The accumulation query has four inputs and two distinct output-variable
+names. The mode query has four inputs and one output-variable name. Definition
+position zero is a genuine template variable or an exact ground IRI binding
+to the linked definition. Shared reusable programs are therefore possible;
+anonymous definitions use a template variable because Logic's IRI-constant
+carrier admits IRIs only. Every selected runtime binding must still identify
+the actual selected definition. Program clauses and the query have independent
+variable scopes; their relation/argument roles establish the connection,
+not equal variable-name strings across scopes.
+
+Resource input positions admit actual IRI carriers or template variables.
+The draw retains its original supported IRI or literal carrier, or remains an
+explicit template variable. Unsupported supplied RDF term forms must be
+refused rather than coerced. Output names retain Logic's actual admitted
+untagged, directionless string/token lexical identity. Equal accepted lexical
+names identify the same parsed variable even across those two datatypes.
+
+The single `driveModeProgram` supplies both the drive's call-mode effect and
+the activity/stage/draw mapping. All selected inputs remain bound and
+preserved. A branch returning a constant mode is valid; output variation with
+the draw is not required. Consuming a supplied draw neither generates it nor
+asserts a probability distribution. Separately selected generation or replay
+requires its actual algorithm, seed and other declared inputs; no PRNG,
+datatype, draw interval, seed width or distribution is assumed.
+
+### Canonical laws and runtime boundaries
+
+The three canonical Constraints inspect actual binary Formula/TermCarrier
+metadata: `DriveProgramQueryConstraint` requires the exact relations, argument
+positions and carrier roles; `DriveGroundInputConstraint` requires the actual
+ground resource types, circadian dimension and positive selected stage
+membership; `DriveHistoryClauseConstraint` restricts selected history roots to
+actual facts. Required paths and supplied-value closures are authored in
+`logic:`. A well-formed signature is a declaration, not an available
+caller-input injection executor or a proof that its program was run.
+
+For each selected admitted invocation, completed accumulation must return one
+distinct level/stage pair and completed mode selection one distinct named
+mode. Multiple proofs of the identical answer are not distinct results.
+No answer, multiple distinct answers, undefined well-founded status,
+unsupported constructs or incomplete evaluation must fail explicitly. Never
+select the first clause, invent a default mode, retry the draw, omit a required
+circadian term or use a weaker evaluator. This obligation applies to that
+selected invocation; it does not claim static decidability of arbitrary
+recursive program totality or termination (Principles 7, 12 and 19).
+
+The current backward ReasoningProgram path evaluates its own authored clauses
+and query; these declarations establish no caller-supplied fact/binding
+injection API or numeric built-in dispatch for a named guard. The current
+exact scalar Math evaluator admits dimensionless binary arithmetic; it does
+not establish arbitrary circadian operators or time-dimensional execution.
+Actual history application, admitted arithmetic/comparison, expression
+evaluation, runtime input binding, dimensions and single-answer completion
+remain required consumer acceptance. Source metadata and unexecuted laws are
+not runtime receipts, computed scheduler eligibility or frontier witnesses.
+
+Recurring daily windows, minimum useful span and typed-duration bounds have
+their own owners and acceptance. This source vocabulary supplies none of
+their recurrence expansion, now-inside evaluation, remaining-span comparison
+or boundary interpretation. It changes neither existing location requirements
+nor interruptibility declarations.

@@ -662,3 +662,523 @@ msgstr "保留来源字面量及其声明的配置。对于特定角色媒体元
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#example"
 msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
 msgstr "不透明参数和结果媒体分别在绑定各自角色的载荷出现节点上描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive definition"
+msgstr "驱力定义"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information specification of a behavioral drive, with an actual history-accumulation program, relieving activity descriptions, a circadian expression, a mode-selection program and declared result dimensions."
+msgstr "行为驱力的信息规范，包含实际的历史累积程序、缓解活动描述、昼夜节律表达式、模式选择程序及声明的结果量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The specification does not assert a physiological state, an evaluated level or a performed call."
+msgstr "该规范不断言生理状态、已求值的水平或已执行的调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied sleep-pressure definition retains its own actual accumulation and mode clauses."
+msgstr "给定的睡眠压力定义保留其自身实际的累积与模式子句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to publish all four components of an actual drive specification together."
+msgstr "用于一并发布实际驱力规范的四个组成部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a default scale, initial zero, thresholds or executable consumer from the name."
+msgstr "不要从名称推断默认标度、初始零值、阈值或可执行的使用方实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual component resources and dimensions; retain their source and context."
+msgstr "提供实际的组成部分资源与量纲，并保留其来源和上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive stage"
+msgstr "驱力阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open named quality value used as a stage input or result for a behavioral drive. Actual stageOfDrive memberships identify the definitions in which it is admitted."
+msgstr "用作行为驱力的阶段输入或结果的开放命名品质值。实际的 stageOfDrive 成员关系标识允许该阶段的定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple legitimate definition memberships coexist; each selected invocation requires its exact positive membership."
+msgstr "允许并存多个合法的定义成员关系；每次选定调用均要求其精确的正向成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A named stage may be admitted by two actual drive definitions without equating those definitions."
+msgstr "同一命名阶段可由两个实际驱力定义允许，而不将这些定义等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly named stage in an actual drive rule."
+msgstr "用于实际驱力规则中明确命名的阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer severity, order or numeric boundaries from a stage label."
+msgstr "不要从阶段标签推断严重程度、顺序或数值边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the stage identity and assert each actual stageOfDrive membership."
+msgstr "保留阶段身份，并断言每个实际的 stageOfDrive 成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "call mode"
+msgstr "调用模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open named quality value returned by an activity call-mode selection program."
+msgstr "由活动调用模式选择程序返回的开放命名品质值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A named result does not assert a performed call, transition or globally current mode."
+msgstr "命名结果不表示已执行的调用、转换或全局当前模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source rule returns its actual named brief-response mode for one admitted input tuple."
+msgstr "源规则为一个允许的输入元组返回其实际命名的简短响应模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual named output of a declared mode mapping."
+msgstr "用于已声明模式映射的实际命名输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute ontological logic:Mode, interruptibility or task status."
+msgstr "不要以本体层面的 logic:Mode、可中断性或任务状态替代该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CallMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the supplied mode identity and the program that derives it."
+msgstr "保留给定模式身份及推导它的程序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage of drive"
+msgstr "阶段所属驱力"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a DriveStage to an actual DriveDefinition admitting it. The relation is nonfunctional; a selected invocation requires the membership in its exact selected definition."
+msgstr "将 DriveStage 关联到允许该阶段的实际 DriveDefinition。该关系非函数性；选定调用要求该阶段属于其精确选定的定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other actual memberships remain valid and are not universally equated."
+msgstr "其他实际成员关系仍然有效，不进行全局等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|http://www.w3.org/2004/02/skos/core#example"
+msgid "One stage has an explicit membership in each of two source definitions."
+msgstr "一个阶段分别具有两个源定义中的明确成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state an actual stage-definition membership."
+msgstr "用于陈述实际的阶段与定义成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer membership from matching labels or globally cap the stage to one definition."
+msgstr "不要从相同标签推断成员关系，也不要将阶段全局限制为只属于一个定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageOfDrive|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual stage and definition; check this exact positive link when selecting inputs."
+msgstr "关联实际阶段与定义；选择输入时检查该精确的正向关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive accumulation program"
+msgstr "驱力累积程序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual ReasoningProgram for deriving a level and stage from the supplied history, evaluation instant and circadian quantity."
+msgstr "将 DriveDefinition 关联到其唯一实际 ReasoningProgram，用于根据给定历史、求值时刻和昼夜节律量推导水平与阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual clauses specify history, relief and circadian combination; the link supplies no execution or arithmetic default."
+msgstr "实际子句指定历史、缓解与昼夜节律项的组合方式；该关联不提供执行或算术默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linked program queries driveAccumulationResult with two distinct output variables."
+msgstr "关联程序以两个不同输出变量查询 driveAccumulationResult。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual formal accumulation body of a complete drive definition."
+msgstr "用于完整驱力定义的实际形式化累积程序体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not attach a rule name, integrity constraint or empty program as a substitute."
+msgstr "不要用规则名称、完整性约束或空程序替代实际程序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply actual clauses, query and evaluation mode; preserve all selected inputs."
+msgstr "提供实际子句、查询与求值模式，并保留所有选定输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relieving activity description"
+msgstr "缓解活动描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a DriveDefinition to an actual EventDescription of an activity declared to relieve that drive."
+msgstr "将 DriveDefinition 关联到被声明可缓解该驱力的活动的实际 EventDescription。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is not a historical Event. Relief amount, timing and matching are supplied by the actual accumulation clauses."
+msgstr "该描述不是历史 Event。缓解的量、时机与匹配方式由实际累积子句提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual rest-activity description is declared to relieve one supplied drive."
+msgstr "实际的休息活动描述被声明可缓解某个给定驱力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each actual relieving activity specification."
+msgstr "用于每个实际的缓解活动规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not assert that the activity occurred or infer reset, subtraction or permission."
+msgstr "不要断言该活动已经发生，也不要推断重置、减法或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relievingActivityDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual EventDescription and retain the rule’s explicit relief semantics."
+msgstr "关联实际 EventDescription，并保留规则明确的缓解语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian expression"
+msgstr "驱力昼夜节律表达式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual concrete mathematical expression AST for its circadian term."
+msgstr "将 DriveDefinition 关联到其昼夜节律项的唯一实际具体数学表达式抽象语法树。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Actual symbols, bindings, operators and quantities remain required; no period, phase or amplitude is inferred."
+msgstr "仍须提供实际符号、绑定、运算符与量；不推断周期、相位或振幅。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied expression retains its actual time input and explicitly authored parameters."
+msgstr "给定表达式保留其实际时间输入与明确编写的参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the structured circadian expression of a complete drive specification."
+msgstr "用于完整驱力规范的结构化昼夜节律表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a formula string or infer a daily cosine or supported evaluator."
+msgstr "不要用公式字符串替代，也不要推断每日余弦或已受支持的求值器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual AST and bind each selected external symbol to its actual Quantity."
+msgstr "提供实际抽象语法树，并将每个选定外部符号绑定到其实际 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive mode program"
+msgstr "驱力模式程序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to its one actual ReasoningProgram mapping definition, activity description, drive stage and supplied draw to a named CallMode."
+msgstr "将 DriveDefinition 关联到其唯一实际 ReasoningProgram，将定义、活动描述、驱力阶段和给定抽取值映射到命名的 CallMode。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same actual program declares the drive’s call-mode effect and selection. A constant-output branch remains valid."
+msgstr "同一实际程序声明驱力对调用模式的影响及选择。常量输出分支仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|http://www.w3.org/2004/02/skos/core#example"
+msgid "The actual query uses activityCallModeResult and retains the supplied draw unchanged."
+msgstr "实际查询使用 activityCallModeResult，并原样保留给定抽取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual data-authored activity, stage and draw mapping."
+msgstr "用于实际以数据编写的活动、阶段与抽取值映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not drop an input, choose a first row, invent a default mode or imply PRNG execution."
+msgstr "不要丢弃输入、选择首行、虚构默认模式或暗示已执行伪随机数生成器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveModeProgram|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Publish actual clauses and query; require one named result for each completed selected invocation."
+msgstr "发布实际子句与查询；要求每次完成的选定调用恰有一个命名结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive level dimension"
+msgstr "驱力水平量纲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to the one actual mathematical Dimension required of its level result Quantity."
+msgstr "将 DriveDefinition 关联到其水平结果 Quantity 所要求的唯一实际数学 Dimension。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declaring a dimension supplies neither a magnitude, unit, scale nor evaluated result."
+msgstr "声明量纲不提供数值、单位、标度或已求值结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual level Quantity retains the dimension explicitly selected by its definition."
+msgstr "实际水平 Quantity 保留其定义明确选定的量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the actual dimensional contract of a drive level."
+msgstr "用于声明驱力水平的实际量纲契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer dimensionless pressure or convert an original duration into a numeric level."
+msgstr "不要推断无量纲压力，也不要将原始时长转换为数值水平。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveLevelDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied Math Dimension and check the actual returned Quantity against it."
+msgstr "关联给定的 Math Dimension，并据此检查实际返回的 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian dimension"
+msgstr "驱力昼夜节律量纲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a DriveDefinition to the one actual mathematical Dimension required of its circadian result Quantity."
+msgstr "将 DriveDefinition 关联到其昼夜节律结果 Quantity 所要求的唯一实际数学 Dimension。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This dimension need not equal the level dimension; their combination requires actual formal clauses."
+msgstr "该量纲不必等于水平量纲；二者的组合需要实际形式化子句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied circadian Quantity carries its definition’s actual declared dimension."
+msgstr "给定昼夜节律 Quantity 具有其定义实际声明的量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the actual output dimension of the selected circadian expression."
+msgstr "用于陈述选定昼夜节律表达式的实际输出量纲。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a dimensionless default or direct addition to the accumulated level."
+msgstr "不要推断默认无量纲值或直接与累积水平相加。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Dimension and require its positive link on a selected result Quantity."
+msgstr "保留实际 Dimension，并要求选定结果 Quantity 具有该正向关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive history clause"
+msgstr "驱力历史子句"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual InformationObject history-source record to a selected Formula fact used as drive-history input."
+msgstr "将实际的 InformationObject 历史源记录关联到被选为驱力历史输入的 Formula 事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional. Actual source identities and supplied order or multiplicity facts are retained without asserting completeness."
+msgstr "该关系非函数性。保留实际源身份以及给定顺序或多重性事实，不断言完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unordered history source selects its actual event facts without synthesizing a sequence."
+msgstr "无序历史源选择其实际事件事实，不合成序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify actual selected history facts for an accumulation invocation."
+msgstr "用于标识累积调用实际选定的历史事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not invent events, total order, duplicate occurrences, a snapshot or complete-history claims."
+msgstr "不要虚构事件、全序、重复发生实例、快照或完整历史声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveHistoryClause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link actual atomic Formula trees; preserve source records and only their supplied ordering and repetition."
+msgstr "关联实际原子 Formula 树；保留源记录及其确实给定的顺序与重复信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian input relation"
+msgstr "驱力昼夜节律输入关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified four-place relation (definition, evaluation instant, mathematical symbol, quantity) binding an actual selected expression symbol to its supplied Quantity."
+msgstr "四元具体化关系（定义、求值时刻、数学符号、量），将选定表达式的实际符号绑定到其给定 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bindings are scoped by the actual definition and evaluation instant. The relation is a Formula symbol, not a binary RDF property or input-injection API."
+msgstr "绑定以实际定义与求值时刻为范围。该关系是 Formula 符号，不是二元 RDF 属性或输入注入 API。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "One actual symbol is bound to its supplied time Quantity at the actual evaluation instant."
+msgstr "在实际求值时刻，将一个实际符号绑定到其给定时间 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logic:relation on an actual four-argument Formula atom."
+msgstr "用作实际四参数 Formula 原子上的 logic:relation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a clock coordinate, unit, phase or default binding from the symbol’s name."
+msgstr "不要从符号名称推断时钟坐标、单位、相位或默认绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply four indexed TermCarriers and preserve the actual symbol identity and Quantity."
+msgstr "提供四个带索引的 TermCarrier，并保留实际符号身份与 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive circadian result relation"
+msgstr "驱力昼夜节律结果关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified three-place relation (definition, evaluation instant, circadian quantity) identifying the actual selected expression result."
+msgstr "三元具体化关系（定义、求值时刻、昼夜节律量），标识选定表达式的实际结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An asserted result atom alone does not prove expression evaluation or dimensional correctness."
+msgstr "单独断言的结果原子不证明表达式已求值或量纲正确。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "An evaluated circadian Quantity is associated with the same definition and supplied instant."
+msgstr "将已求值的昼夜节律 Quantity 关联到同一定义及给定时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logic:relation on the actual three-argument result atom."
+msgstr "用作实际三参数结果原子上的 logic:relation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not certify an arbitrary supplied quantity as an evaluated result."
+msgstr "不要将任意给定量认证为已求值结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveCircadianResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact definition, instant, Quantity and actual evaluation evidence."
+msgstr "保留精确的定义、时刻、Quantity 及实际求值证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive accumulation result relation"
+msgstr "驱力累积结果关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified six-place relation (definition, history, evaluation instant, circadian quantity, level quantity, stage) fixing accumulation inputs and its two output roles."
+msgstr "六元具体化关系（定义、历史、求值时刻、昼夜节律量、水平量、阶段），确定累积输入与两个输出角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The first four positions are inputs; the last two are distinct query variables. Actual execution must return one admitted level-stage pair."
+msgstr "前四个位置是输入，后两个是不同的查询变量。实际执行必须返回一个允许的水平与阶段对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual accumulation query binds its level and stage through the authored clauses."
+msgstr "实际累积查询通过已编写子句绑定其水平与阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the actual accumulation program’s query relation."
+msgstr "用作实际累积程序的查询关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer arithmetic, stage thresholds, source completeness or completed evaluation from the signature."
+msgstr "不要从签名推断算术、阶段阈值、源完整性或求值已完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/driveAccumulationResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply six indexed arguments and actual clauses; check result dimensions and the selected stage membership."
+msgstr "提供六个带索引的参数和实际子句；检查结果量纲与选定阶段成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "activity call-mode result relation"
+msgstr "活动调用模式结果关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reified five-place relation (definition, activity description, stage, draw, mode) fixing the four inputs and named CallMode output of mode selection."
+msgstr "五元具体化关系（定义、活动描述、阶段、抽取值、模式），确定模式选择的四个输入及命名 CallMode 输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The draw retains its original supported RDF term. Constant-mode branches are valid; input preservation remains mandatory."
+msgstr "抽取值保留其原始且受支持的 RDF 项。常量模式分支有效，但仍必须保留输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "A completed admitted input tuple derives exactly one named mode from actual clauses."
+msgstr "一个完成求值的允许输入元组由实际子句推导出恰好一个命名模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the actual mode program’s query relation."
+msgstr "用作实际模式程序的查询关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer randomness, draw generation, output variation or a performed activity."
+msgstr "不要推断随机性、抽取值生成、输出变化或活动已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/activityCallModeResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply five indexed arguments, bind the exact selected inputs and return the actual named mode."
+msgstr "提供五个带索引的参数，绑定精确选定输入并返回实际命名模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive program query constraint"
+msgstr "驱力程序查询约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."
+msgstr "要求每个关联驱力程序查询使用其精确结果关系、必需参数位置、允许的输入载体角色及不同输出变量名；定义输入是模板变量或精确选定定义的 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks actual Formula and TermCarrier metadata; it supplies no caller-input injection executor."
+msgstr "该定律检查实际 Formula 与 TermCarrier 元数据，不提供调用方输入注入执行器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mode query missing its draw argument violates the required-position law."
+msgstr "缺少抽取值参数的模式查询违反必需位置定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject malformed selected drive query declarations."
+msgstr "用于拒绝格式错误的选定驱力查询声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a signature label as arity validation or a valid declaration as completed execution."
+msgstr "不要将签名标签视为元数验证，也不要将有效声明视为执行已完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate actual query relations and indexed carriers under the selected DriveDefinition."
+msgstr "在选定 DriveDefinition 下验证实际查询关系与带索引载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveProgramQueryConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."
+msgstr "要求每个关联驱力程序查询使用其精确结果关系、必需参数位置、允许的输入载体角色及不同输出变量名；定义输入是模板变量或精确选定定义的 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive ground-input constraint"
+msgstr "驱力基项输入约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."
+msgstr "要求实际的驱力查询资源基项输入具有声明的源类型、昼夜节律量的选定量纲，以及阶段属于选定定义的精确正向成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Template variables remain unbound source variables; the selected consumer must check their actual later bindings."
+msgstr "模板变量仍为未绑定源变量；选定使用方必须检查其之后的实际绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ground stage input lacking membership in the selected definition is rejected."
+msgstr "缺少选定定义成员关系的阶段基项输入被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check actual supplied ground resources without inventing missing source facts."
+msgstr "用于检查实际给定资源基项，而不虚构缺失源事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not cap other stage memberships or infer a time coordinate, dimension or activity occurrence."
+msgstr "不要限制其他阶段成员关系，也不要推断时间坐标、量纲或活动发生实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind actual stored query carriers and require each exact positive source association."
+msgstr "绑定实际存储的查询载体，并要求每个精确的正向源关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveGroundInputConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."
+msgstr "要求实际的驱力查询资源基项输入具有声明的源类型、昼夜节律量的选定量纲，以及阶段属于选定定义的精确正向成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "drive history clause constraint"
+msgstr "驱力历史子句约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."
+msgstr "要求每个选定驱力历史子句都是具有关系的实际 Formula 事实，且其根上没有给定量词或连接词构造器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Complete Formula and carrier admission remains with Logic; selecting a fact does not assert complete history or execute it."
+msgstr "完整 Formula 与载体准入仍由 Logic 负责；选择事实不表示历史完整，也不执行该事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected history root carrying an implication constructor violates this fact-only contract."
+msgstr "携带蕴含构造器的选定历史根违反仅限事实的契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish supplied history facts from derivation rules."
+msgstr "用于区分给定历史事实与推导规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not linearize partial order, count duplicate triples as occurrences or fabricate a source event."
+msgstr "不要将偏序线性化，不要将重复三元组计为发生实例，也不要虚构源事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the actual selected Formula root and preserve its source context and record identity."
+msgstr "检查实际选定 Formula 根，并保留其源上下文与记录身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DriveHistoryClauseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."
+msgstr "要求每个选定驱力历史子句都是具有关系的实际 Formula 事实，且其根上没有给定量词或连接词构造器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/agentic|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Agentic tool-call provenance — the ModelInvocation idiom one level down.\n\nDOCTRINE.\n  * THE MODELINVOCATION IDIOM, EXACTLY: ToolCall is a gufo:EventType under gmeow:Activity with one functional agent link (usedTool, mirroring usedModel) and verbatim call parameters as datatype properties (mirroring the sampling trio). 'Which tool, called by which invocation, with what arguments, at what time?' is answerable after the fact.\n  * NO FORWARD OUTPUT ENTITY PROPERTY (Principle 5): an entity the call produced — a stored claim, a written file, a minted node — links BACK via gmeow:wasGeneratedBy, exactly as claims link back to their ModelInvocation. gmeow:toolResult records the verbatim PAYLOAD of the event itself, never an entity link.\n  * PAYLOAD REPRESENTATIONS: toolArguments/toolResult retain opaque literals or locators defined by an explicit recording profile. A prefixed locator string is not the generic contentDigest contract. toolArgumentsStructured/toolResultStructured instead link role-bound StructuredValue occurrences; opaque media metadata belongs on the individual payload occurrence. Coexisting representations do not imply equivalence or conversion.\n  * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, register/persona design). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.\n  * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.\n  * THIN MEANS THIN (Principle 15): the named consumer is the agentic runtime's tool-call mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Growth requires a concrete consumer; structured payload companions serve callers that admit native RDF instead of opaque JSON objects. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the aggregate remains in the grounding kernel (worked example: examples/trajectory-audit.ttl).\n  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (the Workflow Run Crate worked example and the OpenLineage precedent), recorded in the mapping trailer."
+msgstr "智能体工具调用溯源——ModelInvocation 模式的下一层。\n\n原则。\n  * 严格遵循 MODELINVOCATION 模式：ToolCall 是 gmeow:Activity 之下的 gufo:EventType，具有一个函数性的智能体关联（usedTool，对应 usedModel），并以数据类型属性保留逐字调用参数（对应采样三元组）。事后能够回答“哪个工具，由哪次模型调用发起，使用哪些参数，在什么时间？”\n  * 不设置指向输出实体的正向属性（原则 5）：调用产生的实体——存储的断言、写入的文件、创建的节点——通过 gmeow:wasGeneratedBy 反向关联，正如断言反向关联到其 ModelInvocation。gmeow:toolResult 记录事件本身的逐字载荷，绝不是实体关联。\n  * 载荷表示：toolArguments/toolResult 保留不透明字面量，或由明确记录配置定义的定位符。带前缀的定位符字符串不是通用 contentDigest 契约。toolArgumentsStructured/toolResultStructured 则关联绑定到各自角色的 StructuredValue 实例；不透明媒体的元数据属于各个载荷实例。并存表示不蕴含等价或转换。\n  * 工具是软件智能体——特意不设 Tool 子类：作为工具是智能体在此次调用事件中扮演的角色，而非其身份（角色用于分类，绝不具体化——Persona 的经验，参见 register/persona 设计）。MCP 工具、搜索服务和代码执行器都是被调用的 SoftwareAgent。\n  * calledByInvocation 可选：记录框架可能不公开发起请求的模型调用；缺少该信息的 ToolCall 仍可作为可审计的溯源。结果供后续调用使用——该顺序是时间关系（atTime），不是 TBox 关联。\n  * 精简就是精简（原则 15）：指定使用方是智能体运行时的工具调用模式；gmeow 记忆 MCP 三元组是首个实际生产方（其 store/revise 调用自行记录）。扩展需要具体使用方；结构化载荷关联服务于允许原生 RDF 而非不透明 JSON 对象的调用方。T6 只读轨迹审计是最终实际检验已记录 ToolCall 序列的验证使用方，但此处不创建任何聚合术语：审计已记录序列时，将每次调用视为 logic:ActionSchema 实例（logic:instantiatesSchema），以现有 logic: 部分整体关系为基础，通过 Transaction-Logic 引擎执行。聚合结构位于 logic: 核心，而非新的智能体词汇中；聚合仍属于形式化基础内核（完整示例：examples/trajectory-audit.ttl）。\n  * 对齐：ToolCall 通过继承属于 prov:Activity（溯源集合）。OpenAI 函数调用、Anthropic tool_use 和 MCP 工具模式都是缺少稳定 RDF 命名空间的 JSON 规范——它们之间的衔接属于投影范畴（Workflow Run Crate 完整示例和 OpenLineage 先例），以 REFUSED 单元记录在映射尾部。"

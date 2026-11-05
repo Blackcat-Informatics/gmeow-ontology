@@ -133,8 +133,8 @@ DOCTRINE.
   * PAYLOAD REPRESENTATIONS: toolArguments/toolResult retain opaque literals or locators defined by an explicit recording profile. A prefixed locator string is not the generic contentDigest contract. toolArgumentsStructured/toolResultStructured instead link role-bound StructuredValue occurrences; opaque media metadata belongs on the individual payload occurrence. Coexisting representations do not imply equivalence or conversion.
   * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, register/persona design). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.
   * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.
-  * THIN MEANS THIN (Principle 15): the named consumer is Project Lillith's agentic mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Growth requires a concrete consumer; structured payload companions serve callers that admit native RDF instead of opaque JSON objects. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the aggregate remains in the grounding kernel (worked example: examples/trajectory-audit.ttl).
-  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (Lillith worked example, the OpenLineage precedent), recorded in the mapping trailer."""@x-gmeow-english ;
+  * THIN MEANS THIN (Principle 15): the named consumer is the agentic runtime's tool-call mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Growth requires a concrete consumer; structured payload companions serve callers that admit native RDF instead of opaque JSON objects. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the aggregate remains in the grounding kernel (worked example: examples/trajectory-audit.ttl).
+  * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (the Workflow Run Crate worked example and the OpenLineage precedent), recorded in the mapping trailer."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "GMEOW Agentic Module"@x-gmeow-english ;
     skos:definition "The GMEOW Agentic Module — tool-call provenance: an agent's ACTIONS join the same provenance graph as its claims. DELIBERATELY THIN."@x-gmeow-english ;
@@ -469,3 +469,1414 @@ gmeow:ToolCall logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:toolArgumentsStructured ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:toolResultStructured ; logic:allValuesFrom gmeow:StructuredValue ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:toolResultStructured ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+# Behavioral drive declarations and explicit program-query source contracts.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+
+gmeow:DriveDefinition
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "drive definition"@x-gmeow-english ;
+    skos:definition "An information specification of a behavioral drive, with an actual history-accumulation program, relieving activity descriptions, a circadian expression, a mode-selection program and declared result dimensions."@x-gmeow-english ;
+    skos:scopeNote "The specification does not assert a physiological state, an evaluated level or a performed call."@x-gmeow-english ;
+    skos:example "A supplied sleep-pressure definition retains its own actual accumulation and mode clauses."@x-gmeow-english ;
+    gmeow:useWhen "Use to publish all four components of an actual drive specification together."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a default scale, initial zero, thresholds or executable consumer from the name."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual component resources and dimensions; retain their source and context."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:DriveStage
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "drive stage"@x-gmeow-english ;
+    skos:definition "An open named quality value used as a stage input or result for a behavioral drive. Actual stageOfDrive memberships identify the definitions in which it is admitted."@x-gmeow-english ;
+    skos:scopeNote "Multiple legitimate definition memberships coexist; each selected invocation requires its exact positive membership."@x-gmeow-english ;
+    skos:example "A named stage may be admitted by two actual drive definitions without equating those definitions."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly named stage in an actual drive rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer severity, order or numeric boundaries from a stage label."@x-gmeow-english ;
+    gmeow:howToUse "Retain the stage identity and assert each actual stageOfDrive membership."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:CallMode
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "call mode"@x-gmeow-english ;
+    skos:definition "An open named quality value returned by an activity call-mode selection program."@x-gmeow-english ;
+    skos:scopeNote "A named result does not assert a performed call, transition or globally current mode."@x-gmeow-english ;
+    skos:example "A source rule returns its actual named brief-response mode for one admitted input tuple."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual named output of a declared mode mapping."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute ontological logic:Mode, interruptibility or task status."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the supplied mode identity and the program that derives it."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:stageOfDrive
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "stage of drive"@x-gmeow-english ;
+    skos:definition "Relates a DriveStage to an actual DriveDefinition admitting it. The relation is nonfunctional; a selected invocation requires the membership in its exact selected definition."@x-gmeow-english ;
+    skos:scopeNote "Other actual memberships remain valid and are not universally equated."@x-gmeow-english ;
+    skos:example "One stage has an explicit membership in each of two source definitions."@x-gmeow-english ;
+    gmeow:useWhen "Use to state an actual stage-definition membership."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer membership from matching labels or globally cap the stage to one definition."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual stage and definition; check this exact positive link when selecting inputs."@x-gmeow-english ;
+    logic:domain gmeow:DriveStage ;
+    logic:range gmeow:DriveDefinition .
+
+gmeow:driveAccumulationProgram
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive accumulation program"@x-gmeow-english ;
+    skos:definition "Links a DriveDefinition to its one actual ReasoningProgram for deriving a level and stage from the supplied history, evaluation instant and circadian quantity."@x-gmeow-english ;
+    skos:scopeNote "Actual clauses specify history, relief and circadian combination; the link supplies no execution or arithmetic default."@x-gmeow-english ;
+    skos:example "The linked program queries driveAccumulationResult with two distinct output variables."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual formal accumulation body of a complete drive definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach a rule name, integrity constraint or empty program as a substitute."@x-gmeow-english ;
+    gmeow:howToUse "Supply actual clauses, query and evaluation mode; preserve all selected inputs."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range logic:ReasoningProgram .
+
+gmeow:relievingActivityDescription
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "relieving activity description"@x-gmeow-english ;
+    skos:definition "Relates a DriveDefinition to an actual EventDescription of an activity declared to relieve that drive."@x-gmeow-english ;
+    skos:scopeNote "The description is not a historical Event. Relief amount, timing and matching are supplied by the actual accumulation clauses."@x-gmeow-english ;
+    skos:example "An actual rest-activity description is declared to relieve one supplied drive."@x-gmeow-english ;
+    gmeow:useWhen "Use for each actual relieving activity specification."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not assert that the activity occurred or infer reset, subtraction or permission."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual EventDescription and retain the rule’s explicit relief semantics."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range gmeow:EventDescription .
+
+gmeow:driveCircadianExpression
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive circadian expression"@x-gmeow-english ;
+    skos:definition "Links a DriveDefinition to its one actual concrete mathematical expression AST for its circadian term."@x-gmeow-english ;
+    skos:scopeNote "Actual symbols, bindings, operators and quantities remain required; no period, phase or amplitude is inferred."@x-gmeow-english ;
+    skos:example "A supplied expression retains its actual time input and explicitly authored parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use for the structured circadian expression of a complete drive specification."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a formula string or infer a daily cosine or supported evaluator."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual AST and bind each selected external symbol to its actual Quantity."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range math:MathematicalExpression .
+
+gmeow:driveModeProgram
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive mode program"@x-gmeow-english ;
+    skos:definition "Links a DriveDefinition to its one actual ReasoningProgram mapping definition, activity description, drive stage and supplied draw to a named CallMode."@x-gmeow-english ;
+    skos:scopeNote "The same actual program declares the drive’s call-mode effect and selection. A constant-output branch remains valid."@x-gmeow-english ;
+    skos:example "The actual query uses activityCallModeResult and retains the supplied draw unchanged."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual data-authored activity, stage and draw mapping."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not drop an input, choose a first row, invent a default mode or imply PRNG execution."@x-gmeow-english ;
+    gmeow:howToUse "Publish actual clauses and query; require one named result for each completed selected invocation."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range logic:ReasoningProgram .
+
+gmeow:driveLevelDimension
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive level dimension"@x-gmeow-english ;
+    skos:definition "Links a DriveDefinition to the one actual mathematical Dimension required of its level result Quantity."@x-gmeow-english ;
+    skos:scopeNote "Declaring a dimension supplies neither a magnitude, unit, scale nor evaluated result."@x-gmeow-english ;
+    skos:example "An actual level Quantity retains the dimension explicitly selected by its definition."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the actual dimensional contract of a drive level."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer dimensionless pressure or convert an original duration into a numeric level."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied Math Dimension and check the actual returned Quantity against it."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range math:Dimension .
+
+gmeow:driveCircadianDimension
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive circadian dimension"@x-gmeow-english ;
+    skos:definition "Links a DriveDefinition to the one actual mathematical Dimension required of its circadian result Quantity."@x-gmeow-english ;
+    skos:scopeNote "This dimension need not equal the level dimension; their combination requires actual formal clauses."@x-gmeow-english ;
+    skos:example "A supplied circadian Quantity carries its definition’s actual declared dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the actual output dimension of the selected circadian expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a dimensionless default or direct addition to the accumulated level."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual Dimension and require its positive link on a selected result Quantity."@x-gmeow-english ;
+    logic:domain gmeow:DriveDefinition ;
+    logic:range math:Dimension .
+
+gmeow:driveHistoryClause
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "drive history clause"@x-gmeow-english ;
+    skos:definition "Relates an actual InformationObject history-source record to a selected Formula fact used as drive-history input."@x-gmeow-english ;
+    skos:scopeNote "The relation is nonfunctional. Actual source identities and supplied order or multiplicity facts are retained without asserting completeness."@x-gmeow-english ;
+    skos:example "An unordered history source selects its actual event facts without synthesizing a sequence."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify actual selected history facts for an accumulation invocation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not invent events, total order, duplicate occurrences, a snapshot or complete-history claims."@x-gmeow-english ;
+    gmeow:howToUse "Link actual atomic Formula trees; preserve source records and only their supplied ordering and repetition."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range logic:Formula .
+
+gmeow:driveCircadianInput
+    a logic:Type , logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "drive circadian input relation"@x-gmeow-english ;
+    skos:definition "The reified four-place relation (definition, evaluation instant, mathematical symbol, quantity) binding an actual selected expression symbol to its supplied Quantity."@x-gmeow-english ;
+    skos:scopeNote "Bindings are scoped by the actual definition and evaluation instant. The relation is a Formula symbol, not a binary RDF property or input-injection API."@x-gmeow-english ;
+    skos:example "One actual symbol is bound to its supplied time Quantity at the actual evaluation instant."@x-gmeow-english ;
+    gmeow:useWhen "Use as logic:relation on an actual four-argument Formula atom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a clock coordinate, unit, phase or default binding from the symbol’s name."@x-gmeow-english ;
+    gmeow:howToUse "Supply four indexed TermCarriers and preserve the actual symbol identity and Quantity."@x-gmeow-english .
+
+gmeow:driveCircadianResult
+    a logic:Type , logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "drive circadian result relation"@x-gmeow-english ;
+    skos:definition "The reified three-place relation (definition, evaluation instant, circadian quantity) identifying the actual selected expression result."@x-gmeow-english ;
+    skos:scopeNote "An asserted result atom alone does not prove expression evaluation or dimensional correctness."@x-gmeow-english ;
+    skos:example "An evaluated circadian Quantity is associated with the same definition and supplied instant."@x-gmeow-english ;
+    gmeow:useWhen "Use as logic:relation on the actual three-argument result atom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not certify an arbitrary supplied quantity as an evaluated result."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact definition, instant, Quantity and actual evaluation evidence."@x-gmeow-english .
+
+gmeow:driveAccumulationResult
+    a logic:Type , logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "drive accumulation result relation"@x-gmeow-english ;
+    skos:definition "The reified six-place relation (definition, history, evaluation instant, circadian quantity, level quantity, stage) fixing accumulation inputs and its two output roles."@x-gmeow-english ;
+    skos:scopeNote "The first four positions are inputs; the last two are distinct query variables. Actual execution must return one admitted level-stage pair."@x-gmeow-english ;
+    skos:example "An actual accumulation query binds its level and stage through the authored clauses."@x-gmeow-english ;
+    gmeow:useWhen "Use as the actual accumulation program’s query relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer arithmetic, stage thresholds, source completeness or completed evaluation from the signature."@x-gmeow-english ;
+    gmeow:howToUse "Supply six indexed arguments and actual clauses; check result dimensions and the selected stage membership."@x-gmeow-english .
+
+gmeow:activityCallModeResult
+    a logic:Type , logic:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "activity call-mode result relation"@x-gmeow-english ;
+    skos:definition "The reified five-place relation (definition, activity description, stage, draw, mode) fixing the four inputs and named CallMode output of mode selection."@x-gmeow-english ;
+    skos:scopeNote "The draw retains its original supported RDF term. Constant-mode branches are valid; input preservation remains mandatory."@x-gmeow-english ;
+    skos:example "A completed admitted input tuple derives exactly one named mode from actual clauses."@x-gmeow-english ;
+    gmeow:useWhen "Use as the actual mode program’s query relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer randomness, draw generation, output variation or a performed activity."@x-gmeow-english ;
+    gmeow:howToUse "Supply five indexed arguments, bind the exact selected inputs and return the actual named mode."@x-gmeow-english .
+
+gmeow:DriveProgramQueryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "drive program query constraint"@x-gmeow-english ;
+    skos:definition "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."@x-gmeow-english ;
+    skos:scopeNote "The law checks actual Formula and TermCarrier metadata; it supplies no caller-input injection executor."@x-gmeow-english ;
+    skos:example "A mode query missing its draw argument violates the required-position law."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject malformed selected drive query declarations."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat a signature label as arity validation or a valid declaration as completed execution."@x-gmeow-english ;
+    gmeow:howToUse "Validate actual query relations and indexed carriers under the selected DriveDefinition."@x-gmeow-english ;
+    logic:formalizes gmeow:DriveDefinition ;
+    logic:message "Requires each linked drive program query to use its exact result relation, required argument positions, admitted input carrier roles and distinct output-variable names; a definition input is a template variable or the exact selected definition IRI."@x-gmeow-english ;
+    logic:integrity _:driveDriveProgramQueryConstraint1 .
+
+_:driveDriveProgramQueryConstraint2 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint5 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint6 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:DriveDefinition .
+_:driveDriveProgramQueryConstraint4 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveProgramQueryConstraint5 , _:driveDriveProgramQueryConstraint6 .
+_:driveDriveProgramQueryConstraint9 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ01_p" .
+_:driveDriveProgramQueryConstraint10 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ01_q" .
+_:driveDriveProgramQueryConstraint14 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint15 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ01_p" .
+_:driveDriveProgramQueryConstraint13 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint14 , _:driveDriveProgramQueryConstraint15 .
+_:driveDriveProgramQueryConstraint17 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ01_p" .
+_:driveDriveProgramQueryConstraint18 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ01_q" .
+_:driveDriveProgramQueryConstraint16 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint17 , _:driveDriveProgramQueryConstraint18 .
+_:driveDriveProgramQueryConstraint12 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint13 , _:driveDriveProgramQueryConstraint16 .
+_:driveDriveProgramQueryConstraint20 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ01_q" .
+_:driveDriveProgramQueryConstraint21 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:driveAccumulationResult .
+_:driveDriveProgramQueryConstraint19 a logic:Formula ; logic:relation logic:relation ; logic:argument _:driveDriveProgramQueryConstraint20 , _:driveDriveProgramQueryConstraint21 .
+_:driveDriveProgramQueryConstraint11 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint12 ; logic:consequent _:driveDriveProgramQueryConstraint19 .
+_:driveDriveProgramQueryConstraint8 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint11 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint9 , _:driveDriveProgramQueryConstraint10 .
+_:driveDriveProgramQueryConstraint23 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ02_p" .
+_:driveDriveProgramQueryConstraint24 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ02_q" .
+_:driveDriveProgramQueryConstraint28 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint29 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ02_p" .
+_:driveDriveProgramQueryConstraint27 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint28 , _:driveDriveProgramQueryConstraint29 .
+_:driveDriveProgramQueryConstraint31 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ02_p" .
+_:driveDriveProgramQueryConstraint32 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ02_q" .
+_:driveDriveProgramQueryConstraint30 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint31 , _:driveDriveProgramQueryConstraint32 .
+_:driveDriveProgramQueryConstraint26 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint27 , _:driveDriveProgramQueryConstraint30 .
+_:driveDriveProgramQueryConstraint34 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ02_q" .
+_:driveDriveProgramQueryConstraint35 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:activityCallModeResult .
+_:driveDriveProgramQueryConstraint33 a logic:Formula ; logic:relation logic:relation ; logic:argument _:driveDriveProgramQueryConstraint34 , _:driveDriveProgramQueryConstraint35 .
+_:driveDriveProgramQueryConstraint25 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint26 ; logic:consequent _:driveDriveProgramQueryConstraint33 .
+_:driveDriveProgramQueryConstraint22 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint25 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint23 , _:driveDriveProgramQueryConstraint24 .
+_:driveDriveProgramQueryConstraint37 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_p" .
+_:driveDriveProgramQueryConstraint38 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_q" .
+_:driveDriveProgramQueryConstraint42 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint43 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_p" .
+_:driveDriveProgramQueryConstraint41 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint42 , _:driveDriveProgramQueryConstraint43 .
+_:driveDriveProgramQueryConstraint45 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_p" .
+_:driveDriveProgramQueryConstraint46 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_q" .
+_:driveDriveProgramQueryConstraint44 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint45 , _:driveDriveProgramQueryConstraint46 .
+_:driveDriveProgramQueryConstraint40 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint41 , _:driveDriveProgramQueryConstraint44 .
+_:driveDriveProgramQueryConstraint48 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_a" .
+_:driveDriveProgramQueryConstraint49 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_i" .
+_:driveDriveProgramQueryConstraint52 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_q" .
+_:driveDriveProgramQueryConstraint53 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_a" .
+_:driveDriveProgramQueryConstraint51 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint52 , _:driveDriveProgramQueryConstraint53 .
+_:driveDriveProgramQueryConstraint55 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_a" .
+_:driveDriveProgramQueryConstraint56 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ03_i" .
+_:driveDriveProgramQueryConstraint54 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint55 , _:driveDriveProgramQueryConstraint56 .
+_:driveDriveProgramQueryConstraint58 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ03_i" .
+_:driveDriveProgramQueryConstraint59 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint57 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint58 , _:driveDriveProgramQueryConstraint59 .
+_:driveDriveProgramQueryConstraint50 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint51 , _:driveDriveProgramQueryConstraint54 , _:driveDriveProgramQueryConstraint57 .
+_:driveDriveProgramQueryConstraint47 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint50 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint48 , _:driveDriveProgramQueryConstraint49 .
+_:driveDriveProgramQueryConstraint39 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint40 ; logic:consequent _:driveDriveProgramQueryConstraint47 .
+_:driveDriveProgramQueryConstraint36 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint39 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint37 , _:driveDriveProgramQueryConstraint38 .
+_:driveDriveProgramQueryConstraint61 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_p" .
+_:driveDriveProgramQueryConstraint62 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_q" .
+_:driveDriveProgramQueryConstraint66 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint67 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_p" .
+_:driveDriveProgramQueryConstraint65 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint66 , _:driveDriveProgramQueryConstraint67 .
+_:driveDriveProgramQueryConstraint69 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_p" .
+_:driveDriveProgramQueryConstraint70 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_q" .
+_:driveDriveProgramQueryConstraint68 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint69 , _:driveDriveProgramQueryConstraint70 .
+_:driveDriveProgramQueryConstraint64 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint65 , _:driveDriveProgramQueryConstraint68 .
+_:driveDriveProgramQueryConstraint72 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_a" .
+_:driveDriveProgramQueryConstraint73 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_i" .
+_:driveDriveProgramQueryConstraint76 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_q" .
+_:driveDriveProgramQueryConstraint77 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_a" .
+_:driveDriveProgramQueryConstraint75 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint76 , _:driveDriveProgramQueryConstraint77 .
+_:driveDriveProgramQueryConstraint79 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_a" .
+_:driveDriveProgramQueryConstraint80 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ04_i" .
+_:driveDriveProgramQueryConstraint78 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint79 , _:driveDriveProgramQueryConstraint80 .
+_:driveDriveProgramQueryConstraint82 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ04_i" .
+_:driveDriveProgramQueryConstraint83 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint81 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint82 , _:driveDriveProgramQueryConstraint83 .
+_:driveDriveProgramQueryConstraint74 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint75 , _:driveDriveProgramQueryConstraint78 , _:driveDriveProgramQueryConstraint81 .
+_:driveDriveProgramQueryConstraint71 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint74 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint72 , _:driveDriveProgramQueryConstraint73 .
+_:driveDriveProgramQueryConstraint63 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint64 ; logic:consequent _:driveDriveProgramQueryConstraint71 .
+_:driveDriveProgramQueryConstraint60 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint63 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint61 , _:driveDriveProgramQueryConstraint62 .
+_:driveDriveProgramQueryConstraint85 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_p" .
+_:driveDriveProgramQueryConstraint86 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_q" .
+_:driveDriveProgramQueryConstraint90 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint91 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_p" .
+_:driveDriveProgramQueryConstraint89 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint90 , _:driveDriveProgramQueryConstraint91 .
+_:driveDriveProgramQueryConstraint93 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_p" .
+_:driveDriveProgramQueryConstraint94 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_q" .
+_:driveDriveProgramQueryConstraint92 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint93 , _:driveDriveProgramQueryConstraint94 .
+_:driveDriveProgramQueryConstraint88 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint89 , _:driveDriveProgramQueryConstraint92 .
+_:driveDriveProgramQueryConstraint96 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_a" .
+_:driveDriveProgramQueryConstraint97 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_i" .
+_:driveDriveProgramQueryConstraint100 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_q" .
+_:driveDriveProgramQueryConstraint101 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_a" .
+_:driveDriveProgramQueryConstraint99 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint100 , _:driveDriveProgramQueryConstraint101 .
+_:driveDriveProgramQueryConstraint103 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_a" .
+_:driveDriveProgramQueryConstraint104 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ05_i" .
+_:driveDriveProgramQueryConstraint102 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint103 , _:driveDriveProgramQueryConstraint104 .
+_:driveDriveProgramQueryConstraint106 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ05_i" .
+_:driveDriveProgramQueryConstraint107 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint105 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint106 , _:driveDriveProgramQueryConstraint107 .
+_:driveDriveProgramQueryConstraint98 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint99 , _:driveDriveProgramQueryConstraint102 , _:driveDriveProgramQueryConstraint105 .
+_:driveDriveProgramQueryConstraint95 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint98 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint96 , _:driveDriveProgramQueryConstraint97 .
+_:driveDriveProgramQueryConstraint87 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint88 ; logic:consequent _:driveDriveProgramQueryConstraint95 .
+_:driveDriveProgramQueryConstraint84 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint87 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint85 , _:driveDriveProgramQueryConstraint86 .
+_:driveDriveProgramQueryConstraint109 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_p" .
+_:driveDriveProgramQueryConstraint110 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_q" .
+_:driveDriveProgramQueryConstraint114 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint115 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_p" .
+_:driveDriveProgramQueryConstraint113 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint114 , _:driveDriveProgramQueryConstraint115 .
+_:driveDriveProgramQueryConstraint117 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_p" .
+_:driveDriveProgramQueryConstraint118 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_q" .
+_:driveDriveProgramQueryConstraint116 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint117 , _:driveDriveProgramQueryConstraint118 .
+_:driveDriveProgramQueryConstraint112 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint113 , _:driveDriveProgramQueryConstraint116 .
+_:driveDriveProgramQueryConstraint120 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_a" .
+_:driveDriveProgramQueryConstraint121 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_i" .
+_:driveDriveProgramQueryConstraint124 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_q" .
+_:driveDriveProgramQueryConstraint125 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_a" .
+_:driveDriveProgramQueryConstraint123 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint124 , _:driveDriveProgramQueryConstraint125 .
+_:driveDriveProgramQueryConstraint127 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_a" .
+_:driveDriveProgramQueryConstraint128 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ06_i" .
+_:driveDriveProgramQueryConstraint126 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint127 , _:driveDriveProgramQueryConstraint128 .
+_:driveDriveProgramQueryConstraint130 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ06_i" .
+_:driveDriveProgramQueryConstraint131 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint129 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint130 , _:driveDriveProgramQueryConstraint131 .
+_:driveDriveProgramQueryConstraint122 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint123 , _:driveDriveProgramQueryConstraint126 , _:driveDriveProgramQueryConstraint129 .
+_:driveDriveProgramQueryConstraint119 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint122 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint120 , _:driveDriveProgramQueryConstraint121 .
+_:driveDriveProgramQueryConstraint111 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint112 ; logic:consequent _:driveDriveProgramQueryConstraint119 .
+_:driveDriveProgramQueryConstraint108 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint111 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint109 , _:driveDriveProgramQueryConstraint110 .
+_:driveDriveProgramQueryConstraint133 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_p" .
+_:driveDriveProgramQueryConstraint134 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_q" .
+_:driveDriveProgramQueryConstraint138 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint139 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_p" .
+_:driveDriveProgramQueryConstraint137 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint138 , _:driveDriveProgramQueryConstraint139 .
+_:driveDriveProgramQueryConstraint141 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_p" .
+_:driveDriveProgramQueryConstraint142 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_q" .
+_:driveDriveProgramQueryConstraint140 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint141 , _:driveDriveProgramQueryConstraint142 .
+_:driveDriveProgramQueryConstraint136 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint137 , _:driveDriveProgramQueryConstraint140 .
+_:driveDriveProgramQueryConstraint144 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_a" .
+_:driveDriveProgramQueryConstraint145 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_i" .
+_:driveDriveProgramQueryConstraint148 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_q" .
+_:driveDriveProgramQueryConstraint149 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_a" .
+_:driveDriveProgramQueryConstraint147 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint148 , _:driveDriveProgramQueryConstraint149 .
+_:driveDriveProgramQueryConstraint151 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_a" .
+_:driveDriveProgramQueryConstraint152 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ07_i" .
+_:driveDriveProgramQueryConstraint150 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint151 , _:driveDriveProgramQueryConstraint152 .
+_:driveDriveProgramQueryConstraint154 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ07_i" .
+_:driveDriveProgramQueryConstraint155 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint153 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint154 , _:driveDriveProgramQueryConstraint155 .
+_:driveDriveProgramQueryConstraint146 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint147 , _:driveDriveProgramQueryConstraint150 , _:driveDriveProgramQueryConstraint153 .
+_:driveDriveProgramQueryConstraint143 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint146 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint144 , _:driveDriveProgramQueryConstraint145 .
+_:driveDriveProgramQueryConstraint135 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint136 ; logic:consequent _:driveDriveProgramQueryConstraint143 .
+_:driveDriveProgramQueryConstraint132 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint135 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint133 , _:driveDriveProgramQueryConstraint134 .
+_:driveDriveProgramQueryConstraint157 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_p" .
+_:driveDriveProgramQueryConstraint158 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_q" .
+_:driveDriveProgramQueryConstraint162 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint163 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_p" .
+_:driveDriveProgramQueryConstraint161 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint162 , _:driveDriveProgramQueryConstraint163 .
+_:driveDriveProgramQueryConstraint165 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_p" .
+_:driveDriveProgramQueryConstraint166 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_q" .
+_:driveDriveProgramQueryConstraint164 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint165 , _:driveDriveProgramQueryConstraint166 .
+_:driveDriveProgramQueryConstraint160 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint161 , _:driveDriveProgramQueryConstraint164 .
+_:driveDriveProgramQueryConstraint168 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_a" .
+_:driveDriveProgramQueryConstraint169 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_i" .
+_:driveDriveProgramQueryConstraint172 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_q" .
+_:driveDriveProgramQueryConstraint173 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_a" .
+_:driveDriveProgramQueryConstraint171 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint172 , _:driveDriveProgramQueryConstraint173 .
+_:driveDriveProgramQueryConstraint175 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_a" .
+_:driveDriveProgramQueryConstraint176 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ08_i" .
+_:driveDriveProgramQueryConstraint174 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint175 , _:driveDriveProgramQueryConstraint176 .
+_:driveDriveProgramQueryConstraint178 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ08_i" .
+_:driveDriveProgramQueryConstraint179 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint177 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint178 , _:driveDriveProgramQueryConstraint179 .
+_:driveDriveProgramQueryConstraint170 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint171 , _:driveDriveProgramQueryConstraint174 , _:driveDriveProgramQueryConstraint177 .
+_:driveDriveProgramQueryConstraint167 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint170 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint168 , _:driveDriveProgramQueryConstraint169 .
+_:driveDriveProgramQueryConstraint159 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint160 ; logic:consequent _:driveDriveProgramQueryConstraint167 .
+_:driveDriveProgramQueryConstraint156 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint159 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint157 , _:driveDriveProgramQueryConstraint158 .
+_:driveDriveProgramQueryConstraint181 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_p" .
+_:driveDriveProgramQueryConstraint182 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_q" .
+_:driveDriveProgramQueryConstraint186 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint187 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_p" .
+_:driveDriveProgramQueryConstraint185 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint186 , _:driveDriveProgramQueryConstraint187 .
+_:driveDriveProgramQueryConstraint189 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_p" .
+_:driveDriveProgramQueryConstraint190 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_q" .
+_:driveDriveProgramQueryConstraint188 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint189 , _:driveDriveProgramQueryConstraint190 .
+_:driveDriveProgramQueryConstraint184 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint185 , _:driveDriveProgramQueryConstraint188 .
+_:driveDriveProgramQueryConstraint192 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_a" .
+_:driveDriveProgramQueryConstraint193 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_i" .
+_:driveDriveProgramQueryConstraint196 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_q" .
+_:driveDriveProgramQueryConstraint197 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_a" .
+_:driveDriveProgramQueryConstraint195 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint196 , _:driveDriveProgramQueryConstraint197 .
+_:driveDriveProgramQueryConstraint199 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_a" .
+_:driveDriveProgramQueryConstraint200 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ09_i" .
+_:driveDriveProgramQueryConstraint198 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint199 , _:driveDriveProgramQueryConstraint200 .
+_:driveDriveProgramQueryConstraint202 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ09_i" .
+_:driveDriveProgramQueryConstraint203 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint201 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint202 , _:driveDriveProgramQueryConstraint203 .
+_:driveDriveProgramQueryConstraint194 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint195 , _:driveDriveProgramQueryConstraint198 , _:driveDriveProgramQueryConstraint201 .
+_:driveDriveProgramQueryConstraint191 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint194 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint192 , _:driveDriveProgramQueryConstraint193 .
+_:driveDriveProgramQueryConstraint183 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint184 ; logic:consequent _:driveDriveProgramQueryConstraint191 .
+_:driveDriveProgramQueryConstraint180 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint183 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint181 , _:driveDriveProgramQueryConstraint182 .
+_:driveDriveProgramQueryConstraint205 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_p" .
+_:driveDriveProgramQueryConstraint206 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_q" .
+_:driveDriveProgramQueryConstraint210 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint211 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_p" .
+_:driveDriveProgramQueryConstraint209 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint210 , _:driveDriveProgramQueryConstraint211 .
+_:driveDriveProgramQueryConstraint213 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_p" .
+_:driveDriveProgramQueryConstraint214 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_q" .
+_:driveDriveProgramQueryConstraint212 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint213 , _:driveDriveProgramQueryConstraint214 .
+_:driveDriveProgramQueryConstraint208 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint209 , _:driveDriveProgramQueryConstraint212 .
+_:driveDriveProgramQueryConstraint216 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_a" .
+_:driveDriveProgramQueryConstraint217 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_i" .
+_:driveDriveProgramQueryConstraint220 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_q" .
+_:driveDriveProgramQueryConstraint221 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_a" .
+_:driveDriveProgramQueryConstraint219 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint220 , _:driveDriveProgramQueryConstraint221 .
+_:driveDriveProgramQueryConstraint223 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_a" .
+_:driveDriveProgramQueryConstraint224 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ10_i" .
+_:driveDriveProgramQueryConstraint222 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint223 , _:driveDriveProgramQueryConstraint224 .
+_:driveDriveProgramQueryConstraint226 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ10_i" .
+_:driveDriveProgramQueryConstraint227 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint225 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint226 , _:driveDriveProgramQueryConstraint227 .
+_:driveDriveProgramQueryConstraint218 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint219 , _:driveDriveProgramQueryConstraint222 , _:driveDriveProgramQueryConstraint225 .
+_:driveDriveProgramQueryConstraint215 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint218 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint216 , _:driveDriveProgramQueryConstraint217 .
+_:driveDriveProgramQueryConstraint207 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint208 ; logic:consequent _:driveDriveProgramQueryConstraint215 .
+_:driveDriveProgramQueryConstraint204 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint207 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint205 , _:driveDriveProgramQueryConstraint206 .
+_:driveDriveProgramQueryConstraint229 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_p" .
+_:driveDriveProgramQueryConstraint230 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_q" .
+_:driveDriveProgramQueryConstraint234 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint235 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_p" .
+_:driveDriveProgramQueryConstraint233 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint234 , _:driveDriveProgramQueryConstraint235 .
+_:driveDriveProgramQueryConstraint237 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_p" .
+_:driveDriveProgramQueryConstraint238 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_q" .
+_:driveDriveProgramQueryConstraint236 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint237 , _:driveDriveProgramQueryConstraint238 .
+_:driveDriveProgramQueryConstraint232 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint233 , _:driveDriveProgramQueryConstraint236 .
+_:driveDriveProgramQueryConstraint240 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_a" .
+_:driveDriveProgramQueryConstraint241 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_i" .
+_:driveDriveProgramQueryConstraint244 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_q" .
+_:driveDriveProgramQueryConstraint245 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_a" .
+_:driveDriveProgramQueryConstraint243 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint244 , _:driveDriveProgramQueryConstraint245 .
+_:driveDriveProgramQueryConstraint247 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_a" .
+_:driveDriveProgramQueryConstraint248 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ11_i" .
+_:driveDriveProgramQueryConstraint246 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint247 , _:driveDriveProgramQueryConstraint248 .
+_:driveDriveProgramQueryConstraint250 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ11_i" .
+_:driveDriveProgramQueryConstraint251 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint249 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint250 , _:driveDriveProgramQueryConstraint251 .
+_:driveDriveProgramQueryConstraint242 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint243 , _:driveDriveProgramQueryConstraint246 , _:driveDriveProgramQueryConstraint249 .
+_:driveDriveProgramQueryConstraint239 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint242 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint240 , _:driveDriveProgramQueryConstraint241 .
+_:driveDriveProgramQueryConstraint231 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint232 ; logic:consequent _:driveDriveProgramQueryConstraint239 .
+_:driveDriveProgramQueryConstraint228 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint231 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint229 , _:driveDriveProgramQueryConstraint230 .
+_:driveDriveProgramQueryConstraint253 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_p" .
+_:driveDriveProgramQueryConstraint254 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_q" .
+_:driveDriveProgramQueryConstraint258 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint259 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_p" .
+_:driveDriveProgramQueryConstraint257 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint258 , _:driveDriveProgramQueryConstraint259 .
+_:driveDriveProgramQueryConstraint261 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_p" .
+_:driveDriveProgramQueryConstraint262 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_q" .
+_:driveDriveProgramQueryConstraint260 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint261 , _:driveDriveProgramQueryConstraint262 .
+_:driveDriveProgramQueryConstraint256 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint257 , _:driveDriveProgramQueryConstraint260 .
+_:driveDriveProgramQueryConstraint264 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_a" .
+_:driveDriveProgramQueryConstraint265 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_i" .
+_:driveDriveProgramQueryConstraint268 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_q" .
+_:driveDriveProgramQueryConstraint269 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_a" .
+_:driveDriveProgramQueryConstraint267 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint268 , _:driveDriveProgramQueryConstraint269 .
+_:driveDriveProgramQueryConstraint271 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_a" .
+_:driveDriveProgramQueryConstraint272 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ12_i" .
+_:driveDriveProgramQueryConstraint270 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint271 , _:driveDriveProgramQueryConstraint272 .
+_:driveDriveProgramQueryConstraint274 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ12_i" .
+_:driveDriveProgramQueryConstraint275 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint273 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint274 , _:driveDriveProgramQueryConstraint275 .
+_:driveDriveProgramQueryConstraint266 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint267 , _:driveDriveProgramQueryConstraint270 , _:driveDriveProgramQueryConstraint273 .
+_:driveDriveProgramQueryConstraint263 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint266 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint264 , _:driveDriveProgramQueryConstraint265 .
+_:driveDriveProgramQueryConstraint255 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint256 ; logic:consequent _:driveDriveProgramQueryConstraint263 .
+_:driveDriveProgramQueryConstraint252 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint255 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint253 , _:driveDriveProgramQueryConstraint254 .
+_:driveDriveProgramQueryConstraint277 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_p" .
+_:driveDriveProgramQueryConstraint278 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_q" .
+_:driveDriveProgramQueryConstraint282 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint283 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_p" .
+_:driveDriveProgramQueryConstraint281 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint282 , _:driveDriveProgramQueryConstraint283 .
+_:driveDriveProgramQueryConstraint285 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_p" .
+_:driveDriveProgramQueryConstraint286 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_q" .
+_:driveDriveProgramQueryConstraint284 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint285 , _:driveDriveProgramQueryConstraint286 .
+_:driveDriveProgramQueryConstraint280 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint281 , _:driveDriveProgramQueryConstraint284 .
+_:driveDriveProgramQueryConstraint288 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_a" .
+_:driveDriveProgramQueryConstraint289 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_i" .
+_:driveDriveProgramQueryConstraint292 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_q" .
+_:driveDriveProgramQueryConstraint293 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_a" .
+_:driveDriveProgramQueryConstraint291 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint292 , _:driveDriveProgramQueryConstraint293 .
+_:driveDriveProgramQueryConstraint295 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_a" .
+_:driveDriveProgramQueryConstraint296 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ13_i" .
+_:driveDriveProgramQueryConstraint294 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint295 , _:driveDriveProgramQueryConstraint296 .
+_:driveDriveProgramQueryConstraint298 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ13_i" .
+_:driveDriveProgramQueryConstraint299 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint297 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint298 , _:driveDriveProgramQueryConstraint299 .
+_:driveDriveProgramQueryConstraint290 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint291 , _:driveDriveProgramQueryConstraint294 , _:driveDriveProgramQueryConstraint297 .
+_:driveDriveProgramQueryConstraint287 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint290 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint288 , _:driveDriveProgramQueryConstraint289 .
+_:driveDriveProgramQueryConstraint279 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint280 ; logic:consequent _:driveDriveProgramQueryConstraint287 .
+_:driveDriveProgramQueryConstraint276 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint279 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint277 , _:driveDriveProgramQueryConstraint278 .
+_:driveDriveProgramQueryConstraint301 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ14_p" .
+_:driveDriveProgramQueryConstraint302 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ14_q" .
+_:driveDriveProgramQueryConstraint303 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ14_a" .
+_:driveDriveProgramQueryConstraint304 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ14_i" .
+_:driveDriveProgramQueryConstraint309 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint310 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ14_p" .
+_:driveDriveProgramQueryConstraint308 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint309 , _:driveDriveProgramQueryConstraint310 .
+_:driveDriveProgramQueryConstraint312 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ14_p" .
+_:driveDriveProgramQueryConstraint313 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ14_q" .
+_:driveDriveProgramQueryConstraint311 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint312 , _:driveDriveProgramQueryConstraint313 .
+_:driveDriveProgramQueryConstraint307 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint308 , _:driveDriveProgramQueryConstraint311 .
+_:driveDriveProgramQueryConstraint315 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ14_q" .
+_:driveDriveProgramQueryConstraint316 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ14_a" .
+_:driveDriveProgramQueryConstraint314 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint315 , _:driveDriveProgramQueryConstraint316 .
+_:driveDriveProgramQueryConstraint318 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ14_a" .
+_:driveDriveProgramQueryConstraint319 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ14_i" .
+_:driveDriveProgramQueryConstraint317 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint318 , _:driveDriveProgramQueryConstraint319 .
+_:driveDriveProgramQueryConstraint306 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint307 , _:driveDriveProgramQueryConstraint314 , _:driveDriveProgramQueryConstraint317 .
+_:driveDriveProgramQueryConstraint321 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ14_i" .
+_:driveDriveProgramQueryConstraint322 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint323 a logic:TermCarrier ; logic:termIndex 2 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint324 a logic:TermCarrier ; logic:termIndex 3 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint325 a logic:TermCarrier ; logic:termIndex 4 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint326 a logic:TermCarrier ; logic:termIndex 5 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint327 a logic:TermCarrier ; logic:termIndex 6 ; logic:termLiteral "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint320 a logic:Formula ; logic:relation logic:termIn ; logic:argument _:driveDriveProgramQueryConstraint321 , _:driveDriveProgramQueryConstraint322 , _:driveDriveProgramQueryConstraint323 , _:driveDriveProgramQueryConstraint324 , _:driveDriveProgramQueryConstraint325 , _:driveDriveProgramQueryConstraint326 , _:driveDriveProgramQueryConstraint327 .
+_:driveDriveProgramQueryConstraint305 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint306 ; logic:consequent _:driveDriveProgramQueryConstraint320 .
+_:driveDriveProgramQueryConstraint300 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint305 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint301 , _:driveDriveProgramQueryConstraint302 , _:driveDriveProgramQueryConstraint303 , _:driveDriveProgramQueryConstraint304 .
+_:driveDriveProgramQueryConstraint329 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ15_p" .
+_:driveDriveProgramQueryConstraint330 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ15_q" .
+_:driveDriveProgramQueryConstraint331 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ15_a" .
+_:driveDriveProgramQueryConstraint332 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ15_i" .
+_:driveDriveProgramQueryConstraint337 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint338 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ15_p" .
+_:driveDriveProgramQueryConstraint336 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint337 , _:driveDriveProgramQueryConstraint338 .
+_:driveDriveProgramQueryConstraint340 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ15_p" .
+_:driveDriveProgramQueryConstraint341 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ15_q" .
+_:driveDriveProgramQueryConstraint339 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint340 , _:driveDriveProgramQueryConstraint341 .
+_:driveDriveProgramQueryConstraint335 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint336 , _:driveDriveProgramQueryConstraint339 .
+_:driveDriveProgramQueryConstraint343 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ15_q" .
+_:driveDriveProgramQueryConstraint344 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ15_a" .
+_:driveDriveProgramQueryConstraint342 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint343 , _:driveDriveProgramQueryConstraint344 .
+_:driveDriveProgramQueryConstraint346 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ15_a" .
+_:driveDriveProgramQueryConstraint347 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ15_i" .
+_:driveDriveProgramQueryConstraint345 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint346 , _:driveDriveProgramQueryConstraint347 .
+_:driveDriveProgramQueryConstraint334 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint335 , _:driveDriveProgramQueryConstraint342 , _:driveDriveProgramQueryConstraint345 .
+_:driveDriveProgramQueryConstraint349 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ15_i" .
+_:driveDriveProgramQueryConstraint350 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint351 a logic:TermCarrier ; logic:termIndex 2 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint352 a logic:TermCarrier ; logic:termIndex 3 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint353 a logic:TermCarrier ; logic:termIndex 4 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint354 a logic:TermCarrier ; logic:termIndex 5 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint348 a logic:Formula ; logic:relation logic:termIn ; logic:argument _:driveDriveProgramQueryConstraint349 , _:driveDriveProgramQueryConstraint350 , _:driveDriveProgramQueryConstraint351 , _:driveDriveProgramQueryConstraint352 , _:driveDriveProgramQueryConstraint353 , _:driveDriveProgramQueryConstraint354 .
+_:driveDriveProgramQueryConstraint333 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint334 ; logic:consequent _:driveDriveProgramQueryConstraint348 .
+_:driveDriveProgramQueryConstraint328 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint333 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint329 , _:driveDriveProgramQueryConstraint330 , _:driveDriveProgramQueryConstraint331 , _:driveDriveProgramQueryConstraint332 .
+_:driveDriveProgramQueryConstraint356 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_p" .
+_:driveDriveProgramQueryConstraint357 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_q" .
+_:driveDriveProgramQueryConstraint358 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ16_a" .
+_:driveDriveProgramQueryConstraint359 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ16_i" .
+_:driveDriveProgramQueryConstraint364 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint365 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_p" .
+_:driveDriveProgramQueryConstraint363 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint364 , _:driveDriveProgramQueryConstraint365 .
+_:driveDriveProgramQueryConstraint367 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_p" .
+_:driveDriveProgramQueryConstraint368 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_q" .
+_:driveDriveProgramQueryConstraint366 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint367 , _:driveDriveProgramQueryConstraint368 .
+_:driveDriveProgramQueryConstraint362 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint363 , _:driveDriveProgramQueryConstraint366 .
+_:driveDriveProgramQueryConstraint371 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_q" .
+_:driveDriveProgramQueryConstraint372 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_a" .
+_:driveDriveProgramQueryConstraint370 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint371 , _:driveDriveProgramQueryConstraint372 .
+_:driveDriveProgramQueryConstraint374 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_a" .
+_:driveDriveProgramQueryConstraint375 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_i" .
+_:driveDriveProgramQueryConstraint373 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint374 , _:driveDriveProgramQueryConstraint375 .
+_:driveDriveProgramQueryConstraint377 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_i" .
+_:driveDriveProgramQueryConstraint378 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint376 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint377 , _:driveDriveProgramQueryConstraint378 .
+_:driveDriveProgramQueryConstraint369 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint370 , _:driveDriveProgramQueryConstraint373 , _:driveDriveProgramQueryConstraint376 .
+_:driveDriveProgramQueryConstraint361 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint362 , _:driveDriveProgramQueryConstraint369 .
+_:driveDriveProgramQueryConstraint381 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_v" .
+_:driveDriveProgramQueryConstraint383 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_a" .
+_:driveDriveProgramQueryConstraint384 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ16_v" .
+_:driveDriveProgramQueryConstraint382 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint383 , _:driveDriveProgramQueryConstraint384 .
+_:driveDriveProgramQueryConstraint380 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint382 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint381 .
+_:driveDriveProgramQueryConstraint386 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ16_a" .
+_:driveDriveProgramQueryConstraint387 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint385 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint386 , _:driveDriveProgramQueryConstraint387 .
+_:driveDriveProgramQueryConstraint379 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint380 , _:driveDriveProgramQueryConstraint385 .
+_:driveDriveProgramQueryConstraint360 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint361 ; logic:consequent _:driveDriveProgramQueryConstraint379 .
+_:driveDriveProgramQueryConstraint355 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint360 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint356 , _:driveDriveProgramQueryConstraint357 , _:driveDriveProgramQueryConstraint358 , _:driveDriveProgramQueryConstraint359 .
+_:driveDriveProgramQueryConstraint389 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_p" .
+_:driveDriveProgramQueryConstraint390 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_q" .
+_:driveDriveProgramQueryConstraint391 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ17_a" .
+_:driveDriveProgramQueryConstraint392 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ17_i" .
+_:driveDriveProgramQueryConstraint397 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint398 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_p" .
+_:driveDriveProgramQueryConstraint396 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint397 , _:driveDriveProgramQueryConstraint398 .
+_:driveDriveProgramQueryConstraint400 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_p" .
+_:driveDriveProgramQueryConstraint401 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_q" .
+_:driveDriveProgramQueryConstraint399 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint400 , _:driveDriveProgramQueryConstraint401 .
+_:driveDriveProgramQueryConstraint395 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint396 , _:driveDriveProgramQueryConstraint399 .
+_:driveDriveProgramQueryConstraint404 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_q" .
+_:driveDriveProgramQueryConstraint405 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_a" .
+_:driveDriveProgramQueryConstraint403 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint404 , _:driveDriveProgramQueryConstraint405 .
+_:driveDriveProgramQueryConstraint407 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_a" .
+_:driveDriveProgramQueryConstraint408 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_i" .
+_:driveDriveProgramQueryConstraint406 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint407 , _:driveDriveProgramQueryConstraint408 .
+_:driveDriveProgramQueryConstraint410 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_i" .
+_:driveDriveProgramQueryConstraint411 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint409 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint410 , _:driveDriveProgramQueryConstraint411 .
+_:driveDriveProgramQueryConstraint402 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint403 , _:driveDriveProgramQueryConstraint406 , _:driveDriveProgramQueryConstraint409 .
+_:driveDriveProgramQueryConstraint394 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint395 , _:driveDriveProgramQueryConstraint402 .
+_:driveDriveProgramQueryConstraint414 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_v" .
+_:driveDriveProgramQueryConstraint416 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_a" .
+_:driveDriveProgramQueryConstraint417 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ17_v" .
+_:driveDriveProgramQueryConstraint415 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint416 , _:driveDriveProgramQueryConstraint417 .
+_:driveDriveProgramQueryConstraint413 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint415 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint414 .
+_:driveDriveProgramQueryConstraint419 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ17_a" .
+_:driveDriveProgramQueryConstraint420 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint418 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint419 , _:driveDriveProgramQueryConstraint420 .
+_:driveDriveProgramQueryConstraint412 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint413 , _:driveDriveProgramQueryConstraint418 .
+_:driveDriveProgramQueryConstraint393 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint394 ; logic:consequent _:driveDriveProgramQueryConstraint412 .
+_:driveDriveProgramQueryConstraint388 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint393 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint389 , _:driveDriveProgramQueryConstraint390 , _:driveDriveProgramQueryConstraint391 , _:driveDriveProgramQueryConstraint392 .
+_:driveDriveProgramQueryConstraint422 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_p" .
+_:driveDriveProgramQueryConstraint423 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_q" .
+_:driveDriveProgramQueryConstraint424 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ18_a" .
+_:driveDriveProgramQueryConstraint425 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ18_i" .
+_:driveDriveProgramQueryConstraint430 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint431 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_p" .
+_:driveDriveProgramQueryConstraint429 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint430 , _:driveDriveProgramQueryConstraint431 .
+_:driveDriveProgramQueryConstraint433 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_p" .
+_:driveDriveProgramQueryConstraint434 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_q" .
+_:driveDriveProgramQueryConstraint432 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint433 , _:driveDriveProgramQueryConstraint434 .
+_:driveDriveProgramQueryConstraint428 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint429 , _:driveDriveProgramQueryConstraint432 .
+_:driveDriveProgramQueryConstraint437 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_q" .
+_:driveDriveProgramQueryConstraint438 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_a" .
+_:driveDriveProgramQueryConstraint436 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint437 , _:driveDriveProgramQueryConstraint438 .
+_:driveDriveProgramQueryConstraint440 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_a" .
+_:driveDriveProgramQueryConstraint441 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_i" .
+_:driveDriveProgramQueryConstraint439 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint440 , _:driveDriveProgramQueryConstraint441 .
+_:driveDriveProgramQueryConstraint443 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_i" .
+_:driveDriveProgramQueryConstraint444 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint442 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint443 , _:driveDriveProgramQueryConstraint444 .
+_:driveDriveProgramQueryConstraint435 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint436 , _:driveDriveProgramQueryConstraint439 , _:driveDriveProgramQueryConstraint442 .
+_:driveDriveProgramQueryConstraint427 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint428 , _:driveDriveProgramQueryConstraint435 .
+_:driveDriveProgramQueryConstraint447 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_v" .
+_:driveDriveProgramQueryConstraint449 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_a" .
+_:driveDriveProgramQueryConstraint450 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_v" .
+_:driveDriveProgramQueryConstraint448 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint449 , _:driveDriveProgramQueryConstraint450 .
+_:driveDriveProgramQueryConstraint446 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint448 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint447 .
+_:driveDriveProgramQueryConstraint452 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_x" .
+_:driveDriveProgramQueryConstraint454 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ18_a" .
+_:driveDriveProgramQueryConstraint455 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ18_x" .
+_:driveDriveProgramQueryConstraint453 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint454 , _:driveDriveProgramQueryConstraint455 .
+_:driveDriveProgramQueryConstraint451 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint453 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint452 .
+_:driveDriveProgramQueryConstraint445 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint446 , _:driveDriveProgramQueryConstraint451 .
+_:driveDriveProgramQueryConstraint426 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint427 ; logic:consequent _:driveDriveProgramQueryConstraint445 .
+_:driveDriveProgramQueryConstraint421 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint426 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint422 , _:driveDriveProgramQueryConstraint423 , _:driveDriveProgramQueryConstraint424 , _:driveDriveProgramQueryConstraint425 .
+_:driveDriveProgramQueryConstraint457 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_p" .
+_:driveDriveProgramQueryConstraint458 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_q" .
+_:driveDriveProgramQueryConstraint459 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ19_a" .
+_:driveDriveProgramQueryConstraint460 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ19_i" .
+_:driveDriveProgramQueryConstraint465 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint466 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_p" .
+_:driveDriveProgramQueryConstraint464 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint465 , _:driveDriveProgramQueryConstraint466 .
+_:driveDriveProgramQueryConstraint468 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_p" .
+_:driveDriveProgramQueryConstraint469 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_q" .
+_:driveDriveProgramQueryConstraint467 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint468 , _:driveDriveProgramQueryConstraint469 .
+_:driveDriveProgramQueryConstraint463 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint464 , _:driveDriveProgramQueryConstraint467 .
+_:driveDriveProgramQueryConstraint472 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_q" .
+_:driveDriveProgramQueryConstraint473 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_a" .
+_:driveDriveProgramQueryConstraint471 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint472 , _:driveDriveProgramQueryConstraint473 .
+_:driveDriveProgramQueryConstraint475 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_a" .
+_:driveDriveProgramQueryConstraint476 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_i" .
+_:driveDriveProgramQueryConstraint474 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint475 , _:driveDriveProgramQueryConstraint476 .
+_:driveDriveProgramQueryConstraint478 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_i" .
+_:driveDriveProgramQueryConstraint479 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint477 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint478 , _:driveDriveProgramQueryConstraint479 .
+_:driveDriveProgramQueryConstraint470 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint471 , _:driveDriveProgramQueryConstraint474 , _:driveDriveProgramQueryConstraint477 .
+_:driveDriveProgramQueryConstraint462 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint463 , _:driveDriveProgramQueryConstraint470 .
+_:driveDriveProgramQueryConstraint482 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_v" .
+_:driveDriveProgramQueryConstraint484 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_a" .
+_:driveDriveProgramQueryConstraint485 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_v" .
+_:driveDriveProgramQueryConstraint483 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint484 , _:driveDriveProgramQueryConstraint485 .
+_:driveDriveProgramQueryConstraint481 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint483 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint482 .
+_:driveDriveProgramQueryConstraint487 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_x" .
+_:driveDriveProgramQueryConstraint489 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ19_a" .
+_:driveDriveProgramQueryConstraint490 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ19_x" .
+_:driveDriveProgramQueryConstraint488 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint489 , _:driveDriveProgramQueryConstraint490 .
+_:driveDriveProgramQueryConstraint486 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint488 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint487 .
+_:driveDriveProgramQueryConstraint480 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint481 , _:driveDriveProgramQueryConstraint486 .
+_:driveDriveProgramQueryConstraint461 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint462 ; logic:consequent _:driveDriveProgramQueryConstraint480 .
+_:driveDriveProgramQueryConstraint456 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint461 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint457 , _:driveDriveProgramQueryConstraint458 , _:driveDriveProgramQueryConstraint459 , _:driveDriveProgramQueryConstraint460 .
+_:driveDriveProgramQueryConstraint492 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_p" .
+_:driveDriveProgramQueryConstraint493 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_q" .
+_:driveDriveProgramQueryConstraint494 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ20_a" .
+_:driveDriveProgramQueryConstraint495 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ20_i" .
+_:driveDriveProgramQueryConstraint500 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint501 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_p" .
+_:driveDriveProgramQueryConstraint499 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint500 , _:driveDriveProgramQueryConstraint501 .
+_:driveDriveProgramQueryConstraint503 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_p" .
+_:driveDriveProgramQueryConstraint504 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_q" .
+_:driveDriveProgramQueryConstraint502 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint503 , _:driveDriveProgramQueryConstraint504 .
+_:driveDriveProgramQueryConstraint498 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint499 , _:driveDriveProgramQueryConstraint502 .
+_:driveDriveProgramQueryConstraint507 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_q" .
+_:driveDriveProgramQueryConstraint508 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_a" .
+_:driveDriveProgramQueryConstraint506 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint507 , _:driveDriveProgramQueryConstraint508 .
+_:driveDriveProgramQueryConstraint510 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_a" .
+_:driveDriveProgramQueryConstraint511 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_i" .
+_:driveDriveProgramQueryConstraint509 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint510 , _:driveDriveProgramQueryConstraint511 .
+_:driveDriveProgramQueryConstraint513 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_i" .
+_:driveDriveProgramQueryConstraint514 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint512 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint513 , _:driveDriveProgramQueryConstraint514 .
+_:driveDriveProgramQueryConstraint505 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint506 , _:driveDriveProgramQueryConstraint509 , _:driveDriveProgramQueryConstraint512 .
+_:driveDriveProgramQueryConstraint497 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint498 , _:driveDriveProgramQueryConstraint505 .
+_:driveDriveProgramQueryConstraint517 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_v" .
+_:driveDriveProgramQueryConstraint519 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_a" .
+_:driveDriveProgramQueryConstraint520 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_v" .
+_:driveDriveProgramQueryConstraint518 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint519 , _:driveDriveProgramQueryConstraint520 .
+_:driveDriveProgramQueryConstraint516 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint518 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint517 .
+_:driveDriveProgramQueryConstraint522 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_x" .
+_:driveDriveProgramQueryConstraint524 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ20_a" .
+_:driveDriveProgramQueryConstraint525 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ20_x" .
+_:driveDriveProgramQueryConstraint523 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint524 , _:driveDriveProgramQueryConstraint525 .
+_:driveDriveProgramQueryConstraint521 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint523 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint522 .
+_:driveDriveProgramQueryConstraint515 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint516 , _:driveDriveProgramQueryConstraint521 .
+_:driveDriveProgramQueryConstraint496 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint497 ; logic:consequent _:driveDriveProgramQueryConstraint515 .
+_:driveDriveProgramQueryConstraint491 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint496 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint492 , _:driveDriveProgramQueryConstraint493 , _:driveDriveProgramQueryConstraint494 , _:driveDriveProgramQueryConstraint495 .
+_:driveDriveProgramQueryConstraint527 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_p" .
+_:driveDriveProgramQueryConstraint528 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_q" .
+_:driveDriveProgramQueryConstraint529 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ21_a" .
+_:driveDriveProgramQueryConstraint530 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ21_i" .
+_:driveDriveProgramQueryConstraint535 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint536 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_p" .
+_:driveDriveProgramQueryConstraint534 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint535 , _:driveDriveProgramQueryConstraint536 .
+_:driveDriveProgramQueryConstraint538 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_p" .
+_:driveDriveProgramQueryConstraint539 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_q" .
+_:driveDriveProgramQueryConstraint537 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint538 , _:driveDriveProgramQueryConstraint539 .
+_:driveDriveProgramQueryConstraint533 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint534 , _:driveDriveProgramQueryConstraint537 .
+_:driveDriveProgramQueryConstraint542 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_q" .
+_:driveDriveProgramQueryConstraint543 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_a" .
+_:driveDriveProgramQueryConstraint541 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint542 , _:driveDriveProgramQueryConstraint543 .
+_:driveDriveProgramQueryConstraint545 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_a" .
+_:driveDriveProgramQueryConstraint546 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_i" .
+_:driveDriveProgramQueryConstraint544 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint545 , _:driveDriveProgramQueryConstraint546 .
+_:driveDriveProgramQueryConstraint548 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_i" .
+_:driveDriveProgramQueryConstraint549 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint547 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint548 , _:driveDriveProgramQueryConstraint549 .
+_:driveDriveProgramQueryConstraint540 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint541 , _:driveDriveProgramQueryConstraint544 , _:driveDriveProgramQueryConstraint547 .
+_:driveDriveProgramQueryConstraint532 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint533 , _:driveDriveProgramQueryConstraint540 .
+_:driveDriveProgramQueryConstraint552 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_v" .
+_:driveDriveProgramQueryConstraint554 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_a" .
+_:driveDriveProgramQueryConstraint555 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_v" .
+_:driveDriveProgramQueryConstraint553 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint554 , _:driveDriveProgramQueryConstraint555 .
+_:driveDriveProgramQueryConstraint551 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint553 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint552 .
+_:driveDriveProgramQueryConstraint557 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_x" .
+_:driveDriveProgramQueryConstraint559 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ21_a" .
+_:driveDriveProgramQueryConstraint560 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ21_x" .
+_:driveDriveProgramQueryConstraint558 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint559 , _:driveDriveProgramQueryConstraint560 .
+_:driveDriveProgramQueryConstraint556 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint558 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint557 .
+_:driveDriveProgramQueryConstraint550 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint551 , _:driveDriveProgramQueryConstraint556 .
+_:driveDriveProgramQueryConstraint531 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint532 ; logic:consequent _:driveDriveProgramQueryConstraint550 .
+_:driveDriveProgramQueryConstraint526 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint531 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint527 , _:driveDriveProgramQueryConstraint528 , _:driveDriveProgramQueryConstraint529 , _:driveDriveProgramQueryConstraint530 .
+_:driveDriveProgramQueryConstraint562 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_p" .
+_:driveDriveProgramQueryConstraint563 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_q" .
+_:driveDriveProgramQueryConstraint564 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ22_a" .
+_:driveDriveProgramQueryConstraint565 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ22_i" .
+_:driveDriveProgramQueryConstraint570 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint571 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_p" .
+_:driveDriveProgramQueryConstraint569 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint570 , _:driveDriveProgramQueryConstraint571 .
+_:driveDriveProgramQueryConstraint573 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_p" .
+_:driveDriveProgramQueryConstraint574 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_q" .
+_:driveDriveProgramQueryConstraint572 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint573 , _:driveDriveProgramQueryConstraint574 .
+_:driveDriveProgramQueryConstraint568 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint569 , _:driveDriveProgramQueryConstraint572 .
+_:driveDriveProgramQueryConstraint577 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_q" .
+_:driveDriveProgramQueryConstraint578 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_a" .
+_:driveDriveProgramQueryConstraint576 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint577 , _:driveDriveProgramQueryConstraint578 .
+_:driveDriveProgramQueryConstraint580 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_a" .
+_:driveDriveProgramQueryConstraint581 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_i" .
+_:driveDriveProgramQueryConstraint579 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint580 , _:driveDriveProgramQueryConstraint581 .
+_:driveDriveProgramQueryConstraint583 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_i" .
+_:driveDriveProgramQueryConstraint584 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint582 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint583 , _:driveDriveProgramQueryConstraint584 .
+_:driveDriveProgramQueryConstraint575 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint576 , _:driveDriveProgramQueryConstraint579 , _:driveDriveProgramQueryConstraint582 .
+_:driveDriveProgramQueryConstraint567 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint568 , _:driveDriveProgramQueryConstraint575 .
+_:driveDriveProgramQueryConstraint587 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_v" .
+_:driveDriveProgramQueryConstraint589 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_a" .
+_:driveDriveProgramQueryConstraint590 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_v" .
+_:driveDriveProgramQueryConstraint588 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint589 , _:driveDriveProgramQueryConstraint590 .
+_:driveDriveProgramQueryConstraint586 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint588 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint587 .
+_:driveDriveProgramQueryConstraint592 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_x" .
+_:driveDriveProgramQueryConstraint594 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ22_a" .
+_:driveDriveProgramQueryConstraint595 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ22_x" .
+_:driveDriveProgramQueryConstraint593 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint594 , _:driveDriveProgramQueryConstraint595 .
+_:driveDriveProgramQueryConstraint591 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint593 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint592 .
+_:driveDriveProgramQueryConstraint585 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint586 , _:driveDriveProgramQueryConstraint591 .
+_:driveDriveProgramQueryConstraint566 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint567 ; logic:consequent _:driveDriveProgramQueryConstraint585 .
+_:driveDriveProgramQueryConstraint561 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint566 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint562 , _:driveDriveProgramQueryConstraint563 , _:driveDriveProgramQueryConstraint564 , _:driveDriveProgramQueryConstraint565 .
+_:driveDriveProgramQueryConstraint597 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_p" .
+_:driveDriveProgramQueryConstraint598 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_q" .
+_:driveDriveProgramQueryConstraint599 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint600 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ23_i" .
+_:driveDriveProgramQueryConstraint605 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint606 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_p" .
+_:driveDriveProgramQueryConstraint604 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint605 , _:driveDriveProgramQueryConstraint606 .
+_:driveDriveProgramQueryConstraint608 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_p" .
+_:driveDriveProgramQueryConstraint609 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_q" .
+_:driveDriveProgramQueryConstraint607 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint608 , _:driveDriveProgramQueryConstraint609 .
+_:driveDriveProgramQueryConstraint603 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint604 , _:driveDriveProgramQueryConstraint607 .
+_:driveDriveProgramQueryConstraint612 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_q" .
+_:driveDriveProgramQueryConstraint613 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint611 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint612 , _:driveDriveProgramQueryConstraint613 .
+_:driveDriveProgramQueryConstraint615 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint616 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_i" .
+_:driveDriveProgramQueryConstraint614 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint615 , _:driveDriveProgramQueryConstraint616 .
+_:driveDriveProgramQueryConstraint618 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_i" .
+_:driveDriveProgramQueryConstraint619 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint617 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint618 , _:driveDriveProgramQueryConstraint619 .
+_:driveDriveProgramQueryConstraint610 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint611 , _:driveDriveProgramQueryConstraint614 , _:driveDriveProgramQueryConstraint617 .
+_:driveDriveProgramQueryConstraint602 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint603 , _:driveDriveProgramQueryConstraint610 .
+_:driveDriveProgramQueryConstraint622 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_v" .
+_:driveDriveProgramQueryConstraint624 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint625 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_v" .
+_:driveDriveProgramQueryConstraint623 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint624 , _:driveDriveProgramQueryConstraint625 .
+_:driveDriveProgramQueryConstraint621 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint623 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint622 .
+_:driveDriveProgramQueryConstraint627 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_x" .
+_:driveDriveProgramQueryConstraint629 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint630 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_x" .
+_:driveDriveProgramQueryConstraint628 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveProgramQueryConstraint629 , _:driveDriveProgramQueryConstraint630 .
+_:driveDriveProgramQueryConstraint626 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint628 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint627 .
+_:driveDriveProgramQueryConstraint632 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_l" .
+_:driveDriveProgramQueryConstraint634 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ23_a" .
+_:driveDriveProgramQueryConstraint635 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ23_l" .
+_:driveDriveProgramQueryConstraint633 a logic:Formula ; logic:relation logic:termLiteral ; logic:argument _:driveDriveProgramQueryConstraint634 , _:driveDriveProgramQueryConstraint635 .
+_:driveDriveProgramQueryConstraint631 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint633 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint632 .
+_:driveDriveProgramQueryConstraint620 a logic:Formula ; logic:or _:driveDriveProgramQueryConstraint621 , _:driveDriveProgramQueryConstraint626 , _:driveDriveProgramQueryConstraint631 .
+_:driveDriveProgramQueryConstraint601 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint602 ; logic:consequent _:driveDriveProgramQueryConstraint620 .
+_:driveDriveProgramQueryConstraint596 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint601 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint597 , _:driveDriveProgramQueryConstraint598 , _:driveDriveProgramQueryConstraint599 , _:driveDriveProgramQueryConstraint600 .
+_:driveDriveProgramQueryConstraint637 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_p" .
+_:driveDriveProgramQueryConstraint638 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_q" .
+_:driveDriveProgramQueryConstraint639 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ24_a" .
+_:driveDriveProgramQueryConstraint640 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ24_i" .
+_:driveDriveProgramQueryConstraint645 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint646 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_p" .
+_:driveDriveProgramQueryConstraint644 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint645 , _:driveDriveProgramQueryConstraint646 .
+_:driveDriveProgramQueryConstraint648 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_p" .
+_:driveDriveProgramQueryConstraint649 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_q" .
+_:driveDriveProgramQueryConstraint647 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint648 , _:driveDriveProgramQueryConstraint649 .
+_:driveDriveProgramQueryConstraint643 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint644 , _:driveDriveProgramQueryConstraint647 .
+_:driveDriveProgramQueryConstraint652 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_q" .
+_:driveDriveProgramQueryConstraint653 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_a" .
+_:driveDriveProgramQueryConstraint651 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint652 , _:driveDriveProgramQueryConstraint653 .
+_:driveDriveProgramQueryConstraint655 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_a" .
+_:driveDriveProgramQueryConstraint656 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_i" .
+_:driveDriveProgramQueryConstraint654 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint655 , _:driveDriveProgramQueryConstraint656 .
+_:driveDriveProgramQueryConstraint658 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_i" .
+_:driveDriveProgramQueryConstraint659 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint657 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint658 , _:driveDriveProgramQueryConstraint659 .
+_:driveDriveProgramQueryConstraint650 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint651 , _:driveDriveProgramQueryConstraint654 , _:driveDriveProgramQueryConstraint657 .
+_:driveDriveProgramQueryConstraint642 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint643 , _:driveDriveProgramQueryConstraint650 .
+_:driveDriveProgramQueryConstraint661 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_v" .
+_:driveDriveProgramQueryConstraint663 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ24_a" .
+_:driveDriveProgramQueryConstraint664 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ24_v" .
+_:driveDriveProgramQueryConstraint662 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint663 , _:driveDriveProgramQueryConstraint664 .
+_:driveDriveProgramQueryConstraint660 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint662 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint661 .
+_:driveDriveProgramQueryConstraint641 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint642 ; logic:consequent _:driveDriveProgramQueryConstraint660 .
+_:driveDriveProgramQueryConstraint636 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint641 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint637 , _:driveDriveProgramQueryConstraint638 , _:driveDriveProgramQueryConstraint639 , _:driveDriveProgramQueryConstraint640 .
+_:driveDriveProgramQueryConstraint666 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_p" .
+_:driveDriveProgramQueryConstraint667 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_q" .
+_:driveDriveProgramQueryConstraint668 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ25_a" .
+_:driveDriveProgramQueryConstraint669 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ25_i" .
+_:driveDriveProgramQueryConstraint674 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint675 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_p" .
+_:driveDriveProgramQueryConstraint673 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint674 , _:driveDriveProgramQueryConstraint675 .
+_:driveDriveProgramQueryConstraint677 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_p" .
+_:driveDriveProgramQueryConstraint678 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_q" .
+_:driveDriveProgramQueryConstraint676 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint677 , _:driveDriveProgramQueryConstraint678 .
+_:driveDriveProgramQueryConstraint672 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint673 , _:driveDriveProgramQueryConstraint676 .
+_:driveDriveProgramQueryConstraint681 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_q" .
+_:driveDriveProgramQueryConstraint682 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_a" .
+_:driveDriveProgramQueryConstraint680 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint681 , _:driveDriveProgramQueryConstraint682 .
+_:driveDriveProgramQueryConstraint684 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_a" .
+_:driveDriveProgramQueryConstraint685 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_i" .
+_:driveDriveProgramQueryConstraint683 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint684 , _:driveDriveProgramQueryConstraint685 .
+_:driveDriveProgramQueryConstraint687 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_i" .
+_:driveDriveProgramQueryConstraint688 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint686 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint687 , _:driveDriveProgramQueryConstraint688 .
+_:driveDriveProgramQueryConstraint679 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint680 , _:driveDriveProgramQueryConstraint683 , _:driveDriveProgramQueryConstraint686 .
+_:driveDriveProgramQueryConstraint671 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint672 , _:driveDriveProgramQueryConstraint679 .
+_:driveDriveProgramQueryConstraint690 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_v" .
+_:driveDriveProgramQueryConstraint692 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ25_a" .
+_:driveDriveProgramQueryConstraint693 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ25_v" .
+_:driveDriveProgramQueryConstraint691 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint692 , _:driveDriveProgramQueryConstraint693 .
+_:driveDriveProgramQueryConstraint689 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint691 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint690 .
+_:driveDriveProgramQueryConstraint670 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint671 ; logic:consequent _:driveDriveProgramQueryConstraint689 .
+_:driveDriveProgramQueryConstraint665 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint670 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint666 , _:driveDriveProgramQueryConstraint667 , _:driveDriveProgramQueryConstraint668 , _:driveDriveProgramQueryConstraint669 .
+_:driveDriveProgramQueryConstraint695 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_p" .
+_:driveDriveProgramQueryConstraint696 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_q" .
+_:driveDriveProgramQueryConstraint697 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ26_a" .
+_:driveDriveProgramQueryConstraint698 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ26_i" .
+_:driveDriveProgramQueryConstraint703 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint704 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_p" .
+_:driveDriveProgramQueryConstraint702 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveProgramQueryConstraint703 , _:driveDriveProgramQueryConstraint704 .
+_:driveDriveProgramQueryConstraint706 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_p" .
+_:driveDriveProgramQueryConstraint707 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_q" .
+_:driveDriveProgramQueryConstraint705 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint706 , _:driveDriveProgramQueryConstraint707 .
+_:driveDriveProgramQueryConstraint701 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint702 , _:driveDriveProgramQueryConstraint705 .
+_:driveDriveProgramQueryConstraint710 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_q" .
+_:driveDriveProgramQueryConstraint711 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_a" .
+_:driveDriveProgramQueryConstraint709 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint710 , _:driveDriveProgramQueryConstraint711 .
+_:driveDriveProgramQueryConstraint713 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_a" .
+_:driveDriveProgramQueryConstraint714 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_i" .
+_:driveDriveProgramQueryConstraint712 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint713 , _:driveDriveProgramQueryConstraint714 .
+_:driveDriveProgramQueryConstraint716 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_i" .
+_:driveDriveProgramQueryConstraint717 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint715 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint716 , _:driveDriveProgramQueryConstraint717 .
+_:driveDriveProgramQueryConstraint708 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint709 , _:driveDriveProgramQueryConstraint712 , _:driveDriveProgramQueryConstraint715 .
+_:driveDriveProgramQueryConstraint700 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint701 , _:driveDriveProgramQueryConstraint708 .
+_:driveDriveProgramQueryConstraint719 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_v" .
+_:driveDriveProgramQueryConstraint721 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ26_a" .
+_:driveDriveProgramQueryConstraint722 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ26_v" .
+_:driveDriveProgramQueryConstraint720 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint721 , _:driveDriveProgramQueryConstraint722 .
+_:driveDriveProgramQueryConstraint718 a logic:Formula ; logic:exists _:driveDriveProgramQueryConstraint720 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint719 .
+_:driveDriveProgramQueryConstraint699 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint700 ; logic:consequent _:driveDriveProgramQueryConstraint718 .
+_:driveDriveProgramQueryConstraint694 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint699 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint695 , _:driveDriveProgramQueryConstraint696 , _:driveDriveProgramQueryConstraint697 , _:driveDriveProgramQueryConstraint698 .
+_:driveDriveProgramQueryConstraint724 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_p" .
+_:driveDriveProgramQueryConstraint725 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_q" .
+_:driveDriveProgramQueryConstraint726 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveQ27_a" .
+_:driveDriveProgramQueryConstraint727 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveQ27_i" .
+_:driveDriveProgramQueryConstraint728 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveQ27_v" .
+_:driveDriveProgramQueryConstraint729 a logic:TermCarrier ; logic:termIndex 5 ; logic:termVariable "driveQ27_b" .
+_:driveDriveProgramQueryConstraint730 a logic:TermCarrier ; logic:termIndex 6 ; logic:termVariable "driveQ27_j" .
+_:driveDriveProgramQueryConstraint731 a logic:TermCarrier ; logic:termIndex 7 ; logic:termVariable "driveQ27_w" .
+_:driveDriveProgramQueryConstraint736 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQueryDefinition" .
+_:driveDriveProgramQueryConstraint737 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_p" .
+_:driveDriveProgramQueryConstraint735 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveProgramQueryConstraint736 , _:driveDriveProgramQueryConstraint737 .
+_:driveDriveProgramQueryConstraint739 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_p" .
+_:driveDriveProgramQueryConstraint740 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_q" .
+_:driveDriveProgramQueryConstraint738 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveProgramQueryConstraint739 , _:driveDriveProgramQueryConstraint740 .
+_:driveDriveProgramQueryConstraint734 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint735 , _:driveDriveProgramQueryConstraint738 .
+_:driveDriveProgramQueryConstraint743 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_q" .
+_:driveDriveProgramQueryConstraint744 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_a" .
+_:driveDriveProgramQueryConstraint742 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint743 , _:driveDriveProgramQueryConstraint744 .
+_:driveDriveProgramQueryConstraint746 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_a" .
+_:driveDriveProgramQueryConstraint747 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_i" .
+_:driveDriveProgramQueryConstraint745 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint746 , _:driveDriveProgramQueryConstraint747 .
+_:driveDriveProgramQueryConstraint749 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_i" .
+_:driveDriveProgramQueryConstraint750 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint748 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint749 , _:driveDriveProgramQueryConstraint750 .
+_:driveDriveProgramQueryConstraint741 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint742 , _:driveDriveProgramQueryConstraint745 , _:driveDriveProgramQueryConstraint748 .
+_:driveDriveProgramQueryConstraint753 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_q" .
+_:driveDriveProgramQueryConstraint754 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_b" .
+_:driveDriveProgramQueryConstraint752 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveProgramQueryConstraint753 , _:driveDriveProgramQueryConstraint754 .
+_:driveDriveProgramQueryConstraint756 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_b" .
+_:driveDriveProgramQueryConstraint757 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_j" .
+_:driveDriveProgramQueryConstraint755 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveProgramQueryConstraint756 , _:driveDriveProgramQueryConstraint757 .
+_:driveDriveProgramQueryConstraint759 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_j" .
+_:driveDriveProgramQueryConstraint760 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveProgramQueryConstraint758 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveProgramQueryConstraint759 , _:driveDriveProgramQueryConstraint760 .
+_:driveDriveProgramQueryConstraint751 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint752 , _:driveDriveProgramQueryConstraint755 , _:driveDriveProgramQueryConstraint758 .
+_:driveDriveProgramQueryConstraint762 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_a" .
+_:driveDriveProgramQueryConstraint763 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_v" .
+_:driveDriveProgramQueryConstraint761 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint762 , _:driveDriveProgramQueryConstraint763 .
+_:driveDriveProgramQueryConstraint765 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_b" .
+_:driveDriveProgramQueryConstraint766 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_w" .
+_:driveDriveProgramQueryConstraint764 a logic:Formula ; logic:relation logic:termVariable ; logic:argument _:driveDriveProgramQueryConstraint765 , _:driveDriveProgramQueryConstraint766 .
+_:driveDriveProgramQueryConstraint733 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint734 , _:driveDriveProgramQueryConstraint741 , _:driveDriveProgramQueryConstraint751 , _:driveDriveProgramQueryConstraint761 , _:driveDriveProgramQueryConstraint764 .
+_:driveDriveProgramQueryConstraint768 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveQ27_v" .
+_:driveDriveProgramQueryConstraint769 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveQ27_w" .
+_:driveDriveProgramQueryConstraint767 a logic:Formula ; logic:relation logic:termDistinct ; logic:argument _:driveDriveProgramQueryConstraint768 , _:driveDriveProgramQueryConstraint769 .
+_:driveDriveProgramQueryConstraint732 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint733 ; logic:consequent _:driveDriveProgramQueryConstraint767 .
+_:driveDriveProgramQueryConstraint723 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint732 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint724 , _:driveDriveProgramQueryConstraint725 , _:driveDriveProgramQueryConstraint726 , _:driveDriveProgramQueryConstraint727 , _:driveDriveProgramQueryConstraint728 , _:driveDriveProgramQueryConstraint729 , _:driveDriveProgramQueryConstraint730 , _:driveDriveProgramQueryConstraint731 .
+_:driveDriveProgramQueryConstraint7 a logic:Formula ; logic:and _:driveDriveProgramQueryConstraint8 , _:driveDriveProgramQueryConstraint22 , _:driveDriveProgramQueryConstraint36 , _:driveDriveProgramQueryConstraint60 , _:driveDriveProgramQueryConstraint84 , _:driveDriveProgramQueryConstraint108 , _:driveDriveProgramQueryConstraint132 , _:driveDriveProgramQueryConstraint156 , _:driveDriveProgramQueryConstraint180 , _:driveDriveProgramQueryConstraint204 , _:driveDriveProgramQueryConstraint228 , _:driveDriveProgramQueryConstraint252 , _:driveDriveProgramQueryConstraint276 , _:driveDriveProgramQueryConstraint300 , _:driveDriveProgramQueryConstraint328 , _:driveDriveProgramQueryConstraint355 , _:driveDriveProgramQueryConstraint388 , _:driveDriveProgramQueryConstraint421 , _:driveDriveProgramQueryConstraint456 , _:driveDriveProgramQueryConstraint491 , _:driveDriveProgramQueryConstraint526 , _:driveDriveProgramQueryConstraint561 , _:driveDriveProgramQueryConstraint596 , _:driveDriveProgramQueryConstraint636 , _:driveDriveProgramQueryConstraint665 , _:driveDriveProgramQueryConstraint694 , _:driveDriveProgramQueryConstraint723 .
+_:driveDriveProgramQueryConstraint3 a logic:Formula ; logic:antecedent _:driveDriveProgramQueryConstraint4 ; logic:consequent _:driveDriveProgramQueryConstraint7 .
+_:driveDriveProgramQueryConstraint1 a logic:Formula ; logic:forall _:driveDriveProgramQueryConstraint3 ; logic:quantifiedVariable _:driveDriveProgramQueryConstraint2 .
+
+gmeow:DriveGroundInputConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "drive ground-input constraint"@x-gmeow-english ;
+    skos:definition "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."@x-gmeow-english ;
+    skos:scopeNote "Template variables remain unbound source variables; the selected consumer must check their actual later bindings."@x-gmeow-english ;
+    skos:example "A ground stage input lacking membership in the selected definition is rejected."@x-gmeow-english ;
+    gmeow:useWhen "Use to check actual supplied ground resources without inventing missing source facts."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not cap other stage memberships or infer a time coordinate, dimension or activity occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Bind actual stored query carriers and require each exact positive source association."@x-gmeow-english ;
+    logic:formalizes gmeow:DriveDefinition ;
+    logic:message "Requires actual ground drive-query resource inputs to have their declared source types, the circadian quantity’s selected dimension and the stage’s exact positive membership in the selected definition."@x-gmeow-english ;
+    logic:integrity _:driveDriveGroundInputConstraint1 .
+
+_:driveDriveGroundInputConstraint2 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint5 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint6 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:DriveDefinition .
+_:driveDriveGroundInputConstraint4 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint5 , _:driveDriveGroundInputConstraint6 .
+_:driveDriveGroundInputConstraint9 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_p" .
+_:driveDriveGroundInputConstraint10 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_q" .
+_:driveDriveGroundInputConstraint11 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG01_a" .
+_:driveDriveGroundInputConstraint12 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG01_i" .
+_:driveDriveGroundInputConstraint13 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG01_x" .
+_:driveDriveGroundInputConstraint19 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint20 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_p" .
+_:driveDriveGroundInputConstraint18 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveGroundInputConstraint19 , _:driveDriveGroundInputConstraint20 .
+_:driveDriveGroundInputConstraint22 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_p" .
+_:driveDriveGroundInputConstraint23 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_q" .
+_:driveDriveGroundInputConstraint21 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint22 , _:driveDriveGroundInputConstraint23 .
+_:driveDriveGroundInputConstraint17 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint18 , _:driveDriveGroundInputConstraint21 .
+_:driveDriveGroundInputConstraint26 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_q" .
+_:driveDriveGroundInputConstraint27 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_a" .
+_:driveDriveGroundInputConstraint25 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint26 , _:driveDriveGroundInputConstraint27 .
+_:driveDriveGroundInputConstraint29 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_a" .
+_:driveDriveGroundInputConstraint30 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_i" .
+_:driveDriveGroundInputConstraint28 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint29 , _:driveDriveGroundInputConstraint30 .
+_:driveDriveGroundInputConstraint32 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_i" .
+_:driveDriveGroundInputConstraint33 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint31 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint32 , _:driveDriveGroundInputConstraint33 .
+_:driveDriveGroundInputConstraint24 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint25 , _:driveDriveGroundInputConstraint28 , _:driveDriveGroundInputConstraint31 .
+_:driveDriveGroundInputConstraint16 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint17 , _:driveDriveGroundInputConstraint24 .
+_:driveDriveGroundInputConstraint35 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_a" .
+_:driveDriveGroundInputConstraint36 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG01_x" .
+_:driveDriveGroundInputConstraint34 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint35 , _:driveDriveGroundInputConstraint36 .
+_:driveDriveGroundInputConstraint15 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint16 , _:driveDriveGroundInputConstraint34 .
+_:driveDriveGroundInputConstraint38 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG01_x" .
+_:driveDriveGroundInputConstraint39 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:InformationObject .
+_:driveDriveGroundInputConstraint37 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint38 , _:driveDriveGroundInputConstraint39 .
+_:driveDriveGroundInputConstraint14 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint15 ; logic:consequent _:driveDriveGroundInputConstraint37 .
+_:driveDriveGroundInputConstraint8 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint14 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint9 , _:driveDriveGroundInputConstraint10 , _:driveDriveGroundInputConstraint11 , _:driveDriveGroundInputConstraint12 , _:driveDriveGroundInputConstraint13 .
+_:driveDriveGroundInputConstraint41 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_p" .
+_:driveDriveGroundInputConstraint42 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_q" .
+_:driveDriveGroundInputConstraint43 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG02_a" .
+_:driveDriveGroundInputConstraint44 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG02_i" .
+_:driveDriveGroundInputConstraint45 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG02_x" .
+_:driveDriveGroundInputConstraint51 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint52 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_p" .
+_:driveDriveGroundInputConstraint50 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveGroundInputConstraint51 , _:driveDriveGroundInputConstraint52 .
+_:driveDriveGroundInputConstraint54 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_p" .
+_:driveDriveGroundInputConstraint55 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_q" .
+_:driveDriveGroundInputConstraint53 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint54 , _:driveDriveGroundInputConstraint55 .
+_:driveDriveGroundInputConstraint49 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint50 , _:driveDriveGroundInputConstraint53 .
+_:driveDriveGroundInputConstraint58 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_q" .
+_:driveDriveGroundInputConstraint59 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_a" .
+_:driveDriveGroundInputConstraint57 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint58 , _:driveDriveGroundInputConstraint59 .
+_:driveDriveGroundInputConstraint61 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_a" .
+_:driveDriveGroundInputConstraint62 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_i" .
+_:driveDriveGroundInputConstraint60 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint61 , _:driveDriveGroundInputConstraint62 .
+_:driveDriveGroundInputConstraint64 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_i" .
+_:driveDriveGroundInputConstraint65 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint63 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint64 , _:driveDriveGroundInputConstraint65 .
+_:driveDriveGroundInputConstraint56 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint57 , _:driveDriveGroundInputConstraint60 , _:driveDriveGroundInputConstraint63 .
+_:driveDriveGroundInputConstraint48 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint49 , _:driveDriveGroundInputConstraint56 .
+_:driveDriveGroundInputConstraint67 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_a" .
+_:driveDriveGroundInputConstraint68 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG02_x" .
+_:driveDriveGroundInputConstraint66 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint67 , _:driveDriveGroundInputConstraint68 .
+_:driveDriveGroundInputConstraint47 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint48 , _:driveDriveGroundInputConstraint66 .
+_:driveDriveGroundInputConstraint70 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG02_x" .
+_:driveDriveGroundInputConstraint71 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:Instant .
+_:driveDriveGroundInputConstraint69 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint70 , _:driveDriveGroundInputConstraint71 .
+_:driveDriveGroundInputConstraint46 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint47 ; logic:consequent _:driveDriveGroundInputConstraint69 .
+_:driveDriveGroundInputConstraint40 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint46 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint41 , _:driveDriveGroundInputConstraint42 , _:driveDriveGroundInputConstraint43 , _:driveDriveGroundInputConstraint44 , _:driveDriveGroundInputConstraint45 .
+_:driveDriveGroundInputConstraint73 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_p" .
+_:driveDriveGroundInputConstraint74 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_q" .
+_:driveDriveGroundInputConstraint75 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG03_a" .
+_:driveDriveGroundInputConstraint76 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG03_i" .
+_:driveDriveGroundInputConstraint77 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG03_x" .
+_:driveDriveGroundInputConstraint83 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint84 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_p" .
+_:driveDriveGroundInputConstraint82 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveGroundInputConstraint83 , _:driveDriveGroundInputConstraint84 .
+_:driveDriveGroundInputConstraint86 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_p" .
+_:driveDriveGroundInputConstraint87 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_q" .
+_:driveDriveGroundInputConstraint85 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint86 , _:driveDriveGroundInputConstraint87 .
+_:driveDriveGroundInputConstraint81 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint82 , _:driveDriveGroundInputConstraint85 .
+_:driveDriveGroundInputConstraint90 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_q" .
+_:driveDriveGroundInputConstraint91 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_a" .
+_:driveDriveGroundInputConstraint89 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint90 , _:driveDriveGroundInputConstraint91 .
+_:driveDriveGroundInputConstraint93 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_a" .
+_:driveDriveGroundInputConstraint94 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_i" .
+_:driveDriveGroundInputConstraint92 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint93 , _:driveDriveGroundInputConstraint94 .
+_:driveDriveGroundInputConstraint96 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_i" .
+_:driveDriveGroundInputConstraint97 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint95 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint96 , _:driveDriveGroundInputConstraint97 .
+_:driveDriveGroundInputConstraint88 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint89 , _:driveDriveGroundInputConstraint92 , _:driveDriveGroundInputConstraint95 .
+_:driveDriveGroundInputConstraint80 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint81 , _:driveDriveGroundInputConstraint88 .
+_:driveDriveGroundInputConstraint99 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_a" .
+_:driveDriveGroundInputConstraint100 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG03_x" .
+_:driveDriveGroundInputConstraint98 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint99 , _:driveDriveGroundInputConstraint100 .
+_:driveDriveGroundInputConstraint79 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint80 , _:driveDriveGroundInputConstraint98 .
+_:driveDriveGroundInputConstraint102 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG03_x" .
+_:driveDriveGroundInputConstraint103 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri math:Quantity .
+_:driveDriveGroundInputConstraint101 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint102 , _:driveDriveGroundInputConstraint103 .
+_:driveDriveGroundInputConstraint78 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint79 ; logic:consequent _:driveDriveGroundInputConstraint101 .
+_:driveDriveGroundInputConstraint72 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint78 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint73 , _:driveDriveGroundInputConstraint74 , _:driveDriveGroundInputConstraint75 , _:driveDriveGroundInputConstraint76 , _:driveDriveGroundInputConstraint77 .
+_:driveDriveGroundInputConstraint105 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_p" .
+_:driveDriveGroundInputConstraint106 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_q" .
+_:driveDriveGroundInputConstraint107 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG04_a" .
+_:driveDriveGroundInputConstraint108 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG04_i" .
+_:driveDriveGroundInputConstraint109 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG04_x" .
+_:driveDriveGroundInputConstraint110 a logic:TermCarrier ; logic:termIndex 5 ; logic:termVariable "driveG04_dim" .
+_:driveDriveGroundInputConstraint116 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint117 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_p" .
+_:driveDriveGroundInputConstraint115 a logic:Formula ; logic:relation gmeow:driveAccumulationProgram ; logic:argument _:driveDriveGroundInputConstraint116 , _:driveDriveGroundInputConstraint117 .
+_:driveDriveGroundInputConstraint119 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_p" .
+_:driveDriveGroundInputConstraint120 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_q" .
+_:driveDriveGroundInputConstraint118 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint119 , _:driveDriveGroundInputConstraint120 .
+_:driveDriveGroundInputConstraint114 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint115 , _:driveDriveGroundInputConstraint118 .
+_:driveDriveGroundInputConstraint123 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_q" .
+_:driveDriveGroundInputConstraint124 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_a" .
+_:driveDriveGroundInputConstraint122 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint123 , _:driveDriveGroundInputConstraint124 .
+_:driveDriveGroundInputConstraint126 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_a" .
+_:driveDriveGroundInputConstraint127 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_i" .
+_:driveDriveGroundInputConstraint125 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint126 , _:driveDriveGroundInputConstraint127 .
+_:driveDriveGroundInputConstraint129 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_i" .
+_:driveDriveGroundInputConstraint130 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint128 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint129 , _:driveDriveGroundInputConstraint130 .
+_:driveDriveGroundInputConstraint121 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint122 , _:driveDriveGroundInputConstraint125 , _:driveDriveGroundInputConstraint128 .
+_:driveDriveGroundInputConstraint113 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint114 , _:driveDriveGroundInputConstraint121 .
+_:driveDriveGroundInputConstraint132 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_a" .
+_:driveDriveGroundInputConstraint133 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_x" .
+_:driveDriveGroundInputConstraint131 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint132 , _:driveDriveGroundInputConstraint133 .
+_:driveDriveGroundInputConstraint135 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint136 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_dim" .
+_:driveDriveGroundInputConstraint134 a logic:Formula ; logic:relation gmeow:driveCircadianDimension ; logic:argument _:driveDriveGroundInputConstraint135 , _:driveDriveGroundInputConstraint136 .
+_:driveDriveGroundInputConstraint112 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint113 , _:driveDriveGroundInputConstraint131 , _:driveDriveGroundInputConstraint134 .
+_:driveDriveGroundInputConstraint138 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG04_x" .
+_:driveDriveGroundInputConstraint139 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG04_dim" .
+_:driveDriveGroundInputConstraint137 a logic:Formula ; logic:relation math:hasDimension ; logic:argument _:driveDriveGroundInputConstraint138 , _:driveDriveGroundInputConstraint139 .
+_:driveDriveGroundInputConstraint111 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint112 ; logic:consequent _:driveDriveGroundInputConstraint137 .
+_:driveDriveGroundInputConstraint104 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint111 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint105 , _:driveDriveGroundInputConstraint106 , _:driveDriveGroundInputConstraint107 , _:driveDriveGroundInputConstraint108 , _:driveDriveGroundInputConstraint109 , _:driveDriveGroundInputConstraint110 .
+_:driveDriveGroundInputConstraint141 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_p" .
+_:driveDriveGroundInputConstraint142 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_q" .
+_:driveDriveGroundInputConstraint143 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG05_a" .
+_:driveDriveGroundInputConstraint144 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG05_i" .
+_:driveDriveGroundInputConstraint145 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG05_x" .
+_:driveDriveGroundInputConstraint151 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint152 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_p" .
+_:driveDriveGroundInputConstraint150 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveGroundInputConstraint151 , _:driveDriveGroundInputConstraint152 .
+_:driveDriveGroundInputConstraint154 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_p" .
+_:driveDriveGroundInputConstraint155 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_q" .
+_:driveDriveGroundInputConstraint153 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint154 , _:driveDriveGroundInputConstraint155 .
+_:driveDriveGroundInputConstraint149 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint150 , _:driveDriveGroundInputConstraint153 .
+_:driveDriveGroundInputConstraint158 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_q" .
+_:driveDriveGroundInputConstraint159 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_a" .
+_:driveDriveGroundInputConstraint157 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint158 , _:driveDriveGroundInputConstraint159 .
+_:driveDriveGroundInputConstraint161 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_a" .
+_:driveDriveGroundInputConstraint162 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_i" .
+_:driveDriveGroundInputConstraint160 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint161 , _:driveDriveGroundInputConstraint162 .
+_:driveDriveGroundInputConstraint164 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_i" .
+_:driveDriveGroundInputConstraint165 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint163 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint164 , _:driveDriveGroundInputConstraint165 .
+_:driveDriveGroundInputConstraint156 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint157 , _:driveDriveGroundInputConstraint160 , _:driveDriveGroundInputConstraint163 .
+_:driveDriveGroundInputConstraint148 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint149 , _:driveDriveGroundInputConstraint156 .
+_:driveDriveGroundInputConstraint167 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_a" .
+_:driveDriveGroundInputConstraint168 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG05_x" .
+_:driveDriveGroundInputConstraint166 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint167 , _:driveDriveGroundInputConstraint168 .
+_:driveDriveGroundInputConstraint147 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint148 , _:driveDriveGroundInputConstraint166 .
+_:driveDriveGroundInputConstraint170 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG05_x" .
+_:driveDriveGroundInputConstraint171 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:EventDescription .
+_:driveDriveGroundInputConstraint169 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint170 , _:driveDriveGroundInputConstraint171 .
+_:driveDriveGroundInputConstraint146 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint147 ; logic:consequent _:driveDriveGroundInputConstraint169 .
+_:driveDriveGroundInputConstraint140 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint146 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint141 , _:driveDriveGroundInputConstraint142 , _:driveDriveGroundInputConstraint143 , _:driveDriveGroundInputConstraint144 , _:driveDriveGroundInputConstraint145 .
+_:driveDriveGroundInputConstraint173 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_p" .
+_:driveDriveGroundInputConstraint174 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_q" .
+_:driveDriveGroundInputConstraint175 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG06_a" .
+_:driveDriveGroundInputConstraint176 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG06_i" .
+_:driveDriveGroundInputConstraint177 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG06_x" .
+_:driveDriveGroundInputConstraint183 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint184 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_p" .
+_:driveDriveGroundInputConstraint182 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveGroundInputConstraint183 , _:driveDriveGroundInputConstraint184 .
+_:driveDriveGroundInputConstraint186 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_p" .
+_:driveDriveGroundInputConstraint187 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_q" .
+_:driveDriveGroundInputConstraint185 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint186 , _:driveDriveGroundInputConstraint187 .
+_:driveDriveGroundInputConstraint181 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint182 , _:driveDriveGroundInputConstraint185 .
+_:driveDriveGroundInputConstraint190 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_q" .
+_:driveDriveGroundInputConstraint191 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_a" .
+_:driveDriveGroundInputConstraint189 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint190 , _:driveDriveGroundInputConstraint191 .
+_:driveDriveGroundInputConstraint193 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_a" .
+_:driveDriveGroundInputConstraint194 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_i" .
+_:driveDriveGroundInputConstraint192 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint193 , _:driveDriveGroundInputConstraint194 .
+_:driveDriveGroundInputConstraint196 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_i" .
+_:driveDriveGroundInputConstraint197 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint195 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint196 , _:driveDriveGroundInputConstraint197 .
+_:driveDriveGroundInputConstraint188 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint189 , _:driveDriveGroundInputConstraint192 , _:driveDriveGroundInputConstraint195 .
+_:driveDriveGroundInputConstraint180 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint181 , _:driveDriveGroundInputConstraint188 .
+_:driveDriveGroundInputConstraint199 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_a" .
+_:driveDriveGroundInputConstraint200 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG06_x" .
+_:driveDriveGroundInputConstraint198 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint199 , _:driveDriveGroundInputConstraint200 .
+_:driveDriveGroundInputConstraint179 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint180 , _:driveDriveGroundInputConstraint198 .
+_:driveDriveGroundInputConstraint202 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG06_x" .
+_:driveDriveGroundInputConstraint203 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:DriveStage .
+_:driveDriveGroundInputConstraint201 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveGroundInputConstraint202 , _:driveDriveGroundInputConstraint203 .
+_:driveDriveGroundInputConstraint178 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint179 ; logic:consequent _:driveDriveGroundInputConstraint201 .
+_:driveDriveGroundInputConstraint172 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint178 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint173 , _:driveDriveGroundInputConstraint174 , _:driveDriveGroundInputConstraint175 , _:driveDriveGroundInputConstraint176 , _:driveDriveGroundInputConstraint177 .
+_:driveDriveGroundInputConstraint205 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_p" .
+_:driveDriveGroundInputConstraint206 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_q" .
+_:driveDriveGroundInputConstraint207 a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "driveG07_a" .
+_:driveDriveGroundInputConstraint208 a logic:TermCarrier ; logic:termIndex 3 ; logic:termVariable "driveG07_i" .
+_:driveDriveGroundInputConstraint209 a logic:TermCarrier ; logic:termIndex 4 ; logic:termVariable "driveG07_x" .
+_:driveDriveGroundInputConstraint215 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint216 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_p" .
+_:driveDriveGroundInputConstraint214 a logic:Formula ; logic:relation gmeow:driveModeProgram ; logic:argument _:driveDriveGroundInputConstraint215 , _:driveDriveGroundInputConstraint216 .
+_:driveDriveGroundInputConstraint218 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_p" .
+_:driveDriveGroundInputConstraint219 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_q" .
+_:driveDriveGroundInputConstraint217 a logic:Formula ; logic:relation logic:programQuery ; logic:argument _:driveDriveGroundInputConstraint218 , _:driveDriveGroundInputConstraint219 .
+_:driveDriveGroundInputConstraint213 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint214 , _:driveDriveGroundInputConstraint217 .
+_:driveDriveGroundInputConstraint222 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_q" .
+_:driveDriveGroundInputConstraint223 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_a" .
+_:driveDriveGroundInputConstraint221 a logic:Formula ; logic:relation logic:argument ; logic:argument _:driveDriveGroundInputConstraint222 , _:driveDriveGroundInputConstraint223 .
+_:driveDriveGroundInputConstraint225 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_a" .
+_:driveDriveGroundInputConstraint226 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_i" .
+_:driveDriveGroundInputConstraint224 a logic:Formula ; logic:relation logic:termIndex ; logic:argument _:driveDriveGroundInputConstraint225 , _:driveDriveGroundInputConstraint226 .
+_:driveDriveGroundInputConstraint228 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_i" .
+_:driveDriveGroundInputConstraint229 a logic:TermCarrier ; logic:termIndex 1 ; logic:termLiteral "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:driveDriveGroundInputConstraint227 a logic:Formula ; logic:relation logic:termEqual ; logic:argument _:driveDriveGroundInputConstraint228 , _:driveDriveGroundInputConstraint229 .
+_:driveDriveGroundInputConstraint220 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint221 , _:driveDriveGroundInputConstraint224 , _:driveDriveGroundInputConstraint227 .
+_:driveDriveGroundInputConstraint212 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint213 , _:driveDriveGroundInputConstraint220 .
+_:driveDriveGroundInputConstraint231 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_a" .
+_:driveDriveGroundInputConstraint232 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveG07_x" .
+_:driveDriveGroundInputConstraint230 a logic:Formula ; logic:relation logic:termIri ; logic:argument _:driveDriveGroundInputConstraint231 , _:driveDriveGroundInputConstraint232 .
+_:driveDriveGroundInputConstraint211 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint212 , _:driveDriveGroundInputConstraint230 .
+_:driveDriveGroundInputConstraint234 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveG07_x" .
+_:driveDriveGroundInputConstraint235 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveGroundDefinition" .
+_:driveDriveGroundInputConstraint233 a logic:Formula ; logic:relation gmeow:stageOfDrive ; logic:argument _:driveDriveGroundInputConstraint234 , _:driveDriveGroundInputConstraint235 .
+_:driveDriveGroundInputConstraint210 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint211 ; logic:consequent _:driveDriveGroundInputConstraint233 .
+_:driveDriveGroundInputConstraint204 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint210 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint205 , _:driveDriveGroundInputConstraint206 , _:driveDriveGroundInputConstraint207 , _:driveDriveGroundInputConstraint208 , _:driveDriveGroundInputConstraint209 .
+_:driveDriveGroundInputConstraint7 a logic:Formula ; logic:and _:driveDriveGroundInputConstraint8 , _:driveDriveGroundInputConstraint40 , _:driveDriveGroundInputConstraint72 , _:driveDriveGroundInputConstraint104 , _:driveDriveGroundInputConstraint140 , _:driveDriveGroundInputConstraint172 , _:driveDriveGroundInputConstraint204 .
+_:driveDriveGroundInputConstraint3 a logic:Formula ; logic:antecedent _:driveDriveGroundInputConstraint4 ; logic:consequent _:driveDriveGroundInputConstraint7 .
+_:driveDriveGroundInputConstraint1 a logic:Formula ; logic:forall _:driveDriveGroundInputConstraint3 ; logic:quantifiedVariable _:driveDriveGroundInputConstraint2 .
+
+gmeow:DriveHistoryClauseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "drive history clause constraint"@x-gmeow-english ;
+    skos:definition "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."@x-gmeow-english ;
+    skos:scopeNote "Complete Formula and carrier admission remains with Logic; selecting a fact does not assert complete history or execute it."@x-gmeow-english ;
+    skos:example "A selected history root carrying an implication constructor violates this fact-only contract."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish supplied history facts from derivation rules."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not linearize partial order, count duplicate triples as occurrences or fabricate a source event."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the actual selected Formula root and preserve its source context and record identity."@x-gmeow-english ;
+    logic:formalizes gmeow:driveHistoryClause ;
+    logic:message "Requires each selected drive-history clause to be an actual Formula fact with a relation and no supplied quantifier or connective constructor at its root."@x-gmeow-english ;
+    logic:integrity _:driveDriveHistoryClauseConstraint1 .
+
+_:driveDriveHistoryClauseConstraint2 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint5 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint6 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri gmeow:InformationObject .
+_:driveDriveHistoryClauseConstraint4 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveHistoryClauseConstraint5 , _:driveDriveHistoryClauseConstraint6 .
+_:driveDriveHistoryClauseConstraint9 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH01_f" .
+_:driveDriveHistoryClauseConstraint12 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint13 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH01_f" .
+_:driveDriveHistoryClauseConstraint11 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint12 , _:driveDriveHistoryClauseConstraint13 .
+_:driveDriveHistoryClauseConstraint15 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH01_f" .
+_:driveDriveHistoryClauseConstraint16 a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri logic:Formula .
+_:driveDriveHistoryClauseConstraint14 a logic:Formula ; logic:relation rdf:type ; logic:argument _:driveDriveHistoryClauseConstraint15 , _:driveDriveHistoryClauseConstraint16 .
+_:driveDriveHistoryClauseConstraint10 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint11 ; logic:consequent _:driveDriveHistoryClauseConstraint14 .
+_:driveDriveHistoryClauseConstraint8 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint10 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint9 .
+_:driveDriveHistoryClauseConstraint18 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH02_f" .
+_:driveDriveHistoryClauseConstraint21 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint22 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH02_f" .
+_:driveDriveHistoryClauseConstraint20 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint21 , _:driveDriveHistoryClauseConstraint22 .
+_:driveDriveHistoryClauseConstraint24 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH02_r" .
+_:driveDriveHistoryClauseConstraint26 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH02_f" .
+_:driveDriveHistoryClauseConstraint27 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH02_r" .
+_:driveDriveHistoryClauseConstraint25 a logic:Formula ; logic:relation logic:relation ; logic:argument _:driveDriveHistoryClauseConstraint26 , _:driveDriveHistoryClauseConstraint27 .
+_:driveDriveHistoryClauseConstraint23 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint25 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint24 .
+_:driveDriveHistoryClauseConstraint19 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint20 ; logic:consequent _:driveDriveHistoryClauseConstraint23 .
+_:driveDriveHistoryClauseConstraint17 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint19 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint18 .
+_:driveDriveHistoryClauseConstraint29 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH03_f" .
+_:driveDriveHistoryClauseConstraint32 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint33 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH03_f" .
+_:driveDriveHistoryClauseConstraint31 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint32 , _:driveDriveHistoryClauseConstraint33 .
+_:driveDriveHistoryClauseConstraint36 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH03_v" .
+_:driveDriveHistoryClauseConstraint38 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH03_f" .
+_:driveDriveHistoryClauseConstraint39 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH03_v" .
+_:driveDriveHistoryClauseConstraint37 a logic:Formula ; logic:relation logic:forall ; logic:argument _:driveDriveHistoryClauseConstraint38 , _:driveDriveHistoryClauseConstraint39 .
+_:driveDriveHistoryClauseConstraint35 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint37 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint36 .
+_:driveDriveHistoryClauseConstraint34 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint35 .
+_:driveDriveHistoryClauseConstraint30 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint31 ; logic:consequent _:driveDriveHistoryClauseConstraint34 .
+_:driveDriveHistoryClauseConstraint28 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint30 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint29 .
+_:driveDriveHistoryClauseConstraint41 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH04_f" .
+_:driveDriveHistoryClauseConstraint44 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint45 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH04_f" .
+_:driveDriveHistoryClauseConstraint43 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint44 , _:driveDriveHistoryClauseConstraint45 .
+_:driveDriveHistoryClauseConstraint48 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH04_v" .
+_:driveDriveHistoryClauseConstraint50 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH04_f" .
+_:driveDriveHistoryClauseConstraint51 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH04_v" .
+_:driveDriveHistoryClauseConstraint49 a logic:Formula ; logic:relation logic:exists ; logic:argument _:driveDriveHistoryClauseConstraint50 , _:driveDriveHistoryClauseConstraint51 .
+_:driveDriveHistoryClauseConstraint47 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint49 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint48 .
+_:driveDriveHistoryClauseConstraint46 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint47 .
+_:driveDriveHistoryClauseConstraint42 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint43 ; logic:consequent _:driveDriveHistoryClauseConstraint46 .
+_:driveDriveHistoryClauseConstraint40 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint42 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint41 .
+_:driveDriveHistoryClauseConstraint53 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH05_f" .
+_:driveDriveHistoryClauseConstraint56 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint57 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH05_f" .
+_:driveDriveHistoryClauseConstraint55 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint56 , _:driveDriveHistoryClauseConstraint57 .
+_:driveDriveHistoryClauseConstraint60 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH05_v" .
+_:driveDriveHistoryClauseConstraint62 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH05_f" .
+_:driveDriveHistoryClauseConstraint63 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH05_v" .
+_:driveDriveHistoryClauseConstraint61 a logic:Formula ; logic:relation logic:and ; logic:argument _:driveDriveHistoryClauseConstraint62 , _:driveDriveHistoryClauseConstraint63 .
+_:driveDriveHistoryClauseConstraint59 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint61 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint60 .
+_:driveDriveHistoryClauseConstraint58 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint59 .
+_:driveDriveHistoryClauseConstraint54 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint55 ; logic:consequent _:driveDriveHistoryClauseConstraint58 .
+_:driveDriveHistoryClauseConstraint52 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint54 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint53 .
+_:driveDriveHistoryClauseConstraint65 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH06_f" .
+_:driveDriveHistoryClauseConstraint68 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint69 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH06_f" .
+_:driveDriveHistoryClauseConstraint67 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint68 , _:driveDriveHistoryClauseConstraint69 .
+_:driveDriveHistoryClauseConstraint72 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH06_v" .
+_:driveDriveHistoryClauseConstraint74 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH06_f" .
+_:driveDriveHistoryClauseConstraint75 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH06_v" .
+_:driveDriveHistoryClauseConstraint73 a logic:Formula ; logic:relation logic:or ; logic:argument _:driveDriveHistoryClauseConstraint74 , _:driveDriveHistoryClauseConstraint75 .
+_:driveDriveHistoryClauseConstraint71 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint73 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint72 .
+_:driveDriveHistoryClauseConstraint70 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint71 .
+_:driveDriveHistoryClauseConstraint66 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint67 ; logic:consequent _:driveDriveHistoryClauseConstraint70 .
+_:driveDriveHistoryClauseConstraint64 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint66 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint65 .
+_:driveDriveHistoryClauseConstraint77 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH07_f" .
+_:driveDriveHistoryClauseConstraint80 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint81 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH07_f" .
+_:driveDriveHistoryClauseConstraint79 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint80 , _:driveDriveHistoryClauseConstraint81 .
+_:driveDriveHistoryClauseConstraint84 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH07_v" .
+_:driveDriveHistoryClauseConstraint86 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH07_f" .
+_:driveDriveHistoryClauseConstraint87 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH07_v" .
+_:driveDriveHistoryClauseConstraint85 a logic:Formula ; logic:relation logic:not ; logic:argument _:driveDriveHistoryClauseConstraint86 , _:driveDriveHistoryClauseConstraint87 .
+_:driveDriveHistoryClauseConstraint83 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint85 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint84 .
+_:driveDriveHistoryClauseConstraint82 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint83 .
+_:driveDriveHistoryClauseConstraint78 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint79 ; logic:consequent _:driveDriveHistoryClauseConstraint82 .
+_:driveDriveHistoryClauseConstraint76 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint78 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint77 .
+_:driveDriveHistoryClauseConstraint89 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH08_f" .
+_:driveDriveHistoryClauseConstraint92 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint93 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH08_f" .
+_:driveDriveHistoryClauseConstraint91 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint92 , _:driveDriveHistoryClauseConstraint93 .
+_:driveDriveHistoryClauseConstraint96 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH08_v" .
+_:driveDriveHistoryClauseConstraint98 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH08_f" .
+_:driveDriveHistoryClauseConstraint99 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH08_v" .
+_:driveDriveHistoryClauseConstraint97 a logic:Formula ; logic:relation logic:iff ; logic:argument _:driveDriveHistoryClauseConstraint98 , _:driveDriveHistoryClauseConstraint99 .
+_:driveDriveHistoryClauseConstraint95 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint97 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint96 .
+_:driveDriveHistoryClauseConstraint94 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint95 .
+_:driveDriveHistoryClauseConstraint90 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint91 ; logic:consequent _:driveDriveHistoryClauseConstraint94 .
+_:driveDriveHistoryClauseConstraint88 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint90 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint89 .
+_:driveDriveHistoryClauseConstraint101 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH09_f" .
+_:driveDriveHistoryClauseConstraint104 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint105 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH09_f" .
+_:driveDriveHistoryClauseConstraint103 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint104 , _:driveDriveHistoryClauseConstraint105 .
+_:driveDriveHistoryClauseConstraint108 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH09_v" .
+_:driveDriveHistoryClauseConstraint110 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH09_f" .
+_:driveDriveHistoryClauseConstraint111 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH09_v" .
+_:driveDriveHistoryClauseConstraint109 a logic:Formula ; logic:relation logic:antecedent ; logic:argument _:driveDriveHistoryClauseConstraint110 , _:driveDriveHistoryClauseConstraint111 .
+_:driveDriveHistoryClauseConstraint107 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint109 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint108 .
+_:driveDriveHistoryClauseConstraint106 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint107 .
+_:driveDriveHistoryClauseConstraint102 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint103 ; logic:consequent _:driveDriveHistoryClauseConstraint106 .
+_:driveDriveHistoryClauseConstraint100 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint102 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint101 .
+_:driveDriveHistoryClauseConstraint113 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH10_f" .
+_:driveDriveHistoryClauseConstraint116 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveHistory" .
+_:driveDriveHistoryClauseConstraint117 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH10_f" .
+_:driveDriveHistoryClauseConstraint115 a logic:Formula ; logic:relation gmeow:driveHistoryClause ; logic:argument _:driveDriveHistoryClauseConstraint116 , _:driveDriveHistoryClauseConstraint117 .
+_:driveDriveHistoryClauseConstraint120 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH10_v" .
+_:driveDriveHistoryClauseConstraint122 a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "driveH10_f" .
+_:driveDriveHistoryClauseConstraint123 a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "driveH10_v" .
+_:driveDriveHistoryClauseConstraint121 a logic:Formula ; logic:relation logic:consequent ; logic:argument _:driveDriveHistoryClauseConstraint122 , _:driveDriveHistoryClauseConstraint123 .
+_:driveDriveHistoryClauseConstraint119 a logic:Formula ; logic:exists _:driveDriveHistoryClauseConstraint121 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint120 .
+_:driveDriveHistoryClauseConstraint118 a logic:Formula ; logic:not _:driveDriveHistoryClauseConstraint119 .
+_:driveDriveHistoryClauseConstraint114 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint115 ; logic:consequent _:driveDriveHistoryClauseConstraint118 .
+_:driveDriveHistoryClauseConstraint112 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint114 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint113 .
+_:driveDriveHistoryClauseConstraint7 a logic:Formula ; logic:and _:driveDriveHistoryClauseConstraint8 , _:driveDriveHistoryClauseConstraint17 , _:driveDriveHistoryClauseConstraint28 , _:driveDriveHistoryClauseConstraint40 , _:driveDriveHistoryClauseConstraint52 , _:driveDriveHistoryClauseConstraint64 , _:driveDriveHistoryClauseConstraint76 , _:driveDriveHistoryClauseConstraint88 , _:driveDriveHistoryClauseConstraint100 , _:driveDriveHistoryClauseConstraint112 .
+_:driveDriveHistoryClauseConstraint3 a logic:Formula ; logic:antecedent _:driveDriveHistoryClauseConstraint4 ; logic:consequent _:driveDriveHistoryClauseConstraint7 .
+_:driveDriveHistoryClauseConstraint1 a logic:Formula ; logic:forall _:driveDriveHistoryClauseConstraint3 ; logic:quantifiedVariable _:driveDriveHistoryClauseConstraint2 .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveAccumulationProgram ; logic:allValuesFrom logic:ReasoningProgram ] .
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveAccumulationProgram ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:relievingActivityDescription ; logic:allValuesFrom gmeow:EventDescription ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relievingActivityDescription" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveCircadianExpression ; logic:allValuesFrom math:MathematicalExpression ] .
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveCircadianExpression ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveCircadianExpression" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveModeProgram ; logic:allValuesFrom logic:ReasoningProgram ] .
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveModeProgram ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveModeProgram" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveLevelDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveLevelDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveLevelDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveCircadianDimension ; logic:allValuesFrom math:Dimension ] .
+gmeow:DriveDefinition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:driveCircadianDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:DriveDefinition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveCircadianDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DriveStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stageOfDrive ; logic:allValuesFrom gmeow:DriveDefinition ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/stageOfDrive" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveAccumulationProgram" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relievingActivityDescription" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveCircadianExpression" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveModeProgram" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveLevelDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveCircadianDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/driveHistoryClause" ; logic:closureValue logic:ClosedWorldClosure ] .
