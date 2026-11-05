@@ -1104,3 +1104,87 @@ msgstr "Conserver l’enregistrement et les preuves originales lors du signaleme
 msgctxt "https://blackcatinformatics.ca/gmeow/EpochSuccessorProvenanceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain this governing law: gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
 msgstr "Conserver cette loi : gmeow:EpochSuccessorProvenanceConstraint logic:formalizes gmeow:CurationEpoch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark class"
+msgstr "classe de marque de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for a curator’s trace-retention classification of an Annotation."
+msgstr "Un vocabulaire ouvert de valeurs de qualité pour la classification par un curateur d’une Annotation en vue de la conservation des traces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Members are classification values, not EventTypes, event occurrences, confidence levels or a closed taxonomy. A classification belongs to the annotation and does not assert the target’s content or a globally preferred importance rank."
+msgstr "Les membres sont des valeurs de classification, pas des EventType, des occurrences d’événement, des niveaux de confiance ou une taxonomie fermée. Une classification appartient à l’annotation et n’affirme ni le contenu de la cible ni un rang d’importance privilégié globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator supplies a trace-retention category on an actual annotation while retaining its source target, motivation and attribution."
+msgstr "Un curateur fournit une catégorie de conservation des traces sur une annotation réelle tout en conservant sa cible source, sa motivation et son attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to type actual curator-supplied categories for trace-retention annotations."
+msgstr "Utiliser pour typer les catégories réellement fournies par un curateur pour les annotations de conservation des traces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning local category names into a universal enumeration, EventType subclasses, confidence or proof that an event occurred or traces were retained."
+msgstr "Éviter de transformer des noms de catégories locales en une énumération universelle, en sous-classes d’EventType, en confiance ou en preuve qu’un événement a eu lieu ou que des traces ont été conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type an actual classification value as TraceMarkClass and attach it through traceMarkClass to the actual Annotation. Preserve its target, motivation, curator attribution and source-specific meaning; mint additional values without imposing a preferred category."
+msgstr "Typer une valeur réelle de classification comme TraceMarkClass et la relier par traceMarkClass à l’Annotation réelle. Conserver sa cible, sa motivation, l’attribution au curateur et son sens propre à la source ; créer d’autres valeurs sans imposer de catégorie privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark class"
+msgstr "classe de marque de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The curator-supplied trace-retention classification of this Annotation."
+msgstr "La classification de conservation des traces fournie par le curateur pour cette Annotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role permits coexisting attributed classifications. It does not require a category on every Annotation, identify the target with an Event or replace the existing target and motivation obligations."
+msgstr "Ce rôle facultatif et non fonctionnel permet des classifications attribuées coexistantes. Il n’exige pas de catégorie pour chaque Annotation, n’identifie pas la cible à un Event et ne remplace pas les obligations existantes de cible et de motivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual source annotation retains the curator’s supplied category without inventing a missing annotation target or motivation."
+msgstr "Une annotation source réelle conserve la catégorie fournie par le curateur sans inventer de cible ou de motivation manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a curator explicitly classifies an actual annotation for trace retention."
+msgstr "Utiliser lorsqu’un curateur classe explicitement une annotation réelle pour la conservation des traces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a category, event occurrence, successful trace join, finality, retention or permission to delete from an annotation or its absence."
+msgstr "Éviter de déduire une catégorie, une occurrence d’événement, une jointure de traces réussie, la finalité, la conservation ou une permission de suppression d’une annotation ou de son absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkClass|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only the actual supplied TraceMarkClass value and preserve the Annotation’s actual target, motivation, curator and standpoint. Do not select a default motivation, manufacture a body or use an Observation vantage to type the annotation."
+msgstr "Relier uniquement la valeur TraceMarkClass réellement fournie et conserver la cible, la motivation, le curateur et le point de vue réels de l’Annotation. Ne pas sélectionner de motivation par défaut, fabriquer de corps ou utiliser un vantage d’Observation pour typer l’annotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "high-friction correction trace class"
+msgstr "classe de trace de correction à forte friction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A curator’s trace-retention classification of a teller’s reading that one act, using the same tool and arguments, was tried again in an episode after an earlier attempt did not succeed."
+msgstr "La classification de conservation des traces par un curateur d’une lecture d’un narrateur selon laquelle un même acte, avec le même outil et les mêmes arguments, a été tenté de nouveau dans un épisode après qu’une tentative antérieure n’a pas réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies the teller’s reading. It does not assert the underlying event, tool or argument equality, retry execution, truth, curator endorsement, an EventType or a confidence value."
+msgstr "Cette valeur classe la lecture du narrateur. Elle n’affirme ni l’événement sous-jacent, ni l’égalité des outils ou des arguments, ni l’exécution de la nouvelle tentative, ni la vérité, ni l’approbation du curateur ; elle n’est ni un EventType ni une valeur de confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator classifies an annotation of a teller’s reported retry reading while leaving its actual attempt identities, evidence and interpretation on the source reading."
+msgstr "Un curateur classe une annotation de la lecture rapportée par un narrateur au sujet d’une nouvelle tentative, tout en laissant les identités réelles des tentatives, les preuves et l’interprétation sur la lecture source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the curator actually supplies this trace-retention classification for the teller’s reading of an earlier unsuccessful attempt and a later retry of the same tool and arguments in an episode."
+msgstr "Utiliser uniquement lorsque le curateur fournit réellement cette classification de conservation des traces pour la lecture du narrateur portant sur une tentative antérieure non réussie et une tentative ultérieure avec le même outil et les mêmes arguments dans un épisode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the classification from repeated labels, matching argument spellings, missing success evidence or a bare failed event, or treating it as proof that the reading or correction occurred."
+msgstr "Éviter de déduire cette classification de libellés répétés, d’arguments écrits de façon identique, d’une absence de preuve de réussite ou d’un simple événement échoué, ou de la traiter comme preuve que la lecture ou la correction a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this actual TraceMarkClass value through traceMarkClass on the source-backed Annotation. Retain the actual target, motivation, curator and teller attribution; keep the reading’s attempt, episode, tool, argument and outcome evidence without asserting it from the category alone."
+msgstr "Référencer cette valeur réelle de TraceMarkClass par traceMarkClass sur l’Annotation étayée par la source. Conserver la cible, la motivation et les attributions réelles du curateur et du narrateur ; garder les preuves de tentative, d’épisode, d’outil, d’arguments et de résultat de la lecture sans les affirmer à partir de la seule catégorie."

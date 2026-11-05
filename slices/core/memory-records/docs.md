@@ -131,3 +131,37 @@ audiences, review decisions, summary authorship and runtime offering. The
 [external curation scene](examples/external-curation.ttl) describes source evidence
 outside a governed store. Both are ordinary ontology examples, not execution or
 migration instructions.
+
+## Trace-retention classifications
+
+`TraceMarkClass` is an open quality-value vocabulary for a curator’s
+trace-retention classification of an existing [Annotation](../notes/docs.md).
+`traceMarkClass` links the actual annotation to its supplied classification
+values. The role is optional and nonfunctional: several attributed values may
+coexist, and unrelated annotations need no category. Members are individuals,
+not subclasses, EventTypes, events, confidence levels or an importance ranking.
+Local category names do not define a universal closed taxonomy.
+
+The annotation retains its actual target and motivation under the existing
+Notes contract, together with actual curator attribution and standpoint. A
+source record is not made an Event because it describes one. Do not invent a
+record resource from an unresolved producer identifier, supply a default
+motivation, manufacture a body or use an Observation-domain `vantage` relation
+on the annotation. Body-free annotations remain possible; a classification
+does not supply or require trace content.
+
+`traceMarkHighFrictionCorrection` classifies a teller’s reading that one act,
+using the same tool and arguments, was tried again in an episode after an
+earlier attempt did not succeed. The curator classifies that reading for trace
+retention; this does not assert the underlying event, equality of tools or
+arguments, retry execution, truth, curator endorsement or confidence. Retain
+the actual source reading and its attempt, episode, tool, argument and outcome
+evidence, with the curator and teller kept distinct. A repeated label or missing
+success evidence cannot supply the classification.
+
+The supplied-value closure checks Annotation and TraceMarkClass endpoints.
+These terms do not implement a mark record, packet anchor, trace join, packet
+ordering, finality watermark, producer frontier, lost-mark give-up or recorder
+deletion. A classification or absent category is no proof of retention,
+completeness, finality or permission to discard traces (Principles 4, 9, 11,
+17 and 19).

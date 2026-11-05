@@ -844,3 +844,44 @@ gmeow:EpochSuccessorProvenanceConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochArchiveDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:TraceMarkClass
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace mark class"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for a curator’s trace-retention classification of an Annotation."@x-gmeow-english ;
+    skos:scopeNote "Members are classification values, not EventTypes, event occurrences, confidence levels or a closed taxonomy. A classification belongs to the annotation and does not assert the target’s content or a globally preferred importance rank."@x-gmeow-english ;
+    skos:example "A curator supplies a trace-retention category on an actual annotation while retaining its source target, motivation and attribution."@x-gmeow-english ;
+    gmeow:useWhen "Use to type actual curator-supplied categories for trace-retention annotations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning local category names into a universal enumeration, EventType subclasses, confidence or proof that an event occurred or traces were retained."@x-gmeow-english ;
+    gmeow:howToUse "Type an actual classification value as TraceMarkClass and attach it through traceMarkClass to the actual Annotation. Preserve its target, motivation, curator attribution and source-specific meaning; mint additional values without imposing a preferred category."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:traceMarkClass
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "trace mark class"@x-gmeow-english ;
+    skos:definition "The curator-supplied trace-retention classification of this Annotation."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional role permits coexisting attributed classifications. It does not require a category on every Annotation, identify the target with an Event or replace the existing target and motivation obligations."@x-gmeow-english ;
+    skos:example "An actual source annotation retains the curator’s supplied category without inventing a missing annotation target or motivation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a curator explicitly classifies an actual annotation for trace retention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a category, event occurrence, successful trace join, finality, retention or permission to delete from an annotation or its absence."@x-gmeow-english ;
+    gmeow:howToUse "Link only the actual supplied TraceMarkClass value and preserve the Annotation’s actual target, motivation, curator and standpoint. Do not select a default motivation, manufacture a body or use an Observation vantage to type the annotation."@x-gmeow-english ;
+    logic:domain gmeow:Annotation ;
+    logic:range gmeow:TraceMarkClass .
+
+gmeow:traceMarkHighFrictionCorrection
+    a gmeow:TraceMarkClass ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "high-friction correction trace class"@x-gmeow-english ;
+    skos:definition "A curator’s trace-retention classification of a teller’s reading that one act, using the same tool and arguments, was tried again in an episode after an earlier attempt did not succeed."@x-gmeow-english ;
+    skos:scopeNote "This value classifies the teller’s reading. It does not assert the underlying event, tool or argument equality, retry execution, truth, curator endorsement, an EventType or a confidence value."@x-gmeow-english ;
+    skos:example "A curator classifies an annotation of a teller’s reported retry reading while leaving its actual attempt identities, evidence and interpretation on the source reading."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the curator actually supplies this trace-retention classification for the teller’s reading of an earlier unsuccessful attempt and a later retry of the same tool and arguments in an episode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving the classification from repeated labels, matching argument spellings, missing success evidence or a bare failed event, or treating it as proof that the reading or correction occurred."@x-gmeow-english ;
+    gmeow:howToUse "Reference this actual TraceMarkClass value through traceMarkClass on the source-backed Annotation. Retain the actual target, motivation, curator and teller attribution; keep the reading’s attempt, episode, tool, argument and outcome evidence without asserting it from the category alone."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceMarkClass" ; logic:closureValue logic:ClosedWorldClosure ] .

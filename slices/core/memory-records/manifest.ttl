@@ -20,6 +20,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/math> , <https://blackcatinformatics.ca/gmeow/slices/logic>,
         <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/notes>,
         <https://blackcatinformatics.ca/gmeow/slices/entities>,
         <https://blackcatinformatics.ca/gmeow/slices/observations>,
         <https://blackcatinformatics.ca/gmeow/slices/ai>,
