@@ -1319,9 +1319,9 @@ logic:csccContractL a logic:Formula ; logic:relation gmeow:hasVectorSpaceContrac
     logic:argument [ logic:termIndex 0 ; logic:termVariable "pL" ] , [ logic:termIndex 1 ; logic:termVariable "cL" ] .
 logic:csccContractR a logic:Formula ; logic:relation gmeow:hasVectorSpaceContract ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "pR" ] , [ logic:termIndex 1 ; logic:termVariable "cR" ] .
-logic:csccDigestL a logic:Formula ; logic:relation gmeow:contentDigest ;
+logic:csccDigestL a logic:Formula ; logic:relation gmeow:versionFingerprint ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "cL" ] , [ logic:termIndex 1 ; logic:termVariable "dL" ] .
-logic:csccDigestR a logic:Formula ; logic:relation gmeow:contentDigest ;
+logic:csccDigestR a logic:Formula ; logic:relation gmeow:versionFingerprint ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "cR" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .
 logic:csccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "dL" ] , [ logic:termIndex 1 ; logic:termVariable "dR" ] .

@@ -579,7 +579,7 @@ gmeow:GtsHeadIdCanonicalConstraint
     logic:onClass gmeow:GTSSegment ;
     logic:valuePath gmeow:gtsHeadId ;
     logic:stringOp "regexRequired" ;
-    logic:stringPattern "^[0-9a-f]{64}$" ;
+    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
     logic:formalizes gmeow:GTSSegmentShape ;
     logic:message "A gmeow:gtsHeadId value must match '^blake3:[0-9a-f]{64}$' — the canonical blake3 content-id form." .
 
