@@ -158,8 +158,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "避免仅从 RecallScope 推断执行成功、访问权限或优先主张。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit RecallScope value with its source, scope and record identity."
-msgstr "连同来源、作用域和记录身份保留显式 RecallScope 值。"
+msgid "Retain the selected specification and its source/request identity. Use SlotBoundRecallScope with actual scopeSlot anchors for the bound profile; shared parameterized scopes require their actual per-call state, packet or conversation/configuration inputs."
+msgstr "保留所选规范及其来源或请求身份。绑定配置使用 SlotBoundRecallScope 和实际 scopeSlot 锚点；共享参数化范围需要该次调用实际提供的状态、数据包或对话及配置输入。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record Recall Scope within an attributed recall context."
@@ -170,8 +170,8 @@ msgid "Recall Scope"
 msgstr "回忆范围"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."
-msgstr "锚定到已标识注意槽、描述操作请求哪些相关记录的回忆范围规范。"
+msgid "An open information-bearing specification of which records a recall operation requests under declared context bindings. Explicit attention-slot anchoring is the SlotBoundRecallScope profile."
+msgstr "一种开放的信息规范，说明回忆操作在已声明语境绑定下请求哪些记录。明确的注意力槽位锚定属于 SlotBoundRecallScope 配置。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:RecallScope explicitly."
@@ -878,8 +878,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "避免仅从 recallScope 推断执行成功、访问权限或优先主张。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit recallScope value with its source, scope and record identity."
-msgstr "连同来源、作用域和记录身份保留显式 recallScope 值。"
+msgid "Link the actual schema to its selected RecallScope. Preserve the required scope and other operation parameters; retain real anchors for SlotBoundRecallScope and actual context inputs for shared selectors without fallback or invented bindings."
+msgstr "将实际模式关联到所选 RecallScope。保留必需范围和其他操作参数；为 SlotBoundRecallScope 保留实际锚点，为共享选择器保留实际语境输入，不降级回退，也不编造绑定。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record recall scope within an attributed recall context."
@@ -890,8 +890,8 @@ msgid "recall scope"
 msgstr "回忆范围"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The explicit record scope requested by this recall schema, anchored through its scope slot."
-msgstr "该回忆模式请求的显式记录范围，通过范围槽锚定。"
+msgid "The explicit record-selection specification requested by a recall schema, either a shared context-parameterized scope or an explicitly slot-bound specification."
+msgstr "回忆模式明确请求的记录选择规范，可以是共享的语境参数化范围，也可以是明确绑定槽位的规范。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:recallScope explicitly."
@@ -1118,8 +1118,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "避免仅从 scopeSlot 推断执行成功、访问权限或优先主张。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit scopeSlot value with its source, scope and record identity."
-msgstr "连同来源、作用域和记录身份保留显式 scopeSlot 值。"
+msgid "Retain the actual anchors and select SlotBoundRecallScope for the slot-focused specification. Preserve each slot’s existing bearer, role and history; missing anchors remain a failed selected profile rather than a generic-scope fallback."
+msgstr "保留实际锚点，并为槽位聚焦规范选择 SlotBoundRecallScope。保持每个槽位既有承载者、角色和历史；锚点缺失仍表示所选配置失败，不得回退为通用范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record scope slot within an attributed recall context."
@@ -1130,8 +1130,8 @@ msgid "scope slot"
 msgstr "范围槽"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."
-msgstr "锚定该范围记录选择的智能体注意槽，由使用方解析，而非将记录复制到范围内。"
+msgid "An actual AttentionSlot anchoring a SlotBoundRecallScope’s record selection, resolved by the consumer rather than copied into the scope."
+msgstr "用于锚定 SlotBoundRecallScope 记录选择的实际 AttentionSlot，由消费者解析，而非复制进范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:scopeSlot explicitly."
@@ -1836,3 +1836,199 @@ msgstr "该值请求一种呈现方式，不断言要旨已经生成、检索已
 msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#example"
 msgid "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
 msgstr "请求要旨且不要求句柄：ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Bound Recall Scope"
+msgstr "槽位绑定回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A RecallScope whose requested record selection is explicitly anchored through supplied scopeSlot values to at least one actual AttentionSlot."
+msgstr "一种 RecallScope，其请求的记录选择通过来源提供的 scopeSlot 值明确锚定到至少一个实际 AttentionSlot。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This explicit profile requires actual anchors and preserves their AttentionSlot typing. Missing anchors remain invalid; they never select the unbound parent as a fallback. No maximum number of anchors is imposed."
+msgstr "此显式配置要求实际锚点，并保留其 AttentionSlot 类型。锚点缺失仍属无效，绝不退回未绑定的父类。不限制锚点数量上限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing conversation-turn scope names its actual conversation slot and selects this bound profile."
+msgstr "既有的对话轮次范围指明其实际对话槽位，并选择此绑定配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source specification selects actual attention-slot anchors for its requested records."
+msgstr "用于来源规范为所请求记录选择实际注意力槽位锚点时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an agent, slot or history to complete this profile, copying the pointed record into the scope, or dropping the profile when an anchor is missing."
+msgstr "避免为补全此配置而编造代理、槽位或历史，将所指记录复制进范围，或因锚点缺失而放弃此配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the actual anchored specification as SlotBoundRecallScope and retain its supplied scopeSlot values. Keep each slot’s real bearer, role, history and attributed state claims under their existing contracts."
+msgstr "将实际锚定的规范定型为 SlotBoundRecallScope，并保留来源提供的 scopeSlot 值。每个槽位的实际承载者、角色、历史和带归属的状态主张仍遵循既有契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "currently attended recall scope"
+msgstr "当前关注线索回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting the thread that the agent’s supplied state holds open now, resolved within the actual per-call state and view."
+msgstr "一种共享 RecallScope 规范，请求代理提供的状态当前保持打开的线索，并在该次调用的实际状态和视图中解析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a parameterized request, not a current thread, slot assignment or global state winner. Its meaning needs the actual selected agent-state context."
+msgstr "此值是参数化请求，不是当前线索、槽位分配或全局优先状态。其含义需要实际选定的代理状态语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared recall operation requests the thread held open in the state supplied for that call."
+msgstr "一项已声明回忆操作请求该次调用所提供状态保持打开的线索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a context plan explicitly requests the agent-state thread currently held open for this call."
+msgstr "用于上下文计划明确请求代理状态为此次调用保持打开的线索时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a global current thread, fabricating a slot or treating this selector as evidence that any records were retrieved."
+msgstr "避免推断全局当前线索、编造槽位，或将此选择器视为已经检索到记录的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeAttendedNow through recallScope on the actual schema and retain the supplied per-call agent-state view; resolve it without manufacturing missing state."
+msgstr "通过实际模式上的 recallScope 引用 recallScopeAttendedNow，保留来源提供的该次调用代理状态视图；解析时不得编造缺失状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recent episodes recall scope"
+msgstr "近期经历回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting the agent’s latest episodes under the actual source chronology and context selected for the call."
+msgstr "一种共享 RecallScope 规范，请求代理在实际来源时间顺序及该次调用所选语境中的最近经历。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value supplies no fixed age window, episode count, clock precision or global recency order. Any selected limits and ordering remain actual source inputs."
+msgstr "此值不提供固定时间窗、经历数量、时钟精度或全局新近顺序。选定的限制和排序仍须来自实际来源输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared operation requests the agent’s latest episodes while retaining the source’s actual ordering and any separately supplied limit."
+msgstr "一项已声明操作请求代理的最近经历，同时保留来源的实际排序和任何另行提供的限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the plan explicitly selects recent episodes rather than the thread currently held open or the packet’s topics."
+msgstr "用于计划明确选择近期经历，而非当前打开的线索或数据包主题时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing dates, episode identities or a fixed recency cutoff, or treating incomplete chronology as a complete latest-order computation."
+msgstr "避免编造日期、经历身份或固定新近阈值，或把不完整时间顺序视为已完成最近排序计算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeRecentEpisodes through recallScope and retain the actual agent context, source ordering and any explicitly selected recallLatest limit without adding defaults."
+msgstr "通过 recallScope 引用 recallScopeRecentEpisodes，保留实际代理语境、来源排序及任何明确选定的 recallLatest 限制，不添加默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet wording recall scope"
+msgstr "数据包原文所指回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting what the actual packet’s own words are about."
+msgstr "一种共享 RecallScope 规范，请求实际数据包自身文字所谈论的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The packet’s words, their subjects and the packet’s kind are distinct. This value supplies no inferred topic, referent identity, language or performed interpretation."
+msgstr "数据包文字、文字涉及的对象和数据包类别彼此不同。此值不提供推断出的主题、指称身份、语言或已执行的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context plan requests recall about the supplied packet’s own wording rather than substituting a standing thread or a kind label."
+msgstr "上下文计划请求围绕所提供数据包自身文字进行回忆，而不以常驻线索或类别标签替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the requested recall selection is about the actual packet’s own words."
+msgstr "用于所请求回忆选择围绕实际数据包自身文字时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the packet kind, a default topic or another conversation, or claiming that naming this scope executes text analysis."
+msgstr "避免以数据包类别、默认主题或另一段对话替代，或声称仅命名此范围即执行文本分析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopePacket through recallScope and retain the actual packet wording and source context required by the consumer’s selection. Keep unresolved aboutness unresolved."
+msgstr "通过 recallScope 引用 recallScopePacket，保留消费者选择所需的实际数据包原文和来源语境。原文所指尚未确定时仍保持未决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience floor recall scope"
+msgstr "听众关系圈层底线回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting who is listening, using the floor of the relationship rings of everyone in the actual current conversation together with the configured warning text for that resulting ring."
+msgstr "一种共享 RecallScope 规范，请求确定谁正在听取：依据实际当前对话中所有参与者关系圈层的底线，并包含为该结果圈层配置的警示文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual conversation roster, relationship-ring ordering, floor rule and configured warning are consumer inputs. This value defines no universal rings, numerical minimum, participant presence or fallback warning."
+msgstr "实际对话参与者名单、关系圈层排序、底线规则和已配置警示均为消费者输入。此值不定义统一圈层、数值最小值、参与者在场事实或后备警示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared operation requests the audience under the supplied conversation’s relationship-ring floor and retains the warning configured for that ring."
+msgstr "一项已声明操作按所提供对话的关系圈层底线请求听众信息，并保留为该圈层配置的警示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source plan explicitly requests the current conversation’s audience floor and its configured ring warning."
+msgstr "用于来源计划明确请求当前对话的听众底线及为相应圈层配置的警示时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing relationship rings with persona audience ranks, inventing a ring taxonomy or warning, omitting listeners from the declared roster, or claiming that this selector computes or authenticates the floor."
+msgstr "避免用人格面具的受众等级替代关系圈层、编造圈层体系或警示、从声明名单中遗漏听众，或声称此选择器计算或认证了底线。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeAudience through recallScope and retain the actual conversation context, all supplied relationship-ring inputs, the selected floor policy and that ring’s configured warning. Missing inputs are not a default audience."
+msgstr "通过 recallScope 引用 recallScopeAudience，保留实际对话语境、全部来源提供的关系圈层输入、所选底线规则及为该圈层配置的警示。输入缺失不构成默认听众。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Packet Kind"
+msgstr "数据包类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information-bearing specification of the kind of thinking or context for which a model-call packet is requested. Its instances describe consumer-defined kinds, not the packet or its words."
+msgstr "一种信息规范，说明请求模型调用数据包所用于的思考或上下文类别。其实例描述消费者定义的类别，而不是数据包本身或其中的文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This open Kind under InformationObject describes kind specifications, not QualityValue measurements, model-call activities or a fixed mode taxonomy. Deployment-specific values remain local."
+msgstr "这是 InformationObject 下的开放 Kind，描述类别规范，而非 QualityValue 测量、模型调用活动或固定模式体系。部署特定值仍保留在本地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context-plan condition reads the packet’s supplied kind specification beside actual state-slot facts, without reading the packet’s words as its kind."
+msgstr "上下文计划条件读取数据包提供的类别规范及实际状态槽位事实，不将数据包文字当作类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an actual consumer-defined kind specification for the thinking or context requested for a packet."
+msgstr "用于标识消费者实际定义的类别规范，以说明数据包所请求的思考或上下文类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the packet or its words as PacketKind, inferring an executed model call, or publishing a deployment’s local modes as a universal taxonomy."
+msgstr "避免将数据包或其中的文字定型为 PacketKind、推断模型调用已经执行，或将某一部署的本地模式发布为统一体系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual kind specification resource and reference it through packetKind on the information-bearing packet. Preserve consumer identity and source without inventing a mode from wording or missing data."
+msgstr "保留实际类别规范资源，并通过承载信息的数据包上的 packetKind 引用它。保留消费者身份和来源，不凭文字或缺失数据编造模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet kind"
+msgstr "数据包类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an information-bearing packet to the PacketKind specification of the thinking or context it is requested for, as one supplied kind fact per packet rather than the packet’s words."
+msgstr "将承载信息的数据包关联到其所请求思考或上下文的 PacketKind 规范，每个数据包提供一条类别事实，而非关联到数据包文字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The canonical upper bound permits at most one PacketKind per InformationObject. It requires no kind on every information object and creates no Packet class; absence remains unknown rather than a default mode."
+msgstr "规范上界允许每个 InformationObject 至多具有一个 PacketKind，不要求所有信息对象都有类别，也不创建 Packet 类。缺失仍为未知，而非默认模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source supplies one packet-kind resource for a packet, and a plan condition refers to that fact without inferring that the condition currently holds."
+msgstr "来源为数据包提供一个类别资源，计划条件引用该事实，但不据此推断条件当前成立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the kind specification that a context condition reads for this packet."
+msgstr "用于来源明确提供本数据包的类别规范，供上下文条件读取时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting literal packet words or a guessed mode here, requiring the property on unrelated information objects, or treating its presence as rule execution or model lifecycle authority."
+msgstr "避免在此放入数据包原文字面量或猜测的模式、要求无关信息对象具有此属性，或将其存在视为规则执行或模型生命周期操作权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual InformationObject packet to its supplied PacketKind resource and retain exact-statement attribution. Keep its words separately; the endpoint closure and qualified upper bound validate supplied values without claiming universal field presence."
+msgstr "将实际 InformationObject 数据包关联到来源提供的 PacketKind 资源，并保留精确陈述的归属。另行保留文字；端点闭合和限定上界验证提供的值，不声称强制所有对象都具有该字段。"

@@ -22,10 +22,15 @@ identity. `recallSchema` identifies its reusable template. It carries the reques
 `recallLatest` optionally limits selection to a positive number of newest records;
 it is neither an age window nor a guarantee that enough records exist.
 
-A `RecallScope` is a specification anchored to an `AttentionSlot` through
-`scopeSlot`. Recent conversations, the turns of the current conversation and
-its participants can be different specifications over the same anchor. The
-scope's own description states the relation and selection it requests.
+A `RecallScope` is an open information-bearing selection specification under
+declared context bindings. A `SlotBoundRecallScope` explicitly anchors selection
+to actual `AttentionSlot` values through `scopeSlot`; at least one such anchor
+is required, with no maximum. Recent conversations, current turns and
+participants can remain distinct slot-bound specifications over the same real
+anchor. Its supplied description states the requested relation and selection.
+Shared parameterized scope individuals instead require their actual per-call
+context inputs; they do not contain fabricated global slots. A selected bound
+profile with a missing anchor stays invalid and never falls back to the parent.
 
 The open depth vocabulary initially distinguishes:
 
@@ -181,3 +186,70 @@ presentation ran (Principles 2, 4 and 9).
 The [graded and gist request scene](examples/graded-and-gist-recollection.ttl)
 records actual source choices without creating an executor or fabricated
 output.
+
+## Shared context-parameterized scopes
+
+The four shared RecallScope individuals describe requested selections. They are
+specifications, not a returned record set, a currently occupied slot or evidence
+that recall executed. Keep the actual schema's required scope, depth, presentation
+and allocation parameters. Selecting a scope also requires its real declared
+context inputs; missing inputs do not choose a weaker selection.
+
+recallScopeAttendedNow requests the thread the agent's supplied state holds open
+now, within the actual per-call state/view. It creates no global current thread,
+slot assignment or preferred state claim. recallScopeRecentEpisodes requests
+the agent's latest episodes under the selected source chronology. No fixed age
+window, episode count, repaired clock or new episode identity is implied; an
+actual recallLatest limit remains independently supplied.
+
+recallScopePacket requests what the actual packet's own words are about. The
+words as an artifact, their subject matter and a packet-kind specification are
+different. Retain the actual wording and context; a standing thread or kind
+label cannot silently replace the requested words. This selector supplies no
+text analyzer, guessed topic, language or referent identity.
+
+recallScopeAudience requests who is listening through the floor of the
+relationship rings of everyone in the actual current conversation, together
+with the configured warning text for that resulting ring. The actual roster,
+relationship-ring ordering, floor rule and configured warning are consumer
+inputs. Do not omit listeners from that declared roster, invent ring members or
+defaults, interpret floor as a particular numerical minimum without its actual
+rule, or supply a fallback warning when configuration is missing. Persona
+audience ranks describe a different classification and do not substitute for
+these relationship inputs. Naming the scope neither computes the floor nor
+authenticates participants or warning selection.
+
+Use SlotBoundRecallScope for an explicitly anchored specification, retaining its
+actual scopeSlot values and their existing bearer/role/history/state contracts.
+The conversation-turn example declares that subtype with its actual slot and
+source facts. The generic parent is open to further declared
+parameterized selectors. There is no closed four-value enumeration, IRI-specific
+exception or scope executor; the recall-operation requiredness contract applies
+(Principles 4, 9, 11, 12 and 17).
+
+## Packet-kind specifications
+
+PacketKind is an open Kind under InformationObject. Its instances are
+information-bearing specifications of the thinking or context a model-call
+packet is requested for. Such a kind specification is neither the packet,
+the packet's words, nor a model-call Activity. Deployment-specific kinds remain
+consumer-owned resources; the vocabulary seeds no fixed modes or cognition
+taxonomy and does not recast these specifications as QualityValue measurements.
+
+packetKind links the actual InformationObject packet to its supplied PacketKind
+resource, never to literal packet words. A context-plan condition can refer to
+that actual fact beside the selected state/slot facts. This does not assert that
+the condition obtains, execute context assembly or authorize a model lifecycle
+operation. The actual words and source context remain separately retained;
+recallScopePacket requests what those words are about, not the packet's kind.
+
+The source contract is one supplied kind fact per packet. A canonical qualified
+maximum on InformationObject/packetKind/onClass PacketKind permits at most one
+typed kind. Property-global provided-value closure checks supplied packet and
+kind endpoints, so an invalid extra value cannot hide outside the qualified
+count. There is no minimum or generic required path: absence is unknown, and
+unrelated information objects need no packetKind. There is no invented Packet
+class or complete-packet profile, and this vocabulary does not claim a gate
+verifies kind presence on every consumer packet. Preserve the actual selected
+input rather than invent a default mode or infer one from wording
+(Principles 4, 9, 12 and 17).

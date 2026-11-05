@@ -41,7 +41,7 @@ ex:currentAssignment a gmeow:SlotAssignmentClaim ;
 # Naming them is not evidence that the condition obtains or the service ran.
 ex:conversationReady a logic:Situation .
 ex:recallCapability a logic:EngineCapability .
-ex:turnScope a gmeow:RecallScope ;
+ex:turnScope a gmeow:SlotBoundRecallScope ;
     rdfs:label "Recent turns of the selected conversation"@en ;
     gmeow:scopeSlot ex:conversationSlot .
 ex:recallTemplate a logic:ActionSchema ;
