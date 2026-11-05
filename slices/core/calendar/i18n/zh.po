@@ -464,3 +464,31 @@ msgstr "范围：该记录仅承载关于 gmeow:timeZoneIanaId 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaId|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Write the IANA tzid as an xsd:string or xsd:token (America/Toronto, Europe/Paris, UTC); reference the gmeow:TimeZone from the calendar/schedule/event time-zone edges."
 msgstr "将 IANA 时区标识写为 xsd:string 或 xsd:token（America/Toronto、Europe/Paris、UTC）；从日历、计划或事件的时区关系引用 gmeow:TimeZone。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "position time zone"
+msgstr "参考位置时区"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a civil-time ReferencePosition to the actual TimeZone used to interpret local civil time at that position."
+msgstr "将民用时间的 ReferencePosition 关联到解释该位置本地民用时间所用的实际 TimeZone。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional link does not identify ReferencePosition with TimeZone or require a zone on every position. Noncivil positions may have no link; each supplied zone remains subject to the existing TimeZone identifier contract."
+msgstr "此链接可选且不具函数性，不将 ReferencePosition 与 TimeZone 等同，也不要求每个位置都具有时区。非民用时间位置可以没有此链接；每个提供的时区仍须遵守现有 TimeZone 标识符约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied civil reference position links to the source’s TimeZone resource, which retains its declared IANA identifier."
+msgstr "来源提供的民用时间参考位置关联到来源的 TimeZone 资源，后者保留其声明的 IANA 标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly associates a civil reference position with an actual IANA-identified time zone."
+msgstr "当来源明确将民用时间参考位置与具有 IANA 标识符的实际时区关联时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the zone from a matching label or fixed numeric offset, inventing a missing identifier, or claiming daylight-saving expansion from this link alone."
+msgstr "避免根据相同标签或固定数值偏移推断时区、编造缺失的标识符，或声称仅凭此链接即可展开夏令时规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual ReferencePosition to the actual TimeZone and retain exactly one supplied timeZoneIanaId as xsd:string or xsd:token under the existing Calendar constraints. Preserve the literal; registry lookup, daylight-saving expansion and civil-time conversion require their own actual inputs and computation."
+msgstr "将实际 ReferencePosition 关联到实际 TimeZone，并按现有 Calendar 约束恰好保留一个来源提供的 timeZoneIanaId，类型为 xsd:string 或 xsd:token。保留原始字面量；注册表查询、夏令时规则展开和民用时间转换需要各自的实际输入及计算。"

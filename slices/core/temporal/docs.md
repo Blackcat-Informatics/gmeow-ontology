@@ -191,3 +191,25 @@ shared value alone cannot identify an interval or authorize a conversion to
 clock boundaries. Preserve the source's account rather than deriving hours from
 a label. The refinement-reading `HabitFigure` uses this pattern for reported
 activity figures without treating its process observer as the holder by default.
+
+## Frames for temporal reckoning
+
+`reckoningFrame` relates an actual supplied temporal reckoning rule or
+configuration resource to the `TemporalFrame` that interprets its temporal
+values. It specializes the domain-free `hasReferenceFrame` relation and has no
+domain class of its own. A link therefore does not classify the source resource
+as an executable rule, an observation or an activity (Principles 4, 11 and 17).
+
+The role is optional and nonfunctional. Each supplied frame must be a
+`TemporalFrame` and satisfy the existing complete frame obligations. Preserve
+its actual scale and any applicable calendar and reference position. For civil
+reckoning, retain the actual calendar, position and zone context needed by that
+reckoning; do not fill an absent component with a default. The generic frame
+profile does not make its optional calendar or position fields universally
+required.
+
+Calendar’s [positionTimeZone](../calendar/docs.md) relates a civil
+`ReferencePosition` to its actual `TimeZone`. A label or numeric offset cannot
+supply that relation. These links retain interpretation context; they do not
+execute a rule, establish day-part boundaries, resolve daylight-saving rules or
+convert a local time into an instant. Keep the source evidence for each link.

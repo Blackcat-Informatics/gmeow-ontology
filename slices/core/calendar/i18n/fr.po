@@ -464,3 +464,31 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaId|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Write the IANA tzid as an xsd:string or xsd:token (America/Toronto, Europe/Paris, UTC); reference the gmeow:TimeZone from the calendar/schedule/event time-zone edges."
 msgstr "Écrire le tzid IANA comme xsd:string ou xsd:token (America/Toronto, Europe/Paris, UTC) ; référencer la gmeow:TimeZone depuis les relations de fuseau horaire du calendrier, de la planification ou de l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "position time zone"
+msgstr "fuseau horaire de la position"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a civil-time ReferencePosition to the actual TimeZone used to interpret local civil time at that position."
+msgstr "Relie une ReferencePosition de temps civil au TimeZone réel utilisé pour interpréter l’heure civile locale à cette position."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional link does not identify ReferencePosition with TimeZone or require a zone on every position. Noncivil positions may have no link; each supplied zone remains subject to the existing TimeZone identifier contract."
+msgstr "Ce lien facultatif et non fonctionnel n’identifie pas ReferencePosition à TimeZone et n’exige pas de fuseau horaire pour toute position. Les positions non civiles peuvent ne porter aucun lien ; chaque fuseau horaire fourni reste soumis au contrat d’identifiant existant de TimeZone."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied civil reference position links to the source’s TimeZone resource, which retains its declared IANA identifier."
+msgstr "Une position de référence civile fournie est reliée à la ressource TimeZone de la source, qui conserve son identifiant IANA déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly associates a civil reference position with an actual IANA-identified time zone."
+msgstr "Utiliser lorsque la source associe explicitement une position de référence civile à un fuseau horaire réel identifié par IANA."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the zone from a matching label or fixed numeric offset, inventing a missing identifier, or claiming daylight-saving expansion from this link alone."
+msgstr "Éviter de déduire le fuseau horaire d’un libellé identique ou d’un décalage numérique fixe, d’inventer un identifiant manquant ou de prétendre que ce seul lien développe les règles d’heure d’été."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionTimeZone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual ReferencePosition to the actual TimeZone and retain exactly one supplied timeZoneIanaId as xsd:string or xsd:token under the existing Calendar constraints. Preserve the literal; registry lookup, daylight-saving expansion and civil-time conversion require their own actual inputs and computation."
+msgstr "Relier la ReferencePosition réelle au TimeZone réel et conserver exactement un timeZoneIanaId fourni comme xsd:string ou xsd:token selon les contraintes existantes de Calendar. Préserver le littéral ; la recherche dans le registre, le développement des règles d’heure d’été et la conversion du temps civil exigent leurs propres entrées réelles et calculs."

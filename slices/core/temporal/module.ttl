@@ -2037,3 +2037,19 @@ gmeow:dayPartNight
     gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
     gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
     skos:example "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:reckoningFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reckoning frame"@x-gmeow-english ;
+    skos:definition "Relates a supplied temporal reckoning rule or configuration resource to the actual TemporalFrame in which its temporal values are interpreted."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional role has no domain class. Supplying a link does not classify its subject as an executable rule or an Observation, and does not impose a frame on every configuration resource."@x-gmeow-english ;
+    skos:example "A source supplies a daily reckoning configuration and identifies the TemporalFrame used to interpret its local civil times."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the temporal frame of an actual reckoning rule or configuration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a calendar, zone or default frame, or treating this relation as evidence that a rule was executed."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual supplied rule or configuration resource to its complete TemporalFrame. Retain the declared scale and any applicable calendar and reference position; the hasReferenceFrame relation follows by subproperty inheritance without performing a conversion."@x-gmeow-english ;
+    logic:subPropertyOf gmeow:hasReferenceFrame ;
+    logic:range gmeow:TemporalFrame .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reckoningFrame" ; logic:closureValue logic:ClosedWorldClosure ] .

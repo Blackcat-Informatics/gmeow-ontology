@@ -640,3 +640,31 @@ msgstr "Lier le titulaire et le cadre temporel sur la lecture consommatrice ; cr
 msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."
 msgstr "Conserver cet enregistrement attribué : gmeow:dayPartNight a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reckoning frame"
+msgstr "cadre de décompte temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a supplied temporal reckoning rule or configuration resource to the actual TemporalFrame in which its temporal values are interpreted."
+msgstr "Relie une ressource fournie décrivant une règle ou une configuration de décompte temporel au TemporalFrame réel dans lequel ses valeurs temporelles sont interprétées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role has no domain class. Supplying a link does not classify its subject as an executable rule or an Observation, and does not impose a frame on every configuration resource."
+msgstr "Ce rôle facultatif et non fonctionnel ne possède aucune classe de domaine. Fournir un lien ne classe pas son sujet comme règle exécutable ou Observation et n’impose pas de cadre à toute ressource de configuration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies a daily reckoning configuration and identifies the TemporalFrame used to interpret its local civil times."
+msgstr "Une source fournit une configuration de décompte quotidien et identifie le TemporalFrame utilisé pour interpréter ses heures civiles locales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the temporal frame of an actual reckoning rule or configuration."
+msgstr "Utiliser lorsque la source identifie le cadre temporel d’une règle ou d’une configuration réelle de décompte temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a calendar, zone or default frame, or treating this relation as evidence that a rule was executed."
+msgstr "Éviter de deviner un calendrier, un fuseau horaire ou un cadre par défaut, ou de traiter cette relation comme preuve de l’exécution d’une règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual supplied rule or configuration resource to its complete TemporalFrame. Retain the declared scale and any applicable calendar and reference position; the hasReferenceFrame relation follows by subproperty inheritance without performing a conversion."
+msgstr "Relier la ressource réelle fournie de règle ou de configuration à son TemporalFrame complet. Conserver l’échelle déclarée ainsi que tout calendrier et toute position de référence applicables ; la relation hasReferenceFrame découle de l’héritage de sous-propriété sans effectuer de conversion."

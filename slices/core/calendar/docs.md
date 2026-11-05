@@ -148,3 +148,28 @@ Depends only on the built `events` + `temporal` modules. Phases:
 2. Invitation/RSVP + availability
 3. Reminders + tasks + time zones
 4. Extend ical + add jcal/schema.org Schedule projections
+
+## Civil reference positions and time zones
+
+`positionTimeZone` relates a civil-time `ReferencePosition` to the actual
+`TimeZone` used to interpret local civil time there. The position and zone remain
+distinct resources. A temporal frame names its position through
+`frameReferencePosition`; this bridge retains the source’s explicit zone
+association rather than guessing one from a position label or numeric offset
+(Principles 4, 11 and 17).
+
+This role is optional and nonfunctional. It does not require a zone on every
+position, including positions used for sidereal or planetary time. Each supplied
+link has a `ReferencePosition` subject and a `TimeZone` object. Existing Calendar
+constraints require each `TimeZone` to retain exactly one `timeZoneIanaId` whose
+datatype is `xsd:string` or `xsd:token`. Preserve the supplied literal without
+retyping, normalizing or inventing an identifier. Reuse actual source-supported
+zone resources under this existing identifier contract.
+
+Temporal’s [reckoningFrame](../temporal/docs.md) connects an actual temporal
+reckoning rule or configuration resource to its frame. The two roles carry
+context rather than perform a computation. Identifier datatype and cardinality
+checks do not establish registry membership, source truth or the correctness of
+a zone association. Registry lookup, daylight-saving expansion, ambiguous or
+nonexistent local-time handling and conversion to an instant require the actual
+inputs and an explicit computation; none follows from the links alone.

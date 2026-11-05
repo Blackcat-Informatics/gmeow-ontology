@@ -640,3 +640,31 @@ msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划
 msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."
 msgstr "保留此有归属记录：gmeow:dayPartNight a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reckoning frame"
+msgstr "时间推算参考系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a supplied temporal reckoning rule or configuration resource to the actual TemporalFrame in which its temporal values are interpreted."
+msgstr "将来源提供的时间推算规则或配置资源关联到解释其时间值所用的实际 TemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role has no domain class. Supplying a link does not classify its subject as an executable rule or an Observation, and does not impose a frame on every configuration resource."
+msgstr "此关系可选且不具函数性，不声明定义域类。提供此链接不会将其主语归类为可执行规则或 Observation，也不要求每个配置资源都具有参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies a daily reckoning configuration and identifies the TemporalFrame used to interpret its local civil times."
+msgstr "来源提供每日时间推算配置，并指明解释其中本地民用时间所用的 TemporalFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the temporal frame of an actual reckoning rule or configuration."
+msgstr "当来源指明实际时间推算规则或配置所用的时间参考系时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a calendar, zone or default frame, or treating this relation as evidence that a rule was executed."
+msgstr "避免猜测历法、时区或默认参考系，也不要将此关系视为规则已执行的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reckoningFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual supplied rule or configuration resource to its complete TemporalFrame. Retain the declared scale and any applicable calendar and reference position; the hasReferenceFrame relation follows by subproperty inheritance without performing a conversion."
+msgstr "将来源实际提供的规则或配置资源关联到其完整的 TemporalFrame。保留声明的时间尺度及适用的历法和参考位置；通过子属性继承可得到 hasReferenceFrame 关系，但不会执行时间转换。"
