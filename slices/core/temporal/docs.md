@@ -213,3 +213,47 @@ Calendar’s [positionTimeZone](../calendar/docs.md) relates a civil
 supply that relation. These links retain interpretation context; they do not
 execute a rule, establish day-part boundaries, resolve daylight-saving rules or
 convert a local time into an instant. Keep the source evidence for each link.
+
+## Recurring civil-day boundary entries
+
+`DayPartBoundary` is an `InformationObject` describing a supplied recurring
+civil-day start entry. It associates exactly one `boundaryDayPart` with exactly
+one `boundaryBegins`, retained as the original `xsd:time` literal. This is a
+configuration entry, not a dated occurrence, `Instant` or `TimeInterval`.
+Keep the supplied lexical form and datatype, including any supplied offset;
+do not strip offsets, convert to UTC, invent a date or fill an unspecified hour
+(Principles 4, 9, 11 and 17).
+
+The latest applicable declared local civil start determines the continuing
+DayPart. A part that continues past midnight belongs to the civil date on
+which that part began, until the next declared start. A time after midnight
+before that next start therefore does not relabel the continuing part to the
+new civil date. This is the source configuration’s recurring interpretation,
+not a dated fact about a shared DayPart value. An `xsd:time` contains no start
+civil date; these records do not create one or execute an assignment.
+
+The domain-free `dayPartBoundary` role links the actual supplied reckoning rule
+or configuration resource to its entries. It is optional and many-valued, with
+no classifying domain or single-entry bound. An existing immutable reading-rule
+release may supply that configuration without making all configurations instances
+of a reading-rule class. Entries need no invented parent or unique inverse
+owner, and supplying a roster does not classify its subject as an executable
+rule or an observation.
+
+A configuration supplying any `dayPartBoundary` entry must retain an actual
+`reckoningFrame` on that same resource. `DayPartBoundaryFrameConstraint` uses
+a positive boundary-link guard and a single-atom companion obligation.
+The existing role checks the supplied `TemporalFrame` and its existing frame
+obligations. It remains nonfunctional, and the new constraint neither narrows
+it globally nor imposes a calendar, reference position, zone or default frame
+component on every temporal configuration. Retain the actual civil context
+needed by the source interpretation; an offset alone is not a zone policy.
+
+The source’s roster and civil interpretation must support a unique assignment.
+These terms do not order DayPart seeds, supply universal start times, choose
+among tied starts, complete an unavailable or partial roster, or invent rules
+for daylight-saving gaps and folds. Any selected civil-time executor would
+need its actual roster and interpretation; this vocabulary introduces none.
+Structural validation checks supplied endpoints, the entry’s part/time fields
+and the selected frame companion. It does not certify roster completeness,
+source interpretation or an unperformed latest-start/date assignment.
