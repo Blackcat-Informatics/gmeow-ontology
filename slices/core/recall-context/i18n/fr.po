@@ -158,8 +158,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallScope seul."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit RecallScope value with its source, scope and record identity."
-msgstr "Conserver la valeur explicite de RecallScope avec sa source, sa portée et l’identité du relevé."
+msgid "Retain the selected specification and its source/request identity. Use SlotBoundRecallScope with actual scopeSlot anchors for the bound profile; shared parameterized scopes require their actual per-call state, packet or conversation/configuration inputs."
+msgstr "Conserver la spécification sélectionnée et son identité de source ou de demande. Utiliser SlotBoundRecallScope avec des ancrages scopeSlot réels pour le profil lié ; les portées paramétrées partagées exigent leurs données réelles d’état, de paquet ou de conversation/configuration propres à l’appel."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record Recall Scope within an attributed recall context."
@@ -170,8 +170,8 @@ msgid "Recall Scope"
 msgstr "Portée de rappel"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."
-msgstr "Spécification de portée ancrée à une case attentionnelle identifiée et décrivant les relevés connexes demandés par une opération."
+msgid "An open information-bearing specification of which records a recall operation requests under declared context bindings. Explicit attention-slot anchoring is the SlotBoundRecallScope profile."
+msgstr "Une spécification ouverte porteuse d’information indiquant quels enregistrements une opération de rappel demande selon les liaisons de contexte déclarées. L’ancrage explicite dans des cases attentionnelles relève du profil SlotBoundRecallScope."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:RecallScope explicitly."
@@ -878,8 +878,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallScope seul."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit recallScope value with its source, scope and record identity."
-msgstr "Conserver la valeur explicite de recallScope avec sa source, sa portée et l’identité du relevé."
+msgid "Link the actual schema to its selected RecallScope. Preserve the required scope and other operation parameters; retain real anchors for SlotBoundRecallScope and actual context inputs for shared selectors without fallback or invented bindings."
+msgstr "Relier le schéma réel à sa RecallScope sélectionnée. Conserver la portée requise et les autres paramètres d’opération ; garder les ancrages réels de SlotBoundRecallScope et les données de contexte réelles des sélecteurs partagés, sans repli ni liaisons inventées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record recall scope within an attributed recall context."
@@ -890,8 +890,8 @@ msgid "recall scope"
 msgstr "portée de rappel"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The explicit record scope requested by this recall schema, anchored through its scope slot."
-msgstr "Portée explicite des relevés demandés par ce schéma de rappel, ancrée par sa case de portée."
+msgid "The explicit record-selection specification requested by a recall schema, either a shared context-parameterized scope or an explicitly slot-bound specification."
+msgstr "La spécification explicite de sélection d’enregistrements demandée par un schéma de rappel, qu’il s’agisse d’une portée partagée paramétrée par le contexte ou d’une spécification explicitement liée à des cases."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:recallScope explicitly."
@@ -1118,8 +1118,8 @@ msgid "Avoid inferring successful execution, access permission or a preferred cl
 msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de scopeSlot seul."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit scopeSlot value with its source, scope and record identity."
-msgstr "Conserver la valeur explicite de scopeSlot avec sa source, sa portée et l’identité du relevé."
+msgid "Retain the actual anchors and select SlotBoundRecallScope for the slot-focused specification. Preserve each slot’s existing bearer, role and history; missing anchors remain a failed selected profile rather than a generic-scope fallback."
+msgstr "Conserver les ancrages réels et sélectionner SlotBoundRecallScope pour la spécification centrée sur les cases. Préserver le détenteur, le rôle et l’historique existants de chaque case ; des ancrages manquants restent un échec du profil sélectionné, et non un repli vers une portée générique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record scope slot within an attributed recall context."
@@ -1130,8 +1130,8 @@ msgid "scope slot"
 msgstr "case de portée"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."
-msgstr "Case attentionnelle ancrant la sélection des relevés, résolue par le consommateur plutôt que copiée dans la portée."
+msgid "An actual AttentionSlot anchoring a SlotBoundRecallScope’s record selection, resolved by the consumer rather than copied into the scope."
+msgstr "Une AttentionSlot réelle ancrant la sélection d’enregistrements d’une SlotBoundRecallScope, résolue par le consommateur plutôt que copiée dans la portée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#example"
 msgid "The record names gmeow:scopeSlot explicitly."
@@ -1836,3 +1836,199 @@ msgstr "La valeur demande une présentation ; elle n’affirme ni production d�
 msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#example"
 msgid "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
 msgstr "Demander une synthèse sans exiger d’identifiant : ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Bound Recall Scope"
+msgstr "Portée de rappel ancrée dans des cases"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A RecallScope whose requested record selection is explicitly anchored through supplied scopeSlot values to at least one actual AttentionSlot."
+msgstr "Une RecallScope dont la sélection demandée d’enregistrements est explicitement ancrée, par les valeurs scopeSlot fournies, à au moins une AttentionSlot réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This explicit profile requires actual anchors and preserves their AttentionSlot typing. Missing anchors remain invalid; they never select the unbound parent as a fallback. No maximum number of anchors is imposed."
+msgstr "Ce profil explicite exige des ancrages réels et conserve leur type AttentionSlot. Des ancrages manquants restent invalides ; ils ne sélectionnent jamais le parent non lié comme solution de repli. Aucun nombre maximal d’ancrages n’est imposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing conversation-turn scope names its actual conversation slot and selects this bound profile."
+msgstr "La portée existante des tours de conversation nomme sa case réelle de conversation et sélectionne ce profil lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source specification selects actual attention-slot anchors for its requested records."
+msgstr "Utiliser lorsque la spécification source sélectionne des ancrages réels dans des cases attentionnelles pour les enregistrements demandés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an agent, slot or history to complete this profile, copying the pointed record into the scope, or dropping the profile when an anchor is missing."
+msgstr "Éviter d’inventer un agent, une case ou un historique pour compléter ce profil, de copier l’enregistrement pointé dans la portée ou d’abandonner le profil lorsqu’un ancrage manque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotBoundRecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the actual anchored specification as SlotBoundRecallScope and retain its supplied scopeSlot values. Keep each slot’s real bearer, role, history and attributed state claims under their existing contracts."
+msgstr "Typer la spécification réellement ancrée comme SlotBoundRecallScope et conserver ses valeurs scopeSlot fournies. Garder le détenteur réel, le rôle, l’historique et les affirmations d’état attribuées de chaque case selon leurs contrats existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "currently attended recall scope"
+msgstr "portée de rappel du fil actuellement suivi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting the thread that the agent’s supplied state holds open now, resolved within the actual per-call state and view."
+msgstr "Une spécification RecallScope partagée demandant le fil que l’état fourni de l’agent garde ouvert actuellement, résolu dans l’état et la vue réels de cet appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a parameterized request, not a current thread, slot assignment or global state winner. Its meaning needs the actual selected agent-state context."
+msgstr "La valeur est une demande paramétrée, et non un fil actuel, une affectation de case ou un état globalement privilégié. Son sens exige le contexte réel de l’état de l’agent sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared recall operation requests the thread held open in the state supplied for that call."
+msgstr "Une opération de rappel déclarée demande le fil gardé ouvert dans l’état fourni pour cet appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a context plan explicitly requests the agent-state thread currently held open for this call."
+msgstr "Utiliser lorsqu’un plan de contexte demande explicitement le fil que l’état de l’agent garde ouvert pour cet appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a global current thread, fabricating a slot or treating this selector as evidence that any records were retrieved."
+msgstr "Éviter d’inférer un fil actuel global, de fabriquer une case ou de traiter ce sélecteur comme la preuve que des enregistrements ont été récupérés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAttendedNow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeAttendedNow through recallScope on the actual schema and retain the supplied per-call agent-state view; resolve it without manufacturing missing state."
+msgstr "Référencer recallScopeAttendedNow par recallScope sur le schéma réel et conserver la vue fournie de l’état de l’agent pour cet appel ; la résoudre sans fabriquer d’état manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recent episodes recall scope"
+msgstr "portée de rappel des épisodes récents"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting the agent’s latest episodes under the actual source chronology and context selected for the call."
+msgstr "Une spécification RecallScope partagée demandant les derniers épisodes de l’agent selon la chronologie source réelle et le contexte sélectionné pour l’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value supplies no fixed age window, episode count, clock precision or global recency order. Any selected limits and ordering remain actual source inputs."
+msgstr "La valeur ne fournit aucune fenêtre d’âge fixe, aucun nombre d’épisodes, aucune précision d’horloge ni aucun ordre global de récence. Les limites et l’ordre sélectionnés restent des données sources réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared operation requests the agent’s latest episodes while retaining the source’s actual ordering and any separately supplied limit."
+msgstr "Une opération déclarée demande les derniers épisodes de l’agent en conservant l’ordre réel de la source et toute limite fournie séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the plan explicitly selects recent episodes rather than the thread currently held open or the packet’s topics."
+msgstr "Utiliser lorsque le plan sélectionne explicitement les épisodes récents plutôt que le fil actuellement ouvert ou les sujets du paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing dates, episode identities or a fixed recency cutoff, or treating incomplete chronology as a complete latest-order computation."
+msgstr "Éviter d’inventer des dates, des identités d’épisodes ou un seuil fixe de récence, ou de traiter une chronologie incomplète comme un calcul complet de l’ordre des derniers épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeRecentEpisodes|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeRecentEpisodes through recallScope and retain the actual agent context, source ordering and any explicitly selected recallLatest limit without adding defaults."
+msgstr "Référencer recallScopeRecentEpisodes par recallScope et conserver le contexte réel de l’agent, l’ordre des sources et toute limite recallLatest explicitement sélectionnée, sans ajouter de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet wording recall scope"
+msgstr "portée de rappel des sujets des mots du paquet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting what the actual packet’s own words are about."
+msgstr "Une spécification RecallScope partagée demandant ce dont parlent les mots mêmes du paquet réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The packet’s words, their subjects and the packet’s kind are distinct. This value supplies no inferred topic, referent identity, language or performed interpretation."
+msgstr "Les mots du paquet, leurs sujets et le type du paquet sont distincts. Cette valeur ne fournit aucun sujet inféré, aucune identité de référent, aucune langue ni aucune interprétation effectuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context plan requests recall about the supplied packet’s own wording rather than substituting a standing thread or a kind label."
+msgstr "Un plan de contexte demande un rappel portant sur les mots mêmes du paquet fourni, sans leur substituer un fil permanent ou une étiquette de type."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the requested recall selection is about the actual packet’s own words."
+msgstr "Utiliser lorsque la sélection de rappel demandée porte sur les mots mêmes du paquet réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the packet kind, a default topic or another conversation, or claiming that naming this scope executes text analysis."
+msgstr "Éviter de substituer le type du paquet, un sujet par défaut ou une autre conversation, ou de prétendre que nommer cette portée exécute une analyse de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopePacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopePacket through recallScope and retain the actual packet wording and source context required by the consumer’s selection. Keep unresolved aboutness unresolved."
+msgstr "Référencer recallScopePacket par recallScope et conserver les mots réels du paquet ainsi que le contexte source requis par la sélection du consommateur. Laisser irrésolu ce dont parlent les mots lorsque cela reste inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience floor recall scope"
+msgstr "portée de rappel du plancher relationnel de l’audience"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shared RecallScope specification requesting who is listening, using the floor of the relationship rings of everyone in the actual current conversation together with the configured warning text for that resulting ring."
+msgstr "Une spécification RecallScope partagée demandant qui écoute, à partir du plancher des cercles relationnels de tous les participants à la conversation actuelle réelle, avec le texte d’avertissement configuré pour le cercle qui en résulte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The actual conversation roster, relationship-ring ordering, floor rule and configured warning are consumer inputs. This value defines no universal rings, numerical minimum, participant presence or fallback warning."
+msgstr "La liste réelle des participants, l’ordre des cercles relationnels, la règle de plancher et l’avertissement configuré sont des données du consommateur. Cette valeur ne définit ni cercles universels, ni minimum numérique, ni présence de participants, ni avertissement de repli."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared operation requests the audience under the supplied conversation’s relationship-ring floor and retains the warning configured for that ring."
+msgstr "Une opération déclarée demande l’audience selon le plancher des cercles relationnels des participants de la conversation fournie et conserve l’avertissement configuré pour ce cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source plan explicitly requests the current conversation’s audience floor and its configured ring warning."
+msgstr "Utiliser lorsque le plan source demande explicitement le plancher d’audience de la conversation actuelle et l’avertissement configuré pour son cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing relationship rings with persona audience ranks, inventing a ring taxonomy or warning, omitting listeners from the declared roster, or claiming that this selector computes or authenticates the floor."
+msgstr "Éviter de remplacer les cercles relationnels par des rangs d’audience de persona, d’inventer une taxonomie de cercles ou un avertissement, d’omettre des auditeurs de la liste déclarée ou de prétendre que ce sélecteur calcule ou authentifie le plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScopeAudience|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference recallScopeAudience through recallScope and retain the actual conversation context, all supplied relationship-ring inputs, the selected floor policy and that ring’s configured warning. Missing inputs are not a default audience."
+msgstr "Référencer recallScopeAudience par recallScope et conserver le contexte réel de conversation, toutes les données fournies sur les cercles relationnels, la politique de plancher sélectionnée et l’avertissement configuré pour ce cercle. Des données manquantes ne définissent pas une audience par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Packet Kind"
+msgstr "Type de paquet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information-bearing specification of the kind of thinking or context for which a model-call packet is requested. Its instances describe consumer-defined kinds, not the packet or its words."
+msgstr "Une spécification porteuse d’information décrivant le type de réflexion ou de contexte pour lequel un paquet d’appel de modèle est demandé. Ses instances décrivent des types définis par le consommateur, et non le paquet ou ses mots."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This open Kind under InformationObject describes kind specifications, not QualityValue measurements, model-call activities or a fixed mode taxonomy. Deployment-specific values remain local."
+msgstr "Ce Kind ouvert sous InformationObject décrit des spécifications de types, et non des mesures QualityValue, des activités d’appel de modèle ou une taxonomie fixe de modes. Les valeurs propres au déploiement restent locales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A context-plan condition reads the packet’s supplied kind specification beside actual state-slot facts, without reading the packet’s words as its kind."
+msgstr "Une condition de plan de contexte lit la spécification de type fournie du paquet à côté des faits réels des cases d’état, sans lire les mots du paquet comme son type."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an actual consumer-defined kind specification for the thinking or context requested for a packet."
+msgstr "Utiliser pour identifier une spécification réelle de type définie par le consommateur pour la réflexion ou le contexte demandés pour un paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the packet or its words as PacketKind, inferring an executed model call, or publishing a deployment’s local modes as a universal taxonomy."
+msgstr "Éviter de typer le paquet ou ses mots comme PacketKind, d’inférer un appel de modèle exécuté ou de publier les modes locaux d’un déploiement comme taxonomie universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PacketKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual kind specification resource and reference it through packetKind on the information-bearing packet. Preserve consumer identity and source without inventing a mode from wording or missing data."
+msgstr "Conserver la ressource réelle de spécification du type et la référencer par packetKind sur le paquet porteur d’information. Préserver l’identité du consommateur et la source sans inventer de mode à partir des mots ou de données manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "packet kind"
+msgstr "Type de paquet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an information-bearing packet to the PacketKind specification of the thinking or context it is requested for, as one supplied kind fact per packet rather than the packet’s words."
+msgstr "Relie un paquet porteur d’information à la spécification PacketKind de la réflexion ou du contexte pour lesquels il est demandé, à raison d’un fait de type fourni par paquet, et non aux mots du paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The canonical upper bound permits at most one PacketKind per InformationObject. It requires no kind on every information object and creates no Packet class; absence remains unknown rather than a default mode."
+msgstr "La borne supérieure canonique permet au plus un PacketKind par InformationObject. Elle n’exige pas de type sur chaque objet d’information et ne crée aucune classe Packet ; l’absence reste inconnue plutôt que de devenir un mode par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source supplies one packet-kind resource for a packet, and a plan condition refers to that fact without inferring that the condition currently holds."
+msgstr "La source fournit une ressource de type pour un paquet, et une condition de plan se réfère à ce fait sans en inférer que la condition est actuellement satisfaite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the kind specification that a context condition reads for this packet."
+msgstr "Utiliser lorsque la source fournit explicitement la spécification de type qu’une condition de contexte lit pour ce paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting literal packet words or a guessed mode here, requiring the property on unrelated information objects, or treating its presence as rule execution or model lifecycle authority."
+msgstr "Éviter d’y placer les mots littéraux du paquet ou un mode deviné, d’exiger cette propriété sur des objets d’information sans rapport ou de traiter sa présence comme une exécution de règles ou une autorité sur le cycle de vie d’un modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/packetKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual InformationObject packet to its supplied PacketKind resource and retain exact-statement attribution. Keep its words separately; the endpoint closure and qualified upper bound validate supplied values without claiming universal field presence."
+msgstr "Relier le paquet InformationObject réel à sa ressource PacketKind fournie et conserver l’attribution de l’énoncé exact. Garder ses mots séparément ; la fermeture des extrémités et la borne qualifiée valident les valeurs fournies sans prétendre imposer une présence universelle du champ."

@@ -113,3 +113,56 @@ mixed recency strategy. Existing required RecallOperation parameters remain
 unchanged: these are additional open-vocabulary choices, not a weakened plan
 profile. Selecting a requested capability never proves that it executed or
 authorizes a weaker result (Principles 4, 9, 12 and 17).
+
+## Parameterized scopes and explicit bound profiles
+
+RecallScope is the open InformationObject specification parent. The four shared
+context-relative selectors do not carry a particular agent's slots. Their actual
+state, chronology, packet words and conversation/ring/warning configuration are
+inputs to the selected consumer operation, not global source facts invented in
+the vocabulary. In particular, the audience selector retains both the declared
+relationship-ring floor over everyone in the current conversation and the warning
+configured for that resulting ring. No generic audience rank, numerical minimum,
+ring taxonomy or execution certificate replaces those inputs.
+
+SlotBoundRecallScope is the explicit SubKind requiring actual anchors.
+The parent carries the scopeSlot value restriction; the subtype also carries
+the direct allValuesFrom AttentionSlot restriction required by the class
+projection reader. The subtype owns the class-local closed path, and scopeSlot's
+domain is that subtype. At least one actual anchor is required there, with no
+maximum. A supplied scopeSlot also
+identifies the bound profile; a missing anchor cannot silently downgrade an
+explicitly bound specification to the generic parent.
+
+The conversation-turn example declares the bound subtype with its actual slot,
+bearer, history positions, assignments and operation facts.
+Every RecallOperation requires its typed, at-most-one scope and all other
+selected parameters. AttentionSlot/SlotPosition and assignment claims retain
+their own contracts. The general parent has no singleton exceptions, closed
+selector list, second wrapper, Formula or engine branch. Generic subclass,
+domain and class-local closure projection supply the whole formal change
+(Principles 4, 9, 11, 12, 17 and 19).
+
+## Packet kinds are specifications
+
+PacketKind follows the declared InformationObject/Kind contract: its instances
+are identifiable information-bearing specifications of requested thinking/context
+kinds. The resource describing a kind, the packet carrying content and the
+words in that packet are distinct. No packet wrapper, QualityValue retyping,
+classifier metamodel, fixed local mode inventory or runtime interpretation is
+part of this contract. RecallContext ownership and dependencies cover these sorts.
+
+packetKind has InformationObject domain and PacketKind range, with one global
+provided-value closure. An unnamed canonical InformationObject restriction uses
+maxQualifiedCardinality one with onClass PacketKind. The ordinary qualified-count
+reader derives the typed upper bound, and the selected range closure separately
+requires every supplied object to be a PacketKind. Thus malformed extras cannot
+evade the supplied-value contract by falling outside the counted class.
+
+The maximum entails no minimum, existential or class-local required path. The
+consumer's one-fact-per-packet input contract is explicit, while a universal
+presence gate would need an actual selected packet class/profile that this
+request does not supply. No such class is invented and ordinary information
+objects remain unconstrained by field presence. A declared kind fact is not a
+condition verdict, actual call, lifecycle permission or execution certificate
+(Principles 4, 9, 12, 17 and 19).

@@ -27,10 +27,10 @@ gmeow:RecallScope
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:label "Recall Scope"@x-gmeow-english ;
-    skos:definition "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."@x-gmeow-english ;
+    skos:definition "An open information-bearing specification of which records a recall operation requests under declared context bindings. Explicit attention-slot anchoring is the SlotBoundRecallScope profile."@x-gmeow-english ;
     gmeow:useWhen "Use to record Recall Scope within an attributed recall context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallScope alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the explicit RecallScope value with its source, scope and record identity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the selected specification and its source/request identity. Use SlotBoundRecallScope with actual scopeSlot anchors for the bound profile; shared parameterized scopes require their actual per-call state, packet or conversation/configuration inputs."@x-gmeow-english ;
     skos:example "The record names gmeow:RecallScope explicitly."@x-gmeow-english .
 
 gmeow:RecallDepth
@@ -328,10 +328,10 @@ gmeow:recallScope
     logic:domain logic:ActionSchema ;
     logic:range gmeow:RecallScope ;
     rdfs:label "recall scope"@x-gmeow-english ;
-    skos:definition "The explicit record scope requested by this recall schema, anchored through its scope slot."@x-gmeow-english ;
+    skos:definition "The explicit record-selection specification requested by a recall schema, either a shared context-parameterized scope or an explicitly slot-bound specification."@x-gmeow-english ;
     gmeow:useWhen "Use to record recall scope within an attributed recall context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallScope alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the explicit recallScope value with its source, scope and record identity."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual schema to its selected RecallScope. Preserve the required scope and other operation parameters; retain real anchors for SlotBoundRecallScope and actual context inputs for shared selectors without fallback or invented bindings."@x-gmeow-english ;
     skos:example "The record names gmeow:recallScope explicitly."@x-gmeow-english .
 
 gmeow:recallDepth
@@ -442,13 +442,13 @@ gmeow:scopeSlot
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    logic:domain gmeow:RecallScope ;
+    logic:domain gmeow:SlotBoundRecallScope ;
     logic:range gmeow:AttentionSlot ;
     rdfs:label "scope slot"@x-gmeow-english ;
-    skos:definition "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."@x-gmeow-english ;
+    skos:definition "An actual AttentionSlot anchoring a SlotBoundRecallScope’s record selection, resolved by the consumer rather than copied into the scope."@x-gmeow-english ;
     gmeow:useWhen "Use to record scope slot within an attributed recall context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from scopeSlot alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the explicit scopeSlot value with its source, scope and record identity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual anchors and select SlotBoundRecallScope for the slot-focused specification. Preserve each slot’s existing bearer, role and history; missing anchors remain a failed selected profile rather than a generic-scope fallback."@x-gmeow-english ;
     skos:example "The record names gmeow:scopeSlot explicitly."@x-gmeow-english .
 
 gmeow:slotRole
@@ -661,7 +661,7 @@ gmeow:verdictWords
 
 # Supplied-value constraints and local record contracts.
 gmeow:RecallScope logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:scopeSlot ; logic:allValuesFrom gmeow:AttentionSlot ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:RecallScope ; logic:closureKey "https://blackcatinformatics.ca/gmeow/scopeSlot" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SlotBoundRecallScope ; logic:closureKey "https://blackcatinformatics.ca/gmeow/scopeSlot" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallSchema ; logic:allValuesFrom logic:ActionSchema ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallSchema" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallSchema ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:ActionSchema ] .
@@ -1054,3 +1054,96 @@ gmeow:recollectionFormOneLineGist
     gmeow:howToUse "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."@x-gmeow-english ;
     skos:scopeNote "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."@x-gmeow-english ;
     skos:example "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."@x-gmeow-english .
+
+gmeow:SlotBoundRecallScope
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Slot Bound Recall Scope"@x-gmeow-english ;
+    skos:definition "A RecallScope whose requested record selection is explicitly anchored through supplied scopeSlot values to at least one actual AttentionSlot."@x-gmeow-english ;
+    skos:scopeNote "This explicit profile requires actual anchors and preserves their AttentionSlot typing. Missing anchors remain invalid; they never select the unbound parent as a fallback. No maximum number of anchors is imposed."@x-gmeow-english ;
+    skos:example "The existing conversation-turn scope names its actual conversation slot and selects this bound profile."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source specification selects actual attention-slot anchors for its requested records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an agent, slot or history to complete this profile, copying the pointed record into the scope, or dropping the profile when an anchor is missing."@x-gmeow-english ;
+    gmeow:howToUse "Type the actual anchored specification as SlotBoundRecallScope and retain its supplied scopeSlot values. Keep each slot’s real bearer, role, history and attributed state claims under their existing contracts."@x-gmeow-english ;
+    logic:subClassOf gmeow:RecallScope ,
+        [ a logic:Restriction ; logic:onProperty gmeow:scopeSlot ; logic:allValuesFrom gmeow:AttentionSlot ] .
+
+gmeow:recallScopeAttendedNow
+    a gmeow:RecallScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "currently attended recall scope"@x-gmeow-english ;
+    skos:definition "A shared RecallScope specification requesting the thread that the agent’s supplied state holds open now, resolved within the actual per-call state and view."@x-gmeow-english ;
+    skos:scopeNote "The value is a parameterized request, not a current thread, slot assignment or global state winner. Its meaning needs the actual selected agent-state context."@x-gmeow-english ;
+    skos:example "A declared recall operation requests the thread held open in the state supplied for that call."@x-gmeow-english ;
+    gmeow:useWhen "Use when a context plan explicitly requests the agent-state thread currently held open for this call."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a global current thread, fabricating a slot or treating this selector as evidence that any records were retrieved."@x-gmeow-english ;
+    gmeow:howToUse "Reference recallScopeAttendedNow through recallScope on the actual schema and retain the supplied per-call agent-state view; resolve it without manufacturing missing state."@x-gmeow-english .
+
+gmeow:recallScopeRecentEpisodes
+    a gmeow:RecallScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "recent episodes recall scope"@x-gmeow-english ;
+    skos:definition "A shared RecallScope specification requesting the agent’s latest episodes under the actual source chronology and context selected for the call."@x-gmeow-english ;
+    skos:scopeNote "The value supplies no fixed age window, episode count, clock precision or global recency order. Any selected limits and ordering remain actual source inputs."@x-gmeow-english ;
+    skos:example "A declared operation requests the agent’s latest episodes while retaining the source’s actual ordering and any separately supplied limit."@x-gmeow-english ;
+    gmeow:useWhen "Use when the plan explicitly selects recent episodes rather than the thread currently held open or the packet’s topics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing dates, episode identities or a fixed recency cutoff, or treating incomplete chronology as a complete latest-order computation."@x-gmeow-english ;
+    gmeow:howToUse "Reference recallScopeRecentEpisodes through recallScope and retain the actual agent context, source ordering and any explicitly selected recallLatest limit without adding defaults."@x-gmeow-english .
+
+gmeow:recallScopePacket
+    a gmeow:RecallScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "packet wording recall scope"@x-gmeow-english ;
+    skos:definition "A shared RecallScope specification requesting what the actual packet’s own words are about."@x-gmeow-english ;
+    skos:scopeNote "The packet’s words, their subjects and the packet’s kind are distinct. This value supplies no inferred topic, referent identity, language or performed interpretation."@x-gmeow-english ;
+    skos:example "A context plan requests recall about the supplied packet’s own wording rather than substituting a standing thread or a kind label."@x-gmeow-english ;
+    gmeow:useWhen "Use when the requested recall selection is about the actual packet’s own words."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the packet kind, a default topic or another conversation, or claiming that naming this scope executes text analysis."@x-gmeow-english ;
+    gmeow:howToUse "Reference recallScopePacket through recallScope and retain the actual packet wording and source context required by the consumer’s selection. Keep unresolved aboutness unresolved."@x-gmeow-english .
+
+gmeow:recallScopeAudience
+    a gmeow:RecallScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "audience floor recall scope"@x-gmeow-english ;
+    skos:definition "A shared RecallScope specification requesting who is listening, using the floor of the relationship rings of everyone in the actual current conversation together with the configured warning text for that resulting ring."@x-gmeow-english ;
+    skos:scopeNote "The actual conversation roster, relationship-ring ordering, floor rule and configured warning are consumer inputs. This value defines no universal rings, numerical minimum, participant presence or fallback warning."@x-gmeow-english ;
+    skos:example "A declared operation requests the audience under the supplied conversation’s relationship-ring floor and retains the warning configured for that ring."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source plan explicitly requests the current conversation’s audience floor and its configured ring warning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing relationship rings with persona audience ranks, inventing a ring taxonomy or warning, omitting listeners from the declared roster, or claiming that this selector computes or authenticates the floor."@x-gmeow-english ;
+    gmeow:howToUse "Reference recallScopeAudience through recallScope and retain the actual conversation context, all supplied relationship-ring inputs, the selected floor policy and that ring’s configured warning. Missing inputs are not a default audience."@x-gmeow-english .
+
+gmeow:PacketKind
+    a logic:Kind, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Packet Kind"@x-gmeow-english ;
+    skos:definition "An information-bearing specification of the kind of thinking or context for which a model-call packet is requested. Its instances describe consumer-defined kinds, not the packet or its words."@x-gmeow-english ;
+    skos:scopeNote "This open Kind under InformationObject describes kind specifications, not QualityValue measurements, model-call activities or a fixed mode taxonomy. Deployment-specific values remain local."@x-gmeow-english ;
+    skos:example "A context-plan condition reads the packet’s supplied kind specification beside actual state-slot facts, without reading the packet’s words as its kind."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify an actual consumer-defined kind specification for the thinking or context requested for a packet."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the packet or its words as PacketKind, inferring an executed model call, or publishing a deployment’s local modes as a universal taxonomy."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual kind specification resource and reference it through packetKind on the information-bearing packet. Preserve consumer identity and source without inventing a mode from wording or missing data."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:packetKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "packet kind"@x-gmeow-english ;
+    skos:definition "Relates an information-bearing packet to the PacketKind specification of the thinking or context it is requested for, as one supplied kind fact per packet rather than the packet’s words."@x-gmeow-english ;
+    skos:scopeNote "The canonical upper bound permits at most one PacketKind per InformationObject. It requires no kind on every information object and creates no Packet class; absence remains unknown rather than a default mode."@x-gmeow-english ;
+    skos:example "The source supplies one packet-kind resource for a packet, and a plan condition refers to that fact without inferring that the condition currently holds."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies the kind specification that a context condition reads for this packet."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting literal packet words or a guessed mode here, requiring the property on unrelated information objects, or treating its presence as rule execution or model lifecycle authority."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual InformationObject packet to its supplied PacketKind resource and retain exact-statement attribution. Keep its words separately; the endpoint closure and qualified upper bound validate supplied values without claiming universal field presence."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:PacketKind .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/packetKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:InformationObject logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:packetKind ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:PacketKind ] .
