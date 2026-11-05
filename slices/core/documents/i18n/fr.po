@@ -1454,3 +1454,255 @@ msgstr "Éviter de remplacer le mediaType du support conservé, d’inventer un 
 msgctxt "https://blackcatinformatics.ca/gmeow/originalMediaTypeText|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep every supplied xsd:string exactly, including case, spaces and blank text, with its actual exact-statement source and any supplied viewpoint. Leave unavailable text absent."
 msgstr "Conserver chaque xsd:string fourni exactement, y compris la casse, les espaces et le texte vide, avec la source réelle de l’énoncé exact et tout point de vue fourni. Omettre le texte indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB spine-entry account"
+msgstr "compte rendu d’entrée de spine EPUB"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied information-record account of one EPUB spine entry, retaining its reported order descriptor, exact href and any supplied ordered TOC path."
+msgstr "Un compte rendu fourni par la source sous forme d’objet d’information pour une entrée de spine EPUB, conservant son descripteur d’ordre rapporté, son href exact et tout chemin de table des matières ordonné fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each coherent account requires one reported integer order descriptor and one href string. Its path and actual source association are optional; matching descriptors or hrefs do not merge accounts or establish parsed EPUB conformance."
+msgstr "Chaque compte rendu cohérent exige un descripteur d’ordre entier rapporté et une chaîne href. Son chemin et son association à une source réelle sont facultatifs ; des descripteurs ou href identiques ne fusionnent pas les comptes rendus et n’établissent pas la conformité d’un EPUB analysé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source supplies two distinct entry accounts with the same relative href while preserving their separate order descriptors and attribution."
+msgstr "Une source fictive fournit deux comptes rendus d’entrée distincts portant le même href relatif, en conservant leurs descripteurs d’ordre et attributions séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a coherent source-supplied EPUB spine-entry record without resolving its href or reconstructing its source package."
+msgstr "Utiliser pour conserver un enregistrement cohérent d’entrée de spine EPUB fourni par la source sans résoudre son href ni reconstituer son paquet source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a package identity, base URI, immutable revision, digest, parser success, resolved content target or universal ordering convention from the record alone."
+msgstr "Éviter d’inférer une identité de paquet, un URI de base, une révision immuable, une empreinte, une analyse syntaxique réussie, une cible de contenu résolue ou une convention d’ordre universelle à partir du seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubSpineEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied account distinct. Retain epubSpineOrder and epubSpineHref, add epubTocPath only when supplied, and associate an actually identified source through epubSpineEntry without inventing missing context."
+msgstr "Garder chaque compte rendu fourni distinct. Conserver epubSpineOrder et epubSpineHref, ajouter epubTocPath uniquement lorsqu’il est fourni et associer une source réellement identifiée par epubSpineEntry sans inventer de contexte manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC path step"
+msgstr "étape de chemin de table des matières EPUB"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StructuredValue occurrence representing one supplied EPUB TOC path step, whose sole scalar structuredTerm is its complete title and whose epubTocDepth retains the reported depth descriptor."
+msgstr "Une occurrence StructuredValue représentant une étape fournie de chemin de table des matières EPUB, dont l’unique structuredTerm scalaire est le titre complet et dont epubTocDepth conserve le descripteur de profondeur rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every typed step requires its title and reported integer depth, even before path membership is supplied. Title identity is the complete RDF term; equal titles on distinct occurrences do not identify the same step."
+msgstr "Chaque étape typée exige son titre et sa profondeur entière rapportée, même avant qu’une appartenance à un chemin soit fournie. L’identité du titre est celle du terme RDF complet ; des titres égaux sur des occurrences distinctes n’identifient pas la même étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two distinct path steps retain the same spaced title at different entryOrdinal positions; a standalone typed step still supplies its own title and depth."
+msgstr "Deux étapes de chemin distinctes conservent le même titre avec ses espaces à des positions entryOrdinal différentes ; une étape typée autonome fournit toujours son propre titre et sa profondeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual supplied TOC step occurrence with a complete word-literal title and its reported depth descriptor."
+msgstr "Utiliser pour une occurrence réelle d’étape de table des matières fournie avec un titre complet sous forme de littéral textuel et son descripteur de profondeur rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding a duplicate title field or wrapper identity, deriving depth from entryOrdinal, inferring a tree or replacing repeated or blank titles with missing data."
+msgstr "Éviter d’ajouter un champ de titre ou une identité d’enveloppe en double, de déduire la profondeur d’entryOrdinal, d’inférer un arbre ou de remplacer des titres répétés ou vides par des données manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the actual occurrence EpubTocPathStep, retain its complete title once through structuredTerm and its supplied integer depth through epubTocDepth. When it belongs to a path, retain its actual zero-based occurrence position through entryOrdinal."
+msgstr "Typer l’occurrence réelle EpubTocPathStep, conserver une seule fois son titre complet par structuredTerm et sa profondeur entière fournie par epubTocDepth. Lorsqu’elle appartient à un chemin, conserver sa position réelle d’occurrence, comptée depuis zéro, par entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine-entry account"
+msgstr "compte rendu d’entrée de spine EPUB rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actually identified source InformationObject to an EpubSpineEntry account supplied for that source."
+msgstr "Relie un InformationObject source réellement identifié à un compte rendu EpubSpineEntry fourni pour cette source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional association retains supplied source context without identifying an immutable revision, declaring a media type or proving completeness of a package inventory. A source may have independent accounts."
+msgstr "Cette association facultative et non fonctionnelle conserve le contexte source fourni sans identifier une révision immuable, déclarer un type média ni prouver l’exhaustivité d’un inventaire de paquet. Une source peut avoir des comptes rendus indépendants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source links to two independently attributed entry accounts; another supplied entry remains unassociated when its actual source identity is unavailable."
+msgstr "Une source fictive est reliée à deux comptes rendus d’entrée attribués indépendamment ; une autre entrée fournie reste sans association lorsque l’identité réelle de sa source est indisponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source information object and its supplied spine-entry account are identified."
+msgstr "Utiliser lorsque l’objet d’information source réel et son compte rendu d’entrée de spine fourni sont identifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a source to fill missing evidence or substituting segmentOf, wasDerivedFrom or navigationSource for this supplied account association."
+msgstr "Éviter de créer une source pour combler un manque de preuve ou de substituer segmentOf, wasDerivedFrom ou navigationSource à cette association de compte rendu fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link only an actual supplied InformationObject to each distinct entry account and attribute the association itself. Leave unavailable source identity absent; shared href wording does not create this link."
+msgstr "Relier uniquement un InformationObject réellement fourni à chaque compte rendu d’entrée distinct et attribuer l’association elle-même. Omettre l’identité source indisponible ; un href identique ne crée pas ce lien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine order descriptor"
+msgstr "descripteur d’ordre de spine EPUB rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer descriptor supplied by the source for the order of this EPUB spine-entry account under its actual convention."
+msgstr "Le descripteur entier fourni par la source pour l’ordre de ce compte rendu d’entrée de spine EPUB selon sa convention réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one integer-family literal is required per account. Its supplied lexical form and datatype survive; no universal origin, bound, tie policy, comparison rule or canonical sequence position is established."
+msgstr "Un seul littéral de la famille des entiers est exigé par compte rendu. Sa forme lexicale et son type de données fournis sont conservés ; aucun point de départ, borne, traitement des ex æquo, règle de comparaison ou position de séquence canonique universels ne sont établis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies order descriptor 12 while the first TOC step has entryOrdinal 0; the two integers describe different things."
+msgstr "Une source fournit le descripteur d’ordre 12 tandis que la première étape du chemin de table des matières porte entryOrdinal 0 ; les deux entiers décrivent des choses différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the supplied integer spine-order descriptor independently of TOC depth and actual step position."
+msgstr "Utiliser pour conserver le descripteur entier d’ordre de spine fourni indépendamment de la profondeur de table des matières et de la position réelle de l’étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying this descriptor into entryOrdinal, inventing a numbering base or coercing a string, fractional value or arbitrary code into interpreted spine order."
+msgstr "Éviter de copier ce descripteur dans entryOrdinal, d’inventer une base de numérotation ou de convertir une chaîne, une valeur fractionnaire ou un code arbitraire en ordre de spine interprété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact supplied literal from the thirteen XSD integer-family datatypes, with its source convention and exact-statement attribution. Invalid selected input fails rather than being normalized or replaced."
+msgstr "Conserver le littéral exact fourni parmi les treize types de données de la famille des entiers XSD, avec sa convention source et l’attribution de l’énoncé exact. Une entrée sélectionnée invalide échoue au lieu d’être normalisée ou remplacée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB spine href"
+msgstr "href de spine EPUB rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact href string supplied by the source for this EPUB spine-entry account, retained without URI resolution or normalization."
+msgstr "La chaîne href exacte fournie par la source pour ce compte rendu d’entrée de spine EPUB, conservée sans résolution ni normalisation d’URI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one xsd:string is required, including a supplied blank string. Relative spelling, case, spaces and fragments remain source data; the string establishes no independent content-resource identity or base URI."
+msgstr "Une seule valeur xsd:string est exigée, y compris une chaîne vide fournie. La graphie relative, la casse, les espaces et les fragments restent des données sources ; la chaîne n’établit ni identité indépendante de ressource de contenu ni URI de base."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|http://www.w3.org/2004/02/skos/core#example"
+msgid "A fictional source retains Text/Part.xhtml#Opening exactly as its relative href, without guessing a package location."
+msgstr "Une source fictive conserve exactement Text/Part.xhtml#Opening comme href relatif, sans deviner l’emplacement d’un paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the entry account supplies its exact href field, including relative or blank text."
+msgstr "Utiliser lorsque le compte rendu d’entrée fournit son champ href exact, y compris un texte relatif ou vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving or fetching the reference, decoding or rewriting its spelling, adding a language tag or treating matching strings as target identity."
+msgstr "Éviter de résoudre la référence ou d’en récupérer le contenu, de décoder ou réécrire sa graphie, d’ajouter une étiquette de langue ou de traiter des chaînes identiques comme une identité de cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubSpineHref|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete supplied xsd:string with its exact-statement source and viewpoint. Any separately supplied resolved target or base context remains distinct evidence, not a computed value of this property."
+msgstr "Conserver la valeur xsd:string complète fournie avec la source et le point de vue de l’énoncé exact. Toute cible résolue ou tout contexte de base fournis séparément restent des preuves distinctes, pas une valeur calculée de cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB TOC path"
+msgstr "chemin de table des matières EPUB rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The independently ordered StructuredSequence of TOC path-step occurrences supplied for this EPUB spine-entry account."
+msgstr "La StructuredSequence ordonnée indépendamment d’occurrences d’étapes de chemin de table des matières fournies pour ce compte rendu d’entrée de spine EPUB."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional path is locally at most one. An actually supplied current empty sequence differs from absence; code defaults do not recover historical field presence. The path establishes no inferred navigation tree or resolved targets."
+msgstr "Ce chemin facultatif est localement limité à un. Une séquence actuelle vide réellement fournie diffère d’une absence ; des valeurs par défaut du code ne reconstituent pas la présence historique d’un champ. Le chemin n’établit ni arbre de navigation inféré ni cibles résolues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|http://www.w3.org/2004/02/skos/core#example"
+msgid "One account supplies an empty TOC path while another supplies no path; a third preserves equal titles as separate ordered step occurrences."
+msgstr "Un compte rendu fournit un chemin de table des matières vide tandis qu’un autre n’en fournit aucun ; un troisième conserve des titres égaux comme des occurrences d’étapes ordonnées distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the entry account actually supplies its ordered TOC path, including a known current zero-item path."
+msgstr "Utiliser lorsque le compte rendu d’entrée fournit réellement son chemin de table des matières ordonné, y compris un chemin actuel connu sans élément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a path for a missing field, removing repeated or blank titles, pairing positions across accounts or deriving parent-child relations from depth descriptors."
+msgstr "Éviter d’inventer un chemin pour un champ manquant, de supprimer les titres répétés ou vides, d’apparier les positions entre comptes rendus ou de déduire des relations parent-enfant des descripteurs de profondeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocPath|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one supplied StructuredSequence whose items are distinct EpubTocPathStep occurrences. Retain their actual zero-based positions with entryOrdinal and preserve each complete title and supplied depth under its own source attribution."
+msgstr "Relier une StructuredSequence fournie dont les éléments sont des occurrences EpubTocPathStep distinctes. Conserver leurs positions réelles comptées depuis zéro avec entryOrdinal et préserver chaque titre complet et profondeur fournie avec leur propre attribution source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported EPUB TOC depth descriptor"
+msgstr "descripteur de profondeur de table des matières EPUB rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer descriptor supplied by the source as the depth of this EPUB TOC path step under its actual convention."
+msgstr "Le descripteur entier fourni par la source comme profondeur de cette étape de chemin de table des matières EPUB selon sa convention réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one integer-family literal is required per typed step. It is a reported descriptor, not a computed count, canonical tree depth or occurrence position; its actual source convention governs interpretation."
+msgstr "Un seul littéral de la famille des entiers est exigé par étape typée. Il s’agit d’un descripteur rapporté, non d’un décompte calculé, d’une profondeur d’arbre canonique ou d’une position d’occurrence ; sa convention source réelle en gouverne l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The first path step retains reported depth 4 at entryOrdinal 0 without inferring four ancestors or a missing prefix."
+msgstr "La première étape du chemin conserve la profondeur rapportée 4 à entryOrdinal 0 sans inférer quatre ancêtres ni un préfixe manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual integer depth descriptor supplied with a TOC step, independently of path position and spine order."
+msgstr "Utiliser pour le descripteur entier de profondeur réel fourni avec une étape de table des matières, indépendamment de sa position dans le chemin et de l’ordre de spine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid computing depth from path length, imposing an unreported origin or bound, copying it into entryOrdinal or accepting an arbitrary integer code as interpreted depth."
+msgstr "Éviter de calculer la profondeur à partir de la longueur du chemin, d’imposer un point de départ ou une borne non rapportés, de la copier dans entryOrdinal ou d’accepter un code entier arbitraire comme profondeur interprétée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epubTocDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact supplied integer-family literal and its actual source convention on this occurrence. Preserve lexical form and datatype; invalid or noninteger selected input fails without coercion or a synthesized default."
+msgstr "Conserver le littéral exact fourni de la famille des entiers et sa convention source réelle sur cette occurrence. Préserver la forme lexicale et le type de données ; une entrée sélectionnée invalide ou non entière échoue sans conversion ni valeur par défaut synthétisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC path-item constraint"
+msgstr "contrainte d’élément de chemin de table des matières EPUB"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every structuredItem in a sequence selected through epubTocPath is an EpubTocPathStep occurrence."
+msgstr "Chaque structuredItem d’une séquence sélectionnée par epubTocPath est une occurrence EpubTocPathStep."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This role-scoped law checks every selected item without requiring an explicitly typed entry. Empty selected paths remain valid; generic sequence branch and ordinal contracts remain unchanged."
+msgstr "Cette règle limitée au rôle vérifie chaque élément sélectionné sans exiger une entrée explicitement typée. Les chemins sélectionnés vides restent valides ; les contrats génériques de branche de séquence et de rang restent inchangés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected path item typed only as a generic StructuredValue does not bypass the EpubTocPathStep title and depth contract."
+msgstr "Un élément de chemin sélectionné typé uniquement comme StructuredValue générique ne contourne pas le contrat de titre et de profondeur d’EpubTocPathStep."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the step-occurrence contract on every supplied TOC path item without narrowing unrelated generic sequences."
+msgstr "Utiliser pour appliquer le contrat d’occurrence d’étape à chaque élément de chemin de table des matières fourni sans restreindre les séquences génériques sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting one well-formed step as cover for another malformed item or interpreting a scalar title string as a resolved navigation resource."
+msgstr "Éviter d’accepter une étape bien formée pour couvrir un autre élément mal formé ou d’interpréter une chaîne de titre scalaire comme une ressource de navigation résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathItemConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow epubTocPath and every structuredItem, requiring EpubTocPathStep membership for each item. Preserve its distinct occurrence, actual title, depth and canonical sequence position without inventing a target."
+msgstr "Suivre epubTocPath et chaque structuredItem, en exigeant l’appartenance à EpubTocPathStep pour chaque élément. Conserver son occurrence distincte, son titre réel, sa profondeur et sa position canonique dans la séquence sans inventer de cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "EPUB TOC step-title constraint"
+msgstr "contrainte de titre d’étape de table des matières EPUB"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every typed EpubTocPathStep has a scalar structuredTerm title, and every supplied title term is an xsd:string, rdf:langString or rdf:dirLangString literal."
+msgstr "Chaque EpubTocPathStep typé possède un titre scalaire structuredTerm, et chaque terme de titre fourni est un littéral xsd:string, rdf:langString ou rdf:dirLangString."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The title is required even for a standalone typed step. Blank titles are valid; generic StructuredValue laws still enforce one scalar branch and exact whole-term identity without a duplicate title authority."
+msgstr "Le titre est exigé même pour une étape typée autonome. Les titres vides sont valides ; les règles génériques de StructuredValue imposent toujours une branche scalaire et l’identité exacte du terme entier, sans autorité de titre en double."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A standalone step with a blank string title satisfies title presence; a step missing structuredTerm or carrying a numeric, resource or extra malformed term violates this law."
+msgstr "Une étape autonome dont le titre est une chaîne vide satisfait la présence du titre ; une étape dépourvue de structuredTerm ou portant un terme numérique, une ressource ou un terme mal formé supplémentaire viole cette règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require and validate every supplied title on each typed TOC step, whether or not path membership is present."
+msgstr "Utiliser pour exiger et valider chaque titre fourni sur chaque étape typée de table des matières, qu’une appartenance à un chemin soit présente ou non."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an empty container as a missing title, coercing nonword values into strings or allowing a good title to hide another invalid supplied term."
+msgstr "Éviter d’accepter un conteneur vide à la place d’un titre manquant, de convertir des valeurs non textuelles en chaînes ou de laisser un titre correct masquer un autre terme fourni invalide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpubTocPathTitleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require a structuredTerm on every typed step, then compare every supplied term’s datatype through termSameComponent with the three admitted word datatypes. Keep the original complete literal and reject violations without rewriting input."
+msgstr "Exiger un structuredTerm sur chaque étape typée, puis comparer le type de données de chaque terme fourni par termSameComponent aux trois types textuels admis. Garder le littéral complet d’origine et rejeter les violations sans réécrire l’entrée."

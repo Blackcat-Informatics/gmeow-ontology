@@ -1635,3 +1635,256 @@ gmeow:originalMediaTypeText
 gmeow:MediaObject logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:originalMediaTypeText ;
       logic:allValuesFrom xsd:string ] .
+
+gmeow:EpubSpineEntry
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "EPUB spine-entry account"@x-gmeow-english ;
+    skos:definition "A source-supplied information-record account of one EPUB spine entry, retaining its reported order descriptor, exact href and any supplied ordered TOC path."@x-gmeow-english ;
+    skos:scopeNote "Each coherent account requires one reported integer order descriptor and one href string. Its path and actual source association are optional; matching descriptors or hrefs do not merge accounts or establish parsed EPUB conformance."@x-gmeow-english ;
+    skos:example "A fictional source supplies two distinct entry accounts with the same relative href while preserving their separate order descriptors and attribution."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a coherent source-supplied EPUB spine-entry record without resolving its href or reconstructing its source package."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a package identity, base URI, immutable revision, digest, parser success, resolved content target or universal ordering convention from the record alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied account distinct. Retain epubSpineOrder and epubSpineHref, add epubTocPath only when supplied, and associate an actually identified source through epubSpineEntry without inventing missing context."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:EpubTocPathStep
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "EPUB TOC path step"@x-gmeow-english ;
+    skos:definition "A StructuredValue occurrence representing one supplied EPUB TOC path step, whose sole scalar structuredTerm is its complete title and whose epubTocDepth retains the reported depth descriptor."@x-gmeow-english ;
+    skos:scopeNote "Every typed step requires its title and reported integer depth, even before path membership is supplied. Title identity is the complete RDF term; equal titles on distinct occurrences do not identify the same step."@x-gmeow-english ;
+    skos:example "Two distinct path steps retain the same spaced title at different entryOrdinal positions; a standalone typed step still supplies its own title and depth."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual supplied TOC step occurrence with a complete word-literal title and its reported depth descriptor."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding a duplicate title field or wrapper identity, deriving depth from entryOrdinal, inferring a tree or replacing repeated or blank titles with missing data."@x-gmeow-english ;
+    gmeow:howToUse "Type the actual occurrence EpubTocPathStep, retain its complete title once through structuredTerm and its supplied integer depth through epubTocDepth. When it belongs to a path, retain its actual zero-based occurrence position through entryOrdinal."@x-gmeow-english ;
+    logic:subClassOf gmeow:StructuredValue .
+
+gmeow:epubSpineEntry
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported EPUB spine-entry account"@x-gmeow-english ;
+    skos:definition "Relates an actually identified source InformationObject to an EpubSpineEntry account supplied for that source."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional association retains supplied source context without identifying an immutable revision, declaring a media type or proving completeness of a package inventory. A source may have independent accounts."@x-gmeow-english ;
+    skos:example "A fictional source links to two independently attributed entry accounts; another supplied entry remains unassociated when its actual source identity is unavailable."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual source information object and its supplied spine-entry account are identified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a source to fill missing evidence or substituting segmentOf, wasDerivedFrom or navigationSource for this supplied account association."@x-gmeow-english ;
+    gmeow:howToUse "Link only an actual supplied InformationObject to each distinct entry account and attribute the association itself. Leave unavailable source identity absent; shared href wording does not create this link."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:EpubSpineEntry .
+
+gmeow:epubSpineOrder
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported EPUB spine order descriptor"@x-gmeow-english ;
+    skos:definition "The integer descriptor supplied by the source for the order of this EPUB spine-entry account under its actual convention."@x-gmeow-english ;
+    skos:scopeNote "Exactly one integer-family literal is required per account. Its supplied lexical form and datatype survive; no universal origin, bound, tie policy, comparison rule or canonical sequence position is established."@x-gmeow-english ;
+    skos:example "A source supplies order descriptor 12 while the first TOC step has entryOrdinal 0; the two integers describe different things."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied integer spine-order descriptor independently of TOC depth and actual step position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying this descriptor into entryOrdinal, inventing a numbering base or coercing a string, fractional value or arbitrary code into interpreted spine order."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied literal from the thirteen XSD integer-family datatypes, with its source convention and exact-statement attribution. Invalid selected input fails rather than being normalized or replaced."@x-gmeow-english ;
+    logic:domain gmeow:EpubSpineEntry ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] .
+
+gmeow:epubSpineHref
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported EPUB spine href"@x-gmeow-english ;
+    skos:definition "The exact href string supplied by the source for this EPUB spine-entry account, retained without URI resolution or normalization."@x-gmeow-english ;
+    skos:scopeNote "Exactly one xsd:string is required, including a supplied blank string. Relative spelling, case, spaces and fragments remain source data; the string establishes no independent content-resource identity or base URI."@x-gmeow-english ;
+    skos:example "A fictional source retains Text/Part.xhtml#Opening exactly as its relative href, without guessing a package location."@x-gmeow-english ;
+    gmeow:useWhen "Use when the entry account supplies its exact href field, including relative or blank text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving or fetching the reference, decoding or rewriting its spelling, adding a language tag or treating matching strings as target identity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the complete supplied xsd:string with its exact-statement source and viewpoint. Any separately supplied resolved target or base context remains distinct evidence, not a computed value of this property."@x-gmeow-english ;
+    logic:domain gmeow:EpubSpineEntry ;
+    logic:range xsd:string .
+
+gmeow:epubTocPath
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported EPUB TOC path"@x-gmeow-english ;
+    skos:definition "The independently ordered StructuredSequence of TOC path-step occurrences supplied for this EPUB spine-entry account."@x-gmeow-english ;
+    skos:scopeNote "This optional path is locally at most one. An actually supplied current empty sequence differs from absence; code defaults do not recover historical field presence. The path establishes no inferred navigation tree or resolved targets."@x-gmeow-english ;
+    skos:example "One account supplies an empty TOC path while another supplies no path; a third preserves equal titles as separate ordered step occurrences."@x-gmeow-english ;
+    gmeow:useWhen "Use when the entry account actually supplies its ordered TOC path, including a known current zero-item path."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a path for a missing field, removing repeated or blank titles, pairing positions across accounts or deriving parent-child relations from depth descriptors."@x-gmeow-english ;
+    gmeow:howToUse "Link one supplied StructuredSequence whose items are distinct EpubTocPathStep occurrences. Retain their actual zero-based positions with entryOrdinal and preserve each complete title and supplied depth under its own source attribution."@x-gmeow-english ;
+    logic:domain gmeow:EpubSpineEntry ;
+    logic:range gmeow:StructuredSequence .
+
+gmeow:epubTocDepth
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported EPUB TOC depth descriptor"@x-gmeow-english ;
+    skos:definition "The integer descriptor supplied by the source as the depth of this EPUB TOC path step under its actual convention."@x-gmeow-english ;
+    skos:scopeNote "Exactly one integer-family literal is required per typed step. It is a reported descriptor, not a computed count, canonical tree depth or occurrence position; its actual source convention governs interpretation."@x-gmeow-english ;
+    skos:example "The first path step retains reported depth 4 at entryOrdinal 0 without inferring four ancestors or a missing prefix."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual integer depth descriptor supplied with a TOC step, independently of path position and spine order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid computing depth from path length, imposing an unreported origin or bound, copying it into entryOrdinal or accepting an arbitrary integer code as interpreted depth."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact supplied integer-family literal and its actual source convention on this occurrence. Preserve lexical form and datatype; invalid or noninteger selected input fails without coercion or a synthesized default."@x-gmeow-english ;
+    logic:domain gmeow:EpubTocPathStep ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] .
+
+gmeow:EpubTocPathItemConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "EPUB TOC path-item constraint"@x-gmeow-english ;
+    skos:definition "Every structuredItem in a sequence selected through epubTocPath is an EpubTocPathStep occurrence."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped law checks every selected item without requiring an explicitly typed entry. Empty selected paths remain valid; generic sequence branch and ordinal contracts remain unchanged."@x-gmeow-english ;
+    skos:example "A selected path item typed only as a generic StructuredValue does not bypass the EpubTocPathStep title and depth contract."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the step-occurrence contract on every supplied TOC path item without narrowing unrelated generic sequences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting one well-formed step as cover for another malformed item or interpreting a scalar title string as a resolved navigation resource."@x-gmeow-english ;
+    gmeow:howToUse "Follow epubTocPath and every structuredItem, requiring EpubTocPathStep membership for each item. Preserve its distinct occurrence, actual title, depth and canonical sequence position without inventing a target."@x-gmeow-english ;
+    logic:formalizes gmeow:epubTocPath , gmeow:EpubTocPathStep ;
+    logic:message "Every item in a sequence selected through epubTocPath is an EpubTocPathStep." .
+
+gmeow:EpubTocPathTitleConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "EPUB TOC step-title constraint"@x-gmeow-english ;
+    skos:definition "Every typed EpubTocPathStep has a scalar structuredTerm title, and every supplied title term is an xsd:string, rdf:langString or rdf:dirLangString literal."@x-gmeow-english ;
+    skos:scopeNote "The title is required even for a standalone typed step. Blank titles are valid; generic StructuredValue laws still enforce one scalar branch and exact whole-term identity without a duplicate title authority."@x-gmeow-english ;
+    skos:example "A standalone step with a blank string title satisfies title presence; a step missing structuredTerm or carrying a numeric, resource or extra malformed term violates this law."@x-gmeow-english ;
+    gmeow:useWhen "Use to require and validate every supplied title on each typed TOC step, whether or not path membership is present."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting an empty container as a missing title, coercing nonword values into strings or allowing a good title to hide another invalid supplied term."@x-gmeow-english ;
+    gmeow:howToUse "Require a structuredTerm on every typed step, then compare every supplied term’s datatype through termSameComponent with the three admitted word datatypes. Keep the original complete literal and reject violations without rewriting input."@x-gmeow-english ;
+    logic:formalizes gmeow:EpubTocPathStep ;
+    logic:message "Every typed EpubTocPathStep has a scalar structuredTerm title, and every supplied title term is an xsd:string, rdf:langString or rdf:dirLangString literal." .
+
+gmeow:EpubSpineEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epubSpineOrder ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubSpineOrder ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubSpineHref ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubSpineHref ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubTocPath ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubTocPath ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EpubSpineEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epubSpineOrder" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EpubSpineEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epubSpineHref" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:EpubTocPathStep logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:epubTocDepth ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:epubTocDepth ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EpubTocPathStep ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epubTocDepth" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:EpubTocPathItemConstraint
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "path" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "entry" ] ,
+            [ logic:termIndex 2 ; logic:termVariable "step" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:relation gmeow:epubTocPath ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "path" ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:relation gmeow:structuredItem ;
+                        logic:argument
+                            [ logic:termIndex 0 ; logic:termVariable "path" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "step" ]
+                    ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:relation rdf:type ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:EpubTocPathStep ]
+            ]
+        ]
+    ] .
+
+gmeow:EpubTocPathTitleConstraint
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "step" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:EpubTocPathStep ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ;
+                            logic:relation rdf:type ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                                [ logic:termIndex 1 ; logic:termIri gmeow:EpubTocPathStep ]
+                        ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presentTitle" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:relation gmeow:structuredTerm ;
+                                logic:argument
+                                    [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "presentTitle" ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payloadTitle" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation rdf:type ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri gmeow:EpubTocPathStep ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "step" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "payloadTitle" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:or
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadTitle" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadTitle" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:langString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "payloadTitle" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
