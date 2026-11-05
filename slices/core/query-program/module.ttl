@@ -12486,3 +12486,121 @@ gmeow:QueryMatchedLiteralWitness logic:subClassOf [ a logic:Restriction ; logic:
 gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:QueryAppliedOrderEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:QueryAppliedOrderEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:SparqlSelectionCanonicalization
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "SPARQL Selection Canonicalization"@x-gmeow-english ;
+    skos:definition "An information object specifying an actual versioned recipe for normalizing a parsed SPARQL selection and serializing and encoding its canonical byte preimage."@x-gmeow-english ;
+    skos:scopeNote "The recipe must give the same canonical byte preimage to query texts differing only in comments, insignificant whitespace or prefix names when equivalent PREFIX, BASE and relative-IRI resolution yields the same parsed bindings. It preserves significant literal whitespace and content and the actual parsed bindings. It specifies actual parsed-query normalization, canonical serialization and byte encoding, but declares no installed canonicalizer and certifies no execution, verification or general semantic query equivalence."@x-gmeow-english ;
+    skos:example "A consumer records its actual named normalization recipe and the exact version declared by its source."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a real SPARQL selection canonicalization recipe."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a profile instance, version, canonical byte sequence or implementation, or substituting a Unicode surface profile or expression-only procedure."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual recipe IRI and exactly one supplied xsd:string or xsd:token version. Retain the recipe’s full normalization and byte-production rules without claiming they ran."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:selectionCanonicalizationVersion
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selection canonicalization version"@x-gmeow-english ;
+    skos:definition "The exact supplied version of this SparqlSelectionCanonicalization recipe, retained with its original xsd:string or xsd:token datatype and lexical form."@x-gmeow-english ;
+    skos:scopeNote "Exactly one supplied version is required per recipe. Equal-looking string and token literals are not silently identified or rewritten."@x-gmeow-english ;
+    skos:example "A source’s recipe version remains a token when the source supplies a token, without conversion to a string."@x-gmeow-english ;
+    gmeow:useWhen "Use for the version actually declared for the named recipe."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a version from a digest, date, implementation build or query text when the source did not declare it."@x-gmeow-english ;
+    gmeow:howToUse "Retain exactly one supplied literal on the recipe, preserving its complete RDF term identity for the comparison key."@x-gmeow-english ;
+    logic:domain gmeow:SparqlSelectionCanonicalization ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+gmeow:selectionCanonicalization
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selection canonicalization"@x-gmeow-english ;
+    skos:definition "The actual named SparqlSelectionCanonicalization recipe selected for this source- and context-specific SparqlSelectionLeaf description."@x-gmeow-english ;
+    skos:scopeNote "The role is optional and has at most one recipe per leaf description. Coequal recipes require distinct actually sourced descriptions; this flat shape cannot pair several recipes and digests on the same leaf."@x-gmeow-english ;
+    skos:example "Two sources supply distinct leaf descriptions using different real recipes; neither recipe is made globally preferred."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source declares the canonicalization recipe for this exact leaf description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid multiple recipes on one leaf, fabricated copies or aliases of a leaf, and automatic preferred-recipe selection."@x-gmeow-english ;
+    gmeow:howToUse "Link at most one actual recipe IRI, retain its supplied version and preserve the original selectionText, selectionLanguage, dataset and context."@x-gmeow-english ;
+    logic:domain gmeow:SparqlSelectionLeaf ;
+    logic:range gmeow:SparqlSelectionCanonicalization .
+
+gmeow:selectionCanonicalDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selection canonical digest"@x-gmeow-english ;
+    skos:definition "A supplied algorithm-typed digest of the canonical byte preimage defined by this leaf description’s actual named and versioned selection canonicalization recipe."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional role admits BLAKE3-256, SHA-256 and MD5 literals under the same selected recipe. It is not contentDigest of the verbatim query text and certifies neither hash computation nor collision-free identity."@x-gmeow-english ;
+    skos:example "A consumer retains supplied BLAKE3-256 and SHA-256 digests of the same recipe-defined byte preimage without merging their algorithm identities."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a digest together with its actual named recipe and supplied version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bare generic hexBinary, inferred algorithms, raw-text hashes, unpaired recipe claims or treating a digest match as semantic or execution identity."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied algorithm datatype and lowercase hexadecimal literal unchanged: 64 digits for blake3_256Digest or sha256Digest, 32 for md5Digest. Compare the recipe IRI, exact supplied version and complete typed digest together."@x-gmeow-english ;
+    logic:domain gmeow:SparqlSelectionLeaf ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectionCanonicalization" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:SparqlSelectionCanonicalization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:selectionCanonicalizationVersion ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:selectionCanonicalizationVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SparqlSelectionCanonicalization ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:SparqlSelectionLeaf logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:selectionCanonicalization ; logic:allValuesFrom gmeow:SparqlSelectionCanonicalization ],
+    [ a logic:Restriction ; logic:onProperty gmeow:selectionCanonicalization ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SparqlSelectionCanonicalization ] .
+
+gmeow:SelectionCanonicalDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Selection canonical digest value constraint"@x-gmeow-english ;
+    skos:definition "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."@x-gmeow-english ;
+    skos:scopeNote "This is exact supplied-value admission, separate from recipe presence and version requirements. It computes no digest and proves no preimage agreement."@x-gmeow-english ;
+    skos:example "The same hexadecimal spelling under BLAKE3-256 and SHA-256 remains two distinct algorithm-typed digest terms."@x-gmeow-english ;
+    gmeow:useWhen "Use to admit each supplied canonical selection digest without changing its literal identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a generic datatype or normalizing uppercase, prefixed or wrong-width input."@x-gmeow-english ;
+    gmeow:howToUse "Apply the positive selectionCanonicalDigest guard and the exact datatype-component and hexadecimal-pattern alternatives; reject invalid values without rewriting them."@x-gmeow-english ;
+    logic:formalizes gmeow:selectionCanonicalDigest ;
+    logic:severity "Violation" ;
+    logic:message "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:selectionCanonicalDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ],
+                [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ],
+                [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .
+
+gmeow:SelectionCanonicalizationBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Selection canonicalization binding constraint"@x-gmeow-english ;
+    skos:definition "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."@x-gmeow-english ;
+    skos:scopeNote "Recipe class, exact supplied version and leaf-local at-most-one obligations are validated separately. This constraint invents no recipe and selects no default."@x-gmeow-english ;
+    skos:example "A digest without its actual named recipe is rejected rather than paired with a guessed canonicalization scheme."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the real recipe companion of a supplied canonical selection digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling missing companions with synthetic profiles, blank-node identities, source aliases or a globally preferred recipe."@x-gmeow-english ;
+    gmeow:howToUse "Use the outer leaf-type guard and independent positive digest and companion guards; retain the actual named recipe and its source-declared version."@x-gmeow-english ;
+    logic:formalizes gmeow:selectionCanonicalDigest , gmeow:selectionCanonicalization ;
+    logic:severity "Violation" ;
+    logic:message "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "leaf" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termIri gmeow:SparqlSelectionLeaf ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:selectionCanonicalDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "companion" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:selectionCanonicalization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termVariable "companion" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "recipe" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:selectionCanonicalization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leaf" ], [ logic:termIndex 1 ; logic:termVariable "recipe" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "recipe" ] ] ] ] ] ] ] .

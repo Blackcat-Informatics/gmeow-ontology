@@ -2074,3 +2074,70 @@ actual whole-byte order and authenticated source execution remain strict import
 requirements. Executable whole-sort qualification, requested-policy adoption and
 end-to-end integration need their own evidence; this reported account is not a
 Boolean proof field, generic sort engine or runtime parity claim.
+
+## Canonical selection digests and named recipes
+
+`selectionCanonicalDigest` records a supplied algorithm-typed digest of the
+canonical bytes defined by one actual `SparqlSelectionCanonicalization` recipe.
+A supplied digest requires its actual named companion through
+`selectionCanonicalization`. The companion is optional when no digest is
+supplied, and at most one recipe belongs to each source- and context-specific
+`SparqlSelectionLeaf` description. Every selected companion is an IRI and carries
+exactly one actual supplied `selectionCanonicalizationVersion`, retained as its
+original `xsd:string` or `xsd:token`. Never guess a version or mint a synthetic
+recipe to complete an incomplete source record (Principles 4, 7, 9 and 17).
+
+The recipe specifies the actual parsed-query normalization and canonical
+serialization, its byte encoding and its PREFIX, BASE and relative-IRI resolution
+rules. Retain the original `selectionText`, `selectionLanguage`,
+`selectionDataset`, `selectionContext`, `selectionInput` and `selectionOutput`.
+The recipe is an information object describing the source’s rules; these
+assertions install no canonicalizer, produce no canonical bytes and prove no
+query parsing or execution. The existing pure SELECT language and consumer
+admission obligations continue to apply.
+
+The recipe must produce the same canonical byte preimage for comment-only,
+insignificant-whitespace and prefix-name-only variants when equivalent PREFIX,
+BASE and relative-IRI resolution yields the same parsed bindings. Significant
+whitespace and content inside literals and the actual parsed bindings must be
+preserved. This is the recipe’s required contract, not a promise of general
+algebraic or semantic query equivalence. The vocabulary specifies this contract
+without executing or verifying canonicalization.
+
+Digest literals use the existing [Math algorithm datatypes](../../grounding/math/docs.md):
+`gmeow:blake3_256Digest` for plain unkeyed default-length BLAKE3,
+`gmeow:sha256Digest` for SHA-256 and `gmeow:md5Digest` for MD5. The first two have
+exactly 64 bare lowercase hexadecimal digits; MD5 has 32. Keep the supplied
+literal’s exact lexical form and datatype. Invalid case, prefixes, widths or
+generic datatypes fail admission rather than being rewritten. Several algorithm
+digests may coexist under the same one selected recipe-defined preimage; the
+role is nonfunctional. Matching hexadecimal spellings under different algorithm
+datatypes remain distinct terms.
+
+The comparison key contains the actual recipe IRI, exact supplied version RDF
+term and complete algorithm-typed digest RDF term. Compare all three coordinates;
+a matching digest alone does not identify a shared canonicalization contract.
+Even matching complete keys do not prove semantic query equivalence,
+`owl:sameAs`, equal execution, equal datasets, equal effective authority or
+collision-free byte identity. A digest assertion alone certifies neither hash
+computation nor agreement with actual bytes. This role is not a subproperty of
+`contentDigest`: its preimage is not automatically the verbatim query text or
+an artifact’s exact original bytes.
+
+Different coequal recipes belong to distinct actually sourced leaf descriptions,
+with each description’s actual source and context retained. Never fabricate leaf
+copies or aliases just to attach another recipe, and never select a globally
+preferred recipe. The flat shape supports several digests for one recipe;
+it cannot associate several recipes and separate digests on the same leaf.
+If the source supplies only such an unpaired multischeme description, this shape
+does not encode it as a complete comparison key.
+
+Canonical restrictions validate supplied endpoints, require exactly one version
+on each recipe and bound the optional leaf companion. Two realized `logic:`
+Formulas validate exact digest datatype/lexical alternatives and the actual
+named companion. These source obligations do not inspect recipe content for
+algorithmic completeness or establish that a consumer executed it correctly.
+The source and its actual normalization/serialization/encoding rules remain
+necessary evidence. Unicode surface profiles, mathematical expression
+normalization and effect-argument canonicalization keep their own distinct
+owner contracts; none is silently substituted for this parsed-query recipe.

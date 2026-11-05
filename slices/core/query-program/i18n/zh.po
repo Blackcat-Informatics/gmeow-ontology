@@ -9111,3 +9111,179 @@ msgstr "在 termEqual 或 termLess 之前，独立绑定两个已存储布尔值
 msgctxt "https://blackcatinformatics.ca/gmeow/AppliedOrderNumericPrecedenceLaw|http://www.w3.org/2004/02/skos/core#example"
 msgid "Fictional scoped example: A fictional same-tier pair with opposed score and activation preferences follows activation first under this native account; the requested score-first definition remains distinct."
 msgstr "虚构限定示例：同层级的虚构候选对若分数与激活偏好相反，在此原生报告下优先依据激活；请求的分数优先定义仍与之不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL Selection Canonicalization"
+msgstr "SPARQL 选择规范化方案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object specifying an actual versioned recipe for normalizing a parsed SPARQL selection and serializing and encoding its canonical byte preimage."
+msgstr "一个信息对象，规定实际的带版本方案，用于规范化已解析的 SPARQL 选择，并序列化和编码其规范字节原像。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The recipe must give the same canonical byte preimage to query texts differing only in comments, insignificant whitespace or prefix names when equivalent PREFIX, BASE and relative-IRI resolution yields the same parsed bindings. It preserves significant literal whitespace and content and the actual parsed bindings. It specifies actual parsed-query normalization, canonical serialization and byte encoding, but declares no installed canonicalizer and certifies no execution, verification or general semantic query equivalence."
+msgstr "当等价的 PREFIX、BASE 和相对 IRI 解析产生相同的已解析绑定时，对于仅注释、无意义空白或前缀名称不同的查询文本，方案必须给出相同的规范字节原像。方案保留字面量中有意义的空白和内容，以及实际的已解析绑定。方案规定实际的已解析查询规范化、规范序列化和字节编码，但不声明已安装的规范化器，也不认证执行、验证或一般查询语义等价性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A consumer records its actual named normalization recipe and the exact version declared by its source."
+msgstr "消费者记录其实际命名的规范化方案及来源声明的确切版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a real SPARQL selection canonicalization recipe."
+msgstr "用于来源提供实际的 SPARQL 选择规范化方案时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a profile instance, version, canonical byte sequence or implementation, or substituting a Unicode surface profile or expression-only procedure."
+msgstr "避免编造配置实例、版本、规范字节序列或实现，或替换为 Unicode 表层配置或仅适用于表达式的过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionCanonicalization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual recipe IRI and exactly one supplied xsd:string or xsd:token version. Retain the recipe’s full normalization and byte-production rules without claiming they ran."
+msgstr "保留实际方案 IRI 及恰好一个来源提供的 xsd:string 或 xsd:token 版本。保留完整的规范化和字节生成规则，不声称已执行这些规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonicalization version"
+msgstr "选择规范化版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact supplied version of this SparqlSelectionCanonicalization recipe, retained with its original xsd:string or xsd:token datatype and lexical form."
+msgstr "此 SparqlSelectionCanonicalization 方案的来源所提供的确切版本，保留其原始 xsd:string 或 xsd:token 数据类型及词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one supplied version is required per recipe. Equal-looking string and token literals are not silently identified or rewritten."
+msgstr "每个方案必须恰有一个来源提供的版本。看似相同的字符串和词元字面量不会被静默等同或改写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source’s recipe version remains a token when the source supplies a token, without conversion to a string."
+msgstr "来源将方案版本提供为词元时，该版本保持词元，不转换为字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the version actually declared for the named recipe."
+msgstr "用于实际为命名方案声明的版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a version from a digest, date, implementation build or query text when the source did not declare it."
+msgstr "避免在来源未声明版本时，从摘要、日期、实现构建或查询文本推导版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalizationVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exactly one supplied literal on the recipe, preserving its complete RDF term identity for the comparison key."
+msgstr "在方案上保留恰好一个来源提供的字面量，为比较键保留其完整 RDF 项身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonicalization"
+msgstr "选择规范化"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual named SparqlSelectionCanonicalization recipe selected for this source- and context-specific SparqlSelectionLeaf description."
+msgstr "为此特定来源和上下文的 SparqlSelectionLeaf 描述选定的实际命名 SparqlSelectionCanonicalization 方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is optional and has at most one recipe per leaf description. Coequal recipes require distinct actually sourced descriptions; this flat shape cannot pair several recipes and digests on the same leaf."
+msgstr "此关系可选，每个叶描述至多关联一个方案。同等地位的多个方案需要不同且实际有来源的描述；此扁平结构无法在同一叶上配对多个方案及摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two sources supply distinct leaf descriptions using different real recipes; neither recipe is made globally preferred."
+msgstr "两个来源提供使用不同实际方案的不同叶描述；任何方案都不被设为全局首选。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source declares the canonicalization recipe for this exact leaf description."
+msgstr "用于来源声明此确切叶描述的规范化方案时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple recipes on one leaf, fabricated copies or aliases of a leaf, and automatic preferred-recipe selection."
+msgstr "避免在同一叶上使用多个方案、编造叶副本或别名，以及自动选择首选方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link at most one actual recipe IRI, retain its supplied version and preserve the original selectionText, selectionLanguage, dataset and context."
+msgstr "至多连接一个实际方案 IRI，保留其来源提供的版本，以及原始 selectionText、selectionLanguage、数据集和上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection canonical digest"
+msgstr "选择规范摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied algorithm-typed digest of the canonical byte preimage defined by this leaf description’s actual named and versioned selection canonicalization recipe."
+msgstr "来源提供的带算法类型摘要，其规范字节原像由此叶描述实际命名且带版本的选择规范化方案规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional role admits BLAKE3-256, SHA-256 and MD5 literals under the same selected recipe. It is not contentDigest of the verbatim query text and certifies neither hash computation nor collision-free identity."
+msgstr "此可选且非函数式的关系接受同一选定方案下的 BLAKE3-256、SHA-256 和 MD5 字面量。它不是原始查询文本的 contentDigest，也不认证哈希计算或无碰撞身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A consumer retains supplied BLAKE3-256 and SHA-256 digests of the same recipe-defined byte preimage without merging their algorithm identities."
+msgstr "消费者保留来源提供、针对同一方案所规定字节原像的 BLAKE3-256 和 SHA-256 摘要，不合并算法身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a digest together with its actual named recipe and supplied version."
+msgstr "用于来源同时提供摘要、实际命名方案及所提供版本时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bare generic hexBinary, inferred algorithms, raw-text hashes, unpaired recipe claims or treating a digest match as semantic or execution identity."
+msgstr "避免使用无算法类型的通用 hexBinary、推断算法、原始文本哈希、未配对的方案声明，或将摘要匹配视为语义或执行身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionCanonicalDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied algorithm datatype and lowercase hexadecimal literal unchanged: 64 digits for blake3_256Digest or sha256Digest, 32 for md5Digest. Compare the recipe IRI, exact supplied version and complete typed digest together."
+msgstr "原样保留来源提供的算法数据类型及小写十六进制字面量：blake3_256Digest 或 sha256Digest 为 64 位十六进制字符，md5Digest 为 32 位。比较时将方案 IRI、确切提供的版本和完整带类型摘要共同作为键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Selection canonical digest value constraint"
+msgstr "选择规范摘要值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."
+msgstr "每个来源提供的 selectionCanonicalDigest 必须保留允许的算法数据类型及确切长度的无前缀小写十六进制字符：BLAKE3-256 或 SHA-256 为 64 位，MD5 为 32 位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is exact supplied-value admission, separate from recipe presence and version requirements. It computes no digest and proves no preimage agreement."
+msgstr "此约束对提供值进行确切准入校验，与方案存在性和版本要求分开。它不计算摘要，也不证明原像一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The same hexadecimal spelling under BLAKE3-256 and SHA-256 remains two distinct algorithm-typed digest terms."
+msgstr "相同十六进制拼写在 BLAKE3-256 和 SHA-256 类型下仍是两个不同的带算法类型摘要项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to admit each supplied canonical selection digest without changing its literal identity."
+msgstr "用于在不改变字面量身份的前提下校验每个来源提供的选择规范摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a generic datatype or normalizing uppercase, prefixed or wrong-width input."
+msgstr "避免接受通用数据类型，或规范化大写、带前缀或长度错误的输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the positive selectionCanonicalDigest guard and the exact datatype-component and hexadecimal-pattern alternatives; reject invalid values without rewriting them."
+msgstr "应用正向 selectionCanonicalDigest 守卫，以及确切的数据类型分量和十六进制模式备选条件；拒绝无效值，不改写它们。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalDigestValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied selectionCanonicalDigest retains an admitted algorithm datatype and bare lowercase hexadecimal digits of its exact width: 64 for BLAKE3-256 or SHA-256, 32 for MD5."
+msgstr "每个来源提供的 selectionCanonicalDigest 必须保留允许的算法数据类型及确切长度的无前缀小写十六进制字符：BLAKE3-256 或 SHA-256 为 64 位，MD5 为 32 位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Selection canonicalization binding constraint"
+msgstr "选择规范化绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."
+msgstr "每个来源提供的 selectionCanonicalDigest 必须有实际的 selectionCanonicalization 配套关系，且每个提供的配套方案必须是命名方案 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Recipe class, exact supplied version and leaf-local at-most-one obligations are validated separately. This constraint invents no recipe and selects no default."
+msgstr "方案类型、确切提供的版本及每叶至多一个方案的义务另行校验。此约束不编造方案，也不选择默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A digest without its actual named recipe is rejected rather than paired with a guessed canonicalization scheme."
+msgstr "摘要若缺少其实际命名方案，会被拒绝，不会与猜测的规范化方案配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the real recipe companion of a supplied canonical selection digest."
+msgstr "用于要求所提供选择规范摘要具有实际配套方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling missing companions with synthetic profiles, blank-node identities, source aliases or a globally preferred recipe."
+msgstr "避免使用合成配置、空白节点身份、来源别名或全局首选方案填补缺失的配套方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the outer leaf-type guard and independent positive digest and companion guards; retain the actual named recipe and its source-declared version."
+msgstr "使用外层叶类型守卫，以及独立的正向摘要和配套方案守卫；保留实际命名方案及其来源声明的版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionCanonicalizationBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied selectionCanonicalDigest has an actual selectionCanonicalization companion, and every supplied companion is a named recipe IRI."
+msgstr "每个来源提供的 selectionCanonicalDigest 必须有实际的 selectionCanonicalization 配套关系，且每个提供的配套方案必须是命名方案 IRI。"
