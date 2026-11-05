@@ -452,3 +452,28 @@ remain actual source/adapter evidence obligations, distinct from the intrinsic
 structural contract. No runtime normalization, financial conversion, estimation
 execution, corpus or generated-surface qualification follows from authoring
 these terms (Principles 4, 7, 9, 11, 17 and 19).
+
+## Episode duration retains a source report
+
+`episodeLasted` is a canonical DatatypeProperty with EpisodeTransition domain
+and xsd:duration range. It records the source-reported duration of the actual
+episode named by episodeLeft in the report's supplied context. The persona
+owner's transitionLasted cannot serve this role because its domain is
+ModeTransition. No persona property or functional characteristic is copied.
+
+One property-global ClosedWorldClosure selects supplied-subject and
+supplied-object validation. No class-local restriction, required endpoint,
+maximum, numeric facet, Formula or duration comparator is introduced. The
+property remains optional and nonfunctional; competing exact claims retain
+their own source and declaring frame. Existing endpoints and ordinary scenes
+remain unchanged.
+
+The exact literal, datatype, lexical form and units survive. Its native reifier
+keeps documentary source, recorder and declaring frame separately; report
+metadata does not propagate. A source-computed span retains only its actual
+supplied inputs and the supplied calculation and input roles. An omitted
+endpoint or derivation cannot be fabricated to establish source correspondence.
+No timestamp subtraction, clock precision, epoch, timezone, execution,
+completion, causal order or global current winner is inferred. This upstream
+contract establishes no private-extension equivalence or consumer adoption
+(Principles 4, 9, 11 and 17).

@@ -6394,3 +6394,31 @@ msgstr "应用 BudgetReading 守卫及十五个独立正向成本与上下文守
 msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
 msgstr "每个已提供的 budgetEstimatedMillicents 量都具有有效有限且数值唯一的 xsd:nonNegativeInteger 数值、单位计数的无量纲维度，以及一个完整报告参考系。其报告声明一个完整、标量、一维的货币主单位参考系，并声明至少一个实际价格表版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported duration of episode left"
+msgstr "离开的片段的报告时长"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported duration of the actual episode Activity named by episodeLeft in this EpisodeTransition report's supplied context. A source-computed span retains its actual derivation; GMEOW does not compute or verify timestamp subtraction."
+msgstr "来源报告的实际片段 Activity 时长，该片段由此 EpisodeTransition 报告所提供上下文中的 episodeLeft 指明。由来源计算的时长保留其实际推导依据；GMEOW 不计算或验证时间戳相减。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly supplies a measured or computed duration for the episode reported as left."
+msgstr "当来源为其报告为已离开的片段明确提供测量或计算所得时长时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a duration, episode endpoint, input claim, clock precision, epoch or timezone, or reading this value as time spent changing episodes."
+msgstr "避免虚构时长、片段端点、输入断言、时钟精度、纪元或时区，也不要将此值理解为切换片段所花费的时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact literal, datatype, lexical form and units. On the exact duration assertion's native RDF 1.2 reifier, retain wasDerivedFrom for the documentary source, wasAttributedTo for the recorder and accordingTo for the declaring frame. For a source-computed span, preserve the supplied calculation and input roles with statedRationale and link only actual supplied inputs with wasDerivedFrom; create no missing input claims."
+msgstr "保留确切的字面量、数据类型、词法形式和单位。在确切时长断言的原生 RDF 1.2 重述节点上，使用 wasDerivedFrom 保留文献来源、wasAttributedTo 保留记录者、accordingTo 保留声明框架。对于来源计算的时长，使用 statedRationale 保留所提供的计算及输入角色，并仅使用 wasDerivedFrom 关联实际提供的输入；不补造缺失的输入断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Missing values are unspecified; historical and competing attributed durations coexist. This relation requires no endpoint or input claim and establishes no computed timestamps, execution, completion, causal order or global current winner."
+msgstr "可缺省且非函数性。缺失值表示未指定；历史时长及相互竞争的时长报告保留各自归属并可共存。此关系不要求端点或输入断言，也不确立计算所得时间戳、执行、完成、因果顺序或全局当前优先结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source supplies fifteen minutes for the episode named by episodeLeft; the report retains the supplied xsd:duration and its exact assertion provenance without deriving timestamps."
+msgstr "来源为 episodeLeft 指明的片段提供十五分钟；报告保留所提供的 xsd:duration 及其确切断言的溯源信息，不推导时间戳。"
