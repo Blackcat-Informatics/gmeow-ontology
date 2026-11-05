@@ -20,7 +20,8 @@ temporal ⟂ location — with no inferential bridge. **Flat-first, reify on dem
 `gmeow:hasParticipant` for the 80 % case, `gmeow:Participation` when role, period,
 confidence, or evidence matters. **Co-equal conflicting claims coexist** — no primary
 date; corrections use `gmeow:displayable` false, never deletion (Principle 10).
-**DL-clean time** (Principle 3) — base triples are `xsd:dateTime`, never `xsd:date`.
+**Source precision is retained** — point placements keep their supplied XSD date/time
+precision without invented clock fields.
 
 ## The occurrence and its kind
 
@@ -258,3 +259,62 @@ The ordinary [execution-requirements scene](examples/execution-requirements.ttl)
 illustrates conjunctive geographic requirements, a separate virtual context,
 all four interruption values and Task inheritance. Its scoped declarations
 report no executed scheduler or event.
+
+## Attributed event progress
+
+`EventProgressReading` is an `Observation` reporting one explicit progress value
+for one actual `Event` or an `EventDescription`. It uses the existing
+`observedFeature`, `observationResult` and `vantage` roles: exactly one feature
+and result, and at least one actual vantage with no maximum. Joint holders can
+share a reading, while rival or historically different readings remain separate.
+No frame is primary, and there is no globally functional event-status slot
+(Principles 4, 9 and 11).
+
+`EventDescription` is an actual kernel `InformationObject` describing an event,
+including an anticipated occurrence. It is explicitly disjoint from `Event`:
+a description is not an occurrence or a placeholder for one. Its existence
+supplies neither a bearer, participant, occurrence time nor execution evidence.
+A later reading can identify an actual realization without deleting, mutating
+or promoting that description into an Event.
+
+`EventProgress` is closed by `logic:oneOf` to exactly `eventAwaited`,
+`eventInProgress` and `eventCompleted`. The result is a quality value, which the
+existing `observationResult` range admits. Missing progress is unspecified;
+a fourth extension value cannot bypass the conditional realization contract.
+
+| Observed feature and explicit result | Realization contract |
+| --- | --- |
+| EventDescription, eventAwaited | No progressRealization is permitted. The reading reports anticipation without selecting an actual occurrence. |
+| EventDescription, eventInProgress or eventCompleted | Exactly one actual Event is required through progressRealization. Retain the source evidence identifying it as the description's realization. |
+| Actual Event, eventInProgress or eventCompleted | The actual occurrence is already the feature. progressRealization is forbidden, including a redundant link back to that same occurrence. |
+| Actual Event, eventAwaited | Invalid: an awaited reading requires the descriptive feature and cannot dual-type it as an Event. |
+
+`progressRealization` is an optional role generally, with at most one actual
+Event per reading. Its canonical domain/range and property-global supplied-value
+closure check direct uses as well as values on a typed reading. Local required
+paths and maxima do not make the existing generic Observation roles functional
+or require every Event to have a progress reading.
+
+`EventProgressBindingsConstraint` supplies five independent intrinsic guards:
+awaited progress requires a description and forbids realization; in-progress
+and completed description readings each require their actual realization; a
+direct Event feature forbids an extra realization. Every existence body is one
+atom, correlated to the same reading. The closed result set, feature union,
+provided endpoints and these arms leave no unchecked progress branch. They
+check retained structure, not the truth of the source's progress or descriptive
+correspondence (Principles 17 and 19).
+
+Keep actual source, frame and occurrence evidence. Do not derive status from
+missing `latestEnd`, a timestamp, an open commitment, a global now or a chosen
+latest reading. Ended and awaited interpretations need not fit one linear
+history. A completed occurrence does not establish successful restoration,
+goal satisfaction, a continuity verdict or a supplied end time. An awaited
+event report alone does not establish commitment to a future subject stage.
+
+The existing `logic:occurrentBoundary` Open/Closed contract is separate. Open
+alone does not distinguish anticipation from underway progress. Coexisting
+progress readings do not generate conflicting global boundary values, and
+completion does not generate a closed boundary. There is no clock evaluator,
+workflow executor or automatic status transition. The focused
+[progress design](design/EVENT-PROGRESS.md) specifies these source/evidence and
+projection boundaries together.

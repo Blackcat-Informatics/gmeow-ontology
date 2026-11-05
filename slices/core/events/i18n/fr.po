@@ -472,3 +472,231 @@ msgstr "Relier l’Event réel à la valeur de précision fournie avec l’attri
 msgctxt "https://blackcatinformatics.ca/gmeow/temporalPrecision|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to state how precisely an actual Event is dated, including named-period or season-level resolution, without claiming missing temporal placement."
 msgstr "Utiliser pour indiquer la précision de datation d’un Event réel, y compris une résolution à l’échelle d’une période nommée ou d’une saison, sans affirmer un placement temporel manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event description"
+msgstr "description d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object describing an event, including an anticipated occurrence, without asserting that the described occurrence has happened or exists as an actual Event."
+msgstr "Un objet informationnel décrivant un événement, y compris une occurrence anticipée, sans affirmer que l’occurrence décrite s’est produite ou existe comme Event réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is distinct from its actual realization and is disjoint from Event. It may remain addressable after another reading identifies a realization; its existence supplies no participants, occurrence time or execution evidence."
+msgstr "La description est distincte de sa réalisation réelle et disjointe d’Event. Elle peut rester accessible après qu’une autre lecture a identifié une réalisation ; son existence ne fournit ni participants, ni date de survenue, ni preuve d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source describes an awaited transfer without supplying an actual occurrence; a progress reading observes that description rather than inventing an Event."
+msgstr "Une source décrit un transfert attendu sans fournir d’occurrence réelle ; une lecture de progression observe cette description plutôt que d’inventer un Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source description whose event occurrence must remain distinct from what the description anticipates or reports."
+msgstr "Utiliser pour une description réellement fournie dont l’occurrence événementielle doit rester distincte de ce que la description anticipe ou rapporte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the description as an Event, treating anticipation as occurrence evidence, or replacing the actual event with its description."
+msgstr "Éviter de typer la description comme Event, de traiter l’anticipation comme preuve de survenue ou de remplacer l’événement réel par sa description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual description identity and its source evidence. A progress reading may observe it and separately name an actual Event through progressRealization only when that reading reports an in-progress or completed occurrence."
+msgstr "Conserver l’identité de la description réelle et ses éléments de source. Une lecture de progression peut l’observer et nommer séparément un Event réel par progressRealization uniquement lorsqu’elle rapporte une occurrence en cours ou achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress reading"
+msgstr "lecture de progression d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation reporting one event progress value for one actual Event or EventDescription under its supplied vantage or joint vantages."
+msgstr "Une Observation attribuée rapportant une valeur de progression pour un Event réel ou une EventDescription, selon le point de vue fourni ou les points de vue conjoints fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one observedFeature and one observationResult are required, with at least one actual vantage and no vantage maximum. Coexisting readings do not create a global status slot or a preferred frame."
+msgstr "Exactement un observedFeature et un observationResult sont requis, avec au moins un vantage réel et sans nombre maximal de points de vue. Des lectures coexistantes ne créent ni état global unique ni cadre privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two supplied standpoints report different progress for the same description; the awaited reading has no realization while a completed reading retains its actual Event."
+msgstr "Deux points de vue fournis rapportent des progressions différentes pour la même description ; la lecture d’attente n’a pas de réalisation, tandis qu’une lecture d’achèvement conserve son Event réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source report of awaited, in-progress or completed event progress in its actual frame."
+msgstr "Utiliser pour conserver un rapport source explicite d’événement attendu, en cours ou achevé dans son cadre réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving status from a missing end, an open commitment, a timestamp or a global now, or treating progress as a goal or continuity verdict."
+msgstr "Éviter de déduire l’état d’une fin absente, d’un engagement ouvert, d’un horodatage ou d’un présent global, ou de traiter la progression comme un verdict de but ou de continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual Event or EventDescription, observationResult to one reviewed EventProgress value, and vantage to every actual joint holder. Reserve progressRealization for nonawaited description readings; keep source and frame evidence without inventing execution or temporal bounds."
+msgstr "Lier observedFeature à l’Event réel ou à l’EventDescription, observationResult à une valeur EventProgress examinée et vantage à chaque détenteur réel conjoint. Réserver progressRealization aux lectures de descriptions dont le résultat est eventInProgress ou eventCompleted ; conserver les éléments de source et de cadre sans inventer d’exécution ni de bornes temporelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress"
+msgstr "progression d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed three-value progress vocabulary eventAwaited, eventInProgress and eventCompleted carried by an EventProgressReading."
+msgstr "Le vocabulaire fermé de progression à trois valeurs, eventAwaited, eventInProgress et eventCompleted, porté par une EventProgressReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are quality values under a reading’s actual frame, not event kinds, clock positions, goal outcomes or epistemic confidence. An unreviewed fourth value cannot bypass realization obligations."
+msgstr "Ce sont des valeurs de qualité dans le cadre réel d’une lecture, et non des types d’événement, des positions temporelles, des résultats de but ou une confiance épistémique. Une quatrième valeur non examinée ne peut contourner les obligations de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit underway report uses eventInProgress; an omitted report supplies no member of this vocabulary."
+msgstr "Un rapport explicite de déroulement en cours utilise eventInProgress ; un rapport omis ne fournit aucun membre de ce vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the reviewed result vocabulary for explicit event progress readings."
+msgstr "Utiliser comme vocabulaire de résultats examiné pour les lectures explicites de progression d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding an extension value, subclassing events by progress, choosing a default status or conflating completion with success."
+msgstr "Éviter d’ajouter une valeur d’extension, de créer des sous-classes d’événements selon leur progression, de choisir un état par défaut ou de confondre achèvement et réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use exactly one of the three named individuals as the EventProgressReading’s observationResult. Preserve each reading’s actual vantages and conditional realization bindings; leave unspecified progress absent."
+msgstr "Utiliser exactement l’un des trois individus nommés comme observationResult de l’EventProgressReading. Conserver les points de vue réels de chaque lecture et ses liaisons conditionnelles de réalisation ; laisser absente une progression non précisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited event"
+msgstr "événement attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value for an event described as awaited in the reading’s supplied frame, without an actual occurrence selected by that reading."
+msgstr "La valeur de progression d’un événement décrit comme attendu dans le cadre fourni de la lecture, sans occurrence réelle sélectionnée par cette lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reading observes an EventDescription and has no progressRealization. This is an explicit anticipation report, not universal nonexistence or evidence of a stage commitment."
+msgstr "La lecture observe une EventDescription et ne possède pas de progressRealization. Il s’agit d’un rapport explicite d’anticipation, et non d’une inexistence universelle ni d’une preuve d’engagement envers une étape."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source awaits a described transfer without reporting that any occurrence has begun."
+msgstr "Une source attend un transfert décrit sans rapporter qu’une occurrence a commencé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source explicitly reports anticipation of the described event in its frame."
+msgstr "Utiliser lorsque la source réelle rapporte explicitement l’anticipation de l’événement décrit dans son cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring awaiting from missing fields or using this value on a reading whose feature is an actual Event."
+msgstr "Éviter d’inférer l’attente de champs manquants ou d’utiliser cette valeur sur une lecture dont l’objet observé est un Event réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventAwaited|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set the explicit reading result to eventAwaited, observe the actual EventDescription and retain its actual vantages. Omit progressRealization without inventing an Event, occurrence time, participant or completed outcome."
+msgstr "Fixer le résultat explicite de la lecture à eventAwaited, observer l’EventDescription réelle et conserver ses points de vue réels. Omettre progressRealization sans inventer d’Event, de date de survenue, de participant ni de résultat achevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event in progress"
+msgstr "événement en cours"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value reporting that the selected actual event occurrence is underway in the reading’s supplied frame."
+msgstr "La valeur de progression rapportant que l’occurrence événementielle réelle sélectionnée est en cours dans le cadre fourni de la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reading observes an actual Event directly or selects an actual Event realization of its EventDescription. No missing end, open commitment or global clock establishes this value."
+msgstr "La lecture observe directement un Event réel ou sélectionne une réalisation Event réelle de son EventDescription. Ni fin absente, ni engagement ouvert, ni horloge globale n’établissent cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly reports an ongoing occurrence and identifies it as the realization of its event description."
+msgstr "Une source rapporte explicitement une occurrence en cours et l’identifie comme la réalisation de sa description d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit source evidence of an actual occurrence underway in its stated frame."
+msgstr "Utiliser pour des éléments de source explicites attestant une occurrence réelle en cours dans le cadre indiqué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this value from anticipation, a missing latestEnd, goal pursuit or an event boundary alone."
+msgstr "Éviter de déduire cette valeur de l’anticipation, d’un latestEnd absent, de la poursuite d’un but ou de la seule borne d’un événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventInProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain eventInProgress on the attributed reading with its actual vantages. For an EventDescription feature, require its supplied actual Event through progressRealization; for a direct Event feature, omit that redundant role."
+msgstr "Conserver eventInProgress sur la lecture attribuée avec ses points de vue réels. Pour un objet observé EventDescription, exiger l’Event réel fourni par progressRealization ; pour un objet observé Event direct, omettre ce rôle redondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completed event"
+msgstr "événement achevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The progress value reporting that the selected actual event occurrence is completed in the reading’s supplied frame."
+msgstr "La valeur de progression rapportant que l’occurrence événementielle réelle sélectionnée est achevée dans le cadre fourni de la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completion reports progress, not goal satisfaction, successful restoration or subject continuity. The reading keeps its actual occurrence and vantages without deriving a date or closed boundary."
+msgstr "L’achèvement rapporte une progression, et non la satisfaction d’un but, une restauration réussie ou la continuité d’un sujet. La lecture conserve son occurrence réelle et ses points de vue sans déduire de date ni de borne fermée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports that a transfer ended while leaving its intended result and any continuity verdict unestablished."
+msgstr "Une source rapporte qu’un transfert est terminé tout en laissant son résultat attendu et tout verdict de continuité non établis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports completion of the actual occurrence under its frame."
+msgstr "Utiliser lorsque la source rapporte explicitement l’achèvement de l’occurrence réelle dans son cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading completion as success, a satisfied Goal, continuitySame, a computed end time or a globally accepted status."
+msgstr "Éviter de lire l’achèvement comme une réussite, un Goal satisfait, continuitySame, une fin calculée ou un état accepté globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventCompleted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep eventCompleted on the attributed reading. An EventDescription feature requires its supplied actual Event through progressRealization; a direct Event feature forbids that redundant role. Retain other outcome and temporal evidence separately."
+msgstr "Conserver eventCompleted sur la lecture attribuée. Un objet observé EventDescription exige son Event réel fourni par progressRealization ; un objet observé Event direct interdit ce rôle redondant. Conserver séparément les autres éléments de résultat et de temps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress realization"
+msgstr "réalisation d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Event selected as the realization of the EventDescription observed by an in-progress or completed EventProgressReading."
+msgstr "L’Event réel sélectionné comme réalisation de l’EventDescription observée par une EventProgressReading qui rapporte une occurrence en cours ou achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional role has at most one actual Event per reading. It is required for nonawaited descriptions and forbidden for awaited descriptions or direct Event features; it does not infer occurrence or descriptive correspondence from missing evidence."
+msgstr "Ce rôle facultatif admet au plus un Event réel par lecture. Il est requis pour les lectures de descriptions dont le résultat est eventInProgress ou eventCompleted, et interdit pour celles dont le résultat est eventAwaited ou dont l’objet observé est un Event direct ; il n’infère ni occurrence ni correspondance descriptive à partir d’éléments manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A completed reading of a transfer description retains the actual transfer occurrence supplied by its source; a direct reading of that occurrence has no extra realization link."
+msgstr "Une lecture d’achèvement d’une description de transfert conserve l’occurrence réelle fournie par sa source ; une lecture directe de cette occurrence ne possède pas de lien de réalisation supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when an in-progress or completed description reading supplies the actual occurrence it reports as that description’s realization."
+msgstr "Utiliser uniquement lorsqu’une lecture rapporte qu’une occurrence décrite est en cours ou achevée et fournit l’occurrence réelle qu’elle rapporte comme réalisation de cette description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an unrelated occurrence, a prospective placeholder, an awaited reading, a direct Event feature, or an inferred participant, output or time."
+msgstr "Éviter une occurrence sans rapport, un substitut prospectif, une lecture d’attente, un objet observé Event direct ou un participant, résultat ou temps inféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/progressRealization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the description reading to the actual source-identified Event, retaining the reading’s vantages and evidence for that correspondence. Check domain, range, conditional presence and local maximum; do not promote endpoint admission into proof that the source report is true."
+msgstr "Relier la lecture de description à l’Event réel identifié par la source, en conservant les points de vue de la lecture et les éléments probants de cette correspondance. Contrôler domaine, plage, présence conditionnelle et maximum local ; ne pas transformer l’admission des extrémités en preuve de vérité du rapport source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event progress bindings constraint"
+msgstr "contrainte des liaisons de progression d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."
+msgstr "Une EventProgressReading dont le résultat indique l’attente observe uniquement une EventDescription et ne possède pas de progressRealization ; une lecture qui rapporte qu’une occurrence décrite est en cours ou achevée possède une réalisation qui est un Event réel, tandis qu’une lecture Event directe n’a pas de réalisation redondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The five guarded arms check retained roles and conditional presence. Closed result membership, feature/result maxima, uncapped required vantages and actual Event endpoints are separately declared; no source-content, time, goal or native execution proof is asserted."
+msgstr "Les cinq branches gardées contrôlent les rôles conservés et la présence conditionnelle. L’appartenance à l’ensemble fermé des résultats, les maxima d’objet et de résultat, les points de vue requis sans plafond et les extrémités Event réelles sont déclarés séparément ; aucune preuve de contenu source, de temps, de but ou d’exécution native n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An awaited reading with a supplied realization fails; a description reported completed without a realization also fails, as does any extra realization on a direct Event reading."
+msgstr "Une lecture d’attente munie d’une réalisation enfreint le contrat ; une description rapportée achevée sans réalisation l’enfreint également, tout comme une réalisation supplémentaire sur une lecture Event directe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the five intrinsic progress bindings without inferring a status or an actual occurrence from absent fields."
+msgstr "Utiliser pour valider les cinq liaisons intrinsèques de progression sans inférer d’état ni d’occurrence réelle à partir de champs absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bypassing a guarded obligation with an extension status, borrowing another reading’s realization, requiring one vantage only or deriving a goal, boundary or continuity verdict."
+msgstr "Éviter de contourner une obligation gardée par un état d’extension, d’emprunter la réalisation d’une autre lecture, d’exiger un seul point de vue ou de déduire un verdict de but, de borne ou de continuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply each independent positive reading guard. Require a description for awaited progress, forbid realizations for awaited or direct Event readings, and require an atomic realization witness for in-progress and completed descriptions. Keep every probe correlated to that same reading and preserve its actual joint vantages."
+msgstr "Appliquer chaque garde positive indépendante de lecture. Exiger une description pour la progression attendue, interdire les réalisations pour les lectures d’attente ou Event directes, et exiger un témoin atomique de réalisation pour les descriptions en cours et achevées. Corréler chaque test à cette même lecture et conserver ses points de vue conjoints réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventProgressBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An EventProgressReading with an awaited result observes only an EventDescription and has no progressRealization; an in-progress or completed description reading has an actual Event realization, while a direct Event reading has no redundant realization."
+msgstr "Une EventProgressReading dont le résultat indique l’attente observe uniquement une EventDescription et ne possède pas de progressRealization ; une lecture qui rapporte qu’une occurrence décrite est en cours ou achevée possède une réalisation qui est un Event réel, tandis qu’une lecture Event directe n’a pas de réalisation redondante."
