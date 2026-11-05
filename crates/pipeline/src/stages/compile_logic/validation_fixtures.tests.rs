@@ -88,7 +88,7 @@ fn result_contract_checks_presence_and_every_value_without_cross_record_leaks() 
     let product = compile(text);
     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
     let prepared = PreparedLogicSource::new(&dataset).unwrap();
-    let (constraints, diagnostics) = prepared.constraints();
+    let (constraints, diagnostics) = prepared.constraints().expect("supported constraints");
     assert!(diagnostics.is_empty());
     let program =
         LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None).with_constraints(constraints);
@@ -274,7 +274,7 @@ fn scoped_numeric_obligations_admit_markers_and_validate_without_neighbor_leaks(
     );
     let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
     let prepared = PreparedLogicSource::new(&dataset).unwrap();
-    let (constraints, diagnostics) = prepared.constraints();
+    let (constraints, diagnostics) = prepared.constraints().expect("supported constraints");
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(constraints.len(), 1);
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(constraints);

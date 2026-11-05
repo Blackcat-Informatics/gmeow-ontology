@@ -74,7 +74,7 @@ pub(super) fn canonical_requiredness(
             "selected requiredness <{law}> must require exactly <{path}>, without alternatives"
         )));
     }
-    let (constraints, diagnostics) = frontend::extract_all_constraints(source);
+    let (constraints, diagnostics) = frontend::extract_all_constraints(source)?;
     for diagnostic in diagnostics {
         if diagnostic.subject.as_deref() == Some(law)
             && diagnostic.severity == frontend::Severity::Error

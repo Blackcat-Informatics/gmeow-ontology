@@ -245,7 +245,10 @@ impl PreparedLogicSource {
     }
 
     /// Extract procedural constraints using this prepared ownership graph.
-    pub fn constraints(&self) -> (Vec<super::ConstraintIr>, Vec<Diagnostic>) {
+    ///
+    /// # Errors
+    /// Refuses supplied range bounds outside the supported finite numeric contract.
+    pub fn constraints(&self) -> Result<(Vec<super::ConstraintIr>, Vec<Diagnostic>), Diag> {
         super::extract_constraints_from_source(self.dataset(), &self.source_graph)
     }
 
