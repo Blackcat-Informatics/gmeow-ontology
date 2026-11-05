@@ -428,3 +428,31 @@ msgstr "用于记录为称谓表层形式实际标识的一等 Language。依赖
 msgctxt "https://blackcatinformatics.ca/gmeow/partText|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set partText on a NamePart, preserving the supplied literal and actual language/script tagging without inventing missing tags; add partExpansion when the text is an abbreviated initial."
 msgstr "在 NamePart 上设置 partText，保留所提供的字面量及实际的语言或文字系统标签，不虚构缺失标签；当文本为缩写首字母时，添加 partExpansion。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "named after"
+msgstr "得名于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a named Entity to the Entity from which a particular supplied name is taken, within the source and name context of the exact statement."
+msgstr "将有名字的 Entity 关联到其某个来源提供的特定名字所取自的 Entity，并保留精确陈述的来源及名字语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Naming origin is distinct from identity, denotation and a ranking of coequal names. The relation does not say every name has this origin or infer Person, Agent, relationship ring or a change of bearer."
+msgstr "名字来源区别于身份、指称和同等名字之间的排序。此关系不表示所有名字都有该来源，也不推断 Person、Agent、关系圈层或名字承载者变更。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly says a being’s recorded name was taken from another entity; the origin statement retains that source and its particular-name context."
+msgstr "一个来源明确说明某存在记录在案的名字取自另一实体；得名陈述保留该来源及这一特定名字的语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a sourced naming origin or an explicitly marked conjecture about that origin, preserving the distinction on the exact statement."
+msgstr "用于有来源依据的得名关系，或对该得名关系明确标为推测的陈述，并在精确陈述上保留两者区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating matching name strings as an actual origin, equating bearer and namesake, assigning one origin to every coequal name, or presenting a wording-only conjecture as a sourced actual fact."
+msgstr "避免将相同名字字符串视为实际得名来源、将承载者等同于名字来源实体、给所有同等名字指定同一来源，或将仅凭名字作出的推测呈现为有来源依据的实际事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namedAfter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the named being to the namesake and retain the particular supplied name context. Attribute a sourced actual-origin statement and record modalForceActual through standpointModalForce. For wording-only conjecture, explicitly put standpointAssertoricForce assertoricConjecture on the exact reifier and keep its quoted content unasserted as a global fact."
+msgstr "从有名字的存在指向名字来源实体，并保留来源提供的特定名字语境。为有来源依据的实际得名陈述保留归属，并通过 standpointModalForce 记录 modalForceActual。仅凭名字作出的推测，必须在精确重述节点上显式记录 standpointAssertoricForce assertoricConjecture，且不将其引用内容断言为全局事实。"
