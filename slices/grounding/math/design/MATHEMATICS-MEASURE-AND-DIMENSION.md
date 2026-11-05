@@ -109,7 +109,7 @@ ex:expectedEnergy
 ex:energyDimension
     a math:DerivedDimension ;
     math:dimensionVector "M·L2·T-2" ;
-    math:baseDimensionExponent ( ex:massExp1 ex:lengthExp2 ex:timeExpMinus2 ) .
+    math:baseDimensionExponent ex:massExp1 , ex:lengthExp2 , ex:timeExpMinus2 .
 ```
 
 The integral carries the dimension of its result; the homogeneity gate checks that the integrand's

@@ -18026,3 +18026,38 @@ math:DiracOperator
     gmeow:useWhen "Use for an identified first-order operator on spinor-bundle sections with supplied geometric and representation context. Retain the chosen bundle, Clifford action and compatible connection, distinguishing a section over the base from its value in one fiber."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid assuming that every manifold has the chosen spinor bundle, selecting spin or spin-c structure, twisting, boundary conditions, analytic domain, factors of i or signs by default, or asserting a universal D² = Laplace identity. Curvature and convention choices matter; the class label supplies no global construction or execution."@x-gmeow-english ;
     gmeow:howToUse "Describe the actual operator and its section spaces without inventing dedicated slots or laws. A connectionOn link or discrete transport alone proves neither smoothness nor Clifford compatibility. Generic native Clifford arithmetic supplies no differentiation, spinor-bundle construction or Dirac execution; retain any supporting geometric and calculation evidence separately."@x-gmeow-english .
+
+math:DimensionExponent
+    skos:scopeNote "This cell describes a physical dimension's rational exponent, not a geometric space dimension, unit or quantity magnitude. Current math loading reports invalid cells as math:MalformedDimension; the physical dimension builtin instead leaves a declared mode gap. Neither path certifies every datatype, cardinality or duplicate-field case."@x-gmeow-english ;
+    skos:example "math:forceTimeExponent a math:DimensionExponent ; math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record one exact power of an SI base dimension within an existing derived dimension's product form, including negative or fractional powers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the cell as a measured quantity, an ordered vector slot or an instruction to convert units, reference frames or currencies. Do not replace its rational power with a decimal approximation."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual base dimension through exponentOfDimension and retain integer exponentNumerator and nonzero exponentDenominator. Attach the cell by a direct baseDimensionExponent edge; retain one cell per represented base dimension. The current i128/Rational profile is bounded and uses checked arithmetic, so exact authoring does not promise unlimited execution."@x-gmeow-english .
+
+math:baseDimensionExponent
+    skos:scopeNote "The product cells are an unordered set with one cell per represented base dimension. Direct edges carry those cells; an RDF collection alone does not supply the cell fields. A link alone supplies no completed validation or arithmetic result."@x-gmeow-english ;
+    skos:example "math:forceDimension math:baseDimensionExponent math:forceMassExponent , math:forceLengthExponent , math:forceTimeExponent ."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the existing structured product of base-dimension powers that defines a DerivedDimension, independently of any rendered dimensionVector text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid list syntax, ordinal positions, a second cell for the same base dimension or treating a dimensionVector string as the authored product. A BaseDimension is already a generator and needs no product cell of its own."@x-gmeow-english ;
+    gmeow:howToUse "Link the DerivedDimension directly to its actual DimensionExponent cells using comma-separated objects or repeated edges. Keep each cell's base and exact numerator/denominator together; preserve the existing source cells rather than inventing ordered membership or a new operation."@x-gmeow-english .
+
+math:exponentOfDimension
+    skos:scopeNote "The target is a physical BaseDimension, not a DerivedDimension, unit, basis coordinate or geometric dimension count. Current native readers recognize the seven declared SI generator IRIs; typing another resource BaseDimension does not install a new native basis."@x-gmeow-english ;
+    skos:example "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a DimensionExponent to identify which SI base dimension its rational exponent raises, keeping that choice separate from the numerical power."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a derived-dimension target, a unit label or a coordinate-space dimension. Do not infer the base from a cell's local name or from a rendered dimension symbol."@x-gmeow-english ;
+    gmeow:howToUse "Point the cell at its actual declared SI base-dimension resource, then supply exponentNumerator and exponentDenominator on that same cell. Keep the source's base choice explicit; the existing base-target restriction is not a new generator-registration mechanism."@x-gmeow-english .
+
+math:exponentNumerator
+    skos:scopeNote "The numerator is an integer component of a rational exponent, not a measured magnitude or a complete exponent by itself. Negative and zero numerators retain their meanings; an absent numerator is not zero. Native i128 arithmetic does not certify every xsd:integer value."@x-gmeow-english ;
+    skos:example "math:forceTimeExponent math:exponentNumerator -2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the exact integer numerator of a base dimension's rational power, including a negative power such as the time exponent in force."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid writing a fraction string or decimal approximation here, treating the numerator alone as the power, or interpreting it as a unit-conversion factor or geometric coordinate."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied integer numerator with its nonzero integer exponentDenominator on the same DimensionExponent. Read their quotient exactly under the existing Rational profile; preserve the source literal rather than replacing it with a calculated decimal."@x-gmeow-english .
+
+math:exponentDenominator
+    skos:scopeNote "The denominator must be a nonzero integer; absence supplies no implicit one. Nonzero alone does not guarantee native admission: the current bounded Rational sign normalization and checked arithmetic can still refuse an unrepresentable pair. No positive-only denominator policy is added."@x-gmeow-english ;
+    skos:example "math:forceMassExponent math:exponentDenominator 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact integer divisor of a dimension exponent's rational power; denominator one expresses an integral power without a decimal encoding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid zero, a decimal denominator, a guessed default or a sign-based rejection of all negative denominators. The denominator is not a duration, count, unit or reference-frame scale."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."@x-gmeow-english .
