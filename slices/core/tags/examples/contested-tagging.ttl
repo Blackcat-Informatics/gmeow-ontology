@@ -77,3 +77,19 @@ ex:taggingOffTopic a gmeow:Tagging ;
     gmeow:taggingTagger ex:devon ;
     gmeow:confidence    0.6 ;
     gmeow:displayable   false .
+
+# Actual resource targets: one Activity in both representations and one class.
+# The review Tag keeps the same identity; no local tag kind or wrapper is minted.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+ex:opening a gmeow:Activity ;
+    gmeow:hasTag gmeow:tagReview .
+
+ex:DoorOpening a logic:Class ;
+    gmeow:hasTag gmeow:tagReview .
+
+# One actual source tagging act with one supplied tagger.
+ex:taggingOpening a gmeow:Tagging ;
+    gmeow:taggingTagged ex:opening ;
+    gmeow:taggingTag gmeow:tagReview ;
+    gmeow:taggingTagger ex:maria .

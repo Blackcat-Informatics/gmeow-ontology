@@ -6,6 +6,8 @@
 # the contested-tagging scene.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/tags/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
 ASK {
     ?act a gmeow:Tagging ;
@@ -17,4 +19,13 @@ ASK {
         gmeow:taggingInterval ?interval .
     ?interval a gmeow:TimeInterval ;
         gmeow:startedAtTime ?start .
+
+    # Positive asserted witnesses preserve the actual resource and Tag IRIs.
+    # They do not stand in for native reasoning or a no-coercion proof.
+    ex:opening a gmeow:Activity ; gmeow:hasTag gmeow:tagReview .
+    ex:DoorOpening a logic:Class ; gmeow:hasTag gmeow:tagReview .
+    ex:taggingOpening a gmeow:Tagging ;
+        gmeow:taggingTagged ex:opening ;
+        gmeow:taggingTag gmeow:tagReview ;
+        gmeow:taggingTagger ex:maria .
 }

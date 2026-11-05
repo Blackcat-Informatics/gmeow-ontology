@@ -77,7 +77,7 @@ gmeow:hasTag skos:closeMatch schema:keywords {|
     gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "lossy — schema:keywords is a text or URL value; GMEOW hasTag points to a structured Tag individual"
+    gmeow:comment "lossy — schema:keywords is a text or URL value; GMEOW hasTag preserves structured Tag identity on resource targets, including Activities and class resources. closeMatch does not import schema.org target typing commitments"
 |} .
 
 gmeow:isAbout skos:closeMatch schema:about {|
@@ -106,13 +106,14 @@ gmeow:Tagging skos:closeMatch oa:Annotation {|
     gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW Tagging is a relator with provenance/confidence/temporal scope; oa:Annotation is a flatter annotation body — closeMatch, not exactMatch"
+    gmeow:comment "GMEOW Tagging is a native logic:Relator with provenance/confidence/temporal scope and a generic resource target; oa:Annotation is a flatter annotation body. closeMatch neither equates these models nor asserts gUFO Endurant mediation for occurrence targets"
 |} .
 
 gmeow:taggingTagged skos:closeMatch oa:hasTarget {|
     gmeow:sssomFile "gmeow-tags.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9
+    gmeow:confidence 0.9 ;
+    gmeow:comment "The canonical role retains one resource target, including an Activity or class resource; this close match does not import external target typing or stronger mediation commitments"
 |} .
 
 gmeow:taggingTag skos:closeMatch oa:hasBody {|

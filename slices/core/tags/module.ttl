@@ -15,10 +15,11 @@ gmeow:Tag
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes."@x-gmeow-english ;
     skos:example "ex:tagUrgent a gmeow:Tag ; rdfs:label \"urgent\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the label should change what an entity IS (use rdf:type and a real sortal) or record what a resource is ABOUT (use gmeow:isAbout); a tag is a co-equal label, never a type or a subject relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the label should change what a resource IS (use rdf:type and a real sortal) or express subject-matter aboutness (use gmeow:isAbout only when both subject and object satisfy its Entity contract); a tag is a co-equal label, never a type or a subject relation."@x-gmeow-english ;
+    skos:scopeNote "Tag identity and target type are independent. Tags may label resource nodes, including Activities and class resources, without asserting membership in the tagged class or changing the target’s ontological sort."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the tag as an individual, carry its surface form on rdfs:label (multiple labels for synonyms, distinct IRIs for homonyms), and attach it with gmeow:hasTag; resolve coreference in data rather than collapsing two tags with OWL sameAs."@x-gmeow-english ;
-    gmeow:useWhen "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that classifies entities without the inferential weight of a type or the subject-matter commitment of aboutness."@x-gmeow-english .
+    gmeow:useWhen "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that labels resources without the inferential weight of a type or the subject-matter commitment of aboutness."@x-gmeow-english .
 
 gmeow:TagScheme
     a logic:Kind ,
@@ -41,11 +42,11 @@ gmeow:Tagging
     logic:mediates gmeow:taggingTagged ,
         gmeow:taggingTag ,
         gmeow:taggingTagger ;
-    rdfs:subClassOf logic:Relator ,
+    logic:subClassOf logic:Relator ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:taggingTagged ;
-            logic:someValuesFrom gmeow:Entity ;
+            logic:someValuesFrom logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
@@ -57,9 +58,10 @@ gmeow:Tagging
             logic:onProperty gmeow:taggingTagger ;
             logic:someValuesFrom gmeow:Agent ;
         ] ;
-    skos:definition "A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag."@x-gmeow-english ;
-    skos:example "ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith ."@x-gmeow-english ;
+    skos:definition "A reified tagging act: a logic:Relator mediating one tagged resource, one Tag and one Agent tagger, with an optional scheme and time interval. Bears provenance, confidence and displayable false for suppression without deletion. The tagged resource may be an Activity or a class resource; the flat shortcut is hasTag."@x-gmeow-english ;
+    skos:example "A curator labels an Activity: ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:opening ; gmeow:taggingTag ex:tagReview ; gmeow:taggingTagger ex:curator ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class."@x-gmeow-english ;
+    skos:scopeNote "The resource target is bounded by logic:Thing, not Entity. Required paths and qualified maxima retain one resource, tag and resource-valued tagger per valid Tagging. Only genuinely distinct source tagging acts receive separate identities; do not invent acts to split an unsupported collaborative account."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target."@x-gmeow-english ;
     gmeow:useWhen "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."@x-gmeow-english .
@@ -80,20 +82,21 @@ gmeow:broaderTag
 
 gmeow:hasTag
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
+    logic:domain logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "has tag"@x-gmeow-english ;
-    rdfs:range gmeow:Tag ;
+    logic:range gmeow:Tag ;
     logic:propertyDisjointWith gmeow:isAbout ;
-    skos:definition "Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node."@x-gmeow-english ;
-    skos:example "ex:report gmeow:hasTag ex:tagUrgent ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the act of tagging must be a first-class node with full provenance (promote to gmeow:Tagging) and avoid using it for subject-matter (gmeow:isAbout) or classification (rdf:type); the three axes are disjoint."@x-gmeow-english ;
+    skos:definition "Relates a resource node to a user-minted Tag. Nonfunctional: a resource may carry many co-equal tags. Activities and class resources are legal targets alongside enduring entities. Period, confidence, tagger and suppression use native statement metadata; promote to Tagging when the tagging act itself must be a node."@x-gmeow-english ;
+    skos:example "A curator applies the same review Tag to an Activity and a class resource: ex:opening gmeow:hasTag ex:tagReview . ex:DoorOpening gmeow:hasTag ex:tagReview ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the act of tagging must be a first-class node with full provenance (promote to gmeow:Tagging) and avoid using it for subject-matter (use gmeow:isAbout only with an Entity subject and Entity object) or classification (rdf:type); the three axes are disjoint."@x-gmeow-english ;
+    skos:scopeNote "The domain is the universal resource bound logic:Thing; the range remains Tag. This open-world shortcut adds no required tag or concrete target-type demand. Applying a tag neither asserts an EventType nor makes the target an Entity or an instance of a tagged class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert ex:entity gmeow:hasTag ex:tag; annotate the statement with gmeow:validFrom/validUntil, gmeow:confidence, or gmeow:displayable for lightweight metadata, and reify to gmeow:Tagging (which it pairsWith) when those must be queryable nodes."@x-gmeow-english ;
+    gmeow:howToUse "Assert ex:resource gmeow:hasTag ex:tag. Retain period, confidence, tagger and suppression through native statement metadata; use a Tagging node for an actual tagging act when these must be first-class."@x-gmeow-english ;
     gmeow:pairsWith gmeow:Tagging ;
     gmeow:useForConsumer gmeow:consumerAgentMemory ,
         gmeow:consumerInternalArchive ;
-    gmeow:useWhen "Use as the default, flat way to attach an informal label to any entity; carry period, confidence, tagger, or suppression as RDF-star annotations on the statement when the simple metadata is enough."@x-gmeow-english .
+    gmeow:useWhen "Use as the default flat way to attach an informal label to a resource, including an Activity or class resource; keep all tags co-equal and retain source attribution on the exact statement."@x-gmeow-english .
 
 gmeow:isAbout
     a logic:ObjectProperty ;
@@ -211,16 +214,17 @@ gmeow:taggingTag
 
 gmeow:taggingTagged
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Tagging ;
+    logic:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tagged"@x-gmeow-english ;
-    rdfs:range gmeow:Entity ;
-    skos:definition "The entity that is tagged in a tagging act. Functional per relator: one tagged entity per Tagging."@x-gmeow-english ;
-    skos:example "ex:t1 gmeow:taggingTagged ex:report ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it outside a Tagging relator or pointing it at more than one entity (it is functional per relator); for the flat case, the tagged entity is the subject of gmeow:hasTag."@x-gmeow-english ;
+    logic:range logic:Thing ;
+    skos:definition "The resource tagged by a Tagging act. Functional per relator: exactly one tagged resource per valid Tagging, including an Activity or a class resource."@x-gmeow-english ;
+    skos:example "A reified act targets the Activity itself: ex:t1 gmeow:taggingTagged ex:opening ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it outside a Tagging relator or supplying more than one tagged resource to that relator. For the flat case, the resource is the subject of hasTag; do not substitute an information wrapper for the actual target."@x-gmeow-english ;
+    skos:scopeNote "The range is logic:Thing, with the existing required resource path and qualified maximum retained. This role does not constrain the tagged resource to Entity or turn an informal label into typing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Fill this role on the Tagging node alongside gmeow:taggingTag and gmeow:taggingTagger; exactly one tagged entity per relator, with a fresh relator per distinct tagging act."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the tagged resource inside a reified gmeow:Tagging relator — the entity that the tagging act applies to."@x-gmeow-english .
+    gmeow:howToUse "Fill taggingTagged on the actual Tagging node alongside taggingTag and taggingTagger. Retain exactly one resource per valid relator; use a separate identity only for a genuinely distinct source tagging act."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the actual resource that a reified Tagging act labels, whether an enduring entity, an Activity or a class resource."@x-gmeow-english .
 
 gmeow:taggingTagger
     a logic:ObjectProperty ;
@@ -228,17 +232,18 @@ gmeow:taggingTagger
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tagger"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent who performed the tagging act. Non-functional: a tag may be co-asserted by multiple agents (e.g. a collaborative curation effort)."@x-gmeow-english ;
-    skos:example "ex:t1 gmeow:taggingTagger ex:lillith ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid collapsing co-taggers into one (it is non-functional — collaborative curation legitimately has several taggers) and avoid the relator at all when no agent provenance is needed (use flat gmeow:hasTag)."@x-gmeow-english ;
+    skos:definition "The Agent who performed the tagging act. Each valid Tagging retains exactly one resource-valued tagger through its existing required path and qualified maximum; the Agent range is unchanged."@x-gmeow-english ;
+    skos:example "The source identifies one curator for the actual act: ex:t1 gmeow:taggingTagger ex:curator ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching several resource-valued taggers to one Tagging or inventing separate acts to make a collaborative account fit. When no reified act is supplied or needed, use hasTag with its actual statement attribution."@x-gmeow-english ;
+    skos:scopeNote "The class-local one-tagger contract does not add a global functional-property assertion. Preserve actual source acts and their identities; an account naming several collaborators does not authorize fabricating separate tagging acts."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Attach one or more gmeow:Agent values to the Tagging node; pair with gmeow:wasAttributedTo and gmeow:taggingInterval to carry full provenance and period for the act."@x-gmeow-english ;
+    gmeow:howToUse "Attach the one supplied Agent reference to the actual Tagging node. Preserve independent provenance and any supplied interval; assign a separate Tagging identity only when the source identifies a genuinely distinct tagging act."@x-gmeow-english ;
     gmeow:useWhen "Use to record who applied the tag inside a reified gmeow:Tagging — the provenance of the act when authorship of the label matters."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/tags>
     a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a gufo:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."@x-gmeow-english ;
+    rdfs:comment "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a logic:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "GMEOW Tags Module"@x-gmeow-english ;
     skos:definition "The GMEOW Tags Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
@@ -291,7 +296,7 @@ logic:supTgDisp a logic:Formula ; logic:relation gmeow:displayable ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Tagging> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/taggingTagger" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # --- Wave B1 shape-drain: tagging cardinality + suppression ---
-# gmeow:TaggingHasPlayersShape — a Tagging tags exactly one entity with exactly one tag and one tagger.
+# gmeow:TaggingHasPlayersShape — a Tagging tags exactly one resource with exactly one tag and one tagger.
 gmeow:Tagging logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTagged ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTag ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -343,7 +348,7 @@ gmeow:taggingTaggedFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "taggingTagged is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged resource, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:taggingTagged ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:taggingTagged ;
