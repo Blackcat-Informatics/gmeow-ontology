@@ -267,3 +267,39 @@ that limit rather than manufacture a receipt or silently weaken its operation.
 These declarations leave lexical computation and temporal selection with the
 consumer while preserving their input and version evidence (Principles 4, 7,
 9, 11, 17 and 19).
+
+## Positive latest-situations window
+
+`habitWindow` belongs to the existing immutable `ReadingRule` parameter release,
+not the figure, its process vantage or an executable `logic:Rule`. It is an
+optional object role with at most one `math:Quantity` per release. It bounds
+the latest situations of one selected `DayPart` separately, not elapsed time,
+all day parts jointly or the situations actually available to a reading.
+Its absence does not establish a default or require changes to existing rules.
+
+Math owns the magnitude and dimension. Retain the original valid finite
+`xsd:positiveInteger` on `math:quantityValue`, admit equivalent numeric lexical
+aliases unchanged and require the dimensionless dimension. Places owns the
+single actual complete counting frame. Its interpretation must be supported
+for the immutable release and its latest-situations convention; a temporal
+frame or a generic counting name is insufficient. Direct Math and Places
+dependencies declare these actual formal references.
+
+The canonical constraint has one outer `ReadingRule` type guard and eight
+independent positively bound window obligations: magnitude presence, exact
+datatype plus finite validity, numeric value equality, dimension presence,
+dimensionless value, frame presence, frame type and frame uniqueness.
+Every arm repeats its supplied window guard, uses fresh local variables and
+keeps existential probes atomic. Supplied endpoint closure and a direct
+qualified maximum enforce the role's types and local bound without making
+the window mandatory. No global functional property, new quantity class,
+parallel integer field or ungrounded shape is introduced.
+
+The existing immutable release metadata and version/lineage distinction remain
+unchanged. An actual derivation may retain its selected release through
+`wasDerivedFrom`, independently of the source records, observed feature and
+process vantage. No figure-to-rule binding, release instance, parameter value,
+counting frame, source population or successful situation selection is inferred.
+These intrinsic laws preserve supplied declarations; they do not execute a
+habit reader or establish the truth of its frame interpretation (Principles
+4, 7, 9, 11, 17 and 19).

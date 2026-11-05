@@ -2194,3 +2194,63 @@ msgstr "保留每个原始出现项及其半开码点区间；句段参与关系
 msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
 msgstr "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "habit window"
+msgstr "习惯情境窗口"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining an immutable ReadingRule release's configured positive bound on how many of the latest situations of one selected DayPart a habit figure counts over."
+msgstr "保留某个不可变 ReadingRule 版本所配置正数上限的 math:Quantity，规定按日间部分的活动统计针对一个选定 DayPart 的最近多少个情境进行计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional on ReadingRule and at most one Quantity per release. This is a configured window size, not elapsed time, the number of available situations, a reported count or confidence. Changing the parameter requires a new immutable release."
+msgstr "ReadingRule 可不提供此项；每个版本至多关联一个 Quantity。它是配置的窗口大小，不是经过时长、可用情境数、报告计数或置信度。修改参数须创建新的不可变版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied rule release retains its declared window quantity without inventing a magnitude or a figure-to-rule link."
+msgstr "所提供的规则版本保留其声明的窗口量，不虚构数值或活动统计到规则的关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the actual reviewed latest-situations window parameter of an immutable reading rule release."
+msgstr "用于公开不可变解读规则版本实际经审查的最近情境窗口参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying a default window, substituting habitSituationCount, treating a DayPart as a fixed number of hours or guessing which rule release produced a figure."
+msgstr "避免填入默认窗口、替换为 habitSituationCount、将 DayPart 当作固定小时数，或猜测产生活动统计的规则版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/habitWindow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with its unchanged xsd:positiveInteger magnitude on math:quantityValue, math:dimensionless on math:hasDimension and one complete actual ReferenceFrame justified for this immutable release and its latest-situations counting convention. Keep the figure's selected DayPart and actual input scope separate."
+msgstr "关联实际 Quantity，在 math:quantityValue 上保留原样的 xsd:positiveInteger 数值，在 math:hasDimension 上保留 math:dimensionless，并提供一个由该不可变版本及其最近情境计数约定支持的完整实际 ReferenceFrame。将活动统计选定的 DayPart 和实际输入范围分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Habit window value constraint"
+msgstr "习惯情境窗口值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "ReadingRule 版本提供的每个 habitWindow 都须具有有效的 xsd:positiveInteger 数值、唯一数值、仅有无量纲维度，以及恰好一个具有类型的 ReferenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent source-supported numeric lexical aliases may coexist unchanged. Existing complete ReferenceFrame obligations apply; these checks do not establish the release's counting interpretation, execute situation selection or require a window on every rule."
+msgstr "来源支持的等值数值词法形式可原样共存。现有完整 ReferenceFrame 要求仍适用；这些检查不确立版本的计数解释、不执行情境选择，也不要求每条规则都有窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected release's supplied quantity is checked without filling an absent window or creating a release instance."
+msgstr "检查选定版本提供的量，不补造缺失窗口，也不创建版本实例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the supplied positive window quantity on its actual immutable ReadingRule release."
+msgstr "用于检查实际不可变 ReadingRule 版本上提供的正数窗口量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a value, dimension, frame or release to satisfy the constraint, coercing numeric literals or inferring available situations from the configured bound."
+msgstr "避免为满足约束而虚构数值、维度、参考系或版本，避免强制转换数值字面量，也不要由配置上限推断可用情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the ReadingRule guard and eight independent positive habitWindow guards. Retain original magnitudes and require exact positiveInteger datatype, finite numeric validity, numeric value equality, the dimensionless dimension and one actual complete counting frame."
+msgstr "应用 ReadingRule 守卫及八个独立的正向 habitWindow 守卫。保留原始数值，要求精确的 positiveInteger 数据类型、有限且有效的数值、数值相等、无量纲维度，以及一个实际完整的计数参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HabitWindowValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied habitWindow of a ReadingRule release has a valid xsd:positiveInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame."
+msgstr "ReadingRule 版本提供的每个 habitWindow 都须具有有效的 xsd:positiveInteger 数值、唯一数值、仅有无量纲维度，以及恰好一个具有类型的 ReferenceFrame。"
