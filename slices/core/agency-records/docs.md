@@ -643,3 +643,76 @@ linked frames. These checks do not establish that the source counters are true
 or complete, or that an asserted frame interpretation is supported by evidence.
 Keep actual ledger provenance and interpretation evidence; do not fabricate
 values, frames, sources or outcomes to satisfy validation.
+
+## Declared estimated cost in millicents
+
+`budgetEstimatedMillicents` retains the ledger's supplied estimated cost through
+an existing [Math Quantity](../../grounding/math/docs.md). Its magnitude is the
+original valid finite `xsd:nonNegativeInteger` on `math:quantityValue`.
+Equivalent source-supported numeric lexical aliases can coexist unchanged;
+all retained magnitudes must have the same numeric value. A supplied zero is
+retained. Missing cost is not zero, and no upper bound is invented.
+
+The quantity counts declared millicent units, so its dimension is
+`math:dimensionless`. It is not a retyped `MonetaryAmount`, a second amount
+class or a parallel integer field. One millicent is exactly **1/100000 of the
+declared currency's major unit**: one thousandth of an accounting cent, with
+one accounting cent equal to one hundredth of that major unit. This fixes the
+word's accounting denomination; it does not infer a legal minor-unit exponent
+from a currency code or perform a conversion.
+
+The following existing Math syntax explains that exact factor only:
+
+```turtle
+[ a math:RationalValue ;
+  math:numerator "1"^^xsd:integer ;
+  math:denominator "100000"^^xsd:integer ] .
+```
+
+It is not a source report, new named scale, canonical module instance or
+machine conversion law. No free scale input or coefficient-linkage predicate
+is introduced. A source field using another denomination cannot be silently
+relabeled as this millicent counter. Existing `MonetaryAmount` requires a
+decimal and its `currency` property would infer that type; neither is used to
+coerce the original integer. Statistical `math:Estimate` and
+`gmeow:Measurement` are also not inferred. This is the source's declared table-based estimate,
+not a measured charge, verified bill, payment, statistical estimate or confidence.
+
+Cost is optional on `BudgetReading`, with at most one quantity for its one
+coherent cost counter. A supplied cost requires `budgetCostCurrency` and at
+least one `budgetCostPriceTable`; counter-only historical reports acquire
+neither an invented cost nor missing context fields.
+
+`budgetCostCurrency` names the actual complete scalar currency
+`ReferenceFrame` explicitly declared to use the currency's major unit. One
+coherent cost has one such basis. Currency code or ticker spelling alone does
+not establish that denomination or frame identity. Preserve the actual source
+declaration rather than selecting a currency or constructing a plausible frame.
+Its one coordinate dimension is numerical frame arity, not a new physical money
+dimension. The existing [Places profile](../places/docs.md) governs its actual
+axis, determinacy, host policy and other frame components. An appropriate
+existing scalar axis can be reused; no currency-specific axis or component
+instance is manufactured here.
+
+The quantity separately has exactly one actual complete reporting frame.
+Its interpretation must be supported for the original ledger, UTC day,
+spender, declared schema, millicent-unit count, actual currency-major-unit basis
+and source pricing interpretation. A generic counting label, UTC date or currency
+code alone is insufficient. These roles do not infer extra frame components.
+
+`budgetCostPriceTable` retains **every actual declared table release**, with no
+maximum and no invented composite. Preserve its actual source identity and
+the ledger's declared pricing interpretation, including supplied version,
+digest and attribution metadata. Do not invent a release label or digest,
+select a current table, assume a rate formula or compute cost from request/call
+counts. The declaration does not authenticate the table, prove its actual use
+or certify the arithmetic. Competing interpretations remain separately
+attributable without a globally preferred report.
+
+A source cost lacking actual currency or table context remains an explicitly
+incomplete interpretation. Retain its original source field using existing
+record metadata and report the missing interpretation; a selected normalization
+operation cannot silently omit it, substitute zero or claim complete success.
+This vocabulary adds no importer, arithmetic engine or source-adoption claim.
+The existing request/call counts, UTC day, schema and spender meanings remain
+unchanged (Principles 4, 9, 11, 17 and 19).

@@ -6278,3 +6278,119 @@ msgstr "Appliquer la garde externe du rapport et chaque garde positive indépend
 msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
 msgstr "Un BudgetReading fournit au moins un rôle de comptage ; chaque Quantity reliée possède une grandeur xsd:nonNegativeInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé. Un décalage de fuseau horaire signé sur budgetDay doit être nul ; les dates sans fuseau horaire et les dates avec Z conservent la convention fixe du jour civil UTC."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimated budget millicents"
+msgstr "coût budgétaire estimé en millicents"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ledger's estimated cost retained as a math:Quantity counting millicent units. One millicent is exactly 1/100000 of the declared currency's major unit; the original magnitude is xsd:nonNegativeInteger."
+msgstr "Le coût estimé du registre, conservé comme une math:Quantity comptant des unités de millicent. Un millicent vaut exactement 1/100000 de l’unité principale de la monnaie déclarée ; la grandeur originale est de type xsd:nonNegativeInteger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and at most one Quantity per coherent BudgetReading cost counter; a supplied zero differs from absence. This is the source's table-based estimate, not a measurement, verified bill, payment or confidence. The fixed unit factor implies no legal minor-unit exponent or performed conversion."
+msgstr "Facultatif, avec au plus une Quantity pour le compteur de coût cohérent d’un BudgetReading ; un zéro fourni diffère d’une absence. Il s’agit de l’estimation de la source fondée sur une table, non d’une mesure, d’une facture vérifiée, d’un paiement ou d’une confiance. Le facteur d’unité fixe n’implique aucun exposant légal d’unité divisionnaire ni aucune conversion effectuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger report retains its supplied estimated-cost quantity, declared currency-major-unit basis and actual price-table releases without inventing their values or identities."
+msgstr "Un relevé du registre conserve sa quantité de coût estimé fournie, sa base déclarée dans l’unité monétaire principale et les versions réelles des tables tarifaires, sans inventer leurs valeurs ni leurs identités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ledger actually supplies an estimated millicent cost with its declared currency and pricing interpretation."
+msgstr "Utiliser lorsque le registre fournit réellement un coût estimé en millicents avec sa monnaie déclarée et son interprétation tarifaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a parallel integer slot, decimal coercion, a default currency or table, inferred cost from request counts, or silently dropping a present cost whose interpretation is incomplete."
+msgstr "Éviter un champ entier parallèle, une conversion forcée en décimal, une monnaie ou une table par défaut, un coût déduit des nombres de requêtes ou l’omission silencieuse d’un coût présent dont l’interprétation est incomplète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetEstimatedMillicents|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity; preserve its original valid finite nonnegative integer magnitude on math:quantityValue, math:dimensionless for the unit count and one actual complete reporting frame. Retain budgetCostCurrency and every budgetCostPriceTable separately with the actual ledger, day, spender and schema context."
+msgstr "Relier la Quantity réelle ; conserver sa grandeur entière originale, valide, finie et non négative dans math:quantityValue, math:dimensionless pour le comptage des unités et un unique référentiel réel et complet de rapport. Garder séparément budgetCostCurrency et chaque budgetCostPriceTable avec le contexte réel du registre, du jour, du poste de dépenses et du schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget cost currency basis"
+msgstr "base monétaire du coût budgétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual currency ReferenceFrame explicitly declared as the major-unit basis of this BudgetReading's estimated millicent cost."
+msgstr "Le ReferenceFrame monétaire réel explicitement déclaré comme base dans l’unité principale du coût estimé en millicents de ce BudgetReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One coherent supplied cost has one major-unit basis. The frame must be complete, scalar, currency-realm and one-dimensional. A currency code alone establishes neither its denomination nor a legal minor-unit exponent, and this role does not infer MonetaryAmount."
+msgstr "Un coût fourni cohérent possède une seule base dans l’unité principale. Le référentiel doit être complet, scalaire, du domaine monétaire et unidimensionnel. Un code monétaire seul n’établit ni sa dénomination ni un exposant légal d’unité divisionnaire, et ce rôle n’infère pas MonetaryAmount."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source declares its actual currency-major-unit frame; the report preserves that declaration rather than choosing a currency from a code-shaped label."
+msgstr "Une source déclare son référentiel réel dans l’unité monétaire principale ; le relevé conserve cette déclaration plutôt que de choisir une monnaie à partir d’une étiquette ressemblant à un code."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual explicitly declared major-unit currency basis of a supplied budget estimate."
+msgstr "Utiliser pour conserver la base monétaire réelle, explicitement déclarée dans l’unité principale, d’une estimation budgétaire fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring USD, a cent frame, currency conversion, frame identity from matching codes or missing axes and other frame components."
+msgstr "Éviter d’inférer USD, un référentiel en cents, une conversion monétaire, l’identité de référentiels à partir de codes identiques ou des axes et autres composants de référentiel manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostCurrency|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual complete ReferenceFrame whose supplied meaning supports the major-unit declaration. Keep its source attribution and original currency metadata; existing Places obligations govern its real axis, determinacy and other components. Do not manufacture a frame to satisfy the role."
+msgstr "Référencer le ReferenceFrame réel et complet dont le sens fourni étaye la déclaration dans l’unité principale. Conserver l’attribution de source et les métadonnées monétaires originales ; les obligations existantes de Places régissent son axe réel, sa détermination et ses autres composants. Ne pas fabriquer de référentiel pour satisfaire ce rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget cost price table"
+msgstr "table tarifaire du coût budgétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual price-table InformationObject release that the ledger declares as a basis for this BudgetReading's estimated cost, with its retained source pricing interpretation."
+msgstr "Une version réelle de table tarifaire, de type InformationObject, que le registre déclare comme base du coût estimé de ce BudgetReading, avec l’interprétation tarifaire conservée de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one declared release is required when cost is supplied; all actual releases are retained without a maximum. This source declaration authenticates neither the table nor its actual use, rates, arithmetic or resulting bill."
+msgstr "Au moins une version déclarée est requise lorsqu’un coût est fourni ; toutes les versions réelles sont conservées sans maximum. Cette déclaration de source n’authentifie ni la table, ni son utilisation réelle, ses tarifs, ses calculs ou la facture résultante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report cites each actual declared table release and preserves its supplied interpretation without synthesizing a composite table or a missing version."
+msgstr "Un relevé cite chaque version réelle de table déclarée et conserve son interprétation fournie sans synthétiser de table composite ni de version manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the table releases actually declared by the ledger for its estimated-cost reading."
+msgstr "Utiliser pour les versions de tables réellement déclarées par le registre pour son relevé de coût estimé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting a current or cheapest table, inventing a digest or release label, assuming a rate formula, or replacing the actual source table identity with a guessed name."
+msgstr "Éviter de sélectionner une table actuelle ou la moins chère, d’inventer une empreinte ou une étiquette de version, de supposer une formule tarifaire ou de remplacer l’identité réelle de la table source par un nom deviné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCostPriceTable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual source-identified release and the ledger's declared pricing interpretation. Preserve original version, digest and attribution metadata only when supplied. A source cost lacking its actual table context remains an explicitly incomplete interpretation, not a silent omission or default."
+msgstr "Conserver chaque version réellement identifiée par la source et l’interprétation tarifaire déclarée par le registre. Préserver les métadonnées originales de version, d’empreinte et d’attribution seulement lorsqu’elles sont fournies. Un coût source dépourvu de son contexte tarifaire réel demeure une interprétation explicitement incomplète, et non une omission silencieuse ou une valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget estimated cost constraint"
+msgstr "Contrainte sur le coût budgétaire estimé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
+msgstr "Chaque quantité budgetEstimatedMillicents fournie possède des grandeurs xsd:nonNegativeInteger valides et finies ayant une seule valeur numérique, la dimension sans dimension du comptage d’unités et un unique référentiel complet de rapport. Son relevé déclare un unique référentiel monétaire complet, scalaire et unidimensionnel dans l’unité principale, ainsi qu’au moins une version réelle de table tarifaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The fixed denomination is exactly 1/100000 of the declared currency's major unit, not a free scale input. Equivalent numeric lexical aliases are preserved. Existing frame profiles apply; structural checks prove no source interpretation, table authenticity, conversion, measured charge or pricing arithmetic."
+msgstr "La dénomination fixe vaut exactement 1/100000 de l’unité principale de la monnaie déclarée ; ce n’est pas un paramètre d’échelle libre. Les variantes lexicales numériques équivalentes sont conservées. Les profils existants de référentiels s’appliquent ; les vérifications structurelles ne prouvent aucune interprétation de source, authenticité de table, conversion, charge mesurée ou arithmétique tarifaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A counter-only reading remains valid without cost; a supplied cost with missing currency or table context fails its selected interpretation rather than acquiring invented metadata."
+msgstr "Un relevé de compteurs sans coût reste valide ; un coût fourni sans contexte monétaire ou tarifaire échoue à son interprétation sélectionnée au lieu d’acquérir des métadonnées inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the complete explicitly supplied cost interpretation of a BudgetReading without requiring cost on historical counter-only reports."
+msgstr "Utiliser pour vérifier l’interprétation complète du coût explicitement fourni d’un BudgetReading sans exiger de coût sur les anciens relevés contenant seulement des compteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating values, frames, source releases or currency identity, changing existing counter semantics, capping table releases or presenting the result as a measurement or statistical estimate."
+msgstr "Éviter de fabriquer des valeurs, référentiels, versions sources ou identités monétaires, de modifier le sens des compteurs existants, de plafonner le nombre de versions tarifaires ou de présenter le résultat comme une mesure ou une estimation statistique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the BudgetReading guard and fifteen independently positive cost/context guards, retaining fresh local binders and atomic existence probes. Check every supplied magnitude, dimension, frame, currency basis and table release through the existing Math, Places and information-object owners; retain actual source evidence separately."
+msgstr "Appliquer la garde BudgetReading et quinze gardes positives indépendantes de coût et de contexte, avec des variables locales nouvelles et des sondes existentielles atomiques. Vérifier chaque grandeur, dimension, référentiel, base monétaire et version tarifaire fournis par les propriétaires existants Math, Places et des objets d’information ; conserver séparément les preuves sources réelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetEstimatedCostConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied budgetEstimatedMillicents quantity has valid finite xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless unit-count dimension and one complete reporting frame. Its report declares one complete scalar one-dimensional currency-major-unit frame and at least one actual price-table release."
+msgstr "Chaque quantité budgetEstimatedMillicents fournie possède des grandeurs xsd:nonNegativeInteger valides et finies ayant une seule valeur numérique, la dimension sans dimension du comptage d’unités et un unique référentiel complet de rapport. Son relevé déclare un unique référentiel monétaire complet, scalaire et unidimensionnel dans l’unité principale, ainsi qu’au moins une version réelle de table tarifaire."

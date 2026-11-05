@@ -395,3 +395,60 @@ This foundation defines no chain-claim attachment, duration calculation,
 cause-rule or cause-fact representation, interlude structure or ordering index.
 The ordinary scene illustrates retained source reports; it supplies no runtime
 transition, scheduler, history-validation or generated-surface qualification.
+
+## Estimated ledger cost keeps its declared basis
+
+The daily report's optional budgetEstimatedMillicents role points to the
+existing math:Quantity counting original declared millicent units. Its valid
+finite xsd:nonNegativeInteger magnitude remains unchanged on math:quantityValue;
+numeric lexical aliases can coexist with one numeric value. Math owns the
+dimensionless unit-count dimension. The quantity's actual complete reporting
+frame retains the ledger/day/spender/schema and pricing interpretation.
+This neither declares a monetary amount's physical dimension nor introduces a
+parallel scalar, monetary amount class or observation.
+
+The unit definition fixes one millicent to 1/100000 of the declared currency's
+major unit. RationalValue syntax in the guide explains this coefficient only;
+no disconnected coefficient node, scale role, unit hierarchy or conversion
+law is added. The role preserves a source table-based estimate, not a measured
+charge, bill, payment or statistical Estimate with invented targets/procedures.
+
+budgetCostCurrency retains the actual source-declared major-unit basis, with
+its complete scalar, one-dimensional currency ReferenceFrame. The major-unit
+meaning is an explicit declaration, not an inference from code spelling or
+an official minor-unit exponent. Places owns the complete frame obligations;
+an appropriate existing scalar axis can serve without a new currency-specific
+axis or numerical component. Missing actual context cannot be repaired by
+manufacturing a frame or a default currency.
+
+budgetCostPriceTable retains all actual declared releases as InformationObjects,
+including their supplied identity and interpretation. It has no maximum and
+creates no composite table, current-version selector, rate rule or digest.
+Neither table identity nor the declaration proves execution or correct pricing.
+Historical counter-only reports acquire no cost requirement; selected cost requires its
+actual context and does not silently degrade when that context is missing.
+
+The grouped ordinary Formula has one outer BudgetReading type guard and fifteen
+independent positive cost/context arms: eight for the selected quantity, four
+for currency presence/type/profile/coordinate-dimension value, one for currency
+uniqueness and two for declared table presence/type. Each arm binds its focus
+and local universals through actual positive relations; all five existential
+bodies are atomic and every binder is fresh. Exact datatype identity selects
+shared component admission for the entire law, including context arms. The
+datatype/finite conjunction and realm/kind conjunction distribute into seventeen
+consequence leaves without introducing a new native mechanism.
+
+Property-global closure validates supplied endpoints. Direct class restrictions
+type all three roles and bound the cost quantity and coherent currency basis
+locally, with no table cap or global functional property. Cost presence is not
+required on every BudgetReading; only a supplied cost selects the context law.
+Existing counter and UTC-day axioms, source literals, metadata and catalog
+contexts remain untouched. Existing Math, Places, Kernel and provenance owners
+are already direct dependencies; no Finance extension dependency is introduced.
+
+These declarations cannot establish source truth, actual major-unit meaning,
+table authenticity, supported frame interpretation or computed cost. Those
+remain actual source/adapter evidence obligations, distinct from the intrinsic
+structural contract. No runtime normalization, financial conversion, estimation
+execution, corpus or generated-surface qualification follows from authoring
+these terms (Principles 4, 7, 9, 11, 17 and 19).
