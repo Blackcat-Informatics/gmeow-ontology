@@ -6022,3 +6022,259 @@ msgstr "避免根据端点措辞、记录归属或声明框架虚构 OpenLoop �
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the EpisodeTransition report to each supplied OpenLoop and retain the original target identity and exact claim context."
 msgstr "将 EpisodeTransition 报告关联到所提供的每个 OpenLoop，并保留原始目标身份和确切断言语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget reading"
+msgstr "预算读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-recorded information object retaining one UTC civil day’s runtime counters for one ledger spender under the writer-declared ledger schema."
+msgstr "来源记录的信息对象，保留在写入方声明的账本模式下，一个账本支出桶在一个 UTC 民用日的运行计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one day, spender and declared schema are required, with at least one supplied count and at most one Quantity per count role. This record asserts no observation, payment, successful execution, complete coverage or computed total."
+msgstr "必须恰有一个日期、一个支出桶和一个声明的模式，至少提供一种计数，且每种计数角色至多关联一个 Quantity。此记录不声明观测、付款、成功执行、完整覆盖或计算总量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A historical daily ledger record supplies a request count but no web-call count; the report retains only the supplied count."
+msgstr "历史日账本记录只提供请求计数，没有网络调用计数；报告仅保留提供的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual daily runtime counter record."
+msgstr "用于账本实际提供的每日运行计数记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a report as an Observation or inventing a missing counter, spender, schema or cost."
+msgstr "避免将报告视为 Observation，或编造缺失的计数、支出桶、模式或费用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied day, spender and schema, and link each supplied count through its existing math:Quantity with the original typed magnitude, dimensionless dimension and actual complete counting frame."
+msgstr "保留提供的日期、支出桶和模式，通过现有 math:Quantity 连接每项提供的计数，保留原始带类型数值、无量纲维度以及实际且完整的计数参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget day"
+msgstr "预算日期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The UTC civil day to which this BudgetReading’s ledger counters belong, retained as the supplied xsd:date."
+msgstr "此 BudgetReading 的账本计数所属的 UTC 民用日，保留为来源提供的 xsd:date。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The date identifies the counting day, not a reporting instant, local civil day or invented midnight. Exactly one is required per report."
+msgstr "日期标识计数所属日，不是报告时刻、本地民用日或编造的午夜时刻。每份报告必须恰有一个日期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger declares which UTC day its counters cover without supplying a reporting timestamp."
+msgstr "账本声明计数所属的 UTC 日期，但未提供报告时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual UTC civil day declared by the ledger."
+msgstr "用于账本实际声明的 UTC 民用日。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this date from an unrelated timestamp or substituting a local day."
+msgstr "避免从无关时间戳推导此日期或替换为本地日期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exactly one supplied xsd:date on the BudgetReading; preserve its literal and UTC day interpretation."
+msgstr "在 BudgetReading 上保留恰好一个提供的 xsd:date，保持其字面量及 UTC 日期解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget ledger schema"
+msgstr "预算账本模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact ledger schema identity declared by the writer for this BudgetReading, retained as the supplied xsd:token."
+msgstr "写入方为此 BudgetReading 声明的确切账本模式标识，保留为提供的 xsd:token。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one declared schema is required. The value is not a schema inferred from field names or a newly computed schema hash."
+msgstr "必须恰有一个声明的模式。该值不是从字段名推断的模式，也不是新计算的模式哈希。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "The writer supplies a schema identity alongside the daily counters."
+msgstr "写入方随每日计数提供模式标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ledger writer actually declares its schema identity."
+msgstr "用于账本写入方实际声明模式标识时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a schema, normalizing its identity or silently retyping an xsd:string as xsd:token."
+msgstr "避免猜测模式、规范化其标识，或将 xsd:string 静默改为 xsd:token。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the writer’s exact supplied xsd:token on the report and preserve the declaration’s source attribution."
+msgstr "在报告上保留写入方提供的确切 xsd:token，并保留声明的来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget requests"
+msgstr "预算请求数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining the ledger’s count of external model requests issued for this BudgetReading’s UTC day and spender."
+msgstr "保留账本所记、此 BudgetReading 的 UTC 日期和支出桶内已发出的外部模型请求数的 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this role. Issued requests do not imply completed or successful calls, billed usage or payment."
+msgstr "此角色至多关联一个 Quantity。请求已发出不意味着调用已完成或成功、用量已计费或已付款。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#example"
+msgid "An issued request remains counted even when its later outcome is unknown."
+msgstr "已发出的请求即使后续结果未知，仍计入此项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual count of external model requests issued."
+msgstr "用于账本实际记录的已发出外部模型请求计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting successful responses, completed calls, tokens, cost or a missing-value zero."
+msgstr "避免替换为成功响应、已完成调用、词元、费用或缺失值补零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity; retain the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless on math:hasDimension and one complete frame justified for this ledger, day, spender, schema and issued-request convention."
+msgstr "连接实际 Quantity；在 math:quantityValue 上原样保留提供的 xsd:nonNegativeInteger，在 math:hasDimension 上使用 math:dimensionless，并提供一个对该账本、日期、支出桶、模式及已发出请求计数约定有依据的完整参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget calls"
+msgstr "预算调用数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining the ledger’s count of web calls written down before running for this BudgetReading’s UTC day and spender."
+msgstr "保留账本所记、此 BudgetReading 的 UTC 日期和支出桶内在运行前已登记的网络调用数的 math:Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this role. Recording a web call before running does not prove that it ran, completed or succeeded."
+msgstr "此角色至多关联一个 Quantity。运行前登记网络调用不证明其已运行、完成或成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#example"
+msgid "A web call is written to the ledger before an attempted execution whose outcome is not supplied."
+msgstr "网络调用在尝试执行前已写入账本，而其结果未提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual preregistered web-call count."
+msgstr "用于账本实际提供的预登记网络调用计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating preregistration as execution or inventing zero when the historical record has no web-call field."
+msgstr "避免将预登记视为执行，或在历史记录没有网络调用字段时编造零值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless and one complete actual frame scoped to this ledger, day, spender, schema and preregistered-web-call convention."
+msgstr "连接实际 Quantity，在 math:quantityValue 上原样保留提供的 xsd:nonNegativeInteger，使用 math:dimensionless，并提供一个涵盖该账本、日期、支出桶、模式及预登记网络调用约定的实际完整参考系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget spender"
+msgstr "预算支出桶"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value axis identifying the ledger’s deployment-local budget bucket for a daily runtime counter record."
+msgstr "一个开放的性质值轴，用于标识账本每日运行计数记录所属的部署本地预算桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values are budget buckets, not Agents, accounts, payers or globally enumerated deployments. New local values remain permitted."
+msgstr "值表示预算桶，不表示 Agent、账户、付款人或全局枚举的部署。允许新增本地值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#example"
+msgid "A deployment retains its named consumer bucket as a local BudgetSpender value."
+msgstr "部署将其命名的消费者预算桶保留为本地 BudgetSpender 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to type actual budget buckets declared by the source ledger."
+msgstr "用于为来源账本实际声明的预算桶赋予类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying a budget bucket with its consumer agent or payer."
+msgstr "避免将预算桶等同于使用该预算的智能体或付款人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the source’s local bucket as BudgetSpender and retain its actual local identity; use the unbucketed seed only for its explicit historical meaning."
+msgstr "将来源的本地预算桶标为 BudgetSpender，并保留其实际本地标识；仅按明确的历史含义使用未分桶种子值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget spender"
+msgstr "预算支出桶"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ledger budget bucket to which this BudgetReading’s daily counters belong."
+msgstr "此 BudgetReading 的每日计数所属的账本预算桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one actual BudgetSpender is required per report. This role makes no Agent, account or payer identity assertion."
+msgstr "每份报告必须恰有一个实际的 BudgetSpender。此关系不声明 Agent、账户或付款人身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#example"
+msgid "A per-consumer ledger record links to the deployment’s actual local budget bucket."
+msgstr "按消费者记录的账本条目连接到部署实际的本地预算桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the budget bucket of its daily counters."
+msgstr "用于来源标明每日计数所属预算桶时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the bucket from a model name or filling an unknown spender with the unbucketed seed."
+msgstr "避免从模型名称推导预算桶，或用未分桶种子值填补未知支出桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link exactly one source-supported BudgetSpender and preserve the ledger context that identifies the bucket."
+msgstr "连接恰好一个来源支持的 BudgetSpender，并保留标明该预算桶的账本上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unbucketed budget spender"
+msgstr "未分桶预算支出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit historical budget bucket for top-level request records made before the ledger introduced per-consumer buckets."
+msgstr "用于账本引入按消费者分桶之前的顶层请求记录的明确历史预算桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This seed identifies the historical unbucketed convention, not an unknown spender or an automatic default."
+msgstr "此种子值标识历史上的未分桶约定，不表示未知支出桶，也不是自动默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly identifies a historical top-level request record as preceding per-consumer buckets."
+msgstr "来源明确标明某历史顶层请求记录早于按消费者分桶的机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for source-supported historical records using the unbucketed top-level convention."
+msgstr "仅用于来源支持、采用历史顶层未分桶约定的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for missing, unknown or unmapped modern budget buckets."
+msgstr "避免用于缺失、未知或未映射的现代预算桶。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through budgetSpender only when the actual record’s historical context establishes this convention."
+msgstr "仅当记录的实际历史上下文确立该约定时，通过 budgetSpender 连接此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget count value constraint"
+msgstr "预算计数值约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
+msgstr "BudgetReading 至少提供一种计数角色；每个关联的 Quantity 必须具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。 budgetDay 的带符号时区偏移必须为零；无时区日期和带 Z 的日期保留固定的 UTC 民用日约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent retained lexical aliases may coexist under numeric value equality. Existing ReferenceFrame obligations apply; source truth, actual scope and convention justification remain evidence obligations. XML Schema whitespace is preserved; this rule neither converts dates nor invents an instant."
+msgstr "在数值相等时，可并存保留的等价词法变体。现有 ReferenceFrame 义务同样适用；来源真实性、实际范围及约定依据仍须由证据支持。 保留 XML Schema 允许的空白；此规则不转换日期，也不编造时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request-only historical report retains its valid framed quantity and timezone-free UTC day; a supplied nonzero date offset fails instead of being converted."
+msgstr "仅含请求计数的历史报告保留其有效且有参考系的计数量及无时区的 UTC 日期；来源提供的非零日期偏移会被拒绝，不会被转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate supplied daily budget count quantities and require an actual supplied count."
+msgstr "用于校验提供的每日预算计数量，并要求实际提供至少一种计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a value, dimension, frame or zero to satisfy the constraint, or equating different count conventions."
+msgstr "避免为满足约束而制造数值、维度、参考系或零值，或将不同计数约定等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer report guard and each independent positive count guard; preserve original literals and validate both count roles with the same canonical obligations. For each supplied budgetDay with a signed timezone suffix, require a zero offset while retaining allowed trailing XML Schema whitespace."
+msgstr "应用外层报告守卫及每个独立的正向计数守卫；保留原始字面量，并以相同的规范义务校验两种计数角色。 对每个提供的、带有符号时区后缀的 budgetDay，要求偏移为零，同时保留 XML Schema 允许的尾随空白。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
+msgstr "BudgetReading 至少提供一种计数角色；每个关联的 Quantity 必须具有有效的 xsd:nonNegativeInteger 数值、唯一的数值、仅无量纲维度及恰好一个带类型的 ReferenceFrame。 budgetDay 的带符号时区偏移必须为零；无时区日期和带 Z 的日期保留固定的 UTC 民用日约定。"

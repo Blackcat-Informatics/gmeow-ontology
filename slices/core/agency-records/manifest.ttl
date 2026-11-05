@@ -18,6 +18,8 @@
     gmeow:sliceConsumer "Agent memory importers retaining prose attempts and activity evidence without fabricating compiled plans, successful outcomes or unknown identities."@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/temporal>,
+        <https://blackcatinformatics.ca/gmeow/slices/math>,
+        <https://blackcatinformatics.ca/gmeow/slices/places>,
         <https://blackcatinformatics.ca/gmeow/slices/logic>,
         <https://blackcatinformatics.ca/gmeow/slices/kernel>,
         <https://blackcatinformatics.ca/gmeow/slices/events>,

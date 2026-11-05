@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -3132,3 +3133,231 @@ gmeow:EpisodeTransition logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:episodeLeft ; logic:allValuesFrom gmeow:Activity ],
     [ a logic:Restriction ; logic:onProperty gmeow:episodeEntered ; logic:allValuesFrom gmeow:Activity ],
     [ a logic:Restriction ; logic:onProperty gmeow:transitionLoop ; logic:allValuesFrom gmeow:OpenLoop ] .
+
+gmeow:BudgetReading
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Budget reading"@x-gmeow-english ;
+    skos:definition "A source-recorded information object retaining one UTC civil day’s runtime counters for one ledger spender under the writer-declared ledger schema."@x-gmeow-english ;
+    skos:scopeNote "Exactly one day, spender and declared schema are required, with at least one supplied count and at most one Quantity per count role. This record asserts no observation, payment, successful execution, complete coverage or computed total."@x-gmeow-english ;
+    skos:example "A historical daily ledger record supplies a request count but no web-call count; the report retains only the supplied count."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ledger’s actual daily runtime counter record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a report as an Observation or inventing a missing counter, spender, schema or cost."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied day, spender and schema, and link each supplied count through its existing math:Quantity with the original typed magnitude, dimensionless dimension and actual complete counting frame."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:budgetDay
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget day"@x-gmeow-english ;
+    skos:definition "The UTC civil day to which this BudgetReading’s ledger counters belong, retained as the supplied xsd:date."@x-gmeow-english ;
+    skos:scopeNote "The date identifies the counting day, not a reporting instant, local civil day or invented midnight. Exactly one is required per report."@x-gmeow-english ;
+    skos:example "A ledger declares which UTC day its counters cover without supplying a reporting timestamp."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual UTC civil day declared by the ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this date from an unrelated timestamp or substituting a local day."@x-gmeow-english ;
+    gmeow:howToUse "Keep exactly one supplied xsd:date on the BudgetReading; preserve its literal and UTC day interpretation."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range xsd:date .
+
+gmeow:budgetLedgerSchema
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget ledger schema"@x-gmeow-english ;
+    skos:definition "The exact ledger schema identity declared by the writer for this BudgetReading, retained as the supplied xsd:token."@x-gmeow-english ;
+    skos:scopeNote "Exactly one declared schema is required. The value is not a schema inferred from field names or a newly computed schema hash."@x-gmeow-english ;
+    skos:example "The writer supplies a schema identity alongside the daily counters."@x-gmeow-english ;
+    gmeow:useWhen "Use when the ledger writer actually declares its schema identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a schema, normalizing its identity or silently retyping an xsd:string as xsd:token."@x-gmeow-english ;
+    gmeow:howToUse "Retain the writer’s exact supplied xsd:token on the report and preserve the declaration’s source attribution."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range xsd:token .
+
+gmeow:budgetRequests
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget requests"@x-gmeow-english ;
+    skos:definition "The math:Quantity retaining the ledger’s count of external model requests issued for this BudgetReading’s UTC day and spender."@x-gmeow-english ;
+    skos:scopeNote "At most one Quantity fills this role. Issued requests do not imply completed or successful calls, billed usage or payment."@x-gmeow-english ;
+    skos:example "An issued request remains counted even when its later outcome is unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ledger’s actual count of external model requests issued."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting successful responses, completed calls, tokens, cost or a missing-value zero."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity; retain the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless on math:hasDimension and one complete frame justified for this ledger, day, spender, schema and issued-request convention."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range math:Quantity .
+
+gmeow:budgetCalls
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget calls"@x-gmeow-english ;
+    skos:definition "The math:Quantity retaining the ledger’s count of web calls written down before running for this BudgetReading’s UTC day and spender."@x-gmeow-english ;
+    skos:scopeNote "At most one Quantity fills this role. Recording a web call before running does not prove that it ran, completed or succeeded."@x-gmeow-english ;
+    skos:example "A web call is written to the ledger before an attempted execution whose outcome is not supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ledger’s actual preregistered web-call count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating preregistration as execution or inventing zero when the historical record has no web-call field."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity with the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless and one complete actual frame scoped to this ledger, day, spender, schema and preregistered-web-call convention."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range math:Quantity .
+
+gmeow:BudgetSpender
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Budget spender"@x-gmeow-english ;
+    skos:definition "An open quality-value axis identifying the ledger’s deployment-local budget bucket for a daily runtime counter record."@x-gmeow-english ;
+    skos:scopeNote "Values are budget buckets, not Agents, accounts, payers or globally enumerated deployments. New local values remain permitted."@x-gmeow-english ;
+    skos:example "A deployment retains its named consumer bucket as a local BudgetSpender value."@x-gmeow-english ;
+    gmeow:useWhen "Use to type actual budget buckets declared by the source ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying a budget bucket with its consumer agent or payer."@x-gmeow-english ;
+    gmeow:howToUse "Type the source’s local bucket as BudgetSpender and retain its actual local identity; use the unbucketed seed only for its explicit historical meaning."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:budgetSpender
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "budget spender"@x-gmeow-english ;
+    skos:definition "The ledger budget bucket to which this BudgetReading’s daily counters belong."@x-gmeow-english ;
+    skos:scopeNote "Exactly one actual BudgetSpender is required per report. This role makes no Agent, account or payer identity assertion."@x-gmeow-english ;
+    skos:example "A per-consumer ledger record links to the deployment’s actual local budget bucket."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the budget bucket of its daily counters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving the bucket from a model name or filling an unknown spender with the unbucketed seed."@x-gmeow-english ;
+    gmeow:howToUse "Link exactly one source-supported BudgetSpender and preserve the ledger context that identifies the bucket."@x-gmeow-english ;
+    logic:domain gmeow:BudgetReading ;
+    logic:range gmeow:BudgetSpender .
+
+gmeow:budgetSpenderUnbucketed
+    a gmeow:BudgetSpender ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "unbucketed budget spender"@x-gmeow-english ;
+    skos:definition "The explicit historical budget bucket for top-level request records made before the ledger introduced per-consumer buckets."@x-gmeow-english ;
+    skos:scopeNote "This seed identifies the historical unbucketed convention, not an unknown spender or an automatic default."@x-gmeow-english ;
+    skos:example "A source explicitly identifies a historical top-level request record as preceding per-consumer buckets."@x-gmeow-english ;
+    gmeow:useWhen "Use only for source-supported historical records using the unbucketed top-level convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for missing, unknown or unmapped modern budget buckets."@x-gmeow-english ;
+    gmeow:howToUse "Attach through budgetSpender only when the actual record’s historical context establishes this convention."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetDay" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetRequests" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetCalls" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetSpender" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:BudgetReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetDay ; logic:allValuesFrom xsd:date ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetDay ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:date ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetLedgerSchema ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetLedgerSchema ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetSpender ; logic:allValuesFrom gmeow:BudgetSpender ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetSpender ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:BudgetSpender ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetRequests ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetRequests ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetCalls ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetCalls ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:BudgetReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetDay" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:BudgetReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:BudgetReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetSpender" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:BudgetCountValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Budget count value constraint"@x-gmeow-english ;
+    skos:definition "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."@x-gmeow-english ;
+    skos:scopeNote "Equivalent retained lexical aliases may coexist under numeric value equality. Existing ReferenceFrame obligations apply; source truth, actual scope and convention justification remain evidence obligations. XML Schema whitespace is preserved; this rule neither converts dates nor invents an instant."@x-gmeow-english ;
+    skos:example "A request-only historical report retains its valid framed quantity and timezone-free UTC day; a supplied nonzero date offset fails instead of being converted."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate supplied daily budget count quantities and require an actual supplied count."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a value, dimension, frame or zero to satisfy the constraint, or equating different count conventions."@x-gmeow-english ;
+    gmeow:howToUse "Apply the outer report guard and each independent positive count guard; preserve original literals and validate both count roles with the same canonical obligations. For each supplied budgetDay with a signed timezone suffix, require a zero offset while retaining allowed trailing XML Schema whitespace."@x-gmeow-english ;
+    logic:formalizes gmeow:BudgetReading , gmeow:budgetRequests , gmeow:budgetCalls , gmeow:budgetDay ;
+    logic:message "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "report" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termIri gmeow:BudgetReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termIri gmeow:BudgetReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presentRequests" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presentRequests" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presentCalls" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "presentCalls" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqTypedValue" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "reqSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "reqSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reqUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "reqSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetRequests ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "reqUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "reqSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reqFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "reqSecondFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callTypedValue" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "callSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "callSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "callUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "callSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetCalls ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "callUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "callSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "callFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "callSecondFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetDay ; logic:argument [ logic:termIndex 0 ; logic:termVariable "report" ], [ logic:termIndex 1 ; logic:termVariable "budgetCountDay" ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ], [ logic:termIndex 1 ; logic:termLiteral "[+-][0-9]{2}:[0-9]{2}[ \\t\\r\\n]*$" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budgetCountDay" ], [ logic:termIndex 1 ; logic:termLiteral "[+-]00:00[ \\t\\r\\n]*$" ] ] ] ] ] ] ] .

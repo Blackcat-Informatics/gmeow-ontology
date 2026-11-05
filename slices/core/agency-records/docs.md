@@ -585,3 +585,61 @@ with report-level source and recorder metadata plus six exact-statement
 reifiers retaining source, recorder and declaring frame. It reports no
 locally executed transition, state update or scheduler, and derives no order
 between the endpoint activities.
+
+## Daily budget counter readings
+
+`BudgetReading` is an `InformationObject` retaining a ledger’s actual daily
+runtime counters. It has exactly one `budgetDay`, one `budgetSpender` and one
+`budgetLedgerSchema`, plus at least one actually supplied `budgetRequests` or
+`budgetCalls` quantity. Each count role has at most one quantity. A historical
+request-only report remains request-only; absence of a web-call field never
+becomes zero. This class creates no observation, vantage, successful execution,
+payment, corpus coverage or aggregate total (Principles 4, 9, 11 and 17).
+
+`budgetDay` preserves the supplied `xsd:date` as a UTC civil day. It is neither
+a reporting instant nor a local day; do not invent midnight. Retain timezone-free
+dates and dates with Z, +00:00 or -00:00. Reject an explicit nonzero timezone
+offset without converting or rewriting the literal; preserve allowed XML Schema
+whitespace. The day’s explicit
+UTC convention does not supply the numerical counting frame. The exact supplied
+`xsd:token` on `budgetLedgerSchema` identifies the schema declared by the writer.
+Do not guess that identity from fields, compute a replacement schema hash,
+normalize the literal or silently convert an `xsd:string` to a token.
+
+`BudgetSpender` is an open `logic:QualityValue` axis for deployment-local budget
+buckets. A bucket is not its consumer agent, account or payer. Local deployments
+may introduce their actual named values without extending a global enumeration.
+`budgetSpenderUnbucketed` means the explicit historical top-level request bucket
+from before per-consumer buckets existed. It is never a missing, unknown or
+unmapped-spender default.
+
+Both count roles point to the existing [Math Quantity](../../grounding/math/docs.md)
+class. Keep the original supplied `xsd:nonNegativeInteger` literal, including its
+lexical form and datatype, on `math:quantityValue`; use `math:dimensionless` on
+`math:hasDimension`. Every supplied magnitude must be a valid numeric value, and
+all retained magnitudes of that quantity must be numerically equal. Equivalent
+source-supported lexical aliases may coexist without rewriting either literal.
+No parallel raw numeric role or duplicate quantity subclass is introduced.
+
+Each quantity requires exactly one actual `gmeow:hasReferenceFrame` value typed
+as `gmeow:ReferenceFrame`, with the complete existing
+[Places frame profile](../places/docs.md). The frame’s actual interpretation must
+be justified by source evidence or the adapter’s explicit interpretation and
+scoped to the ledger, UTC day, spender and declared schema. It must identify the
+counting convention: `budgetRequests` counts external model requests issued;
+`budgetCalls` counts web calls written down before running. Issued requests do
+not imply success or payment, and preregistered web calls do not prove execution
+or completion. Reusing a frame is sound only when its actual interpretation
+covers the same complete context and convention; merely naming a generic frame
+or substituting a temporal frame is insufficient.
+
+The supplied-value domain and range policies, report-local requiredness and
+qualified maxima, and `BudgetCountValueConstraint` are authored in canonical
+`logic:`. The Formula’s separate positive guards enforce count presence,
+magnitude presence and validity, numeric equality, dimension presence and value,
+frame presence, type and uniqueness, and zero offset whenever budgetDay has an
+explicit signed timezone suffix. Existing frame constraints govern the
+linked frames. These checks do not establish that the source counters are true
+or complete, or that an asserted frame interpretation is supported by evidence.
+Keep actual ledger provenance and interpretation evidence; do not fabricate
+values, frames, sources or outcomes to satisfy validation.

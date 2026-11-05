@@ -6022,3 +6022,259 @@ msgstr "Éviter d’inventer une cible de boucle à partir du libellé des extr�
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLoop|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the EpisodeTransition report to each supplied OpenLoop and retain the original target identity and exact claim context."
 msgstr "Relier le rapport EpisodeTransition à chaque OpenLoop fourni et conserver l’identité d’origine de la cible et le contexte exact de l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget reading"
+msgstr "Relevé de budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-recorded information object retaining one UTC civil day’s runtime counters for one ledger spender under the writer-declared ledger schema."
+msgstr "Un objet informationnel enregistré par la source qui conserve les compteurs d’exécution d’un jour civil UTC pour une rubrique de dépense du registre, selon le schéma déclaré par le rédacteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one day, spender and declared schema are required, with at least one supplied count and at most one Quantity per count role. This record asserts no observation, payment, successful execution, complete coverage or computed total."
+msgstr "Un seul jour, une seule rubrique de dépense et un seul schéma déclaré sont requis, avec au moins un compteur fourni et au plus une Quantity par rôle de comptage. Ce relevé n’affirme ni observation, ni paiement, ni exécution réussie, ni couverture complète, ni total calculé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A historical daily ledger record supplies a request count but no web-call count; the report retains only the supplied count."
+msgstr "Un relevé quotidien historique fournit un nombre de requêtes sans nombre d’appels web ; le rapport ne conserve que le compteur fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual daily runtime counter record."
+msgstr "Utiliser pour le relevé quotidien réel des compteurs d’exécution du registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a report as an Observation or inventing a missing counter, spender, schema or cost."
+msgstr "Éviter de traiter le rapport comme une Observation ou d’inventer un compteur, une rubrique de dépense, un schéma ou un coût manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied day, spender and schema, and link each supplied count through its existing math:Quantity with the original typed magnitude, dimensionless dimension and actual complete counting frame."
+msgstr "Conserver le jour, la rubrique de dépense et le schéma fournis, puis relier chaque compteur fourni à une math:Quantity existante, avec sa grandeur typée originale, sa dimension sans dimension et son référentiel de comptage réel et complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget day"
+msgstr "jour du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The UTC civil day to which this BudgetReading’s ledger counters belong, retained as the supplied xsd:date."
+msgstr "Le jour civil UTC auquel appartiennent les compteurs du registre de ce BudgetReading, conservé comme xsd:date fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The date identifies the counting day, not a reporting instant, local civil day or invented midnight. Exactly one is required per report."
+msgstr "La date identifie le jour de comptage, non un instant de rapport, un jour civil local ou un minuit inventé. Une seule date est requise par rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ledger declares which UTC day its counters cover without supplying a reporting timestamp."
+msgstr "Un registre déclare le jour UTC de ses compteurs sans fournir d’horodatage du rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual UTC civil day declared by the ledger."
+msgstr "Utiliser pour le jour civil UTC réellement déclaré par le registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this date from an unrelated timestamp or substituting a local day."
+msgstr "Éviter de dériver cette date d’un horodatage sans rapport ou de substituer un jour local."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetDay|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exactly one supplied xsd:date on the BudgetReading; preserve its literal and UTC day interpretation."
+msgstr "Conserver exactement un xsd:date fourni sur le BudgetReading ; préserver le littéral et son interprétation comme jour UTC."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget ledger schema"
+msgstr "schéma du registre budgétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact ledger schema identity declared by the writer for this BudgetReading, retained as the supplied xsd:token."
+msgstr "L’identité exacte du schéma de registre déclaré par le rédacteur pour ce BudgetReading, conservée comme xsd:token fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one declared schema is required. The value is not a schema inferred from field names or a newly computed schema hash."
+msgstr "Un seul schéma déclaré est requis. La valeur n’est ni un schéma déduit des noms de champs, ni un condensat de schéma nouvellement calculé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "The writer supplies a schema identity alongside the daily counters."
+msgstr "Le rédacteur fournit une identité de schéma avec les compteurs quotidiens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ledger writer actually declares its schema identity."
+msgstr "Utiliser lorsque le rédacteur du registre déclare réellement l’identité de son schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a schema, normalizing its identity or silently retyping an xsd:string as xsd:token."
+msgstr "Éviter de deviner un schéma, d’en normaliser l’identité ou de changer silencieusement un xsd:string en xsd:token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetLedgerSchema|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the writer’s exact supplied xsd:token on the report and preserve the declaration’s source attribution."
+msgstr "Conserver sur le rapport le xsd:token exact fourni par le rédacteur et l’attribution de source de cette déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget requests"
+msgstr "requêtes du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining the ledger’s count of external model requests issued for this BudgetReading’s UTC day and spender."
+msgstr "La math:Quantity qui conserve le nombre de requêtes de modèle externe émises selon le registre pour le jour UTC et la rubrique de dépense de ce BudgetReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this role. Issued requests do not imply completed or successful calls, billed usage or payment."
+msgstr "Au plus une Quantity remplit ce rôle. Les requêtes émises n’impliquent ni appels terminés ou réussis, ni consommation facturée, ni paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|http://www.w3.org/2004/02/skos/core#example"
+msgid "An issued request remains counted even when its later outcome is unknown."
+msgstr "Une requête émise reste comptée même lorsque son issue ultérieure est inconnue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual count of external model requests issued."
+msgstr "Utiliser pour le nombre réel de requêtes de modèle externe émises consigné par le registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting successful responses, completed calls, tokens, cost or a missing-value zero."
+msgstr "Éviter de substituer des réponses réussies, des appels terminés, des jetons, un coût ou un zéro pour une valeur manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetRequests|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity; retain the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless on math:hasDimension and one complete frame justified for this ledger, day, spender, schema and issued-request convention."
+msgstr "Relier la Quantity réelle ; conserver sans changement le xsd:nonNegativeInteger fourni sur math:quantityValue, math:dimensionless sur math:hasDimension et un référentiel complet justifié pour ce registre, ce jour, cette rubrique de dépense, ce schéma et cette convention de requêtes émises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget calls"
+msgstr "appels du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math:Quantity retaining the ledger’s count of web calls written down before running for this BudgetReading’s UTC day and spender."
+msgstr "La math:Quantity qui conserve le nombre d’appels web consignés avant leur exécution selon le registre pour le jour UTC et la rubrique de dépense de ce BudgetReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At most one Quantity fills this role. Recording a web call before running does not prove that it ran, completed or succeeded."
+msgstr "Au plus une Quantity remplit ce rôle. Consigner un appel web avant son exécution ne prouve pas qu’il a été exécuté, terminé ou réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|http://www.w3.org/2004/02/skos/core#example"
+msgid "A web call is written to the ledger before an attempted execution whose outcome is not supplied."
+msgstr "Un appel web est consigné dans le registre avant une tentative d’exécution dont l’issue n’est pas fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the ledger’s actual preregistered web-call count."
+msgstr "Utiliser pour le nombre réel d’appels web préenregistrés dans le registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating preregistration as execution or inventing zero when the historical record has no web-call field."
+msgstr "Éviter de traiter le préenregistrement comme une exécution ou d’inventer zéro lorsque le relevé historique ne possède pas de champ d’appels web."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetCalls|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Quantity with the supplied xsd:nonNegativeInteger unchanged on math:quantityValue, math:dimensionless and one complete actual frame scoped to this ledger, day, spender, schema and preregistered-web-call convention."
+msgstr "Relier la Quantity réelle, avec le xsd:nonNegativeInteger fourni inchangé sur math:quantityValue, math:dimensionless et un référentiel réel complet limité à ce registre, ce jour, cette rubrique de dépense, ce schéma et cette convention d’appels web préenregistrés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget spender"
+msgstr "Rubrique de dépense du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value axis identifying the ledger’s deployment-local budget bucket for a daily runtime counter record."
+msgstr "Un axe ouvert de valeurs de qualité identifiant la rubrique budgétaire locale au déploiement du registre pour un relevé quotidien de compteurs d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values are budget buckets, not Agents, accounts, payers or globally enumerated deployments. New local values remain permitted."
+msgstr "Les valeurs sont des rubriques budgétaires, non des Agents, des comptes, des payeurs ou des déploiements énumérés globalement. De nouvelles valeurs locales restent permises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|http://www.w3.org/2004/02/skos/core#example"
+msgid "A deployment retains its named consumer bucket as a local BudgetSpender value."
+msgstr "Un déploiement conserve sa rubrique de consommateur nommée comme valeur locale de BudgetSpender."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to type actual budget buckets declared by the source ledger."
+msgstr "Utiliser pour typer les rubriques budgétaires réelles déclarées par le registre source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying a budget bucket with its consumer agent or payer."
+msgstr "Éviter d’identifier une rubrique budgétaire à son agent consommateur ou à son payeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetSpender|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the source’s local bucket as BudgetSpender and retain its actual local identity; use the unbucketed seed only for its explicit historical meaning."
+msgstr "Typer la rubrique locale de la source comme BudgetSpender et conserver son identité locale réelle ; n’utiliser la valeur initiale sans rubrique que dans son sens historique explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget spender"
+msgstr "rubrique de dépense du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ledger budget bucket to which this BudgetReading’s daily counters belong."
+msgstr "La rubrique budgétaire du registre à laquelle appartiennent les compteurs quotidiens de ce BudgetReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one actual BudgetSpender is required per report. This role makes no Agent, account or payer identity assertion."
+msgstr "Une seule valeur réelle de BudgetSpender est requise par rapport. Ce rôle n’affirme aucune identité d’Agent, de compte ou de payeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|http://www.w3.org/2004/02/skos/core#example"
+msgid "A per-consumer ledger record links to the deployment’s actual local budget bucket."
+msgstr "Un relevé de registre par consommateur est relié à la rubrique budgétaire locale réelle du déploiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the budget bucket of its daily counters."
+msgstr "Utiliser lorsque la source identifie la rubrique budgétaire de ses compteurs quotidiens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving the bucket from a model name or filling an unknown spender with the unbucketed seed."
+msgstr "Éviter de déduire la rubrique du nom d’un modèle ou de remplacer une rubrique inconnue par la valeur initiale sans rubrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpender|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link exactly one source-supported BudgetSpender and preserve the ledger context that identifies the bucket."
+msgstr "Relier une seule valeur de BudgetSpender étayée par la source et conserver le contexte du registre qui identifie la rubrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unbucketed budget spender"
+msgstr "dépense du budget sans rubrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit historical budget bucket for top-level request records made before the ledger introduced per-consumer buckets."
+msgstr "La rubrique budgétaire historique explicite des relevés de requêtes de premier niveau établis avant l’introduction de rubriques par consommateur dans le registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This seed identifies the historical unbucketed convention, not an unknown spender or an automatic default."
+msgstr "Cette valeur initiale identifie la convention historique sans rubrique, non une rubrique inconnue ou une valeur par défaut automatique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly identifies a historical top-level request record as preceding per-consumer buckets."
+msgstr "Une source identifie explicitement un relevé historique de requêtes de premier niveau comme antérieur aux rubriques par consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for source-supported historical records using the unbucketed top-level convention."
+msgstr "Utiliser uniquement pour les relevés historiques étayés par la source qui suivent la convention de premier niveau sans rubrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for missing, unknown or unmapped modern budget buckets."
+msgstr "Éviter pour les rubriques budgétaires modernes manquantes, inconnues ou non mises en correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetSpenderUnbucketed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through budgetSpender only when the actual record’s historical context establishes this convention."
+msgstr "Rattacher par budgetSpender uniquement lorsque le contexte historique réel du relevé établit cette convention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Budget count value constraint"
+msgstr "Contrainte de valeur des compteurs budgétaires"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
+msgstr "Un BudgetReading fournit au moins un rôle de comptage ; chaque Quantity reliée possède une grandeur xsd:nonNegativeInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé. Un décalage de fuseau horaire signé sur budgetDay doit être nul ; les dates sans fuseau horaire et les dates avec Z conservent la convention fixe du jour civil UTC."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Equivalent retained lexical aliases may coexist under numeric value equality. Existing ReferenceFrame obligations apply; source truth, actual scope and convention justification remain evidence obligations. XML Schema whitespace is preserved; this rule neither converts dates nor invents an instant."
+msgstr "Des variantes lexicales conservées équivalentes peuvent coexister selon l’égalité de valeur numérique. Les obligations existantes de ReferenceFrame s’appliquent ; la véracité de la source, la portée réelle et la justification de la convention restent des obligations de preuve. Les espaces permis par XML Schema sont conservés ; cette règle ne convertit pas les dates et n’invente aucun instant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A request-only historical report retains its valid framed quantity and timezone-free UTC day; a supplied nonzero date offset fails instead of being converted."
+msgstr "Un rapport historique ne contenant que des requêtes conserve sa quantité valide et référencée et son jour UTC sans fuseau horaire ; un décalage non nul fourni sur la date est rejeté au lieu d’être converti."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate supplied daily budget count quantities and require an actual supplied count."
+msgstr "Utiliser pour valider les quantités de comptage budgétaire quotidien fournies et exiger un compteur réellement fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a value, dimension, frame or zero to satisfy the constraint, or equating different count conventions."
+msgstr "Éviter de fabriquer une valeur, une dimension, un référentiel ou un zéro pour satisfaire la contrainte, ou d’assimiler des conventions de comptage différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the outer report guard and each independent positive count guard; preserve original literals and validate both count roles with the same canonical obligations. For each supplied budgetDay with a signed timezone suffix, require a zero offset while retaining allowed trailing XML Schema whitespace."
+msgstr "Appliquer la garde externe du rapport et chaque garde positive indépendante de comptage ; conserver les littéraux originaux et valider les deux rôles de comptage selon les mêmes obligations canoniques. Pour chaque budgetDay fourni avec un suffixe de fuseau horaire signé, exiger un décalage nul tout en conservant les espaces finaux permis par XML Schema."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetCountValueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A BudgetReading supplies at least one count role; each linked Quantity has a valid xsd:nonNegativeInteger magnitude, one numeric value, only the dimensionless dimension and exactly one typed ReferenceFrame. A signed timezone offset on budgetDay must be zero; timezone-free and Z dates retain the fixed UTC civil-day convention."
+msgstr "Un BudgetReading fournit au moins un rôle de comptage ; chaque Quantity reliée possède une grandeur xsd:nonNegativeInteger valide, une seule valeur numérique, uniquement la dimension sans dimension et exactement un ReferenceFrame typé. Un décalage de fuseau horaire signé sur budgetDay doit être nul ; les dates sans fuseau horaire et les dates avec Z conservent la convention fixe du jour civil UTC."
