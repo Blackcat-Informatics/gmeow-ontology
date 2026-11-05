@@ -10,14 +10,10 @@
 # This slice is migrated, so class stereotypes are logic:
 # (logic:Kind, logic:Relator), not gufo:.
 #
-# RETAINED in pytest (dynamic combinatorial sweep):
-#   test_no_bridge_among_has_tag_is_about_and_rdf_type — iterates
-#   combinations(axes, 2) where axes includes rdf:type (not an owl:ObjectProperty
-#   in the ontology graph); the rdf:type-containing pairs would silently narrow
-#   in a scopeModule cell. The meaningful guard (hasTag ↔ isAbout subPropertyOf
-#   and equivalentProperty) is fully covered here by dedicated cells; the
-#   rdf:type-involving pairs are trivially absent and kept in pytest for
-#   whole-graph closed-world proof.
+# Whole-graph axis bridge combinations remain in the native Rust conformance
+# case crates/validate/tests/conformance_cases/conformance_tags.rs.
+# These structural cells inspect the additive OWL/RDFS reader view of the
+# canonical source; they do not execute native reasoning over target instances.
 #
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -76,7 +72,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:UrgentTag, gmeow:TodoTag, and gmeow:ReviewTag MUST NOT be declared as owl:Class — per-tag subclasses are banned; tags are open individuals, not types (Principle 9)." .
 
-# --- 4a. hasTag is an ObjectProperty with range Tag (MUST) -------------------
+# --- 4a. Paired flat/reified resource targets retain Tag identity (MUST) ----
 ex:saHasTagPropertyShape a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -85,9 +81,11 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasTag a owl:ObjectProperty ;
+        rdfs:domain owl:Thing ;
         rdfs:range gmeow:Tag .
+    gmeow:taggingTagged rdfs:range owl:Thing .
 }""" ;
-    gmeow:saRationale "gmeow:hasTag MUST be an owl:ObjectProperty with range gmeow:Tag — the flat tagging shortcut targets tag individuals only." .
+    gmeow:saRationale "The projected hasTag domain and taggingTagged range MUST both be owl:Thing, while hasTag remains an ObjectProperty with range Tag. Flat and reified paths admit the same resource scope and preserve real Tag identity." .
 
 # --- 4b. hasTag is NOT functional (MUST-NOT) ---------------------------------
 ex:saHasTagNotFunctional a gmeow:StructuralAssertion ;
@@ -97,7 +95,7 @@ ex:saHasTagNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK { ?fpRec logic:characterizes gmeow:hasTag ; logic:characteristicSort logic:functionalProperty . }""" ;
-    gmeow:saRationale "gmeow:hasTag MUST NOT be functional — an entity may carry many co-equal tags." .
+    gmeow:saRationale "gmeow:hasTag MUST NOT be functional — a resource may carry many co-equal tags." .
 
 # --- 5a. isAbout is an ObjectProperty (MUST) ---------------------------------
 ex:saIsAboutIsObjectProperty a gmeow:StructuralAssertion ;
@@ -148,7 +146,7 @@ ex:saTaggingTaggerNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK { ?fpRec logic:characterizes gmeow:taggingTagger ; logic:characteristicSort logic:functionalProperty . }""" ;
-    gmeow:saRationale "gmeow:taggingTagger MUST NOT be functional — a collaborative tagging act may have multiple co-taggers." .
+    gmeow:saRationale "No global functionality carrier is asserted for taggingTagger. The existing class-local required path and qualified maximum still admit exactly one resource-valued tagger per valid Tagging; this absence check does not relax that contract." .
 
 # --- 8. No banned property-bag datatype properties on Tag (MUST-NOT) ---------
 ex:saNoTagValueDatatypeProperties a gmeow:StructuralAssertion ;
@@ -229,7 +227,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:relatedTag a owl:SymmetricProperty . }""" ;
     gmeow:saRationale "gmeow:relatedTag MUST be an owl:SymmetricProperty — one assertion suffices for a non-hierarchical associative link between tags." .
 
-# --- 14a. Tagging has EL existential restriction for taggingTagged→Entity (MUST) ---
+# --- 14a. Tagging existential targets the universal resource bound (MUST) ---
 ex:saTaggingExistentialTagged a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -240,10 +238,10 @@ ASK {
     gmeow:Tagging rdfs:subClassOf [
         a owl:Restriction ;
         owl:onProperty gmeow:taggingTagged ;
-        owl:someValuesFrom gmeow:Entity
+        owl:someValuesFrom owl:Thing
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Tagging MUST have an EL someValuesFrom restriction on gmeow:taggingTagged scoped to gmeow:Entity — every tagging act is existentially bound to the entity it tags." .
+    gmeow:saRationale "The projected Tagging existential on taggingTagged MUST use owl:Thing, matching both target endpoints. Every tagging act remains bound to its actual resource; the canonical authoring filler is logic:Thing." .
 
 # --- 14b. Tagging has EL existential restriction for taggingTag→Tag (MUST) --
 ex:saTaggingExistentialTag a gmeow:StructuralAssertion ;

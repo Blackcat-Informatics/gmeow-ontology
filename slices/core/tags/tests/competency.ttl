@@ -21,7 +21,7 @@
 ex:cqAuditableTagging a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/tags/queries/competency/auditable-tagging.rq" ;
     gmeow:cqDataFile "examples/contested-tagging.ttl" ;
-    gmeow:cqRationale "A tagging act MUST be fully auditable: the reified gmeow:Tagging binds tagged x tag x tagger, names its gmeow:taggingScheme, and carries gmeow:confidence and a first-class gmeow:taggingInterval. This is the promotion target gmeow:hasTag pairsWith — if the relator cannot answer the audit question, the flat/reified pairing is broken. The contested-tagging overlay supplies a complete act (Maria's wildlife-scheme tagging with confidence and interval)." ;
+    gmeow:cqRationale "A tagging act MUST be fully auditable: the reified gmeow:Tagging binds tagged x tag x tagger, names its gmeow:taggingScheme, and carries gmeow:confidence and a first-class gmeow:taggingInterval. This is the promotion target gmeow:hasTag pairsWith — if the relator cannot answer the audit question, the flat/reified pairing is broken. The contested-tagging overlay supplies a complete act (Maria's wildlife-scheme tagging with confidence and interval) and explicit flat Activity, reified Activity and class-resource uses of the same review Tag. The query retains those actual target identities and the supplied tagger; asserted data checks do not establish native no-coercion or generated validation." ;
     gmeow:cqExpectAsk true .
 
 # --- 2. Current tags, honoring suppression (RowsExact + overlay) --------------

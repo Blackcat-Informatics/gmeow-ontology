@@ -34,8 +34,8 @@ msgid "taggingTagged is functional"
 msgstr "taggingTagged est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle: chaque relateur gmeow:Tagging s'applique à exactement une entité étiquetée, un nouveau relateur étant frappé pour chaque acte d'étiquetage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged resource, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle : chaque relateur gmeow:Tagging s’applique à exactement une ressource étiquetée, avec un nouveau relateur pour chaque acte d’étiquetage distinct. Cet enregistrement ne définit pas le terme et n’est jamais une forme : l’obligation est raisonnée à partir de l’enregistrement, pas redéclarée ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingSchemeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:taggingScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -114,3 +114,147 @@ msgstr "Le texte sans étiquette reste xsd:string. Plusieurs graphies et interpr
 msgctxt "https://blackcatinformatics.ca/gmeow/tagAsWritten|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:tagAsWritten \"almost-ready\"@en ."
 msgstr "ex:record gmeow:tagAsWritten \"presque-prêt\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tag"
+msgstr "Étiquette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes."
+msgstr "Une étiquette ouverte créée par l’utilisateur : un objet informationnel dont l’IRI porte l’identité et dont rdfs:label porte la forme affichée. Plusieurs libellés sur un même IRI représentent des synonymes ; les homonymes ont des IRI distincts. La coréférence est déclarée dans les données, sans fusion automatique. Une étiquette n’est ni un type ayant un effet inférentiel sur rdf:type, ni un ensemble de propriétés à valeurs littérales. Ce composant universel maintient la folksonomie, le sujet traité et le typage sur trois axes distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Tag identity and target type are independent. Tags may label resource nodes, including Activities and class resources, without asserting membership in the tagged class or changing the target’s ontological sort."
+msgstr "L’identité de l’étiquette est indépendante du type de sa cible. Les étiquettes peuvent s’appliquer à des nœuds ressources, dont des Activity et des ressources de classe, sans déclarer l’appartenance à la classe étiquetée ni changer la catégorie ontologique de la cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tagUrgent a gmeow:Tag ; rdfs:label \"urgent\"@en ."
+msgstr "Une étiquette porte son libellé : ex:tagUrgent a gmeow:Tag ; rdfs:label \"urgent\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that labels resources without the inferential weight of a type or the subject-matter commitment of aboutness."
+msgstr "Utiliser pour créer une étiquette informelle appliquée par l’utilisateur et identifiée par son IRI : un mot-clé de folksonomie qui étiquette des ressources sans l’effet inférentiel d’un type ni l’engagement de sujet traité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid when the label should change what a resource IS (use rdf:type and a real sortal) or express subject-matter aboutness (use gmeow:isAbout only when both subject and object satisfy its Entity contract); a tag is a co-equal label, never a type or a subject relation."
+msgstr "Éviter lorsque le libellé doit changer ce qu’une ressource EST (utiliser rdf:type et un véritable sortal) ou exprimer une relation de sujet (utiliser gmeow:isAbout seulement lorsque le sujet et l’objet respectent tous deux son contrat Entity) ; une étiquette est un libellé de même rang que les autres, jamais un type ni une relation de sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint the tag as an individual, carry its surface form on rdfs:label (multiple labels for synonyms, distinct IRIs for homonyms), and attach it with gmeow:hasTag; resolve coreference in data rather than collapsing two tags with OWL sameAs."
+msgstr "Créer l’étiquette comme individu, porter ses formes sur rdfs:label (plusieurs libellés pour les synonymes, des IRI distincts pour les homonymes) et l’appliquer avec gmeow:hasTag ; résoudre la coréférence dans les données au lieu de fusionner deux étiquettes avec OWL sameAs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tagging"
+msgstr "Acte d’étiquetage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified tagging act: a logic:Relator mediating one tagged resource, one Tag and one Agent tagger, with an optional scheme and time interval. Bears provenance, confidence and displayable false for suppression without deletion. The tagged resource may be an Activity or a class resource; the flat shortcut is hasTag."
+msgstr "Un acte d’étiquetage réifié : un logic:Relator reliant une ressource étiquetée, une Tag et un Agent auteur, avec un schéma et un intervalle facultatifs. Porte la provenance, la confiance et displayable false pour masquer sans supprimer. La ressource étiquetée peut être une Activity ou une ressource de classe ; le raccourci plat est hasTag."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The resource target is bounded by logic:Thing, not Entity. Required paths and qualified maxima retain one resource, tag and resource-valued tagger per valid Tagging. Only genuinely distinct source tagging acts receive separate identities; do not invent acts to split an unsupported collaborative account."
+msgstr "La cible ressource est bornée par logic:Thing, pas par Entity. Les chemins requis et les maxima qualifiés conservent une ressource, une étiquette et un auteur désigné par une ressource par Tagging valide. Seuls des actes sources réellement distincts reçoivent des identités distinctes ; ne pas inventer des actes pour scinder un récit collaboratif non pris en charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator labels an Activity: ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:opening ; gmeow:taggingTag ex:tagReview ; gmeow:taggingTagger ex:curator ."
+msgstr "Un responsable de curation étiquette une Activity : ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:opening ; gmeow:taggingTag ex:tagReview ; gmeow:taggingTagger ex:curator ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."
+msgstr "Utiliser lorsque l’acte d’étiquetage doit lui-même être un nœud : pour consigner qui a étiqueté, quand, sous quel schéma, avec quelle confiance, ou pour retirer une étiquette de l’affichage sans la supprimer (gmeow:displayable false)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class."
+msgstr "Éviter dans le cas courant où un simple libellé suffit (utiliser gmeow:hasTag, avec des annotations RDF-star si nécessaire) ; réifier seulement si la provenance, la période ou le masquage doivent être de première classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target."
+msgstr "Créer le relateur et renseigner ses rôles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, éventuellement gmeow:taggingScheme et gmeow:taggingInterval — puis porter provenance, confiance et displayable sur ce nœud ; gmeow:hasTag désigne Tagging comme cible de promotion par pairsWith."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has tag"
+msgstr "a pour étiquette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a resource node to a user-minted Tag. Nonfunctional: a resource may carry many co-equal tags. Activities and class resources are legal targets alongside enduring entities. Period, confidence, tagger and suppression use native statement metadata; promote to Tagging when the tagging act itself must be a node."
+msgstr "Relie un nœud ressource à une Tag créée par l’utilisateur. Non fonctionnelle : une ressource peut porter plusieurs étiquettes de même rang. Les Activity et les ressources de classe sont des cibles admises, comme les entités durables. Période, confiance, auteur et masquage utilisent les métadonnées natives d’énoncé ; passer à Tagging lorsque l’acte lui-même doit être un nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain is the universal resource bound logic:Thing; the range remains Tag. This open-world shortcut adds no required tag or concrete target-type demand. Applying a tag neither asserts an EventType nor makes the target an Entity or an instance of a tagged class."
+msgstr "Le domaine est la borne universelle de ressources logic:Thing ; la portée reste Tag. Ce raccourci en monde ouvert n’impose ni étiquette ni preuve d’un type concret de cible. Appliquer une étiquette ne déclare ni EventType, ni appartenance de la cible à Entity ou à une classe étiquetée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator applies the same review Tag to an Activity and a class resource: ex:opening gmeow:hasTag ex:tagReview . ex:DoorOpening gmeow:hasTag ex:tagReview ."
+msgstr "Un responsable de curation applique la même Tag de révision à une Activity et à une ressource de classe : ex:opening gmeow:hasTag ex:tagReview . ex:DoorOpening gmeow:hasTag ex:tagReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the default flat way to attach an informal label to a resource, including an Activity or class resource; keep all tags co-equal and retain source attribution on the exact statement."
+msgstr "Utiliser comme moyen plat par défaut d’appliquer un libellé informel à une ressource, dont une Activity ou une ressource de classe ; conserver les étiquettes à égalité et l’attribution de source sur l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid when the act of tagging must be a first-class node with full provenance (promote to gmeow:Tagging) and avoid using it for subject-matter (use gmeow:isAbout only with an Entity subject and Entity object) or classification (rdf:type); the three axes are disjoint."
+msgstr "Éviter lorsque l’acte d’étiquetage doit être un nœud de première classe avec toute sa provenance (passer à gmeow:Tagging), ou pour le sujet traité (utiliser gmeow:isAbout seulement avec un sujet Entity et un objet Entity) ou la classification (rdf:type) ; les trois axes sont distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert ex:resource gmeow:hasTag ex:tag. Retain period, confidence, tagger and suppression through native statement metadata; use a Tagging node for an actual tagging act when these must be first-class."
+msgstr "Déclarer ex:resource gmeow:hasTag ex:tag. Conserver période, confiance, auteur et masquage dans les métadonnées natives d’énoncé ; utiliser un nœud Tagging pour un acte réel lorsque ces éléments doivent être de première classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagging tagged"
+msgstr "ressource étiquetée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource tagged by a Tagging act. Functional per relator: exactly one tagged resource per valid Tagging, including an Activity or a class resource."
+msgstr "La ressource étiquetée par un acte Tagging. Fonctionnelle par relateur : exactement une ressource étiquetée par Tagging valide, y compris une Activity ou une ressource de classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The range is logic:Thing, with the existing required resource path and qualified maximum retained. This role does not constrain the tagged resource to Entity or turn an informal label into typing."
+msgstr "La portée est logic:Thing ; le chemin ressource requis et le maximum qualifié existants sont conservés. Ce rôle ne limite pas la ressource à Entity et ne transforme pas un libellé informel en typage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reified act targets the Activity itself: ex:t1 gmeow:taggingTagged ex:opening ."
+msgstr "Un acte réifié cible l’Activity elle-même : ex:t1 gmeow:taggingTagged ex:opening ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual resource that a reified Tagging act labels, whether an enduring entity, an Activity or a class resource."
+msgstr "Utiliser pour nommer la ressource réelle qu’un acte Tagging réifié étiquette, qu’il s’agisse d’une entité durable, d’une Activity ou d’une ressource de classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it outside a Tagging relator or supplying more than one tagged resource to that relator. For the flat case, the resource is the subject of hasTag; do not substitute an information wrapper for the actual target."
+msgstr "Éviter hors d’un relateur Tagging ou avec plusieurs ressources cibles pour ce relateur. Dans le cas plat, la ressource est le sujet de hasTag ; ne pas substituer une enveloppe informationnelle à la cible réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagged|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Fill taggingTagged on the actual Tagging node alongside taggingTag and taggingTagger. Retain exactly one resource per valid relator; use a separate identity only for a genuinely distinct source tagging act."
+msgstr "Renseigner taggingTagged sur le nœud Tagging réel avec taggingTag et taggingTagger. Conserver exactement une ressource par relateur valide ; réserver une identité distincte à un acte source réellement distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagging tagger"
+msgstr "auteur de l’étiquetage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent who performed the tagging act. Each valid Tagging retains exactly one resource-valued tagger through its existing required path and qualified maximum; the Agent range is unchanged."
+msgstr "L’Agent qui a effectué l’acte d’étiquetage. Chaque Tagging valide conserve exactement un auteur désigné par une ressource grâce au chemin requis et au maximum qualifié existants ; la portée Agent ne change pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The class-local one-tagger contract does not add a global functional-property assertion. Preserve actual source acts and their identities; an account naming several collaborators does not authorize fabricating separate tagging acts."
+msgstr "Le contrat d’un auteur par instance de classe n’ajoute pas de déclaration globale de propriété fonctionnelle. Préserver les actes sources et leurs identités ; un récit nommant plusieurs collaborateurs n’autorise pas à fabriquer des actes séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source identifies one curator for the actual act: ex:t1 gmeow:taggingTagger ex:curator ."
+msgstr "La source identifie un responsable de curation pour l’acte réel : ex:t1 gmeow:taggingTagger ex:curator ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record who applied the tag inside a reified gmeow:Tagging — the provenance of the act when authorship of the label matters."
+msgstr "Utiliser pour consigner qui a appliqué l’étiquette dans un gmeow:Tagging réifié : la provenance de l’acte lorsque son auteur importe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching several resource-valued taggers to one Tagging or inventing separate acts to make a collaborative account fit. When no reified act is supplied or needed, use hasTag with its actual statement attribution."
+msgstr "Éviter de rattacher plusieurs auteurs désignés par des ressources à un même Tagging ou d’inventer des actes distincts pour adapter un récit collaboratif. Si aucun acte réifié n’est fourni ou nécessaire, utiliser hasTag avec l’attribution réelle de son énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the one supplied Agent reference to the actual Tagging node. Preserve independent provenance and any supplied interval; assign a separate Tagging identity only when the source identifies a genuinely distinct tagging act."
+msgstr "Rattacher la seule référence Agent fournie au nœud Tagging réel. Préserver la provenance indépendante et l’intervalle fourni ; attribuer une identité Tagging distincte seulement lorsque la source identifie un acte réellement distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/tags|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a logic:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."
+msgstr "Composant universel d’étiquetage : folksonomie ouverte, sujet traité et typage forment trois axes distincts (Principe 9). Un gmeow:Tag est une valeur de type objet informationnel (comme un skos:Concept) ; un gmeow:TagScheme est son conteneur d’espace de noms ; et gmeow:Tagging est un logic:Relator qui réifie l’acte d’étiquetage avec provenance, confiance, portée temporelle et masquage (Principe 10). Le raccourci plat gmeow:hasTag couvre 80 % des cas ; passer à Tagging lorsque l’acte lui-même doit être un nœud. Les étiquettes s’alignent, avec perte, sur SKOS, schema.org, W3C Web Annotation et MOAT."

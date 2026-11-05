@@ -12,7 +12,7 @@ a user chose to stick on it). This slice keeps them as three distinct, property-
 disjoint axes (Principle 9). A `Tag` is an information-object value — like a
 `skos:Concept`, its identity is its IRI, its surface form is a label, and it carries no
 inferential weight over `rdf:type`. A `TagScheme` is the namespace bucket that makes
-folksonomy multi-tenant. And `Tagging` is the reified act, a `gufo:Relator` bearing
+folksonomy multi-tenant. And `Tagging` is the reified act, a `logic:Relator` bearing
 provenance, confidence, temporal scope, and retract-without-delete suppression
 (Principle 10).
 
@@ -38,18 +38,25 @@ counterpart of `skos:ConceptScheme` and `schema:DefinedTermSet`.
 
 ### gmeow:Tagging
 
-The reified tagging act: a `gufo:Relator` mediating tagged resource, tag, tagger, and
+The reified tagging act: a `logic:Relator` mediating tagged resource, tag, tagger, and
 optionally scheme and interval. Bears `wasAttributedTo`, `confidence`, and
 `displayable false` for retraction without deletion (Principle 10). Structurally the
 NameUsage/IdentityFacet idiom wearing a different hat — it inherits time-scoping,
 confidence-weighting, and retract-without-delete for free. EL-visible mediation is
-axiomatised: every Tagging has some tagged entity, some tag, and some tagger.
+axiomatised: every Tagging has some tagged resource, some tag, and some Agent
+tagger. Existing required paths and qualified maxima retain exactly one resource,
+tag and resource-valued tagger per valid act. The target uses logic:Thing, so
+Activities and class resources are admitted alongside enduring entities.
 
 ## The flat shortcut and the aboutness boundary
 
 ### gmeow:hasTag
 
-The 80 % flat shortcut: entity → tag, non-functional, all tags co-equal. Period,
+The 80 % flat shortcut: resource → tag, nonfunctional, all tags co-equal.
+Its universal logic:Thing domain admits an Activity or a class resource without
+using an information wrapper. Tagging a class resource does not instantiate that
+class; applying a label does not assert an EventType or classify the target as
+Entity. Opaque resource references need no existing concrete target-type triple. Period,
 confidence, tagger, and suppression ride RDF-star statement annotations on the shortcut;
 promote to a `Tagging` relator when the act itself must be a node. The pairing is
 machine-usable — `gmeow:hasTag gmeow:pairsWith gmeow:Tagging` is asserted in the module,
@@ -57,25 +64,33 @@ so `gmeow describe` renders the promotion path from structure.
 
 ### gmeow:isAbout
 
-Subject-matter aboutness: a resource is *about* another resource. Declared
+Subject-matter aboutness: an Entity is *about* another Entity. Both domain
+and range remain Entity. The broader tagging target scope does not authorize
+isAbout on Activity or class-resource targets merely because hasTag accepts
+them. Declared
 `owl:propertyDisjointWith gmeow:hasTag` — the axis separation is an axiom, not a
 convention. The third axis, `rdf:type`, cannot be made disjoint in OWL (it is not an
-ObjectProperty in the ontology), so that leg of the trichotomy guard lives in SHACL and
-the Python tests.
+ObjectProperty in the ontology). The native Rust conformance guard checks that no subproperty or
+equivalence bridge collapses these axes. The declared disjointness and canonical
+logic: validation remain independent of the target scope.
 
 ## The relator roles
 
 ### gmeow:taggingTagged · gmeow:taggingTag · gmeow:taggingScheme
 
-The functional-per-relator roles: one tagged entity, one tag, and (at most) one scheme
+The functional-per-relator roles: one tagged resource, one tag, and (at most) one scheme
 per `Tagging`. Two acts applying two tags are two relators — which is exactly what lets
 each carry its own provenance and confidence. The tag itself may still belong to many
 schemes; functionality binds the *act*, not the tag.
 
 ### gmeow:taggingTagger
 
-The agent who performed the act. Deliberately non-functional: a tag may be co-asserted by
-multiple agents (collaborative curation), and those co-assertions coexist (Principle 9).
+The Agent who performed the act. The existing class-local required path and
+qualified maximum retain exactly one resource-valued tagger per valid Tagging;
+no global functional-property assertion is added. Preserve actual source acts.
+Only genuinely distinct tagging acts receive separate identities; do not invent
+acts to split an account naming several collaborators. Independent actual acts
+may coexist, without a preferred tag or tagger (Principle 9).
 
 ### gmeow:taggingInterval
 
@@ -100,7 +115,21 @@ Annotation (a Tagging as an annotation with a tagging motivation), and MOAT — 
 reference and projection, never import (Principle 5); each target flattens away part of
 the relator (most drop tagger or interval), which is why the canonical form lives here.
 Depends on kernel and temporal; consumed by the images and software extensions and any
-slice that lets users label things.
+slice that lets users label resources.
+
+The native logic:Relator discipline counts declared mediation roles and their
+functional characteristics. It does not prove actual runtime relata are distinct.
+The gUFO bridge is a validation-only, lossy view: gufo:mediates has an Endurant
+range, while canonical tagging permits occurrence and class-resource targets.
+The existing bridge drops canonical logic:mediates and records that loss; it
+does not assert faithful gUFO mediation of an Activity or coerce it to Endurant.
+No new bridge, enforcer or external typing commitment follows from this repair.
+
+The existing contested-tagging competency scene retains photo suppression and
+adds flat Activity, reified Activity and class-resource examples with the same
+Tag identity. Its asserted-lane query checks those explicit identities and roles.
+Such checks do not prove native no-coercion, generated validation or reasoned
+consistency; those require their actual qualified execution.
 
 ## Preserve unresolved tag wording
 
