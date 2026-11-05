@@ -209,9 +209,15 @@ Source-supported positive unsuccessful-outcome and reported-order evidence is
 part of the selected reading contract, not inferred from absent success.
 
 The reading uses real SoftwareAgent identities and existing StructuredValue
-argument evidence. The argument role preserves a selected actual payload basis
-without replacing opaque/structured coexistence with an invented equality
-policy. Exact term identity is not a universal semantic argument comparator.
+argument evidence. The selected argument occurrence must be the earlier call's
+actual toolArgumentsStructured occurrence, or carry a structuredTerm identical
+to that call's opaque toolArguments value. Two independently focused guards
+require the actual structured link or an atomic scalar witness, then require
+the exact opaque term when the selected evidence is not the call's structured
+occurrence. The negative structured-link probe is correlated through positively
+bound call/evidence variables. Coexisting representations remain valid without
+an invented equality policy; exact stored RDF-term identity is not a universal
+semantic argument comparator.
 The attempt-level temporal placement and event containment roles specialize
 eventTime and subEventOf with those owners’ actual meanings, preserving source
 precision and the existing frame contract. No transitive-spine cardinality,
@@ -227,7 +233,8 @@ ReadingRule requiredness or borrowing a missing value from another release.
 Required reading roles have direct allValuesFrom, exact class/path closure and
 local maximum-one axioms. Counts remain optional. Independent guarded formulas
 check distinct calls, tool identity agreement, the nonempty exact receipt-input
-roster, argument-evidence presence and actual episode context. Each existential
+roster, argument-evidence presence and intrinsic association with the earlier
+call, and actual episode context. Each existential
 body is one atom; larger evidence joins are not disguised as an admitted
 joined-existential profile. The four selected-parameter probes are also atomic.
 
