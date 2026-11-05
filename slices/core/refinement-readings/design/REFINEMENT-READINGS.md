@@ -197,3 +197,55 @@ checks do not certify population selection, grouping, source truth, guidance
 history or execution. A temporal civil frame is not silently substituted for a
 counting interpretation. No counter engine, rule/window parameter, boundary
 calculator or new external correspondence is implied (Principles 5 and 19).
+
+## Coupled correction readings and selected parameters
+
+The correction reading specializes the actual Refinement observation. Its one
+observed feature is the earlier ToolCall; the distinct later ToolCall and actual
+episode remain separate bindings. Original receipt records are source evidence,
+not events fabricated from record identifiers. The named teller/process remains
+the vantage, and its actual refinement outcome is not defaulted to resolved.
+Source-supported positive unsuccessful-outcome and reported-order evidence is
+part of the selected reading contract, not inferred from absent success.
+
+The reading uses real SoftwareAgent identities and existing StructuredValue
+argument evidence. The argument role preserves a selected actual payload basis
+without replacing opaque/structured coexistence with an invented equality
+policy. Exact term identity is not a universal semantic argument comparator.
+The attempt-level temporal placement and event containment roles specialize
+eventTime and subEventOf with those owners’ actual meanings, preserving source
+precision and the existing frame contract. No transitive-spine cardinality,
+new round/episode class, temporal gap or successful execution is invented.
+
+frictionRule is a genuine derivation input selecting one actual immutable
+ReadingRule release. A generic derivation edge alone cannot identify the
+selected tuple among several source artifacts. The selected release, its four
+parameters and the process vantage remain distinct. A guarded companion law
+requires all four token inputs on that same object without changing generic
+ReadingRule requiredness or borrowing a missing value from another release.
+
+Required reading roles have direct allValuesFrom, exact class/path closure and
+local maximum-one axioms. Counts remain optional. Independent guarded formulas
+check distinct calls, tool identity agreement, the nonempty exact receipt-input
+roster, argument-evidence presence and actual episode context. Each existential
+body is one atom; larger evidence joins are not disguised as an admitted
+joined-existential profile. The four selected-parameter probes are also atomic.
+
+The count laws use the sole Math Quantity and existing complete Places frame
+profile. Exact nonnegative integer magnitude admission, finite numeric validity,
+numeric alias equality, dimensionless dimension, one frame and witness-derived
+minimum values do not reconstruct a source aggregate. The population explicitly
+contains the earlier and later witnesses; no other count equality, inequality,
+confidence or hidden default is introduced (Principles 4, 11 and 17).
+
+The source scope contains actual receipt records and excludes the selected rule
+as a substitute receipt. Its original fields retain source identity and
+interpretation for the reported unsuccessful outcome and later retry/order.
+Structural reference consistency does not authenticate that content or execute
+dynamic key lookup, JSON normalization, semantic comparison, outcome selection
+or temporal sorting. Those computations remain with the actual declared reader;
+no unsupported primitive, fallback result or native failure marker is claimed.
+The actual Agentic, RecordMetadata, RefinementCues and AgencyRecords references
+are declared as direct dependencies, while existing observation, event,
+provenance, temporal, Math and Places owners retain their contracts (Principles
+5, 9 and 19).

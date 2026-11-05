@@ -1533,3 +1533,404 @@ gmeow:HabitFigure logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:habitPresenceCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
     [ a logic:Restriction ; logic:onProperty gmeow:habitOfferedCount ; logic:allValuesFrom math:Quantity ],
     [ a logic:Restriction ; logic:onProperty gmeow:habitOfferedCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .
+
+gmeow:HighFrictionCorrection
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "High-friction correction reading"@x-gmeow-english ;
+    skos:definition "A named teller’s source-derived Refinement that an actual earlier unsuccessful ToolCall was followed in one episode by a distinct retry of the same tool and reported argument interpretation."@x-gmeow-english ;
+    skos:scopeNote "observedFeature is the earlier ToolCall; frictionCorrection is the later one. Actual receipts, positive unsuccessful-outcome and order evidence, scope, vantage and the selected immutable rule remain required. The reading is not the agent’s claim or a truth, equality, success or execution certificate."@x-gmeow-english ;
+    skos:example "A teller retains two actual attempts and their receipts as its retry reading without asserting that the correction succeeded."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual attributed reading of a later retry after positive source evidence that an earlier attempt did not succeed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing events, treating missing success as failure, equating tool labels or opaque payloads, or replacing source receipts with episode or call events in the input roster."@x-gmeow-english ;
+    gmeow:howToUse "Bind the actual earlier feature, later correction, episode, tool, retained argument evidence, readingScope, vantage, refinementOutcome and frictionRule. Retain the actual receipt fields supporting the unsuccessful outcome and reported order; validate structural consistency without claiming to execute the reader’s interpretation."@x-gmeow-english ;
+    logic:subClassOf gmeow:Refinement .
+
+gmeow:frictionEpisode
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction reading episode"@x-gmeow-english ;
+    skos:definition "The actual episode Activity within which this reading places both its earlier attempt and later correction attempt."@x-gmeow-english ;
+    skos:scopeNote "Exactly one episode is required per reading. It is surrounding context, not the observedFeature, a receipt artifact or a newly invented Episode class."@x-gmeow-english ;
+    skos:example "Both retained ToolCalls belong to the same actual episode, directly or through a source-identified round."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual episode occurrence selected by the teller."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid targeting a transition report, a receipt, a label or a guessed episode node."@x-gmeow-english ;
+    gmeow:howToUse "Link one actual Activity and retain the source-supported containment of each attempt; keep the earlier ToolCall as observedFeature."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range gmeow:Activity .
+
+gmeow:frictionTool
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction reading tool"@x-gmeow-english ;
+    skos:definition "The actual SoftwareAgent tool identity shared by the two ToolCalls selected in this correction reading."@x-gmeow-english ;
+    skos:scopeNote "Exactly one tool is required per reading. The role does not specialize usedTool and does not make the reading a ToolCall; matching names do not establish identity."@x-gmeow-english ;
+    skos:example "The source identifies the same actual tool agent on both attempts and on the reading."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual tool identity is retained, rather than only its label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving tools from equal spellings or assigning the teller as the called tool."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual SoftwareAgent and check agreement with each selected call’s actual usedTool value."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range gmeow:SoftwareAgent .
+
+gmeow:frictionArguments
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction reading arguments"@x-gmeow-english ;
+    skos:definition "The retained StructuredValue argument payload occurrence the teller uses as its reported grouping basis for the earlier attempt."@x-gmeow-english ;
+    skos:scopeNote "Exactly one evidence occurrence is required. It retains an actual opaque literal or structured representation; it is not an independently computed semantic signature or proof that both calls’ arguments are equivalent."@x-gmeow-english ;
+    skos:example "A scalar StructuredValue keeps the earlier call’s original opaque literal while the later call retains its own original payload."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual argument evidence selected by the teller’s declared interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid parsing, normalizing, hashing or equating payloads without the actual declared method, or inventing null, an empty map or a default representation."@x-gmeow-english ;
+    gmeow:howToUse "Reuse an actual toolArgumentsStructured occurrence or retain the exact opaque toolArguments literal through structuredTerm on a source-identified scalar occurrence. Preserve both calls’ original evidence and the selected rule; no semantic comparator is executed here."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range gmeow:StructuredValue .
+
+gmeow:frictionCorrection
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "later correction attempt"@x-gmeow-english ;
+    skos:definition "The distinct actual later ToolCall that this reading reports as another attempt of the earlier feature’s tool and argument act."@x-gmeow-english ;
+    skos:scopeNote "Exactly one later attempt is required. The relation records the teller’s retry and order interpretation; it neither asserts later success nor adds an Allen BEFORE gap relation."@x-gmeow-english ;
+    skos:example "The source reading selects a later retry without reporting its eventual outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual later attempt selected after positive evidence of the earlier unsuccessful attempt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a correction text, a rule artifact, the earlier call itself, or a fabricated successful event."@x-gmeow-english ;
+    gmeow:howToUse "Link the distinct actual ToolCall and retain its source receipts, argument evidence, episode containment and reported order separately from the reading’s clock."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range gmeow:ToolCall .
+
+gmeow:frictionAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attempt temporal placement"@x-gmeow-english ;
+    skos:definition "The source-supplied temporal placement of a ToolCall attempt, specializing eventTime at the source’s actual precision."@x-gmeow-english ;
+    skos:scopeNote "This optional, nonfunctional attempt property admits xsd:dateTime, xsd:date, xsd:gYearMonth or xsd:gYear. It is not the reading or recording clock and introduces no new timezone or frame default beyond the existing Events contract."@x-gmeow-english ;
+    skos:example "An attempt retains the source’s day placement without padding it to midnight."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies an actual attempt time or coarse placement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying the teller’s clock, inventing missing precision or inferring order from incomparable placements."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original literal to the actual ToolCall and preserve datatype, lexical form, timezone and the actual eventTemporalFrame contract. Keep the reading’s own time separate; no chronology comparator is executed."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ;
+    logic:subPropertyOf gmeow:eventTime ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+gmeow:frictionWithin
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attempt containment"@x-gmeow-english ;
+    skos:definition "The actual round or episode Activity containing a ToolCall attempt, specializing subEventOf."@x-gmeow-english ;
+    skos:scopeNote "The role is optional on ToolCall generally and has no single-container maximum. Both selected attempts require actual containment in the reading’s episode, directly or through an actual trace round."@x-gmeow-english ;
+    skos:example "A source-identified round contains the attempt and is itself part of the selected episode."@x-gmeow-english ;
+    gmeow:useWhen "Use for actual source-supported event containment of an attempt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a receipt’s storage location, a matching label, mere temporal co-location or a guessed round or episode."@x-gmeow-english ;
+    gmeow:howToUse "Link each selected ToolCall to its actual episode or an actual eventTypeTraceRound Activity belonging to that episode. Preserve the source’s part-whole evidence and do not infer scheduler execution."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ;
+    logic:subPropertyOf gmeow:subEventOf ;
+    logic:range gmeow:Activity .
+
+gmeow:frictionAttemptCount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported correction attempt count"@x-gmeow-english ;
+    skos:definition "The source-reported count of distinct attempts the teller groups with the earlier attempt in this episode and input scope under its selected rule."@x-gmeow-english ;
+    skos:scopeNote "This optional role has at most one Quantity. A supplied count is at least two because its declared population includes the required witnesses; it is an annotation, never confidence or a graph-node count."@x-gmeow-english ;
+    skos:example "A reading retains its supplied count and declared population without recomputing it from receipt membership."@x-gmeow-english ;
+    gmeow:useWhen "Use only for an actual reported count over this reading’s declared attempt population."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a missing value, zero, population, confidence or equality with the number of receipts or ToolCall nodes."@x-gmeow-english ;
+    gmeow:howToUse "Link an actual math:Quantity retaining original xsd:nonNegativeInteger magnitudes, one numeric value, math:dimensionless and one complete actual counting frame. Preserve role, episode, witnesses, tool, argument grouping, scope, rule and outcome interpretation; enforce the witness minimum of two without synthesizing it."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range math:Quantity .
+
+gmeow:frictionUnsucceededCount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported unsuccessful correction attempt count"@x-gmeow-english ;
+    skos:definition "The source-reported count of unsuccessful attempts in this reading’s same declared attempt population under the selected outcome interpretation."@x-gmeow-english ;
+    skos:scopeNote "This optional role has at most one Quantity. A supplied count is at least one because its declared population includes the required witnesses; it is an annotation, never confidence or a graph-node count."@x-gmeow-english ;
+    skos:example "A reading retains its supplied count and declared population without recomputing it from receipt membership."@x-gmeow-english ;
+    gmeow:useWhen "Use only for an actual reported count over this reading’s declared attempt population."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a missing value, zero, population, confidence or equality with the number of receipts or ToolCall nodes."@x-gmeow-english ;
+    gmeow:howToUse "Link an actual math:Quantity retaining original xsd:nonNegativeInteger magnitudes, one numeric value, math:dimensionless and one complete actual counting frame. Preserve role, episode, witnesses, tool, argument grouping, scope, rule and outcome interpretation; enforce the witness minimum of one without synthesizing it."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:range math:Quantity .
+
+gmeow:frictionRule
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "correction reading rule release"@x-gmeow-english ;
+    skos:definition "The actual immutable ReadingRule parameter release selected for this correction reading, retained as a derivation input."@x-gmeow-english ;
+    skos:scopeNote "Exactly one release is required per reading. It carries all four supplied friction parameters and the existing version/provenance metadata, independently of the process vantage and other derivation inputs."@x-gmeow-english ;
+    skos:example "A reading explicitly selects the actual reviewed release rather than guessing it from field spellings."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual parameter release used by this reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a mutable rule, a bare version token, an executable logic:Rule substitution or mixing parameters from unrelated releases."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual ReadingRule with its required lineage, versionLabel, contentDigest and attribution and all four token parameters. The wasDerivedFrom relation follows by subproperty; preserve actual receipt inputs separately and do not infer execution."@x-gmeow-english ;
+    logic:domain gmeow:HighFrictionCorrection ;
+    logic:subPropertyOf gmeow:wasDerivedFrom ;
+    logic:range gmeow:ReadingRule .
+
+gmeow:HighFrictionCorrectionBindingsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "High-friction correction bindings constraint"@x-gmeow-english ;
+    skos:definition "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."@x-gmeow-english ;
+    skos:scopeNote "The law checks retained references and intrinsic consistency. Positive unsuccessful-outcome and reported-order evidence remains mandatory source content under the selected rule; no receipt lookup, semantic argument comparison, chronology engine or truth certificate is claimed."@x-gmeow-english ;
+    skos:example "A rule release is retained separately from a nonempty receipt roster; a missing outcome does not become a failure."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the intrinsic bindings of an actual attributed correction reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid graph as proof that the reader ran, the source is true, the arguments are semantically equal or the later attempt succeeded."@x-gmeow-english ;
+    gmeow:howToUse "Apply each independent positive guard to actual supplied calls, receipts, scope and containers. Retain original fields and source attribution for the claimed unsuccessful outcome and later retry; diagnose absent required evidence without fabricating it."@x-gmeow-english ;
+    logic:formalizes gmeow:HighFrictionCorrection, gmeow:frictionCorrection, gmeow:frictionTool, gmeow:frictionArguments, gmeow:frictionWithin, gmeow:readingScope ;
+    logic:message "A HighFrictionCorrection retains distinct earlier and later calls, consistent actual tool identities, a nonempty roster of actual receipt inputs and actual episode containment, with each call’s supplied argument evidence."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bindingReport" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termIri gmeow:HighFrictionCorrection ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "distinctEarlier" ], [ logic:termIndex 1 ; logic:termVariable "distinctLater" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "distinctEarlier" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionCorrection ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "distinctLater" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "distinctEarlier" ], [ logic:termIndex 1 ; logic:termVariable "distinctLater" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierToolCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierToolSelected" ], [ logic:termIndex 2 ; logic:termVariable "earlierToolActual" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierToolCall" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionTool ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierToolSelected" ] ],
+                [ a logic:Formula ; logic:relation gmeow:usedTool ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierToolCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierToolActual" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierToolSelected" ], [ logic:termIndex 1 ; logic:termVariable "earlierToolActual" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterToolCall" ], [ logic:termIndex 1 ; logic:termVariable "laterToolSelected" ], [ logic:termIndex 2 ; logic:termVariable "laterToolActual" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionCorrection ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterToolCall" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionTool ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterToolSelected" ] ],
+                [ a logic:Formula ; logic:relation gmeow:usedTool ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterToolCall" ], [ logic:termIndex 1 ; logic:termVariable "laterToolActual" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterToolSelected" ], [ logic:termIndex 1 ; logic:termVariable "laterToolActual" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nonemptyScope" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "nonemptyScope" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nonemptyReceipt" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "nonemptyScope" ], [ logic:termIndex 1 ; logic:termVariable "nonemptyReceipt" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "typedScope" ], [ logic:termIndex 1 ; logic:termVariable "typedReceipt" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "typedScope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "typedScope" ], [ logic:termIndex 1 ; logic:termVariable "typedReceipt" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "typedReceipt" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "derivedScope" ], [ logic:termIndex 1 ; logic:termVariable "derivedReceipt" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "derivedScope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "derivedScope" ], [ logic:termIndex 1 ; logic:termVariable "derivedReceipt" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "derivedReceipt" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "separateScope" ], [ logic:termIndex 1 ; logic:termVariable "separateReceipt" ], [ logic:termIndex 2 ; logic:termVariable "separateRule" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "separateScope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "separateScope" ], [ logic:termIndex 1 ; logic:termVariable "separateReceipt" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "separateRule" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "separateReceipt" ], [ logic:termIndex 1 ; logic:termVariable "separateRule" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "inputScope" ], [ logic:termIndex 1 ; logic:termVariable "inputReceipt" ], [ logic:termIndex 2 ; logic:termVariable "inputRule" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "inputScope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "inputReceipt" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "inputRule" ] ],
+                [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "inputReceipt" ], [ logic:termIndex 1 ; logic:termVariable "inputRule" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "inputScope" ], [ logic:termIndex 1 ; logic:termVariable "inputReceipt" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierWithinCall" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierWithinCall" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierWithinParent" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionWithin ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierWithinCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierWithinParent" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterWithinCall" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionCorrection ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterWithinCall" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterWithinParent" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionWithin ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterWithinCall" ], [ logic:termIndex 1 ; logic:termVariable "laterWithinParent" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierContextCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextParent" ], [ logic:termIndex 2 ; logic:termVariable "earlierContextEpisode" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextCall" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionWithin ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierContextCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextParent" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionEpisode ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextEpisode" ] ],
+                [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierContextParent" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextEpisode" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierContextParent" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeTraceRound ] ],
+                [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierContextParent" ], [ logic:termIndex 1 ; logic:termVariable "earlierContextEpisode" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterContextCall" ], [ logic:termIndex 1 ; logic:termVariable "laterContextParent" ], [ logic:termIndex 2 ; logic:termVariable "laterContextEpisode" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionCorrection ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterContextCall" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionWithin ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterContextCall" ], [ logic:termIndex 1 ; logic:termVariable "laterContextParent" ] ],
+                [ a logic:Formula ; logic:relation gmeow:frictionEpisode ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterContextEpisode" ] ],
+                [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterContextParent" ], [ logic:termIndex 1 ; logic:termVariable "laterContextEpisode" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterContextParent" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeTraceRound ] ],
+                [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterContextParent" ], [ logic:termIndex 1 ; logic:termVariable "laterContextEpisode" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierArgumentsCall" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "earlierArgumentsCall" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierArgumentsOpaque" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArguments ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierArgumentsOpaque" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "earlierArgumentsStructured" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "earlierArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "earlierArgumentsStructured" ] ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionCorrection ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bindingReport" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsCall" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterArgumentsOpaque" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArguments ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsOpaque" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "laterArgumentsStructured" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:toolArgumentsStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "laterArgumentsCall" ], [ logic:termIndex 1 ; logic:termVariable "laterArgumentsStructured" ] ] ] ] ] ] ] ] ] .
+
+gmeow:HighFrictionCountValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "High-friction count value constraint"@x-gmeow-english ;
+    skos:definition "Each supplied correction count Quantity has valid xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless dimension and one typed ReferenceFrame; attempt counts are at least two and unsuccessful counts at least one."@x-gmeow-english ;
+    skos:scopeNote "Counts are optional annotations of the same declared witness-containing population, never confidence. Equal retained lexical aliases may coexist. Frame interpretation, grouping, outcome meaning and actual aggregate truth remain source evidence obligations."@x-gmeow-english ;
+    skos:example "A supplied count is validated without inventing an absent count or equating it with receipt membership."@x-gmeow-english ;
+    gmeow:useWhen "Use for actual supplied counts over this reading’s declared attempt population."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid synthesizing a witness minimum, zero, counting frame, population or confidence, or adding unsupported aggregate equalities and inequalities."@x-gmeow-english ;
+    gmeow:howToUse "Validate both optional roles through independent positive guards and atomic presence probes. Preserve each original magnitude, numeric aliases, actual dimension and complete frame; enforce only the declared witness bounds without recomputing counts."@x-gmeow-english ;
+    logic:formalizes gmeow:HighFrictionCorrection, gmeow:frictionAttemptCount, gmeow:frictionUnsucceededCount ;
+    logic:message "Each supplied correction count Quantity has valid xsd:nonNegativeInteger magnitudes with one numeric value, the dimensionless dimension and one typed ReferenceFrame; attempt counts are at least two and unsuccessful counts at least one."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "countReport" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termIri gmeow:HighFrictionCorrection ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedValue" ] ],
+                [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedValue" ], [ logic:termIndex 1 ; logic:termLiteral "2" ; logic:termLiteralDatatype xsd:nonNegativeInteger ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "attemptCountSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "attemptCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "attemptCountSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionAttemptCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "attemptCountFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "attemptCountSecondFrame" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountMagnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountMagnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountMagnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedValue" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri xsd:nonNegativeInteger ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedValue" ] ],
+                [ a logic:Formula ; logic:relation logic:termGreaterEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedValue" ], [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:nonNegativeInteger ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFirstValue" ], [ logic:termIndex 2 ; logic:termVariable "unsuccessfulCountSecondValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountEqualQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFirstValue" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountEqualQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountSecondValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountFirstValue" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountSecondValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountDimensionQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountDimensionQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountDimension" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountDimension" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountOnlyDimension" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountOnlyDimensionQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountOnlyDimensionQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountOnlyDimension" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountOnlyDimension" ], [ logic:termIndex 1 ; logic:termIri math:dimensionless ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountFrameQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFrameQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountTypedFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountTypedFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFirstFrame" ], [ logic:termIndex 2 ; logic:termVariable "unsuccessfulCountSecondFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "countReport" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountUniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountFirstFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountUniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountSecondFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "unsuccessfulCountFirstFrame" ], [ logic:termIndex 1 ; logic:termVariable "unsuccessfulCountSecondFrame" ] ] ] ] ] ] ] .
+
+gmeow:FrictionRuleParametersConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Selected correction rule parameters constraint"@x-gmeow-english ;
+    skos:definition "Every ReadingRule release selected through frictionRule supplies frictionToolField, frictionArgumentsField, frictionOutcomeField and frictionUnsucceededOutcome on that same release."@x-gmeow-english ;
+    skos:scopeNote "The law requires the four selected inputs without making them required on every ReadingRule. It supplies no token defaults and does not execute field lookup, duplicate-key selection or outcome interpretation."@x-gmeow-english ;
+    skos:example "A selected release is incomplete when one parameter is absent, even if another release has that value."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the complete actual parameter tuple of a selected correction reader release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid borrowing a missing token from another version or treating an unrelated generic ReadingRule as a selected correction profile."@x-gmeow-english ;
+    gmeow:howToUse "Bind the rule object positively through frictionRule and check four independent atomic existence obligations on that same object. Preserve all supplied literals and the existing immutable release metadata."@x-gmeow-english ;
+    logic:formalizes gmeow:frictionRule, gmeow:frictionToolField, gmeow:frictionArgumentsField, gmeow:frictionOutcomeField, gmeow:frictionUnsucceededOutcome ;
+    logic:message "Every ReadingRule release selected through frictionRule supplies frictionToolField, frictionArgumentsField, frictionOutcomeField and frictionUnsucceededOutcome on that same release."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameterRule" ], [ logic:termIndex 1 ; logic:termVariable "parameterReading" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:frictionRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parameterReading" ], [ logic:termIndex 1 ; logic:termVariable "parameterRule" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameter0" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionToolField ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parameterRule" ], [ logic:termIndex 1 ; logic:termVariable "parameter0" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameter1" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionArgumentsField ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parameterRule" ], [ logic:termIndex 1 ; logic:termVariable "parameter1" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameter2" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionOutcomeField ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parameterRule" ], [ logic:termIndex 1 ; logic:termVariable "parameter2" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parameter3" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:frictionUnsucceededOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parameterRule" ], [ logic:termIndex 1 ; logic:termVariable "parameter3" ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionEpisode" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionTool" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionArguments" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionCorrection" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionWithin" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionAttemptCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionUnsucceededCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionRule" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:HighFrictionCorrection logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ToolCall ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ToolCall ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReadingScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:allValuesFrom gmeow:RefinementOutcome ],
+    [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:RefinementOutcome ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionEpisode ; logic:allValuesFrom gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionEpisode ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionTool ; logic:allValuesFrom gmeow:SoftwareAgent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionTool ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SoftwareAgent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionArguments ; logic:allValuesFrom gmeow:StructuredValue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StructuredValue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionCorrection ; logic:allValuesFrom gmeow:ToolCall ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionCorrection ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ToolCall ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionRule ; logic:allValuesFrom gmeow:ReadingRule ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionRule ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReadingRule ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionAttemptCount ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionAttemptCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionUnsucceededCount ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:frictionUnsucceededCount ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refinementOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionEpisode" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionTool" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionArguments" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionCorrection" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionRule" ; logic:closureValue logic:ClosedWorldClosure ] .

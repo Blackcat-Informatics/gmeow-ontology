@@ -336,3 +336,77 @@ cannot prove source truth, population membership, grouping, guidance history or
 an asserted frame interpretation. Retain the actual evidence and declared method
 without claiming a counter, guidance selector, civil-time classifier or rule
 executor ran (Principles 4, 9, 11, 17 and 19).
+
+## High-friction correction readings
+
+`HighFrictionCorrection` is a teller’s source-derived `Refinement` that an
+earlier unsuccessful attempt was followed by a distinct retry of the same tool
+and reported argument interpretation in one episode. The existing
+`observedFeature` is the actual earlier `ToolCall`; `frictionCorrection` is the
+actual later `ToolCall`. `frictionEpisode` names the actual episode `Activity`,
+`frictionTool` the actual shared `SoftwareAgent`, and `frictionArguments` the
+retained argument evidence used as the teller’s grouping basis. These are
+required single reading bindings, not fabricated events or a successful retry.
+Keep the actual versioned `vantage`, `refinementOutcome` and `readingScope`.
+
+`frictionRule` selects exactly one actual immutable
+[ReadingRule](../refinement-cues/docs.md) release as a genuine `wasDerivedFrom`
+input. It retains the existing lineage, version label, content digest and
+accountable attribution, with all four supplied token parameters on that same
+release. Other actual derivation inputs are the receipt records in the
+nonempty input scope. The episode, attempt events and selected rule are not
+substitutes for those receipts. Retain exact source receipt and field identities,
+including the positive unsuccessful-outcome evidence and the evidence for the
+reported later retry/order. Missing success, source loss or unreadability is
+never an unsuccessful outcome. Missing required evidence prevents a complete
+selected reading; it is not filled with a default.
+
+`frictionArguments` uses the existing `StructuredValue` carrier. Reuse an actual
+`toolArgumentsStructured` occurrence, or keep an opaque original `toolArguments`
+literal through `structuredTerm` on a source-identified scalar occurrence.
+Preserve each call’s actual payloads, media metadata and declared interpretation.
+Coexisting opaque and structured representations do not become equivalent,
+and a reading does not make one globally primary. No JSON canonicalizer,
+normalization, hashing scheme, duplicate-key policy or semantic comparator is
+implied. The teller’s reported same-arguments interpretation remains an
+attributed claim supported by its actual rule and source evidence.
+
+`frictionAt` belongs to the actual `ToolCall`, specializing `eventTime`. Retain
+the source’s `xsd:dateTime`, `xsd:date`, `xsd:gYearMonth` or `xsd:gYear` without
+padding precision or changing timezone. It is separate from the reading and
+recording clocks. The existing Events contract assumes UTC-Gregorian when
+`eventTemporalFrame` is absent; this vocabulary adds no different default or
+conversion. Preserve an actual non-default frame when applicable. Source order
+evidence is required by the selected method, even when no precise attempt time
+is supplied. `before` is an Allen relation with a gap and is not inferred merely
+from a teller’s “later retry” reading.
+
+`frictionWithin` also belongs to each actual attempt. It specializes
+`subEventOf` and names an actual containing episode or an actual
+`eventTypeTraceRound` activity belonging to that episode. It is optional on
+generic ToolCalls and has no single-container maximum; both attempts selected
+by this reading require source-supported episode context. A receipt location,
+label or temporal co-location cannot supply event containment or a scheduler.
+
+`frictionAttemptCount` and `frictionUnsucceededCount` are optional annotations,
+each at most one existing `math:Quantity`, never confidence. Their declared
+population is the distinct attempts this reading groups as the same act within
+its episode and input scope under the selected rule, including the two witness
+attempts. A supplied attempt count is at least two; a supplied unsuccessful
+count is at least one. Keep original `xsd:nonNegativeInteger` magnitudes with
+one numeric value, the dimensionless dimension and exactly one actual complete
+counting frame. Equal source-supported lexical aliases may coexist. The frame
+interpretation retains population/cutoff, witnesses, tool, argument grouping,
+scope, rule and actual outcome meaning. An event’s temporal frame alone does
+not supply that counting interpretation. No absent count, zero, witness minimum
+value, roster or equality with receipt membership is synthesized.
+
+The canonical laws check direct required fields, distinct calls, consistent
+tool identities, retained receipt-scope references, source containment,
+argument-evidence presence, selected parameters and numeric/frame consistency.
+They do not execute receipt parsing, field selection, tool resolution,
+semantic argument comparison, outcome interpretation or chronology. A valid
+graph is not proof that the teller ran, its interpretation is true, or the
+later attempt succeeded. Preserve positive source evidence and actual method
+identity without replacing unsupported computation with a certificate or
+default (Principles 4, 9, 11, 17 and 19).

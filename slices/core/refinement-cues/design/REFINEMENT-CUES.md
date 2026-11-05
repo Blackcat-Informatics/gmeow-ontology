@@ -303,3 +303,29 @@ counting frame, source population or successful situation selection is inferred.
 These intrinsic laws preserve supplied declarations; they do not execute a
 habit reader or establish the truth of its frame interpretation (Principles
 4, 7, 9, 11, 17 and 19).
+
+## Selected correction parameter tuples
+
+The four correction parameters reuse the actual ReadingRule release carrier.
+They are supplied xsd:token labels and an outcome code, with property-global
+endpoint closure and local at-most-one bounds; generic ReadingRule releases
+do not acquire a new required parameter set. Existing versionOf, versionLabel,
+contentDigest and accountable attribution retain their actual release contract.
+
+The reading owner selects one release through frictionRule, a true
+wasDerivedFrom specialization, and owns the guarded same-object companion
+that requires all four selected inputs. This keeps use-site requiredness with
+the selected correction profile rather than inventing a generic rule subclass
+or mixing parameters from several releases. No executable rule AST, default
+token or universal unsuccessful outcome is introduced (Principles 4 and 17).
+
+The labels do not become predicates, paths or a source parser. Existing
+LabelledFacet and StructuredValue occurrence models preserve actual source
+content and repeated keys without prescribing which duplicate wins. Original
+field/payload identities and types remain separate from the declared token
+parameters. Parameter presence alone cannot establish successful lookup,
+semantic argument equality, outcome interpretation, chronology or source truth;
+the selected reader’s actual evidence and versioned interpretation retain those
+obligations. No source literal is retagged to simulate missing native lexical
+component admission, and no computation certificate is inferred (Principles 5,
+9, 11 and 19).
