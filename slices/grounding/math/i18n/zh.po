@@ -10812,3 +10812,87 @@ msgstr "不要将 J 读作焦耳，不要将此生成元等同于辐射功率或
 msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference math:luminousIntensityDimension through the existing hasDimension or exponentOfDimension role. Retain the actual measurement magnitude, realizing unit and supplied photometric context separately; the fixed basis entry neither supplies that context nor converts an energy value."
 msgstr "通过现有 hasDimension 或 exponentOfDimension 角色引用 math:luminousIntensityDimension。另行保留实际测量数值、实现单位及提供的光度上下文；固定基条目既不提供该上下文，也不转换能量值。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quantity"
+msgstr "量"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sole canonical class authority for a dimensioned quantity: an object that carries exactly one math:Dimension through math:hasDimension and, where measured, a numeric magnitude through math:quantityValue. Observation-specific unit, reference-frame, determinacy, provenance, and uncertainty properties may further qualify the same math:Quantity; they do not mint a parallel quantity class or value property. Every quantity carries a dimension — an undimensioned quantity is ill-formed (math:UndimensionedQuantity). Units live within a dimension. Equal dimension vectors establish dimensional compatibility (math:commensurableWith). They do not by themselves certify compatible quantity kinds or aligned units, scales and reference frames for an arithmetic or comparison operation."
+msgstr "表示带量纲的量的唯一规范类：对象通过 math:hasDimension 具有恰好一个 math:Dimension，并在经过测量时通过 math:quantityValue 具有数值大小。观察特定的单位、参考系、确定性、来源和不确定性属性可以进一步限定同一 math:Quantity；它们不另建平行的量类或值属性。每个量都具有量纲——未声明量纲的量格式不合要求（math:UndimensionedQuantity）。单位属于量纲之内。量纲向量相同确立量纲相容性（math:commensurableWith），但本身不认证量的种类相容，也不认证算术或比较操作所需的单位、标度及参考系已对齐。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The exactly-one dimension obligation is local to Quantity. A numeric magnitude is retained where measured; this class does not require a magnitude on every quantity. Dimensional compatibility leaves the source's quantity kind, units, scales and frames to their actual separate contracts."
+msgstr "恰好一个量纲的义务局部适用于 Quantity。测量所得的数值予以保留；此类不要求每个量都有数值。量纲相容性将来源量的种类、单位、标度和参考系留给各自实际的独立约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-reported temperature point and a temperature difference may both carry temperatureDimension. Keep their actual roles and scales distinct before selecting an operation; the shared dimension supplies no permission to apply a point offset to a difference."
+msgstr "来源报告的温度点与温差都可以具有 temperatureDimension。选择操作前应分开保留其实际角色和标度；共有量纲不允许将温度点偏移应用于温差。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use the existing canonical carrier for an actual dimensioned quantity, including a dimensionless quantity with its actual dimension supplied. Existing measurement and uncertainty properties qualify that same object without creating another quantity class."
+msgstr "用于实际带量纲的量的现有规范载体，包括实际量纲已提供的无量纲量。现有测量和不确定性属性限定同一对象，不另建量类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating parallel quantity classes or value properties, forcing unrelated hasDimension subjects into Quantity, or treating dimension agreement as permission for arithmetic on arbitrary source magnitudes."
+msgstr "不要另建平行量类或值属性，不要将使用 hasDimension 的无关主体强制归为 Quantity，也不要把量纲一致当作对任意来源数值进行算术的许可。"
+
+msgctxt "https://blackcatinformatics.ca/math/Quantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Dimension through hasDimension and any measured numeric literal through quantityValue. Keep the source's supplied unit, scale, frame and quantity-kind meaning separately. The existing native numeric profile is unchanged and does not infer or validate those identities from the dimension vector."
+msgstr "通过 hasDimension 保留实际 Dimension，通过 quantityValue 保留任何测量数值字面量。另行保留来源提供的单位、标度、参考系和量的种类含义。现有原生数值配置保持不变，不根据量纲向量推断或验证这些身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has dimension"
+msgstr "具有量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed."
+msgstr "指定量、积分或带量纲对象具有的 math:Dimension。定义域为 math:Quantity（或 math:Integral 等其他带量纲对象），值域为 math:Dimension（以文字说明）。每个 math:Quantity 声明恰好一个量纲——未声明量纲的量格式不合要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared role also serves integrals, measurable functions and other dimensioned objects under their actual owner contracts. Quantity's local dimension restrictions do not make the property globally functional or require every subject of this role to be a Quantity."
+msgstr "此共享角色也依照各自实际所有者约定用于积分、可测函数及其他带量纲对象。Quantity 的局部量纲限制不使此属性具有全局函数性，也不要求此角色的每个主体都是 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing measure/dimension design assigns ex:expectedEnergy math:hasDimension ex:energyDimension to a math:Integral. This dimension link does not turn the integral into a Quantity or supply a measured magnitude."
+msgstr "现有测度与量纲设计为 math:Integral 使用 ex:expectedEnergy math:hasDimension ex:energyDimension。此量纲链接不将积分变为 Quantity，也不提供测量数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an object's actual declared physical dimension while preserving that object's existing class and source context. Select the dimension resource independently of its magnitude, unit name or displayed symbol."
+msgstr "用于保留对象实际声明的物理量纲，同时保留对象现有类及来源上下文。量纲资源的选择应独立于数值、单位名称或显示符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying a unit IRI or a rendered dimensionVector string in place of a Dimension, guessing dimensionless when data is absent, or copying Quantity's local exactly-one rule onto every dimensioned subject."
+msgstr "不要以单位 IRI 或渲染后的 dimensionVector 字符串代替 Dimension，不要在数据缺失时猜测为无量纲，也不要将 Quantity 局部的恰好一个量纲规则复制到每个带量纲主体上。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the subject to the actual existing base, derived or dimensionless Dimension resource. Retain the applicable source class restrictions and the derived dimension's original exponent cells; create no default dimension, second quantity carrier or automatic unit/scale/frame alignment."
+msgstr "将主体链接到实际已有的基本、派生或无量纲 Dimension 资源。保留适用来源类限制和派生量纲的原始指数单元；不创建默认量纲、第二套量载体或自动单位、标度、参考系对齐。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commensurable with"
+msgstr "量纲相容"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates two quantities whose exact-rational dimension vectors are equal: dimensional compatibility. The relation alone does not certify quantity-kind agreement or aligned units, scales and reference frames for adding, subtracting or comparing magnitudes. Domain and range math:Quantity (stated in prose). This relation is derived, not asserted: it is computed as the kernel-equivalence of the dimension map (quantities whose exact-rational exponent vectors are equal), so its reflexivity, symmetry, and transitivity are properties of the derivation, carried by no OWL characteristic (symmetric properties are outside the EL profile) — the competency query reads the computed equivalence classes."
+msgstr "关联精确有理数量纲向量相同的两个量：这表示量纲相容性。仅此关系不认证量的种类一致，也不认证对数值进行加、减或比较所需的单位、标度和参考系已对齐。定义域和值域均为 math:Quantity（以文字说明）。此关系通过推导获得，而非直接断言：它作为量纲映射的核等价关系计算得到，即精确有理数指数向量相同的量的等价关系。因此其自反性、对称性和传递性属于推导的性质，不由任何 OWL 特征承载（对称属性超出 EL 配置）——能力查询读取计算所得的等价类。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The native dimensional decision compares resolved exact exponent vectors. It carries no source quantity-kind, unit, scale or reference-frame identities. Unresolved or malformed dimensions leave a declared native mode gap; they do not prove dimensional compatibility or authorize an operation."
+msgstr "原生量纲判定比较已解析的精确指数向量，不携带来源量的种类、单位、标度或参考系身份。未解析或格式不合要求的量纲会留下声明的原生模式缺口；它们不证明量纲相容，也不授权任何操作。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "Energy and torque can have equal SI dimension vectors while describing different quantity kinds. Their dimensional agreement alone does not justify adding their source magnitudes or identifying the quantities."
+msgstr "能量与力矩可以具有相同 SI 量纲向量，但属于不同量的种类。仅有量纲一致不足以支持相加其来源数值，也不足以将这些量认同为同一量。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe or query derived dimensional compatibility between actual quantities whose dimensions have been resolved. Keep the selected arithmetic or comparison contract separate from this dimensional relation."
+msgstr "用于描述或查询实际量之间推导得到的量纲相容性，前提是其量纲已经解析。将所选算术或比较操作的约定与此量纲关系分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting this relation as a manual override, treating equal vectors as RDF resource identity, or using it as a unit converter or a certificate that arbitrary source quantities may be added, subtracted or compared."
+msgstr "不要将此关系断言为人工覆盖，不要将向量相等当作 RDF 资源身份相同，也不要将其用作单位转换器或认证任意来源量可以相加、相减或比较的凭据。"
+
+msgctxt "https://blackcatinformatics.ca/math/commensurableWith|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each quantity's actual hasDimension link and use the existing exact-vector decision for dimensional compatibility. Assess the source quantity kinds and actual unit, scale, frame and numeric-admission requirements separately; no conversion, additional native validation or materialized relation output is promised by these annotations."
+msgstr "保留每个量实际的 hasDimension 链接，使用现有精确向量判定确定量纲相容性。另行评估来源量的种类及实际单位、标度、参考系和数值准入要求；这些注释不承诺转换、额外原生验证或实体化关系输出。"
