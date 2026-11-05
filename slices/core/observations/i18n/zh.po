@@ -446,8 +446,8 @@ msgid "Refinement"
 msgstr "细化观测"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An observation made by a named, versioned process reading another record, with that record as observed feature and the process as vantage. Results are new readings, never edits to the source."
-msgstr "由具名且有版本的过程读取另一记录而形成的观测；被读记录是观测对象，该过程是观测视角。结果是新的解读，而非对来源的修改。"
+msgid "An observation made by a named, versioned process interpreting source records to produce an evidence-derived reading of one actual feature of interest. The feature may be a source record or its interpreted referent; results are new readings, never edits to the source."
+msgstr "由具名且有版本的过程解读源记录，依据证据对一个实际关注对象形成的观测。该对象可以是源记录或经解读确定的指称对象；结果是新的解读，绝非修改来源。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."
@@ -462,8 +462,8 @@ msgid "Avoid mutating the source or treating a selected reading as an automatica
 msgstr "不要修改来源，也不要将选定解读自动当作来源事实来断言。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Name the source and versioned vantage, record refinementOutcome, and put selected individuals or derived observations in observationResult. Keep unselected alternatives in refinementCandidate."
-msgstr "标明来源和有版本的视角，记录 refinementOutcome，并把选定个体或派生观测放入 observationResult。未选候选保留在 refinementCandidate 中。"
+msgid "Name the actual feature through observedFeature and the named, versioned process through vantage. Retain source records separately through actual derivation and supplied input scope; record refinementOutcome, put selected individuals or derived observations in observationResult, and keep unselected alternatives in refinementCandidate."
+msgstr "通过 observedFeature 指明实际关注对象，通过 vantage 指明具名且有版本的过程。以实际派生关系和来源提供的输入范围另行保留源记录；记录 refinementOutcome，将选定个体或派生观测置于 observationResult，并在 refinementCandidate 中保留未选候选。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for record interpretation such as mention resolution, time joins or narrative readings performed after the source was recorded."

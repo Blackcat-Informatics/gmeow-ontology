@@ -1270,11 +1270,11 @@ gmeow:Refinement
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Refinement"@x-gmeow-english ;
-    skos:definition "An observation made by a named, versioned process reading another record, with that record as observed feature and the process as vantage. Results are new readings, never edits to the source."@x-gmeow-english ;
+    skos:definition "An observation made by a named, versioned process interpreting source records to produce an evidence-derived reading of one actual feature of interest. The feature may be a source record or its interpreted referent; results are new readings, never edits to the source."@x-gmeow-english ;
     skos:example "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."@x-gmeow-english ;
     skos:scopeNote "A process reading, not world determinacy, evidential support or a formal linguistic denotation. Different process versions and vantages retain separate records."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mutating the source or treating a selected reading as an automatically asserted source fact."@x-gmeow-english ;
-    gmeow:howToUse "Name the source and versioned vantage, record refinementOutcome, and put selected individuals or derived observations in observationResult. Keep unselected alternatives in refinementCandidate."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual feature through observedFeature and the named, versioned process through vantage. Retain source records separately through actual derivation and supplied input scope; record refinementOutcome, put selected individuals or derived observations in observationResult, and keep unselected alternatives in refinementCandidate."@x-gmeow-english ;
     gmeow:useWhen "Use for record interpretation such as mention resolution, time joins or narrative readings performed after the source was recorded."@x-gmeow-english .
 
 gmeow:RefinementOutcome
