@@ -10616,3 +10616,199 @@ msgstr "Éviter zéro, un dénominateur décimal, une valeur par défaut deviné
 msgctxt "https://blackcatinformatics.ca/math/exponentDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied nonzero integer beside exponentNumerator and the cell's actual base target. Preserve existing malformed-dimension handling for zero or unrepresentable pairs; do not repair source data by substituting one or converting the quotient to floating point."
 msgstr "Garder l’entier non nul fourni à côté d’exponentNumerator et de la cible réelle de dimension de base de la cellule. Préserver le traitement existant des dimensions mal formées pour les paires dont le dénominateur est nul ou qui ne sont pas représentables ; ne pas réparer les données sources en substituant un ou en convertissant le quotient en flottant."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "length (L)"
+msgstr "longueur (L)"
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of length, L — realized by the metre. A generator of the dimension vector space."
+msgstr "La dimension de base SI de longueur, L — réalisée par le mètre. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "L denotes the physical dimension of length. Area and volume involve powers of this generator; the number of coordinates of a geometric space is a different notion. The dimension identity supplies no length magnitude or chosen unit."
+msgstr "L désigne la dimension physique de longueur. L’aire et le volume font intervenir des puissances de ce générateur ; le nombre de coordonnées d’un espace géométrique est une autre notion. L’identité de dimension ne fournit ni valeur de longueur ni unité choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+msgstr "math:forceLengthExponent math:exponentOfDimension math:lengthDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a quantity whose actual physical dimension is length, or as the base target of an existing derived-dimension exponent cell involving length."
+msgstr "À utiliser pour une grandeur dont la dimension physique réelle est la longueur, ou comme cible de base d’une cellule d’exposant existante d’une dimension dérivée faisant intervenir la longueur."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this individual as a metre unit, a distance value, a geometric dimension count or the complete dimension of area or volume. A label containing length does not establish a quantity's dimension."
+msgstr "Éviter d’utiliser cet individu comme unité mètre, valeur de distance, nombre de dimensions géométriques ou dimension complète d’une aire ou d’un volume. Une étiquette contenant le mot longueur n’établit pas la dimension d’une grandeur."
+
+msgctxt "https://blackcatinformatics.ca/math/lengthDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference math:lengthDimension through hasDimension for an actual length quantity, or through exponentOfDimension on its existing power cell. Keep the supplied magnitude, unit and applicable measurement context separate; the base IRI performs no unit or frame conversion."
+msgstr "Référencer math:lengthDimension par hasDimension pour une grandeur de longueur réelle, ou par exponentOfDimension sur sa cellule de puissance existante. Garder séparés la valeur, l’unité et le contexte de mesure applicable fournis ; l’IRI de base n’effectue aucune conversion d’unité ou de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mass (M)"
+msgstr "masse (M)"
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of mass, M — realized by the kilogram. A generator of the dimension vector space."
+msgstr "La dimension de base SI de masse, M — réalisée par le kilogramme. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "M is the mass generator. A weight force has a derived dimension involving mass, length and time; it is not this base dimension alone. The mass dimension is independent of which mass unit the source actually supplies."
+msgstr "M est le générateur de masse. Le poids, en tant que force, possède une dimension dérivée faisant intervenir masse, longueur et temps ; il ne se réduit pas à cette dimension de base. La dimension de masse est indépendante de l’unité de masse réellement fournie par la source."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceMassExponent math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+msgstr "math:forceMassExponent math:exponentOfDimension math:massDimension ; math:exponentNumerator 1 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the physical dimension of a mass quantity or the mass factor in a derived-dimension product, retaining its exact rational exponent separately."
+msgstr "À utiliser pour identifier la dimension physique d’une grandeur de masse ou le facteur de masse dans un produit de dimension dérivée, en conservant séparément son exposant rationnel exact."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting massDimension for forceDimension, treating kilogram as this individual, or inferring mass from a bare number or a source's informal weight wording. No gravitational conversion follows from the dimension edge."
+msgstr "Éviter de substituer massDimension à forceDimension, de traiter le kilogramme comme cet individu ou de déduire une masse d’un nombre nu ou d’un emploi informel du mot poids par la source. Aucune conversion gravitationnelle ne découle de l’arête de dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/massDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:massDimension as the canonical base identity and connect the actual quantity or exponent cell through the existing dimension vocabulary. Preserve the source's mass magnitude and unit without calculating a force or inserting an acceleration."
+msgstr "Garder math:massDimension comme identité canonique de base et relier la grandeur réelle ou la cellule d’exposant par le vocabulaire dimensionnel existant. Préserver la valeur de masse et l’unité sources sans calculer une force ni insérer une accélération."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time (T)"
+msgstr "temps (T)"
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of time, T — realized by the second. A generator of the dimension vector space."
+msgstr "La dimension de base SI de temps, T — réalisée par la seconde. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "T denotes physical time in dimension products. It is distinct from a dated instant, an epoch, a calendar convention or a clock reading. A time exponent says nothing about the source's elapsed-versus-calendar arithmetic."
+msgstr "T désigne le temps physique dans les produits de dimensions. Il est distinct d’un instant daté, d’une époque, d’une convention calendaire ou d’une lecture d’horloge. Un exposant temporel ne dit rien de l’arithmétique de durée écoulée ou calendaire de la source."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:forceTimeExponent math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+msgstr "math:forceTimeExponent math:exponentOfDimension math:timeDimension ; math:exponentNumerator -2 ; math:exponentDenominator 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual physical-time quantity or the exact time power in a derived dimension, such as inverse time squared in the existing force product."
+msgstr "À utiliser pour une grandeur réelle de temps physique ou la puissance temporelle exacte d’une dimension dérivée, telle que l’inverse du carré du temps dans le produit de force existant."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this generator as a timestamp, timezone, scheduler window, unit second or duration literal. Do not turn a calendar month into fixed seconds or infer an ordering of events from a shared time dimension."
+msgstr "Éviter d’utiliser ce générateur comme horodatage, fuseau horaire, fenêtre d’ordonnancement, unité seconde ou littéral de durée. Ne pas convertir un mois calendaire en secondes fixes ni déduire un ordre d’événements d’une dimension temporelle commune."
+
+msgctxt "https://blackcatinformatics.ca/math/timeDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain math:timeDimension through hasDimension or the actual exponentOfDimension cell. Leave reported temporal literals and their real clock, calendar and reference-frame interpretation with their existing owners; the SI basis identity performs no temporal calculation."
+msgstr "Conserver math:timeDimension par hasDimension ou par la cellule exponentOfDimension réelle. Laisser les littéraux temporels rapportés et leur interprétation réelle d’horloge, de calendrier et de référentiel à leurs propriétaires existants ; l’identité de base SI n’effectue aucun calcul temporel."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "electric current (I)"
+msgstr "courant électrique (I)"
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of electric current, I — realized by the ampere. A generator of the dimension vector space."
+msgstr "La dimension de base SI de courant électrique, I — réalisée par l’ampère. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "I is the electric-current dimension symbol; ampere is the unit realizing it. Charge involves current and time, so this generator alone does not represent the complete charge dimension or identify an amount of charge."
+msgstr "I est le symbole de dimension du courant électrique ; l’ampère est l’unité qui la réalise. La charge fait intervenir courant et temps : ce générateur seul ne représente donc pas la dimension complète de charge et n’identifie pas une quantité de charge."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing math:electricCurrentDimension a math:BaseDimension declaration names the current generator. Its native dimension-vector symbol is I, while ampere names its realizing unit."
+msgstr "La déclaration existante math:electricCurrentDimension a math:BaseDimension nomme le générateur de courant. Son symbole natif de vecteur de dimensions est I, tandis qu’ampère nomme l’unité qui le réalise."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source quantity is physically an electric current, or when a derived-dimension exponent cell explicitly names current as one of its factors."
+msgstr "À utiliser lorsque la grandeur source est physiquement un courant électrique, ou lorsqu’une cellule d’exposant de dimension dérivée nomme explicitement le courant comme l’un de ses facteurs."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting this dimension merely because a record concerns electricity, counts charged particles or carries a voltage or power label. It is not an ampere value, a charge count or an electrical conversion rule."
+msgstr "Éviter de sélectionner cette dimension au seul motif qu’un enregistrement concerne l’électricité, compte des particules chargées ou porte une étiquette de tension ou de puissance. Ce n’est ni une valeur en ampères, ni un compte de charges, ni une règle de conversion électrique."
+
+msgctxt "https://blackcatinformatics.ca/math/electricCurrentDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the declared math:electricCurrentDimension IRI through the actual quantity's hasDimension or a cell's exponentOfDimension. Supply the source magnitude, unit and any other dimensional factors independently; the I symbol alone supplies none of them."
+msgstr "Référencer l’IRI déclaré math:electricCurrentDimension par hasDimension sur la grandeur réelle ou par exponentOfDimension sur une cellule. Fournir indépendamment la valeur, l’unité et les autres facteurs dimensionnels sources ; le symbole I seul ne les fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thermodynamic temperature (Θ)"
+msgstr "température thermodynamique (Θ)"
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of thermodynamic temperature, Θ — realized by the kelvin. A generator of the dimension vector space."
+msgstr "La dimension de base SI de température thermodynamique, Θ — réalisée par le kelvin. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thermodynamic temperature and a temperature difference share the physical dimension Θ. Their point-versus-difference meaning and numerical scale remain separate: a dimension edge does not apply an affine temperature offset or make an offset appropriate for a difference."
+msgstr "La température thermodynamique et une différence de température partagent la dimension physique Θ. Leur sens de point ou de différence et leur échelle numérique restent distincts : une arête de dimension n’applique pas de décalage affine de température et ne rend pas un tel décalage approprié à une différence."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source temperature difference can carry math:temperatureDimension while retaining its actual difference and scale interpretation. The shared Θ coordinate does not authorize adding an absolute-temperature offset to that difference."
+msgstr "Une différence de température source peut porter math:temperatureDimension tout en conservant son interprétation réelle de différence et d’échelle. La coordonnée Θ commune n’autorise pas l’ajout d’un décalage de température absolue à cette différence."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the physical thermodynamic-temperature dimension of an actual quantity or its rational power in a derived product, without selecting a numerical temperature scale."
+msgstr "À utiliser pour énoncer la dimension physique de température thermodynamique d’une grandeur réelle ou sa puissance rationnelle dans un produit dérivé, sans sélectionner d’échelle numérique de température."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this individual as a kelvin unit, a temperature value, a Celsius offset or a rule that treats every temperature quantity as an interchangeable absolute reading. Equal dimensions do not settle point/difference or scale semantics."
+msgstr "Éviter d’utiliser cet individu comme unité kelvin, valeur de température, décalage Celsius ou règle rendant toute grandeur de température interchangeable avec une lecture absolue. Des dimensions égales ne règlent pas le sens de point ou de différence ni celui de l’échelle."
+
+msgctxt "https://blackcatinformatics.ca/math/temperatureDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:temperatureDimension as the base target and retain the source quantity's actual scale, reference frame and point-or-difference interpretation separately. Use existing exponent cells for derived powers; perform no offset or scale conversion from this IRI."
+msgstr "Garder math:temperatureDimension comme cible de base et conserver séparément l’échelle réelle, le référentiel et l’interprétation de point ou de différence de la grandeur source. Utiliser les cellules d’exposant existantes pour les puissances dérivées ; n’effectuer aucune conversion de décalage ou d’échelle à partir de cet IRI."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "amount of substance (N)"
+msgstr "quantité de matière (N)"
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of amount of substance, N — realized by the mole. A generator of the dimension vector space."
+msgstr "La dimension de base SI de quantité de matière, N — réalisée par la mole. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "N is the amount-of-substance dimension symbol, not the newton unit symbol. An amount of specified entities and a bare entity count are different quantity roles; the dimension identity alone supplies neither the entity kind nor a count-to-amount conversion."
+msgstr "N est le symbole de dimension de quantité de matière, non le symbole de l’unité newton. Une quantité de matière d’entités spécifiées et un simple compte d’entités sont des rôles de grandeur différents ; l’identité de dimension seule ne fournit ni le type d’entités ni une conversion de compte en quantité de matière."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:amountOfSubstanceDimension uses N in the declared basis. The existing math:forceDimension instead uses its mass, length and time cells; the N dimension symbol does not name a newton force unit."
+msgstr "math:amountOfSubstanceDimension utilise N dans la base déclarée. La math:forceDimension existante utilise ses cellules de masse, de longueur et de temps ; le symbole de dimension N ne nomme pas une unité de force newton."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual amount-of-substance quantity or as that dimension's factor in an existing rational exponent product; retain the source's supplied entity interpretation separately from any bare count."
+msgstr "À utiliser pour une grandeur réelle de quantité de matière ou comme facteur de cette dimension dans un produit existant d’exposants rationnels ; conserver l’interprétation des entités fournie par la source séparément de tout simple compte."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting every count as amount of substance, using this IRI as the mole unit or the newton unit, or deriving a substance amount from an unlabeled numerical tally. Keep source entity meaning and actual units explicit."
+msgstr "Éviter d’interpréter tout compte comme quantité de matière, d’utiliser cet IRI comme unité mole ou newton ou de déduire une quantité de matière d’un dénombrement numérique sans libellé. Garder explicites le sens source des entités et les unités réelles."
+
+msgctxt "https://blackcatinformatics.ca/math/amountOfSubstanceDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual quantity to math:amountOfSubstanceDimension through hasDimension, or name it in the relevant exponentOfDimension cell. Retain the supplied amount, unit and entity interpretation; add no invented particle count, conversion factor or chemical assertion."
+msgstr "Relier la grandeur réelle à math:amountOfSubstanceDimension par hasDimension, ou la nommer dans la cellule exponentOfDimension concernée. Conserver la quantité de matière, l’unité et l’interprétation des entités fournies ; n’ajouter ni compte de particules, ni facteur de conversion, ni assertion chimique inventés."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "luminous intensity (J)"
+msgstr "intensité lumineuse (J)"
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SI base dimension of luminous intensity, J — realized by the candela. A generator of the dimension vector space."
+msgstr "La dimension de base SI d’intensité lumineuse, J — réalisée par la candela. Un générateur de l’espace vectoriel des dimensions physiques."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the SI luminous-intensity basis dimension. The dimension vector alone does not determine the complete photometric quantity role, spectral weighting or solid-angle interpretation. A dimensionless angular factor can leave dimensions equal while the measured roles differ."
+msgstr "Il s’agit de la dimension de base SI d’intensité lumineuse. Le vecteur de dimensions seul ne détermine ni le rôle photométrique complet de la grandeur, ni la pondération spectrale, ni l’interprétation de l’angle solide. Un facteur angulaire sans dimension peut laisser les dimensions égales alors que les rôles mesurés diffèrent."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native basis pairs math:luminousIntensityDimension with the dimension symbol J. That coordinate is not the joule unit used for energy and is not a supplied luminous-intensity magnitude."
+msgstr "La base native associe math:luminousIntensityDimension au symbole de dimension J. Cette coordonnée n’est ni l’unité joule utilisée pour l’énergie ni une valeur fournie d’intensité lumineuse."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source quantity with the actual physical role of luminous intensity, or the corresponding factor in a derived-dimension product. Keep the source's photometric meaning alongside its dimension."
+msgstr "À utiliser pour une grandeur source dont le rôle physique réel est l’intensité lumineuse, ou pour le facteur correspondant dans un produit de dimension dérivée. Conserver le sens photométrique source à côté de sa dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating J as joule, equating this generator with radiometric power or image brightness, or using equal dimensions as proof that distinct photometric quantity roles are interchangeable. No spectral or geometric computation follows from the IRI."
+msgstr "Éviter de lire J comme joule, d’assimiler ce générateur à une puissance radiométrique ou à la luminosité d’une image ou de traiter des dimensions égales comme preuve de l’interchangeabilité de rôles photométriques distincts. Aucun calcul spectral ou géométrique ne découle de l’IRI."
+
+msgctxt "https://blackcatinformatics.ca/math/luminousIntensityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference math:luminousIntensityDimension through the existing hasDimension or exponentOfDimension role. Retain the actual measurement magnitude, realizing unit and supplied photometric context separately; the fixed basis entry neither supplies that context nor converts an energy value."
+msgstr "Référencer math:luminousIntensityDimension par le rôle existant hasDimension ou exponentOfDimension. Conserver séparément la valeur réelle de mesure, l’unité qui la réalise et le contexte photométrique fourni ; l’entrée de base fixe ne fournit pas ce contexte et ne convertit aucune valeur d’énergie."
