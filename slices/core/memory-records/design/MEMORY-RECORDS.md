@@ -206,3 +206,25 @@ comparator; PurRDF owns the existing typed value mechanisms and any actual
 GMEOW exposure/projection verification remains explicit. Structural membership
 does not execute recording, joining, retention or deletion and establishes no
 consumer adoption (Principles 4, 7, 9, 11, 12, 17 and 19).
+
+## Source-reported feed-position metadata
+
+The optional, nonfunctional `tracePacketPosition` specializes the existing
+TraceAnchor descriptor with one source-reported role, ranging over
+`xsd:nonNegativeInteger`. Every supplied literal keeps its complete datatype
+and lexical identity. Its interpretation belongs to the actual per-anchor
+`anchorSourceProfile`, including any numbering origin and whether zero is
+permitted. Datatype membership alone neither supplies nor overrides that
+source convention. Several attributable values may coexist; omission is
+unstated rather than zero or a source-generated default.
+
+The existing TraceAnchor digest and applicable-profile obligations remain
+inherited. No profile, packet artifact, recorded membership, clock or ordinal
+is fabricated to complete a descriptor. Keep exact-statement source, declaring
+perspective and recorder. No new class, constraint, requiredness, maximum,
+closure, dependency, numbering law or comparator is added. Packet time and
+digest interpretation retain their owners; producer frontiers, finality and
+lost-mark accounting remain separate from this metadata-retention seam.
+These declarations perform no recording, comparison, retention or deletion
+and establish no native execution or consumer adoption (Principles 2, 4, 7,
+11, 12 and 17).

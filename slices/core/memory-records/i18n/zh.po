@@ -1680,3 +1680,31 @@ msgstr "不要用 traceMarkAt、eventTime 或 recordedAt 替代此值、猜测�
 msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve datatype, lexical form, precision and timezone exactly. On TracePacket retain one actual complete TemporalFrame through hasReferenceFrame; do not borrow Events' UTC default or reinterpret an XSD calendar."
 msgstr "精确保留数据类型、词法形式、精度及时区。在 TracePacket 上通过 hasReferenceFrame 保留一个实际完整 TemporalFrame，不借用 Events 的默认 UTC，也不重新解释 XSD 历法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace packet position"
+msgstr "轨迹数据包在流中的位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported feed-position descriptor for the packet described by this TraceAnchor, retained as its original xsd:nonNegativeInteger literal and interpreted only under that anchor's actual anchorSourceProfile."
+msgstr "来源报告的流中位置描述值，用于此 TraceAnchor 所描述的数据包；保留原始 xsd:nonNegativeInteger 字面量，并且仅依据该锚点实际的 anchorSourceProfile 解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and non-functional: omission is unstated, and several supplied descriptors may coexist as attributable claims. The datatype chooses no numbering origin. A zero descriptor is faithful only when the actual source convention permits zero."
+msgstr "可选且非函数性：省略表示未说明，多个来源提供的描述值可以作为可归属的断言并存。数据类型不选择编号起点。只有实际来源约定允许零时，零值描述才忠实于来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Assume a hypothetical source supplies its full anchor profile and explicitly permits zero: ex:anchor gmeow:tracePacketPosition \"0\"^^xsd:nonNegativeInteger . The anchor also retains its supplied packet digest and that actual applicable profile."
+msgstr "假设一个虚构来源提供了完整锚点配置，并明确允许零：ex:anchor gmeow:tracePacketPosition \"0\"^^xsd:nonNegativeInteger . 该锚点还保留所提供的数据包摘要和那个实际适用的配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source supplies a packet's feed position and its applicable interpretation; retain it on the actual TraceAnchor without treating it as observed ledger membership."
+msgstr "当实际来源提供数据包在流中的位置及其适用解释时使用；将其保留在实际 TraceAnchor 上，不将其视为已观察的账本成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this descriptor from row order, a timestamp, a digest or missing data, and avoid treating it as a packet count, clock, ordering comparator, committed frontier or finality declaration."
+msgstr "不要根据行顺序、时间戳、摘要或缺失数据推导此描述值，也不要将其视为数据包计数、时钟、排序比较器、已提交边界或最终性声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied literal, including datatype and lexical form, and interpret it through this anchor's actual anchorSourceProfile. On the exact-statement reifier retain supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. Existing TraceAnchor obligations still require anchorPacket and anchorSourceProfile; invent no missing profile."
+msgstr "保留完整的来源字面量，包括数据类型和词法形式，并通过该锚点实际的 anchorSourceProfile 解释。在精确语句的重述节点上，通过 wasDerivedFrom 保留提供的来源，通过 accordingTo 保留声明视角，通过 wasAttributedTo 保留记录者。TraceAnchor 的现有义务仍要求 anchorPacket 和 anchorSourceProfile；不得编造缺失配置。"

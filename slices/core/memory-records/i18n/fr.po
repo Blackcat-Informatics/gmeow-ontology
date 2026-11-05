@@ -1680,3 +1680,31 @@ msgstr "Éviter de substituer traceMarkAt, eventTime ou recordedAt, de deviner u
 msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketAt|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve datatype, lexical form, precision and timezone exactly. On TracePacket retain one actual complete TemporalFrame through hasReferenceFrame; do not borrow Events' UTC default or reinterpret an XSD calendar."
 msgstr "Préserver exactement type de données, forme lexicale, précision et fuseau horaire. Sur TracePacket, conserver un TemporalFrame complet réel via hasReferenceFrame ; ne pas emprunter la valeur UTC par défaut d’Events ni réinterpréter un calendrier XSD."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace packet position"
+msgstr "position du paquet de trace dans le flux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported feed-position descriptor for the packet described by this TraceAnchor, retained as its original xsd:nonNegativeInteger literal and interpreted only under that anchor's actual anchorSourceProfile."
+msgstr "Le descripteur de position dans le flux déclaré par la source pour le paquet décrit par ce TraceAnchor, conservé comme littéral xsd:nonNegativeInteger original et interprété uniquement selon l’anchorSourceProfile réel de cet ancrage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and non-functional: omission is unstated, and several supplied descriptors may coexist as attributable claims. The datatype chooses no numbering origin. A zero descriptor is faithful only when the actual source convention permits zero."
+msgstr "Propriété facultative et non fonctionnelle : l’omission signifie non renseigné, et plusieurs descripteurs fournis peuvent coexister comme assertions attribuables. Le type de données ne choisit aucune origine de numérotation. Une valeur zéro n’est fidèle que si la convention source réelle autorise zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Assume a hypothetical source supplies its full anchor profile and explicitly permits zero: ex:anchor gmeow:tracePacketPosition \"0\"^^xsd:nonNegativeInteger . The anchor also retains its supplied packet digest and that actual applicable profile."
+msgstr "Supposons qu’une source hypothétique fournisse son profil d’ancrage complet et autorise explicitement zéro : ex:anchor gmeow:tracePacketPosition \"0\"^^xsd:nonNegativeInteger . L’ancrage conserve aussi le condensat de paquet fourni et ce profil réel applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source supplies a packet's feed position and its applicable interpretation; retain it on the actual TraceAnchor without treating it as observed ledger membership."
+msgstr "À utiliser lorsque la source réelle fournit la position d’un paquet dans le flux et son interprétation applicable ; la conserver sur le TraceAnchor réel sans la traiter comme une appartenance observée au registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this descriptor from row order, a timestamp, a digest or missing data, and avoid treating it as a packet count, clock, ordering comparator, committed frontier or finality declaration."
+msgstr "Éviter de déduire ce descripteur de l’ordre des lignes, d’un horodatage, d’un condensat ou de données manquantes, et éviter de le traiter comme un nombre de paquets, une horloge, un comparateur d’ordre, une frontière validée ou une déclaration de finalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the complete supplied literal, including datatype and lexical form, and interpret it through this anchor's actual anchorSourceProfile. On the exact-statement reifier retain supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. Existing TraceAnchor obligations still require anchorPacket and anchorSourceProfile; invent no missing profile."
+msgstr "Préserver le littéral fourni complet, y compris son type de données et sa forme lexicale, et l’interpréter selon l’anchorSourceProfile réel de cet ancrage. Sur le réificateur de l’énoncé exact, conserver la source fournie par wasDerivedFrom, la perspective de l’énoncé par accordingTo et l’agent ayant consigné l’énoncé par wasAttributedTo. Les obligations existantes de TraceAnchor exigent toujours anchorPacket et anchorSourceProfile ; n’inventer aucun profil manquant."
