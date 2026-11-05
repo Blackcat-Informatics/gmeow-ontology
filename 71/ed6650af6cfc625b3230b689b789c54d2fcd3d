@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: a686fdf9b3cbbe0ba11c8e685125ca95c3400b89
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2484
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2484
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: c52af0f21bd42f7a1d6b82d45fc8070898d03603
+GhpRsq-Head-Ref: paudley/2481-retain-recurring-civil-day-part
+GhpRsq-Head-OID: a686fdf9b3cbbe0ba11c8e685125ca95c3400b89
+GhpRsq-Result-Tree: bcbdbd9a3ccefd4cb98cc2fda964a57279952774
+GhpRsq-Result-Commit: 71ed6650af6cfc625b3230b689b789c54d2fcd3d
+GhpRsq-Parent-Hashes: a686fdf9b3cbbe0ba11c8e685125ca95c3400b89
+GhpRsq-Squash-Notes-SHA256: aa77e0c6072631e3d8985a40a2480cbcd481dcfec35212b8a448a8258da57ea9
+GhpRsq-Stage-Evidence: none
