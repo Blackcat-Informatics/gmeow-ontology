@@ -95,8 +95,8 @@ one or perform the consumer’s grouping computation.
 Cue limits retain the original words and any detected match, together with the
 selected cue, negating evidence and scope, or evaluated grounding rules and
 supplied facts as applicable. Unread words remain offered inputs through
-`scopeRecord`. A reading records its source through `observedFeature` and its
-versioned process through `vantage`; a limit aggregate retains its reporting
+`scopeRecord`. These source-focused cue readings record their source through `observedFeature`
+and their versioned process through `vantage`; a limit aggregate retains its reporting
 agent through `wasAttributedTo`. Preserve source authorship separately. None of
 these reasons turns a refiner's interpretation into the source author's claim
 or turns an uncounted cue into a silent negative verdict.
@@ -249,3 +249,48 @@ surrounding store, executes the selected reader, authenticates completion or
 proves that its declared inputs were actually read. They keep source evidence
 and intrinsic consistency distinct from those execution claims.
 See the [ordinary rule and reading scene](../refinement-cues/examples/reading-rules.ttl).
+
+## Contact readings
+
+ContactReading is a Refinement about an actual being the holder can address.
+Its single observedFeature is that being. The named, versioned reading process
+is its vantage; the holder of the source records is a different role. Retain
+the actual source records separately through wasDerivedFrom and any supplied
+ReadingScope/readingScope association. Do not put both a source record and the
+being in observedFeature or substitute the holder for the observer. Existing
+source-focused refinements retain their source-record feature convention.
+This vocabulary records an observer's reading; it neither runs a refiner nor
+turns that reading automatically into the being's or holder's claim.
+
+contactName retains the selected current wording within the holder's supplied
+records and their actual source scope and chronology. It is not a globally
+preferred name. Retain earlier names as source-backed aliases, with their actual
+name records and attribution, rather than deleting history or inferring identity
+from equal strings. Missing or tied source chronology does not authorize an
+invented winner. The literal retains xsd:string, rdf:langString or
+rdf:dirLangString as actually supplied, including lexical form, language and
+RDF 1.2 direction; no language is guessed. The reading is not an Appellation,
+so contactName is not a fullName specialization.
+
+contactKind uses the open ContactKind value vocabulary. contactKindInnerAgent
+reports an agent within the holder's own environment. contactKindCorrespondent
+records only message attribution in the holder's conversations and supplies no
+Person/Agent type, authenticated authorship or independent identity. Preserve
+any separately supplied classification under its own evidence; the vocabulary
+does not choose one global kind or invent a holder/environment context.
+
+contactRingOutcome uses the separate open ContactRingOutcome axis.
+contactRingStated reports a ring decision under the holder's stated rules;
+the value alone does not identify that ring. contactRingUndecided explicitly
+reports that those rules decide none: this reading states no ring and guesses
+none. It is distinct from missing outcome data and from the overall
+refinementOutcome. A reading can preserve an actual name and contact kind while
+its ring remains undecided. No rule executor, fallback ring, audience rank or
+universal intimacy scale is supplied.
+
+The three roles are optional and nonfunctional. Their provided-value closures
+validate supplied subjects and values without imposing field presence, global
+uniqueness or arbitrary maxima. Existing observedFeature/vantage obligations,
+coexisting attributed readings and old record-focused examples remain in force.
+No new holder role, identity rule or automatic subject assertion is introduced
+(Principles 4, 9, 10, 17 and 19).

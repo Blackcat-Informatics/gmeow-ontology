@@ -125,3 +125,42 @@ agreement. It cannot authenticate that the selected computation ran or read
 every declared input. Those remain explicit producer claims, not silent
 fallbacks or a global absence conclusion. No reader, parser, executor, new
 datatype engine or test framework is added.
+
+## Being-focused contact readings
+
+ContactReading deepens the existing Refinement observation for a being the
+holder can address. The actual feature is that being; actual source records
+remain provenance through wasDerivedFrom and any supplied ReadingScope, not a
+second observedFeature. The actual named/versioned observer is the vantage,
+distinct from the holder of the records. This uses the existing single-feature
+invariant and does not weaken any feature/vantage obligation. Source-focused
+FirstOccurrence, RelationOccasion and the existing reading profiles retain their
+record-as-feature interpretation. The general Refinement prose admits both
+source-focused and referent-focused evidence-derived readings.
+
+The reading-local contactName is a supplied name selection within actual
+records and chronology. The flat text is not a name-bearing property on the
+being or a fullName specialization, and no Appellation type is inferred for
+the reading. Earlier names remain source-backed aliases. This local selection
+does not privilege a global name, erase history, resolve missing chronology,
+invent language or infer identity from a matching string. Complete supplied
+literals retain datatype, lexical form, language and base direction.
+
+ContactKind and ContactRingOutcome are open QualityValue vocabularies with
+individual values. Their roles, and contactName, are optional and nonfunctional;
+property-global closure checks only supplied endpoints. No closed enumeration,
+global functional property, local maximum, mandatory name/kind/outcome, new
+Formula or ring-classification engine is selected. The inner-agent value reports
+the supplied environment classification. The correspondent value establishes
+only the reading's message-attribution classification, with no automatic
+Person/Agent or authenticated-author inference. Independent classifications
+retain their own attributed evidence.
+
+Ring decision status is separate from both actual ring identity and the overall
+refinement outcome. Stated reports the holder's rule-based decision; undecided
+reports that the stated rules choose no ring, with none stated or guessed by
+the reading. Absence is not undecided. No unspecified ring-bearing predicate is
+invented merely to write a prohibition Formula, and no new holder role is added.
+The vocabulary does not certify that a reading or its rules ran. All three roles
+use existing generic literal/class endpoint projection; no runtime or dependency
+change is needed (Principles 4, 9, 10, 17 and 19).

@@ -1273,3 +1273,138 @@ gmeow:FoundNothingExactCountConstraint
 
 # Explicit range reading does not require fields on unrelated records.
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/foundNothing" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ContactReading
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Contact Reading"@x-gmeow-english ;
+    skos:definition "An observer’s record-derived reading of a being the holder can address, with that being as observedFeature and the named, versioned reading process as vantage."@x-gmeow-english ;
+    skos:scopeNote "The holder’s records supply evidence; the holder and the reading process are distinct roles. This is the observer’s reading, never automatically the being’s or holder’s claim."@x-gmeow-english ;
+    skos:example "A versioned observer reads actual holder records and reports an addressable being’s recorded name and contact kind while the holder’s stated rules decide no relationship ring."@x-gmeow-english ;
+    gmeow:useWhen "Use for an observer-derived contact entry grounded in actual records about a being the holder can address."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using ContactPoint for this reading, making its selected name globally preferred, inferring a Person or Agent from correspondence alone, or guessing a relationship ring."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual being through observedFeature and the named, versioned observer through vantage. Retain source records through wasDerivedFrom and any supplied ReadingScope; keep the holder distinct and preserve earlier names and attributed readings."@x-gmeow-english ;
+    logic:subClassOf gmeow:Refinement .
+
+gmeow:contactName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "contact name as read"@x-gmeow-english ;
+    skos:definition "The name selected by this ContactReading as the latest name given to the being in the holder’s supplied records, within their actual source scope and chronology. Earlier names remain aliases."@x-gmeow-english ;
+    skos:scopeNote "Current is local to the supplied records and this attributed reading, not a globally preferred name. Missing chronology or unresolved ties do not authorize a fabricated winner."@x-gmeow-english ;
+    skos:example "A later source record supplies a new name while the earlier recorded names remain available as aliases."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reading actually selects the name most recently supplied within the holder’s recorded source context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing a primary name for the being, deleting aliases, inventing source order or language, or inferring identity from equal name strings."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied literal on the ContactReading, preserving lexical form, datatype, actual language and RDF 1.2 direction. Retain earlier names in their source-backed name records without automatically asserting the reading as the being’s claim."@x-gmeow-english ;
+    logic:domain gmeow:ContactReading ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:ContactKind
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Contact Kind"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the kind of addressable being reported by a ContactReading, including inner agent and correspondent readings."@x-gmeow-english ;
+    skos:scopeNote "These values classify the observer’s reading. They do not replace entity identity or infer a Person or Agent type from message attribution alone."@x-gmeow-english ;
+    skos:example "A reading reports the supplied correspondent classification without deciding what kind of real-world being the correspondent is."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value axis for an explicitly reported contact-kind reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling the values as subclasses of ContactReading or treating the axis as authenticated identity, personhood or message authorship."@x-gmeow-english ;
+    gmeow:howToUse "Reference an actual value through contactKind on the reading. Extend the open vocabulary with attributed values without imposing a global winner."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:contactKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "contact kind as read"@x-gmeow-english ;
+    skos:definition "Relates a ContactReading to its supplied ContactKind value, retaining the observer’s classification of the addressable being."@x-gmeow-english ;
+    skos:scopeNote "The relation is optional and nonfunctional. Supplied classifications retain their attribution; absence does not select a kind."@x-gmeow-english ;
+    skos:example "The observer records contactKindCorrespondent because the holder’s conversations attribute a message to the being."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual ContactKind classification is supplied for this reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a kind from missing fields or using the value to type the observed being automatically as Person or Agent."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied value to the ContactReading and preserve source and viewpoint on the exact statement. Keep the actual being in observedFeature."@x-gmeow-english ;
+    logic:domain gmeow:ContactReading ;
+    logic:range gmeow:ContactKind .
+
+gmeow:contactKindInnerAgent
+    a gmeow:ContactKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "inner agent contact"@x-gmeow-english ;
+    skos:definition "The reading classifies the addressable being as an agent within the holder’s own environment."@x-gmeow-english ;
+    skos:scopeNote "This is a supplied contact classification, not discovery of an agent, proof of identity or permission to communicate."@x-gmeow-english ;
+    skos:example "The source reading identifies the being as an agent within the holder’s environment."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reading explicitly supplies the inner-agent contact classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an environment, holder, agent identity or authenticated address from this value alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contactKind on the actual reading and retain its source context."@x-gmeow-english .
+
+gmeow:contactKindCorrespondent
+    a gmeow:ContactKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "correspondent contact"@x-gmeow-english ;
+    skos:definition "The reading records only that a message in the holder’s conversations is attributed to the being; it reads nothing further about what that being is."@x-gmeow-english ;
+    skos:scopeNote "Message attribution alone supplies no Person or Agent type, verified authorship, independent identity or relationship ring."@x-gmeow-english ;
+    skos:example "A conversation record attributes a message to a named correspondent while its real-world nature remains unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use when actual conversation records attribute a message to the being; retain any independently supplied classification separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this value as proof of a human sender, an autonomous agent, a legal person or an authenticated message author."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contactKind and retain the actual conversation evidence without inferring a stronger being type."@x-gmeow-english .
+
+gmeow:ContactRingOutcome
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Contact Ring Outcome"@x-gmeow-english ;
+    skos:definition "An open value vocabulary reporting whether the holder’s stated relationship classification rules decide a ring for the being in this ContactReading."@x-gmeow-english ;
+    skos:scopeNote "This outcome axis is distinct from the overall refinementOutcome and from any actual ring identity. It does not execute the rules or prescribe a universal relationship scale."@x-gmeow-english ;
+    skos:example "The contact’s name is read from records, while the reported ring outcome remains undecided under the holder’s stated rules."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an explicitly reported relationship-ring decision outcome for this contact reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this vocabulary as ring membership, audience-ring rank, intimacy measurement or a default outcome for missing data."@x-gmeow-english ;
+    gmeow:howToUse "Reference the supplied value through contactRingOutcome. Retain actual source and rule context without inventing a ring or claiming rule execution."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:contactRingOutcome
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "contact ring outcome"@x-gmeow-english ;
+    skos:definition "Relates a ContactReading to the supplied ContactRingOutcome reported under the holder’s stated relationship classification rules."@x-gmeow-english ;
+    skos:scopeNote "The relation is optional and nonfunctional. Missing outcome data is not undecided, and a reported outcome does not itself identify a ring."@x-gmeow-english ;
+    skos:example "A reading explicitly reports contactRingUndecided and states no relationship ring."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reading actually reports whether the holder’s stated rules decide a ring."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling absence with undecided, guessing a ring, or treating the outcome as evidence that the ontology ran the holder’s rules."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied value to the ContactReading and attribute the exact statement. Keep any independently supplied ring evidence under its own actual contract."@x-gmeow-english ;
+    logic:domain gmeow:ContactReading ;
+    logic:range gmeow:ContactRingOutcome .
+
+gmeow:contactRingStated
+    a gmeow:ContactRingOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "relationship ring stated"@x-gmeow-english ;
+    skos:definition "The reading reports that the holder’s stated classification rules decide a relationship ring for the being."@x-gmeow-english ;
+    skos:scopeNote "This value reports the decision outcome, not the ring’s identity, universal correctness or an executed rule calculation."@x-gmeow-english ;
+    skos:example "The source reading reports a stated ring decision under the holder’s rules and retains its actual evidence separately."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reading explicitly reports a ring decided by the holder’s stated rules."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a ring label, rank, membership or rule set from this outcome alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contactRingOutcome and preserve the source’s actual decision context."@x-gmeow-english .
+
+gmeow:contactRingUndecided
+    a gmeow:ContactRingOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "relationship ring undecided"@x-gmeow-english ;
+    skos:definition "The holder’s stated classification rules decide no relationship ring for the being in this reading; the reading states none and guesses none."@x-gmeow-english ;
+    skos:scopeNote "Undecided is an explicit reported outcome, not missing data, a guessed ring, a negative relationship or failure of every other contact field."@x-gmeow-english ;
+    skos:example "A reading retains the supplied name and correspondent kind but reports that the stated rules decide no ring."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source reading explicitly reports that the holder’s stated rules decide no ring."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this value from absent rules or outcome data, naming a fallback ring, or turning uncertainty into an asserted relationship."@x-gmeow-english ;
+    gmeow:howToUse "Reference this value through contactRingOutcome, retain the actual decision context and leave the relationship ring unstated."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contactName" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contactKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contactRingOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .

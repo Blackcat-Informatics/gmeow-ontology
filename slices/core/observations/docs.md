@@ -177,13 +177,18 @@ erasure (Principle 10).
 
 ## Refinement readings
 
-`gmeow:Refinement` is an `Observation` made by a named, versioned process reading
-another record. `observedFeature` names the source; `vantage` names that process
-version. The source remains unchanged. New findings live in separate observation
-records, reachable through the existing `observationResult`. A selected referent
-can also be an individual-valued result. When a reading mints an entity, retain
-its derivation from the refinement with `wasDerivedFrom`; do not manufacture an
-identity independent of the observation that introduced it.
+`gmeow:Refinement` is an `Observation` made by a named, versioned process
+interpreting source records to produce an evidence-derived reading of one actual
+feature of interest. `observedFeature` names that feature, which can be a source
+record or its interpreted referent; `vantage` names the actual process version.
+Retain actual source records separately through `wasDerivedFrom` and any supplied
+input scope. A source-focused reading can keep its source record as the feature;
+a being-focused reading keeps the being as the feature without adding another
+observedFeature. Sources remain unchanged. New findings live in separate
+observation records, reachable through the existing `observationResult`. A selected
+referent can also be an individual-valued result. When a reading mints an entity,
+retain its derivation from the refinement with `wasDerivedFrom`; do not manufacture
+an identity independent of the observation that introduced it.
 
 Use `refinementOutcome` for the reading axis:
 

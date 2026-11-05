@@ -1755,3 +1755,283 @@ msgstr "Le triple d’entrée positif crée les groupes ; la loi nul/positif sé
 msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingExactCountConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:FoundNothingExactCountConstraint logic:formalizes gmeow:foundNothing ."
 msgstr "gmeow:FoundNothingExactCountConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Contact Reading"
+msgstr "Lecture de contact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observer’s record-derived reading of a being the holder can address, with that being as observedFeature and the named, versioned reading process as vantage."
+msgstr "Une lecture, dérivée des enregistrements par un observateur, d’un être auquel le détenteur peut s’adresser ; cet être est l’observedFeature et le processus de lecture nommé et versionné est le vantage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The holder’s records supply evidence; the holder and the reading process are distinct roles. This is the observer’s reading, never automatically the being’s or holder’s claim."
+msgstr "Les enregistrements du détenteur fournissent les éléments probants ; le détenteur et le processus de lecture jouent des rôles distincts. Il s’agit de la lecture de l’observateur, jamais automatiquement d’une affirmation de l’être ou du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "A versioned observer reads actual holder records and reports an addressable being’s recorded name and contact kind while the holder’s stated rules decide no relationship ring."
+msgstr "Un observateur versionné lit les enregistrements réels du détenteur et rapporte le nom enregistré et le type de contact d’un être auquel le détenteur peut s’adresser, tandis que les règles énoncées du détenteur ne déterminent aucun cercle relationnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an observer-derived contact entry grounded in actual records about a being the holder can address."
+msgstr "Utiliser pour une entrée de contact dérivée par un observateur et fondée sur des enregistrements réels concernant un être auquel le détenteur peut s’adresser."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using ContactPoint for this reading, making its selected name globally preferred, inferring a Person or Agent from correspondence alone, or guessing a relationship ring."
+msgstr "Éviter d’utiliser ContactPoint pour cette lecture, de rendre son nom retenu globalement préféré, d’inférer une Person ou un Agent de la seule correspondance ou de deviner un cercle relationnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual being through observedFeature and the named, versioned observer through vantage. Retain source records through wasDerivedFrom and any supplied ReadingScope; keep the holder distinct and preserve earlier names and attributed readings."
+msgstr "Désigner l’être effectivement observé par observedFeature et l’observateur nommé et versionné par vantage. Conserver les enregistrements sources par wasDerivedFrom et toute ReadingScope fournie ; distinguer le détenteur et conserver les noms antérieurs ainsi que les lectures attribuées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contact name as read"
+msgstr "nom du contact selon la lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The name selected by this ContactReading as the latest name given to the being in the holder’s supplied records, within their actual source scope and chronology. Earlier names remain aliases."
+msgstr "Le nom retenu par cette ContactReading comme le dernier nom donné à l’être dans les enregistrements fournis du détenteur, selon leur portée et leur chronologie sources réelles. Les noms antérieurs restent des alias."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Current is local to the supplied records and this attributed reading, not a globally preferred name. Missing chronology or unresolved ties do not authorize a fabricated winner."
+msgstr "Le caractère courant est local aux enregistrements fournis et à cette lecture attribuée, et ne désigne pas un nom globalement préféré. Une chronologie manquante ou des ex æquo non résolus n’autorisent pas à fabriquer un nom gagnant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later source record supplies a new name while the earlier recorded names remain available as aliases."
+msgstr "Un enregistrement source ultérieur fournit un nouveau nom, tandis que les noms enregistrés auparavant restent disponibles comme alias."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reading actually selects the name most recently supplied within the holder’s recorded source context."
+msgstr "Utiliser lorsque la lecture retient effectivement le nom fourni le plus récemment dans le contexte source enregistré du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a primary name for the being, deleting aliases, inventing source order or language, or inferring identity from equal name strings."
+msgstr "Éviter de choisir un nom principal pour l’être, de supprimer les alias, d’inventer l’ordre des sources ou la langue, ou d’inférer une identité à partir de chaînes de noms identiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied literal on the ContactReading, preserving lexical form, datatype, actual language and RDF 1.2 direction. Retain earlier names in their source-backed name records without automatically asserting the reading as the being’s claim."
+msgstr "Conserver le littéral fourni sur la ContactReading, avec sa forme lexicale, son type de données, sa langue réelle et sa direction RDF 1.2. Conserver les noms antérieurs dans leurs enregistrements de noms étayés par les sources, sans affirmer automatiquement la lecture au nom de l’être."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Contact Kind"
+msgstr "Type de contact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the kind of addressable being reported by a ContactReading, including inner agent and correspondent readings."
+msgstr "Un vocabulaire ouvert de valeurs décrivant le type d’être auquel on peut s’adresser, tel que le rapporte une ContactReading, notamment les lectures d’agent interne et de correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These values classify the observer’s reading. They do not replace entity identity or infer a Person or Agent type from message attribution alone."
+msgstr "Ces valeurs classent la lecture de l’observateur. Elles ne remplacent pas l’identité de l’entité et n’infèrent pas un type Person ou Agent de la seule attribution d’un message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading reports the supplied correspondent classification without deciding what kind of real-world being the correspondent is."
+msgstr "Une lecture rapporte la classification de correspondant fournie sans décider de la nature réelle de cet être."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value axis for an explicitly reported contact-kind reading."
+msgstr "Utiliser comme axe de valeurs pour une lecture de type de contact explicitement rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid modelling the values as subclasses of ContactReading or treating the axis as authenticated identity, personhood or message authorship."
+msgstr "Éviter de modéliser les valeurs comme des sous-classes de ContactReading ou de traiter cet axe comme une identité authentifiée, une qualité de personne ou une paternité de message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an actual value through contactKind on the reading. Extend the open vocabulary with attributed values without imposing a global winner."
+msgstr "Référencer une valeur réelle par contactKind sur la lecture. Étendre le vocabulaire ouvert avec des valeurs attribuées sans imposer de valeur globalement privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contact kind as read"
+msgstr "type de contact selon la lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ContactReading to its supplied ContactKind value, retaining the observer’s classification of the addressable being."
+msgstr "Relie une ContactReading à sa valeur ContactKind fournie, en conservant la classification de l’être auquel on peut s’adresser établie par l’observateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is optional and nonfunctional. Supplied classifications retain their attribution; absence does not select a kind."
+msgstr "La relation est facultative et non fonctionnelle. Les classifications fournies conservent leur attribution ; l’absence ne sélectionne aucun type."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "The observer records contactKindCorrespondent because the holder’s conversations attribute a message to the being."
+msgstr "L’observateur consigne contactKindCorrespondent parce que les conversations du détenteur attribuent un message à cet être."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual ContactKind classification is supplied for this reading."
+msgstr "Utiliser lorsqu’une classification ContactKind réelle est fournie pour cette lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a kind from missing fields or using the value to type the observed being automatically as Person or Agent."
+msgstr "Éviter d’inférer un type à partir de champs manquants ou d’utiliser la valeur pour typer automatiquement l’être observé comme Person ou Agent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied value to the ContactReading and preserve source and viewpoint on the exact statement. Keep the actual being in observedFeature."
+msgstr "Rattacher la valeur fournie à la ContactReading et conserver la source et le point de vue sur l’énoncé exact. Garder l’être effectivement observé dans observedFeature."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inner agent contact"
+msgstr "contact agent interne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reading classifies the addressable being as an agent within the holder’s own environment."
+msgstr "La lecture classe l’être auquel on peut s’adresser comme un agent situé dans l’environnement propre au détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a supplied contact classification, not discovery of an agent, proof of identity or permission to communicate."
+msgstr "Il s’agit d’une classification de contact fournie, et non de la découverte d’un agent, d’une preuve d’identité ou d’une autorisation de communiquer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reading identifies the being as an agent within the holder’s environment."
+msgstr "La lecture source identifie l’être comme un agent au sein de l’environnement du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reading explicitly supplies the inner-agent contact classification."
+msgstr "Utiliser lorsque la lecture fournit explicitement la classification de contact agent interne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an environment, holder, agent identity or authenticated address from this value alone."
+msgstr "Éviter d’inventer un environnement, un détenteur, une identité d’agent ou une adresse authentifiée à partir de cette seule valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindInnerAgent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contactKind on the actual reading and retain its source context."
+msgstr "Référencer cette valeur par contactKind sur la lecture réelle et conserver son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correspondent contact"
+msgstr "contact correspondant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reading records only that a message in the holder’s conversations is attributed to the being; it reads nothing further about what that being is."
+msgstr "La lecture consigne uniquement qu’un message dans les conversations du détenteur est attribué à cet être ; elle n’en déduit rien de plus sur sa nature."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Message attribution alone supplies no Person or Agent type, verified authorship, independent identity or relationship ring."
+msgstr "La seule attribution d’un message ne fournit ni type Person ou Agent, ni paternité vérifiée, ni identité indépendante, ni cercle relationnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|http://www.w3.org/2004/02/skos/core#example"
+msgid "A conversation record attributes a message to a named correspondent while its real-world nature remains unknown."
+msgstr "Un enregistrement de conversation attribue un message à un correspondant nommé, dont la nature réelle reste inconnue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual conversation records attribute a message to the being; retain any independently supplied classification separately."
+msgstr "Utiliser lorsque des enregistrements réels de conversation attribuent un message à cet être ; conserver séparément toute classification fournie indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this value as proof of a human sender, an autonomous agent, a legal person or an authenticated message author."
+msgstr "Éviter de traiter cette valeur comme la preuve d’un expéditeur humain, d’un agent autonome, d’une personne juridique ou d’un auteur de message authentifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactKindCorrespondent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contactKind and retain the actual conversation evidence without inferring a stronger being type."
+msgstr "Référencer cette valeur par contactKind et conserver les éléments probants réels de la conversation sans inférer un type d’être plus fort."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Contact Ring Outcome"
+msgstr "Résultat de cercle relationnel du contact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary reporting whether the holder’s stated relationship classification rules decide a ring for the being in this ContactReading."
+msgstr "Un vocabulaire ouvert de valeurs indiquant si les règles de classification relationnelle énoncées par le détenteur déterminent un cercle pour l’être dans cette ContactReading."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This outcome axis is distinct from the overall refinementOutcome and from any actual ring identity. It does not execute the rules or prescribe a universal relationship scale."
+msgstr "Cet axe de résultat est distinct du refinementOutcome global et de toute identité réelle de cercle. Il n’exécute pas les règles et ne prescrit aucune échelle relationnelle universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "The contact’s name is read from records, while the reported ring outcome remains undecided under the holder’s stated rules."
+msgstr "Le nom du contact est lu dans les enregistrements, tandis que le résultat de cercle rapporté reste indécis selon les règles énoncées par le détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an explicitly reported relationship-ring decision outcome for this contact reading."
+msgstr "Utiliser pour conserver un résultat explicitement rapporté de décision de cercle relationnel pour cette lecture de contact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this vocabulary as ring membership, audience-ring rank, intimacy measurement or a default outcome for missing data."
+msgstr "Éviter d’utiliser ce vocabulaire comme appartenance à un cercle, rang de cercle d’audience, mesure d’intimité ou résultat par défaut pour des données manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContactRingOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the supplied value through contactRingOutcome. Retain actual source and rule context without inventing a ring or claiming rule execution."
+msgstr "Référencer la valeur fournie par contactRingOutcome. Conserver le contexte réel de source et de règles sans inventer de cercle ni prétendre avoir exécuté les règles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contact ring outcome"
+msgstr "résultat de cercle relationnel du contact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ContactReading to the supplied ContactRingOutcome reported under the holder’s stated relationship classification rules."
+msgstr "Relie une ContactReading au ContactRingOutcome fourni et rapporté selon les règles de classification relationnelle énoncées par le détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is optional and nonfunctional. Missing outcome data is not undecided, and a reported outcome does not itself identify a ring."
+msgstr "La relation est facultative et non fonctionnelle. L’absence de résultat ne signifie pas indécis, et un résultat rapporté n’identifie pas à lui seul un cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading explicitly reports contactRingUndecided and states no relationship ring."
+msgstr "Une lecture rapporte explicitement contactRingUndecided et n’énonce aucun cercle relationnel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reading actually reports whether the holder’s stated rules decide a ring."
+msgstr "Utiliser lorsque la lecture source rapporte effectivement si les règles énoncées par le détenteur déterminent un cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling absence with undecided, guessing a ring, or treating the outcome as evidence that the ontology ran the holder’s rules."
+msgstr "Éviter de remplacer une absence par indécis, de deviner un cercle ou de traiter le résultat comme une preuve que l’ontologie a exécuté les règles du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied value to the ContactReading and attribute the exact statement. Keep any independently supplied ring evidence under its own actual contract."
+msgstr "Rattacher la valeur fournie à la ContactReading et attribuer l’énoncé exact. Conserver tout élément probant indépendant concernant un cercle selon son propre contrat réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationship ring stated"
+msgstr "cercle relationnel énoncé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reading reports that the holder’s stated classification rules decide a relationship ring for the being."
+msgstr "La lecture rapporte que les règles de classification énoncées par le détenteur déterminent un cercle relationnel pour cet être."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value reports the decision outcome, not the ring’s identity, universal correctness or an executed rule calculation."
+msgstr "Cette valeur rapporte le résultat de la décision, et non l’identité du cercle, sa justesse universelle ou un calcul de règles exécuté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source reading reports a stated ring decision under the holder’s rules and retains its actual evidence separately."
+msgstr "La lecture source rapporte une décision de cercle énoncée selon les règles du détenteur et conserve séparément ses éléments probants réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reading explicitly reports a ring decided by the holder’s stated rules."
+msgstr "Utiliser lorsque la lecture rapporte explicitement un cercle déterminé par les règles énoncées du détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a ring label, rank, membership or rule set from this outcome alone."
+msgstr "Éviter d’inventer une étiquette de cercle, un rang, une appartenance ou un ensemble de règles à partir de ce seul résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingStated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contactRingOutcome and preserve the source’s actual decision context."
+msgstr "Référencer cette valeur par contactRingOutcome et conserver le contexte réel de décision de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationship ring undecided"
+msgstr "cercle relationnel indécis"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The holder’s stated classification rules decide no relationship ring for the being in this reading; the reading states none and guesses none."
+msgstr "Les règles de classification énoncées par le détenteur ne déterminent aucun cercle relationnel pour cet être dans cette lecture ; la lecture n’en énonce ni n’en devine aucun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Undecided is an explicit reported outcome, not missing data, a guessed ring, a negative relationship or failure of every other contact field."
+msgstr "Indécis est un résultat explicitement rapporté, et non une donnée manquante, un cercle deviné, une relation négative ou un échec de tous les autres champs de contact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading retains the supplied name and correspondent kind but reports that the stated rules decide no ring."
+msgstr "Une lecture conserve le nom et le type correspondant fournis, mais rapporte que les règles énoncées ne déterminent aucun cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source reading explicitly reports that the holder’s stated rules decide no ring."
+msgstr "Utiliser uniquement lorsque la lecture source rapporte explicitement que les règles énoncées du détenteur ne déterminent aucun cercle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this value from absent rules or outcome data, naming a fallback ring, or turning uncertainty into an asserted relationship."
+msgstr "Éviter d’inférer cette valeur de règles ou de résultats absents, de nommer un cercle de repli ou de transformer l’incertitude en relation affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contactRingUndecided|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this value through contactRingOutcome, retain the actual decision context and leave the relationship ring unstated."
+msgstr "Référencer cette valeur par contactRingOutcome, conserver le contexte réel de décision et laisser le cercle relationnel non énoncé."

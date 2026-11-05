@@ -446,8 +446,8 @@ msgid "Refinement"
 msgstr "Affinement"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An observation made by a named, versioned process reading another record, with that record as observed feature and the process as vantage. Results are new readings, never edits to the source."
-msgstr "Une observation produite par un processus nommé et versionné qui lit un autre enregistrement, pris comme objet observé, le processus étant le point de vue. Les résultats sont de nouvelles lectures, jamais des modifications de la source."
+msgid "An observation made by a named, versioned process interpreting source records to produce an evidence-derived reading of one actual feature of interest. The feature may be a source record or its interpreted referent; results are new readings, never edits to the source."
+msgstr "Une observation produite par un processus nommé et versionné qui interprète des enregistrements sources afin de former une lecture étayée d’un objet d’intérêt effectivement observé. Cet objet peut être un enregistrement source ou son référent interprété ; les résultats sont de nouvelles lectures, jamais des modifications de la source."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reading a gmeow:Refinement ; gmeow:observedFeature ex:record ; gmeow:vantage ex:refinerV2 ."
@@ -462,8 +462,8 @@ msgid "Avoid mutating the source or treating a selected reading as an automatica
 msgstr "Éviter de modifier la source ou de traiter une lecture retenue comme un fait source automatiquement affirmé."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Name the source and versioned vantage, record refinementOutcome, and put selected individuals or derived observations in observationResult. Keep unselected alternatives in refinementCandidate."
-msgstr "Nommer la source et le point de vue versionné, renseigner refinementOutcome et placer les individus retenus ou observations dérivées dans observationResult. Garder les alternatives non retenues dans refinementCandidate."
+msgid "Name the actual feature through observedFeature and the named, versioned process through vantage. Retain source records separately through actual derivation and supplied input scope; record refinementOutcome, put selected individuals or derived observations in observationResult, and keep unselected alternatives in refinementCandidate."
+msgstr "Désigner l’objet effectivement observé par observedFeature et le processus nommé et versionné par vantage. Conserver séparément les enregistrements sources au moyen de la dérivation réelle et de la portée d’entrée fournie ; renseigner refinementOutcome, placer les individus retenus ou observations dérivées dans observationResult et garder les alternatives non retenues dans refinementCandidate."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Refinement|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for record interpretation such as mention resolution, time joins or narrative readings performed after the source was recorded."
