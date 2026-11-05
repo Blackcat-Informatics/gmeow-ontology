@@ -8946,16 +8946,16 @@ msgid "Group Action"
 msgstr "Action de groupe"
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."
-msgstr "Une action d’un math:Group sur un ensemble — une application attribuant à chaque élément du groupe une transformation de l’ensemble, compatible avec l’opération de groupe ((g·h)·x = g·(h·x), e·x = x). Une action doit identifier son groupe agissant et la cible sur laquelle elle agit par math:actsOn, et sa loi d’action doit dénoter une formule logic: ; le relevé d’action E8 existant fournit des liens de cible et de loi mais aucun lien explicite vers la ressource identifiant son groupe agissant. Une action de groupe est le mécanisme de la symétrie : le groupe de Weyl d’un système de racines agit sur les racines."
+msgid "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). A group action identifies its acting group through math:actingGroup and its target through math:actsOn; its action law denotes a logic: formula. The E8 descriptor identifies its Weyl group and retains a bounded composition-compatibility witness, without thereby proving identity action or constructing the full root action."
+msgstr "Une action d’un math:Group sur un ensemble — une application associant à chaque élément du groupe une transformation de l’ensemble, compatible avec l’opération de groupe ((g·h)·x = g·(h·x), e·x = x). Une action de groupe identifie son groupe agissant par math:actingGroup et sa cible par math:actsOn ; sa loi d’action dénote une formule logic:. Le descripteur E8 identifie son groupe de Weyl et conserve un témoin limité de compatibilité de composition, sans prouver ainsi l’action identité ni construire l’action complète sur les racines."
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."
-msgstr "Une action de groupe requiert un groupe agissant identifié, une cible, la compatibilité avec la composition de groupe et l’action identité. Le descripteur E8 actuel ne possède pas le lien explicite d’acteur : sa cible et sa loi n’identifient pas ce groupe de façon unique, et cette omission reste une incomplétude plutôt qu’une dispense accordée par le contexte."
+msgid "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The actor declaration requires exactly one math:actingGroup value typed as math:Group or a valid subclass in the conformance reader view. This declaration check does not prove the action laws."
+msgstr "Une action de groupe requiert un groupe agissant identifié, une cible, la compatibilité avec la composition de groupe et l’action identité. La déclaration d’acteur exige exactement une valeur math:actingGroup typée math:Group ou comme une sous-classe valide dans la vue de lecture de conformité. Ce contrôle de déclaration ne prouve pas les lois d’action."
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|http://www.w3.org/2004/02/skos/core#example"
-msgid "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."
-msgstr "exa:e8WeylAction nomme exa:e8Roots, exa:rootReflection et exa:groupActionLaw dans e8-symmetry.ttl. Cette loi réalise une syntaxe Formula de compatibilité avec un petit témoin, tandis que le relevé d’action reste dépourvu de lien explicite de groupe agissant."
+msgid "exa:e8WeylAction identifies exa:e8Weyl through math:actingGroup and names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. The law realizes composition compatibility with a small witness; the actor edge does not construct the E8 action or realize its identity law."
+msgstr "exa:e8WeylAction identifie exa:e8Weyl par math:actingGroup et nomme exa:e8Roots, exa:rootReflection et exa:groupActionLaw dans e8-symmetry.ttl. La loi réalise la compatibilité de composition avec un petit témoin ; le lien d’acteur ne construit pas l’action d’E8 et ne réalise pas sa loi d’identité."
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."
@@ -8966,8 +8966,8 @@ msgid "Avoid deriving a unique actor from the target, a law label, a nearby Weyl
 msgstr "Ne pas déduire un acteur unique de la cible, d’un libellé de loi, d’un lien de Weyl voisin ou de l’égalité spécifique d’E8 avec le groupe complet, ni traiter un témoin de compatibilité comme une preuve de toutes les affirmations d’identité, de complétude et d’action sur les racines E8."
 
 msgctxt "https://blackcatinformatics.ca/math/GroupAction|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."
-msgstr "Conserver la cible réelle, l’opération préservée et la loi réalisée, et maintenir explicite l’exigence d’identification du groupe agissant là où son lien manque. N’ajouter ni prédicat d’acteur inventé ni affirmation de complétude. Le témoin exa:gaWr/exa:eqRel de la formule de compatibilité est un élément probant de portée limitée ; conserver séparément les autres obligations de l’action."
+msgid "Identify the actual acting group with math:actingGroup and retain the target, preserved operation and realized law separately. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; preserve identity-action, completeness and E8-root-action obligations without claiming that the actor declaration discharges them."
+msgstr "Identifier le groupe agissant réel avec math:actingGroup et conserver séparément la cible, l’opération préservée et la loi réalisée. Le témoin exa:gaWr/exa:eqRel de la formule de compatibilité constitue une preuve limitée ; conserver les obligations d’action identité, de complétude et d’action sur les racines d’E8 sans prétendre que la déclaration d’acteur les satisfait."
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "acts on"
@@ -8978,8 +8978,8 @@ msgid "This property records the acted-on target for existing action carriers, i
 msgstr "Cette propriété consigne la cible sur laquelle agissent les porteurs d’action existants, y compris les usages GroupAction et Group. Les cibles Set, AlgebraicStructure et RootSystem sont des exemples, et non une portée globale fermée ; le lien seul n’identifie pas le groupe agissant d’un descripteur d’action et ne prouve pas une affirmation de groupe complet d’automorphismes."
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|http://www.w3.org/2004/02/skos/core#example"
-msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."
-msgstr "exa:e8Weyl et exa:e8WeylAction pointent tous deux par math:actsOn vers exa:e8Roots dans e8-symmetry.ttl. La cible commune ne fournit pas le lien d’acteur manquant du descripteur d’action et ne rend pas identiques les deux rôles sources."
+msgid "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The action descriptor separately identifies exa:e8Weyl through math:actingGroup; sharing a target does not make the two source roles identical."
+msgstr "exa:e8Weyl et exa:e8WeylAction pointent tous deux vers exa:e8Roots par math:actsOn dans e8-symmetry.ttl. Le descripteur d’action identifie séparément exa:e8Weyl par math:actingGroup ; partager une cible ne rend pas les deux rôles sources identiques."
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."
@@ -8990,8 +8990,8 @@ msgid "Avoid imposing a global subject or target kind, inferring an inverse edge
 msgstr "Ne pas imposer un type global de sujet ou de cible, déduire un lien inverse ou un groupe agissant unique, ou lire un transport exécutable, une identité de ressources ou une égalité avec le groupe complet dans la seule cible."
 
 msgctxt "https://blackcatinformatics.ca/math/actsOn|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."
-msgstr "Relier le porteur réel à la cible sur laquelle il agit et préserver séparément les informations de loi, d’opération et d’identification de l’acteur lorsqu’elles sont présentes. Garder visible l’exigence non satisfaite d’identification de l’acteur, préserver la définition ouverte et n’ajouter aucune exclusion de type de ressource, lien inverse inféré ou exécution automatique d’action."
+msgid "Link the actual carrier to the target it acts on and retain the separate law, operation and actor information. A GroupAction identifies its actor through math:actingGroup. Preserve this property’s open definition, with no resource-kind exclusion, inferred reverse edge or automatic action execution."
+msgstr "Relier le porteur réel à la cible sur laquelle il agit et conserver séparément la loi, l’opération et les informations sur l’acteur. Une GroupAction identifie son acteur par math:actingGroup. Préserver la définition ouverte de cette propriété, sans exclusion de type de ressource, lien inverse inféré ni exécution automatique de l’action."
 
 msgctxt "https://blackcatinformatics.ca/math/representationOf|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "representation of"
@@ -10420,3 +10420,59 @@ msgstr "Ne pas supposer que toute variété possède le fibré de spineurs chois
 msgctxt "https://blackcatinformatics.ca/math/DiracOperator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Describe the actual operator and its section spaces without inventing dedicated slots or laws. A connectionOn link or discrete transport alone proves neither smoothness nor Clifford compatibility. Generic native Clifford arithmetic supplies no differentiation, spinor-bundle construction or Dirac execution; retain any supporting geometric and calculation evidence separately."
 msgstr "Décrire l’opérateur effectif et ses espaces de sections sans inventer d’emplacements dédiés ni de lois. Un lien connectionOn ou un transport discret ne prouve à lui seul ni la régularité lisse ni la compatibilité de Clifford. L’arithmétique de Clifford native générique ne fournit ni différentiation, ni construction de fibré de spineurs, ni exécution de Dirac ; conserver séparément les éléments probants géométriques et de calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acting group"
+msgstr "groupe agissant"
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GroupAction descriptor to the math:Group whose action it describes. The acting-group role is separate from the action-descriptor and target roles; a generic action may use any genuine group, including a subgroup."
+msgstr "Relie un descripteur math:GroupAction au math:Group dont il décrit l’action. Le rôle du groupe agissant est séparé des rôles du descripteur d’action et de la cible ; une action générique peut utiliser tout groupe véritable, y compris un sous-groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The GroupAction declaration requires exactly one typed Group actor under class-local closure. This property has no global domain, range or functionality declaration; the edge alone does not prove an action law, faithfulness or a full automorphism-group claim."
+msgstr "La déclaration GroupAction exige exactement un acteur typé Group sous fermeture locale à la classe. Cette propriété ne déclare ni domaine, ni portée, ni fonctionnalité globaux ; le lien seul ne prouve ni loi d’action, ni fidélité, ni prétention de groupe complet d’automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction math:actingGroup exa:e8Weyl explicitly identifies W(E8), while math:actsOn names exa:e8Roots. The existing Lie group, Lie algebra, lattice and adjoint representation retain separate identities and roles."
+msgstr "exa:e8WeylAction math:actingGroup exa:e8Weyl identifie explicitement W(E8), tandis que math:actsOn nomme exa:e8Roots. Le groupe de Lie, l’algèbre de Lie, le réseau et la représentation adjointe existants conservent leurs identités et rôles distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a GroupAction descriptor must identify the group that acts on its separately named target."
+msgstr "À utiliser lorsqu’un descripteur GroupAction doit identifier le groupe qui agit sur sa cible nommée séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the target, Lie algebra or action descriptor for the group, inferring the actor from nearby links, or treating every acting subgroup as the full automorphism group."
+msgstr "Ne pas substituer au groupe la cible, l’algèbre de Lie ou le descripteur d’action, inférer l’acteur à partir de liens voisins, ni assimiler chaque sous-groupe agissant au groupe complet d’automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/actingGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the action descriptor to its actual Group resource, retaining the group frame and the action’s target, operation, law and witness evidence. Validate the actor declaration separately from exact named-action identity and mathematical proof."
+msgstr "Relier le descripteur d’action à sa ressource Group réelle en conservant le cadre du groupe ainsi que la cible, l’opération, la loi et les témoins de l’action. Valider la déclaration d’acteur séparément de l’identité exacte de l’action nommée et de la preuve mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Group Action Actor"
+msgstr "Acteur d’action de groupe mal formé"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:GroupAction does not declare exactly one resource-valued math:actingGroup typed as math:Group or a valid subclass in the conformance reader view."
+msgstr "Échec lorsqu’une math:GroupAction ne déclare pas exactement une ressource math:actingGroup typée math:Group ou comme une sous-classe valide dans la vue de lecture de conformité."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covers the actor declaration’s presence, type and count. It does not establish action laws or select the exact E8 actor."
+msgstr "Concerne la présence, le type et le nombre des acteurs déclarés. Ne prouve pas les lois d’action et ne sélectionne pas l’acteur exact d’E8."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|http://www.w3.org/2004/02/skos/core#example"
+msgid "group-action-actor-missing.ttl declares an action without math:actingGroup; the actor declaration gate reports this failure."
+msgstr "group-action-actor-missing.ttl déclare une action sans math:actingGroup ; le contrôle de déclaration de l’acteur signale cet échec."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a missing, wrongly typed or multiple actor declaration on a GroupAction."
+msgstr "À utiliser lorsqu’une GroupAction déclare un acteur absent, de type incorrect ou multiple."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this finding as a disproof of an action law, or successful declaration validation as a constructed action."
+msgstr "Ne pas interpréter ce constat comme une réfutation d’une loi d’action, ni une déclaration conforme comme une action construite."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedGroupActionActor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual single Group actor through math:actingGroup and preserve the target, operation, law and witness evidence. Qualify exact E8 identity separately."
+msgstr "Indiquer l’unique acteur Group réel par math:actingGroup et conserver la cible, l’opération, la loi et les témoins. Vérifier séparément l’identité exacte de l’acteur d’E8."

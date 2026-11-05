@@ -1,12 +1,18 @@
-# Competency question (native gmeow:reasoningLogic lane): "Does the E8 group-action
-# law (g·h)·x = g·(h·x), evaluated as a real logic:Formula over a concrete compatible action,
-# ENTAIL that both association orders reach the same point?"  The comp(·,·,·)/act(·,·,·) atoms
-# are fixed-arity n-ary predications the native reasoner reifies and joins; firing the law
-# DERIVES the binary consequent eq(gaWr, gaWr), present in the closure only because the law
-# fired. VALUES pins the query to the group-action witness. Over the closure: exactly {gaWr}.
+# The qualified E8 action descriptor and its native composition-compatibility witness.
+# Both descriptor law links are required independently of the globally derived equality.
+# Removing a descriptor link can empty this answer while leaving that equality present;
+# removing the Formula is a separate entailment control. The witness proves only the
+# stated compatibility consequence, not identity action or the complete E8 root action.
 PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
 
 SELECT ?value WHERE {
+    exa:e8WeylAction a math:GroupAction ;
+        math:actingGroup exa:e8Weyl ;
+        math:actsOn exa:e8Roots ;
+        math:preservedOperation exa:rootReflection ;
+        math:preservationLaw exa:groupActionLaw ;
+        math:satisfiesAxiom exa:groupActionLaw .
     VALUES ?value { exa:gaWr }
     ?value exa:eqRel ?value .
 }

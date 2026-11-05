@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive declaration control: one fully framed Group actor and a Set target.
+# This validates the actor declaration only; it does not construct or prove an action.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/group-action-actor/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:action a math:GroupAction ;
+    math:actingGroup ex:actor ;
+    math:actsOn ex:target .
+ex:target a math:Set .
+
+ex:actor a math:Group ;
+    math:underlyingSet ex:actorCarrier ;
+    math:structureOperation ex:actorComposition ;
+    math:identityElement ex:actorIdentity ;
+    math:inverseOperation ex:actorInverse ;
+    math:satisfiesAxiom ex:actorAssociativity, ex:actorIdentityLaw, ex:actorInverseLaw .
+ex:actorCarrier a math:Set .
+ex:actorComposition a math:Operation .
+ex:actorInverse a math:Operation .
+ex:actorAssociativity a math:Axiom .
+ex:actorIdentityLaw a math:Axiom .
+ex:actorInverseLaw a math:Axiom .

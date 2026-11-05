@@ -83,10 +83,11 @@ the full automorphism group retains its own `math:automorphismGroupOf` anchor.
 
 Core classes: `math:LieGroup`, `math:LieAlgebra`, `math:RootSystem`, `math:SimpleRoot`,
 `math:CartanMatrix`, `math:DynkinDiagram`, `math:WeylGroup`, `math:Lattice`, and
-`math:GroupRepresentation`.
+`math:GroupRepresentation`, and `math:GroupAction`.
 
 Core properties: `math:hasRootSystem`, `math:hasSimpleRoot`, `math:cartanMatrix`,
-`math:dynkinDiagram`, `math:weylGroup`, `math:rootSystemRank`, and `math:representationOf`.
+`math:dynkinDiagram`, `math:weylGroup`, `math:rootSystemRank`, `math:representationOf`,
+`math:actingGroup`, and `math:actsOn`.
 
 A `math:LieGroup` and its `math:LieAlgebra` carry a `math:RootSystem` — for E8, 240 roots in an
 8-dimensional space with a rank-8 `math:CartanMatrix`, a `math:DynkinDiagram`, and a `math:WeylGroup`
@@ -106,6 +107,30 @@ and to a Wikidata QID for concept identity, and **cited** to the ATLAS/GAP for g
 > E8 equality with the full root-system automorphism group — with concept identity anchored to
 > Wikidata and structure aligned to mathlib. That specific equality does not assert a universal
 > superclass relation for Weyl groups.
+
+A GroupAction descriptor identifies exactly one acting Group with `math:actingGroup` and keeps
+its target on the open `math:actsOn` property. The actor declaration is a class-local closed-path,
+all-values Group and maximum-qualified-cardinality obligation, with generated SHACL Core as its
+primary gate and `math:MalformedGroupActionActor` as its failure. This reader-view validation does
+not depend on native inference of a Group type or equality between several actor resources.
+
+For `exa:e8WeylAction`, the actor is `exa:e8Weyl`, denoting W(E8), and the target is `exa:e8Roots`.
+Winter and van Luijk, *The Action of the Weyl Group on the E8 Root System*, Graphs and Combinatorics
+37 (2021), 1965–2064, [DOI 10.1007/s00373-021-02315-8](https://doi.org/10.1007/s00373-021-02315-8),
+section 2, identifies this reflection-generated group acting on the roots and the E8-specific
+agreement with the full root-system/lattice automorphism group. The canonical citation act and
+source selector are in `metadata/references.ttl`. This does not identify the actor with the
+exceptional Lie group, its Lie algebra, the lattice, the root system or the separate adjoint
+representation. A genuine subgroup can define a different action without becoming the full group.
+
+The existing competency query requires the exact E8 actor, target, operation and both law links,
+alongside the original derived `exa:gaWr exa:eqRel exa:gaWr` witness. A missing or different actor
+fails that identity-specific join, while generic actor typing remains open to other Groups.
+Removing a descriptor law link can empty this qualified answer without removing the globally
+derived equality. Removing the Formula itself is a separate entailment control. The retained
+Formula and small witness establish their stated composition-compatibility consequence; they do
+not realize the identity action, bind all witness symbols to E8 coordinates, construct the complete
+action or prove faithfulness. Those obligations remain distinct from actor declaration validation.
 
 ## Homomorphic encryption — the HE flagship
 

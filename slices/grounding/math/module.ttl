@@ -2337,12 +2337,25 @@ math:GroupAction
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Group Action"@x-gmeow-english ;
-    skos:scopeNote "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The current E8 descriptor lacks the explicit actor link: its target and law do not identify that group uniquely, and this omission remains incomplete rather than being waived by context."@x-gmeow-english ;
-    skos:example "exa:e8WeylAction names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. That law realizes compatibility Formula syntax with a small witness, while the action record still lacks an explicit acting-group link."@x-gmeow-english ;
+    skos:scopeNote "A group action requires an identified acting group, a target, compatibility with group composition and the identity action. The actor declaration requires exactly one math:actingGroup value typed as math:Group or a valid subclass in the conformance reader view. This declaration check does not prove the action laws."@x-gmeow-english ;
+    skos:example "exa:e8WeylAction identifies exa:e8Weyl through math:actingGroup and names exa:e8Roots, exa:rootReflection and exa:groupActionLaw in e8-symmetry.ttl. The law realizes composition compatibility with a small witness; the actor edge does not construct the E8 action or realize its identity law."@x-gmeow-english ;
     gmeow:useWhen "Use when a mathematical action must be described with its acting-group, target and action-law obligations made explicit."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid deriving a unique actor from the target, a law label, a nearby Weyl link or E8’s specific full-group equality, or treating a compatibility witness as proof of every identity, completeness and E8-root-action claim."@x-gmeow-english ;
-    gmeow:howToUse "Retain the actual target, preserved operation and realized law, and keep the acting-group identification requirement explicit wherever its link is missing. Add no invented actor predicate or completion claim. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; retain the rest of the action’s obligations separately."@x-gmeow-english ;
-    skos:definition "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). An action must identify its acting group and the target it math:actsOn, and its action law must denote a logic: formula; the existing E8 action record supplies target and law links but lacks an explicit link to the resource identifying its acting group. A group action is the mechanism of symmetry: the Weyl group of a root system acts on the roots."@x-gmeow-english ;
+    gmeow:howToUse "Identify the actual acting group with math:actingGroup and retain the target, preserved operation and realized law separately. The compatibility formula’s exa:gaWr/exa:eqRel witness is bounded evidence; preserve identity-action, completeness and E8-root-action obligations without claiming that the actor declaration discharges them."@x-gmeow-english ;
+    skos:definition "An action of a math:Group on a set — a map assigning to each group element a transformation of the set, compatibly with the group operation ((g·h)·x = g·(h·x), e·x = x). A group action identifies its acting group through math:actingGroup and its target through math:actsOn; its action law denotes a logic: formula. The E8 descriptor identifies its Weyl group and retains a bounded composition-compatibility witness, without thereby proving identity action or constructing the full root action."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MalformedGroupActionActor
+    a logic:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Group Action Actor"@x-gmeow-english ;
+    skos:scopeNote "Covers the actor declaration’s presence, type and count. It does not establish action laws or select the exact E8 actor."@x-gmeow-english ;
+    skos:example "group-action-actor-missing.ttl declares an action without math:actingGroup; the actor declaration gate reports this failure."@x-gmeow-english ;
+    gmeow:useWhen "Use for a missing, wrongly typed or multiple actor declaration on a GroupAction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this finding as a disproof of an action law, or successful declaration validation as a constructed action."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual single Group actor through math:actingGroup and preserve the target, operation, law and witness evidence. Qualify exact E8 identity separately."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:GroupAction does not declare exactly one resource-valued math:actingGroup typed as math:Group or a valid subclass in the conformance reader view."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LieGroup
@@ -2456,15 +2469,27 @@ math:GroupRepresentation
 
 # --- Group-action and Lie/root-system properties --------------------------- #
 
+math:actingGroup
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "acting group"@x-gmeow-english ;
+    skos:scopeNote "The GroupAction declaration requires exactly one typed Group actor under class-local closure. This property has no global domain, range or functionality declaration; the edge alone does not prove an action law, faithfulness or a full automorphism-group claim."@x-gmeow-english ;
+    skos:example "exa:e8WeylAction math:actingGroup exa:e8Weyl explicitly identifies W(E8), while math:actsOn names exa:e8Roots. The existing Lie group, Lie algebra, lattice and adjoint representation retain separate identities and roles."@x-gmeow-english ;
+    gmeow:useWhen "Use when a GroupAction descriptor must identify the group that acts on its separately named target."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the target, Lie algebra or action descriptor for the group, inferring the actor from nearby links, or treating every acting subgroup as the full automorphism group."@x-gmeow-english ;
+    gmeow:howToUse "Link the action descriptor to its actual Group resource, retaining the group frame and the action’s target, operation, law and witness evidence. Validate the actor declaration separately from exact named-action identity and mathematical proof."@x-gmeow-english ;
+    skos:definition "Relates a math:GroupAction descriptor to the math:Group whose action it describes. The acting-group role is separate from the action-descriptor and target roles; a generic action may use any genuine group, including a subgroup."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:actsOn
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "acts on"@x-gmeow-english ;
     skos:scopeNote "This property records the acted-on target for existing action carriers, including GroupAction and Group uses. Set, AlgebraicStructure and RootSystem targets are examples, not a closed global range; the edge alone neither identifies an action descriptor’s acting group nor proves a full automorphism-group claim."@x-gmeow-english ;
-    skos:example "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The common target does not supply the action descriptor’s missing actor link or make the two source roles identical."@x-gmeow-english ;
+    skos:example "Both exa:e8Weyl and exa:e8WeylAction point through math:actsOn to exa:e8Roots in e8-symmetry.ttl. The action descriptor separately identifies exa:e8Weyl through math:actingGroup; sharing a target does not make the two source roles identical."@x-gmeow-english ;
     gmeow:useWhen "Use when the mathematical object acted on by an existing group or action descriptor needs an explicit target link."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid imposing a global subject or target kind, inferring an inverse edge or unique acting group, or reading executable transport, identity of resources or full-group equality from the target alone."@x-gmeow-english ;
-    gmeow:howToUse "Link the actual carrier to the target it acts on and preserve the separate law, operation and actor-identification information where present. Keep the unmet actor-identification requirement visible, preserve the open definition, and add no resource-kind exclusion, inferred reverse edge or automatic action execution."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual carrier to the target it acts on and retain the separate law, operation and actor information. A GroupAction identifies its actor through math:actingGroup. Preserve this property’s open definition, with no resource-kind exclusion, inferred reverse edge or automatic action execution."@x-gmeow-english ;
     skos:definition "Relates an action carrier, such as a math:GroupAction or a math:Group, to what it acts on. Targets include a math:Set, math:AlgebraicStructure or math:RootSystem; these examples are not a closed domain or range declaration. A math:WeylGroup math:actsOn the roots of its math:RootSystem without thereby claiming to be their full automorphism group."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -12459,6 +12484,13 @@ math:Homomorphism rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:preservedOperation ; logic:minQualifiedCardinality 1 ; logic:onClass math:Operation ] ,
     [ a logic:Restriction ; logic:onProperty math:preservationLaw ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ;
     gmeow:enforcesFailureClass math:UnderspecifiedHomomorphism .
+
+math:GroupAction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:actingGroup ; logic:allValuesFrom math:Group ] ,
+    [ a logic:Restriction ; logic:onProperty math:actingGroup ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ;
+    gmeow:enforcesFailureClass math:MalformedGroupActionActor .
+
+[ a logic:ClosureEntry ; logic:onClass math:GroupAction ; logic:closureKey "https://blackcatinformatics.ca/math/actingGroup" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 math:WeylGroup logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:hasRootSystem ; logic:allValuesFrom math:RootSystem ] ;

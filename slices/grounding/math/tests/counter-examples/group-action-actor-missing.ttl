@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Missing-actor boundary: the action has its target but no actingGroup edge.
+# The generated actor gate must report MalformedGroupActionActor.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/group-action-actor/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:action a math:GroupAction ;
+    math:actsOn ex:target .
+ex:target a math:Set .
