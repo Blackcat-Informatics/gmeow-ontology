@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use gmeow_logic_compile::ir::ContextualScope;
+use gmeow_logic_compile::ir::{ContextualScope, NodeKind};
 
 fn repo_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -105,5 +105,56 @@ fn skos_surface_renders_from_lifted_axioms() {
     assert!(
         ttl.contains(sentinel),
         "the renderer must consume the passed axiom set (AC1 anti-drift): {ttl}"
+    );
+}
+
+/// The shared annotation lift feeds the pure renderer without structural dependencies.
+#[test]
+fn skos_annotation_projection_is_stable_under_structural_growth() {
+    let annotation = "<https://blackcatinformatics.ca/gmeow/Selected> \
+        <http://www.w3.org/2004/02/skos/core#definition> \
+        \"ANNOTATION_ONLY_SENTINEL\"@x-gmeow-english .";
+    let mut outputs = Vec::new();
+    for structural in [
+        "_:original <urn:edge> _:other .",
+        "_:renamed <urn:edge> _:extra . _:extra <urn:edge> _:last .",
+    ] {
+        let source = format!("{structural}\n{annotation}");
+        let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("small independent source");
+        let (annotations, diagnostics) =
+            gmeow_logic_compile::frontend::lift_annotation_axioms(&dataset)
+                .expect("shared annotation lift");
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let rendered = render_skos_surface_from_axioms(&annotations).expect("pure projection");
+        assert!(rendered.contains("ANNOTATION_ONLY_SENTINEL"));
+        outputs.push(rendered);
+    }
+    assert_eq!(outputs[0], outputs[1]);
+}
+
+/// Stage inputs cover the loaded root, modules and imports, retaining a missing root.
+#[test]
+fn skos_input_inventory_covers_authored_sources_and_requires_root() {
+    let directory = tempfile::tempdir().expect("small source directory");
+    let root = directory.path();
+    let ontology = root.join("ontology/gmeow.ttl");
+    let module = root.join("slices/core/example/module.ttl");
+    let import = root.join("imports/example.ttl");
+    for path in [&ontology, &module, &import] {
+        std::fs::create_dir_all(path.parent().expect("source parent")).expect("source directory");
+        std::fs::write(path, "<urn:s> <urn:p> <urn:o> .\n").expect("small source file");
+    }
+    let expected = vec![import, ontology.clone(), module];
+    assert_eq!(
+        SkosSurfaceStage.input_files(root).expect("source inputs"),
+        expected
+    );
+    std::fs::remove_file(&ontology).expect("remove required root");
+    assert_eq!(
+        SkosSurfaceStage
+            .input_files(root)
+            .expect("missing root remains declared"),
+        expected
     );
 }
