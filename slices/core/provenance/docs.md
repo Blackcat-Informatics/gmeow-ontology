@@ -136,3 +136,53 @@ and Chunk only when it independently satisfies both existing meanings. Keep the
 actual carrier, source pins, digests and span coordinates unchanged; the
 specialized source role introduces no parthood, contiguous-cut or offset claim
 (Principles 2, 4, 7, 9, 12, 17 and 19).
+
+## Whole provenance bookkeeping kept elsewhere
+
+`provenanceDigest` is the Activity record's pointer to the separate provenance
+bookkeeping item its producer stamped on that record and then set aside whole
+outside the knowledge graph for review. Evidence identifiers, substrate and
+contract digests, episode kind, producing component and schema version can be
+machinery carried by that item rather than facts expanded leaf by leaf in the
+graph. The pointer identifies the whole retained item; it does not turn that
+item into a graph node or a derivation source of the Activity.
+
+Keep the supplied literal as `xsd:hexBinary`, with exactly sixty-four bare
+lowercase hexadecimal digits. SHA-256 is fixed by this particular property's
+meaning, not inferred from an arbitrary binary literal. The canonical lexical
+Constraint checks the supplied spelling; the property's provided-value closure
+separately validates the Activity and exact datatype endpoints. Uppercase,
+prefixes, whitespace, wrong widths and a different datatype are not alternate
+representations accepted by this contract. Do not normalize, silently retype
+or substitute another algorithm when an input fails.
+
+The mathematical SHA-256 meaning already has an owner: see
+[`gmeow:sha256Digest`](../../grounding/math/docs.md#algorithm-tagged-digest-literals).
+That named datatype carries algorithm identity in its own literal values.
+This property's supplied `xsd:hexBinary` terms remain distinct from those values;
+the documentary reference does not change their datatype or declare equivalence.
+No new hash algorithm, datatype, grounding seam or manifest edge is introduced.
+
+The preimage is the exact identified byte representation of the separate
+set-aside item. It is not the Activity record's own bytes: that different role
+belongs to `contentDigest`. Preserve the actual item/byte identification and
+source attribution without guessing an encoding, canonical serialization or
+store URI. For example, a producer can retain the record's evidence identifiers
+and contract bookkeeping as one separate item and supply its SHA-256 pointer,
+without expanding that bookkeeping into graph facts. The pointer reports the
+digest of that item; syntax acceptance neither computes the digest nor verifies
+that the value agrees with the bytes.
+
+The consumer's actual external store can use the pointer to find the item while
+it is retained. This relation supplies no locator or retrieval implementation,
+performs no lookup and guarantees no retention period or permanent availability.
+The historical pointer does not certify that its item is still retrievable.
+Provenance already stated as facts keeps its actual structured provenance paths;
+this pointer does not replace them or imply `wasDerivedFrom`.
+
+The role is optional and nonfunctional. The reported one-pointer-per-record
+workflow keeps one whole bookkeeping item rather than individual leaf pointers;
+it does not require a pointer on every Activity or merge independent source
+assertions into one globally preferred value. There is no new wrapper, required
+record profile, artifact node, source/force classifier, byte verifier, native
+failure marker or runtime engine (Principles 2, 4, 7, 9, 12, 17 and 19).

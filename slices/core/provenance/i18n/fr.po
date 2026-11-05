@@ -68,3 +68,63 @@ msgstr "Éviter de substituer une simple relation thématique, des instructions 
 msgctxt "https://blackcatinformatics.ca/gmeow/summaryOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the Summary to each identified summarized InformationObject and retain actual source, viewpoint and confidence on the exact assertion. Preserve other actual lineage separately; never invent missing source identities, a unique target, source fidelity or original-source offsets."
 msgstr "Relier le Summary à chaque InformationObject résumé identifié et conserver la source réelle, le point de vue et la confiance sur l’assertion exacte. Préserver séparément les autres éléments réels de filiation ; ne jamais inventer d’identités sources manquantes, de cible unique, de fidélité à la source ou de positions dans la source originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provenance digest"
+msgstr "condensat de provenance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied SHA-256 digest of the exact identified bytes of the producer-stamped provenance bookkeeping item set aside whole outside the knowledge graph for an Activity record, serving as that record’s pointer to the item while it is retained."
+msgstr "Le condensat SHA-256 fourni des octets exacts identifiés de l’élément de tenue de provenance apposé par le producteur sur un enregistrement d’Activity puis conservé entier à part, hors du graphe de connaissances ; il sert de pointeur de cet enregistrement vers l’élément tant que celui-ci est conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional, nonfunctional pointer identifies the whole set-aside bookkeeping item rather than its individual leaves. Its preimage is not the Activity record’s own bytes. The relation supplies neither a store location nor a guarantee of retrieval, byte verification or permanent retention."
+msgstr "Ce pointeur facultatif et non fonctionnel identifie l’élément de tenue de provenance conservé entier à part plutôt que ses feuilles individuelles. Sa préimage n’est pas constituée des octets de l’enregistrement d’Activity lui-même. La relation ne fournit ni emplacement de stockage, ni garantie de récupération, de vérification des octets ou de conservation permanente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A producer keeps an activity record’s evidence identifiers and contract bookkeeping as one separate item for review; the record retains that item’s supplied SHA-256 pointer instead of asserting each leaf as graph facts."
+msgstr "Un producteur conserve les identifiants des éléments probants et la tenue des contrats d’un enregistrement d’activité dans un seul élément séparé à examiner ; l’enregistrement garde le pointeur SHA-256 fourni de cet élément au lieu d’affirmer chaque feuille comme des faits du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the producer’s provenance bookkeeping is machinery kept elsewhere whole for review, and the Activity record keeps its supplied SHA-256 pointer instead of expanding the bookkeeping into graph facts."
+msgstr "Utiliser lorsque la tenue de provenance du producteur relève de la machinerie conservée entière ailleurs pour examen et que l’enregistrement d’Activity en garde le pointeur SHA-256 fourni au lieu de développer cette tenue en faits du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the record’s own contentDigest, provenance already stated as facts, a wasDerivedFrom source, another hash algorithm, or an invented encoding, store address or verification claim."
+msgstr "Éviter pour le contentDigest de l’enregistrement lui-même, une provenance déjà énoncée comme faits, une source wasDerivedFrom, un autre algorithme de hachage ou un encodage, une adresse de stockage ou une affirmation de vérification inventés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/provenanceDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:hexBinary literal on the Activity as exactly 64 bare lowercase hexadecimal digits. Preserve source attribution and identification of the separate item and its actual bytes; do not retype the literal, infer an encoding, or claim that the item was retrieved or its digest checked."
+msgstr "Conserver le littéral xsd:hexBinary fourni sur l’Activity sous la forme exacte de 64 chiffres hexadécimaux minuscules sans préfixe. Conserver l’attribution de source et l’identification de l’élément séparé et de ses octets réels ; ne pas changer le type du littéral, inférer un encodage ou prétendre que l’élément a été récupéré ou son condensat vérifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provenance digest lexical constraint"
+msgstr "Contrainte lexicale du condensat de provenance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied provenanceDigest has exactly 64 bare lowercase hexadecimal digits; its provided-value range independently requires xsd:hexBinary. SHA-256 is fixed by the property’s meaning, not inferred from arbitrary hexadecimal values."
+msgstr "Chaque provenanceDigest fourni comporte exactement 64 chiffres hexadécimaux minuscules sans préfixe ; le contrôle séparé de sa plage de valeurs exige xsd:hexBinary. SHA-256 est fixé par le sens de la propriété et non inféré de valeurs hexadécimales quelconques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is supplied-value syntax admission. It computes no hash and certifies neither the item’s bytes, agreement with its reported digest, retrieval nor retention. No missing pointer is invented and no other digest representation is substituted."
+msgstr "Il s’agit du contrôle syntaxique des valeurs fournies. Il ne calcule aucun hachage et ne certifie ni les octets de l’élément, ni leur concordance avec son condensat rapporté, ni sa récupération ou sa conservation. Aucun pointeur manquant n’est inventé et aucune autre représentation de condensat n’est substituée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied pointer with an algorithm prefix or uppercase hexadecimal fails this lexical contract even when the source labels it SHA-256."
+msgstr "Un pointeur fourni avec un préfixe d’algorithme ou des chiffres hexadécimaux majuscules enfreint ce contrat lexical, même si la source le désigne comme SHA-256."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the exact lowercase hexadecimal spelling of each supplied provenanceDigest without changing its literal identity."
+msgstr "Utiliser pour valider la graphie hexadécimale minuscule exacte de chaque provenanceDigest fourni sans changer l’identité de son littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating lexical acceptance as verified SHA-256 agreement, accepting a generic digest fallback, normalizing invalid input or requiring a pointer on every Activity."
+msgstr "Éviter de traiter l’acceptation lexicale comme une concordance SHA-256 vérifiée, d’accepter un condensat générique de repli, de normaliser une entrée invalide ou d’exiger un pointeur sur chaque Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the canonical positive provenanceDigest guard and the exact pattern ^[0-9a-f]{64}$ to its supplied value. Combine this lexical obligation with the property’s provided-value Activity and xsd:hexBinary checks; reject failures without retyping or replacing the source value."
+msgstr "Appliquer la garde positive canonique provenanceDigest et le motif exact ^[0-9a-f]{64}$ à la valeur fournie. Combiner cette obligation lexicale avec les contrôles des valeurs fournies de la propriété pour Activity et xsd:hexBinary ; rejeter les échecs sans changer le type ni remplacer la valeur source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied provenanceDigest has exactly 64 bare lowercase hexadecimal digits; its provided-value range independently requires xsd:hexBinary. SHA-256 is fixed by the property’s meaning, not inferred from arbitrary hexadecimal values."
+msgstr "Chaque provenanceDigest fourni comporte exactement 64 chiffres hexadécimaux minuscules sans préfixe ; le contrôle séparé de sa plage de valeurs exige xsd:hexBinary. SHA-256 est fixé par le sens de la propriété et non inféré de valeurs hexadécimales quelconques."
