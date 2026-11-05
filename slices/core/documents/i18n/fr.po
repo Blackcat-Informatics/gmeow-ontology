@@ -34,8 +34,8 @@ msgid "Avoid using it for natural language, media type, compression or MIME cont
 msgstr "Éviter de l’utiliser pour la langue naturelle, le type de média, la compression ou l’encodage de transfert du contenu MIME."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."
-msgstr "Consigner l’étiquette de jeu de caractères fournie sur l’objet informationnel concret ; garder mediaType et contentLanguage ou contentLanguageCode séparés. Pour une partie MIME, consigner ici son paramètre charset de Content-Type."
+msgid "Record the supplied charset label on the concrete information object; keep mediaType separate. A supplied content-language code belongs on contentLanguageCode; an independently supplied Language identity uses writtenInLanguage, or contentLanguage on an actual Work. For a MIME part, record its Content-Type charset parameter here."
+msgstr "Consigner l’étiquette de jeu de caractères fournie sur l’objet informationnel concret ; garder mediaType séparé. Un code de langue du contenu fourni relève de contentLanguageCode ; une identité Language fournie indépendamment utilise writtenInLanguage, ou contentLanguage sur une véritable Work. Pour une partie MIME, consigner ici son paramètre charset de Content-Type."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#example"
 msgid "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."
@@ -2078,3 +2078,31 @@ msgstr "Appliquer la garde externe de partie et neuf branches gardées positivem
 msgctxt "https://blackcatinformatics.ca/gmeow/FigurePartConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."
 msgstr "Chaque FigurePart conserve une charge scalaire MediaObject réelle et une Quantity d’indice numérique fini valide avec une seule valeur numérique et exactement un référentiel d’indice typé ; tout parent de figure fourni possède segmentTypeFigure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content language code"
+msgstr "code de langue du contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied content-language code on an InformationObject, retained as the complete untagged xsd:string or xsd:token literal. It records the producer's reported spelling, including original case, region and private-use subtags, without identifying a Language or certifying registry validity."
+msgstr "Code de langue du contenu fourni par une source sur un InformationObject, conservé comme littéral complet xsd:string ou xsd:token sans étiquette de langue. Il consigne la graphie déclarée par le producteur, y compris la casse originale, les sous-étiquettes de région et d’usage privé, sans identifier une Language ni certifier la validité dans un registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source or producer supplies a content-language tag for the actual information object, including a full region-qualified or private-use tag, whether or not a Language identity is independently known."
+msgstr "À utiliser lorsqu’une source ou un producteur fournit une étiquette de langue du contenu pour l’objet informationnel réel, y compris une étiquette complète avec région ou à usage privé, qu’une identité Language soit ou non connue indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this field as a Language identity, registry alignment on a Language, internal carrierTag or RDF prose language tag, and avoid generating a code from text, locale, filename, charset or an assumed language."
+msgstr "Éviter d’utiliser ce champ comme identité Language, alignement de registre sur une Language, carrierTag interne ou étiquette de langue de prose RDF, et éviter de produire un code à partir du texte, de la locale, du nom de fichier, du charset ou d’une langue supposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the original literal on the actual InformationObject. On its exact-statement reifier, retain the supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. An independently supplied real Language identity may separately use writtenInLanguage, or contentLanguage on an actual Work; never infer either relation from this code."
+msgstr "Consigner le littéral original sur l’InformationObject réel. Sur le réificateur de cet énoncé exact, conserver la source fournie par wasDerivedFrom, la perspective de l’énoncé par accordingTo et l’agent ayant consigné l’énoncé par wasAttributedTo. Une identité Language réelle fournie indépendamment peut utiliser séparément writtenInLanguage, ou contentLanguage sur une véritable Work ; ne jamais déduire l’une ou l’autre relation de ce code."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and non-functional: omission means unstated; coexisting supplied codes remain separate attributable claims. Preserve the exact lexical form and supplied datatype without normalization, retyping or primary-subtag extraction. This property infers no Language or LanguageVariety, no equivalence with contentLanguage or writtenInLanguage, and no language tag on prose."
+msgstr "Facultatif et non fonctionnel : l’omission signifie non renseigné ; les codes fournis qui coexistent restent des assertions distinctes attribuables. Préserver la forme lexicale exacte et le type de données fourni sans normalisation, changement de type ni extraction de la sous-étiquette primaire. Cette propriété n’infère aucune Language ou LanguageVariety, aucune équivalence avec contentLanguage ou writtenInLanguage, ni aucune étiquette de langue sur la prose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentLanguageCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report a gmeow:InformationObject ; gmeow:contentLanguageCode \"FR-ca-x-Desk\"^^xsd:token ."
+msgstr "ex:report a gmeow:InformationObject ; gmeow:contentLanguageCode \"FR-ca-x-Desk\"^^xsd:token ."

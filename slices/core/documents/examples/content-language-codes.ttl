@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/content-language-codes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary hypothetical source metadata; no parser or registry check is run.
+# Preserve the source's case, full subtags and supplied literal datatype.
+# The absent code on ex:unreported is unstated, not an unknown-language value.
+
+ex:source rdf:type gmeow:InformationObject .
+ex:source rdfs:comment "This hypothetical source supplies both complete codes for ex:report and no code for ex:unreported. It independently identifies its declaring agent and recorder; it supplies no Language identity or prose language tag."@en .
+ex:frame rdf:type gmeow:Agent .
+ex:recorder rdf:type gmeow:SoftwareAgent .
+ex:recorder rdf:type gmeow:Agent .
+ex:report rdf:type gmeow:InformationObject .
+ex:unreported rdf:type gmeow:InformationObject .
+ex:report gmeow:contentLanguageCode "FR-ca-x-Desk"^^xsd:token .
+ex:report gmeow:contentLanguageCode "x-Review"^^xsd:string .
+
+# Exact-statement source, declaring perspective and recorder; no propagation is implied.
+
+ex:statement001 rdf:reifies <<( ex:source rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement002 rdf:reifies <<( ex:source rdfs:comment "This hypothetical source supplies both complete codes for ex:report and no code for ex:unreported. It independently identifies its declaring agent and recorder; it supplies no Language identity or prose language tag."@en )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement003 rdf:reifies <<( ex:frame rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement004 rdf:reifies <<( ex:recorder rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement005 rdf:reifies <<( ex:recorder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement006 rdf:reifies <<( ex:report rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement007 rdf:reifies <<( ex:unreported rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement008 rdf:reifies <<( ex:report gmeow:contentLanguageCode "FR-ca-x-Desk"^^xsd:token )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
+
+ex:statement009 rdf:reifies <<( ex:report gmeow:contentLanguageCode "x-Review"^^xsd:string )>> ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:recorder .
