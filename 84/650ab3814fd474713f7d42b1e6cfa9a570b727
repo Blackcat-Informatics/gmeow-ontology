@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: e375b1733726c41cd45755ddbc3d9dea269fa7e9
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2498
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2498
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 0daad29d59fc88443ce0188c9fd51b935903f7b3
+GhpRsq-Head-Ref: paudley/2494-retain-declared-daily-ledger-cost-and
+GhpRsq-Head-OID: e375b1733726c41cd45755ddbc3d9dea269fa7e9
+GhpRsq-Result-Tree: 1f18a17b2d7414ff68a7b4e6d4f0f37115750c0a
+GhpRsq-Result-Commit: 84650ab3814fd474713f7d42b1e6cfa9a570b727
+GhpRsq-Parent-Hashes: e375b1733726c41cd45755ddbc3d9dea269fa7e9
+GhpRsq-Squash-Notes-SHA256: f53d0ffd896dcc28d2b6df63d9d024783e44dd960bc5225250145822b5d26059
+GhpRsq-Stage-Evidence: none
