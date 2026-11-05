@@ -1202,3 +1202,17 @@ gmeow:TracePacket logic:subClassOf
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:TracePacket ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tracePacketAt" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:TracePacket ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:tracePacketPosition
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "trace packet position"@x-gmeow-english ;
+    skos:definition "The source-reported feed-position descriptor for the packet described by this TraceAnchor, retained as its original xsd:nonNegativeInteger literal and interpreted only under that anchor's actual anchorSourceProfile."@x-gmeow-english ;
+    skos:scopeNote "Optional and non-functional: omission is unstated, and several supplied descriptors may coexist as attributable claims. The datatype chooses no numbering origin. A zero descriptor is faithful only when the actual source convention permits zero."@x-gmeow-english ;
+    skos:example "Assume a hypothetical source supplies its full anchor profile and explicitly permits zero: ex:anchor gmeow:tracePacketPosition \"0\"^^xsd:nonNegativeInteger . The anchor also retains its supplied packet digest and that actual applicable profile."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual source supplies a packet's feed position and its applicable interpretation; retain it on the actual TraceAnchor without treating it as observed ledger membership."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this descriptor from row order, a timestamp, a digest or missing data, and avoid treating it as a packet count, clock, ordering comparator, committed frontier or finality declaration."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the complete supplied literal, including datatype and lexical form, and interpret it through this anchor's actual anchorSourceProfile. On the exact-statement reifier retain supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. Existing TraceAnchor obligations still require anchorPacket and anchorSourceProfile; invent no missing profile."@x-gmeow-english ;
+    logic:domain gmeow:TraceAnchor ;
+    logic:range xsd:nonNegativeInteger .

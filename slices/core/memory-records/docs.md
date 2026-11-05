@@ -351,3 +351,26 @@ not a give-up receipt. Missing membership is not unmarkedness, finality, an
 age-policy verdict or permission to discard traces. No trace join, retention,
 deletion action, producer commitment, completeness proof or consumer adoption
 follows (Principles 4, 7, 9, 11, 12, 17 and 19).
+
+## Reported trace feed positions
+
+`tracePacketPosition` optionally retains the source-reported feed-position
+descriptor on a `TraceAnchor` as its complete original
+`xsd:nonNegativeInteger` literal. Preserve its datatype and lexical form.
+Interpret it only through that anchor's actual `anchorSourceProfile`, including
+the source's numbering convention. The generic datatype can represent zero;
+this does not override a source convention that excludes zero or choose an
+origin when none was supplied. Do not calculate a descriptor from surrounding
+rows, a timestamp, a digest or missing evidence.
+
+The field is nonfunctional: several supplied descriptors can coexist as
+attributable claims, and omission remains unstated. Retain each assertion's
+actual source, declaring perspective and recorder on its exact-statement
+reifier through `wasDerivedFrom`, `accordingTo` and `wasAttributedTo`.
+
+Its TraceAnchor domain retains the existing required `anchorPacket` digest and
+actual applicable `anchorSourceProfile`; a missing profile is never synthesized.
+A position alone establishes no recorded `TracePacket` type or `tracePacket`
+ledger membership. It supplies no packet count, clock, comparison, frontier,
+numbering law, finality commitment, retention operation or consumer-adoption
+verdict (Principles 2, 4, 7 and 17).
