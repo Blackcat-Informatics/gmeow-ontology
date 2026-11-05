@@ -4493,3 +4493,108 @@ gmeow:ModelCallMechanics logic:subClassOf [ a logic:Restriction ; logic:onProper
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mechanicsUnreported" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerFailureStage" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerFailureDetail" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source accounts of reply handling, with open resource endpoints.
+
+gmeow:ReplyHandlingReport
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reply handling report"@x-gmeow-english ;
+    skos:definition "An information account of handling one reply, with one source-identified ModelInvocation scope, one reported ReplyShape and any actual result-resource associations the source supplies."@x-gmeow-english ;
+    skos:scopeNote "The account is separate from a raw reply, processing event or trace/Experience. Its associations establish neither generated-output ownership nor verified derivation."@x-gmeow-english ;
+    skos:example "An attributed account retains an actual shape and opaque result reference without inventing the target’s structure."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source account that scopes reply classification and result associations together."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not fabricate an account, retype a trace automatically or use it as a raw-reply or execution identity."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual invocation scope and reported shape; retain independent source attribution and each supplied result reference."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:ReplyShape
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reply handling shape"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for the source-reported classification of how a reply was handled."@x-gmeow-english ;
+    skos:scopeNote "This axis is independent of provider outcome, invocation lifecycle, requested model mode and message-delivery or reply outcome."@x-gmeow-english ;
+    skos:example "A source reports decomposition without that value proving successful provider completion."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit source-supported reply-handling classifications."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not close the vocabulary to two seeds, infer a default or choose a globally preferred account."@x-gmeow-english ;
+    gmeow:howToUse "Use actual ReplyShape individuals through replyShape and retain each report’s source context."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:replyShape
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported reply shape"@x-gmeow-english ;
+    skos:definition "Relates a ReplyHandlingReport to its one source-reported ReplyShape classification."@x-gmeow-english ;
+    skos:scopeNote "The single value belongs to this report. Several actually sourced reports may coexist for one invocation without a global functional status."@x-gmeow-english ;
+    skos:example "Two independent accounts may report different handling classifications for the same call."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual classification supplied by this source account."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not place a forward output relation on ModelInvocation or infer a shape from missing data."@x-gmeow-english ;
+    gmeow:howToUse "Keep one actual shape reference per report; opaque resource references need no pre-existing raw type assertion."@x-gmeow-english ;
+    logic:domain gmeow:ReplyHandlingReport ;
+    logic:range gmeow:ReplyShape .
+
+gmeow:replyShapeDecomposed
+    a gmeow:ReplyShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "decomposed reply"@x-gmeow-english ;
+    skos:definition "The source reports that each returned reply field was materialized as its own record."@x-gmeow-english ;
+    skos:scopeNote "The classification does not verify decomposition, count results or prove that the associated result roster is complete."@x-gmeow-english ;
+    skos:example "A reported decomposed reply may have no retained result references when those references were not supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual source explicitly reports field decomposition into records."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a complete field map, result count, successful generation or output ownership from this value."@x-gmeow-english ;
+    gmeow:howToUse "Attach the value through replyShape on the actual report and retain only genuinely supplied result associations."@x-gmeow-english .
+
+gmeow:replyShapeFellBack
+    a gmeow:ReplyShape ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reply fell back"@x-gmeow-english ;
+    skos:definition "The source reports historical handling of a reply as whole plain words after structured handling fell back."@x-gmeow-english ;
+    skos:scopeNote "This preserves a historical source account. It grants no permission for silent capability degradation or a weaker selected operation."@x-gmeow-english ;
+    skos:example "An actual historical fallback report remains recorded while the selected operation’s required capabilities stay mandatory."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source explicitly reports this historical whole-text handling."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not implement a fallback from this label, infer one output record or treat missing structure as successful completion."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual reported value, its source and any genuine result references without weakening the operation’s contract."@x-gmeow-english .
+
+gmeow:replyHandlingOf
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reply handling scope"@x-gmeow-english ;
+    skos:definition "Relates a ReplyHandlingReport to the one actual ModelInvocation selected as the source account’s scope."@x-gmeow-english ;
+    skos:scopeNote "The scope assertion establishes neither per-call causal lineage nor generation of every associated result. It is not inverse-functional."@x-gmeow-english ;
+    skos:example "A source account names its actual call while preserving uncertainty about ownership of associated records."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope an actual reply-handling account to the invocation identified by the source."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not equate the report with the invocation, infer successful execution or manufacture a causal/output property chain."@x-gmeow-english ;
+    gmeow:howToUse "Keep one actual resource reference per report with ordinary open-world ModelInvocation range semantics."@x-gmeow-english ;
+    logic:domain gmeow:ReplyHandlingReport ;
+    logic:range gmeow:ModelInvocation .
+
+gmeow:replyBecame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reply became"@x-gmeow-english ;
+    skos:definition "Relates a ReplyHandlingReport to an actual result resource associated by the source with what the handled reply became."@x-gmeow-english ;
+    skos:scopeNote "This optional nonfunctional association admits heterogeneous and opaque resource references, including an Event. It does not assert Entity typing, generated-output ownership, identity with the reply or verified derivation."@x-gmeow-english ;
+    skos:example "A source account retains an actual mood-shift Event reference without turning that event into an enduring output artifact."@x-gmeow-english ;
+    gmeow:useWhen "Use for each actual source-supplied result association of this reply-handling report."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer derivation from co-commit grouping, require a concrete target type or declare a complete result roster."@x-gmeow-english ;
+    gmeow:howToUse "Retain each actual IRI or blank-node reference; use genuine wasGeneratedBy and wasDerivedFrom backlinks independently when the source supplies them."@x-gmeow-english ;
+    logic:domain gmeow:ReplyHandlingReport ;
+    logic:range logic:Thing .
+
+gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:replyShape ; logic:allValuesFrom logic:Thing ] .
+gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:replyShape ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:replyHandlingOf ; logic:allValuesFrom logic:Thing ] .
+gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:replyHandlingOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ReplyHandlingReport logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:replyBecame ; logic:allValuesFrom logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReplyHandlingReport ; logic:closureKey "https://blackcatinformatics.ca/gmeow/replyShape" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReplyHandlingReport ; logic:closureKey "https://blackcatinformatics.ca/gmeow/replyHandlingOf" ; logic:closureValue logic:ClosedWorldClosure ] .

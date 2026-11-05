@@ -611,3 +611,56 @@ and generated projection qualification, exact conditional frame evidence and
 consumer adoption remain requirements. Actual source producers may have
 different wire grouping or serialization conventions; no private alias,
 equivalence, migration or compatibility is asserted by the names.
+
+## Reply-handling accounts and heterogeneous result references
+
+ReplyHandlingReport is an InformationObject source account. Its one actual
+invocation scope and one reported shape belong to that account; several
+independent accounts can coexist for the same invocation. Its purpose is
+concrete: retain classification and result associations without introducing
+a forbidden forward output property on ModelInvocation or automatically
+turning a trace/Experience into an information report. It is not a raw-reply,
+group/side or processing-event identity layer.
+
+ReplyShape remains an open QualityValue axis. Decomposed and fell-back values
+retain the source's actual classification without implementing or verifying
+the handling operation. A fallback history is not permission to degrade a
+selected capability silently. The shape does not imply result count,
+order, roster completeness, generation success, delivery or lifecycle status.
+
+replyBecame has Report-to-resource association meaning. It retains genuine
+source references including opaque IRIs, blank nodes and actual Events.
+Neither co-transaction grouping nor a report's invocation scope establishes
+generated-output ownership or derivation of every associated result.
+No subproperty, inverse or property chain turns this association into
+wasGeneratedBy or wasDerivedFrom. No raw reply or missing lineage witness
+is synthesized.
+
+Real generated reply artifacts and enduring materialized products retain
+their actual wasGeneratedBy backlinks when known. The materializing activity
+may differ from the original model invocation. Genuine source-artifact
+lineage retains domain-open wasDerivedFrom. An associated Event must not
+receive a generated-output link simply to fit Entity's enduring-product
+domain. These independent owner contracts are unchanged.
+
+### Exact canonical structure and raw endpoint admission
+
+The unit contains seven terms: two classes, two open value individuals and
+three ObjectProperties. Three ReplyHandlingReport-local allValuesFrom
+logic:Thing restrictions project to BlankNodeOrIRI, admitting opaque resource
+references without a raw concrete type witness. Two maxQualifiedCardinality
+one/onClass logic:Thing restrictions and two class/path ClosureEntry records
+require exactly one scope and shape per actual report.
+
+There are zero property-global closure opt-ins, Constraints, messages, new
+dependency edges or result cardinality/order constraints. Domain/range keeps
+its ordinary open-world inference reading. The class-scoped presence policy
+does not close concrete endpoint types globally. Adding a closed Activity,
+Entity or ModelInvocation endpoint check would reject legitimate opaque
+references and is not part of this source contract.
+
+No existing source trace, private identifier or broad source association is
+asserted equivalent to this canonical account. Source, language, projection
+and native qualification remain distinct from authoring a vocabulary. Actual
+retained raw replies, per-call result ownership, real derivation and producer
+adoption must be supported by their actual sources, not by the names alone.

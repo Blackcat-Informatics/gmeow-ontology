@@ -7286,3 +7286,199 @@ msgstr "绑定每个实际标记并拒绝相冲突的给定计数，而不擦除
 msgctxt "https://blackcatinformatics.ca/gmeow/ModelCallMechanicsUnreportedConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "An explicit usage-unreported marker on a mechanics report forbids supplied prompt, cached-prompt and completion token counts on that same report."
 msgstr "机制报告上的明确 usage 未报告标记禁止同一报告包含给定提示、缓存提示及生成词元计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply handling report"
+msgstr "回复处理报告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information account of handling one reply, with one source-identified ModelInvocation scope, one reported ReplyShape and any actual result-resource associations the source supplies."
+msgstr "关于一条回复处理的信息记录，具有来源标识的一个 ModelInvocation 范围、一个已报告 ReplyShape，以及来源提供的实际结果资源关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The account is separate from a raw reply, processing event or trace/Experience. Its associations establish neither generated-output ownership nor verified derivation."
+msgstr "该记录与原始回复、处理事件或轨迹/Experience 分别建模。其关联既不确定生成输出归属，也不证明推导关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|http://www.w3.org/2004/02/skos/core#example"
+msgid "An attributed account retains an actual shape and opaque result reference without inventing the target’s structure."
+msgstr "具有归属信息的记录保留实际形态与不透明结果引用，而不虚构目标结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source account that scopes reply classification and result associations together."
+msgstr "用于将回复分类与结果关联共同限定范围的实际源记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not fabricate an account, retype a trace automatically or use it as a raw-reply or execution identity."
+msgstr "不要虚构记录、自动重新归类轨迹，或将其用作原始回复或执行身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyHandlingReport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the actual invocation scope and reported shape; retain independent source attribution and each supplied result reference."
+msgstr "提供实际调用范围与已报告形态；保留独立来源归属及每个给定结果引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply handling shape"
+msgstr "回复处理形态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for the source-reported classification of how a reply was handled."
+msgstr "用于来源所报告回复处理方式分类的开放品质值词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This axis is independent of provider outcome, invocation lifecycle, requested model mode and message-delivery or reply outcome."
+msgstr "该轴独立于提供方结果、调用生命周期、请求的模型模式，以及消息投递或答复结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source reports decomposition without that value proving successful provider completion."
+msgstr "来源报告分解，但该值不证明提供方成功完成调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit source-supported reply-handling classifications."
+msgstr "用于具有明确来源支持的回复处理分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not close the vocabulary to two seeds, infer a default or choose a globally preferred account."
+msgstr "不要将词汇封闭为两个初始值、推断默认值或选择全局首选记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyShape|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use actual ReplyShape individuals through replyShape and retain each report’s source context."
+msgstr "通过 replyShape 使用实际 ReplyShape 个体，并保留每个报告的源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported reply shape"
+msgstr "已报告回复形态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ReplyHandlingReport to its one source-reported ReplyShape classification."
+msgstr "将 ReplyHandlingReport 关联到其来源所报告的唯一 ReplyShape 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The single value belongs to this report. Several actually sourced reports may coexist for one invocation without a global functional status."
+msgstr "单一值属于此报告。同一次调用可有多个确有来源的报告并存，而不形成全局函数性状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two independent accounts may report different handling classifications for the same call."
+msgstr "两个独立记录可为同一次调用报告不同的处理分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual classification supplied by this source account."
+msgstr "用于保留此源记录提供的实际分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not place a forward output relation on ModelInvocation or infer a shape from missing data."
+msgstr "不要在 ModelInvocation 上设置正向输出关系，也不要从缺失数据推断形态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShape|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one actual shape reference per report; opaque resource references need no pre-existing raw type assertion."
+msgstr "每个报告保留一个实际形态引用；不透明资源引用无需原始图中预先存在的类型断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decomposed reply"
+msgstr "已分解回复"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that each returned reply field was materialized as its own record."
+msgstr "来源报告返回的每个回复字段均已物化为各自记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The classification does not verify decomposition, count results or prove that the associated result roster is complete."
+msgstr "该分类不验证分解、不统计结果数，也不证明关联结果清单完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reported decomposed reply may have no retained result references when those references were not supplied."
+msgstr "当结果引用未被提供时，被报告为已分解的回复可没有保留的结果引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual source explicitly reports field decomposition into records."
+msgstr "用于实际来源明确报告字段已分解为记录的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a complete field map, result count, successful generation or output ownership from this value."
+msgstr "不要从该值推断完整字段映射、结果数量、生成成功或输出归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeDecomposed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the value through replyShape on the actual report and retain only genuinely supplied result associations."
+msgstr "通过实际报告上的 replyShape 关联该值，并只保留确实给定的结果关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply fell back"
+msgstr "回复已回退"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports historical handling of a reply as whole plain words after structured handling fell back."
+msgstr "来源报告在结构化处理回退后，回复曾按整段普通文本处理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This preserves a historical source account. It grants no permission for silent capability degradation or a weaker selected operation."
+msgstr "该值保留历史源记录，不允许静默降低能力或弱化选定操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual historical fallback report remains recorded while the selected operation’s required capabilities stay mandatory."
+msgstr "实际历史回退报告继续保留，同时选定操作所要求的能力仍然必需。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source explicitly reports this historical whole-text handling."
+msgstr "仅用于来源明确报告这种历史整段文本处理的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not implement a fallback from this label, infer one output record or treat missing structure as successful completion."
+msgstr "不要根据此标签实现回退、推断只有一个输出记录，或将结构缺失视为成功完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyShapeFellBack|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual reported value, its source and any genuine result references without weakening the operation’s contract."
+msgstr "保留实际报告值、其来源及任何真实结果引用，而不弱化操作契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply handling scope"
+msgstr "回复处理范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ReplyHandlingReport to the one actual ModelInvocation selected as the source account’s scope."
+msgstr "将 ReplyHandlingReport 关联到被选为源记录范围的唯一实际 ModelInvocation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The scope assertion establishes neither per-call causal lineage nor generation of every associated result. It is not inverse-functional."
+msgstr "范围断言不确定逐调用的因果来源，也不确定每个关联结果由该调用生成。该关系不具有逆函数性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source account names its actual call while preserving uncertainty about ownership of associated records."
+msgstr "源记录命名其实际调用，同时保留关联记录归属方面的不确定性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to scope an actual reply-handling account to the invocation identified by the source."
+msgstr "用于将实际回复处理记录限定到来源标识的调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not equate the report with the invocation, infer successful execution or manufacture a causal/output property chain."
+msgstr "不要将报告等同于调用、推断执行成功或虚构因果/输出属性链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyHandlingOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep one actual resource reference per report with ordinary open-world ModelInvocation range semantics."
+msgstr "每个报告保留一个实际资源引用，并采用通常的 ModelInvocation 值域开放世界语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply became"
+msgstr "回复形成的记录关联"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a ReplyHandlingReport to an actual result resource associated by the source with what the handled reply became."
+msgstr "将 ReplyHandlingReport 关联到来源认为由所处理回复形成的实际结果资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional nonfunctional association admits heterogeneous and opaque resource references, including an Event. It does not assert Entity typing, generated-output ownership, identity with the reply or verified derivation."
+msgstr "该可选非函数性关联允许异类和不透明资源引用，包括 Event。它不断言 Entity 类型、生成输出归属、与回复的身份相同或已验证的推导。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source account retains an actual mood-shift Event reference without turning that event into an enduring output artifact."
+msgstr "源记录保留实际情绪变化 Event 引用，而不将该事件转换为持续存在的输出制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each actual source-supplied result association of this reply-handling report."
+msgstr "用于此回复处理报告的每个实际来源提供的结果关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer derivation from co-commit grouping, require a concrete target type or declare a complete result roster."
+msgstr "不要从同次提交分组推断推导关系，不要强求具体目标类型，也不要声明结果清单完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyBecame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual IRI or blank-node reference; use genuine wasGeneratedBy and wasDerivedFrom backlinks independently when the source supplies them."
+msgstr "保留每个实际 IRI 或空白节点引用；来源提供真实 wasGeneratedBy 和 wasDerivedFrom 反向关联时，独立使用这些关联。"
