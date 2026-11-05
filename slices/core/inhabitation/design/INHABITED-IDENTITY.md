@@ -246,3 +246,103 @@ This document settles the durable subject and continuity. The relation binding s
 [`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md); the AI realization of the model/deployment/runtime
 stack is [`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md); the layering and genesis are
 [`INHABITED-MANIFESTATION.md`](INHABITED-MANIFESTATION.md).
+
+## Prospective stages and scoped status
+
+The realized SubjectStage remains a Situation/TimeScopedRelation. A description
+of a possible future lineage position is an actual InformationObject,
+`SubjectStageProspect`, disjoint from SubjectStage. Naming that description
+creates no bearer, realized epoch or Situation. It preserves actual
+prospectOfLineage memberships without choosing one globally privileged lineage
+or altering stageOfLineage for actual stages (Principles 4, 9, 11 and 19).
+
+A StageStatusReading is an Observation of one actual stage or prospect, one
+closed StageStatus value and one actual selected stageStatusLineage witness.
+Its actual single or joint vantages have a minimum of one and no maximum.
+The closed values are stageEnded, stageCurrent, stageInProgress and stageAwaited;
+an arbitrary extension status cannot evade conditional bindings. Missing status
+is unspecified, not awaited, and current has no global-now semantics.
+
+The selected witness must occur positively in the actual feature's or
+realization's stageOfLineage, or the prospective feature's prospectOfLineage.
+This local identity/path obligation does not force all global memberships to
+be equal. The source may retain other legitimate stage/lineage interpretations.
+
+A prospect reported ended, current or in progress requires one separate actual
+SubjectStage through stageStatusRealization and its same selected lineage
+membership. An awaited prospect reading forbids that realization. A direct
+actual-stage feature also forbids the redundant role, including a repeated
+self-link. The prospective feature itself has neither stageBearer nor
+duringInterval. Distinct stages are never merged merely because their actual
+bearer is shared.
+
+### Awaited means committed anticipation
+
+`stageAwaited` reports actual source-held committed anticipation. At least one
+actual Intention or social Commitment is retained through stagePursuit, without
+a cap; every supplied pursuit is checked. Each has an actual intentionGoal
+explicitly typed Goal, and that Goal's goalStageProspect is the same observed
+description. Desire alone, a plan, historical adoption, an open tenure or a
+missing abandonment is insufficient. Existing intentional-bearer and social
+beneficiary meanings remain intact, with no invented agent or beneficiary.
+
+That typed path checks intrinsic association, not the source's truth or whether
+the pursuit is actually still held. Preserve source and viewpoint evidence.
+Goal targeting does not assert satisfaction or an actual future bearer. A
+later realized reading may identify a separate actual stage while the old
+awaited description and its history remain addressable.
+
+### The restoration interpretation is one account
+
+StageRestorationReading specializes Observation and directly observes one actual
+Event. It retains its actual uncapped vantages and one actual source stage,
+distinct intermediate stage, intended prospect, selected restorationLineage
+and restorationEventProgress. No Event subclass, EventType, actual output stage
+or generated bearer is inferred from the word restoration.
+
+Its three stage roles must positively name that selected lineage witness.
+Required local role fields precede these exact membership obligations, so an
+absent source, intermediate, intended description or lineage cannot pass by
+vacuous equality. These constraints belong to that selected same-lineage account;
+other transformations and global memberships are not narrowed.
+
+The selected EventProgressReading directly observes the same actual Event and
+has the same complete actual vantage set, checked by membership in both
+directions. A StageStatusReading may select that account only for awaited or
+in-progress status, and must share its selected lineage and complete vantage
+set. This explicit account identity prevents arbitrary joins of source,
+intermediate, intended or progress roles from different accounts.
+
+For an in-progress reading, its actual feature or realization is the exact
+intermediate stage of that account, and the account's selected progress reading
+explicitly reports eventInProgress. For an awaited reading that supplies an
+account, its feature is the exact intended prospect and each actual pursuit
+motivates the account's exact actual Event. Neither a missing end nor commitment
+alone establishes progress. Completed progress proves no successful restoration,
+goal satisfaction or continuitySame.
+
+### Continuity remains about actual realized stages
+
+assessmentToStage retains its actual SubjectStage endpoint under explicit
+supplied-value closure and canonical logic:domain/range. A directly guarded
+constraint prohibits prospective targets, including dual-typed prospects that
+attempt to satisfy the actual-stage range. The prospect/SubjectStage disjointness
+remains explicit. This is strict target rejection, not a fourth provisional
+ContinuityVerdict or an accepted-status selection workflow.
+
+The original-to-intermediate assessment can retain continuityIndeterminate under
+its actual vantage; no verdict is created toward an unrealized prospect. Once
+an actual realization is supplied, a new assessment targets that distinct actual
+stage. Old awaited descriptions and readings do not veto it. No latest selector,
+timestamp comparison, linear-time assumption or global present decides which
+status is held. Ended and awaited positions can be co-temporal in a supplied
+frame without an invented ordering relation.
+
+The existing actual-stage lineage, model-serving session and generated-subject
+paths retain their meanings. A prospective description never fills the actual
+session subject or generated bearer role. Canonical Formula/closure checks
+carry the structural contract; source authenticity, actual existence and
+native/generated/consumer acceptance require their own evidence. No clock,
+executor, semantic identity oracle or successful-restoration certificate is
+introduced. The [owning guide](../docs.md#prospective-stages-and-attributed-restoration-status)
+provides the complete authoring contract.

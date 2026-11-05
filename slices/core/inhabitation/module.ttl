@@ -442,10 +442,10 @@ gmeow:assessmentFromStage
 
 gmeow:assessmentToStage
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:IdentityContinuityAssessment ;
+    logic:domain gmeow:IdentityContinuityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assessment to stage"@x-gmeow-english ;
-    rdfs:range gmeow:SubjectStage ;
+    logic:range gmeow:SubjectStage ;
     skos:definition "The later subject stage a gmeow:IdentityContinuityAssessment compares — the 'to' side of the same/different verdict."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
@@ -1040,3 +1040,643 @@ gmeow:inhabitationIntervalFrameRequirement
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Prospective stages and attributed restoration readings.
+gmeow:SubjectStageProspect
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "prospective subject stage description"@x-gmeow-english ;
+    skos:definition "An InformationObject describing a prospective position in a SubjectLineage without asserting a realized SubjectStage, bearer or epoch."@x-gmeow-english ;
+    skos:scopeNote "The description is disjoint from SubjectStage and may retain several actual lineage memberships. Its existence alone establishes neither realization nor committed anticipation."@x-gmeow-english ;
+    skos:example "A future lineage position remains described while one frame awaits it and another reports a separate actual realization."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source description of a prospective stage whose bearer or realized epoch must not be invented."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a prospective description as a realized stage or treating missing bearer, interval or evidence as an awaited status."@x-gmeow-english ;
+    gmeow:howToUse "Retain its actual prospectOfLineage memberships. Put status and any separate actual realization on attributed StageStatusReadings; keep bearer and epoch slots off the description."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    logic:disjointWith gmeow:SubjectStage .
+
+gmeow:StageStatusReading
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "subject stage status reading"@x-gmeow-english ;
+    skos:definition "An attributed Observation of one closed StageStatus for an actual SubjectStage or SubjectStageProspect, with one selected lineage witness and actual single or joint vantages."@x-gmeow-english ;
+    skos:scopeNote "Feature, result and selected lineage each have one value; vantages and actual awaited pursuits have no cap. Readings coexist without a global status, preferred frame or latest-reading rule."@x-gmeow-english ;
+    skos:example "Two actual frames hold different statuses for the same prospect while preserving their selected lineage and realization evidence separately."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit source-held ended, current, intermediate in-progress or committed awaited stage status."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving status from missing fields, a global now, shared bearer identity or an unrelated account’s event progress."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature, observationResult, stageStatusLineage and every actual vantage. Retain required pursuit, realization and selected restoration bindings under their conditional laws without inventing source evidence."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:StageStatus
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "subject stage status"@x-gmeow-english ;
+    skos:definition "The closed four-value stage-status vocabulary stageEnded, stageCurrent, stageInProgress and stageAwaited carried by a StageStatusReading."@x-gmeow-english ;
+    skos:scopeNote "Status is a frame-relative quality value, distinct from confidence, event progress and continuity verdict. A fifth value cannot bypass conditional stage obligations."@x-gmeow-english ;
+    skos:example "An explicit awaited reading uses stageAwaited; an incomplete record supplies no default status."@x-gmeow-english ;
+    gmeow:useWhen "Use as the reviewed observationResult vocabulary of StageStatusReading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extension statuses, status subclasses of bearers, ordering the values on a global timeline or selecting a preferred frame."@x-gmeow-english ;
+    gmeow:howToUse "Choose exactly one named member per reading and retain all actual vantages. Keep coexisting readings and historical evidence rather than mutating a stage’s global status."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    logic:oneOf ( gmeow:stageEnded gmeow:stageCurrent gmeow:stageInProgress gmeow:stageAwaited ) .
+
+gmeow:stageEnded
+    a logic:NamedIndividual, gmeow:StageStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "ended subject stage"@x-gmeow-english ;
+    skos:definition "The stage-status value reporting that an actual realized subject stage has ended within the reading’s supplied frame."@x-gmeow-english ;
+    skos:scopeNote "Ending the stage does not delete it, suppress it or independently prove its bearer’s death. An ended prospect reading still requires a separate actual realization."@x-gmeow-english ;
+    skos:example "A source retains an ended original stage and its bearer while a different intermediate stage is reported in progress."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports a realized stage’s ending in its frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ending from silence, missing intervals, suppression or a continuity verdict."@x-gmeow-english ;
+    gmeow:howToUse "Retain stageEnded on the attributed reading with its selected lineage and actual stage or prospect realization. Preserve actual bearer and temporal evidence separately."@x-gmeow-english .
+
+gmeow:stageCurrent
+    a logic:NamedIndividual, gmeow:StageStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "current subject stage"@x-gmeow-english ;
+    skos:definition "The stage-status value reporting the realized stage held current in the reading’s actual frame, without an absolute present."@x-gmeow-english ;
+    skos:scopeNote "Another frame may hold a different status for the same prospect. Current does not select the latest timestamp or imply continuity with another stage."@x-gmeow-english ;
+    skos:example "One frame reports a prospect’s actual realization as current while another still awaits that prospect."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit current-stage report with actual realization and lineage evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving current status from timestamps, global now, absent ending or a shared bearer."@x-gmeow-english ;
+    gmeow:howToUse "Use stageCurrent on the source-held reading; select an actual realization only for a prospect feature. Keep actual joint vantages and independent historical readings."@x-gmeow-english .
+
+gmeow:stageInProgress
+    a logic:NamedIndividual, gmeow:StageStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intermediate subject stage in progress"@x-gmeow-english ;
+    skos:definition "The stage-status value for an actual intermediate stage in the selected restoration account whose same actual Event is explicitly reported in progress."@x-gmeow-english ;
+    skos:scopeNote "The intermediate is a realized stage, not the intended result. Its reading selects the same account, lineage, actual event-progress record and matching actual vantage set."@x-gmeow-english ;
+    skos:example "A restoration’s existing intermediate bearer remains distinct from the awaited future position."@x-gmeow-english ;
+    gmeow:useWhen "Use when actual source evidence identifies the intermediate stage and the selected account’s explicitly ongoing Event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring progress from an open commitment, missing latestEnd, another event or another account’s progress reading."@x-gmeow-english ;
+    gmeow:howToUse "Select the actual stage or its prospect realization, the exact stageRestorationReading and its intermediate role. Require that account’s selected progress reading to report eventInProgress for the same actual Event."@x-gmeow-english .
+
+gmeow:stageAwaited
+    a logic:NamedIndividual, gmeow:StageStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "awaited subject stage"@x-gmeow-english ;
+    skos:definition "The stage-status value reporting a prospect as anticipated and committed to through actual Intention or social Commitment pursuits under the reading’s supplied frame."@x-gmeow-english ;
+    skos:scopeNote "At least one actual pursuit and its actual Goal target are required; all supplied pursuits are checked without a cap. The reading has no stageStatusRealization, and its prospect has no bearer or epoch slot."@x-gmeow-english ;
+    skos:example "A source commits to a future lineage position while retaining an ongoing restoration and no realized future bearer."@x-gmeow-english ;
+    gmeow:useWhen "Use for actual source-held committed anticipation, rather than mere Desire, a plan or incomplete realization evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an agent, beneficiary, goal, epoch or active pursuit, or treating historical adoption and missing abandonment as current commitment."@x-gmeow-english ;
+    gmeow:howToUse "Observe the prospect and bind each actual pursuit through stagePursuit and its intentionGoal to that same prospect through goalStageProspect. If an account is supplied, retain its exact intended prospect, motive, lineage and matching actual vantages."@x-gmeow-english .
+
+gmeow:StageRestorationReading
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "subject stage restoration reading"@x-gmeow-english ;
+    skos:definition "An attributed Observation of one actual restoration Event retaining its distinct actual source and intermediate stages, intended prospect, selected shared lineage and explicit event-progress reading."@x-gmeow-english ;
+    skos:scopeNote "This selected same-lineage account has one value for each required role and uncapped actual vantages. It does not place rival accounts’ endpoints on global Event slots or assert a generated future stage."@x-gmeow-english ;
+    skos:example "One account identifies the original stage, an existing intermediate stage and an awaited intended prospect while its actual Event remains underway."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual attributed restoration interpretation with supplied source, intermediate, intended, lineage and progress bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging accounts, inventing a restoration EventType, treating intended output as generation or imposing this same-lineage profile on arbitrary transformations."@x-gmeow-english ;
+    gmeow:howToUse "Observe the exact actual Event and retain all five account roles and actual vantages. Require positive membership of each stage role in the selected lineage and match the selected progress reading’s Event and complete vantage set."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:prospectOfLineage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prospect of lineage"@x-gmeow-english ;
+    skos:definition "An actual SubjectLineage membership retained for a SubjectStageProspect without asserting a realized stage or shared bearer."@x-gmeow-english ;
+    skos:scopeNote "At least one membership is required on a prospect, with no maximum. Selected readings name their own positive witness without forbidding other legitimate memberships."@x-gmeow-english ;
+    skos:example "A prospect retains two source-supported memberships while a restoration account explicitly selects one of those actual lineages."@x-gmeow-english ;
+    gmeow:useWhen "Use to group an actual prospective description in its supplied lineage without changing stageOfLineage on realized stages."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an invented lineage, a global single-lineage rule or treating membership as realization or continuitySame."@x-gmeow-english ;
+    gmeow:howToUse "Retain every actual supplied membership. A status or restoration reading selects one lineage and requires that exact positive membership; other memberships remain intact."@x-gmeow-english ;
+    logic:domain gmeow:SubjectStageProspect ;
+    logic:range gmeow:SubjectLineage .
+
+gmeow:stageStatusLineage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected stage-status lineage"@x-gmeow-english ;
+    skos:definition "The one actual SubjectLineage selected as the positive membership witness by this StageStatusReading."@x-gmeow-english ;
+    skos:scopeNote "This local single witness does not make the feature’s global lineage membership functional. Actual feature, prospect and supplied realization must carry its exact membership."@x-gmeow-english ;
+    skos:example "A reading selects one supported lineage while retaining another account’s distinct lineage claim."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual lineage witness selected by a stage-status interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting absent membership through equality-only checks or constraining every global stage membership to this witness."@x-gmeow-english ;
+    gmeow:howToUse "Bind one actual lineage and require stageOfLineage on an actual feature or realization and prospectOfLineage on a prospective feature with that same bound value."@x-gmeow-english ;
+    logic:domain gmeow:StageStatusReading ;
+    logic:range gmeow:SubjectLineage .
+
+gmeow:stageStatusRealization
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "stage-status realization"@x-gmeow-english ;
+    skos:definition "The actual SubjectStage selected as the realization of the prospect observed by a nonawaited StageStatusReading."@x-gmeow-english ;
+    skos:scopeNote "Optional generally and at most one per reading, but required for ended/current/in-progress prospect readings. Awaited and direct actual-stage readings forbid this slot, including a redundant self-link."@x-gmeow-english ;
+    skos:example "A later reading names an actual realization while an older awaited reading remains unchanged on the same prospect."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source supplies an actual realized stage for the prospective feature under this reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a placeholder bearer, a realized-stage feature, an awaited reading, invented epoch evidence or automatic retirement of historical anticipation."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual stage and require its stageOfLineage to match the reading’s selected positive witness. Retain the prospect and actual bearer/epoch evidence separately without merging their identities."@x-gmeow-english ;
+    logic:domain gmeow:StageStatusReading ;
+    logic:range gmeow:SubjectStage .
+
+gmeow:stagePursuit
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "awaited-stage pursuit"@x-gmeow-english ;
+    skos:definition "An actual Intention or social Commitment that this awaited StageStatusReading reports held toward its prospective stage."@x-gmeow-english ;
+    skos:scopeNote "Awaited status requires at least one actual pursuit, with no maximum. Every supplied pursuit, Goal and selected-account motive is checked; Desire alone is insufficient."@x-gmeow-english ;
+    skos:example "Joint source evidence retains several actual intentions directed through their actual goals to the same prospective stage."@x-gmeow-english ;
+    gmeow:useWhen "Use for actual source-held committed anticipation with the existing Intention or social Commitment meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing beneficiaries or bearers, treating an open tenure as proof of current pursuit, or attaching this awaited role to another stage status."@x-gmeow-english ;
+    gmeow:howToUse "Retain every supplied actual pursuit and require its actual intentionGoal to be a Goal targeting this same prospect through goalStageProspect. A selected account also requires that pursuit to motivate its exact actual Event."@x-gmeow-english ;
+    logic:domain gmeow:StageStatusReading ;
+    logic:range [ logic:unionOf ( gmeow:Intention gmeow:Commitment ) ] .
+
+gmeow:goalStageProspect
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "goal stage prospect"@x-gmeow-english ;
+    skos:definition "The actual SubjectStageProspect that this supplied Goal seeks to have realized, without asserting satisfaction or an existing future bearer."@x-gmeow-english ;
+    skos:scopeNote "The relation is nonfunctional and required only through the selected awaited-reading bindings, not on every Goal. Other supported goal/prospect relations remain intact."@x-gmeow-english ;
+    skos:example "A supplied goal names the same intended prospect as its actual pursuit’s awaited reading."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual source-supplied goal-to-prospect relation in committed stage anticipation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfiedBy, a realized output, an invented Goal or inferring the goal’s content from a stage label."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Goal to the same observed prospect retained by the awaited reading. Keep pursuit, motive, source and viewpoint evidence without claiming execution or success."@x-gmeow-english ;
+    logic:domain gmeow:Goal ;
+    logic:range gmeow:SubjectStageProspect .
+
+gmeow:stageRestorationReading
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected stage restoration account"@x-gmeow-english ;
+    skos:definition "The one actual StageRestorationReading selected by an awaited or in-progress StageStatusReading."@x-gmeow-english ;
+    skos:scopeNote "The role is optional for awaited status, required for in-progress status and forbidden for current/ended status. It has at most one account; actual joint vantage sets match in both directions."@x-gmeow-english ;
+    skos:example "The intermediate reading and awaited reading explicitly select the same supplied account rather than joining arbitrary records about its Event."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact attributed account supporting the selected intermediate or awaited interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid borrowing another account’s endpoints, progress or frame, or placing a meaningless optional link on current/ended readings."@x-gmeow-english ;
+    gmeow:howToUse "Select the exact account and require the same lineage and complete actual vantage set. Match its intermediate stage for in-progress status, or its intended prospect and actual motive for awaited status."@x-gmeow-english ;
+    logic:domain gmeow:StageStatusReading ;
+    logic:range gmeow:StageRestorationReading .
+
+gmeow:restorationSourceStage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restoration source stage"@x-gmeow-english ;
+    skos:definition "The actual source SubjectStage named by this selected StageRestorationReading."@x-gmeow-english ;
+    skos:scopeNote "Exactly one source stage belongs to this account and is distinct from its intermediate stage. Other accounts and global lineage claims remain separate."@x-gmeow-english ;
+    skos:example "An account retains an ended original stage as its actual source without replacing it with its bearer or a future description."@x-gmeow-english ;
+    gmeow:useWhen "Use for the supplied actual source-stage binding of this attributed restoration account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a prospect, a bearer, a portal tenure or another account’s source stage."@x-gmeow-english ;
+    gmeow:howToUse "Bind one actual SubjectStage and require stageOfLineage to contain the account’s selected restorationLineage witness. Preserve other memberships and source evidence."@x-gmeow-english ;
+    logic:domain gmeow:StageRestorationReading ;
+    logic:range gmeow:SubjectStage .
+
+gmeow:restorationIntermediateStage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restoration intermediate stage"@x-gmeow-english ;
+    skos:definition "The actual intermediate SubjectStage named by this selected StageRestorationReading, distinct from its source stage and not an asserted intended result."@x-gmeow-english ;
+    skos:scopeNote "Exactly one intermediate stage belongs to the account. Its actual bearer is retained without requiring all restorations to change bearer or merging stages that share one."@x-gmeow-english ;
+    skos:example "An in-progress stage reading selects this account’s exact intermediate stage and its explicitly ongoing actual Event."@x-gmeow-english ;
+    gmeow:useWhen "Use for an existing realized intermediate stage supplied by the actual restoration account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the intended future prospect, the source stage itself or another account’s intermediate stage."@x-gmeow-english ;
+    gmeow:howToUse "Link the distinct actual stage and require its positive membership in the selected restorationLineage. The linked in-progress reading must use this same stage, account, explicit event progress and vantage set."@x-gmeow-english ;
+    logic:domain gmeow:StageRestorationReading ;
+    logic:range gmeow:SubjectStage .
+
+gmeow:restorationIntendedProspect
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restoration intended stage prospect"@x-gmeow-english ;
+    skos:definition "The one SubjectStageProspect named as intended output by this selected StageRestorationReading, without asserting an actual generated stage or bearer."@x-gmeow-english ;
+    skos:scopeNote "Intended output remains descriptive even while the actual Event is underway or completed. Event completion does not establish realization, goal satisfaction or continuity."@x-gmeow-english ;
+    skos:example "An awaited reading selects this same prospect and retains its actual pursuits without inventing a future bearer."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual intended prospective-stage binding in the attributed account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an actual output stage, generated entity, substituted bearer or prospect borrowed from another account."@x-gmeow-english ;
+    gmeow:howToUse "Bind the actual prospect and its positive prospectOfLineage membership in the account’s selected lineage. A linked awaited reading must observe this exact prospect and retain its actual goal and motive bindings."@x-gmeow-english ;
+    logic:domain gmeow:StageRestorationReading ;
+    logic:range gmeow:SubjectStageProspect .
+
+gmeow:restorationLineage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected restoration lineage"@x-gmeow-english ;
+    skos:definition "The one actual SubjectLineage selected as the common positive membership witness for this restoration account’s source, intermediate and intended prospect."@x-gmeow-english ;
+    skos:scopeNote "The single witness belongs to this account. It does not forbid additional global memberships or impose same-lineage behavior on arbitrary transformations."@x-gmeow-english ;
+    skos:example "All three supplied roles have the selected positive membership while other source-supported lineage claims remain retained."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual common witness selected by this same-lineage restoration interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid missing witnesses, equality-only validation, a global lineage maximum or borrowing another account’s lineage."@x-gmeow-english ;
+    gmeow:howToUse "Require exact positive stageOfLineage links from the source and intermediate and prospectOfLineage from the intended description to this bound witness. Match a linked status reading’s selected lineage without changing other memberships."@x-gmeow-english ;
+    logic:domain gmeow:StageRestorationReading ;
+    logic:range gmeow:SubjectLineage .
+
+gmeow:restorationEventProgress
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected restoration event progress"@x-gmeow-english ;
+    skos:definition "The one actual EventProgressReading selected by this StageRestorationReading, directly observing its exact actual Event."@x-gmeow-english ;
+    skos:scopeNote "Account and progress reading have the same actual vantage set without a cap. A linked in-progress stage requires eventInProgress on this exact record, not another record about the Event."@x-gmeow-english ;
+    skos:example "The selected account and intermediate-stage reading reference the same explicit ongoing-event progress report."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual progress record selected as part of this attributed restoration account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid another Event, another account or frame, a borrowed description realization, or inferring progress from commitment or missing end data."@x-gmeow-english ;
+    gmeow:howToUse "Select one actual EventProgressReading whose observedFeature is exactly the account’s Event. Match vantage membership in both directions and require eventInProgress when a linked stage is in progress; infer no success or continuity verdict."@x-gmeow-english ;
+    logic:domain gmeow:StageRestorationReading ;
+    logic:range gmeow:EventProgressReading .
+
+gmeow:SubjectStageProspect logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:prospectOfLineage ;
+        logic:allValuesFrom gmeow:SubjectLineage ] .
+
+gmeow:StageStatusReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:allValuesFrom [ logic:unionOf ( gmeow:SubjectStage gmeow:SubjectStageProspect ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ;
+        logic:allValuesFrom gmeow:StageStatus ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ;
+        logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStatusLineage ;
+        logic:allValuesFrom gmeow:SubjectLineage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStatusLineage ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStatusRealization ;
+        logic:allValuesFrom gmeow:SubjectStage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStatusRealization ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stagePursuit ;
+        logic:allValuesFrom [ logic:unionOf ( gmeow:Intention gmeow:Commitment ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageRestorationReading ;
+        logic:allValuesFrom gmeow:StageRestorationReading ],
+    [ a logic:Restriction ; logic:onProperty gmeow:stageRestorationReading ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:StageRestorationReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:allValuesFrom gmeow:Event ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ;
+        logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationSourceStage ;
+        logic:allValuesFrom gmeow:SubjectStage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationSourceStage ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationIntermediateStage ;
+        logic:allValuesFrom gmeow:SubjectStage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationIntermediateStage ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationIntendedProspect ;
+        logic:allValuesFrom gmeow:SubjectStageProspect ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationIntendedProspect ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationLineage ;
+        logic:allValuesFrom gmeow:SubjectLineage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationLineage ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationEventProgress ;
+        logic:allValuesFrom gmeow:EventProgressReading ],
+    [ a logic:Restriction ; logic:onProperty gmeow:restorationEventProgress ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:SubjectStageProspect ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/prospectOfLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageStatusReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageStatusReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageStatusReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageStatusReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/stageStatusLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationSourceStage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:StageRestorationReading ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationEventProgress" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/prospectOfLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/stageStatusLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/stageStatusRealization" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/stagePursuit" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/goalStageProspect" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/stageRestorationReading" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationSourceStage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationLineage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/restorationEventProgress" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/assessmentToStage" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:StageStatusBindingsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "stage-status bindings constraint"@x-gmeow-english ;
+    skos:definition "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."@x-gmeow-english ;
+    skos:scopeNote "The twenty-six independent guards check intrinsic associations without a pursuit or vantage cap. Source truth, current holding of commitment, realization authenticity and successful restoration remain separate evidence obligations."@x-gmeow-english ;
+    skos:example "An intermediate reading cannot borrow another account’s stage or ongoing-event report; an awaited reading cannot omit its actual pursuits and matching goals."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate every selected stage-status branch, supplied optional role and positively witnessed lineage/account association."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid vacuous equality-only checks, arbitrary frame joins, missing-field defaults, capped joint pursuits or a semantic continuity certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply each focused positive guard to the same reading and exact supplied roles. Require atomic presence witnesses and positive membership links, check every pursuit/Goal/motive, and match selected account/progress identities and vantage membership in both directions without a clock or latest selector."@x-gmeow-english ;
+    logic:formalizes gmeow:StageStatusReading, gmeow:stageStatusLineage, gmeow:stageStatusRealization, gmeow:stagePursuit, gmeow:goalStageProspect, gmeow:stageRestorationReading ;
+    logic:severity "Violation" ;
+    logic:message "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "statusReading" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:StageStatusReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S01Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S01Prospect" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S01Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ],
+                [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ] ;
+                    logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S02ForbiddenRealization" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S02ForbiddenRealization" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S03Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageEnded ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S03Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S03Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S03Realization" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S03Realization" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S04Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageCurrent ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S04Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S04Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S04Realization" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S04Realization" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S05Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S05Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S05Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S05Realization" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S05Realization" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S06Stage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S06Stage" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S06Stage" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStage ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S06RedundantRealization" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S06RedundantRealization" ] ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S07Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S07Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S07Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S07ForbiddenBearer" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:stageBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S07Prospect" ], [ logic:termIndex 1 ; logic:termVariable "S07ForbiddenBearer" ] ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S08Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S08Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S08Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S08ForbiddenEpoch" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:duringInterval ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S08Prospect" ], [ logic:termIndex 1 ; logic:termVariable "S08ForbiddenEpoch" ] ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S09Stage" ], [ logic:termIndex 1 ; logic:termVariable "S09Lineage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S09Stage" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S09Stage" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStage ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S09Lineage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:stageOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S09Stage" ], [ logic:termIndex 1 ; logic:termVariable "S09Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S10Prospect" ], [ logic:termIndex 1 ; logic:termVariable "S10Lineage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S10Prospect" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S10Prospect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S10Lineage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:prospectOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S10Prospect" ], [ logic:termIndex 1 ; logic:termVariable "S10Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S11Stage" ], [ logic:termIndex 1 ; logic:termVariable "S11Lineage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S11Stage" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S11Lineage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:stageOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S11Stage" ], [ logic:termIndex 1 ; logic:termVariable "S11Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ] ;
+                    logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S12Pursuit" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S12Pursuit" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S13Pursuit" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S13Pursuit" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S14Pursuit" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S14Pursuit" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S14Goal" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S14Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S14Goal" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S15Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S15Goal" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S15Pursuit" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S15Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S15Goal" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S15Goal" ], [ logic:termIndex 1 ; logic:termIri gmeow:Goal ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S16Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S16Goal" ], [ logic:termIndex 2 ; logic:termVariable "S16Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S16Pursuit" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S16Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S16Goal" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S16Prospect" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:goalStageProspect ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S16Goal" ], [ logic:termIndex 1 ; logic:termVariable "S16Prospect" ] ] ] ],
+                [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ] ;
+                    logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S17Account" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S17Account" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S18Account" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S18Account" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:or
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S19Account" ], [ logic:termIndex 1 ; logic:termVariable "S19Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S19Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S19Prospect" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:restorationIntendedProspect ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S19Account" ], [ logic:termIndex 1 ; logic:termVariable "S19Prospect" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S20Account" ], [ logic:termIndex 1 ; logic:termVariable "S20Lineage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S20Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S20Lineage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:restorationLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S20Account" ], [ logic:termIndex 1 ; logic:termVariable "S20Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S21Account" ], [ logic:termIndex 1 ; logic:termVariable "S21Stage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S21Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S21Stage" ] ],
+                            [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S21Stage" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStage ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:restorationIntermediateStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S21Account" ], [ logic:termIndex 1 ; logic:termVariable "S21Stage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S22Account" ], [ logic:termIndex 1 ; logic:termVariable "S22Stage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S22Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stageStatusRealization ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S22Stage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:restorationIntermediateStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S22Account" ], [ logic:termIndex 1 ; logic:termVariable "S22Stage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S23Account" ], [ logic:termIndex 1 ; logic:termVariable "S23Progress" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S23Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageInProgress ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationEventProgress ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S23Account" ], [ logic:termIndex 1 ; logic:termVariable "S23Progress" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S23Progress" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventInProgress ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S24Account" ], [ logic:termIndex 1 ; logic:termVariable "S24Pursuit" ], [ logic:termIndex 2 ; logic:termVariable "S24Event" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S24Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:stageAwaited ] ],
+                            [ a logic:Formula ; logic:relation gmeow:stagePursuit ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S24Pursuit" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S24Account" ], [ logic:termIndex 1 ; logic:termVariable "S24Event" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:motivates ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S24Pursuit" ], [ logic:termIndex 1 ; logic:termVariable "S24Event" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S25Account" ], [ logic:termIndex 1 ; logic:termVariable "S25Vantage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S25Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S25Vantage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S25Account" ], [ logic:termIndex 1 ; logic:termVariable "S25Vantage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "S26Account" ], [ logic:termIndex 1 ; logic:termVariable "S26Vantage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:stageRestorationReading ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S26Account" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "S26Account" ], [ logic:termIndex 1 ; logic:termVariable "S26Vantage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statusReading" ], [ logic:termIndex 1 ; logic:termVariable "S26Vantage" ] ] ] ] ] ] ] .
+
+gmeow:StageRestorationBindingsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "stage restoration bindings constraint"@x-gmeow-english ;
+    skos:definition "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."@x-gmeow-english ;
+    skos:scopeNote "The seven guards constrain this selected account, not every transformation or every global lineage claim. Progress and shared bearer identity imply no stage merge, goal success or continuity verdict."@x-gmeow-english ;
+    skos:example "Additional legitimate lineage memberships coexist while the account’s exact selected witness must appear positively on all three stage roles."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the selected same-lineage account and its actual event-progress record without mixing competing interpretations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid missing witnesses, another account’s endpoints or frame, an intended prospect treated as an actual result, or a global same-lineage invariant."@x-gmeow-english ;
+    gmeow:howToUse "Require exact positive source/intermediate/prospect membership in the bound restorationLineage, distinct source/intermediate terms, the same actual Event on the selected progress reading and bidirectional actual vantage membership. Keep all probes bound to that one account."@x-gmeow-english ;
+    logic:formalizes gmeow:StageRestorationReading, gmeow:restorationSourceStage, gmeow:restorationIntermediateStage, gmeow:restorationIntendedProspect, gmeow:restorationLineage, gmeow:restorationEventProgress ;
+    logic:severity "Violation" ;
+    logic:message "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "restorationReading" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termIri gmeow:StageRestorationReading ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R01Lineage" ], [ logic:termIndex 1 ; logic:termVariable "R01Source" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R01Lineage" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationSourceStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R01Source" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:stageOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R01Source" ], [ logic:termIndex 1 ; logic:termVariable "R01Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R02Lineage" ], [ logic:termIndex 1 ; logic:termVariable "R02Intermediate" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R02Lineage" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationIntermediateStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R02Intermediate" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:stageOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R02Intermediate" ], [ logic:termIndex 1 ; logic:termVariable "R02Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R03Lineage" ], [ logic:termIndex 1 ; logic:termVariable "R03Prospect" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R03Lineage" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationIntendedProspect ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R03Prospect" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:prospectOfLineage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R03Prospect" ], [ logic:termIndex 1 ; logic:termVariable "R03Lineage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R04Source" ], [ logic:termIndex 1 ; logic:termVariable "R04Intermediate" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationSourceStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R04Source" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationIntermediateStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R04Intermediate" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R04Source" ], [ logic:termIndex 1 ; logic:termVariable "R04Intermediate" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R05Event" ], [ logic:termIndex 1 ; logic:termVariable "R05Progress" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R05Event" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:restorationEventProgress ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R05Progress" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R05Progress" ], [ logic:termIndex 1 ; logic:termVariable "R05Event" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R06Progress" ], [ logic:termIndex 1 ; logic:termVariable "R06Vantage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationEventProgress ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R06Progress" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R06Vantage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R06Progress" ], [ logic:termIndex 1 ; logic:termVariable "R06Vantage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "R07Progress" ], [ logic:termIndex 1 ; logic:termVariable "R07Vantage" ] ;
+                    logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:restorationEventProgress ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R07Progress" ] ],
+                            [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "R07Progress" ], [ logic:termIndex 1 ; logic:termVariable "R07Vantage" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "restorationReading" ], [ logic:termIndex 1 ; logic:termVariable "R07Vantage" ] ] ] ] ] ] ] .
+
+gmeow:ProspectiveContinuityTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "prospective continuity target rejection"@x-gmeow-english ;
+    skos:definition "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."@x-gmeow-english ;
+    skos:scopeNote "This directly guarded prohibition preserves actual continuity verdicts and historical awaited readings. It selects no latest status, accepted viewpoint or provisional fourth verdict."@x-gmeow-english ;
+    skos:example "A later assessment targets a distinct actual realization while its prospect retains an older awaited reading without a historical veto."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject an actual supplied continuity target that is prospective, even if dual typing attempts to satisfy the actual-stage range."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating absent realization as continuityDifferent, inventing a future bearer or blocking an actual stage because an old awaited description remains."@x-gmeow-english ;
+    gmeow:howToUse "Select each actual assessmentToStage link, bind both terms positively and reject a prospective target. Combine this with the closed SubjectStage endpoint and prospect disjointness without asserting source truth, accepted-status selection or runtime qualification."@x-gmeow-english ;
+    logic:formalizes gmeow:assessmentToStage, gmeow:SubjectStageProspect ;
+    logic:severity "Violation" ;
+    logic:message "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "continuityAssessment" ], [ logic:termIndex 1 ; logic:termVariable "targetProspect" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:assessmentToStage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "continuityAssessment" ], [ logic:termIndex 1 ; logic:termVariable "targetProspect" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "targetProspect" ], [ logic:termIndex 1 ; logic:termIri gmeow:SubjectStageProspect ] ] ] ] ] .

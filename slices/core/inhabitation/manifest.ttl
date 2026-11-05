@@ -22,5 +22,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
+        <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
         <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     gmeow:sliceConsumer "The AI-agent / MCP audience (Principle 15): a durable subject inhabiting a served model, with memory and claims — who persists across model upgrades, host migrations, sessions, personas, and embodiments; and the cross-domain spiritual / fictional / legal profiles modelled frame-relatively as siblings."@x-gmeow-english .

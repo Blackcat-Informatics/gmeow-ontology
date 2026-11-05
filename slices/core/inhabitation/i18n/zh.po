@@ -180,3 +180,631 @@ msgstr "范围：该记录仅承载关于 gmeow:inhabitedHost 的一项完整性
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:InhabitationTenure and nothing else. It is not a definition of gmeow:InhabitationTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:InhabitationTenure 的一项完整性义务，别无其他。它不是 gmeow:InhabitationTenure 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospective subject stage description"
+msgstr "主体阶段前瞻描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An InformationObject describing a prospective position in a SubjectLineage without asserting a realized SubjectStage, bearer or epoch."
+msgstr "描述 SubjectLineage 中前瞻位置的 InformationObject，不由此断言已实现的 SubjectStage、承载者或时期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The description is disjoint from SubjectStage and may retain several actual lineage memberships. Its existence alone establishes neither realization nor committed anticipation."
+msgstr "此描述与 SubjectStage 不相交，可保留多个实际谱系归属。描述的存在本身既不确立实现，也不确立带有承诺的预期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "A future lineage position remains described while one frame awaits it and another reports a separate actual realization."
+msgstr "一个未来谱系位置持续保有描述；某框架将其视为待实现，另一框架则报告一个独立的实际实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source description of a prospective stage whose bearer or realized epoch must not be invented."
+msgstr "用于来源实际描述的前瞻阶段，且不得编造其承载者或已实现时期时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a prospective description as a realized stage or treating missing bearer, interval or evidence as an awaited status."
+msgstr "避免将前瞻描述归为已实现阶段，或将承载者、区间及证据缺失视为待实现状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubjectStageProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its actual prospectOfLineage memberships. Put status and any separate actual realization on attributed StageStatusReadings; keep bearer and epoch slots off the description."
+msgstr "保留其实际 prospectOfLineage 归属。通过具有归属的 StageStatusReading 记录状态及独立的实际实现；描述本身不带承载者或时期槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage status reading"
+msgstr "主体阶段状态读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation of one closed StageStatus for an actual SubjectStage or SubjectStageProspect, with one selected lineage witness and actual single or joint vantages."
+msgstr "具有归属的 Observation，为实际 SubjectStage 或 SubjectStageProspect 记录一个封闭 StageStatus 值、一个所选谱系见证及实际单一或联合视点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Feature, result and selected lineage each have one value; vantages and actual awaited pursuits have no cap. Readings coexist without a global status, preferred frame or latest-reading rule."
+msgstr "观测对象、结果及所选谱系各有一个值；视点及待实现状态的实际追求不设数量上限。读数可共存，不产生全局状态、优先框架或最新读数规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two actual frames hold different statuses for the same prospect while preserving their selected lineage and realization evidence separately."
+msgstr "两个实际框架对同一前瞻描述持有不同状态，并分别保留所选谱系及实现证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source-held ended, current, intermediate in-progress or committed awaited stage status."
+msgstr "用于来源明确持有的阶段状态：已结束、当前、中间进行中，或带承诺的待实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving status from missing fields, a global now, shared bearer identity or an unrelated account’s event progress."
+msgstr "避免根据字段缺失、全局当前时刻、共同承载者身份或无关叙述中的事件进度推导状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature, observationResult, stageStatusLineage and every actual vantage. Retain required pursuit, realization and selected restoration bindings under their conditional laws without inventing source evidence."
+msgstr "绑定 observedFeature、observationResult、stageStatusLineage 及各实际 vantage。按条件法则保留必需的追求、实现和所选恢复叙述绑定，不编造来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage status"
+msgstr "主体阶段状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed four-value stage-status vocabulary stageEnded, stageCurrent, stageInProgress and stageAwaited carried by a StageStatusReading."
+msgstr "由 StageStatusReading 承载的封闭四值阶段状态词表，包含 stageEnded、stageCurrent、stageInProgress 和 stageAwaited。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Status is a frame-relative quality value, distinct from confidence, event progress and continuity verdict. A fifth value cannot bypass conditional stage obligations."
+msgstr "状态是相对于框架的性质值，与置信度、事件进度及连续性判定不同。第五个值不能绕过阶段的条件要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicit awaited reading uses stageAwaited; an incomplete record supplies no default status."
+msgstr "明确的待实现读数使用 stageAwaited；不完整记录不提供任何默认状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the reviewed observationResult vocabulary of StageStatusReading."
+msgstr "用作 StageStatusReading 经审定的 observationResult 词表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extension statuses, status subclasses of bearers, ordering the values on a global timeline or selecting a preferred frame."
+msgstr "避免扩展状态、按状态建立承载者子类、按全局时间线排列这些值，或选定优先框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose exactly one named member per reading and retain all actual vantages. Keep coexisting readings and historical evidence rather than mutating a stage’s global status."
+msgstr "每个读数选择恰好一个具名成员，并保留所有实际视点。保留共存读数和历史证据，而不修改阶段的全局状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ended subject stage"
+msgstr "已结束主体阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting that an actual realized subject stage has ended within the reading’s supplied frame."
+msgstr "报告实际已实现主体阶段在读数提供的框架下已经结束的阶段状态值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ending the stage does not delete it, suppress it or independently prove its bearer’s death. An ended prospect reading still requires a separate actual realization."
+msgstr "阶段结束不会删除或隐藏该阶段，也不独立证明承载者死亡。若前瞻描述被读为已结束，仍须提供独立的实际实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source retains an ended original stage and its bearer while a different intermediate stage is reported in progress."
+msgstr "来源保留已结束的原始阶段及承载者，同时报告另一个中间阶段正在进行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports a realized stage’s ending in its frame."
+msgstr "用于来源明确报告已实现阶段在其框架下结束时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ending from silence, missing intervals, suppression or a continuity verdict."
+msgstr "避免从沉默、区间缺失、隐藏或连续性判定推断结束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageEnded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain stageEnded on the attributed reading with its selected lineage and actual stage or prospect realization. Preserve actual bearer and temporal evidence separately."
+msgstr "在具有归属的读数上保留 stageEnded、所选谱系及实际阶段或前瞻描述的实现；另行保留实际承载者和时间证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "current subject stage"
+msgstr "当前主体阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting the realized stage held current in the reading’s actual frame, without an absolute present."
+msgstr "报告在读数实际框架下被视为当前的已实现阶段的状态值，不设绝对当前时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Another frame may hold a different status for the same prospect. Current does not select the latest timestamp or imply continuity with another stage."
+msgstr "另一框架可对同一前瞻描述持有不同状态。当前状态不选择最新时间戳，也不暗示与另一阶段连续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|http://www.w3.org/2004/02/skos/core#example"
+msgid "One frame reports a prospect’s actual realization as current while another still awaits that prospect."
+msgstr "一个框架将某前瞻描述的实际实现报告为当前，另一框架仍将该描述视为待实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit current-stage report with actual realization and lineage evidence."
+msgstr "用于具有实际实现和谱系证据的明确当前阶段报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving current status from timestamps, global now, absent ending or a shared bearer."
+msgstr "避免根据时间戳、全局当前时刻、结束信息缺失或共同承载者推导当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCurrent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use stageCurrent on the source-held reading; select an actual realization only for a prospect feature. Keep actual joint vantages and independent historical readings."
+msgstr "在来源持有的读数中使用 stageCurrent；仅对前瞻观测对象选择实际实现，并保留实际联合视点及独立历史读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intermediate subject stage in progress"
+msgstr "进行中主体中间阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value for an actual intermediate stage in the selected restoration account whose same actual Event is explicitly reported in progress."
+msgstr "所选恢复叙述中的实际中间阶段状态值；该叙述的同一实际 Event 须被明确报告为进行中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The intermediate is a realized stage, not the intended result. Its reading selects the same account, lineage, actual event-progress record and matching actual vantage set."
+msgstr "中间阶段是已实现阶段，而非预期结果。其读数选择同一叙述、谱系、实际事件进度记录及一致的实际视点集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "A restoration’s existing intermediate bearer remains distinct from the awaited future position."
+msgstr "恢复过程现有的中间承载者仍与待实现的未来位置相区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when actual source evidence identifies the intermediate stage and the selected account’s explicitly ongoing Event."
+msgstr "用于实际来源证据识别出中间阶段，以及所选叙述中明确进行中的 Event 时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring progress from an open commitment, missing latestEnd, another event or another account’s progress reading."
+msgstr "避免从开放承诺、缺失的 latestEnd、另一事件或另一叙述的进度读数推断进行中状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageInProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the actual stage or its prospect realization, the exact stageRestorationReading and its intermediate role. Require that account’s selected progress reading to report eventInProgress for the same actual Event."
+msgstr "选择实际阶段或其前瞻描述的实现、确切的 stageRestorationReading 及其中间阶段角色。要求该叙述所选进度读数为同一实际 Event 报告 eventInProgress。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited subject stage"
+msgstr "待实现主体阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stage-status value reporting a prospect as anticipated and committed to through actual Intention or social Commitment pursuits under the reading’s supplied frame."
+msgstr "报告前瞻描述在读数提供的框架下被预期、且通过实际 Intention 或社会 Commitment 予以承诺追求的阶段状态值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one actual pursuit and its actual Goal target are required; all supplied pursuits are checked without a cap. The reading has no stageStatusRealization, and its prospect has no bearer or epoch slot."
+msgstr "至少需要一个实际追求及其实际 Goal 目标；所有提供的追求均须校验，数量不设上限。读数不带 stageStatusRealization，其前瞻描述也不带承载者或时期槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source commits to a future lineage position while retaining an ongoing restoration and no realized future bearer."
+msgstr "来源承诺追求一个未来谱系位置，同时保留进行中的恢复过程，但不提供已实现的未来承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual source-held committed anticipation, rather than mere Desire, a plan or incomplete realization evidence."
+msgstr "用于来源实际持有的带承诺预期，而非单纯 Desire、计划或不完整实现证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an agent, beneficiary, goal, epoch or active pursuit, or treating historical adoption and missing abandonment as current commitment."
+msgstr "避免编造代理者、受益者、目标、时期或活跃追求，也不得将历史采纳及缺少放弃记录视为当前承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageAwaited|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Observe the prospect and bind each actual pursuit through stagePursuit and its intentionGoal to that same prospect through goalStageProspect. If an account is supplied, retain its exact intended prospect, motive, lineage and matching actual vantages."
+msgstr "观测前瞻描述，通过 stagePursuit 绑定各实际追求，并以其 intentionGoal 经 goalStageProspect 指向同一描述。若提供叙述，须保留其确切预期描述、动机、谱系及一致的实际视点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subject stage restoration reading"
+msgstr "主体阶段恢复读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation of one actual restoration Event retaining its distinct actual source and intermediate stages, intended prospect, selected shared lineage and explicit event-progress reading."
+msgstr "对一个实际恢复 Event 的具有归属的 Observation，保留不同的实际来源阶段和中间阶段、预期前瞻描述、所选共同谱系及明确事件进度读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selected same-lineage account has one value for each required role and uncapped actual vantages. It does not place rival accounts’ endpoints on global Event slots or assert a generated future stage."
+msgstr "此选定的同谱系叙述对各必需角色各有一个值，实际视点不设上限。它不会将竞争叙述的端点置于 Event 的全局槽，也不断言已生成的未来阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "One account identifies the original stage, an existing intermediate stage and an awaited intended prospect while its actual Event remains underway."
+msgstr "一个叙述识别原始阶段、现有中间阶段及待实现的预期前瞻描述，而其实际 Event 仍在进行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual attributed restoration interpretation with supplied source, intermediate, intended, lineage and progress bindings."
+msgstr "用于实际具有归属、并提供来源阶段、中间阶段、预期目标、谱系及进度绑定的恢复解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging accounts, inventing a restoration EventType, treating intended output as generation or imposing this same-lineage profile on arbitrary transformations."
+msgstr "避免合并叙述、编造恢复 EventType、将预期输出视为生成，或将此同谱系配置施加于任意变换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Observe the exact actual Event and retain all five account roles and actual vantages. Require positive membership of each stage role in the selected lineage and match the selected progress reading’s Event and complete vantage set."
+msgstr "观测确切的实际 Event，保留五项叙述角色及实际视点。要求各阶段角色明确归属于所选谱系，并使所选进度读数的 Event 及完整视点集合相匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospect of lineage"
+msgstr "前瞻描述所属谱系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual SubjectLineage membership retained for a SubjectStageProspect without asserting a realized stage or shared bearer."
+msgstr "为 SubjectStageProspect 保留的实际 SubjectLineage 归属，不由此断言已实现阶段或共同承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "At least one membership is required on a prospect, with no maximum. Selected readings name their own positive witness without forbidding other legitimate memberships."
+msgstr "前瞻描述至少须有一个归属，数量无上限。所选读数指明自身的明确见证，不禁止其他合法归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A prospect retains two source-supported memberships while a restoration account explicitly selects one of those actual lineages."
+msgstr "前瞻描述保留两个有来源支持的归属，而恢复叙述明确选择其中一个实际谱系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to group an actual prospective description in its supplied lineage without changing stageOfLineage on realized stages."
+msgstr "用于将实际前瞻描述归入所提供的谱系，不改变已实现阶段上的 stageOfLineage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an invented lineage, a global single-lineage rule or treating membership as realization or continuitySame."
+msgstr "避免编造谱系、设定全局唯一谱系规则，或将归属视为实现或 continuitySame。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prospectOfLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every actual supplied membership. A status or restoration reading selects one lineage and requires that exact positive membership; other memberships remain intact."
+msgstr "保留所有实际提供的归属。状态或恢复读数选择一个谱系，并要求存在确切的明确归属；其他归属保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected stage-status lineage"
+msgstr "阶段状态所选谱系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual SubjectLineage selected as the positive membership witness by this StageStatusReading."
+msgstr "此 StageStatusReading 选定的、用作明确归属见证的唯一实际 SubjectLineage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This local single witness does not make the feature’s global lineage membership functional. Actual feature, prospect and supplied realization must carry its exact membership."
+msgstr "此局部唯一见证不会使观测对象的全局谱系归属成为函数式关系。实际观测对象、前瞻描述及提供的实现均须具有对此谱系的确切归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading selects one supported lineage while retaining another account’s distinct lineage claim."
+msgstr "读数选择一个有支持的谱系，同时保留另一叙述中不同的谱系声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual lineage witness selected by a stage-status interpretation."
+msgstr "用于阶段状态解释实际选定的谱系见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting absent membership through equality-only checks or constraining every global stage membership to this witness."
+msgstr "避免仅通过相等性检查接受缺失归属，或要求阶段的所有全局归属都等于此见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind one actual lineage and require stageOfLineage on an actual feature or realization and prospectOfLineage on a prospective feature with that same bound value."
+msgstr "绑定一个实际谱系，并要求实际观测对象或实现通过 stageOfLineage、前瞻观测对象通过 prospectOfLineage 关联同一已绑定值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage-status realization"
+msgstr "阶段状态实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual SubjectStage selected as the realization of the prospect observed by a nonawaited StageStatusReading."
+msgstr "由非待实现 StageStatusReading 为其所观测前瞻描述选定的实际 SubjectStage 实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional generally and at most one per reading, but required for ended/current/in-progress prospect readings. Awaited and direct actual-stage readings forbid this slot, including a redundant self-link."
+msgstr "此角色通常可选，每个读数至多一个值；但已结束、当前及进行中的前瞻描述读数必须提供。待实现读数及直接实际阶段读数禁止此槽，包括冗余的自身链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later reading names an actual realization while an older awaited reading remains unchanged on the same prospect."
+msgstr "后续读数指明实际实现，而同一前瞻描述的较早待实现读数保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source supplies an actual realized stage for the prospective feature under this reading."
+msgstr "仅用于来源按此读数为前瞻观测对象提供实际已实现阶段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a placeholder bearer, a realized-stage feature, an awaited reading, invented epoch evidence or automatic retirement of historical anticipation."
+msgstr "避免占位承载者、已实现阶段观测对象、待实现读数、编造的时期证据，或自动撤销历史预期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageStatusRealization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual stage and require its stageOfLineage to match the reading’s selected positive witness. Retain the prospect and actual bearer/epoch evidence separately without merging their identities."
+msgstr "关联实际阶段，要求其 stageOfLineage 与读数选定的明确见证相符。分别保留前瞻描述及实际承载者和时期证据，不合并身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awaited-stage pursuit"
+msgstr "待实现阶段追求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Intention or social Commitment that this awaited StageStatusReading reports held toward its prospective stage."
+msgstr "此待实现 StageStatusReading 报告为实际持有、且指向其前瞻阶段的 Intention 或社会 Commitment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Awaited status requires at least one actual pursuit, with no maximum. Every supplied pursuit, Goal and selected-account motive is checked; Desire alone is insufficient."
+msgstr "待实现状态至少要求一个实际追求，数量无上限。所有提供的追求、Goal 及所选叙述动机均须校验；单纯 Desire 不足以满足要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Joint source evidence retains several actual intentions directed through their actual goals to the same prospective stage."
+msgstr "联合来源证据保留多个实际意向，它们通过各自实际目标指向同一前瞻阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for actual source-held committed anticipation with the existing Intention or social Commitment meaning."
+msgstr "用于来源实际持有、且符合现有 Intention 或社会 Commitment 含义的带承诺预期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing beneficiaries or bearers, treating an open tenure as proof of current pursuit, or attaching this awaited role to another stage status."
+msgstr "避免编造受益者或承载者、将开放存续期视为当前追求的证明，或将此待实现专用角色附于其他阶段状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stagePursuit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain every supplied actual pursuit and require its actual intentionGoal to be a Goal targeting this same prospect through goalStageProspect. A selected account also requires that pursuit to motivate its exact actual Event."
+msgstr "保留各实际提供的追求，要求其实际 intentionGoal 为 Goal，并通过 goalStageProspect 指向同一前瞻描述。若选择叙述，还要求该追求激励其确切实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "goal stage prospect"
+msgstr "目标所指阶段前瞻描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual SubjectStageProspect that this supplied Goal seeks to have realized, without asserting satisfaction or an existing future bearer."
+msgstr "此提供的 Goal 希望实现的实际 SubjectStageProspect，不由此断言目标达成或未来承载者已经存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional and required only through the selected awaited-reading bindings, not on every Goal. Other supported goal/prospect relations remain intact."
+msgstr "此关系非函数式，只由所选待实现读数绑定要求，并非每个 Goal 都必须提供。其他有支持的目标与前瞻描述关系保持不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied goal names the same intended prospect as its actual pursuit’s awaited reading."
+msgstr "提供的目标与其实际追求的待实现读数指向同一预期前瞻描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-supplied goal-to-prospect relation in committed stage anticipation."
+msgstr "用于带承诺阶段预期中，来源实际提供的目标与前瞻描述关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfiedBy, a realized output, an invented Goal or inferring the goal’s content from a stage label."
+msgstr "避免以 satisfiedBy、已实现输出或编造的 Goal 替代，也不得从阶段标签推断目标内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/goalStageProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Goal to the same observed prospect retained by the awaited reading. Keep pursuit, motive, source and viewpoint evidence without claiming execution or success."
+msgstr "将实际 Goal 关联到待实现读数保留的同一前瞻观测对象。保留追求、动机、来源及视点证据，不声称执行或成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected stage restoration account"
+msgstr "所选阶段恢复叙述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual StageRestorationReading selected by an awaited or in-progress StageStatusReading."
+msgstr "由待实现或进行中 StageStatusReading 选定的唯一实际 StageRestorationReading。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role is optional for awaited status, required for in-progress status and forbidden for current/ended status. It has at most one account; actual joint vantage sets match in both directions."
+msgstr "此角色对待实现状态可选，对进行中状态必需，对当前及已结束状态禁止。至多选择一个叙述，实际联合视点集合须双向匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "The intermediate reading and awaited reading explicitly select the same supplied account rather than joining arbitrary records about its Event."
+msgstr "中间阶段读数和待实现读数明确选择同一提供的叙述，而非拼接关于其 Event 的任意记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the exact attributed account supporting the selected intermediate or awaited interpretation."
+msgstr "用于保留支持所选中间阶段或待实现解释的确切归属叙述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid borrowing another account’s endpoints, progress or frame, or placing a meaningless optional link on current/ended readings."
+msgstr "避免借用另一叙述的端点、进度或框架，也不得在当前及已结束读数上放置无明确含义的可选链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageRestorationReading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the exact account and require the same lineage and complete actual vantage set. Match its intermediate stage for in-progress status, or its intended prospect and actual motive for awaited status."
+msgstr "选择确切叙述，并要求同一谱系及完整实际视点集合。进行中状态须匹配其中间阶段；待实现状态须匹配其预期前瞻描述及实际动机。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration source stage"
+msgstr "恢复来源阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual source SubjectStage named by this selected StageRestorationReading."
+msgstr "此选定 StageRestorationReading 指明的实际来源 SubjectStage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one source stage belongs to this account and is distinct from its intermediate stage. Other accounts and global lineage claims remain separate."
+msgstr "此叙述恰有一个来源阶段，并与其中间阶段不同。其他叙述及全局谱系声明保持独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "An account retains an ended original stage as its actual source without replacing it with its bearer or a future description."
+msgstr "叙述以已结束的原始阶段为实际来源，不以其承载者或未来描述替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied actual source-stage binding of this attributed restoration account."
+msgstr "用于此具有归属的恢复叙述所提供的实际来源阶段绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a prospect, a bearer, a portal tenure or another account’s source stage."
+msgstr "避免指向前瞻描述、承载者、迁移存续期或另一叙述的来源阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationSourceStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind one actual SubjectStage and require stageOfLineage to contain the account’s selected restorationLineage witness. Preserve other memberships and source evidence."
+msgstr "绑定一个实际 SubjectStage，要求其 stageOfLineage 包含叙述选定的 restorationLineage 见证，并保留其他归属及来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration intermediate stage"
+msgstr "恢复中间阶段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual intermediate SubjectStage named by this selected StageRestorationReading, distinct from its source stage and not an asserted intended result."
+msgstr "此选定 StageRestorationReading 指明的实际中间 SubjectStage，与来源阶段不同，也不被断言为预期结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one intermediate stage belongs to the account. Its actual bearer is retained without requiring all restorations to change bearer or merging stages that share one."
+msgstr "叙述恰有一个中间阶段。保留其实际承载者，不要求所有恢复都更换承载者，也不合并共享承载者的阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|http://www.w3.org/2004/02/skos/core#example"
+msgid "An in-progress stage reading selects this account’s exact intermediate stage and its explicitly ongoing actual Event."
+msgstr "进行中阶段读数选择此叙述的确切中间阶段，以及其明确进行中的实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an existing realized intermediate stage supplied by the actual restoration account."
+msgstr "用于实际恢复叙述提供的、现有且已实现的中间阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the intended future prospect, the source stage itself or another account’s intermediate stage."
+msgstr "避免以预期未来前瞻描述、来源阶段本身或另一叙述的中间阶段替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntermediateStage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the distinct actual stage and require its positive membership in the selected restorationLineage. The linked in-progress reading must use this same stage, account, explicit event progress and vantage set."
+msgstr "关联不同的实际阶段，要求其明确归属于所选 restorationLineage。所关联的进行中读数须使用同一阶段、叙述、明确事件进度及视点集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restoration intended stage prospect"
+msgstr "恢复预期阶段前瞻描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one SubjectStageProspect named as intended output by this selected StageRestorationReading, without asserting an actual generated stage or bearer."
+msgstr "此选定 StageRestorationReading 指明的唯一预期输出 SubjectStageProspect，不由此断言实际生成的阶段或承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Intended output remains descriptive even while the actual Event is underway or completed. Event completion does not establish realization, goal satisfaction or continuity."
+msgstr "即使实际 Event 正在进行或已经完成，预期输出仍是描述。事件完成不确立实现、目标达成或连续性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|http://www.w3.org/2004/02/skos/core#example"
+msgid "An awaited reading selects this same prospect and retains its actual pursuits without inventing a future bearer."
+msgstr "待实现读数选择同一前瞻描述并保留实际追求，不编造未来承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual intended prospective-stage binding in the attributed account."
+msgstr "用于具有归属的叙述中实际提供的预期前瞻阶段绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an actual output stage, generated entity, substituted bearer or prospect borrowed from another account."
+msgstr "避免指向实际输出阶段、已生成实体、替代承载者或借自另一叙述的前瞻描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationIntendedProspect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual prospect and its positive prospectOfLineage membership in the account’s selected lineage. A linked awaited reading must observe this exact prospect and retain its actual goal and motive bindings."
+msgstr "绑定实际前瞻描述及其对叙述所选谱系的明确 prospectOfLineage 归属。相连的待实现读数须观测此确切描述，并保留实际目标及动机绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected restoration lineage"
+msgstr "所选恢复谱系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual SubjectLineage selected as the common positive membership witness for this restoration account’s source, intermediate and intended prospect."
+msgstr "为此恢复叙述的来源阶段、中间阶段及预期前瞻描述选定的唯一实际 SubjectLineage，作为共同明确归属见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The single witness belongs to this account. It does not forbid additional global memberships or impose same-lineage behavior on arbitrary transformations."
+msgstr "此唯一见证属于该叙述，不禁止额外全局归属，也不将同谱系行为施加于任意变换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|http://www.w3.org/2004/02/skos/core#example"
+msgid "All three supplied roles have the selected positive membership while other source-supported lineage claims remain retained."
+msgstr "三项提供的角色都明确归属于所选谱系，同时保留其他有来源支持的谱系声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual common witness selected by this same-lineage restoration interpretation."
+msgstr "用于此同谱系恢复解释实际选定的共同见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid missing witnesses, equality-only validation, a global lineage maximum or borrowing another account’s lineage."
+msgstr "避免见证缺失、仅做相等性校验、设置全局谱系数量上限，或借用另一叙述的谱系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationLineage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require exact positive stageOfLineage links from the source and intermediate and prospectOfLineage from the intended description to this bound witness. Match a linked status reading’s selected lineage without changing other memberships."
+msgstr "要求来源及中间阶段通过 stageOfLineage、预期描述通过 prospectOfLineage 明确关联此绑定见证。相连状态读数的所选谱系须匹配，其他归属不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected restoration event progress"
+msgstr "所选恢复事件进度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one actual EventProgressReading selected by this StageRestorationReading, directly observing its exact actual Event."
+msgstr "此 StageRestorationReading 选定的唯一实际 EventProgressReading，直接观测其确切实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Account and progress reading have the same actual vantage set without a cap. A linked in-progress stage requires eventInProgress on this exact record, not another record about the Event."
+msgstr "叙述与进度读数具有相同且无数量上限的实际视点集合。相连的进行中阶段要求此确切记录报告 eventInProgress，不能借用关于该 Event 的另一记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|http://www.w3.org/2004/02/skos/core#example"
+msgid "The selected account and intermediate-stage reading reference the same explicit ongoing-event progress report."
+msgstr "所选叙述与中间阶段读数引用同一明确的进行中事件进度报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual progress record selected as part of this attributed restoration account."
+msgstr "用于此具有归属的恢复叙述实际选定的进度记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid another Event, another account or frame, a borrowed description realization, or inferring progress from commitment or missing end data."
+msgstr "避免借用另一 Event、另一叙述或框架、描述的实现，也不得从承诺或结束数据缺失推断进度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restorationEventProgress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one actual EventProgressReading whose observedFeature is exactly the account’s Event. Match vantage membership in both directions and require eventInProgress when a linked stage is in progress; infer no success or continuity verdict."
+msgstr "选择一个实际 EventProgressReading，其 observedFeature 恰为叙述的 Event。双向匹配视点归属；若相连阶段为进行中，则要求 eventInProgress，不推断成功或连续性判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage-status bindings constraint"
+msgstr "阶段状态绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."
+msgstr "StageStatusReading 须保留所选明确谱系、条件性的实际实现、各实际待实现追求及匹配的 Goal，以及确切选定的恢复、进度和视点绑定；其前瞻观测对象不得带承载者或时期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The twenty-six independent guards check intrinsic associations without a pursuit or vantage cap. Source truth, current holding of commitment, realization authenticity and successful restoration remain separate evidence obligations."
+msgstr "二十六个独立守卫校验内在关联，不限制追求或视点数量。来源真实性、当前仍持有承诺、实现的真实性及恢复成功仍须独立证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "An intermediate reading cannot borrow another account’s stage or ongoing-event report; an awaited reading cannot omit its actual pursuits and matching goals."
+msgstr "中间阶段读数不能借用另一叙述的阶段或进行中事件报告；待实现读数不能省略其实际追求及匹配目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate every selected stage-status branch, supplied optional role and positively witnessed lineage/account association."
+msgstr "用于校验每个所选阶段状态分支、提供的可选角色，以及具有明确见证的谱系和叙述关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid vacuous equality-only checks, arbitrary frame joins, missing-field defaults, capped joint pursuits or a semantic continuity certificate."
+msgstr "避免仅做可空泛成立的相等性检查、任意拼接框架、为缺失字段设默认值、限制联合追求数量，或将其视为语义连续性证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply each focused positive guard to the same reading and exact supplied roles. Require atomic presence witnesses and positive membership links, check every pursuit/Goal/motive, and match selected account/progress identities and vantage membership in both directions without a clock or latest selector."
+msgstr "对同一读数及确切提供的角色应用各正向焦点守卫。要求原子的存在见证及明确归属链接，校验各追求、Goal 和动机，双向匹配所选叙述、进度身份及视点归属，不使用时钟或最新记录选择器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage restoration bindings constraint"
+msgstr "阶段恢复绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."
+msgstr "StageRestorationReading 须具有不同的来源阶段和中间阶段，明确且确切地归属于其所选谱系，预期前瞻描述也须具有同一归属；所选进度读数须在相同完整视点集合下观测其确切实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The seven guards constrain this selected account, not every transformation or every global lineage claim. Progress and shared bearer identity imply no stage merge, goal success or continuity verdict."
+msgstr "七个守卫约束此选定叙述，不约束所有变换或所有全局谱系声明。进度或共同承载者身份不会推导阶段合并、目标成功或连续性判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Additional legitimate lineage memberships coexist while the account’s exact selected witness must appear positively on all three stage roles."
+msgstr "额外合法谱系归属可以共存，但叙述确切选定的见证必须明确出现在三项阶段角色的归属中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the selected same-lineage account and its actual event-progress record without mixing competing interpretations."
+msgstr "用于校验所选同谱系叙述及其实际事件进度记录，不混合竞争解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid missing witnesses, another account’s endpoints or frame, an intended prospect treated as an actual result, or a global same-lineage invariant."
+msgstr "避免见证缺失、借用另一叙述的端点或框架、将预期前瞻描述视为实际结果，或设置全局同谱系不变量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require exact positive source/intermediate/prospect membership in the bound restorationLineage, distinct source/intermediate terms, the same actual Event on the selected progress reading and bidirectional actual vantage membership. Keep all probes bound to that one account."
+msgstr "要求来源阶段、中间阶段及前瞻描述明确且确切地归属于绑定的 restorationLineage，来源和中间阶段项不同，所选进度读数指向同一实际 Event，并双向匹配实际视点归属。所有探查均绑定于该同一叙述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prospective continuity target rejection"
+msgstr "前瞻连续性目标拒绝约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."
+msgstr "assessmentToStage 链接不得指向 SubjectStageProspect，包括同时被归为 SubjectStage 的前瞻描述；实际阶段端点准入另行必需。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This directly guarded prohibition preserves actual continuity verdicts and historical awaited readings. It selects no latest status, accepted viewpoint or provisional fourth verdict."
+msgstr "此直接带守卫的禁令保留实际连续性判定及历史待实现读数，不选择最新状态、认可视点或第四种暂定判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A later assessment targets a distinct actual realization while its prospect retains an older awaited reading without a historical veto."
+msgstr "后续评估指向不同的实际实现，其前瞻描述仍保留较早待实现读数，但不会形成历史否决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to reject an actual supplied continuity target that is prospective, even if dual typing attempts to satisfy the actual-stage range."
+msgstr "用于拒绝实际提供的前瞻连续性目标，即使其试图通过双重类型满足实际阶段值域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating absent realization as continuityDifferent, inventing a future bearer or blocking an actual stage because an old awaited description remains."
+msgstr "避免将实现缺失视为 continuityDifferent、编造未来承载者，或因旧待实现描述仍存在而阻止实际阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select each actual assessmentToStage link, bind both terms positively and reject a prospective target. Combine this with the closed SubjectStage endpoint and prospect disjointness without asserting source truth, accepted-status selection or runtime qualification."
+msgstr "选择各实际 assessmentToStage 链接，正向绑定两端项并拒绝前瞻目标。结合封闭 SubjectStage 端点及前瞻描述的不相交要求，不声称来源属实、已选择认可状态或已获得运行时验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageStatusBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A StageStatusReading retains its selected positive lineage, conditional actual realization, every actual awaited pursuit and matching Goal, and exact selected restoration, progress and vantage bindings, with no bearer or epoch on its prospective feature."
+msgstr "StageStatusReading 须保留所选明确谱系、条件性的实际实现、各实际待实现追求及匹配的 Goal，以及确切选定的恢复、进度和视点绑定；其前瞻观测对象不得带承载者或时期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageRestorationBindingsConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A StageRestorationReading has distinct source and intermediate stages with exact positive membership in its selected lineage, the same membership for its intended prospect, and a selected progress reading observing its exact actual Event under the same complete vantage set."
+msgstr "StageRestorationReading 须具有不同的来源阶段和中间阶段，明确且确切地归属于其所选谱系，预期前瞻描述也须具有同一归属；所选进度读数须在相同完整视点集合下观测其确切实际 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProspectiveContinuityTargetConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "No assessmentToStage link may target a SubjectStageProspect, including a prospect also typed as SubjectStage; actual-stage endpoint admission is required separately."
+msgstr "assessmentToStage 链接不得指向 SubjectStageProspect，包括同时被归为 SubjectStage 的前瞻描述；实际阶段端点准入另行必需。"
