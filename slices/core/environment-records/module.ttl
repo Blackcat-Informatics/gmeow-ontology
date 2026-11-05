@@ -3555,3 +3555,19 @@ gmeow:WorldObjectAffordancesDigestConstraint
     logic:message "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."@x-gmeow-english ;
     logic:formalizes gmeow:worldObjectAffordances ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "object" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:worldObjectAffordances ; logic:argument [ logic:termIndex 0 ; logic:termVariable "object" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+# Source-attributed cause of a recorded world change; open-world endpoints.
+
+gmeow:changeCausedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "change caused by"@x-gmeow-english ;
+    skos:definition "Links an Activity to an Agent to whom the source attributes the change recorded by that activity. The statement records source-attributed causal responsibility, not verified causality, the activity's performer, its envelope actor or its recorder."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional, with ordinary open-world Activity and Agent endpoint semantics. Several attributed agents and conflicting source accounts may coexist. Omission is unspecified; an opaque Agent reference need not already have an Agent type triple in the raw input."@x-gmeow-english ;
+    skos:example "A source attributes a recorded door-opening change to ex:visitor with ex:opening gmeow:changeCausedBy ex:visitor, while independently naming ex:operator as the activity's associated performer and ex:recorder as the recorder."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly attributes a recorded world change to an Agent, independently of who performed, reported or recorded the activity and of whom its envelope named."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a cause attribution from an envelope actor, wasAssociatedWith, wasAttributedTo, recorder identity, intention or a verified-causality assumption. Do not replace or equate those independent roles with this source claim."@x-gmeow-english ;
+    gmeow:howToUse "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Agent .

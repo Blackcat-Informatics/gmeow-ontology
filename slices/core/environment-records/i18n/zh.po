@@ -6110,3 +6110,31 @@ msgstr "检查每个 worldObjectAffordances 对象是否至少有一个来源提
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
 msgstr "worldObjectAffordances 选中的每个目录制品均带有来源提供的 contentDigest，用以标识其确切编码字节原像；既有摘要准入检查算法数据类型和词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "change caused by"
+msgstr "变化归因于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an Activity to an Agent to whom the source attributes the change recorded by that activity. The statement records source-attributed causal responsibility, not verified causality, the activity's performer, its envelope actor or its recorder."
+msgstr "将 Activity 关联到一个 Agent，源将该活动所记录的变化归因于该 Agent。该陈述记录源所归属的因果责任，并不证实因果关系，也不表示活动的执行者、其封装记录指定的行动者或记录者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional, with ordinary open-world Activity and Agent endpoint semantics. Several attributed agents and conflicting source accounts may coexist. Omission is unspecified; an opaque Agent reference need not already have an Agent type triple in the raw input."
+msgstr "该属性可不提供，且非函数性；Activity 和 Agent 两端采用通常的开放世界语义。多个被归因的智能体及相互矛盾的源记述可以并存。省略表示未指定；原始输入中不必预先存在将不透明 Agent 引用声明为 Agent 类型的三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source attributes a recorded door-opening change to ex:visitor with ex:opening gmeow:changeCausedBy ex:visitor, while independently naming ex:operator as the activity's associated performer and ex:recorder as the recorder."
+msgstr "源通过 ex:opening gmeow:changeCausedBy ex:visitor，将所记录的开门变化归因于 ex:visitor，同时独立指定 ex:operator 为该活动的关联执行者，ex:recorder 为记录者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly attributes a recorded world change to an Agent, independently of who performed, reported or recorded the activity and of whom its envelope named."
+msgstr "当源明确将所记录的世界变化归因于某个 Agent 时使用，独立于活动的执行者、报告者、记录者以及其封装记录指定的人物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a cause attribution from an envelope actor, wasAssociatedWith, wasAttributedTo, recorder identity, intention or a verified-causality assumption. Do not replace or equate those independent roles with this source claim."
+msgstr "避免根据封装记录中的行动者、wasAssociatedWith、wasAttributedTo、记录者身份、意图或对已证实因果关系的假设推断因果归属。不要用该源主张替换这些独立角色，也不要将它们等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."
+msgstr "从实际的 Activity 向每个明确提供的 Agent 引用断言 changeCausedBy。通过现有原生陈述元数据，在该条确切陈述上保留源和立场；保留独立提供的行动者及记录者主张，不覆盖它们，也不编造端点证据。"

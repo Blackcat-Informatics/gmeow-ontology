@@ -361,3 +361,27 @@ the existing Event and Entity endpoint sorts without requiring the property on
 every Event or changing existing event constraints. This is a source-reported
 conditional meaning, not execution of an attention policy (Principles 4, 9, 12
 and 17).
+
+## Source-attributed cause of a world change
+
+changeCausedBy links the actual Activity to an Agent to whom a source attributes
+the change recorded by that activity. For example, a source may attribute a
+door-opening change to a visitor while separately naming an operator as the
+associated performer and another agent as the recorder. These roles can
+coincide when the source supplies that evidence, but the cause link establishes
+no equality, inequality or actor override.
+
+The optional, nonfunctional relation retains ordinary open-world Activity and
+Agent domain/range semantics. An opaque Agent reference need not already have
+an Agent type triple in the raw input. Multiple attributed agents and conflicting
+source accounts may coexist; omission is unspecified. Preserve the source and
+standpoint through existing native metadata on the exact cause statement.
+
+This is source-attributed causal responsibility. It neither verifies causality
+nor establishes intention, recorder identity or the performer role carried by
+wasAssociatedWith. The Entity-domain wasAttributedTo relation independently
+assigns credit or responsibility for an enduring entity; it is not a substitute
+for the Activity cause relation. Retain actual actor and recorder claims
+independently rather than replacing them with a source attribution. No required
+cause, maximum, closure or runtime actor-rewriting operation is introduced
+(Principles 4, 7, 9, 12 and 17).

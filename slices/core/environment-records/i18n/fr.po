@@ -6110,3 +6110,31 @@ msgstr "Vérifier que chaque objet de worldObjectAffordances porte au moins un c
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldObjectAffordancesDigestConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every catalog artifact selected by worldObjectAffordances carries a supplied contentDigest identifying its exact encoded byte preimage; existing digest admission checks the algorithm datatype and lexical form."
 msgstr "Chaque artefact de catalogue sélectionné par worldObjectAffordances porte un contentDigest fourni qui identifie sa préimage exacte en octets encodés ; le contrôle existant des condensats vérifie le type de données de l’algorithme et la forme lexicale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "change caused by"
+msgstr "changement causé par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an Activity to an Agent to whom the source attributes the change recorded by that activity. The statement records source-attributed causal responsibility, not verified causality, the activity's performer, its envelope actor or its recorder."
+msgstr "Relie une Activity à un Agent auquel la source attribue le changement consigné par cette activité. L’énoncé rapporte une responsabilité causale attribuée par la source, sans établir une causalité vérifiée ni désigner l’exécutant de l’activité, l’acteur nommé dans son enveloppe ou l’agent qui l’a consignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional, with ordinary open-world Activity and Agent endpoint semantics. Several attributed agents and conflicting source accounts may coexist. Omission is unspecified; an opaque Agent reference need not already have an Agent type triple in the raw input."
+msgstr "Propriété facultative et non fonctionnelle, dont les extrémités Activity et Agent suivent la sémantique ordinaire du monde ouvert. Plusieurs agents auxquels le changement est attribué et des récits sources contradictoires peuvent coexister. L’absence ne précise rien ; une référence opaque à un Agent n’exige pas de triplet de type Agent déjà présent dans l’entrée brute."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source attributes a recorded door-opening change to ex:visitor with ex:opening gmeow:changeCausedBy ex:visitor, while independently naming ex:operator as the activity's associated performer and ex:recorder as the recorder."
+msgstr "Une source attribue à ex:visitor le changement consigné lors de l’ouverture d’une porte au moyen de ex:opening gmeow:changeCausedBy ex:visitor, tout en nommant indépendamment ex:operator comme exécutant associé à l’activité et ex:recorder comme agent ayant consigné le fait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly attributes a recorded world change to an Agent, independently of who performed, reported or recorded the activity and of whom its envelope named."
+msgstr "Utiliser lorsqu’une source attribue explicitement un changement consigné du monde à un Agent, indépendamment de l’agent qui a exécuté, rapporté ou consigné l’activité et de celui que son enveloppe nomme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a cause attribution from an envelope actor, wasAssociatedWith, wasAttributedTo, recorder identity, intention or a verified-causality assumption. Do not replace or equate those independent roles with this source claim."
+msgstr "Éviter de déduire une attribution causale de l’acteur nommé dans une enveloppe, de wasAssociatedWith, de wasAttributedTo, de l’identité de l’agent qui consigne, d’une intention ou d’une causalité supposée vérifiée. Ne pas remplacer ces rôles indépendants par cette affirmation source ni les lui assimiler."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/changeCausedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert changeCausedBy from the actual Activity to each explicitly supplied Agent reference. Preserve the source and standpoint on that exact statement through existing native statement metadata; retain independently supplied actor and recorder claims without overwriting them or manufacturing endpoint evidence."
+msgstr "Déclarer changeCausedBy de l’Activity réelle vers chaque référence à un Agent explicitement fournie. Conserver la source et le point de vue sur cet énoncé précis au moyen des métadonnées natives existantes ; préserver les affirmations fournies indépendamment sur l’acteur et l’agent qui consigne, sans les écraser ni fabriquer de preuve sur les extrémités."
