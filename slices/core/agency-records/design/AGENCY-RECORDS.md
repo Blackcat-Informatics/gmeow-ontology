@@ -532,3 +532,82 @@ belief, ongoing-work state, shared writer/performer or chronology follows.
 Inherited Note content-or-label remains required. Existing declared dependencies
 already cover every owner; no return dependency or parallel state, rule or time
 mechanism is introduced (Principles 4, 7, 9, 11 and 17).
+
+## Model-call mechanics as an information report
+
+ModelCallMechanics belongs to this source-record owner as a SubKind of
+InformationObject. Its actual mechanicsOf invocation is mandatory; one of
+the ten source-valued datatype roles must be present. Completely unstated
+mechanics does not require fabricating a report. Multiple actually sourced
+reports can describe the same invocation without being merged. The report
+neither subclasses the occurrence nor becomes an Observation imposing
+unrelated observation fields.
+
+The original timing, queue, session, usage, unreported and failure fields are
+retained directly. Queue and token metrics remain supplied
+xsd:nonNegativeInteger literals, with numeric value uniqueness and original
+lexical aliases intact. This differs from BudgetReading's actual Quantity
+representation: its source ledger uses framed count quantities, but machine
+counters do not acquire four manufactured Quantity identities solely to
+hold their supplied literal values. No new conversion or arithmetic engine,
+coefficient or parallel unit field is introduced.
+
+The two typed frame companions have distinct binding duties. Actual start
+or finish dateTime literals require mechanicsTemporalFrame. Token counts
+require mechanicsCountingFrame. Both specialize the domain-open generic
+hasReferenceFrame; neither reuses a TimeInterval-domain property or caps the
+generic spine. Full actual TemporalFrame/ReferenceFrame owner obligations
+remain in force. No frame identity, provider, tokenizer, clock or calendar
+is guessed, and no equality between the two frame resources is inferred.
+
+Queue delay is different: its fixed declared milliseconds denotes an
+unanchored elapsed magnitude. A delay alone creates no requirement for
+TimeScale, FrameRealm, FrameKind, calendar or clock frame. Optional
+actually supplied timing context remains permissible. Requiring a frame
+merely because the value is numeric would fabricate a dependency rather
+than make a source measurement more faithful (Principle 11).
+
+The independent axes remain independent. Finish does not imply successful
+generation. An opaque provider slot-session token does not type an
+AgentSession or RuntimeExecution. Provider failure stage and diagnostic are
+independently supplied source evidence; neither forces a missing companion
+or writes an invocation outcome/state. A missing counter or unreported
+marker remains unspecified, never zero, false or successful.
+
+### Exact canonical obligations
+
+The term batch is fourteen core terms and two Constraints. Thirteen
+all-values restrictions cover the three object and ten datatype roles.
+Eight qualified maxima cover the three object roles and five singleton
+nonnumeric literal roles. Object maxima use onClass logic:Thing; literal
+maxima use the actual onDataRange datatype or literal union. Numeric roles
+have value equality laws rather than a lexical-triple maximum;
+mechanicsUnreported is uncapped. One report-local closure requires
+mechanicsOf and thirteen supplied-value closures validate actual endpoints.
+
+The Values law has fifteen independent positive-guarded arms: one actual
+field-presence disjunction, four exact datatype/finite numeric admissions,
+four numeric alias equalities, one cached-subset bound, two required endpoint
+frame witnesses and three required token-count frame witnesses. Queue delay
+has no conditional frame arm. The Unreported law has three independently
+guarded forbidden-count arms selected only by the actual token usage.
+
+Every arm positively binds its focus through mechanicsOf or an actual
+supplied field. Atomic existentials provide required frame/field witnesses;
+the field-presence body is a finite disjunction of atomic existentials.
+The forbidden-count arms use guarded not-exists. No positive-position
+Forall, dynamic property lookup or new generic marker interpreter is used.
+
+The actual exact-datatype predicate uses bound termSameComponent with fixed
+componentDatatype/componentWhole selectors, together with termIsFiniteNumeric
+to validate the lexical value. Checking datatype identity alone would not
+admit a malformed nonNegativeInteger. The cached bound is represented as
+Not(termGreater(cached,prompt)) under those finite numeric laws, using the
+actual canonically declared comparator. Equal numeric aliases are compared
+by value with termEqual, without rewriting supplied RDF terms.
+
+The represented laws are not executed evidence. Real source/catalog/native
+and generated projection qualification, exact conditional frame evidence and
+consumer adoption remain requirements. Actual source producers may have
+different wire grouping or serialization conventions; no private alias,
+equivalence, migration or compatibility is asserted by the names.
