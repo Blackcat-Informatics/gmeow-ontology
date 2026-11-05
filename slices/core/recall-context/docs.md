@@ -189,7 +189,7 @@ output.
 
 ## Shared context-parameterized scopes
 
-The four shared RecallScope individuals describe requested selections. They are
+The shared RecallScope individuals describe requested selections. They are
 specifications, not a returned record set, a currently occupied slot or evidence
 that recall executed. Keep the actual schema's required scope, depth, presentation
 and allocation parameters. Selecting a scope also requires its real declared
@@ -223,7 +223,7 @@ Use SlotBoundRecallScope for an explicitly anchored specification, retaining its
 actual scopeSlot values and their existing bearer/role/history/state contracts.
 The conversation-turn example declares that subtype with its actual slot and
 source facts. The generic parent is open to further declared
-parameterized selectors. There is no closed four-value enumeration, IRI-specific
+parameterized selectors. There is no closed selector enumeration, IRI-specific
 exception or scope executor; the recall-operation requiredness contract applies
 (Principles 4, 9, 11, 12 and 17).
 
@@ -253,3 +253,93 @@ class or complete-packet profile, and this vocabulary does not claim a gate
 verifies kind presence on every consumer packet. Preserve the actual selected
 input rather than invent a default mode or infer one from wording
 (Principles 4, 9, 12 and 17).
+
+## Source-lens context plans
+
+`contextPlanHolder` identifies the actual source/vantage lens whose declared
+record domain a `logic:Plan` selects. Its Entity range follows the existing
+vantage value contract: an actual Agent or named Standpoint can supply that
+role. The range alone does not prove lens semantics. The lens, actual state
+subject, author, recorder, executor and pair members remain distinct roles;
+retain actual source identity overlap without inferring it.
+
+The relation is optional and nonfunctional. Absence selects no default agent,
+domain or state view. Its global supplied-endpoint closure checks Plan/Entity
+endpoints without requiring a holder on every generic plan. Do not use
+`vantage` directly or make this relation its subproperty: vantage has Observation
+domain. Keep the exact holder association's source and `accordingTo` frame
+separately; accordingTo is not a replacement structural holder edge.
+
+Use the existing context-plan prescription kind, condition, body and actual
+version evidence. Naming `contextPlanCondition` does not assert that its
+Situation obtains. Each plan-local `RecallOperation` retains its actual
+`recallSchema`, `recallScope`, `recallDepth`, `recollectionForm` and `budgetShare`
+under their existing requiredness and allocation rules. Shared specifications
+do not carry fabricated global slots. The explicit `SlotBoundRecallScope`
+profile still requires its actual anchors and complete slot contracts.
+
+## Holder-relative selection inputs
+
+The sixteen specifications below are shared requested selections. Their inputs
+are semantic requirements, not a new RDF argument-record format or a producer
+schema. Each actual selected operation needs the lens, actual record domain
+and source frame. State-anchored selections also need the actual state subject
+and selected assignment/pointer view; do not infer that subject from the lens.
+Actual source role descriptors identify the relevant slots.
+
+An actual speaker or named target is an Agent; the pair is an explicitly
+supplied unordered roster of two distinct Agents. The current exchange and
+its actual addressed Message/words remain separate records. A location is the
+actual Place supported by source locus/move evidence; coordinate interpretation
+retains its spatial ReferenceFrame. Each retained record keeps its own owner
+type: an IRI is not automatically an Activity, Experience or InformationObject.
+
+Newest-first and last-record selections require the actual source ordering
+context and actual TemporalFrame wherever times are interpreted or compared.
+Keep exact values, precision and source claims. Do not repair clocks, invent
+an epoch, choose an IRI tie-breaker or create a global latest order. The exact
+declaring Agent/Standpoint frame remains separate from temporal and spatial
+frames. Any selected `recallLatest` is a limit, not a claim that enough records
+exist.
+
+In this table, the prefix `recallScopeHolder` is shared by every suffix.
+
+| Suffix | Additional actual inputs | Requested selection and limits |
+| --- | --- | --- |
+| HeardFromSpeaker | State/exchange, exact addressed words, speaker, source order/frame. | Holder-side historical heard records of this speaker, excluding the exact current exchange; no speaker-private memory or receipt-to-hearing inference. |
+| MemoriesOfSpeaker | State/exchange, words, speaker, source names/mention evidence and matching capability. | The holder-side memories whose retained words identify the speaker; do not invent a memory-to-person edge or canonical name. |
+| RepliesToSpeaker | State/exchange, words, speaker, actual prompt/heard links, source order/frame. | Source-identified replies prompted by actual heard records of that speaker; a generated output or matching author alone is insufficient. |
+| SawSpeakerHere | State/exchange, speaker, actual current Place, seen-act/actor/location evidence, source order/frame. | Holder-side records of seeing that speaker act here; unknown place is not all places and no act is fabricated. |
+| LastOfOtherPairMember | State/exchange, speaker, complete distinct pair, source order/frame. | Separately newest heard and seen-act record of the unique other member; require speaker membership and never select a default member. |
+| MemoriesOfPair | Complete distinct pair, actual source names/mention evidence and matching capability. | Own memory wording identifying both members; no inferred relationship, cohabitation or third-party memory view. |
+| CanonSharedPast | Actual shared-canon view, holder canon identity and reference/mention evidence with its own frame. | Canon's account concerning the holder and shared past, including its actual canon record and records naming it; canon stays separate from private records and verified history. |
+| Trail | Actual state/locus anchor, source transition/genesis kinds, source order/frame. | Actual supplied transition and genesis records forming the trail; no substitution of unrelated recent episodes or invented genesis. |
+| MemoriesHere | State/locus, actual Place and source location association, source order/frame. | Own memory records of this actual place; preserve any interpreted coordinate frame and refuse missing place bindings. |
+| WakingEntries | State/solitude, exact current entry, actual source kind, source order/frame. | Earlier same-kind waking entries, excluding that exact current entry; no fixed taxonomy or phenomenal-character inference. |
+| SawNamedAgent | Explicit target Agent, actual seen-act/actor evidence, source order/frame. | Sightings of that target independently of the current speaker; no hard-coded identity, pair ranking or inferred current location. |
+| DreamEntries | State/solitude anchor, actual source dream-kind role, source order/frame. | Retained dream-entry records; no automatic DreamReport or Experience typing and no proof that a dream occurred. |
+| Mood | Actual independent state subject/view, mood-slot role and exact pointer/assignment evidence. | The mood-shift record that view holds; no classifier diagnosis, source-free mood truth or global state winner. |
+| PendingDemands | State/view, actual pending role, complete selected pointer roster and supplied raised-time evidence/frame. | Pending demand records with their original raised times; known empty differs from unknown and missing data never invents a resolution. |
+| LastOfPair | Complete distinct pair, per-member/category source order/frame, explicitly admitted directional contact metadata. | One grouped scope: newest heard and newest seen-act record for each member, plus only admitted contact time and channel metadata. Never include contact words or extra payload/tone, infer a negative contact fact, or collapse to one latest record overall. |
+| AddressedToneReading | State/exchange, exact current words, actual named/versioned refinement evidence and frame. | The refiner's reading of those words, distinct from the words, holder's own utterance and any speaker-inner-state claim. |
+
+Missing required bindings refuse the selected operation. They never select a
+default domain, broaden the scope, omit a sub-selection or become a
+complete-and-empty result. Preserve actual outcome/completeness evidence when
+a RecallAnswer is supplied. These selectors neither grant access nor establish
+that the source domain was isolated or retrieval ran.
+
+## Vocabulary and runtime binding remain distinct
+
+The source vocabulary names the complete selections and mandatory semantic
+inputs. It does not add typed per-call argument admission or implement sixteen
+generic retrieval dispatches. Existing schema parameter paths and descriptions
+of per-call context are not an automatic binding mechanism. Generic callable
+signatures declare interface slots; naming one does not install a recall
+adapter, RPC interface or executor.
+
+Actual source/lens/state/domain correspondence, temporal interpretation,
+capability availability and read isolation remain consumer evidence obligations.
+Do not fabricate bindings to satisfy them or claim those checks executed from
+these declarations. No private-field alias, migration or adoption follows from
+a matching name (Principles 4, 7, 9, 11, 12 and 17).

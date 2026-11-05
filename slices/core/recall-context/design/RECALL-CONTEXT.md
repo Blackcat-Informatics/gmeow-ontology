@@ -116,7 +116,7 @@ authorizes a weaker result (Principles 4, 9, 12 and 17).
 
 ## Parameterized scopes and explicit bound profiles
 
-RecallScope is the open InformationObject specification parent. The four shared
+RecallScope is the open InformationObject specification parent. The shared
 context-relative selectors do not carry a particular agent's slots. Their actual
 state, chronology, packet words and conversation/ring/warning configuration are
 inputs to the selected consumer operation, not global source facts invented in
@@ -166,3 +166,50 @@ request does not supply. No such class is invented and ordinary information
 objects remain unconstrained by field presence. A declared kind fact is not a
 condition verdict, actual call, lifecycle permission or execution certificate
 (Principles 4, 9, 12, 17 and 19).
+
+## Source lenses and sixteen shared holder-relative scopes
+
+contextPlanHolder extends the existing Plan-based context contract with an
+actual source/vantage lens. Entity range follows the canonical vantage value
+contract, encompassing actual Agent and Standpoint roles without inferring a
+state subject, author or executor. It is not a subproperty of vantage, whose
+Observation domain would retype a Plan. Its ordinary global closure checks
+supplied endpoints; optionality and nonfunctionality preserve unspecified and
+competing attributed claims without a default agent or source domain.
+
+The sixteen shared RecallScope individuals name independent, parameterized
+selection specifications. The guide's complete input table is their semantic
+interface: source lens/domain/frame, actual state view where required, and
+actual speaker, pair, named target, place, current entry/words, record kind,
+source order or shared canon bindings. These are input obligations, not new
+predicate names, static occupied slots or a producer argument schema.
+
+LastOfOtherPairMember requires an actual two-member pair and a current speaker
+belonging to it; SawNamedAgent has its own explicitly supplied target. LastOfPair
+is one grouped selection, retaining separately newest heard and seen-act
+records for both members, plus only explicitly admitted directional contact
+time/channel metadata. It includes no contact words or additional payload/tone.
+No person, relationship, default member or global latest selector is minted.
+
+Each source record retains its real owner type, original links and declaring
+frame. Source-lens identity does not supply an Agent or state-bearer identity.
+Names do not manufacture memory-aboutness links; author and recipient roles
+do not themselves prove speaking, hearing or seeing. Current exchange/entry
+exclusions compare actual record identity. Source ordering/temporal frames
+remain explicit; no timestamp repair, epoch inference or IRI tie-breaker fills
+an incomplete chronology. Missing required inputs refuse the selected
+operation rather than weakening its domain or returning complete-and-empty.
+
+The existing RecallOperation required schema/scope/depth/form/share and finite
+allocation contracts stay unchanged. Shared selectors do not replace an
+explicit SlotBoundRecallScope's required anchors. Context-plan kind, condition,
+body and version identities also retain their owners; a named condition is not
+an assertion that its situation obtains.
+
+This extension adds one ObjectProperty, sixteen RecallScope individuals and
+one property-global closure. It adds no class, Formula, dependency, generic
+required role, callable-to-recall adapter or execution branch. The input table
+does not pretend to be machine-checked RDF argument admission. The declarations
+establish neither read isolation, capabilities, retrieval, private alias
+equivalence nor migration; actual consumer evidence remains separate
+(Principles 4, 7, 9, 11, 12 and 17).
