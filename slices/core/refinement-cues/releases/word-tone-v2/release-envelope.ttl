@@ -50,4 +50,4 @@
     gmeow:wasAssociatedWith <https://blackcatinformatics.ca/gmeow/self#patrick-audley> ;
     gmeow:eventType <urn:gmeow:word-tone-cues:event-type:review-approval> ;
     gmeow:eventTime "2026-11-05T17:59:52Z"^^xsd:dateTime ;
-    gmeow:description "Patrick Audley approved review and publication of both exact version 2 cue payloads and designated himself reviewer and curator. Approval was observed at the recorded instant; this activity does not assert that external data validation or publication has occurred."@en .
+    rdfs:comment "Patrick Audley approved review and publication of both exact version 2 cue payloads and designated himself reviewer and curator. Approval was observed at the recorded instant; this activity does not assert that external data validation or publication has occurred."@en .

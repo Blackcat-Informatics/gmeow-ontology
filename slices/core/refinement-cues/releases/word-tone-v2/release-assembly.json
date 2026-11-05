@@ -21,8 +21,8 @@
     ],
     "join": "Concatenate exact UTF-8 part bytes in the listed order, inserting one LF byte between parts.",
     "file": "word-tone-cue-releases.ttl",
-    "bytes": 16543,
-    "sha256": "e699cbe796f157281c2936eaafb258e874dc59a954d6414fa6ff0342743d8225"
+    "bytes": 16538,
+    "sha256": "2e002fb702d3f8db3c4842f5d7be7d04e9de2c5f002fd72f1b5a44c72b6d7a5c"
   },
   "standalone_placement": {
     "repository_directory": "slices/core/refinement-cues/releases/word-tone-v2/",
