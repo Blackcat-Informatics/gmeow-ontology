@@ -1188,3 +1188,383 @@ msgstr "Éviter de déduire cette classification de libellés répétés, d’ar
 msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkHighFrictionCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference this actual TraceMarkClass value through traceMarkClass on the source-backed Annotation. Retain the actual target, motivation, curator and teller attribution; keep the reading’s attempt, episode, tool, argument and outcome evidence without asserting it from the category alone."
 msgstr "Référencer cette valeur réelle de TraceMarkClass par traceMarkClass sur l’Annotation étayée par la source. Conserver la cible, la motivation et les attributions réelles du curateur et du narrateur ; garder les preuves de tentative, d’épisode, d’outil, d’arguments et de résultat de la lecture sans les affirmer à partir de la seule catégorie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark"
+msgstr "Marque de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A curator's Annotation of an actual event record for trace retention, carrying classifications, source event placement and explicit packet-anchor evidence without trace content."
+msgstr "Une Annotation de conservation des traces, faite par un curateur sur un véritable enregistrement d’événement, portant classifications, position temporelle déclarée et preuves explicites d’ancrage aux paquets, sans contenu de trace."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The sole target is annotationTarget, an actual InformationObject record rather than an Event occurrence. Actual motivation, curator, event placement and complete TemporalFrame are required; supplied classifications coexist."
+msgstr "La seule cible est annotationTarget : un véritable enregistrement InformationObject, non une occurrence Event. Motivation, curateur, position temporelle et TemporalFrame complet réels sont requis ; les classifications fournies coexistent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|http://www.w3.org/2004/02/skos/core#example"
+msgid "A curator marks the supplied event record and retains its actual motivation, time interpretation and packet anchors separately from the recorder's trace bytes."
+msgstr "Un curateur marque l’enregistrement d’événement fourni et conserve sa motivation, son interprétation temporelle et ses ancrages réels séparément des octets de trace du collecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual source-backed curator mark whose event record and required annotation context are supplied."
+msgstr "À utiliser pour une marque réelle de curateur étayée par une source, avec son enregistrement d’événement et le contexte d’annotation requis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a target, motivation, curator, clock, classification, packet identity or finality commitment to complete a mark."
+msgstr "Éviter d’inventer une cible, une motivation, un curateur, une horloge, une classification, une identité de paquet ou un engagement de finalité pour compléter une marque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMark|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual record through annotationTarget, supplied traceMarkClass values, curator attribution and source event placement in its actual frame. Supply anchors or explicit without-packet evidence; keep statement provenance separate."
+msgstr "Conserver l’enregistrement réel via annotationTarget, les valeurs traceMarkClass fournies, l’attribution au curateur et la position temporelle déclarée dans son cadre réel. Fournir des ancrages ou une déclaration explicite sans paquet ; garder la provenance des énoncés distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace anchor"
+msgstr "Ancrage de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An InformationObject descriptor retaining one original source-packet digest and its actual source-profile interpretation for a trace recorder's join."
+msgstr "Un descripteur InformationObject conservant un condensat original de paquet source et son interprétation réelle de profil source pour la jointure d’un collecteur de traces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original xsd:hexBinary anchorPacket and actual anchorSourceProfile are required. Optional episode and round fields retain original scalar RDF terms without resolving them into Activity occurrences."
+msgstr "Un anchorPacket original xsd:hexBinary et un anchorSourceProfile réel, chacun unique, sont requis. Les champs facultatifs d’épisode et de tour conservent les termes RDF scalaires originaux sans les résoudre en occurrences Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-backed anchor retains its packet digest unchanged and names the actual declaration of digest construction and packet byte representation."
+msgstr "Un ancrage étayé par une source conserve le condensat du paquet inchangé et nomme la déclaration réelle de construction du condensat et de représentation des octets du paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a packet digest and complete applicable interpretation for the selected anchor."
+msgstr "À utiliser lorsque la source fournit un condensat de paquet et une interprétation complète applicable à l’ancrage choisi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an algorithm from digest width, manufacturing a packet artifact, or treating a descriptor as a successful trace join or finality proof."
+msgstr "Éviter de déduire un algorithme de la longueur du condensat, de fabriquer un artefact de paquet ou de traiter un descripteur comme une jointure de traces réussie ou une preuve de finalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the complete digest literal and actual profile on this anchor. Preserve any supplied episode or round term in its own scalar StructuredValue occurrence; inherit the existing scalar integrity laws."
+msgstr "Garder sur cet ancrage le littéral complet du condensat et le profil réel. Conserver tout terme d’épisode ou de tour fourni dans sa propre occurrence StructuredValue scalaire ; hériter des lois d’intégrité scalaires existantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark event placement"
+msgstr "position temporelle de l’événement marqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied temporal placement of the event described by this TraceMark's actual annotationTarget record."
+msgstr "La position temporelle fournie par la source pour l’événement décrit par l’enregistrement annotationTarget réel de cette TraceMark."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original dateTime, date, gYearMonth or gYear literal per coherent mark, interpreted in its actual complete TemporalFrame. This is not mark creation or record transaction time."
+msgstr "Exactement un littéral original dateTime, date, gYearMonth ou gYear par marque cohérente, interprété dans son TemporalFrame complet réel. Ce n’est ni la création de la marque ni le temps transactionnel du record."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark retains the source's supplied date without inventing midnight, a timezone or a more precise event instant."
+msgstr "Une marque conserve la date fournie par la source sans inventer minuit, un fuseau horaire ou un instant d’événement plus précis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied placement of the described event at its actual source precision."
+msgstr "À utiliser pour la position fournie de l’événement décrit, à la précision réelle de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting recordedAt, marking time, Events' UTC default or a computed calendar conversion."
+msgstr "Éviter de substituer recordedAt, le temps du marquage, la valeur UTC par défaut d’Events ou une conversion calendaire calculée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source datatype, lexical form and timezone information; bind hasReferenceFrame to the actual complete TemporalFrame without reinterpreting the XSD datatype's calendar."
+msgstr "Préserver le type de données, la forme lexicale et les informations de fuseau horaire de la source ; lier hasReferenceFrame au TemporalFrame complet réel sans réinterpréter le calendrier du type XSD."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark anchor"
+msgstr "ancrage de la marque de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-backed TraceAnchor supplied for this curator's TraceMark."
+msgstr "Un TraceAnchor réel étayé par la source et fourni pour la TraceMark de ce curateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several anchors may coexist. Any anchor excludes an affirmative traceMarkWithoutPacket value; absence of anchors requires explicit affirmative without-packet evidence."
+msgstr "Plusieurs ancrages peuvent coexister. Tout ancrage exclut une valeur affirmative traceMarkWithoutPacket ; l’absence d’ancrages exige une déclaration affirmative explicite sans paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "One event-record mark retains the several actual packet anchors supplied for it."
+msgstr "Une marque d’enregistrement d’événement conserve les différents ancrages de paquets réels qui lui sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an actual supplied anchor with its own packet digest and source interpretation."
+msgstr "À utiliser uniquement pour un ancrage réellement fourni, avec son propre condensat de paquet et son interprétation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing one preferred packet, fabricating a missing anchor or deriving trace retention, finality or deletion permission from this link."
+msgstr "Éviter de choisir un paquet préféré, de fabriquer un ancrage manquant ou de déduire conservation, finalité ou permission de suppression de ce lien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every actual TraceAnchor supplied for the mark, retaining each anchor's own required profile and optional source terms."
+msgstr "Lier chaque TraceAnchor réellement fourni pour la marque, en conservant son propre profil requis et ses termes sources facultatifs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trace mark without packet"
+msgstr "marque de trace sans paquet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied Boolean declaration of whether this TraceMark is held without a packet identity."
+msgstr "La déclaration booléenne fournie indiquant si cette TraceMark est conservée sans identité de paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one original xsd:boolean literal. True requires no anchors; false requires an actual anchor. Each lexical alias is admitted individually unchanged, without claiming simultaneous alias coexistence."
+msgstr "Facultatif, au plus un littéral original xsd:boolean. Vrai exige l’absence d’ancrages ; faux exige un ancrage réel. Chaque alias lexical est admis individuellement inchangé, sans prétendre que plusieurs alias peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual affirmative source flag records a mark held without packet identity; an omitted flag does not create that status."
+msgstr "Un véritable indicateur affirmatif de la source enregistre une marque conservée sans identité de paquet ; l’omission de l’indicateur ne crée pas ce statut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this Boolean status for the mark."
+msgstr "À utiliser lorsque la source fournit explicitement ce statut booléen pour la marque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting absence to false or true, treating false alone as an anchor, or confusing without-packet status with lost-mark give-up or finality."
+msgstr "Éviter de donner par défaut faux ou vrai à une absence, de traiter faux seul comme un ancrage ou de confondre le statut sans paquet avec l’abandon de marques perdues ou la finalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceMarkWithoutPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original Boolean lexical form and datatype. Apply Boolean value comparison: individual true/1 and false/0 aliases retain their source identity and the same status meaning."
+msgstr "Préserver la forme lexicale et le type booléens originaux. Comparer les valeurs booléennes : les alias individuels true/1 et false/0 gardent leur identité source et le même sens de statut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor packet digest"
+msgstr "condensat du paquet d’ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original xsd:hexBinary digest supplied for the exact source-packet byte representation identified by this TraceAnchor's actual source profile."
+msgstr "Le condensat original xsd:hexBinary fourni pour la représentation exacte des octets du paquet source identifiée par le profil source réel de ce TraceAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one original literal per coherent anchor. Its datatype supplies no digest algorithm, construction, preimage encoding, packet resource identity or verification receipt."
+msgstr "Exactement un littéral original par ancrage cohérent. Son type ne fournit ni algorithme, ni construction, ni encodage de préimage, ni identité de ressource paquet, ni reçu de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "An anchor keeps the supplied hexBinary literal intact beside the actual declaration explaining which packet bytes and digest construction it denotes."
+msgstr "Un ancrage garde intact le littéral hexBinary fourni, avec la déclaration réelle précisant les octets du paquet et la construction du condensat qu’il désigne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the original digest and full applicable source interpretation are both supplied."
+msgstr "À utiliser lorsque le condensat original et l’interprétation source complète applicable sont tous deux fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an algorithm from width, retyping to an algorithm digest datatype, normalizing spelling or using the anchor descriptor's own contentDigest."
+msgstr "Éviter de déduire l’algorithme de la longueur, de convertir vers un type de condensat algorithmique, de normaliser l’écriture ou d’utiliser le contentDigest du descripteur d’ancrage lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the complete source literal unchanged and identify its actual construction and exact byte preimage through anchorSourceProfile. Do not compute or claim a verified trace join from these fields."
+msgstr "Conserver le littéral source complet inchangé et identifier sa construction réelle et sa préimage d’octets exacte via anchorSourceProfile. Ne pas calculer ni revendiquer une jointure de traces vérifiée à partir de ces champs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor source profile"
+msgstr "profil source de l’ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual InformationObject declaration providing this TraceAnchor's complete source-specific digest, packet-byte and selected episode/round interpretation."
+msgstr "La déclaration InformationObject réelle fournissant l’interprétation complète propre à la source du condensat, des octets du paquet et des champs épisode/tour sélectionnés de ce TraceAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one actual applicable profile per coherent anchor. It identifies algorithm/construction, exact byte-preimage representation and selected field meanings; a name or typed link alone does not establish its content."
+msgstr "Exactement un profil réel applicable par ancrage cohérent. Il identifie l’algorithme et sa construction, la représentation exacte de préimage et le sens des champs choisis ; un nom ou un lien typé seul n’établit pas son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "The anchor names the actual source declaration explaining digest construction, packet encoding and any retained identifier or ordinal convention."
+msgstr "L’ancrage nomme la déclaration source réelle expliquant construction du condensat, encodage du paquet et toute convention conservée d’identifiant ou d’ordinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for the full actual source declaration applicable to this anchor."
+msgstr "À utiliser uniquement pour la déclaration source complète réelle applicable à cet ancrage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a profile, borrowing a sibling anchor's interpretation, inferring defaults or treating a typed profile link as source authentication or execution."
+msgstr "Éviter de fabriquer un profil, d’emprunter l’interprétation d’un autre ancrage, de déduire des valeurs par défaut ou de traiter un lien de profil typé comme une authentification ou une exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorSourceProfile|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual supplied profile identity and evidence for its full applicable meaning. A selecting importer fails on missing or invalid interpretation; preserve raw incomplete evidence outside the normalized anchor role."
+msgstr "Conserver l’identité réelle du profil fourni et les preuves de son sens complet applicable. L’importateur qui choisit ce rôle échoue si l’interprétation manque ou est invalide ; conserver les preuves brutes incomplètes hors du rôle d’ancrage normalisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor episode evidence"
+msgstr "preuve d’épisode de l’ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar StructuredValue occurrence retaining the original source episode identifier term supplied for this TraceAnchor."
+msgstr "Une occurrence StructuredValue scalaire conservant le terme original d’identifiant d’épisode fourni par la source pour ce TraceAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one occurrence per coherent anchor. Its structuredTerm preserves the exact RDF term under the anchor's actual source profile, without inferring an Activity occurrence."
+msgstr "Facultatif, au plus une occurrence par ancrage cohérent. Son structuredTerm préserve le terme RDF exact selon le profil source réel de l’ancrage, sans déduire une occurrence Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|http://www.w3.org/2004/02/skos/core#example"
+msgid "An unresolved source episode IRI remains an IRI in structuredTerm rather than an invented episode event or string."
+msgstr "Un IRI d’épisode source non résolu reste un IRI dans structuredTerm, non un événement d’épisode inventé ni une chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an episode identifier term with its actual profile interpretation."
+msgstr "À utiliser lorsque la source fournit un terme d’identifiant d’épisode avec son interprétation de profil réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing episode identity, stringifying resources, inventing a missing field or admitting null/map/sequence as a scalar identifier."
+msgstr "Éviter de deviner l’identité de l’épisode, de convertir les ressources en chaînes, d’inventer un champ manquant ou d’admettre null, map ou sequence comme identifiant scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorEpisode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the scalar occurrence with its original structuredTerm; inherit existing whole-term uniqueness and branch exclusivity. Keep any separately supplied resolved episode evidence distinct."
+msgstr "Lier l’occurrence scalaire avec son structuredTerm original ; hériter de l’unicité du terme entier et de l’exclusivité des branches existantes. Garder distinctes les preuves d’épisode résolu fournies séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchor round evidence"
+msgstr "preuve de tour de l’ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar StructuredValue occurrence retaining the original source round identifier or ordinal term supplied for this TraceAnchor."
+msgstr "Une occurrence StructuredValue scalaire conservant le terme original d’identifiant ou d’ordinal de tour fourni par la source pour ce TraceAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, at most one occurrence per coherent anchor. The actual source profile interprets its exact structuredTerm; no numeric datatype, ordinal base, chronology or Activity endpoint is guessed."
+msgstr "Facultatif, au plus une occurrence par ancrage cohérent. Le profil source réel interprète son structuredTerm exact ; aucun type numérique, base d’ordinal, chronologie ou extrémité Activity n’est deviné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied round ordinal keeps its original typed literal while its source profile retains the actual numbering convention."
+msgstr "Un ordinal de tour fourni conserve son littéral typé original tandis que son profil source garde la convention réelle de numérotation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual source round term and its applicable interpretation are supplied."
+msgstr "À utiliser lorsqu’un terme source réel de tour et son interprétation applicable sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting an identifier to an integer, guessing zero-based or one-based numbering, inferring order or treating an omitted round as zero."
+msgstr "Éviter de convertir un identifiant en entier, de deviner une numérotation à partir de zéro ou de un, de déduire un ordre ou de traiter un tour omis comme zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original RDF term in the linked scalar occurrence under the actual profile. Require its structuredTerm witness and reuse existing scalar integrity without retyping or numeric coercion."
+msgstr "Conserver le terme RDF original dans l’occurrence scalaire liée sous le profil réel. Exiger son témoin structuredTerm et réutiliser l’intégrité scalaire existante sans changement de type ni coercition numérique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark packet evidence presence"
+msgstr "présence de preuve de paquet de la marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every TraceMark has an actual traceMarkAnchor or an explicitly supplied traceMarkWithoutPacket flag; neither may be silently omitted together."
+msgstr "Chaque TraceMark possède un traceMarkAnchor réel ou un indicateur traceMarkWithoutPacket explicitement fourni ; ils ne peuvent être omis ensemble silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two existence probes are atomic. A false flag still requires an anchor under its separate obligation, and an affirmative flag excludes anchors under the exclusivity law."
+msgstr "Les deux sondes d’existence sont atomiques. Un indicateur faux exige encore un ancrage selon son obligation distincte, et un indicateur affirmatif exclut les ancrages selon la loi d’exclusivité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark with neither anchor nor explicit flag fails instead of acquiring an invented without-packet status."
+msgstr "Une marque sans ancrage ni indicateur explicite échoue au lieu de recevoir un statut sans paquet inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check explicit packet evidence on actual TraceMark records."
+msgstr "À utiliser pour vérifier les preuves explicites de paquet sur les enregistrements TraceMark réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating flag presence as an affirmative Boolean value, trace availability or completed recorder work."
+msgstr "Éviter de traiter la présence d’un indicateur comme une valeur booléenne affirmative, une disponibilité de trace ou un travail achevé du collecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Guard the actual TraceMark and require the disjunction of atomic anchor and flag witnesses, with separate Boolean-value laws and no default."
+msgstr "Garder la TraceMark réelle et exiger la disjonction de témoins atomiques d’ancrage et d’indicateur, avec des lois distinctes de valeur booléenne et sans défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark false flag anchor obligation"
+msgstr "obligation d’ancrage pour indicateur faux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean false has an actual traceMarkAnchor."
+msgstr "Une TraceMark dont la valeur fournie traceMarkWithoutPacket est égale au booléen faux possède un traceMarkAnchor réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison admits each original false/0 alias unchanged. The required anchor witness is atomic; a false flag alone is incomplete evidence."
+msgstr "La comparaison de valeur booléenne admet chaque alias original false/0 inchangé. Le témoin d’ancrage requis est atomique ; un indicateur faux seul est une preuve incomplète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied false flag without an anchor fails; its lexical form is not rewritten to repair the mark."
+msgstr "Un indicateur faux fourni sans ancrage échoue ; sa forme lexicale n’est pas réécrite pour réparer la marque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the actual anchor required by a source-supplied false without-packet flag."
+msgstr "À utiliser pour vérifier l’ancrage réel exigé par un indicateur sans paquet faux fourni par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching only the spelling false, inventing an anchor or interpreting an absent flag as false."
+msgstr "Éviter de ne reconnaître que l’écriture false, d’inventer un ancrage ou d’interpréter un indicateur absent comme faux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the actual mark and flag, compare through termEqual to a typed Boolean false, and require one atomic anchor existence probe."
+msgstr "Lier positivement la marque et l’indicateur réels, comparer via termEqual à un booléen faux typé et exiger une sonde atomique d’existence d’ancrage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark affirmative flag exclusivity"
+msgstr "exclusivité de l’indicateur affirmatif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean true has no traceMarkAnchor."
+msgstr "Une TraceMark dont la valeur fournie traceMarkWithoutPacket est égale au booléen vrai ne possède aucun traceMarkAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Boolean value comparison admits each original true/1 alias unchanged. This is explicit without-packet status, not a statement that no packet ever existed or a lost-mark give-up."
+msgstr "La comparaison de valeur booléenne admet chaque alias original true/1 inchangé. C’est un statut explicite sans paquet, non l’affirmation qu’aucun paquet n’a jamais existé ni un abandon de marques perdues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A mark carrying both an affirmative flag and an actual anchor fails instead of silently selecting one interpretation."
+msgstr "Une marque portant à la fois un indicateur affirmatif et un ancrage réel échoue au lieu de choisir silencieusement une interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the exclusion of anchors by an actual affirmative without-packet flag."
+msgstr "À utiliser pour vérifier l’exclusion des ancrages par un véritable indicateur affirmatif sans paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching only the spelling true, deleting contradictory evidence or deriving finality, frontier advancement or deletion permission."
+msgstr "Éviter de ne reconnaître que l’écriture true, de supprimer des preuves contradictoires ou de déduire finalité, avancement de frontière ou permission de suppression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the mark and supplied flag, compare Boolean value through termEqual, and forbid atomic anchor existence without rewriting source data."
+msgstr "Lier positivement la marque et l’indicateur fourni, comparer leur valeur booléenne via termEqual et interdire l’existence atomique d’un ancrage sans réécrire les données sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace anchor scalar evidence"
+msgstr "preuve scalaire de l’ancrage de trace"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
+msgstr "Chaque occurrence anchorEpisode ou anchorRound fournie pour un TraceAnchor possède un témoin structuredTerm original et hérite de l’unicité scalaire et de l’exclusivité des branches existantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both optional roles use independent positive guards and atomic term witnesses. No field is required when absent, and no map, sequence or null becomes a scalar identifier."
+msgstr "Les deux rôles facultatifs utilisent des gardes positives indépendantes et des témoins de terme atomiques. Aucun champ n’est exigé s’il est absent, et aucun map, sequence ou null ne devient un identifiant scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied occurrence with an original IRI term passes the presence obligation; an empty occurrence does not become a default episode or round."
+msgstr "Une occurrence fournie avec un terme IRI original satisfait l’obligation de présence ; une occurrence vide ne devient pas un épisode ou un tour par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the actual scalar carriers selected for optional anchor episode and round evidence."
+msgstr "À utiliser pour valider les véritables porteurs scalaires choisis pour les preuves facultatives d’épisode et de tour de l’ancrage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating structuredTerm identity laws, stringifying original resources or treating a scalar witness as source authentication or resolved Activity identity."
+msgstr "Éviter de dupliquer les lois d’identité de structuredTerm, de convertir les ressources originales en chaînes ou de traiter un témoin scalaire comme une authentification ou une identité Activity résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each actual optional role link, require an atomic structuredTerm witness with fresh local variables. Leave whole-term uniqueness and payload branch exclusivity to their existing owner."
+msgstr "Pour chaque lien réel d’un rôle facultatif, exiger un témoin structuredTerm atomique avec des variables locales distinctes. Laisser l’unicité du terme entier et l’exclusivité des branches à leur propriétaire existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketPresenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every TraceMark has an actual traceMarkAnchor or an explicitly supplied traceMarkWithoutPacket flag; neither may be silently omitted together."
+msgstr "Chaque TraceMark possède un traceMarkAnchor réel ou un indicateur traceMarkWithoutPacket explicitement fourni ; ils ne peuvent être omis ensemble silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketFalseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean false has an actual traceMarkAnchor."
+msgstr "Une TraceMark dont la valeur fournie traceMarkWithoutPacket est égale au booléen faux possède un traceMarkAnchor réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkPacketExclusivityConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceMark with a supplied traceMarkWithoutPacket value equal to Boolean true has no traceMarkAnchor."
+msgstr "Une TraceMark dont la valeur fournie traceMarkWithoutPacket est égale au booléen vrai ne possède aucun traceMarkAnchor."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceAnchorScalarConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied anchorEpisode or anchorRound occurrence of a TraceAnchor has an original structuredTerm witness, inheriting existing scalar uniqueness and branch exclusivity."
+msgstr "Chaque occurrence anchorEpisode ou anchorRound fournie pour un TraceAnchor possède un témoin structuredTerm original et hérite de l’unicité scalaire et de l’exclusivité des branches existantes."

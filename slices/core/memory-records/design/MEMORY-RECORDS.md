@@ -83,3 +83,84 @@ digest algorithm, preimage or comparator. A finalized committed journal head,
 distributed-ledger settlement and a trace watermark below a continuing packet
 order are different contracts. No alias, generic protocol carrier or finality
 claim is introduced by these classification terms (Principles 5, 11, 17 and 19).
+
+## Complete mark and anchor source contract
+
+TraceMark is the complete retention-domain specialization of Notes' Annotation,
+with one actual InformationObject event record on the sole annotationTarget
+role. It adds no second target predicate or synchronization constraint. The
+existing target maximum and motivation contract remain inherited; local target
+typing and requiredness express this specialization. The actual curator,
+motivation and source attribution are mandatory source facts, never generated
+from a category name, missing record, event label or Observation vantage.
+An optional curator note is not raw trace content.
+
+TraceMarkClass remains the existing open scheme. A TraceMark requires actual
+supplied classification values locally without narrowing the general Annotation
+role or adding a maximum. Local class names remain local identities rather than
+new general seeds. The existing high-friction member is unchanged. Categories
+describe the curator's reading, not EventTypes, truth, importance rank or
+retention execution.
+
+The source event placement is traceMarkAt, not eventTime or recordedAt. One
+original temporal literal and one actual complete TemporalFrame are required
+per coherent mark. Preserve source precision, lexical identity and timezone;
+do not inherit an Events UTC default, invent a clock/calendar/instant or claim
+a conversion. The domain-open hasReferenceFrame spine introduces no Event or
+Observation typing. Its actual Places owner and Temporal's actual TemporalFrame
+owner retain complete frame obligations. The new direct dependencies name both
+owners instead of copying frame laws.
+
+Each coherent TraceAnchor retains one original xsd:hexBinary anchorPacket and
+one actual anchorSourceProfile declaration. Source interpretation identifies
+the full digest construction and exact packet byte-preimage convention as well
+as selected episode/round meanings. The plain InformationObject profile is
+descriptive source evidence, not a generic hash framework, synthetic algorithm
+identity or executable profile. Source admission requires its actual applicable
+content; graph typing alone cannot authenticate that content. Missing or invalid
+interpretation fails the selected normalized role while raw evidence remains
+under its actual meaning.
+
+The original packet literal is not retyped to the mathematically distinct
+algorithm-digest datatypes. Width does not choose an algorithm. No contentDigest
+superproperty would be sound: this literal denotes supplied packet bytes, not
+the anchor descriptor's bytes. A packet artifact is not created from a hash,
+and no key, equivalence, verified bytes, source adapter or recorder join follows.
+
+Episode and round evidence uses existing scalar StructuredValue occurrences
+and exact structuredTerm, including unresolved resource identifiers and typed
+literal ordinals. No Activity endpoint, string coercion, numeric datatype or
+ordinal base is guessed. Require atomic scalar witnesses only; existing
+whole-term uniqueness and branch exclusivity remain with RecordMetadata. The
+new direct RecordMetadata dependency reflects this actual reuse, without a new
+scalar class or duplicated integrity law.
+
+The packet-status contract uses three independent realized Formula trees.
+The presence tree has two atomic existential alternatives: actual anchor or
+explicit supplied flag. The false-flag tree positively binds mark and flag,
+compares Boolean value with termEqual, and requires an atomic anchor witness.
+The affirmative tree positively binds mark and flag, compares Boolean value,
+and prohibits atomic anchor existence. These trees preserve each individual
+true/1 and false/0 alias without rewriting the original literal. Local maximum
+one on the original flag does not claim simultaneous-alias coexistence.
+No mixed presence/inner-universal conjunction or joined affirmative existential
+is introduced. The scalar tree's two independently positive role guards retain
+scoped UNION violations under ordinary negative projection. No component filter
+or new native failure-marker lane is selected.
+
+Direct all-values restrictions, class-local required closure and qualified
+maxima express the remaining source contract. Only the seven new roles receive
+new property-global endpoint closure. Existing generic annotation, curator,
+frame, structured-term and classification properties are not globally narrowed.
+Several supplied curators, classifications and anchors remain allowed. Optional
+flag/episode/round absence stays valid subject to the explicit packet-status
+laws; no missing value becomes false, zero, null or a default identifier.
+
+The mark/anchor unit is independent of the ordered packet inventory, the
+time-then-digest ordering prescription, monotonic finality, producer committed
+frontiers and explicit give-up of lost marks before advancement. Distributed
+ledger settlement, vault loss coordinates and historical curation artifacts
+retain their existing meanings. A source declaration does not execute trace
+retention or deletion and cannot establish a complete producer inventory or
+absence proof. No finality, native execution or consumer-adoption claim is
+introduced (Principles 4, 7, 9, 11, 12, 17 and 19).
