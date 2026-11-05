@@ -633,3 +633,37 @@ gmeow:branchClosed
 gmeow:NotebookEntry logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:notebookEntryKind ; logic:allValuesFrom gmeow:NotebookEntryKind ],
     [ a logic:Restriction ; logic:onProperty gmeow:notebookEntryState ; logic:allValuesFrom gmeow:NotebookEntryState ] .
+
+gmeow:notebookStatement
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "notebook quoted statement"@x-gmeow-english ;
+    skos:definition "The original native RDF 1.2 triple term retained on a NotebookEntry and shared exactly with its rdf:reifies value."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies an actual quoted triple term for a valid notebook entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid string conversion, asserting the quoted proposition or inferring truth, belief or execution."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact same native term through notebookStatement and rdf:reifies on that entry, with actual source context."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional and without a declared range. Inherited Note content requirements remain; quotation does not replace them or validate arbitrary terms."@x-gmeow-english ;
+    skos:example "An entry keeps a quoted candidate statement without asserting that statement."@x-gmeow-english ;
+    logic:domain gmeow:NotebookEntry .
+
+gmeow:NotebookStatementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Notebook statement quotation constraint"@x-gmeow-english ;
+    skos:definition "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the exact quotation binding of a supplied notebook statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid another entry’s quote, substitute prose or an invented witness."@x-gmeow-english ;
+    gmeow:howToUse "Keep the same bound entry and term in notebookStatement and rdf:reifies."@x-gmeow-english ;
+    skos:scopeNote "Native transport owns the quoted representation; inherited Note content remains required."@x-gmeow-english ;
+    skos:example "A quote on a different entry cannot satisfy this entry’s exact statement binding."@x-gmeow-english ;
+    logic:formalizes gmeow:notebookStatement ;
+    logic:message "Each notebookStatement shares its exact same native RDF 1.2 triple term with rdf:reifies on that entry. Quotation is neither assertion nor a generic triple-term validator."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "notebookEntry" ] , [ logic:termIndex 1 ; logic:termVariable "notebookQuotedTerm" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:notebookStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "notebookEntry" ] , [ logic:termIndex 1 ; logic:termVariable "notebookQuotedTerm" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "notebookEntry" ] , [ logic:termIndex 1 ; logic:termVariable "notebookQuotedTerm" ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notebookStatement" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -477,3 +477,58 @@ No timestamp subtraction, clock precision, epoch, timezone, execution,
 completion, causal order or global current winner is inferred. This upstream
 contract establishes no private-extension equivalence or consumer adoption
 (Principles 4, 9, 11 and 17).
+
+## Complete reported chains and offered anchors
+
+The chain attachment retains an actual native claim, rather than selecting a
+private chain schema. episodeTransition targets its EpisodeTransition report;
+the subject's actual rdf:reifies witness remains mandatory. transitionCauseFact
+requires its own actual quoted witness. transitionCauseRule instead retains
+an actual identified InformationObject specification. Citation does not create
+a productive logic:Rule, ReasoningProgram, asserted fact or causal proof.
+The two claim-witness arms preserve these exact bindings without authenticating
+the source or executing its scheduler.
+
+EpisodeInterlude is a scalar StructuredValue occurrence, not a new Activity
+kind. Its actual Activity is retained through structuredTerm, under the existing
+scalar branch and whole-term laws. Six guarded arms require one transition
+parent and the scalar payload, type that payload and enforce numeric ordinal
+value and report-local position uniqueness. Parent and payload existence retain
+explicit positive inner class guards and atomic witnesses. Repeated payload
+identities use distinct occurrences. No ordinal belongs to the shared Activity.
+
+AheadAnchor specializes LoopReference to one offer-local task reference. Four
+arms require one offer parent and enforce numeric ordinal value and offer-local
+position uniqueness. Its required task artifact remains an InformationObject,
+not an actual Task event. guidanceActivity points to an actual EventDescription
+of the offer, without synthesizing an occurrence, Intention or adoption.
+An independently supplied loop reference is preserved without copying one.
+
+Both new occurrence classes require zero-based entryOrdinal values. Numeric
+lexical aliases of one value remain valid and unchanged; no literal maximum
+or contiguous-position rule is introduced. Resource comparisons retain the
+actual parent/occurrence identities. These are record positions, not temporal
+or causal order. No RDF list, global ordinal or preference winner is added.
+
+Optional aheadWindow is locally at most one TimeInterval. Eight window-focused
+arms require actual interval-frame evidence and type it, type each supplied
+Instant boundary, and require and type its actual frame evidence. All three
+frame-existence bodies are atomic. Unknown boundaries stay unspecified;
+actual frames need not be equal. Existing Instant value-or-EDTF, inline datatype
+and TemporalFrame contracts remain with Temporal. No boundary, conversion,
+clock field or start-before-end proof is fabricated.
+
+The new AgencyRecords structure is four Constraints with twenty guarded arms,
+five direct restrictions, three class/path closures and eight new-property
+global supplied-endpoint closures. Required paths apply only to the new
+occurrence classes. Existing generic roles are not narrowed globally. Actual
+existence, source correspondence and provenance remain distinct from structural
+checks; report metadata does not propagate to exact assertions.
+
+The Notes owner adds notebookStatement and its directly guarded same-term
+quotation law; AgencyRecords owns the separate optional NotebookEntry-to-Activity
+notebookWorkingThrough association, as it already owns notebookLoop. No truth,
+belief, ongoing-work state, shared writer/performer or chronology follows.
+Inherited Note content-or-label remains required. Existing declared dependencies
+already cover every owner; no return dependency or parallel state, rule or time
+mechanism is introduced (Principles 4, 7, 9, 11 and 17).

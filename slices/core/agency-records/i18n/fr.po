@@ -6422,3 +6422,411 @@ msgstr "Facultative et non fonctionnelle. Les valeurs absentes restent non spéc
 msgctxt "https://blackcatinformatics.ca/gmeow/episodeLasted|http://www.w3.org/2004/02/skos/core#example"
 msgid "A source supplies fifteen minutes for the episode named by episodeLeft; the report retains the supplied xsd:duration and its exact assertion provenance without deriving timestamps."
 msgstr "Une source fournit quinze minutes pour l’épisode nommé par episodeLeft ; le rapport conserve le xsd:duration fourni et la provenance de son assertion exacte sans dériver d’horodatages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode transition attachment"
+msgstr "rattachement de transition entre épisodes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied attachment from an actual episode-chain claim reifier to its episode-transition report."
+msgstr "Un rattachement fourni par la source entre le réificateur d’une assertion réelle de chaîne d’épisodes et son rapport de transition entre épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source attaches a transition report to an actual native claim."
+msgstr "Utiliser lorsque la source rattache un rapport de transition à une assertion native réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a chain predicate, quoted claim or endpoint correspondence."
+msgstr "Éviter d’inventer un prédicat de chaîne, une assertion citée ou une correspondance entre extrémités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual rdf:reifies witness and exact assertion provenance; preserve any selected slot protocol."
+msgstr "Conserver le témoin rdf:reifies réel et la provenance de l’assertion exacte ; préserver tout protocole de créneau sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Attachment neither asserts the quoted proposition nor executes a scheduler."
+msgstr "Non fonctionnelle. Le rattachement n’affirme pas la proposition citée et n’exécute aucun ordonnanceur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/episodeTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "An actual chain-claim reifier names its retained transition report."
+msgstr "Un réificateur réel d’assertion de chaîne désigne son rapport de transition conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported causing rule specification"
+msgstr "spécification de règle causale rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual identified rule-specification record cited by the source as a transition’s causal basis."
+msgstr "Un dossier réel identifié de spécification de règle, cité par la source comme base causale d’une transition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source’s actual cited rule specification."
+msgstr "Utiliser pour la spécification réelle de règle citée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a logic:Rule, program, rule firing or verified causality from citation."
+msgstr "Éviter de déduire de la citation une logic:Rule, un programme, un déclenchement de règle ou une causalité vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the identified specification and exact claim’s source and declaring frame; keep actual formalization separate."
+msgstr "Conserver la spécification identifiée ainsi que la source et le cadre déclarant de l’assertion exacte ; garder la formalisation réelle séparée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. A string or label alone does not supply an identified rule record."
+msgstr "Non fonctionnelle. Une chaîne ou une étiquette seule ne fournit pas de dossier de règle identifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A transition report cites the actual policy specification supplied by its source."
+msgstr "Un rapport de transition cite la spécification réelle de politique fournie par sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported causing fact claim"
+msgstr "assertion factuelle causale rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual claim reifier cited by the source as a factual causal basis for a transition."
+msgstr "Un réificateur réel d’assertion cité par la source comme base causale factuelle d’une transition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the exact factual claim it cites."
+msgstr "Utiliser lorsqu’une source identifie l’assertion factuelle exacte qu’elle cite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting the quotation, inventing a fact or treating citation as causal proof."
+msgstr "Éviter d’affirmer la citation, d’inventer un fait ou de traiter la citation comme une preuve causale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain that claim’s actual rdf:reifies witness and the causal association’s own source and frame."
+msgstr "Conserver le témoin rdf:reifies réel de cette assertion ainsi que la source et le cadre propres à l’association causale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. The quoted proposition, recorder and reported causal basis remain distinct."
+msgstr "Non fonctionnelle. La proposition citée, l’agent qui consigne et la base causale rapportée restent distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseFact|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report cites a retained observation claim without asserting its quoted proposition."
+msgstr "Un rapport cite une assertion d’observation conservée sans affirmer sa proposition citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode Interlude Occurrence"
+msgstr "Occurrence d’interlude entre épisodes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A scalar payload occurrence belonging to one transition report, retaining an actual Activity and its report-local ordinal."
+msgstr "Une occurrence de contenu scalaire appartenant à un rapport de transition, conservant une Activity réelle et son ordinal local au rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each source-supplied interlude occurrence within a transition report."
+msgstr "Utiliser pour chaque occurrence d’interlude fournie par la source dans un rapport de transition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing an ordinal on a shared Activity or inferring chronological or causal order."
+msgstr "Éviter de placer un ordinal sur une Activity partagée ou de déduire un ordre chronologique ou causal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain structuredTerm as the actual Activity and entryOrdinal as its zero-based position; use distinct occurrences for repetitions."
+msgstr "Conserver structuredTerm comme Activity réelle et entryOrdinal comme position indexée à partir de zéro ; utiliser des occurrences distinctes pour les répétitions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One parent is required. Equal numeric ordinal aliases coexist without literal rewriting; positions need not be contiguous."
+msgstr "Un parent est requis. Des variantes lexicales d’un même ordinal numérique coexistent sans réécriture des littéraux ; les positions ne doivent pas nécessairement être contiguës."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterlude|http://www.w3.org/2004/02/skos/core#example"
+msgid "The same Activity appears twice through distinct interlude occurrences at different positions."
+msgstr "La même Activity apparaît deux fois par des occurrences d’interlude distinctes à des positions différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported transition interlude"
+msgstr "interlude de transition rapporté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied interlude occurrence retained within an episode-transition report."
+msgstr "Une occurrence d’interlude fournie par la source et conservée dans un rapport de transition entre épisodes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each actual supplied interlude occurrence."
+msgstr "Utiliser pour conserver chaque occurrence d’interlude réellement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid RDF lists, shared payload ordinals or an inferred empty history from missing links."
+msgstr "Éviter les listes RDF, les ordinaux de contenus partagés ou une histoire vide déduite de liens absents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the report to each EpisodeInterlude; preserve its payload, position and exact association provenance."
+msgstr "Relier le rapport à chaque EpisodeInterlude ; préserver son contenu, sa position et la provenance de l’association exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Each interlude occurrence belongs to one report; ordinal order proves no chronology."
+msgstr "Non fonctionnelle. Chaque occurrence d’interlude appartient à un rapport ; l’ordre ordinal ne prouve aucune chronologie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionInterlude|http://www.w3.org/2004/02/skos/core#example"
+msgid "A report retains several separately positioned interlude occurrences."
+msgstr "Un rapport conserve plusieurs occurrences d’interlude positionnées séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "offered activity description"
+msgstr "description d’activité proposée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual EventDescription of the activity offered by a Guidance note."
+msgstr "Une EventDescription réelle de l’activité proposée par une note Guidance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a description of the offered activity."
+msgstr "Utiliser lorsque la source fournit une description de l’activité proposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a future Activity, adopted Intention, permission or execution."
+msgstr "Éviter d’inventer une Activity future, une Intention adoptée, une permission ou une exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual description identity and exact offered association’s source and declaring frame."
+msgstr "Conserver l’identité réelle de la description ainsi que la source et le cadre déclarant de l’association proposée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Several source-supported activity descriptions may coexist."
+msgstr "Facultative et non fonctionnelle. Plusieurs descriptions d’activité étayées par la source peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceActivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "An offer describes reviewing an archive without asserting that a review occurred."
+msgstr "Une proposition décrit l’examen d’archives sans affirmer qu’un examen a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead Anchor Occurrence"
+msgstr "Occurrence de repère à venir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An offer-local reference occurrence retaining one actual task-specification artifact, a canonical ordinal and any supplied planned window."
+msgstr "Une occurrence de référence locale à une proposition, conservant un artefact réel de spécification de tâche, un ordinal canonique et toute fenêtre planifiée fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a separately positioned task reference in one guidance offer."
+msgstr "Utiliser pour une référence de tâche positionnée séparément dans une proposition de guidance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the anchor or task artifact as an actual Task occurrence."
+msgstr "Éviter de traiter le repère ou l’artefact de tâche comme une occurrence réelle de Task."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply referencedTaskDocument and zero-based entryOrdinal; retain an optional aheadWindow and any independently supplied loop reference."
+msgstr "Fournir referencedTaskDocument et entryOrdinal indexé à partir de zéro ; conserver un aheadWindow facultatif et toute référence de boucle fournie indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One offer and one task artifact are required; no loop is required or copied. Numeric ordinal aliases remain unchanged."
+msgstr "Une proposition et un artefact de tâche sont requis ; aucune boucle n’est requise ou copiée. Les variantes lexicales d’un même ordinal numérique restent inchangées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchor|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two offers name the same task artifact through distinct anchor occurrences."
+msgstr "Deux propositions désignent le même artefact de tâche par des occurrences de repère distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance ahead anchor"
+msgstr "repère à venir de guidance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supported ordered anchor occurrence retained within a Guidance offer."
+msgstr "Une occurrence ordonnée de repère étayée par la source et conservée dans une proposition Guidance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each supplied task anchor ahead of an offer."
+msgstr "Utiliser pour chaque repère de tâche à venir fourni pour une proposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a loop target, selecting a global winner or inferring scheduler execution."
+msgstr "Éviter de copier une cible de boucle, de sélectionner un résultat global prioritaire ou de déduire une exécution d’ordonnanceur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link Guidance to actual AheadAnchor occurrences and preserve their own task, ordinal and source context."
+msgstr "Relier Guidance aux occurrences réelles d’AheadAnchor et préserver leur tâche, leur ordinal et leur contexte source propres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional. Each anchor belongs to one offer; repeated task identities use distinct occurrences."
+msgstr "Non fonctionnelle. Chaque repère appartient à une proposition ; les identités de tâche répétées utilisent des occurrences distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceAhead|http://www.w3.org/2004/02/skos/core#example"
+msgid "An offer retains several anchors whose positions need not be contiguous."
+msgstr "Une proposition conserve plusieurs repères dont les positions ne doivent pas nécessairement être contiguës."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "planned ahead window"
+msgstr "fenêtre planifiée à venir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual source-identified TimeInterval retained as the planned window of an ahead anchor."
+msgstr "Un TimeInterval réel identifié par la source et conservé comme fenêtre planifiée d’un repère à venir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an actual planned interval with temporal-frame evidence."
+msgstr "Utiliser lorsque la source fournit un intervalle planifié réel avec des éléments attestant son référentiel temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a boundary, midnight, UTC, conversion, chronological order or future event occurrence."
+msgstr "Éviter d’inventer une borne, minuit, UTC, une conversion, un ordre chronologique ou une occurrence future d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep actual frame data and any supplied start/end Instants or inline values under their existing Temporal contracts."
+msgstr "Conserver les données réelles de référentiel, tout Instant de début ou de fin fourni et toute valeur en ligne fournie selon les contrats Temporal existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional, locally at most one. Unknown bounds stay unspecified; frame presence implies no frame equality or start-before-end proof."
+msgstr "Facultative, au plus une localement. Les bornes inconnues restent non spécifiées ; la présence de référentiels n’implique ni leur égalité ni une preuve que le début précède la fin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aheadWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "An anchor retains an identified interval with only its supplied start boundary and actual frame."
+msgstr "Un repère conserve un intervalle identifié avec seulement sa borne de début fournie et son référentiel réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported notebook working-through activity"
+msgstr "activité de travail du carnet rapportée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Activity associated by the source with working through a notebook entry."
+msgstr "Une Activity réelle associée par la source au travail sur une entrée de carnet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied NotebookEntry-to-Activity association."
+msgstr "Utiliser pour une association explicitement fournie de NotebookEntry vers Activity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ongoing work, execution, mental belief, chronology or a common writer and performer."
+msgstr "Éviter de déduire un travail en cours, une exécution, une croyance mentale, une chronologie ou une identité commune entre auteur et exécutant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Activity and the exact association’s source, recorder and declaring frame separately from note authorship."
+msgstr "Conserver l’Activity réelle ainsi que la source, l’agent qui consigne et le cadre déclarant de l’association exacte séparément de l’auteur de la note."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional. Naming the actual occurrence supplies no missing performer or current-work verdict."
+msgstr "Facultative et non fonctionnelle. Désigner l’occurrence réelle ne fournit aucun exécutant manquant ni verdict de travail actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough|http://www.w3.org/2004/02/skos/core#example"
+msgid "A historical entry retains its source-reported working-through activity without marking it current."
+msgstr "Une entrée historique conserve son activité de travail rapportée par la source sans la déclarer actuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode transition claim constraint"
+msgstr "Contrainte d’assertion de transition entre épisodes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."
+msgstr "Chaque rattachement de chaîne d’épisodes et référence factuelle causale fourni possède un témoin rdf:reifies réel sur cette assertion exacte. La citation n’affirme pas sa proposition et ne prouve pas la causalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check actual quoted-claim witnesses for supplied transition associations."
+msgstr "Utiliser pour vérifier les témoins réels d’assertion citée des associations de transition fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid borrowing another claim’s witness or inventing quoted evidence."
+msgstr "Éviter d’emprunter le témoin d’une autre assertion ou d’inventer des éléments cités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply both guarded arms to the exact linked claims under the EpisodeTransition guard."
+msgstr "Appliquer les deux branches gardées aux assertions liées exactes sous la garde EpisodeTransition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks retained bindings; it does not authenticate the source or execute a chain."
+msgstr "La loi vérifie les liaisons conservées ; elle n’authentifie pas la source et n’exécute pas de chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A factual reference without its own actual quote fails the selected binding."
+msgstr "Une référence factuelle sans sa propre citation réelle échoue à la liaison sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeTransitionClaimConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."
+msgstr "Chaque rattachement de chaîne d’épisodes et référence factuelle causale fourni possède un témoin rdf:reifies réel sur cette assertion exacte. La citation n’affirme pas sa proposition et ne prouve pas la causalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Episode interlude constraint"
+msgstr "Contrainte d’interlude entre épisodes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."
+msgstr "Chaque EpisodeInterlude possède un parent de transition et un contenu scalaire Activity réel. Ses ordinaux partagent une valeur numérique unique, et des occurrences distinctes ne peuvent occuper une même position numérique dans ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for parent, payload and report-local ordinal integrity of interlude occurrences."
+msgstr "Utiliser pour l’intégrité du parent, du contenu et de l’ordinal local au rapport des occurrences d’interlude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid literal maxima, rewritten ordinal aliases or ordering shared Activity identities."
+msgstr "Éviter les maxima de littéraux, la réécriture des variantes lexicales d’ordinaux ou l’ordonnancement d’identités Activity partagées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply six guarded arms with atomic existence witnesses and explicit positive class guards on parent and payload presence."
+msgstr "Appliquer six branches gardées avec des témoins existentiels atomiques et des gardes de classe positives explicites pour la présence du parent et du contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Numeric aliases remain valid; scalar branch integrity stays with StructuredValue. Position proves no time or cause."
+msgstr "Les variantes lexicales numériques restent valides ; l’intégrité de la branche scalaire relève de StructuredValue. La position ne prouve ni temps ni cause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two distinct occurrences with equal numeric positions in one report violate the law."
+msgstr "Deux occurrences distinctes ayant des positions numériques égales dans un rapport violent la loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EpisodeInterludeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."
+msgstr "Chaque EpisodeInterlude possède un parent de transition et un contenu scalaire Activity réel. Ses ordinaux partagent une valeur numérique unique, et des occurrences distinctes ne peuvent occuper une même position numérique dans ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead anchor constraint"
+msgstr "Contrainte de repère à venir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."
+msgstr "Chaque AheadAnchor appartient à une proposition de guidance et possède une valeur ordinale numérique unique. Des repères distincts ne peuvent occuper la même position numérique dans cette proposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for offer-local anchor parentage and numeric position integrity."
+msgstr "Utiliser pour l’appartenance locale à une proposition et l’intégrité des positions numériques des repères."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid global task ordinals, contiguous-position requirements or literal-count uniqueness."
+msgstr "Éviter les ordinaux globaux de tâches, les exigences de positions contiguës ou l’unicité par comptage des littéraux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply four guarded arms, retaining the positive class guard for parent existence and numeric equality for ordinals."
+msgstr "Appliquer quatre branches gardées, en conservant la garde de classe positive pour l’existence du parent et l’égalité numérique pour les ordinaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Aliases of one numeric ordinal coexist unchanged; source-supported repeated tasks use distinct anchors."
+msgstr "Les variantes lexicales d’un même ordinal numérique coexistent inchangées ; les tâches répétées étayées par la source utilisent des repères distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Separate offers can each retain an anchor at numeric position zero."
+msgstr "Des propositions séparées peuvent chacune conserver un repère à la position numérique zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadAnchorConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."
+msgstr "Chaque AheadAnchor appartient à une proposition de guidance et possède une valeur ordinale numérique unique. Des repères distincts ne peuvent occuper la même position numérique dans cette proposition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ahead window constraint"
+msgstr "Contrainte de fenêtre à venir"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
+msgstr "Chaque fenêtre à venir fournie possède des éléments réels de TemporalFrame. Chaque borne fournie par hasStartInstant ou hasEndInstant est un Instant avec des éléments réels de TemporalFrame. Aucune borne manquante, égalité de référentiels ou chronologie n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for selected window and supplied boundary frame presence and typing."
+msgstr "Utiliser pour la présence et le typage des référentiels de la fenêtre sélectionnée et des bornes fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid completing bounds, imposing frame equality or claiming start-before-end verification."
+msgstr "Éviter de compléter les bornes, d’imposer l’égalité des référentiels ou de prétendre vérifier que le début précède la fin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply eight window-focused arms with atomic frame witnesses; preserve existing Instant value-or-EDTF and inline temporal contracts."
+msgstr "Appliquer huit branches centrées sur la fenêtre avec des témoins atomiques de référentiel ; préserver les contrats existants de valeur ou EDTF d’Instant et de temps en ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A window may retain one boundary or unspecified bounds. No future event, conversion or temporal calculation follows."
+msgstr "Une fenêtre peut conserver une borne ou des bornes non spécifiées. Aucun événement futur, aucune conversion ni aucun calcul temporel n’en découle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied start Instant needs its own actual frame even when the interval already has one."
+msgstr "Un Instant de début fourni requiert son propre référentiel réel même si l’intervalle en possède déjà un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AheadWindowConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."
+msgstr "Chaque fenêtre à venir fournie possède des éléments réels de TemporalFrame. Chaque borne fournie par hasStartInstant ou hasEndInstant est un Instant avec des éléments réels de TemporalFrame. Aucune borne manquante, égalité de référentiels ou chronologie n’est déduite."

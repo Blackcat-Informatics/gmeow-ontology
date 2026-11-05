@@ -741,3 +741,75 @@ obligations. Retaining a source calculation does not compute or verify timestamp
 subtraction or establish execution, completion or causal order. This term does
 not assert equivalence with a consumer's private extension (Principles 4, 9,
 11 and 17).
+
+## Chain claims, causes and interlude occurrences
+
+`episodeTransition` attaches an `EpisodeTransition` report to the actual
+`InformationObject` reifier of the source's episode-chain claim. That exact
+claim must have an actual `rdf:reifies` witness. No chain predicate or direct
+correspondence between its quoted object and `episodeEntered` is prescribed.
+If the claim is a `SlotAssignmentClaim`, its existing complete slot protocol
+still applies. The attachment supplies no alternative state protocol.
+
+`transitionCauseRule` retains the actual identified rule-specification
+`InformationObject` cited as causal basis. An opaque rule reference does not
+make that artifact a productive `logic:Rule` or a `logic:ReasoningProgram`.
+Keep any actual formalization separately under its owning contract.
+`transitionCauseFact` cites an actual claim reifier with its own `rdf:reifies`
+witness. Neither relation proves causality, asserts the quoted proposition,
+fires a rule or executes a scheduler. Retain each exact association's source,
+recorder and declaring frame independently of the report's metadata.
+
+`transitionInterlude` links a report to `EpisodeInterlude` scalar occurrences.
+Each belongs to exactly one report and retains its actual Activity through
+existing `structuredTerm`. Existing StructuredValue branch and whole-term
+integrity remain authoritative. Give the occurrence an `entryOrdinal`: a
+zero-based `xsd:nonNegativeInteger` position within that report. Repeated
+Activity identities use distinct occurrences, including across reports.
+
+Ordinals have one numeric value, without a literal-count maximum. Preserve
+valid numeric lexical aliases unchanged. Positions need not be contiguous;
+two different occurrences cannot occupy the same numeric position in one
+report. Position asserts neither chronological nor causal order. Missing
+interlude links do not establish an empty history. No RDF list is introduced.
+
+## Offered activities and anchors ahead
+
+`guidanceActivity` points from a `Guidance` offer to an actual `EventDescription`
+of the proposed activity. The description is retained; no future Activity,
+adopted Intention, permission or execution is asserted.
+
+`guidanceAhead` links that offer to its own `AheadAnchor` occurrences. Each
+specializes `LoopReference`, belongs to exactly one offer and has one actual
+task-specification `InformationObject` through `referencedTaskDocument`.
+Its required `entryOrdinal` uses the same numeric-value discipline as interludes,
+scoped to this offer. Repeated task identities use distinct anchors. No loop
+is required, inferred or copied; an independently supplied `referencedLoop`
+retains its existing meaning. Neither anchor nor task artifact is a Task event.
+
+An anchor may have at most one `aheadWindow`, an actual source-identified
+`TimeInterval`. The selected interval requires actual `hasTemporalFrame`
+evidence of type `TemporalFrame`. Each supplied `hasStartInstant` or
+`hasEndInstant` boundary must be an actual `Instant` with actual
+`inTemporalFrame` evidence of type `TemporalFrame`. Existing Instant value-or-EDTF
+and frame contracts still apply; source-supplied inline time values retain
+their existing declared Temporal datatypes.
+
+A window can retain one known boundary or an identified interval whose bounds
+are unspecified. Missing bounds imply no open-endedness. Do not invent a
+boundary, midnight, UTC, precision or conversion. Different actual frames
+remain explicit: their presence does not prove equality, cross-frame order or
+that a start precedes an end. Planned temporal data does not assert a future
+event occurrence.
+
+## Working through a notebook entry
+
+`notebookWorkingThrough` is an optional, nonfunctional association from a
+`NotebookEntry` to an actual Activity supplied by the source. Retain the exact
+association's source, recorder and declaring frame separately from note
+authorship and any actual performer. No ongoing-work status, mental belief,
+chronology, missing performer or common writer/performer is inferred.
+The Notes-owned `notebookStatement` retains an exact quoted native triple term;
+see the [notebook guide](../notes/docs.md). Both notebook and guidance records
+still inherit Note's content-or-label requirement; no content is fabricated to
+admit an association (Principles 4, 9, 11 and 17).

@@ -3522,3 +3522,392 @@ gmeow:episodeLasted
     logic:range xsd:duration .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/episodeLasted" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:episodeTransition
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "episode transition attachment"@x-gmeow-english ;
+    skos:definition "A source-supplied attachment from an actual episode-chain claim reifier to its episode-transition report."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source attaches a transition report to an actual native claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a chain predicate, quoted claim or endpoint correspondence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual rdf:reifies witness and exact assertion provenance; preserve any selected slot protocol."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. Attachment neither asserts the quoted proposition nor executes a scheduler."@x-gmeow-english ;
+    skos:example "An actual chain-claim reifier names its retained transition report."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:EpisodeTransition .
+
+gmeow:transitionCauseRule
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported causing rule specification"@x-gmeow-english ;
+    skos:definition "An actual identified rule-specification record cited by the source as a transition’s causal basis."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source’s actual cited rule specification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a logic:Rule, program, rule firing or verified causality from citation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the identified specification and exact claim’s source and declaring frame; keep actual formalization separate."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. A string or label alone does not supply an identified rule record."@x-gmeow-english ;
+    skos:example "A transition report cites the actual policy specification supplied by its source."@x-gmeow-english ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:InformationObject .
+
+gmeow:transitionCauseFact
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported causing fact claim"@x-gmeow-english ;
+    skos:definition "An actual claim reifier cited by the source as a factual causal basis for a transition."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source identifies the exact factual claim it cites."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the quotation, inventing a fact or treating citation as causal proof."@x-gmeow-english ;
+    gmeow:howToUse "Retain that claim’s actual rdf:reifies witness and the causal association’s own source and frame."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. The quoted proposition, recorder and reported causal basis remain distinct."@x-gmeow-english ;
+    skos:example "A report cites a retained observation claim without asserting its quoted proposition."@x-gmeow-english ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:InformationObject .
+
+gmeow:EpisodeInterlude
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:StructuredValue ;
+    rdfs:label "Episode Interlude Occurrence"@x-gmeow-english ;
+    skos:definition "A scalar payload occurrence belonging to one transition report, retaining an actual Activity and its report-local ordinal."@x-gmeow-english ;
+    gmeow:useWhen "Use for each source-supplied interlude occurrence within a transition report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing an ordinal on a shared Activity or inferring chronological or causal order."@x-gmeow-english ;
+    gmeow:howToUse "Retain structuredTerm as the actual Activity and entryOrdinal as its zero-based position; use distinct occurrences for repetitions."@x-gmeow-english ;
+    skos:scopeNote "One parent is required. Equal numeric ordinal aliases coexist without literal rewriting; positions need not be contiguous."@x-gmeow-english ;
+    skos:example "The same Activity appears twice through distinct interlude occurrences at different positions."@x-gmeow-english .
+
+gmeow:transitionInterlude
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported transition interlude"@x-gmeow-english ;
+    skos:definition "A source-supplied interlude occurrence retained within an episode-transition report."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each actual supplied interlude occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid RDF lists, shared payload ordinals or an inferred empty history from missing links."@x-gmeow-english ;
+    gmeow:howToUse "Link the report to each EpisodeInterlude; preserve its payload, position and exact association provenance."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. Each interlude occurrence belongs to one report; ordinal order proves no chronology."@x-gmeow-english ;
+    skos:example "A report retains several separately positioned interlude occurrences."@x-gmeow-english ;
+    logic:domain gmeow:EpisodeTransition ;
+    logic:range gmeow:EpisodeInterlude .
+
+gmeow:guidanceActivity
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "offered activity description"@x-gmeow-english ;
+    skos:definition "An actual EventDescription of the activity offered by a Guidance note."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a description of the offered activity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a future Activity, adopted Intention, permission or execution."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual description identity and exact offered association’s source and declaring frame."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Several source-supported activity descriptions may coexist."@x-gmeow-english ;
+    skos:example "An offer describes reviewing an archive without asserting that a review occurred."@x-gmeow-english ;
+    logic:domain gmeow:Guidance ;
+    logic:range gmeow:EventDescription .
+
+gmeow:AheadAnchor
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:LoopReference ;
+    rdfs:label "Ahead Anchor Occurrence"@x-gmeow-english ;
+    skos:definition "An offer-local reference occurrence retaining one actual task-specification artifact, a canonical ordinal and any supplied planned window."@x-gmeow-english ;
+    gmeow:useWhen "Use for a separately positioned task reference in one guidance offer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the anchor or task artifact as an actual Task occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Supply referencedTaskDocument and zero-based entryOrdinal; retain an optional aheadWindow and any independently supplied loop reference."@x-gmeow-english ;
+    skos:scopeNote "One offer and one task artifact are required; no loop is required or copied. Numeric ordinal aliases remain unchanged."@x-gmeow-english ;
+    skos:example "Two offers name the same task artifact through distinct anchor occurrences."@x-gmeow-english .
+
+gmeow:guidanceAhead
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "guidance ahead anchor"@x-gmeow-english ;
+    skos:definition "A source-supported ordered anchor occurrence retained within a Guidance offer."@x-gmeow-english ;
+    gmeow:useWhen "Use for each supplied task anchor ahead of an offer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying a loop target, selecting a global winner or inferring scheduler execution."@x-gmeow-english ;
+    gmeow:howToUse "Link Guidance to actual AheadAnchor occurrences and preserve their own task, ordinal and source context."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional. Each anchor belongs to one offer; repeated task identities use distinct occurrences."@x-gmeow-english ;
+    skos:example "An offer retains several anchors whose positions need not be contiguous."@x-gmeow-english ;
+    logic:domain gmeow:Guidance ;
+    logic:range gmeow:AheadAnchor .
+
+gmeow:aheadWindow
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "planned ahead window"@x-gmeow-english ;
+    skos:definition "An actual source-identified TimeInterval retained as the planned window of an ahead anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies an actual planned interval with temporal-frame evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a boundary, midnight, UTC, conversion, chronological order or future event occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Keep actual frame data and any supplied start/end Instants or inline values under their existing Temporal contracts."@x-gmeow-english ;
+    skos:scopeNote "Optional, locally at most one. Unknown bounds stay unspecified; frame presence implies no frame equality or start-before-end proof."@x-gmeow-english ;
+    skos:example "An anchor retains an identified interval with only its supplied start boundary and actual frame."@x-gmeow-english ;
+    logic:domain gmeow:AheadAnchor ;
+    logic:range gmeow:TimeInterval .
+
+gmeow:notebookWorkingThrough
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported notebook working-through activity"@x-gmeow-english ;
+    skos:definition "An actual Activity associated by the source with working through a notebook entry."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly supplied NotebookEntry-to-Activity association."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ongoing work, execution, mental belief, chronology or a common writer and performer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual Activity and the exact association’s source, recorder and declaring frame separately from note authorship."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional. Naming the actual occurrence supplies no missing performer or current-work verdict."@x-gmeow-english ;
+    skos:example "A historical entry retains its source-reported working-through activity without marking it current."@x-gmeow-english ;
+    logic:domain gmeow:NotebookEntry ;
+    logic:range gmeow:Activity .
+
+gmeow:EpisodeTransitionClaimConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Episode transition claim constraint"@x-gmeow-english ;
+    skos:definition "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."@x-gmeow-english ;
+    gmeow:useWhen "Use to check actual quoted-claim witnesses for supplied transition associations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid borrowing another claim’s witness or inventing quoted evidence."@x-gmeow-english ;
+    gmeow:howToUse "Apply both guarded arms to the exact linked claims under the EpisodeTransition guard."@x-gmeow-english ;
+    skos:scopeNote "The law checks retained bindings; it does not authenticate the source or execute a chain."@x-gmeow-english ;
+    skos:example "A factual reference without its own actual quote fails the selected binding."@x-gmeow-english ;
+    logic:formalizes gmeow:episodeTransition , gmeow:transitionCauseFact ;
+    logic:message "Each supplied episode-chain attachment and causing-fact reference has an actual rdf:reifies witness on that exact claim. Quotation neither asserts its proposition nor proves causality."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "transitionReport" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transitionReport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EpisodeTransition ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q1Claim" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:episodeTransition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q1Claim" ] , [ logic:termIndex 1 ; logic:termVariable "transitionReport" ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q1Quote" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q1Claim" ] , [ logic:termIndex 1 ; logic:termVariable "q1Quote" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q2Claim" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:transitionCauseFact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transitionReport" ] , [ logic:termIndex 1 ; logic:termVariable "q2Claim" ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q2Quote" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "q2Claim" ] , [ logic:termIndex 1 ; logic:termVariable "q2Quote" ] ] ] ] ] ] ] ] .
+
+gmeow:EpisodeInterludeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Episode interlude constraint"@x-gmeow-english ;
+    skos:definition "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."@x-gmeow-english ;
+    gmeow:useWhen "Use for parent, payload and report-local ordinal integrity of interlude occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid literal maxima, rewritten ordinal aliases or ordering shared Activity identities."@x-gmeow-english ;
+    gmeow:howToUse "Apply six guarded arms with atomic existence witnesses and explicit positive class guards on parent and payload presence."@x-gmeow-english ;
+    skos:scopeNote "Numeric aliases remain valid; scalar branch integrity stays with StructuredValue. Position proves no time or cause."@x-gmeow-english ;
+    skos:example "Two distinct occurrences with equal numeric positions in one report violate the law."@x-gmeow-english ;
+    logic:formalizes gmeow:EpisodeInterlude , gmeow:transitionInterlude ;
+    logic:message "Each EpisodeInterlude has one transition parent and an actual Activity scalar payload. Its ordinals share one numeric value, and different occurrences cannot occupy one numeric position within that report."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EpisodeInterlude ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EpisodeInterlude ] ] ;
+                    logic:consequent [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i1Report" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:transitionInterlude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i1Report" ] , [ logic:termIndex 1 ; logic:termVariable "interludeOccurrence" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i2FirstReport" ] , [ logic:termIndex 1 ; logic:termVariable "i2SecondReport" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:transitionInterlude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i2FirstReport" ] , [ logic:termIndex 1 ; logic:termVariable "interludeOccurrence" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:transitionInterlude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i2SecondReport" ] , [ logic:termIndex 1 ; logic:termVariable "interludeOccurrence" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i2FirstReport" ] , [ logic:termIndex 1 ; logic:termVariable "i2SecondReport" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EpisodeInterlude ] ] ;
+                    logic:consequent [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i3Payload" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i3Payload" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i4Payload" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i4Payload" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i4Payload" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Activity ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i5FirstOrdinal" ] , [ logic:termIndex 1 ; logic:termVariable "i5SecondOrdinal" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i5FirstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i5SecondOrdinal" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i5FirstOrdinal" ] , [ logic:termIndex 1 ; logic:termVariable "i5SecondOrdinal" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i6Report" ] , [ logic:termIndex 1 ; logic:termVariable "i6OtherOccurrence" ] , [ logic:termIndex 2 ; logic:termVariable "i6Ordinal" ] , [ logic:termIndex 3 ; logic:termVariable "i6OtherOrdinal" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:transitionInterlude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i6Report" ] , [ logic:termIndex 1 ; logic:termVariable "interludeOccurrence" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:transitionInterlude ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i6Report" ] , [ logic:termIndex 1 ; logic:termVariable "i6OtherOccurrence" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i6Ordinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i6OtherOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i6OtherOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i6Ordinal" ] , [ logic:termIndex 1 ; logic:termVariable "i6OtherOrdinal" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interludeOccurrence" ] , [ logic:termIndex 1 ; logic:termVariable "i6OtherOccurrence" ] ] ] ] ] ] ] .
+
+gmeow:AheadAnchorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Ahead anchor constraint"@x-gmeow-english ;
+    skos:definition "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."@x-gmeow-english ;
+    gmeow:useWhen "Use for offer-local anchor parentage and numeric position integrity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid global task ordinals, contiguous-position requirements or literal-count uniqueness."@x-gmeow-english ;
+    gmeow:howToUse "Apply four guarded arms, retaining the positive class guard for parent existence and numeric equality for ordinals."@x-gmeow-english ;
+    skos:scopeNote "Aliases of one numeric ordinal coexist unchanged; source-supported repeated tasks use distinct anchors."@x-gmeow-english ;
+    skos:example "Separate offers can each retain an anchor at numeric position zero."@x-gmeow-english ;
+    logic:formalizes gmeow:AheadAnchor , gmeow:guidanceAhead ;
+    logic:message "Each AheadAnchor belongs to one guidance offer and has one numeric ordinal value. Distinct anchors cannot occupy the same numeric position within that offer."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AheadAnchor ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AheadAnchor ] ] ;
+                    logic:consequent [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a1Offer" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:guidanceAhead ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a1Offer" ] , [ logic:termIndex 1 ; logic:termVariable "aheadAnchor" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a2FirstOffer" ] , [ logic:termIndex 1 ; logic:termVariable "a2SecondOffer" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:guidanceAhead ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a2FirstOffer" ] , [ logic:termIndex 1 ; logic:termVariable "aheadAnchor" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:guidanceAhead ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a2SecondOffer" ] , [ logic:termIndex 1 ; logic:termVariable "aheadAnchor" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a2FirstOffer" ] , [ logic:termIndex 1 ; logic:termVariable "a2SecondOffer" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a3FirstOrdinal" ] , [ logic:termIndex 1 ; logic:termVariable "a3SecondOrdinal" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "a3FirstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "a3SecondOrdinal" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a3FirstOrdinal" ] , [ logic:termIndex 1 ; logic:termVariable "a3SecondOrdinal" ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a4Offer" ] , [ logic:termIndex 1 ; logic:termVariable "a4OtherAnchor" ] , [ logic:termIndex 2 ; logic:termVariable "a4Ordinal" ] , [ logic:termIndex 3 ; logic:termVariable "a4OtherOrdinal" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:guidanceAhead ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a4Offer" ] , [ logic:termIndex 1 ; logic:termVariable "aheadAnchor" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:guidanceAhead ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a4Offer" ] , [ logic:termIndex 1 ; logic:termVariable "a4OtherAnchor" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "a4Ordinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a4OtherAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "a4OtherOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a4Ordinal" ] , [ logic:termIndex 1 ; logic:termVariable "a4OtherOrdinal" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "aheadAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "a4OtherAnchor" ] ] ] ] ] ] ] .
+
+gmeow:AheadWindowConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Ahead window constraint"@x-gmeow-english ;
+    skos:definition "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."@x-gmeow-english ;
+    gmeow:useWhen "Use for selected window and supplied boundary frame presence and typing."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid completing bounds, imposing frame equality or claiming start-before-end verification."@x-gmeow-english ;
+    gmeow:howToUse "Apply eight window-focused arms with atomic frame witnesses; preserve existing Instant value-or-EDTF and inline temporal contracts."@x-gmeow-english ;
+    skos:scopeNote "A window may retain one boundary or unspecified bounds. No future event, conversion or temporal calculation follows."@x-gmeow-english ;
+    skos:example "A supplied start Instant needs its own actual frame even when the interval already has one."@x-gmeow-english ;
+    logic:formalizes gmeow:AheadAnchor , gmeow:aheadWindow ;
+    logic:message "Each supplied ahead window has actual TemporalFrame evidence. Every supplied hasStartInstant or hasEndInstant boundary is an Instant with actual TemporalFrame evidence. Missing boundaries, frame equality and chronological order are not inferred."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AheadAnchor ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w1Window" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w1Window" ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w1Frame" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:hasTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w1Window" ] , [ logic:termIndex 1 ; logic:termVariable "w1Frame" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w2Window" ] , [ logic:termIndex 1 ; logic:termVariable "w2Frame" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w2Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w2Window" ] , [ logic:termIndex 1 ; logic:termVariable "w2Frame" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w2Frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TemporalFrame ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w3Window" ] , [ logic:termIndex 1 ; logic:termVariable "w3Boundary" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w3Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasStartInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w3Window" ] , [ logic:termIndex 1 ; logic:termVariable "w3Boundary" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w3Boundary" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Instant ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w4Window" ] , [ logic:termIndex 1 ; logic:termVariable "w4Boundary" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w4Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasEndInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w4Window" ] , [ logic:termIndex 1 ; logic:termVariable "w4Boundary" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w4Boundary" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Instant ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w5Window" ] , [ logic:termIndex 1 ; logic:termVariable "w5Boundary" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w5Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasStartInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w5Window" ] , [ logic:termIndex 1 ; logic:termVariable "w5Boundary" ] ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w5Frame" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:inTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w5Boundary" ] , [ logic:termIndex 1 ; logic:termVariable "w5Frame" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w6Window" ] , [ logic:termIndex 1 ; logic:termVariable "w6Boundary" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w6Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasEndInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w6Window" ] , [ logic:termIndex 1 ; logic:termVariable "w6Boundary" ] ] ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w6Frame" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:inTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w6Boundary" ] , [ logic:termIndex 1 ; logic:termVariable "w6Frame" ] ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w7Window" ] , [ logic:termIndex 1 ; logic:termVariable "w7Boundary" ] , [ logic:termIndex 2 ; logic:termVariable "w7Frame" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w7Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasStartInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w7Window" ] , [ logic:termIndex 1 ; logic:termVariable "w7Boundary" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:inTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w7Boundary" ] , [ logic:termIndex 1 ; logic:termVariable "w7Frame" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w7Frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TemporalFrame ] ] ] ] ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w8Window" ] , [ logic:termIndex 1 ; logic:termVariable "w8Boundary" ] , [ logic:termIndex 2 ; logic:termVariable "w8Frame" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:aheadWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "windowAnchor" ] , [ logic:termIndex 1 ; logic:termVariable "w8Window" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasEndInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w8Window" ] , [ logic:termIndex 1 ; logic:termVariable "w8Boundary" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:inTemporalFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w8Boundary" ] , [ logic:termIndex 1 ; logic:termVariable "w8Frame" ] ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w8Frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TemporalFrame ] ] ] ] ] ] ] .
+
+gmeow:EpisodeInterlude logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:AheadAnchor logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:referencedTaskDocument ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:referencedTaskDocument ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:aheadWindow ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:EpisodeInterlude ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:AheadAnchor ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:AheadAnchor ; logic:closureKey "https://blackcatinformatics.ca/gmeow/referencedTaskDocument" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/episodeTransition" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionCauseRule" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionCauseFact" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionInterlude" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/guidanceActivity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/guidanceAhead" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/aheadWindow" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notebookWorkingThrough" ; logic:closureValue logic:ClosedWorldClosure ] .
