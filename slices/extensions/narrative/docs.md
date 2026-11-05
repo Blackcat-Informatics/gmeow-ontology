@@ -406,3 +406,399 @@ They do not assert that a refinement matcher ran or that recall succeeded.
 The [ordinary story-building scene](examples/story-building.ttl) includes actual
 members, structural positions, citations, attributed acceptance and separate
 completion claims. [The design](design/STORY-BUILDING.md) explains the boundaries.
+
+## Division narrative readings retain supplied wording
+
+A DivisionNarrativeReading holds one coherent supplied reading of an actual
+ContentSegment. It records words naming characters reported as active and words
+used as thematic tags. Its positive semantic owner is narrative: the meaning is
+about interpreting source content, whether the reading came from a person or a
+computational method. The existing Observation spine supplies the held reading,
+actual observedFeature, observationMethod and vantage. The actual division is
+supplied by the producer's mapping; matching words do not identify it.
+
+Bind exactly one actual ContentSegment and one actual ObservationMethod, plus
+at least one supplied Entity vantage. Joint vantages are permitted. A coarse
+stage label or method supplies HOW, not an invocation, timestamp, model revision
+or Agent. If required actual context is unavailable, do not manufacture that
+context or represent a selected reading as complete. Shared target, stage or
+method does not merge independently supplied readings.
+
+The two optional roles are divisionActiveCharacterWords and
+divisionThematicTagWords. Each is locally at most one StructuredSequence, and
+at least one actual roster relation is required. Each supplied tuple has its
+own order. Distinct StructuredValue occurrences carry complete literals through
+structuredTerm and their entryOrdinal. Preserve every supplied string, including
+leading or trailing whitespace, repeated strings and blank strings. Do not pair
+a character position with a thematic position, sort or deduplicate values, or
+create identity from a position or spelling. The generic sequence contract
+requires nonnegative numeric positions and unique positions within a sequence;
+it does not impose a contiguous-index law or use ordinals as temporal evidence.
+
+The word constraint requires scalar presence and checks every supplied term.
+It admits xsd:string, rdf:langString and RDF 1.2 rdf:dirLangString, preserving
+actual language and direction. Untagged current strings stay xsd:string. The
+scalar StructuredValue contract remains responsible for exactly one branch and
+one whole RDF term; a second malformed value cannot hide behind a valid word.
+The new laws do not weaken the existing branch, identity or ordering rules.
+
+The thematic role follows tagAsWritten's source-wording semantics. It does not
+resolve a scheme member, create a Tag, assert hasTag or select a spelling.
+structuredTerm is the sole lexical authority: the same words need not be
+asserted again through tagAsWritten. Tagging needs an actual Tag, tagged Entity
+and Agent tagger. Character needs an actual fictional identity and narrative
+frame. NarrationUsage needs an actual narrated subject and carrying segment,
+with its own mode contract. A string tuple supplies none of these referents.
+Do not infer those structures, a fictional realm or character participation
+from the wording. Independently supported interpretations use the existing
+models with their full obligations and separate source attribution.
+
+An absent role, a supplied zero-item sequence and a sequence containing a blank
+string remain different representations. A known current zero-item tuple may
+be retained with its actual context. Its emptiness reports zero current entries;
+it does not prove that the division has no characters or themes. Code defaults
+cannot establish original column presence, original blanks or an explicitly
+empty historical source field. Preserve available current wording exactly;
+do not claim to reconstruct unavailable whitespace or wording discarded before
+the current input was supplied. A reading with neither roster is rejected.
+A provided empty roster still satisfies the content-presence law.
+
+Keep actual source and viewpoint on exact RDF 1.2 statements: reading type and
+context, roster associations, sequence and item types, memberships, scalar terms
+and ordinals. Attribution of the observation node does not propagate to these
+facts or make the original division derived from the reading (Principles 2,
+4, 9, 17 and 19).
+
+### A fictional source scene
+
+This is an ordinary illustrative scene, not a fixture, execution receipt or
+engine result. The scenario source explicitly supplies its division identity,
+containing object, method and two joint-compatible standpoints. Three separate
+reports supply their current outputs. A keeps three character entries and four
+thematic entries: unequal lengths are intentional and no positional pairing
+exists. Equal values remain distinct occurrences, and blank values remain items.
+B supplies a current zero-item character roster and no thematic roster; this
+says nothing about B's earlier column history. C separately supplies actual
+French and Arabic-directional literals and no character roster. Their language
+and direction are source data, not guesses for untagged input. All background
+and report facts below have matching exact-statement attribution.
+
+```turtle
+@prefix ex: <https://example.org/division-narrative-reading/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Explicit scenario background and current report assertions.
+ex:reportA rdf:type gmeow:InformationObject .
+ex:reportB rdf:type gmeow:InformationObject .
+ex:reportC rdf:type gmeow:InformationObject .
+ex:whole rdf:type gmeow:InformationObject .
+ex:division rdf:type gmeow:ContentSegment .
+ex:division gmeow:segmentOf ex:whole .
+ex:division gmeow:segmentType gmeow:segmentTypeSection .
+ex:division gmeow:segmentIndex "2"^^xsd:integer .
+ex:method rdf:type gmeow:ObservationMethod .
+ex:method rdfs:label "Fictional narrative-reading method"@en .
+ex:stageView rdf:type gmeow:Standpoint .
+ex:stageView rdf:type gmeow:Entity .
+ex:stageView gmeow:sharpens gmeow:universalStandpoint .
+ex:stageView rdfs:label "Fictional stage perspective"@en .
+ex:editorialView rdf:type gmeow:Standpoint .
+ex:editorialView rdf:type gmeow:Entity .
+ex:editorialView gmeow:sharpens gmeow:universalStandpoint .
+ex:editorialView rdfs:label "Fictional editorial perspective"@en .
+ex:readingA rdf:type gmeow:DivisionNarrativeReading .
+ex:readingA gmeow:observedFeature ex:division .
+ex:readingA gmeow:observationMethod ex:method .
+ex:readingA gmeow:vantage ex:stageView .
+ex:readingA gmeow:vantage ex:editorialView .
+ex:readingB rdf:type gmeow:DivisionNarrativeReading .
+ex:readingB gmeow:observedFeature ex:division .
+ex:readingB gmeow:observationMethod ex:method .
+ex:readingB gmeow:vantage ex:stageView .
+ex:readingC rdf:type gmeow:DivisionNarrativeReading .
+ex:readingC gmeow:observedFeature ex:division .
+ex:readingC gmeow:observationMethod ex:method .
+ex:readingC gmeow:vantage ex:editorialView .
+ex:readingA gmeow:divisionActiveCharacterWords ex:charactersA .
+ex:charactersA rdf:type gmeow:StructuredSequence .
+ex:charactersA gmeow:structuredItem ex:charactersAItem0 .
+ex:charactersAItem0 rdf:type gmeow:StructuredValue .
+ex:charactersAItem0 gmeow:structuredTerm " Sora " .
+ex:charactersAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:charactersA gmeow:structuredItem ex:charactersAItem1 .
+ex:charactersAItem1 rdf:type gmeow:StructuredValue .
+ex:charactersAItem1 gmeow:structuredTerm "" .
+ex:charactersAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:charactersA gmeow:structuredItem ex:charactersAItem2 .
+ex:charactersAItem2 rdf:type gmeow:StructuredValue .
+ex:charactersAItem2 gmeow:structuredTerm " Sora " .
+ex:charactersAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+ex:readingA gmeow:divisionThematicTagWords ex:themesA .
+ex:themesA rdf:type gmeow:StructuredSequence .
+ex:themesA gmeow:structuredItem ex:themesAItem0 .
+ex:themesAItem0 rdf:type gmeow:StructuredValue .
+ex:themesAItem0 gmeow:structuredTerm "return" .
+ex:themesAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:themesA gmeow:structuredItem ex:themesAItem1 .
+ex:themesAItem1 rdf:type gmeow:StructuredValue .
+ex:themesAItem1 gmeow:structuredTerm "doubt" .
+ex:themesAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+ex:themesA gmeow:structuredItem ex:themesAItem2 .
+ex:themesAItem2 rdf:type gmeow:StructuredValue .
+ex:themesAItem2 gmeow:structuredTerm "return" .
+ex:themesAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+ex:themesA gmeow:structuredItem ex:themesAItem3 .
+ex:themesAItem3 rdf:type gmeow:StructuredValue .
+ex:themesAItem3 gmeow:structuredTerm "" .
+ex:themesAItem3 gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger .
+ex:readingB gmeow:divisionActiveCharacterWords ex:charactersB .
+ex:charactersB rdf:type gmeow:StructuredSequence .
+ex:readingC gmeow:divisionThematicTagWords ex:themesC .
+ex:themesC rdf:type gmeow:StructuredSequence .
+ex:themesC gmeow:structuredItem ex:themesCItem0 .
+ex:themesCItem0 rdf:type gmeow:StructuredValue .
+ex:themesCItem0 gmeow:structuredTerm "retour"@fr .
+ex:themesCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+ex:themesC gmeow:structuredItem ex:themesCItem1 .
+ex:themesCItem1 rdf:type gmeow:StructuredValue .
+ex:themesCItem1 gmeow:structuredTerm "عودة"@ar--rtl .
+ex:themesCItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+
+# Every assertion above has its own native RDF 1.2 statement reifier.
+ex:claim1 rdf:reifies <<( ex:reportA rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim2 rdf:reifies <<( ex:reportB rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim3 rdf:reifies <<( ex:reportC rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim4 rdf:reifies <<( ex:whole rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim5 rdf:reifies <<( ex:division rdf:type gmeow:ContentSegment )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim6 rdf:reifies <<( ex:division gmeow:segmentOf ex:whole )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim7 rdf:reifies <<( ex:division gmeow:segmentType gmeow:segmentTypeSection )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim8 rdf:reifies <<( ex:division gmeow:segmentIndex "2"^^xsd:integer )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim9 rdf:reifies <<( ex:method rdf:type gmeow:ObservationMethod )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim10 rdf:reifies <<( ex:method rdfs:label "Fictional narrative-reading method"@en )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim11 rdf:reifies <<( ex:stageView rdf:type gmeow:Standpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim12 rdf:reifies <<( ex:stageView rdf:type gmeow:Entity )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim13 rdf:reifies <<( ex:stageView gmeow:sharpens gmeow:universalStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim14 rdf:reifies <<( ex:stageView rdfs:label "Fictional stage perspective"@en )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim15 rdf:reifies <<( ex:editorialView rdf:type gmeow:Standpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim16 rdf:reifies <<( ex:editorialView rdf:type gmeow:Entity )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim17 rdf:reifies <<( ex:editorialView gmeow:sharpens gmeow:universalStandpoint )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim18 rdf:reifies <<( ex:editorialView rdfs:label "Fictional editorial perspective"@en )>> ;
+    gmeow:wasDerivedFrom ex:scenarioSource ;
+    gmeow:accordingTo ex:stageView .
+ex:claim19 rdf:reifies <<( ex:readingA rdf:type gmeow:DivisionNarrativeReading )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim20 rdf:reifies <<( ex:readingA gmeow:observedFeature ex:division )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim21 rdf:reifies <<( ex:readingA gmeow:observationMethod ex:method )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim22 rdf:reifies <<( ex:readingA gmeow:vantage ex:stageView )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim23 rdf:reifies <<( ex:readingA gmeow:vantage ex:editorialView )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim24 rdf:reifies <<( ex:readingB rdf:type gmeow:DivisionNarrativeReading )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim25 rdf:reifies <<( ex:readingB gmeow:observedFeature ex:division )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim26 rdf:reifies <<( ex:readingB gmeow:observationMethod ex:method )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim27 rdf:reifies <<( ex:readingB gmeow:vantage ex:stageView )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim28 rdf:reifies <<( ex:readingC rdf:type gmeow:DivisionNarrativeReading )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim29 rdf:reifies <<( ex:readingC gmeow:observedFeature ex:division )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim30 rdf:reifies <<( ex:readingC gmeow:observationMethod ex:method )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim31 rdf:reifies <<( ex:readingC gmeow:vantage ex:editorialView )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim32 rdf:reifies <<( ex:readingA gmeow:divisionActiveCharacterWords ex:charactersA )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim33 rdf:reifies <<( ex:charactersA rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim34 rdf:reifies <<( ex:charactersA gmeow:structuredItem ex:charactersAItem0 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim35 rdf:reifies <<( ex:charactersAItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim36 rdf:reifies <<( ex:charactersAItem0 gmeow:structuredTerm " Sora " )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim37 rdf:reifies <<( ex:charactersAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim38 rdf:reifies <<( ex:charactersA gmeow:structuredItem ex:charactersAItem1 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim39 rdf:reifies <<( ex:charactersAItem1 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim40 rdf:reifies <<( ex:charactersAItem1 gmeow:structuredTerm "" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim41 rdf:reifies <<( ex:charactersAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim42 rdf:reifies <<( ex:charactersA gmeow:structuredItem ex:charactersAItem2 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim43 rdf:reifies <<( ex:charactersAItem2 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim44 rdf:reifies <<( ex:charactersAItem2 gmeow:structuredTerm " Sora " )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim45 rdf:reifies <<( ex:charactersAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim46 rdf:reifies <<( ex:readingA gmeow:divisionThematicTagWords ex:themesA )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim47 rdf:reifies <<( ex:themesA rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim48 rdf:reifies <<( ex:themesA gmeow:structuredItem ex:themesAItem0 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim49 rdf:reifies <<( ex:themesAItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim50 rdf:reifies <<( ex:themesAItem0 gmeow:structuredTerm "return" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim51 rdf:reifies <<( ex:themesAItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim52 rdf:reifies <<( ex:themesA gmeow:structuredItem ex:themesAItem1 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim53 rdf:reifies <<( ex:themesAItem1 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim54 rdf:reifies <<( ex:themesAItem1 gmeow:structuredTerm "doubt" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim55 rdf:reifies <<( ex:themesAItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim56 rdf:reifies <<( ex:themesA gmeow:structuredItem ex:themesAItem2 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim57 rdf:reifies <<( ex:themesAItem2 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim58 rdf:reifies <<( ex:themesAItem2 gmeow:structuredTerm "return" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim59 rdf:reifies <<( ex:themesAItem2 gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim60 rdf:reifies <<( ex:themesA gmeow:structuredItem ex:themesAItem3 )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim61 rdf:reifies <<( ex:themesAItem3 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim62 rdf:reifies <<( ex:themesAItem3 gmeow:structuredTerm "" )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim63 rdf:reifies <<( ex:themesAItem3 gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportA ;
+    gmeow:accordingTo ex:stageView , ex:editorialView .
+ex:claim64 rdf:reifies <<( ex:readingB gmeow:divisionActiveCharacterWords ex:charactersB )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim65 rdf:reifies <<( ex:charactersB rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportB ;
+    gmeow:accordingTo ex:stageView .
+ex:claim66 rdf:reifies <<( ex:readingC gmeow:divisionThematicTagWords ex:themesC )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim67 rdf:reifies <<( ex:themesC rdf:type gmeow:StructuredSequence )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim68 rdf:reifies <<( ex:themesC gmeow:structuredItem ex:themesCItem0 )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim69 rdf:reifies <<( ex:themesCItem0 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim70 rdf:reifies <<( ex:themesCItem0 gmeow:structuredTerm "retour"@fr )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim71 rdf:reifies <<( ex:themesCItem0 gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim72 rdf:reifies <<( ex:themesC gmeow:structuredItem ex:themesCItem1 )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim73 rdf:reifies <<( ex:themesCItem1 rdf:type gmeow:StructuredValue )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim74 rdf:reifies <<( ex:themesCItem1 gmeow:structuredTerm "عودة"@ar--rtl )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+ex:claim75 rdf:reifies <<( ex:themesCItem1 gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasDerivedFrom ex:reportC ;
+    gmeow:accordingTo ex:editorialView .
+```
+
+The scene has 75 attributed assertions: 18 supplied background facts, 37 from A,
+6 from B and 14 from C. Each reifier identifies the exact asserted
+triple and its supplied source and standpoint; no node-level attribution is
+assumed to spread to payloads. The observations share a target and method while
+remaining distinct. No Character, Tag, Agent, narrative realm, invocation, model
+revision or timestamp is asserted by this scene. Its semantic and runtime
+acceptance has not been executed.

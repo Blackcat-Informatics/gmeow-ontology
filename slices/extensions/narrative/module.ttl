@@ -2552,3 +2552,318 @@ gmeow:StoryStructuringPrerequisiteConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyStructured" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recollectionCue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DivisionNarrativeReading
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "division narrative reading"@x-gmeow-english ;
+    skos:definition "An Observation retaining active-character wording or thematic-tag wording supplied by one coherent reading of an actual ContentSegment."@x-gmeow-english ;
+    skos:scopeNote "One actual division, one method, at least one supplied vantage and at least one supplied roster are required. Joint vantages coexist; a shared stage label establishes no shared invocation or model revision."@x-gmeow-english ;
+    skos:example "A fictional report supplies a reading with active-character words and a separate thematic-tag roster for its actual source division."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual division, method, vantage and at least one current wording roster are supplied as a coherent reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a Character, Tag, Agent, realm, invocation or missing context, or treating current output as a reconstruction of unavailable source history."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual ContentSegment, observationMethod to supplied HOW and vantage to actual WHO or standpoint. Preserve each supplied roster and attribute its actual statements separately."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:divisionActiveCharacterWords
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported active-character wording roster"@x-gmeow-english ;
+    skos:definition "The independently ordered sequence of complete strings naming characters reported as active by this division narrative reading."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued sequence retains supplied wording, not resolved Character identities or a narrative realm. Its positions establish no pairing with thematic-tag positions."@x-gmeow-english ;
+    skos:example "A fictional reading retains the strings Sora, blank text and Sora again as three distinct ordered occurrences."@x-gmeow-english ;
+    gmeow:useWhen "Use when the coherent reading supplies its active-character wording tuple, including a current zero-item tuple with known actual context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid trimming, sorting, deduplicating, resolving names or inferring narrates, NarrationUsage, activity in a realm or absence of characters from an empty tuple."@x-gmeow-english ;
+    gmeow:howToUse "Link one supplied StructuredSequence and retain complete word literals through structuredTerm on distinct StructuredValue occurrences with entryOrdinal. Preserve repeats, blanks and actual language or direction; keep untagged input xsd:string."@x-gmeow-english ;
+    logic:domain gmeow:DivisionNarrativeReading ;
+    logic:range gmeow:StructuredSequence .
+
+gmeow:divisionThematicTagWords
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported thematic-tag wording roster"@x-gmeow-english ;
+    skos:definition "The independently ordered sequence of complete thematic-tag strings supplied by this division narrative reading."@x-gmeow-english ;
+    skos:scopeNote "This optional, locally single-valued sequence follows tagAsWritten’s preservation of exact wording without a Tag, scheme match, hasTag or preferred spelling. structuredTerm is its sole lexical carrier."@x-gmeow-english ;
+    skos:example "A fictional reading retains the thematic strings return, doubt and return again without creating three Tag resources or pairing them with character words."@x-gmeow-english ;
+    gmeow:useWhen "Use when the coherent reading supplies its thematic-tag wording tuple, independently of whether an active-character tuple is supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a controlled Tag, Tagging, scheme, tagger or hasTag, duplicating wording through tagAsWritten, or treating an empty tuple as proof that the division has no theme."@x-gmeow-english ;
+    gmeow:howToUse "Link its own StructuredSequence and retain every supplied complete word literal once through structuredTerm, with distinct occurrences and entryOrdinal preserving order and repetition. Attribute the actual roster and payload statements."@x-gmeow-english ;
+    logic:domain gmeow:DivisionNarrativeReading ;
+    logic:range gmeow:StructuredSequence ;
+    rdfs:seeAlso gmeow:tagAsWritten .
+
+gmeow:DivisionNarrativeWordSequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "division narrative word-sequence constraint"@x-gmeow-english ;
+    skos:definition "Every item selected through divisionActiveCharacterWords or divisionThematicTagWords has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal."@x-gmeow-english ;
+    skos:scopeNote "This role-scoped law checks presence and every supplied term independently, permits blanks and empty sequences, and preserves the existing branch, whole-term identity and ordinal contracts."@x-gmeow-english ;
+    skos:example "A selected item with blank xsd:string is valid; a missing structuredTerm, numeric term, resource or extra malformed term violates this word law."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate supplied character and thematic wording occurrences without resolving referents or pairing the two rosters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting one good term as cover for an extra invalid term, coercing nonwords into strings or requiring nonempty rosters."@x-gmeow-english ;
+    gmeow:howToUse "Follow each selected role, sequence and structuredItem. Require a scalar term, then compare every term’s datatype through termSameComponent against the three admitted word datatypes without rewriting input."@x-gmeow-english ;
+    logic:formalizes gmeow:divisionActiveCharacterWords , gmeow:divisionThematicTagWords ;
+    logic:message "Every selected character or thematic wording item has a structuredTerm, and every such term is an xsd:string, rdf:langString or rdf:dirLangString literal." .
+
+gmeow:DivisionNarrativeReportedContentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "division narrative reported-content constraint"@x-gmeow-english ;
+    skos:definition "Every DivisionNarrativeReading has at least one actually supplied active-character wording roster or thematic-tag wording roster."@x-gmeow-english ;
+    skos:scopeNote "A current zero-item roster counts as supplied content when its actual context is known. Missing rosters do not manufacture a reading or reveal original column presence, blanks or earlier discarded wording."@x-gmeow-english ;
+    skos:example "A reading with an explicitly supplied current empty thematic roster satisfies presence; a typed reading with neither roster violates this law."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject an all-missing reading while retaining independently supplied nonempty, blank-item or zero-item roster representations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting absent historical fields into evidenced empty source columns or interpreting empty reported output as a negative fact about characters or themes."@x-gmeow-english ;
+    gmeow:howToUse "For each typed reading, require one actual edge through either roster property. Keep the other role absent when unavailable; retain known current output without reconstructing unavailable earlier text or field history."@x-gmeow-english ;
+    logic:formalizes gmeow:DivisionNarrativeReading ;
+    logic:message "A DivisionNarrativeReading requires at least one actually supplied active-character or thematic-tag wording roster." .
+
+gmeow:DivisionNarrativeReading logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ContentSegment ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:divisionActiveCharacterWords ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:divisionActiveCharacterWords ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:divisionThematicTagWords ; logic:allValuesFrom gmeow:StructuredSequence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:divisionThematicTagWords ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DivisionNarrativeReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DivisionNarrativeReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DivisionNarrativeReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DivisionNarrativeWordSequenceConstraint
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable
+            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "selectorItem" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation gmeow:structuredItem ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "selectorItem" ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:and
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "characterPresenceOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "characterPresenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:divisionActiveCharacterWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPresenceOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "characterPresenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "characterPresentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "characterPresenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "characterPresentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "characterPayloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "characterPayloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:divisionActiveCharacterWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "characterPayloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "characterPayloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:or
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:langString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "characterPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "thematicPresenceOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "thematicPresenceItem" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:divisionThematicTagWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPresenceOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "thematicPresenceItem" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:quantifiedVariable
+                                    [ logic:termIndex 0 ; logic:termVariable "thematicPresentValue" ] ;
+                                logic:exists [ a logic:Formula ;
+                                    logic:relation gmeow:structuredTerm ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "thematicPresenceItem" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "thematicPresentValue" ]
+                                ]
+                            ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable
+                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadOwner" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "thematicPayloadItem" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "thematicPayloadValue" ] ;
+                        logic:forall [ a logic:Formula ;
+                            logic:antecedent [ a logic:Formula ;
+                                logic:and
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:divisionThematicTagWords ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadOwner" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "sequence" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredItem ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "sequence" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "thematicPayloadItem" ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation gmeow:structuredTerm ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadItem" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "thematicPayloadValue" ]
+                                    ]
+                            ] ;
+                            logic:consequent [ a logic:Formula ;
+                                logic:or
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri xsd:string ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:langString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ] ,
+                                    [ a logic:Formula ;
+                                        logic:relation logic:termSameComponent ;
+                                        logic:argument
+                                            [ logic:termIndex 0 ; logic:termVariable "thematicPayloadValue" ] ,
+                                            [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ] ,
+                                            [ logic:termIndex 2 ; logic:termIri rdf:dirLangString ] ,
+                                            [ logic:termIndex 3 ; logic:termIri logic:componentWhole ]
+                                    ]
+                            ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .
+
+gmeow:DivisionNarrativeReportedContentConstraint
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:relation rdf:type ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:DivisionNarrativeReading ]
+            ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:or
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reportedCharacterSequence" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:relation gmeow:divisionActiveCharacterWords ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "reportedCharacterSequence" ]
+                        ]
+                    ] ,
+                    [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reportedThematicSequence" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:relation gmeow:divisionThematicTagWords ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "reportedThematicSequence" ]
+                        ]
+                    ]
+            ]
+        ]
+    ] .

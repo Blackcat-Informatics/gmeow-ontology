@@ -71,3 +71,38 @@ Direct dependencies on entities, coreference and standpoint are explicit.
 All new semantics are canonical `logic:` axioms or realized formula trees;
 validation shapes remain generated views. The addition contains ordinary
 source guidance and a scene, with no tests, fixtures or competency machinery.
+
+## Division readings before referent resolution
+
+DivisionNarrativeReading specializes the existing Observation Kind to hold one
+coherent supplied reading of an actual ContentSegment. Its active-character and
+thematic-tag rosters retain independently ordered wording through existing
+StructuredSequence and scalar StructuredValue occurrences. This is narrative
+interpretation of source content, not fictional-identity construction. Existing
+narrative dependencies supply observations, documents, record metadata and tags;
+no new dependency or grounding-layer term is introduced.
+
+The thematic role follows tagAsWritten's exact-wording meaning through its
+definition and seeAlso. structuredTerm remains the single lexical carrier.
+A word does not supply Character identity, a narrative frame, Tag identity,
+a scheme, a Tagging Agent or a NarrationUsage subject. Actual referent-based
+interpretations remain separate claims with their existing required contexts.
+
+Class-local all-values, explicit required-path closures and universal-top object
+maxima require the actual division and method, plus at least one actual vantage;
+joint vantages remain permitted. Each roster is independently optional and
+locally at most one, and a realized Formula requires at least one supplied
+roster edge. The role-scoped word law uses four independently guarded universal
+arms: presence and every-term datatype admission for each role. Single-atom
+existential obligations and positive focus bindings fit the current component
+admission and projection path without altering generic payload or ordinal laws.
+
+Preserve current supplied words, repeats, blank strings, language and direction.
+An untagged input stays xsd:string. A zero-item current output is distinct from
+an unavailable roster, but neither recovers original column presence or text
+lost before the current input was supplied. Empty output is not a negative fact
+about characters or themes. Roster positions are independent and convey neither
+pairing nor temporal order; no contiguous-ordinal law is added. The guide's
+fictional scene attributes every background and report fact to exact native
+RDF 1.2 statement carriers without implying execution qualification (Principles
+2, 4, 9, 17 and 19).
