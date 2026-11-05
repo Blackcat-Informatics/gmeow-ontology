@@ -7864,8 +7864,8 @@ msgid "Avoid treating generated reasoning words as a valid inference or verified
 msgstr "Éviter de traiter des paroles de raisonnement générées comme une inférence valide ou une preuve vérifiée, ou de substituer le genre général de trace de génération du modèle à ce sens précis d’entrée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, prompt references and reply-handling reports under their existing independent contracts."
-msgstr "Classer l’Activity d’entrée identifiée par la source et conserver son enregistrement informationnel réel. Garder la provenance connue de l’appel producteur, les références déclenchantes et les rapports de traitement de réponse sous leurs contrats indépendants existants."
+msgid "Classify the source-identified entry Activity and retain its actual information record. Keep known producing-call provenance, model-input Prompt references, promptedBy occurrence links and reply-handling reports under their existing independent contracts."
+msgstr "Classer l’Activity d’entrée identifiée par la source et conserver son enregistrement informationnel réel. Garder la provenance connue de l’appel producteur, les références aux Prompt d’entrée du modèle, les liens promptedBy vers les occurrences déclenchantes et les rapports de traitement de réponse sous leurs contrats indépendants existants."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "No inference engine, model call, output ownership, success verdict, temporal order or missing invocation identity is created. The value is neither equivalent to nor mutually exclusive with a general generation trace."
