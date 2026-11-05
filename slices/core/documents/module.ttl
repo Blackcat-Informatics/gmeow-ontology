@@ -2148,3 +2148,109 @@ gmeow:SourceRegionCoordinateConstraint
                 [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1AgreementQuantity" ], [ logic:termIndex 1 ; logic:termVariable "y1QuantityFrame" ] ],
                 [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "region" ], [ logic:termIndex 1 ; logic:termVariable "y1RegionFrame" ] ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "y1QuantityFrame" ], [ logic:termIndex 1 ; logic:termVariable "y1RegionFrame" ] ] ] ] ] ] ] .
+
+gmeow:FigurePart
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Figure Part"@x-gmeow-english ;
+    skos:definition "A supplied occurrence of one actual stored MediaObject within a printed documentary figure, retaining the original media-resource term as its scalar StructuredValue payload, its framed numeric index and its source region."@x-gmeow-english ;
+    skos:scopeNote "A complete part requires one actual image payload, one partIndex Quantity and one sourceLocus typed SourceRegion, even when no parent link is supplied. Repeated uses of the same image remain distinct occurrences. Whole RDF payload identity proves neither image-content equality nor byte verification; the ordinal frame is independent of the spatial frame."@x-gmeow-english ;
+    skos:example "Two supplied parts retain the same stored image resource with their own original index quantities and printed-source regions, without becoming one occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each actual image-part occurrence supplied for a printed figure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying the part with its image, creating an image from a path or href, inventing a parent or sequence, or using another region representation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual MediaObject once through structuredTerm, link the actual index Quantity through partIndex and reuse sourceLocus to the supplied SourceRegion. Preserve source attribution and both independent frame interpretations without fabricating a source revision or authentication claim."@x-gmeow-english ;
+    logic:subClassOf gmeow:StructuredValue .
+
+gmeow:figurePart
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "figure part"@x-gmeow-english ;
+    skos:definition "An actual supplied FigurePart occurrence belonging to this documentary ContentSegment figure."@x-gmeow-english ;
+    skos:scopeNote "This optional, many-valued parent relation requires the actual segmentTypeFigure classification when supplied. It creates no part inventory, inverse-owner uniqueness, image identity, numeric index ordering or parent for a standalone part."@x-gmeow-english ;
+    skos:example "An actual figure links several supplied image occurrences while its caption and stored media remain distinct resources."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source actually identifies the documentary figure and its image-part occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a missing figure or part, classifying the stored image as the figure or deriving occurrence identity from equal bytes or indices."@x-gmeow-english ;
+    gmeow:howToUse "Link each actual FigurePart and retain the parent’s source-supported segmentTypeFigure. Keep its scalar image payload, index Quantity and SourceRegion on that occurrence; do not duplicate the image or coordinate fields on the parent."@x-gmeow-english ;
+    logic:domain gmeow:ContentSegment ;
+    logic:range gmeow:FigurePart .
+
+gmeow:partIndex
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "part index"@x-gmeow-english ;
+    skos:definition "The existing math:Quantity retaining this FigurePart’s actual supplied numeric ordinal or index under its source ordering convention."@x-gmeow-english ;
+    skos:scopeNote "Exactly one Quantity is required, with original valid finite numeric literals, one numeric value, its inherited actual dimension and one actual complete ordinal/index frame covering source ordering, base and assembly context. Dimensionless applies only when justified by count/ordinal semantics; no base, sign bound, direction or spatial-frame equality is imposed."@x-gmeow-english ;
+    skos:example "A supplied numeric index retains its own actual source convention and frame instead of being copied into zero-based entryOrdinal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual numeric index of a supplied figure-part occurrence with its real ordinal interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a raw scalar alias, casting a string to a number, guessing an integer/float type or index base, imposing contiguity or uniqueness, or copying the spatial dimension/frame."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Quantity, retain its original numeric terms on math:quantityValue and preserve its justified dimension and complete independent index frame. Retain equivalent source numeric aliases without rewriting; an actually supplied StructuredSequence may separately retain its real entryOrdinal positions."@x-gmeow-english ;
+    logic:domain gmeow:FigurePart ;
+    logic:range math:Quantity .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/figurePart" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/partIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:FigurePart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:partIndex ; logic:allValuesFrom math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:partIndex ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Quantity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceLocus ; logic:allValuesFrom gmeow:SourceRegion ],
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceLocus ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SourceRegion ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:FigurePart ; logic:closureKey "https://blackcatinformatics.ca/gmeow/partIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FigurePart ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceLocus" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:FigurePartConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Figure part constraint"@x-gmeow-english ;
+    skos:definition "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."@x-gmeow-english ;
+    skos:scopeNote "Existing StructuredValue laws own scalar identity/exclusivity, Quantity owns its exact dimension, and SourceRegion owns spatial coordinates. Numeric lexical aliases may coexist by value equality. This constraint authenticates no image bytes, source history, ordinal interpretation or execution."@x-gmeow-english ;
+    skos:example "A standalone part still requires its real image, index Quantity and SourceRegion; no parent, default frame or image object is invented to satisfy validation."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate every actual figure-part payload, selected numeric index and conditional figure classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a path as an image, a raw index as grounded quantity, missing data as zero or absent context as a default frame."@x-gmeow-english ;
+    gmeow:howToUse "Apply the outer part guard and nine independently positive guarded arms. Reuse inherited scalar and dimension contracts, require the actual image and index context, and preserve the independent SourceRegion without another geometry or authentication path."@x-gmeow-english ;
+    logic:formalizes gmeow:FigurePart , gmeow:figurePart , gmeow:partIndex ;
+    logic:severity "Violation" ;
+    logic:message "Every FigurePart retains an actual MediaObject scalar payload and a valid finite numeric index Quantity with one numeric value and exactly one typed index frame; any supplied figure parent has segmentTypeFigure."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "part" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termIri gmeow:FigurePart ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termIri gmeow:FigurePart ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presentImage" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "presentImage" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payloadImage" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "payloadImage" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "payloadImage" ], [ logic:termIndex 1 ; logic:termIri gmeow:MediaObject ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parentFigure" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:figurePart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parentFigure" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:segmentType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "parentFigure" ], [ logic:termIndex 1 ; logic:termIri gmeow:segmentTypeFigure ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "magnitudeQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "magnitudeQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "indexMagnitude" ] ;
+        logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitudeQuantity" ], [ logic:termIndex 1 ; logic:termVariable "indexMagnitude" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finiteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "finiteValue" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "finiteQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finiteQuantity" ], [ logic:termIndex 1 ; logic:termVariable "finiteValue" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finiteValue" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "equalQuantity" ], [ logic:termIndex 1 ; logic:termVariable "firstMagnitude" ], [ logic:termIndex 2 ; logic:termVariable "secondMagnitude" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "equalQuantity" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "equalQuantity" ], [ logic:termIndex 1 ; logic:termVariable "firstMagnitude" ] ],
+                [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "equalQuantity" ], [ logic:termIndex 1 ; logic:termVariable "secondMagnitude" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "firstMagnitude" ], [ logic:termIndex 1 ; logic:termVariable "secondMagnitude" ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "framedQuantity" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "framedQuantity" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "presentIndexFrame" ] ;
+        logic:exists [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "framedQuantity" ], [ logic:termIndex 1 ; logic:termVariable "presentIndexFrame" ] ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "typedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "typedIndexFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "typedFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "typedFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "typedIndexFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "typedIndexFrame" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "uniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "firstIndexFrame" ], [ logic:termIndex 2 ; logic:termVariable "secondIndexFrame" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:partIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "part" ], [ logic:termIndex 1 ; logic:termVariable "uniqueFrameQuantity" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "uniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "firstIndexFrame" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "uniqueFrameQuantity" ], [ logic:termIndex 1 ; logic:termVariable "secondIndexFrame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "firstIndexFrame" ], [ logic:termIndex 1 ; logic:termVariable "secondIndexFrame" ] ] ] ] ] ] ] .

@@ -750,3 +750,68 @@ serves an actual CitationAct and its explicit Selector; other selector fields
 retain their existing contracts. A stored image and its documentary printed
 source region remain distinct. A future figure-part occurrence can reuse this
 same region model without creating a competing coordinate representation.
+
+## Stored-image occurrences within a printed figure
+
+`FigurePart` retains one actual stored-image occurrence in a documentary figure.
+It specializes the existing `StructuredValue` carrier: its sole scalar
+`structuredTerm` is the actual `MediaObject` resource, not a filename, unresolved
+href or digest-shaped string. Keep the native RDF object unchanged. Existing
+scalar identity and branch-exclusivity laws apply; no second image field or
+new media hierarchy is introduced (Principles 2, 4, 9, 11, 17 and 19).
+
+The original stored-image object and its contents are different claims.
+Whole RDF term identity does not verify image bytes, establish equal image
+content, authenticate a hash or prove rendition equivalence. Two supplied
+occurrences may use the same stored image while remaining distinct parts with
+their own indices and source regions. Neither matching bytes, payload terms,
+index values nor regions provides a part-identity key or an `owl:sameAs` rule.
+
+`figurePart` optionally links an actual `ContentSegment` figure to its supplied
+parts and permits several parts. A supplied parent must retain its actual
+`segmentTypeFigure`; a stored image does not become the printed figure or its
+caption. Historical figures need no fabricated part inventory. A standalone
+part still requires its actual image, index Quantity and source region but no
+invented parent, list or inverse-owner uniqueness rule.
+
+`partIndex` links exactly one existing `math:Quantity` retaining the actual
+numeric ordinal/index under its source convention. Keep original valid finite
+RDF numeric literals on `math:quantityValue`, with their exact datatypes and
+lexical forms; supplied equivalent numeric aliases may coexist by value equality.
+Reuse Quantity’s existing exact dimension requirement. Every index Quantity
+has exactly one typed complete `ReferenceFrame` whose real interpretation
+covers source ordering, index base and assembly/part context. Do not guess a
+scalar type, origin, base, sign bound, direction or ordinal range.
+
+Dimensionless is justified only by the actual count/ordinal-index semantics,
+not by copying a coordinate dimension. The index frame is independent of the
+spatial SourceRegion frame: neither equality nor inequality is imposed between
+them. An absent interpretation cannot become a default frame, and a raw string
+cannot be cast to a numeric value or relabeled as an opaque descriptor to avoid
+Math grounding. There is no parallel raw-index role.
+
+An actual separately supplied `StructuredSequence` may retain its genuine
+zero-based `entryOrdinal` positions. Those existing canonical positions do not
+reconstruct an arbitrary source index convention. Do not infer a list, copy
+partIndex into entryOrdinal, renumber the source, require contiguity or impose
+global index uniqueness. Source EPUB order/depth descriptors keep their existing
+separate contracts and do not broaden this numeric occurrence-index profile.
+
+Each part requires exactly one `sourceLocus` typed as the same `SourceRegion`
+used by documentary blocks. Its four original coordinate Quantities, inherited
+Dimensions, complete actual spatial frame and same-frame laws are reused
+unchanged. No duplicate region value, raw tuple, image pixel rectangle or
+conversion is added. The printed-source artifact/page can differ from the
+stored crop’s MediaObject: the payload is not automatically `locusSource`, and
+`locusHref` is not the stored image object. Preserve independently supplied source
+revision/digest facts under their actual meanings without inventing a revision,
+resolved target, OCR derivation, depiction or authentication claim.
+
+`FigurePartConstraint` requires an actual scalar MediaObject payload, validates
+every supplied payload, checks any supplied figure classification and enforces
+the selected index magnitude/frame obligations through nine independent positive
+guards. Existing StructuredValue laws retain exact scalar identity/exclusivity;
+Math retains dimension authority; SourceRegion retains coordinate authority.
+These source checks do not authenticate the image, index interpretation, source
+history or any execution. Missing required data fails rather than receiving a
+synthetic image, source, zero or frame.
