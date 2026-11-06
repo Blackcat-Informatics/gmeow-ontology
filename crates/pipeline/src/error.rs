@@ -208,6 +208,16 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
+    /// A stage carrier could not acquire its required content identity.
+    /// Preserve the original bundle refusal beneath the stage-scoped diagnostic.
+    pub struct CarrierDigest { message: String }
+    code = "pipeline.carrier.digest";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", message;
+}
+
+define_diag_kind! {
     /// A stage's `run` failed.
     pub struct StageFailed { stage: String, message: String }
     code = "pipeline.stage.failed";
@@ -470,6 +480,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     FanoutBijection::CODE,
     ExpectedOutputMissing::CODE,
     CacheMismatch::CODE,
+    CarrierDigest::CODE,
     StageFailed::CODE,
     Transform::CODE,
     Scoreboard::CODE,
@@ -521,6 +532,7 @@ pub fn register_all() -> Vec<Code> {
         FanoutBijection::register(),
         ExpectedOutputMissing::register(),
         CacheMismatch::register(),
+        CarrierDigest::register(),
         StageFailed::register(),
         Transform::register(),
         Scoreboard::register(),

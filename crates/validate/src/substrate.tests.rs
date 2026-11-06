@@ -46,6 +46,23 @@ fn compatibility_range_retains_the_exact_locked_release() {
     let resolution = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock")).unwrap();
     assert_eq!(resolution.requirement, "^3");
     assert_eq!(resolution.version, "3.0.0");
+    assert_eq!(
+        resolution
+            .packages
+            .iter()
+            .map(|package| package.name.as_str())
+            .collect::<Vec<_>>(),
+        ["purrdf", "purrdf-core"]
+    );
+    let changed = lock("3.0.0", "same-release").replace(
+        &format!("{:x}", Sha256::digest(b"core-release")),
+        &format!("{:x}", Sha256::digest(b"changed-core-release")),
+    );
+    std::fs::write(root.join("Cargo.lock"), changed).unwrap();
+    let other = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock")).unwrap();
+    assert_eq!(resolution.version, other.version);
+    assert_ne!(resolution.packages, other.packages);
+    std::fs::write(root.join("Cargo.lock"), lock("3.0.0", "same-release")).unwrap();
     verify_fuzz_substrate(root).unwrap();
     std::fs::write(root.join("Cargo.lock"), lock("4.0.0", "outside-range")).unwrap();
     assert!(resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock")).is_err());
@@ -310,6 +327,27 @@ fn exact_official_git_revision_is_authenticated_in_both_workspaces() {
     )
     .unwrap();
     assert_eq!(resolution.version, "3.0.1");
+    assert!(resolution.packages.iter().all(|package| {
+        package.source == git_source(REVISION).unwrap() && package.checksum.is_empty()
+    }));
+    let next_revision = "1123456789abcdef0123456789abcdef01234567";
+    for file in ["Cargo.toml", "Cargo.lock"] {
+        let path = temp.path().join(file);
+        let text = std::fs::read_to_string(&path).unwrap();
+        std::fs::write(path, text.replace(REVISION, next_revision)).unwrap();
+    }
+    let other = resolve_purrdf(
+        &temp.path().join("Cargo.toml"),
+        &temp.path().join("Cargo.lock"),
+    )
+    .unwrap();
+    assert_eq!(resolution.version, other.version);
+    assert_ne!(resolution.packages, other.packages);
+    for file in ["Cargo.toml", "Cargo.lock"] {
+        let path = temp.path().join(file);
+        let text = std::fs::read_to_string(&path).unwrap();
+        std::fs::write(path, text.replace(next_revision, REVISION)).unwrap();
+    }
     let path = temp.path().join("fuzz/Cargo.lock");
     let lock = std::fs::read_to_string(&path).unwrap();
     std::fs::write(

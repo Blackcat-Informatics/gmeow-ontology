@@ -83,6 +83,47 @@ pub const SINK_CAPABILITY: &str = "https://blackcatinformatics.ca/gmeow/sinkCapa
 /// `Generated` (the kind-enum replacement — origin is read off a capability, not a tag).
 pub const SOURCE_ORIGIN: &str = "https://blackcatinformatics.ca/gmeow/sourceOrigin";
 
+/// Retain the native carrier refusal and require its exact last-run search evidence.
+fn carrier_digest_failure(
+    stage_id: &str,
+    error: purrdf::PipelineBundleError,
+    control: &purrdf::CanonicalizationControl<'_>,
+) -> gmeow_errors::Diag {
+    let detail = if let purrdf::PipelineBundleError::Canonicalization { source, .. } = &error
+        && let purrdf::CanonError::BudgetExceeded(budget) = source.as_ref()
+    {
+        let observation = control.last_rdfc_refusal().filter(|(position, observation)| {
+            observation.first_degree_group.is_some()
+                && matches!(
+                    control.since(*position),
+                    Some([receipt])
+                        if !receipt.completed
+                            && receipt.observed_refusal == Some(purrdf::SearchRefusal::Limit)
+                            && receipt.policy == purrdf::SearchPolicy::Finite(budget.limit)
+                            && receipt.work == budget.work
+                            && matches!(&receipt.configuration, purrdf::SearchConfiguration::Rdfc { .. })
+                )
+        });
+        if let Some((_, observation)) = observation {
+            format!(
+                "{error}; recursive frames={}, permutation attempts={}; {observation}",
+                budget.work.count(purrdf::SearchEvent::RdfcFrame),
+                budget.work.count(purrdf::SearchEvent::RdfcPermutation),
+            )
+        } else {
+            format!(
+                "{error}; required last-run RDFC refusal observation is absent or does not match the native receipt"
+            )
+        }
+    } else {
+        error.to_string()
+    };
+    gmeow_errors::Diag::of_kind(crate::error::CarrierDigest::caused_by(
+        format!("stage {stage_id} failed: cannot digest the stage carrier: {detail}"),
+        error,
+    ))
+}
+
 /// The product of one stage: its id, the hex content digest of the value it
 /// produced (the cache-key contribution downstream stages fold in — Merkle
 /// composition P2), and the structured [`PipelineBundle`] it emitted.
@@ -187,23 +228,19 @@ impl StageProduct {
     /// bundle's content fold plus each complete typed handle binding.
     ///
     /// # Errors
-    /// [`StageFailed`](crate::error::StageFailed) naming the stage when purrdf
-    /// refuses to canonicalize the carrier: the product would have no content
-    /// identity to cache or publish.
+    /// [`CarrierDigest`](crate::error::CarrierDigest) naming the stage and retaining
+    /// the native cause when purrdf refuses to canonicalize the carrier: the product
+    /// would have no content identity to cache or publish.
     pub fn from_bundle(
         stage_id: impl Into<String>,
         bundle: Arc<PipelineBundle<PipelineHandle>>,
     ) -> Result<Self, gmeow_errors::Diag> {
         let stage_id = stage_id.into();
         let handle_commitments = crate::handle_identity::handle_commitments(&bundle);
-        let digest = crate::handle_identity::product_digest(&bundle, &handle_commitments).map_err(
-            |error| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: stage_id.clone(),
-                    message: format!("cannot digest the stage carrier: {error}"),
-                })
-            },
-        )?;
+        let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+        let digest =
+            crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
+                .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
         Ok(Self {
             stage_id,
             digest,

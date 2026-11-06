@@ -8,7 +8,15 @@ use super::*;
 use purrdf_lex::json::{Value, record::DecodeError};
 
 const WIRE: &str = r#"{
-  "schema": "gmeow.medium-baseline.v2",
+  "schema": "gmeow.medium-baseline.v3",
+  "engine_identity": [
+    {
+      "name": "purrdf",
+      "version": "3.0.1",
+      "source": "authored-source",
+      "checksum": "authored-checksum"
+    }
+  ],
   "codec_sweep": {
     "mandated_codec": "zstd-rsyncable",
     "mandated_level": 12,
@@ -72,6 +80,12 @@ const WIRE: &str = r#"{
 fn authored() -> MediumBaseline {
     MediumBaseline {
         schema: MEDIUM_BASELINE_SCHEMA.to_owned(),
+        engine_identity: vec![PurrdfPackageIdentity {
+            name: "purrdf".to_owned(),
+            version: "3.0.1".to_owned(),
+            source: "authored-source".to_owned(),
+            checksum: "authored-checksum".to_owned(),
+        }],
         codec_sweep: CodecSweep {
             mandated_codec: "zstd-rsyncable".to_owned(),
             mandated_level: 12,
@@ -183,7 +197,7 @@ fn json_medium_baseline_schema_first_and_malformed_refusals() {
         "[]",
         "{}",
         r#"{"schema":null}"#,
-        r#"{"schema":"gmeow.medium-baseline.v2","schema":"unknown"}"#,
+        r#"{"schema":"gmeow.medium-baseline.v3","schema":"unknown"}"#,
     ] {
         assert!(MediumBaseline::from_json(text).is_err(), "{text}");
     }

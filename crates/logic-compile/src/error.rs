@@ -209,6 +209,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A graph-utility step failed: blank-node canonicalization could not close
     /// over the dataset.
     pub struct Graph { detail: String }

@@ -873,15 +873,43 @@ impl State {
             complete,
             observed,
         } = source;
+        let input_rows = snapshot.store.row_count();
+        let trace_boundary = |phase: &'static str, event: &'static str, elapsed_ms: u128| {
+            if input_rows >= 100_000 {
+                tracing::info!(
+                    target: "pipeline_reasoning_detail",
+                    phase,
+                    event,
+                    input_rows,
+                    producers = producers.len(),
+                    elapsed_ms,
+                    "large native family round",
+                );
+            }
+        };
+        let frontier_started = crate::timing::Instant::now();
+        trace_boundary("prepare-native-family-frontier", "start", 0);
         let evidence = self.evidence.as_mut().ok_or_else(|| {
             super::seminaive_err("native execution has no admitted original source column")
         })?;
         evidence.observe_registry(snapshot.store, rows, registry)?;
         let mut complete = completed(complete, false);
         complete.extend(observed.iter().cloned());
+        trace_boundary(
+            "prepare-native-family-frontier",
+            "end",
+            frontier_started.elapsed().as_millis(),
+        );
+        let input_started = crate::timing::Instant::now();
+        trace_boundary("construct-native-family-input", "start", 0);
         let input =
             NativeFamilyInput::new(snapshot.store, snapshot.rel, rows, evidence, &complete)?;
         let input = input.with_admissions(&self.coverage);
+        trace_boundary(
+            "construct-native-family-input",
+            "end",
+            input_started.elapsed().as_millis(),
+        );
         let families: Vec<_> = producers
             .iter()
             .filter_map(|producer| match producer {
@@ -889,6 +917,8 @@ impl State {
                 _ => None,
             })
             .collect();
+        let analyses_started = crate::timing::Instant::now();
+        trace_boundary("evaluate-native-family-analyses", "start", 0);
         self.analyses.evaluate(
             &families,
             &input,
@@ -897,15 +927,48 @@ impl State {
             lists,
             &mut self.ledger,
         )?;
+        trace_boundary(
+            "evaluate-native-family-analyses",
+            "end",
+            analyses_started.elapsed().as_millis(),
+        );
+        let publication_started = crate::timing::Instant::now();
+        trace_boundary("publish-native-family-candidates", "start", 0);
         candidates(&families, &self.ledger, snapshot, round)?;
+        trace_boundary(
+            "publish-native-family-candidates",
+            "end",
+            publication_started.elapsed().as_millis(),
+        );
         if producers.contains(&Producer::Class) {
             let class = self.class.as_mut().ok_or_else(|| {
                 super::seminaive_err("selected class producer lacks source admission")
             })?;
+            let class_started = crate::timing::Instant::now();
+            trace_boundary("evaluate-native-class-family", "start", 0);
             let outcome = class.evaluate(&input, &mut self.ledger)?;
+            trace_boundary(
+                "evaluate-native-class-family",
+                "end",
+                class_started.elapsed().as_millis(),
+            );
+            let validation_started = crate::timing::Instant::now();
+            trace_boundary("validate-native-class-outcome", "start", 0);
             outcome.validate(&self.ledger)?;
+            trace_boundary(
+                "validate-native-class-outcome",
+                "end",
+                validation_started.elapsed().as_millis(),
+            );
+            let publication_started = crate::timing::Instant::now();
+            trace_boundary("publish-native-class-candidates", "start", 0);
             candidates_from(&outcome.local_conclusions(), &self.ledger, snapshot, round)?;
             self.classes = Some(outcome);
+            trace_boundary(
+                "publish-native-class-candidates",
+                "end",
+                publication_started.elapsed().as_millis(),
+            );
         }
         Ok(())
     }

@@ -32,11 +32,9 @@ impl PreparedLogicSource {
     /// Refuses empty input and every canonicalization failure.
     pub fn new(dataset: &RdfDataset) -> Result<Self, Diag> {
         super::require_nonempty_source(dataset)?;
-        let canonical = canonical_relabel_with_mapping(
-            dataset,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )
-        .map_err(|error| Diag::from(error).with_context("native blank-node canonicalization"))?;
+        let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+        let canonical = canonical_relabel_with_mapping(dataset, &mut control)
+            .map_err(|error| crate::graphutil::canonicalization_failure(error, &control))?;
         let source_graph = super::StructuralSourceGraph::new(canonical.dataset());
         Ok(Self {
             canonical,
