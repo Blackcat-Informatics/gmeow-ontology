@@ -45,8 +45,12 @@ query a dataset of its own — see `../purrdf/PROVENANCE.md`.
 
 ## Why vendored (not built at regenerate time)
 
-The regeneration pipeline never invokes `cargo` for a wasm target: `make regen` must run
-without a wasm toolchain. The bytes are therefore pinned build inputs, refreshed by
-`make maint-refresh-mcp-core-asset` — which runs the Node parity lane FIRST and only then
-re-pins `DIGESTS.blake3`, so the digests always describe an engine whose native≡wasm parity
-has just been proven.
+The synchronization pipeline (`make check-sync`) never invokes `cargo` for a wasm
+target. The bytes are pinned build inputs, refreshed by
+`make maint-refresh-mcp-core-asset`. That target runs its Node parity lane before
+re-pinning `DIGESTS.blake3`.
+
+Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
+images and record candidate digests and exact substrate identities. Those records
+alone do not attest runtime parity. After current-bundle witness refresh, ordinary
+PR CI must pass all six Node lanes and console acceptance on the committed outputs.

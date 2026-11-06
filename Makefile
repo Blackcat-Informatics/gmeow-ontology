@@ -1142,9 +1142,9 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# contract. The mcp-core lane additionally proves the TIERED contract end to end: the
 	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
 	@# frame to the real reasoning segment for an answer identical to the full engine's.
-	@# The vendored digest that gates the shipped bytes is exactly the one a parity run
-	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
-	@# re-vendoring cannot re-pin bytes that never passed parity).
+	@# Digest records bind the exact candidate bytes. Coordinated preparation writes
+	@# them before bundle-dependent parity; this lane must execute all six Node suites
+	@# against the final images and current bundle before quality qualification passes.
 	@#
 	@# HEAVY, not per-commit: this release-builds SIX engine crates for wasm32 (the
 	@# four the site dispatches to, plus the console's two MCP segments), runs

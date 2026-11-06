@@ -25,7 +25,7 @@ Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 
 ## Why vendored (not built at regenerate time)
 
-The regeneration pipeline is Rust/Python only — it does not invoke `cargo` or `wasm-bindgen`.
+The Rust synchronization pipeline does not build wasm or invoke `wasm-bindgen`.
 A browser-executable wasm engine cannot be produced during the synchronization pipeline (`make check-sync`), so it is pinned
 here as a build **input** (like `crates/docs/assets/gmeow.css` and the query engine).
 Because it is a constant `include_bytes!` input, the rendered site stays byte-deterministic.
@@ -37,9 +37,9 @@ make maint-refresh-reason-asset
 ```
 
 This first runs the verified native producer for `tests/WITNESS.conjecture.nq`, then
-rebuilds the wasm package (`make reason-wasm-pkg`: `cargo build … --target
-wasm32-unknown-unknown --release`, wasm-bindgen 0.2.129 `--target web`, and the REQUIRED
-`wasm-opt -Oz`). It runs the complete Node native↔wasm witness lane before copying the
+rebuilds the wasm package (`make reason-wasm-pkg`) with a release build for
+`wasm32-unknown-unknown`, wasm-bindgen 0.2.129 with `--target web`, and the required
+`wasm-opt -Oz`. It runs the complete Node native↔wasm witness lane before copying the
 four artifacts here and re-pinning `DIGESTS.blake3` through the shared explicit asset
 producer. Those steps are sequenced in the target recipe, so a parallel Make invocation
 cannot race a witness refresh against its consumer. It must be run whenever the reasoner
@@ -54,6 +54,11 @@ Two gates guard against a stale/broken blob:
   every pull request via `wasm-parity` in the required CI `make heavy` lane) load the
   built engine and assert its reasoned closure and symmetric conjecture verdicts are
   byte-identical to their verified native attestations.
+
+Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
+images and record candidate digests and exact substrate identities. Those records
+alone do not attest runtime parity. After current-bundle witness refresh, ordinary
+PR CI must pass all six Node lanes and console acceptance on the committed outputs.
 
 ## Size note
 
