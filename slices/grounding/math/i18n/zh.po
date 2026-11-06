@@ -3938,8 +3938,8 @@ msgid "Number System"
 msgstr "数系"
 
 msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
-msgstr "数系：一个数所属的论域，即 ℕ、ℤ、ℚ、ℝ 或 ℂ。它是 math:Set 的子类；数系就是由其数构成的集合，因此可作为函数的 math:domain 或 math:codomain（复平面 ℂ 是伽马函数的定义域）。其实例包括五个命名数系 math:naturalNumbers、math:integers、math:rationalNumbers、math:realNumbers 和 math:complexNumbers，通过 math:subsystemOf 排列为包含关系链 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ；还包括带符号扩展实数轴 math:ExtendedRealLine，它以同样的机制向 ℝ 添加 math:PositiveInfinity 和 math:NegativeInfinity 两个极点（math:realNumbers 是其子数系）。math:Number 通过 math:inNumberSystem 指向其中一个数系。"
+msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the codomain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
+msgstr "数系：一个数所属的论域，即 ℕ、ℤ、ℚ、ℝ 或 ℂ。它是 math:Set 的子类；数系就是由其数构成的集合，因此可作为函数的 math:domain 或 math:codomain（复平面 ℂ 是伽马函数的陪域）。其实例包括五个命名数系 math:naturalNumbers、math:integers、math:rationalNumbers、math:realNumbers 和 math:complexNumbers，通过 math:subsystemOf 排列为包含关系链 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ；还包括带符号扩展实数轴 math:ExtendedRealLine，它以同样的机制向 ℝ 添加 math:PositiveInfinity 和 math:NegativeInfinity 两个极点（math:realNumbers 是其子数系）。math:Number 通过 math:inNumberSystem 指向其中一个数系。"
 
 msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."
@@ -13202,3 +13202,285 @@ msgstr "不要把框架错误等同于数学发散，也不要以无支持的收
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."
 msgstr "按现有类限制及闭合检查所选验证报告，包括没有传入 hasConvergence 链接时直接针对 Convergence 的诊断。只修复来源支持的字段；否则报告接纳限制。生成的验证派生自这些来源，不增加形状规则，也不作数值收敛判定。"
+
+# --- Scalar special-function identities and domains ------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Special Function"
+msgstr "特殊函数"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named function of analysis, such as the gamma, Riemann zeta, Bessel or error function, represented by a canonical individual rather than a rendering or a per-function subclass. A subclass of math:Function, so each declares its domain and codomain and is total on its declared domain. Supplied correspondences include DLMF chapter links and a related OpenMath dictionary-page link for this class; they do not supply individual OpenMath symbol mappings or analytic evaluation."
+msgstr "分析中的命名函数，例如伽马函数、黎曼 zeta 函数、贝塞尔函数或误差函数，以规范个体表示，而非以显示形式或每个函数各自的子类表示。它是 math:Function 的子类，因此每个实例声明其定义域和陪域，并在所声明的定义域上为全函数。提供的对应关系包括 DLMF 章节链接及该类到 OpenMath 字典页面的相关链接；它们不提供各个函数的 OpenMath 符号映射或解析求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A function identity, its domain set, an application AST and a computed value have different roles. The supplied mappings retain their own correspondence strengths; a chapter or dictionary page is not an executable definition."
+msgstr "函数身份、定义域集合、应用 AST 及计算所得值承担不同角色。所提供的映射保留各自的对应强度；章节或字典页面不是可执行定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "gammaFunction names Γ and has gammaDomain as its domain; errorFunction names erf on realNumbers. Their identities are distinct from expression occurrences that apply them and from any supplied values."
+msgstr "gammaFunction 指定 Γ，并以 gammaDomain 为定义域；errorFunction 指定 realNumbers 上的 erf。它们的身份不同于应用它们的表达式出现项，也不同于任何来源提供的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a named analytic function with its actual total domain and codomain, preserving any source parameters or branch conventions separately."
+msgstr "用于以实际全函数定义域及陪域识别命名解析函数，并单独保留来源参数或分支约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a glyph as function identity, admitting a pole into a finite-valued total domain, or treating a function resource as an automatically admitted AST operator or evaluator."
+msgstr "不要以字形作为函数身份，不要在取有限值的全函数定义域中纳入极点，也不要把函数资源视为自动接纳的 AST 算子或求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the canonical individual and its set-valued domain and codomain. Represent applications and numerical evidence separately; neither structural IRI interning nor a reference link proves domain membership or evaluates the function."
+msgstr "保留规范个体及其集合形式的定义域和陪域。单独表示应用和数值证据；结构性 IRI 驻留或引用链接均不证明定义域成员资格，也不对函数求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Γ (gamma function)"
+msgstr "Γ（伽马函数）"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The gamma function Γ(z), meromorphically continued from ∫₀^∞ t^(z−1)e^(−t) dt for Re(z) > 0, with simple poles at 0, −1, −2, …. Its finite complex-valued form has domain math:gammaDomain and codomain math:complexNumbers. For positive integers n, Γ(n) = (n−1)!. Supplied correspondences link this individual to DLMF chapter 5 and Wikidata."
+msgstr "伽马函数 Γ(z)，由 Re(z) > 0 时的 ∫₀^∞ t^(z−1)e^(−t) dt 作亚纯延拓，在 0、−1、−2、… 处有单极点。其取有限复值的形式以 math:gammaDomain 为定义域，以 math:complexNumbers 为陪域。对正整数 n，Γ(n) = (n−1)!。提供的对应关系将该个体链接到 DLMF 第 5 章及 Wikidata。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "gammaDomain excludes the nonpositive integer poles while retaining other complex inputs. The defining integral needs Re(z) > 0; meromorphic continuation supplies the mathematical function beyond that half-plane, not a native analytic evaluator."
+msgstr "gammaDomain 排除非正整数极点，同时保留其他复数输入。定义积分要求 Re(z) > 0；亚纯延拓给出该半平面之外的数学函数，不提供原生解析求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identities Γ(1) = 1 and Γ(1/2) = √π concern admitted inputs. Zero is a pole and is excluded by gammaDomain; it is not mapped to a finite complex value by the declaration."
+msgstr "数学恒等式 Γ(1) = 1 和 Γ(1/2) = √π 针对定义域内的输入。零是极点，由 gammaDomain 排除；该声明不将其映射到有限复值。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the named gamma function with its punctured complex domain, keeping factorial identities, continuation and supplied evaluation evidence distinct."
+msgstr "用于具有去除极点后的复数定义域的命名伽马函数，并区分阶乘恒等式、延拓及来源提供的求值证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating Γ as the factorial of every complex input, using the integral outside its stated half-plane, or representing a pole by an arbitrary infinity in complexNumbers."
+msgstr "不要把 Γ 当作每个复数输入的阶乘，不要在所述半平面之外使用该积分，也不要用 complexNumbers 中的任意无穷值表示极点。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain gammaDomain and codomain complexNumbers. Retain the domain's realized condition and membership law; supply actual argument, application and result evidence separately, without claiming numerical admission or evaluation from these records."
+msgstr "保留定义域 gammaDomain 及陪域 complexNumbers。保留定义域的已实现条件和成员资格定律；单独提供实际参数、应用和结果的证据，不要声称这些记录执行数值接纳或求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ζ (Riemann zeta function)"
+msgstr "ζ（黎曼 zeta 函数）"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Riemann zeta function ζ(s) = ∑_{n≥1} n^(−s) for Re(s) > 1, meromorphically continued with a simple pole at s = 1. Its finite complex-valued form has domain math:riemannZetaDomain and codomain math:complexNumbers. Supplied correspondences link it to DLMF chapter 25 and Wikidata; naming it does not prove the Riemann hypothesis."
+msgstr "黎曼 zeta 函数，在 Re(s) > 1 时 ζ(s) = ∑_{n≥1} n^(−s)，经亚纯延拓后在 s = 1 处有单极点。其取有限复值的形式以 math:riemannZetaDomain 为定义域，以 math:complexNumbers 为陪域。提供的对应关系将其链接到 DLMF 第 25 章及 Wikidata；指定其名称不证明黎曼猜想。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The convergent positive-index series defines zeta only for Re(s) > 1; continuation extends the mathematical function to complex arguments other than one. riemannZetaDomain excludes the real value one without reducing the domain to that series half-plane."
+msgstr "正整数索引的收敛级数仅在 Re(s) > 1 时定义 zeta；延拓将数学函数扩展到除一以外的复数参数。riemannZetaDomain 排除实数值一，并不将定义域缩减为该级数的收敛半平面。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identity ζ(2) = π²/6 uses the convergent-series region. ζ(0) = −1/2 uses continuation; the positive-index series at zero diverges. The input one remains excluded."
+msgstr "数学恒等式 ζ(2) = π²/6 使用级数收敛区域。ζ(0) = −1/2 使用延拓；该正整数索引级数在零处发散。输入一仍被排除。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify Riemann zeta with its actual punctured complex domain and distinguish a series representation from the continued function."
+msgstr "用于以去除极点后的实际复数定义域识别黎曼 zeta 函数，并区分级数表示与延拓后的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid summing the defining series where it diverges, admitting s = 1 as a finite-valued input, confusing other zeta functions with this identity, or inferring a theorem from its name."
+msgstr "不要在定义级数发散处对其求和，不要将 s = 1 纳入取有限值的输入，不要将其他 zeta 函数与此身份混淆，也不要从名称推断定理。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain riemannZetaDomain and codomain complexNumbers. Preserve the argument's actual representation and the hypotheses of any series or continuation statement; keep membership and evaluation evidence separate from the named function."
+msgstr "保留定义域 riemannZetaDomain 及陪域 complexNumbers。保留参数的实际表示及级数或延拓陈述的假设；将成员资格和求值证据与命名函数分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "erf (error function)"
+msgstr "erf（误差函数）"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The real error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt, a normalized Gaussian integral with domain and codomain math:realNumbers. Supplied correspondences link this individual to DLMF chapter 7 and Wikidata; no individual OpenMath symbol mapping is supplied."
+msgstr "实误差函数 erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt，是归一化高斯积分，其定义域和陪域均为 math:realNumbers。提供的对应关系将该个体链接到 DLMF 第 7 章及 Wikidata；未提供该函数个体的 OpenMath 符号映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The normalization is 2/√π and the integration starts at zero. This individual names the real function, not an error estimate, Gaussian density, complementary error function or normal cumulative distribution function."
+msgstr "归一化因子为 2/√π，积分从零开始。该个体指定实函数，不是误差估计、高斯密度、互补误差函数或正态累积分布函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identity erf(0) = 0 follows from the zero-length integral. The standard normal CDF instead satisfies Φ(x) = (1 + erf(x/√2))/2; erf itself is not that CDF."
+msgstr "数学恒等式 erf(0) = 0 源于长度为零的积分。标准正态累积分布函数满足 Φ(x) = (1 + erf(x/√2))/2；erf 本身并非该累积分布函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source specifically names the real error function with this integral normalization, independently of any numerical approximation."
+msgstr "用于来源明确指定具有此积分归一化形式的实误差函数的情形，并与数值近似区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting erfc, a probability density, a normal CDF or an approximation-error quantity merely because the labels mention Gaussian error."
+msgstr "不要仅因标签提及高斯误差，就替换为 erfc、概率密度、正态累积分布函数或近似误差量。"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain errorFunction with realNumbers as both domain and codomain. Preserve the actual application and any approximation method or error evidence separately; its identity and links do not execute the integral."
+msgstr "保留 errorFunction，以 realNumbers 同时作为定义域和陪域。单独保留实际应用以及近似方法或误差证据；其身份和链接不执行积分。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "nonpositive real interval (−∞, 0]"
+msgstr "非正实数区间 (−∞, 0]"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered real interval (−∞, 0], with lower endpoint math:NegativeInfinity excluded and upper endpoint the integer literal zero included. It contains all finite nonpositive real values, not only the integer poles of gamma."
+msgstr "有序实数区间 (−∞, 0]，不包含下端点 math:NegativeInfinity，包含以整数字面量零表示的上端点。它包含所有有限非正实数值，而非仅包含伽马函数的整数极点。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The interval is one part of the gamma exclusion condition. Integer-set membership and membership in this interval must both hold to identify a nonpositive integer pole; the negative-infinity boundary is not an interval member."
+msgstr "该区间是伽马排除条件的一部分。整数集成员资格与此区间成员资格必须同时成立，才能识别非正整数极点；负无穷边界不是区间成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#example"
+msgid "Zero and −2 lie in this interval, as does −1/2. Together with interval membership, integer membership excludes zero and −2 from gammaDomain; −1/2 is not excluded by that conjunction."
+msgstr "零和 −2 属于此区间，−1/2 也属于。整数成员资格与区间成员资格共同将零和 −2 从 gammaDomain 中排除；−1/2 不被该合取条件排除。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the fixed interval operand for nonpositive finite real values in the gamma-domain membership condition."
+msgstr "用于作为伽马定义域成员条件中有限非正实数值的固定区间操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this interval alone as the gamma-pole set, closing its infinite boundary, or comparing arbitrary complex values by an ordered-real relation."
+msgstr "不要将该区间本身当作伽马极点集，不要闭合其无穷边界，也不要以有序实数关系比较任意复数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve both typed endpoint values and both inclusion markers. Use inIntervalRel with the integer-membership guard in gammaDomain's condition; do not replace numeric-value membership by RDF term identity."
+msgstr "保留两个带类型的端点值及两个包含标记。在 gammaDomain 条件中，将 inIntervalRel 与整数成员资格守卫一起使用；不要以 RDF 项身份代替数值成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "singleton real interval [1, 1]"
+msgstr "单元素实数区间 [1, 1]"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed real interval [1, 1], with both endpoints the integer literal one and both inclusions closed. It contains the single real numeric value one, independent of the RDF term used to represent that value."
+msgstr "闭实数区间 [1, 1]，两个端点均为整数字面量一，两个包含标记均为闭。它仅包含实数值一，与表示该值所用的 RDF 项无关。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The zeta exclusion condition combines real-set membership with this singleton interval. The two endpoint roles share the same value; they do not require unequal RDF resources or a comparison of arbitrary complex values."
+msgstr "zeta 排除条件结合实数集成员资格与此单元素区间。两个端点角色共用相同值；它们不要求 RDF 资源不相等，也不要求比较任意复数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real numeric value represented by integer one lies in [1, 1]. The exclusion is about that numeric value, not whether an argument node is identical to the endpoint literal."
+msgstr "由整数一表示的实数值属于 [1, 1]。排除针对该数值，而非参数节点是否与端点字面量具有相同身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the fixed real-value singleton operand that isolates the pole at one in riemannZetaDomain's condition."
+msgstr "用于作为 riemannZetaDomain 条件中隔离位于数值一的极点的固定实数值单元素操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting [1, 1] as empty, opening either endpoint, or replacing its interval membership by an RDF same-node test."
+msgstr "不要将 [1, 1] 解释为空集，不要开放任一端点，也不要将其区间成员资格替换为 RDF 同节点测试。"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve both integer-one endpoints and both closed markers. Combine inIntervalRel with the real-membership guard exactly as the zeta-domain condition states; retain representation and admission evidence separately."
+msgstr "保留两个整数一端点及两个闭标记。严格按 zeta 定义域条件，将 inIntervalRel 与实数成员资格守卫结合；单独保留表示和接纳证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gamma function domain"
+msgstr "伽马函数定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intensional set of complex numbers excluding the nonpositive integers: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). Its realized memberCondition is backed by gammaDomainMembershipLaw."
+msgstr "排除非正整数的复数内涵集合：z 属于该集合，当且仅当 hasElement(complexNumbers,z) 成立，且 hasElement(integers,z) 与 inIntervalRel(z,nonPositiveRealInterval) 不同时成立。其已实现的 memberCondition 由 gammaDomainMembershipLaw 支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the actual total domain of gammaFunction's finite complex-valued form. The exclusion combines integer membership with a real interval condition; it neither rejects all negative reals nor admits a pole as an ordinary complex output."
+msgstr "这是 gammaFunction 取有限复值形式的实际全函数定义域。排除条件结合整数成员资格与实数区间条件；它既不排除所有负实数，也不将极点纳入普通复数输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical inputs 1, −1/2 and i are in gammaDomain; zero and −2 are excluded. These are consequences of the stated mathematical condition, not native membership checks executed by the declaration."
+msgstr "数学输入 1、−1/2 和 i 属于 gammaDomain；零和 −2 被排除。这些是所述数学条件的结论，不是声明所执行的原生成员资格检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the declared domain of the canonical finite complex-valued gamma function, retaining the explicit excluded-pole condition."
+msgstr "用于作为规范伽马函数取有限复值形式的声明定义域，并保留显式的极点排除条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing it with the full complex plane, a prose-only pole list or the nonpositive real interval itself. An absent integer-membership fact is not by itself proof that a complex input is not an integer."
+msgstr "不要以完整复平面、仅用文字表示的极点列表或非正实数区间本身替代它。缺少整数成员事实，本身并不证明复数输入不是整数。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the SetBuilderExpression memberCondition and its defining law, with the shared condition bound by z in that law. Keep actual set-membership evidence distinct from structural set framing; no numerical domain guard is qualified here."
+msgstr "保留 SetBuilderExpression 的 memberCondition 及其定义定律，由该定律中的 z 绑定共用条件。区分实际集合成员证据与结构性集合框架；此处未认证数值定义域守卫。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemann zeta function domain"
+msgstr "黎曼 zeta 函数定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intensional set of complex numbers excluding the real numeric value one: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). Its realized memberCondition is backed by riemannZetaDomainMembershipLaw."
+msgstr "排除实数值一的复数内涵集合：z 属于该集合，当且仅当 hasElement(complexNumbers,z) 成立，且 hasElement(realNumbers,z) 与 inIntervalRel(z,oneSingletonInterval) 不同时成立。其已实现的 memberCondition 由 riemannZetaDomainMembershipLaw 支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the actual total domain of riemannZeta's finite complex-valued continuation. The singleton exclusion is a real numeric-value condition under a real-membership guard, not RDF identity with an integer-one literal or ordering on arbitrary complex values."
+msgstr "这是 riemannZeta 取有限复值延拓的实际全函数定义域。单元素排除是在实数成员资格守卫下的实数值条件，不是与整数一字面量的 RDF 身份比较，也不是对任意复数值排序。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "Zero, two and i belong to the mathematical zeta domain; the real value one is excluded. Zero is in this continued-function domain even though the defining positive-index series does not converge there."
+msgstr "零、二和 i 属于 zeta 的数学定义域；实数值一被排除。即使定义用的正整数索引级数在零处不收敛，零仍属于此延拓函数的定义域。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the declared domain of the canonical finite complex-valued Riemann zeta function rather than restricting the continued function to Re(s) > 1."
+msgstr "用于作为规范黎曼 zeta 函数取有限复值形式的声明定义域，而非将延拓函数限制在 Re(s) > 1。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a differently represented real one as a new admitted input, excluding all real numbers, or assuming missing real-membership data establishes a nonreal argument."
+msgstr "不要把表示方式不同的实数一当作新接纳的输入，不要排除所有实数，也不要假定缺少实数成员数据就确立参数非实。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its realized memberCondition and defining law with the shared z variable. Preserve the real guard and singleton interval together; mathematical membership and any consumer's numerical admission remain separate evidence."
+msgstr "保留其已实现的 memberCondition 及定义定律，并共用变量 z。将实数守卫与单元素区间一起保留；数学成员资格与消费者的数值接纳仍是各自独立的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gamma domain membership equivalence"
+msgstr "伽马定义域成员资格等价定律"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally bound first-order law ∀z: hasElement(gammaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). It backs gammaDomain with the same realized condition used by memberCondition."
+msgstr "全称绑定的一阶定律 ∀z：hasElement(gammaDomain,z) 当且仅当 hasElement(complexNumbers,z) 成立，且 hasElement(integers,z) 与 inIntervalRel(z,nonPositiveRealInterval) 不同时成立。它用与 memberCondition 相同的已实现条件支撑 gammaDomain。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law binds z explicitly and states both directions of membership. The condition subtree remains owned mathematical syntax; its negation is logical negation, not a missing-triple test or an analytic evaluation procedure."
+msgstr "该定律显式绑定 z，并陈述成员资格的两个方向。条件子树仍为有归属的数学语法；其否定是逻辑否定，不是缺失三元组测试或解析求值过程。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "To conclude that −1/2 belongs, the condition needs its complex membership and the negated integer-and-interval conjunction. A graph containing only the input's label does not supply that proof."
+msgstr "要推出 −1/2 属于该集合，条件需要其复数成员资格，以及对整数与区间成员资格合取的否定。仅含输入标签的图不提供此证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit defining-law backing for gammaDomain's membership equivalence, preserving its quantified Formula structure."
+msgstr "用于作为 gammaDomain 成员资格等价关系的显式定义定律支撑，并保留其量化 Formula 结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid weakening iff to only an inclusion, asserting the free condition as a standalone fact, or claiming the law computes gamma values or automatically discharges numeric membership."
+msgstr "不要将当且仅当弱化为单向包含，不要将自由条件断言为独立事实，也不要声称该定律计算伽马值或自动证明数值成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the named law as a bound Formula root referenced through definingLaw, and keep memberCondition attached to the shared condition. Preserve argument order, constructor topology and the same z binding; do not replace the formula with a label."
+msgstr "保留命名定律作为经 definingLaw 引用的绑定 Formula 根，并将 memberCondition 关联到共用条件。保留参数顺序、构造器拓扑及同一 z 绑定；不要以标签替代公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemann zeta domain membership equivalence"
+msgstr "黎曼 zeta 定义域成员资格等价定律"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally bound first-order law ∀z: hasElement(riemannZetaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). It backs riemannZetaDomain with the same realized condition used by memberCondition."
+msgstr "全称绑定的一阶定律 ∀z：hasElement(riemannZetaDomain,z) 当且仅当 hasElement(complexNumbers,z) 成立，且 hasElement(realNumbers,z) 与 inIntervalRel(z,oneSingletonInterval) 不同时成立。它用与 memberCondition 相同的已实现条件支撑 riemannZetaDomain。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound membership equivalence isolates the real value one through existing set and interval relations. It adds no opaque pole predicate, complex-order comparison, RDF-identity shortcut or numerical zeta evaluator."
+msgstr "该绑定成员资格等价关系通过现有集合和区间关系隔离实数值一。它不添加不透明的极点谓词、复数排序比较、RDF 身份捷径或数值 zeta 求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Excluding an input denoting real one uses its real membership and membership in [1, 1], together with the complex-domain condition. It does not depend on the input IRI matching the interval's endpoint literal."
+msgstr "排除表示实数一的输入，使用其实数成员资格及 [1, 1] 成员资格，并结合复数定义域条件。它不依赖输入 IRI 与区间端点字面量相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit quantified backing law for the punctured domain of the continued Riemann zeta function."
+msgstr "用于作为延拓黎曼 zeta 函数去除极点后定义域的显式量化支撑定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting logical negation as absence of a membership triple, unbinding z, or replacing numeric interval membership by a same-node comparison with one."
+msgstr "不要将逻辑否定解释为缺少成员资格三元组，不要取消 z 的绑定，也不要用与一的同节点比较替代数值区间成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."
+msgstr "保留绑定 Formula 根、其 definingLaw 链接及共用的 memberCondition 子树。保留 iff 的两个方向，并将实数守卫与单元素条件一起保留；区分数学声明与原生接纳声明。"

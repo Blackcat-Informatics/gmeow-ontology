@@ -41,8 +41,9 @@ variable over an indexed body AST; the operator itself is named through `math:op
 ([`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md)). A `math:Derivative` names what it
 differentiates, with respect to which variable, at which order; a `math:Limit` names its expression,
 its limit point, and — where it matters — the direction/mode; a `math:Series` and `math:Sequence`
-carry `math:Convergence` with its mode (pointwise, uniform, in-measure, …). Special functions align
-to **DLMF** by equation ID and to OpenMath `calculus1`/`transc1`.
+carry `math:Convergence` with its mode (pointwise, uniform, in-measure, …). Special-function correspondences include link-only **DLMF** chapter locators, supplied Wikidata
+links, and a related OpenMath `transc1` dictionary-page link for the class; they do not supply
+individual OpenMath symbol mappings or analytic evaluation.
 
 GMEOW records typed `math:Series` or `math:Sequence` require a supplied `math:Convergence` record
 linked through `math:hasConvergence`, naming its target and mode. This mandatory frame restricts admitted source records; it does
