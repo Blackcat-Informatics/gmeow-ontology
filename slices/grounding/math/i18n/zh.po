@@ -12694,3 +12694,257 @@ msgstr "不要用此类表示框架完整的函数不可导、混合偏导不相
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."
 msgstr "按现有限制、闭合及阶数界限检查 derivativeOf、withRespectToVariable 和 derivativeOrder，再单独检查继承的绑定要求。依据来源恢复框架，不虚构变量、函数体或阶数，并在诊断证据中保留实际组件、来源形状及失败映射。"
+
+# --- Convergence-mode guidance --------------------------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Convergence Mode"
+msgstr "收敛模式"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mode in which a sequence or series converges: supplied modes include math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, and math:inDistributionConvergence. These notions have different hypotheses and do not form a universal weak-to-strong ordering. A mode is required on every math:Convergence."
+msgstr "序列或级数收敛所采用的模式：提供的模式包括 math:pointwiseConvergence、math:uniformConvergence、math:absoluteConvergence、math:conditionalConvergence、math:inMeasureConvergence、math:almostEverywhereConvergence、math:inLpNormConvergence 和 math:inDistributionConvergence。这些概念具有不同假设，不构成通用的由弱到强的排序。每个 math:Convergence 都必须指定模式。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an open class with eight supplied markers, not a closed enumeration. A convergenceMode value records the source's mathematical notion; it does not prove convergence, evaluate a limit or create the domain, measure, norm or probability context needed to interpret that notion."
+msgstr "这是具有八个现成标记的开放类，不是封闭枚举。convergenceMode 值记录来源的数学概念；它不证明收敛，不计算极限，也不创建解释该概念所需的定义域、测度、范数或概率背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing zetaConvergence record uses convergenceMode absoluteConvergence, while harmonicSequenceConvergence uses pointwiseConvergence. Those fixture triples declare different modes; neither the names of their targets nor the presence of a mode triple numerically verifies the claim."
+msgstr "现有 zetaConvergence 记录使用 convergenceMode absoluteConvergence，而 harmonicSequenceConvergence 使用 pointwiseConvergence。这些夹具三元组声明不同模式；目标的名称或模式三元组的存在，均不对该声明进行数值验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a supplied convergence claim by its actual mathematical meaning, preserving the source's function, scalar-series, measure, norm or probability setting."
+msgstr "用于按实际数学含义分类来源提供的收敛声明，并保留其函数、标量级数、测度、范数或概率背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exchanging mode markers as synonyms, ranking every mode on one strength ladder, or inventing a convergence claim to fill missing structure. A declared mode is neither a theorem certificate nor proof that a surrounding record is complete."
+msgstr "不要将模式标记作为同义词互换，不要把所有模式排在同一强弱阶梯上，也不要为补全缺失结构而虚构收敛声明。声明的模式既不认证定理，也不证明承载它的记录完整。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied marker through convergenceMode on the relevant Convergence and retain its target separately. Carry the actual domain and any measure, p, norm or distribution context with the claim, and keep theorem hypotheses and supporting evidence explicit rather than inferring them from the marker."
+msgstr "在相关 Convergence 上通过 convergenceMode 保留来源标记，并单独保留其目标。随声明保留实际定义域以及测度、p、范数或分布背景；显式保留定理假设及支持证据，不要从标记中推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pointwise"
+msgstr "逐点"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Pointwise convergence: fₙ(x) → f(x) at each point x separately on the common domain. The convergence requirement is imposed at every point; its index bound may depend on that point."
+msgstr "逐点收敛：在共同定义域上的每个点 x，分别有 fₙ(x) → f(x)。每个点都须满足收敛要求；所需的指标界限可以依赖于该点。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For real- or complex-valued functions, each x and each ε > 0 may have its own N, with |fₙ(x) − f(x)| < ε for all n ≥ N. Uniform convergence instead uses one N for all x at a given ε. Almost-everywhere convergence permits a null exceptional set; pointwise convergence everywhere does not."
+msgstr "对实值或复值函数，每个 x 及每个 ε > 0 可以各有自己的 N，使所有 n ≥ N 均满足 |fₙ(x) − f(x)| < ε。一致收敛则对给定 ε 使用一个适用于所有 x 的 N。几乎处处收敛允许一个零测例外集，而处处逐点收敛不允许。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a source claim about fₙ(x) = xⁿ on [0,1], the limit is zero for x < 1 and one at x = 1. pointwiseConvergence records this pointwise notion; it must not be replaced by uniformConvergence on that whole interval."
+msgstr "对于关于 [0,1] 上 fₙ(x) = xⁿ 的来源声明，x < 1 时极限为零，x = 1 时为一。pointwiseConvergence 记录该逐点概念；在整个区间上不能替换为 uniformConvergence。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts convergence at every point of a specified common domain, with the stage needed for a given accuracy allowed to vary with the point."
+msgstr "用于来源断言在指定共同定义域的每个点均收敛，且达到给定精度所需的阶段允许随点变化的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling this the weakest supplied mode, inferring a uniform rate, or silently discarding exceptional points. A scalar-sequence label in a fixture does not by itself identify the function-domain context of a pointwise claim."
+msgstr "不要称它为所有现成模式中最弱的模式，不要推断一致速率，也不要静默丢弃例外点。夹具中的标量序列标签，本身并不确定逐点声明所涉及的函数定义域背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use pointwiseConvergence as the supplied convergenceMode and retain the function sequence, common domain and limit function. Preserve the order of quantifiers and any proof separately; do not obtain an all-points or numerical verdict merely by adding the marker."
+msgstr "以 pointwiseConvergence 作为来源提供的 convergenceMode，并保留函数序列、共同定义域及极限函数。保留量词顺序，另行保存证明；不能仅通过添加标记就获得覆盖所有点或数值计算的结论。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "uniform"
+msgstr "一致"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Uniform convergence of real- or complex-valued functions on a common domain: sup_x |fₙ(x) − f(x)| → 0, with one index bound for all points for each ε > 0. It implies pointwise convergence; a uniform limit of continuous functions on that common domain is continuous."
+msgstr "共同定义域上实值或复值函数的一致收敛：sup_x |fₙ(x) − f(x)| → 0，对每个 ε > 0 使用适用于所有点的同一指标界限。它蕴含逐点收敛；在该共同定义域上，连续函数的一致极限仍连续。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For each ε > 0 there is one N such that every n ≥ N and every x in the common domain satisfy |fₙ(x) − f(x)| < ε. The continuity-preservation theorem assumes continuous approximating functions with the common domain topology and real or complex codomain; the marker alone establishes none of these hypotheses."
+msgstr "对每个 ε > 0，存在一个 N，使所有 n ≥ N 及共同定义域中的所有 x 均满足 |fₙ(x) − f(x)| < ε。连续性保持定理假设逼近函数在共同定义域的拓扑下连续，且陪域为实数或复数；标记本身不确立这些假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source claim for fₙ(x) = x + 1/n on [0,1], n ≥ 1, can use convergenceMode uniformConvergence toward f(x) = x: the error is 1/n throughout the domain. This mathematical example is not a numerical calculation performed by the mode record."
+msgstr "对于 [0,1] 上 fₙ(x) = x + 1/n、n ≥ 1 的来源声明，可用 convergenceMode uniformConvergence 指向 f(x) = x：整个定义域上的误差均为 1/n。此数学示例不是模式记录所执行的数值计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the supplied convergence claim controls approximation error simultaneously over the specified domain, retaining the domain on which that control is asserted."
+msgstr "用于来源提供的收敛声明同时控制指定定义域上逼近误差的情形，并保留该控制所针对的定义域。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting separate pointwise bounds to a uniform bound, extending uniformity from a smaller domain to a larger one without evidence, or inferring continuity without continuous approximants. Uniform convergence is not a universal replacement for measure, norm or series modes."
+msgstr "不要将各点各自的界限提升为一致界限，不要在无证据时将较小定义域上的一致性扩展到较大定义域，也不要在逼近函数不满足连续性时推断极限连续。一致收敛不能通用地替代测度、范数或级数模式。"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain uniformConvergence through convergenceMode together with the source domain, approximating functions and limit. State the shared index-bound requirement and retain any continuity assumptions or proof independently; the declaration does not execute the supremum or verify the theorem."
+msgstr "通过 convergenceMode 保留 uniformConvergence，以及来源定义域、逼近函数和极限。说明共同指标界限的要求，并独立保留连续性假设或证明；该声明不计算上确界，也不验证定理。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absolute"
+msgstr "绝对"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Absolute convergence of a real or complex scalar series: ∑ |aₙ| converges. It implies convergence and allows any rearrangement without changing the sum."
+msgstr "实数或复数标量级数的绝对收敛：∑ |aₙ| 收敛。它蕴含收敛，并允许任意重排而不改变级数和。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The displayed absolute-value criterion and rearrangement conclusion concern real or complex scalar series. A series converges through its partial sums, not merely because its individual terms approach zero. General vector-valued series need their actual normed-space and completeness hypotheses; this marker does not supply them."
+msgstr "所示绝对值判据及重排结论针对实数或复数标量级数。级数的收敛考察其部分和，而非仅因各项趋于零就收敛。一般向量值级数需要实际的赋范空间及完备性假设；该标记不提供这些假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "In series-convergent.ttl, zetaConvergence declares convergenceMode absoluteConvergence and a target zetaValue. The term is a SymbolReference and the target a MathematicalObject; those declarations do not encode a summand formula, calculate a zeta value or prove absolute convergence."
+msgstr "在 series-convergent.ttl 中，zetaConvergence 声明 convergenceMode absoluteConvergence 及目标 zetaValue。通项是 SymbolReference，目标是 MathematicalObject；这些声明不编码通项公式，不计算 zeta 值，也不证明绝对收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly claims convergence of the absolute-value series in a real or complex scalar setting, preserving the underlying series and its claimed sum."
+msgstr "用于来源在实数或复数标量背景中显式声明绝对值级数收敛的情形，并保留原级数及其声明的级数和。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating terms tending to zero as sufficient, relabeling a conditionally convergent series as absolute, or applying scalar rearrangement conclusions to arbitrary incomplete normed spaces. The marker does not authorize a runtime to reorder or sum source terms."
+msgstr "不要将通项趋零视为充分条件，不要把条件收敛级数改标为绝对收敛，也不要把标量重排结论应用于任意不完备赋范空间。该标记不授权运行时重排或求和来源各项。"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain absoluteConvergence as the supplied convergenceMode and retain the scalar-series context, summands and target. Keep evidence for convergence of ∑ |aₙ| separately from the declaration; preserve source term order even when a scalar rearrangement theorem applies."
+msgstr "以 absoluteConvergence 作为来源提供的 convergenceMode，并保留标量级数背景、各项和目标。将 ∑ |aₙ| 收敛的证据与声明分开；即使标量重排定理适用，也应保留来源项序。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional"
+msgstr "条件"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Conditional convergence of a real or complex scalar series: ∑ aₙ converges but ∑ |aₙ| diverges. For real scalar series, the Riemann rearrangement theorem shows that rearrangement can change the sum."
+msgstr "实数或复数标量级数的条件收敛：∑ aₙ 收敛，但 ∑ |aₙ| 发散。对实数标量级数，黎曼重排定理表明重排可以改变级数和。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Conditional means convergence together with failure of absolute convergence in the stated scalar setting, not an unspecified logical condition. The Riemann theorem's arbitrary prescribed real-sum conclusion is for conditionally convergent real series; do not transfer it unchanged to complex or general vector-valued series."
+msgstr "条件收敛指在所述标量背景中收敛但不绝对收敛，不是未说明的逻辑条件。黎曼定理关于可得到任意指定实数和的结论针对条件收敛的实级数；不要将该结论原样推广到复数或一般向量值级数。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source claim for the real alternating harmonic series ∑_{n≥1} (−1)^(n+1)/n can use convergenceMode conditionalConvergence: that series converges while ∑_{n≥1} 1/n diverges. The marker records the claim and does not choose or evaluate a rearrangement."
+msgstr "对于实数交错调和级数 ∑_{n≥1} (−1)^(n+1)/n 的来源声明，可使用 convergenceMode conditionalConvergence：该级数收敛，而 ∑_{n≥1} 1/n 发散。标记记录该声明，不选择或计算重排。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts a convergent real or complex scalar series whose absolute-value series diverges, retaining the actual scalar setting and term order."
+msgstr "用于来源断言实数或复数标量级数收敛、其绝对值级数发散的情形，并保留实际标量背景及项序。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using conditional to mean merely dependent on an assumption, omitting the convergence requirement, or treating every reordering as sum-preserving. A named conditional mode does not establish the hypotheses or outcome of a rearrangement theorem."
+msgstr "不要将条件收敛仅理解为依赖某个假设，不要省略收敛要求，也不要认为所有重排都保持级数和。命名的条件收敛模式不确立重排定理的假设或结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach conditionalConvergence through convergenceMode to the source claim, preserving the series, target and original order. Retain support for both convergence and nonabsolute convergence; state the real-series hypotheses explicitly whenever invoking Riemann rearrangement."
+msgstr "通过 convergenceMode 将 conditionalConvergence 关联到来源声明，保留级数、目标及原始项序。保留收敛和非绝对收敛两方面的支持证据；引用黎曼重排时，应显式说明实级数假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in measure"
+msgstr "依测度"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in measure of measurable real- or complex-valued functions on a common measure space: for every ε > 0, μ({x : |fₙ(x) − f(x)| ≥ ε}) → 0. Almost-everywhere convergence implies this on a finite measure space; on a probability space this mode is convergence in probability."
+msgstr "共同测度空间上可测实值或复值函数的依测度收敛：对每个 ε > 0，μ({x : |fₙ(x) − f(x)| ≥ ε}) → 0。在有限测度空间上，几乎处处收敛蕴含此模式；在概率空间上，此模式即依概率收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The error-set measure must tend to zero for each positive ε, using the same underlying measure for the functions and limit. The general implication from almost-everywhere to in-measure holds on finite-measure spaces; an infinite-measure setting needs additional hypotheses or evidence for the particular sequence. In-measure alone does not force almost-everywhere convergence of the entire sequence."
+msgstr "对每个正 ε，误差集合的测度都须趋于零，且函数与极限使用相同的基础测度。由几乎处处收敛推出依测度收敛的一般结论在有限测度空间上成立；在无限测度背景中，需要针对具体序列的附加假设或证据。单独的依测度收敛不强制整个序列几乎处处收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue measure, let fₙ be the indicator of (0,1/n), n ≥ 1. A claim of convergence to zero can use convergenceMode inMeasureConvergence: for 0 < ε ≤ 1 the error-set measure is 1/n, and for ε > 1 it is zero."
+msgstr "在赋予勒贝格测度的 [0,1] 上，令 fₙ 为 (0,1/n) 的示性函数，n ≥ 1。收敛到零的声明可使用 convergenceMode inMeasureConvergence：当 0 < ε ≤ 1 时，误差集合的测度为 1/n；当 ε > 1 时为零。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source controls the measure of deviations beyond every positive tolerance, or records convergence in probability on a specified common probability space."
+msgstr "用于来源控制偏差达到每个正容差的集合测度，或记录指定共同概率空间上依概率收敛的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid including ε = 0 in the displayed criterion, omitting the measure, or importing a finite-measure implication into an infinite-measure setting. This marker does not identify the exceptional set of almost-everywhere convergence or calculate probabilities."
+msgstr "不要在所示判据中纳入 ε = 0，不要省略测度，也不要将有限测度下的蕴含搬到无限测度背景中。该标记不识别几乎处处收敛的例外集，也不计算概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain inMeasureConvergence through convergenceMode with the measurable functions, limit and actual measure space. State the positive-tolerance criterion. When deriving the claim from almost-everywhere convergence, retain the finite-measure hypothesis or the additional support used in an infinite-measure setting; preserve probability context where applicable."
+msgstr "通过 convergenceMode 保留 inMeasureConvergence，以及可测函数、极限及实际测度空间。说明正容差判据。由几乎处处收敛推导该声明时，保留有限测度假设，或在无限测度背景中使用的附加依据；适用时保留概率背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "almost everywhere"
+msgstr "几乎处处"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Almost-everywhere convergence on a common measure space: fₙ(x) → f(x) for every x outside a single set of measure zero. Pointwise convergence everywhere implies this condition; the converse need not hold. On a probability space this is almost-sure convergence."
+msgstr "共同测度空间上的几乎处处收敛：存在一个零测集，使其外的每个 x 均满足 fₙ(x) → f(x)。处处逐点收敛蕴含该条件，反之不一定成立。在概率空间上，此模式即几乎必然收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One null exceptional set is allowed for the sequence and limit on the specified measure space. This weakens the everywhere point requirement; it is not a strengthening of pointwise convergence. On a probability space the same notion is almost-sure convergence. The general implication to in-measure holds on finite-measure spaces; infinite total measure alone does not decide a particular sequence's in-measure claim."
+msgstr "在指定测度空间上，允许该序列和极限有一个共同的零测例外集。这放宽了对每个点的要求，并非逐点收敛的加强。在概率空间上，同一概念称为几乎必然收敛。推出依测度收敛的一般结论在有限测度空间上成立；仅有总测度无限这一事实，并不判定具体序列是否依测度收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue measure, let every fₙ be the indicator of {0}, with limit function zero. A claim using convergenceMode almostEverywhereConvergence may exclude {0}; convergence to zero fails at that point, so it is not pointwise convergence everywhere."
+msgstr "在赋予勒贝格测度的 [0,1] 上，令每个 fₙ 均为 {0} 的示性函数，极限函数为零。使用 convergenceMode almostEverywhereConvergence 的声明可排除 {0}；在该点并不收敛到零，因此不是处处逐点收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source asserts pointwise convergence outside a null set for its specified measure, including almost-sure convergence of random variables on a common probability space."
+msgstr "用于来源断言在其指定测度下零测集之外逐点收敛的情形，包括共同概率空间上随机变量的几乎必然收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a null set by a merely small positive-measure set, claiming convergence at every point, or inferring convergence in measure on an infinite-measure space merely from this marker. A mode declaration does not discover the null set or verify sample paths."
+msgstr "不要以仅仅具有较小正测度的集合替代零测集，不要声称每个点均收敛，也不要仅凭此标记推断无限测度空间上的依测度收敛。模式声明不会发现零测集，也不验证样本路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use almostEverywhereConvergence as the supplied convergenceMode and retain the measure, functions and limit together with any supported exceptional-set description. Keep the null-set claim and pointwise proof outside it explicit; do not silently turn almost-everywhere into everywhere."
+msgstr "以 almostEverywhereConvergence 作为来源提供的 convergenceMode，并保留测度、函数、极限及有依据的例外集描述。显式保留零测声明及该集合之外的逐点证明；不要静默地将几乎处处改为处处。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in Lᵖ norm"
+msgstr "依 Lᵖ 范数"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0 on a specified measure space. In the finite-p setting, fix 1 ≤ p < ∞ with fₙ and f in Lᵖ. These spaces are Banach spaces; p = 2 gives the Hilbert-space case, called mean-square convergence in a probability setting."
+msgstr "Lᵖ 范数收敛：在指定测度空间上 ‖fₙ − f‖_p → 0。在有限 p 的背景中，固定 1 ≤ p < ∞，且 fₙ 和 f 属于 Lᵖ。这些空间是巴拿赫空间；p = 2 给出希尔伯特空间情形，在概率背景中称为均方收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the actual fixed p, measure and Lᵖ functions or their almost-everywhere equivalence classes. A separately specified L∞ setting uses the essential-supremum norm, distinct from uniform control at every point. For p = 2 on a probability space, mean-square means expected squared error tends to zero. The marker does not select p, validate integrability or turn a quasi-norm for 0 < p < 1 into a norm."
+msgstr "保留实际固定的 p、测度，以及 Lᵖ 函数或其按几乎处处相等形成的等价类。另行指定的 L∞ 背景使用本质上确界范数，不同于在每个点进行的一致控制。在概率空间上 p = 2 时，均方收敛指误差平方的期望趋于零。标记不选择 p，不验证可积性，也不将 0 < p < 1 的拟范数变为范数。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue probability measure, fₙ(x) = 1/n, n ≥ 1, tends to zero in L²: the norm error is 1/n and the mean-square error is 1/n². A claim using convergenceMode inLpNormConvergence must retain p = 2 and that probability measure."
+msgstr "在赋予勒贝格概率测度的 [0,1] 上，fₙ(x) = 1/n、n ≥ 1 在 L² 中趋于零：范数误差为 1/n，均方误差为 1/n²。使用 convergenceMode inLpNormConvergence 的声明必须保留 p = 2 及该概率测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source claims norm convergence in a specified Lᵖ space, retaining finite p or the separate L∞ essential-supremum context, or mean-square convergence in the stated L² probability setting. Preserve the norm and measure."
+msgstr "用于来源声明指定 Lᵖ 空间中范数收敛的情形，保留有限 p 或另行指定的 L∞ 本质上确界背景；也用于所述 L² 概率背景中的均方收敛。保留范数及测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring uniform or whole-sequence almost-everywhere convergence from the norm label, dropping p or the measure, or calling every L² context probabilistic mean-square. No displayed norm or mode marker proves its own limit or supplies missing integrability assumptions."
+msgstr "不要从范数标签推断一致收敛或整个序列几乎处处收敛，不要省略 p 或测度，也不要把所有 L² 背景都称为概率均方收敛。所示范数或模式标记均不证明自身的极限，也不提供缺失的可积性假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain inLpNormConvergence through convergenceMode and preserve the fixed p, measure space, functions and limit from the source. Keep membership and norm-limit evidence separate from the declaration; qualify any implication to another mode with its actual hypotheses."
+msgstr "通过 convergenceMode 保留 inLpNormConvergence，并保留来源固定的 p、测度空间、函数和极限。将空间成员资格及范数极限的证据与声明分开；推出其他模式时应说明实际假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in distribution"
+msgstr "依分布"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in distribution of real-valued random variables: their cumulative distribution functions converge at every continuity point of the limiting cumulative distribution function. This is the real-line formulation of weak convergence of their probability laws, underlying the central limit theorem; shared with the probability charter."
+msgstr "实值随机变量的依分布收敛：其累积分布函数在极限累积分布函数的每个连续点处收敛。这是概率律弱收敛在实数轴上的表述，是中心极限定理所用的模式，并与概率章程共用。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The cumulative-distribution criterion is for real-valued random variables and their laws, not a definition for arbitrary ambient spaces. It need not imply convergence in probability or almost surely under a given coupling. A more general weak-convergence interpretation needs its actual space, measures and theorem hypotheses stated separately."
+msgstr "累积分布判据针对实值随机变量及其概率律，并非任意环境空间上的定义。对给定耦合，它不一定蕴含依概率或几乎必然收敛。更一般的弱收敛解释需要另行说明实际空间、测度及定理假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Let X take −1 and 1 with equal probability, and let Xₙ = −X for every n. A claim using convergenceMode inDistributionConvergence toward the law of X is valid because the laws agree, although |Xₙ − X| = 2 on that coupling, so there is no convergence in probability to X."
+msgstr "令 X 以相等概率取 −1 和 1，并对每个 n 令 Xₙ = −X。使用 convergenceMode inDistributionConvergence 指向 X 的概率律的声明成立，因为两者概率律相同；但在该耦合下 |Xₙ − X| = 2，因此并不依概率收敛到 X。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts convergence of real random-variable laws by the limiting CDF continuity-point criterion, retaining a separately stated broader weak-convergence context where that is what the source supplies."
+msgstr "用于来源按极限累积分布函数连续点判据断言实随机变量概率律收敛的情形；若来源提供更广的弱收敛背景，应另行说明并保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring CDF convergence at discontinuities of the limiting CDF, claiming samplewise agreement from equality of laws, or treating every distribution on every space as a real CDF. The mode does not fit a distribution or execute a central-limit calculation."
+msgstr "不要要求在极限累积分布函数的不连续点处也收敛，不要由概率律相同声称样本路径一致，也不要把任意空间上的任意分布都当作实数累积分布函数。该模式不拟合分布，也不执行中心极限计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."
+msgstr "通过 convergenceMode 记录 inDistributionConvergence，以及来源随机变量的概率律和极限分布，保留实值累积分布背景或显式限定的更广空间。单独保留连续点及概率证据；不要推断特定耦合或更强模式。"
