@@ -1,0 +1,19 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 2b71db3b7904b59e1666a6450f13fafd24d14d28
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2596
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2596
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 34fe4b4b318763cbac5a4f989c1cd8dbc1a6fbb6
+GhpRsq-Head-Ref: paudley/2595-explain-sequence-and-series-convergence
+GhpRsq-Head-OID: 2b71db3b7904b59e1666a6450f13fafd24d14d28
+GhpRsq-Result-Tree: 0d5d1eedf6a1f71196388d1046dba8f73f8b2240
+GhpRsq-Result-Commit: b8069e05dd2812258707ee5908358fc640856975
+GhpRsq-Parent-Hashes: 2b71db3b7904b59e1666a6450f13fafd24d14d28
+GhpRsq-Squash-Notes-SHA256: cd7a2ea512ca97eeb07d4b22d67587428601af74711291e6ad3df7dac49f1293
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Evidence: none
