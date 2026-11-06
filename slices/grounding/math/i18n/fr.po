@@ -12158,3 +12158,285 @@ msgstr "Ne pas le signaler pour un résultat math:divergesWithoutLimit qui ne po
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Use the existing LimitResult outcome restrictions and math:LimitResultOutcomeValueConstraint, which name this failure class through gmeow:enforcesFailureClass; inspect the selected validation or verification report."
 msgstr "Utiliser les restrictions d’issue existantes de LimitResult et math:LimitResultOutcomeValueConstraint, qui nomment cette classe d’échec par gmeow:enforcesFailureClass ; examiner le rapport de validation ou de vérification sélectionné."
+
+# --- Limit expression, binder and direction guidance ----------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Limit"
+msgstr "Limite"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit does not select a single approach side."
+msgstr "La limite lim_{x→a} f(x) comme expression de liaison à part entière : elle applique math:limitBinder (math:operator), nomme l’expression dont on prend la limite par math:limitOf, le point limite a par math:limitPoint et, lorsque cela importe, la direction ou le mode par math:limitMode (par la gauche, par la droite ou bilatéral). Une limite sans expression ou sans point limite est mal formée (math:UnderspecifiedLimit) ; le mode est facultatif parce qu’une limite bilatérale ne sélectionne pas un seul côté d’approche."
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The limit frame records expression, point and any supplied mode; it does not calculate a limit. Native AST lowering needs an explicit concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body. Limit subclass entailment in another caller is distinct from that raw-reader requirement."
+msgstr "Le cadre de limite consigne l’expression, le point et tout mode fourni ; il ne calcule pas de limite. L’abaissement natif de l’AST exige une forme concrète BindingExpression explicite, un opérateur, une déclaration liée et un corps indexé non vide. L’inférence de sous-classe Limit dans un autre appelant se distingue de cette exigence du lecteur brut."
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-framed.ttl, sincLimit names limitBinder, sincExpr, zeroPoint, limitTwoSided, limitVarDecl and an index-zero body slot. Its source type is Limit only; the listed frame does not by itself certify direct concrete-AST admission or a computed sinc limit."
+msgstr "Dans limit-framed.ttl, sincLimit nomme limitBinder, sincExpr, zeroPoint, limitTwoSided, limitVarDecl et un emplacement de corps d’indice zéro. Son seul type source est Limit ; ce cadre ne certifie pas à lui seul l’admission directe de l’AST concret ni une limite de sinc calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an actual source limit expression with its approach point, direction and binding structure, separately from any supplied LimitResult."
+msgstr "À utiliser pour conserver une expression de limite réelle de la source avec son point d’approche, sa direction et sa structure de liaison, séparément de tout LimitResult fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a limit label, a result value or the three descriptive links as a complete executable binder. A complete frame proves neither convergence nor agreement with a supplied result."
+msgstr "Éviter de traiter une étiquette de limite, une valeur de résultat ou les trois liens descriptifs comme une liaison exécutable complète. Un cadre complet ne prouve ni la convergence ni l’accord avec un résultat fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply limitOf and limitPoint under the existing Limit restrictions and closures. Retain any limitMode and inherited binder structure; for direct AST consumption supply the concrete BindingExpression type and indexed body, preserving explicit variable identities rather than relying on displayed glyphs."
+msgstr "Fournir limitOf et limitPoint selon les restrictions et clôtures existantes de Limit. Conserver tout limitMode et la structure de liaison héritée ; pour une consommation directe de l’AST, fournir le type concret BindingExpression et le corps indexé, en préservant les identités explicites des variables plutôt que les glyphes affichés."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Limit Mode"
+msgstr "Mode de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The direction in which a math:Limit approaches its limit point: supplied modes include math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it does not select a single approach side."
+msgstr "La direction selon laquelle une math:Limit approche son point limite : les modes fournis comprennent math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺) et math:limitTwoSided (x → a). Une limite unilatérale déclare son côté ; une limite bilatérale déclare math:limitTwoSided ou omet le mode, puisqu’elle ne sélectionne pas un seul côté d’approche."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an open class with three supplied approach markers, not a sealed enumeration. The two-sided reading of omitted mode is a source convention; it does not insert a limitMode triple or establish equality of one-sided limits. No numerical direction checker is supplied by this class."
+msgstr "Il s’agit d’une classe ouverte avec trois marqueurs d’approche fournis, non d’une énumération fermée. La lecture bilatérale d’un mode omis est une convention source ; elle n’insère pas de triplet limitMode et n’établit pas l’égalité des limites unilatérales. Cette classe ne fournit aucun vérificateur numérique de direction."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "limitFromLeft and limitFromRight distinguish x < a from x > a near the approach point; limitTwoSided records the requirement to approach from both sides. These markers describe the input approach, not the sign of f(x)."
+msgstr "limitFromLeft et limitFromRight distinguent x < a de x > a près du point d’approche ; limitTwoSided consigne l’exigence d’une approche des deux côtés. Ces marqueurs décrivent l’approche de l’entrée, non le signe de f(x)."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's approach-direction classification in an ordered setting, keeping it separate from convergence mode and result outcome."
+msgstr "À utiliser pour conserver la classification source de la direction d’approche dans un cadre ordonné, en la distinguant du mode de convergence et de l’issue du résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting left/right as negative/positive output, inventing a closed set of all possible modes, or assuming an omitted mode was materialized by a runtime."
+msgstr "Éviter d’interpréter gauche/droite comme sortie négative/positive, d’inventer un ensemble fermé de tous les modes possibles ou de supposer qu’un moteur a matérialisé un mode omis."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied mode through limitMode, using the existing left, right or two-sided marker where it matches the source. Preserve an omitted mode as omitted; retain evidence for one-sided agreement separately from the marker."
+msgstr "Lier le mode fourni par limitMode, en utilisant le marqueur existant gauche, droite ou bilatéral lorsqu’il correspond à la source. Conserver l’omission d’un mode ; garder séparément les éléments probants d’accord des limites unilatérales."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit of"
+msgstr "limite de"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to the math:MathematicalExpression whose limit is taken. Domain math:Limit, range math:MathematicalExpression (stated in prose). Every limit names exactly one; a limit without it is ill-formed (math:UnderspecifiedLimit)."
+msgstr "Relie une math:Limit à la math:MathematicalExpression dont on prend la limite. Domaine math:Limit, portée math:MathematicalExpression (énoncés en prose). Chaque limite en nomme exactement une ; une limite sans ce lien est mal formée (math:UnderspecifiedLimit)."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptive expression link is distinct from the binder's argumentSlot/slotExpression body. The existing Limit restrictions require one target on Thing; native body lowering follows the slots and does not prove that their body equals the limitOf target."
+msgstr "Ce lien descriptif d’expression se distingue du corps de la liaison porté par argumentSlot/slotExpression. Les restrictions existantes de Limit exigent une cible sur Thing ; l’abaissement natif du corps suit les emplacements et ne prouve pas que ce corps égale la cible de limitOf."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing sincLimit names sincExpr through limitOf and also through its index-zero body slot. sincExpr is a SymbolReference resolving to sincSymbol; the shared target is explicit source data, not an inferred equivalence rule."
+msgstr "L’exemple existant sincLimit nomme sincExpr par limitOf et par son emplacement de corps d’indice zéro. sincExpr est une SymbolReference résolue vers sincSymbol ; la cible partagée est une donnée source explicite, non une règle d’équivalence inférée."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the source mathematical expression whose limit is being described, retaining its actual concrete expression form."
+msgstr "À utiliser pour nommer l’expression mathématique source dont la limite est décrite, en conservant sa forme concrète réelle."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at the approach point, result value or bound declaration. An abstract MathematicalExpression label or a function resource alone does not supply the binder's concrete body AST."
+msgstr "Éviter de le faire pointer vers le point d’approche, la valeur du résultat ou la déclaration liée. Une étiquette abstraite MathematicalExpression ou une ressource de fonction seule ne fournit pas l’AST concret du corps de la liaison."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitOf on the Limit to the supplied expression under its existing minimum, maximum and closure. Preserve its body representation through indexed slots separately and keep shared targets explicit when the source supplies them."
+msgstr "Définir limitOf sur la Limit vers l’expression fournie selon ses minimum, maximum et clôture existants. Conserver séparément la représentation du corps par des emplacements indexés et rendre explicites les cibles partagées lorsque la source les fournit."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit point"
+msgstr "point limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to the point its variable approaches — a math:Number, math:PositiveInfinity, or a point of a space. Domain math:Limit, range a math:Number or point (stated in prose). Every limit names exactly one; a limit without a point is ill-formed (math:UnderspecifiedLimit)."
+msgstr "Relie une math:Limit au point dont sa variable s’approche : un math:Number, math:PositiveInfinity ou un point d’un espace. Domaine math:Limit, portée un math:Number ou un point (énoncés en prose). Chaque limite en nomme exactement un ; une limite sans point est mal formée (math:UnderspecifiedLimit)."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The approach point a plays a different role from the bound variable x and the limit's resulting value. The approach point and result need not have unequal values or different RDF resources. Existing Limit checks require one target on Thing; they do not numerically decode the point or establish the function's limit there."
+msgstr "Le point d’approche a joue un rôle différent de celui de la variable liée x et de la valeur résultante de la limite. Le point d’approche et le résultat peuvent avoir des valeurs égales ou être représentés par la même ressource RDF. Les contrôles existants de Limit exigent une cible sur Thing ; ils ne décodent pas numériquement le point et n’établissent pas la limite de la fonction en ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-framed.ttl, zeroPoint is the limitPoint and limitVarDecl is the bound declaration. The point is typed MathematicalObject; its name does not itself encode or verify the numeric value zero."
+msgstr "Dans limit-framed.ttl, zeroPoint est le limitPoint et limitVarDecl la déclaration liée. Le point est typé MathematicalObject ; son nom n’encode ni ne vérifie à lui seul la valeur numérique zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied point approached by the limit variable, preserving its actual number or space-point interpretation and source evidence."
+msgstr "À utiliser pour le point fourni dont s’approche la variable de limite, en conservant son interprétation réelle de nombre ou de point d’espace et les éléments probants sources."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an output value for the source's approach point without evidence, replacing the point's role with a bound declaration, or assuming a resource name establishes numeric coordinates. Legitimate equality between the approach point's value and the result value is allowed."
+msgstr "Éviter de substituer une valeur de sortie au point d’approche source sans éléments probants, de remplacer le rôle du point par une déclaration liée ou de supposer qu’un nom de ressource établit des coordonnées numériques. Une égalité légitime entre la valeur du point d’approche et celle du résultat est permise."
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the source point through limitPoint under the existing Limit restrictions and closure. Retain any number-system or geometric context on its own surfaces, while keeping the body, bound declaration, mode and result separately linked."
+msgstr "Nommer le point source par limitPoint selon les restrictions et la clôture existantes de Limit. Conserver tout contexte de système numérique ou de géométrie sur ses propres surfaces, en gardant des liens distincts pour le corps, la déclaration liée, le mode et le résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit mode"
+msgstr "mode de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit does not select a single approach side, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."
+msgstr "Relie une math:Limit à son math:LimitMode : la direction d’approche (par la gauche, par la droite ou bilatérale). Domaine math:Limit, portée math:LimitMode (énoncés en prose). Facultatif : une limite bilatérale ne sélectionne pas un seul côté d’approche ; une limite peut donc omettre le mode. Lorsqu’une limite unilatérale est visée, le côté est déclaré, jamais supposé."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional direction link does not encode a result outcome or invoke a numerical evaluator. The current Limit restrictions do not add a limitMode cardinality or a sealed marker list; omitted mode does not cause the inspected native binder reader to insert a default edge."
+msgstr "Ce lien facultatif de direction n’encode pas l’issue d’un résultat et n’invoque pas d’évaluateur numérique. Les restrictions actuelles de Limit n’ajoutent ni cardinalité sur limitMode ni liste fermée de marqueurs ; l’omission du mode ne fait pas insérer d’arête par défaut par le lecteur natif de liaison inspecté."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "lorentzFactorLimit supplies limitMode limitFromLeft, while properTimeRateLimit supplies limitTwoSided. Their separately recorded result outcomes do not determine those approach modes."
+msgstr "lorentzFactorLimit fournit limitMode limitFromLeft, tandis que properTimeRateLimit fournit limitTwoSided. Leurs issues de résultat consignées séparément ne déterminent pas ces modes d’approche."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit approach-side or two-sided declaration supplied for a source limit expression."
+msgstr "À utiliser pour conserver une déclaration explicite de côté d’approche ou d’approche bilatérale fournie pour une expression de limite source."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the mode from the sign of an output pole, treating omission as a newly asserted two-sided triple, or claiming that recording a marker verifies the corresponding one-sided limit."
+msgstr "Éviter de déduire le mode du signe d’un pôle de sortie, de traiter l’omission comme un nouveau triplet bilatéral affirmé ou de prétendre que l’enregistrement d’un marqueur vérifie la limite unilatérale correspondante."
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitMode to the source's approach marker when supplied, preserving one-sided intent explicitly. If omitted, retain that absence and the documented two-sided convention without manufacturing data or convergence evidence."
+msgstr "Définir limitMode vers le marqueur d’approche fourni par la source, en préservant explicitement l’intention unilatérale. S’il est omis, conserver cette absence et la convention bilatérale documentée sans fabriquer de données ni d’éléments probants de convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Limit"
+msgstr "Limite sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Limit does not name the expression whose limit is taken (math:limitOf) and its limit point (math:limitPoint). A limit that does not say of what and at which point is ill-formed; its direction/mode is optional."
+msgstr "L’échec levé lorsqu’une math:Limit ne nomme pas l’expression dont on prend la limite (math:limitOf) et son point limite (math:limitPoint). Une limite qui ne dit pas de quoi ni en quel point est mal formée ; sa direction ou son mode est facultatif."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This owns the existing Limit role-frame restrictions, including required expression and point. Inherited binder defects and slot or variable-scope failures have distinct owners; an optional absent mode or absent LimitResult is not the same missing-role condition."
+msgstr "Cet échec relève des restrictions existantes du cadre de rôles de Limit, notamment l’expression et le point requis. Les défauts de liaison héritée et les échecs d’emplacement ou de portée des variables ont des responsables distincts ; un mode ou un LimitResult facultatif absent n’est pas le même cas de rôle manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-missing-point.ttl, pointlessLimit omits limitPoint and also supplies no bound declaration or body. Its ExampleConformance record pins the minimum-count component and source shape, explicitly without claiming a sole failure class."
+msgstr "Dans limit-missing-point.ttl, pointlessLimit omet limitPoint et ne fournit pas non plus de déclaration liée ni de corps. Son enregistrement ExampleConformance fixe le composant de cardinalité minimale et la forme source, explicitement sans prétendre à une seule classe d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings associated with the existing Limit restrictions, retaining which missing or conflicting frame edge was actually reported."
+msgstr "À utiliser pour les constats associés aux restrictions existantes de Limit, en conservant l’arête de cadre absente ou conflictuelle effectivement signalée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a generic no-answer or no-convergence marker, assuming a missing point is the only defect in an incomplete binder, or inventing an approach point to silence a report."
+msgstr "Éviter d’en faire un marqueur générique d’absence de réponse ou de convergence, de supposer qu’un point absent est le seul défaut d’une liaison incomplète ou d’inventer un point d’approche pour faire taire un rapport."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report against the existing Limit restrictions and closures, then repair the source limitOf or limitPoint declaration as appropriate. Preserve separately reported binder and AST defects; generated validation is not a new hand-authored shape or a numerical limit solver."
+msgstr "Examiner le rapport de validation sélectionné selon les restrictions et clôtures existantes de Limit, puis corriger la déclaration source limitOf ou limitPoint selon le cas. Conserver les défauts de liaison et d’AST signalés séparément ; la validation générée n’est ni une nouvelle forme rédigée à la main ni un solveur numérique de limites."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "from the left (x → a⁻)"
+msgstr "par la gauche (x → a⁻)"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-sided limit from below: x approaches a through values less than a."
+msgstr "La limite unilatérale par valeurs inférieures : x approche a par des valeurs inférieures à a."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Left describes the approach variable's ordered side near a, not the sign of the function or its result. The marker retains a source assertion; it does not calculate that one-sided limit or show that the right-hand limit agrees."
+msgstr "La gauche décrit le côté ordonné de la variable d’approche près de a, non le signe de la fonction ou de son résultat. Le marqueur conserve une assertion source ; il ne calcule pas cette limite unilatérale et ne montre pas que la limite par la droite est égale."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing lorentzFactorLimit uses limitFromLeft for approach to lightSpeed, while its separate result records the positive pole. Approach from below and a positive output are different claims."
+msgstr "L’exemple existant lorentzFactorLimit utilise limitFromLeft pour l’approche de lightSpeed, tandis que son résultat distinct consigne le pôle positif. L’approche par valeurs inférieures et une sortie positive sont des affirmations différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly takes a limit through values below the approach point in the relevant ordered domain."
+msgstr "À utiliser lorsqu’une source prend explicitement une limite par des valeurs inférieures au point d’approche dans le domaine ordonné concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing it because f(x) is negative or the result is NegativeInfinity. It does not mean the approach point itself is negative, and it is not a general direction for an unordered space."
+msgstr "Éviter de le choisir parce que f(x) est négatif ou que le résultat est NegativeInfinity. Il ne signifie pas que le point d’approche lui-même est négatif et n’est pas une direction générale pour un espace non ordonné."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name limitFromLeft through limitMode and retain the actual limitPoint and expression. Keep any supplied result or proof separate; do not infer left-hand convergence from the marker."
+msgstr "Nommer limitFromLeft par limitMode et conserver le point limitPoint et l’expression réels. Garder séparément tout résultat ou toute preuve fournis ; ne pas déduire la convergence par la gauche du marqueur."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "from the right (x → a⁺)"
+msgstr "par la droite (x → a⁺)"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-sided limit from above: x approaches a through values greater than a."
+msgstr "La limite unilatérale par valeurs supérieures : x approche a par des valeurs supérieures à a."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Right selects the approach variable's side x > a in an ordered setting, independently of the function's output sign. It records a mathematical approach condition rather than an executable sampling instruction or computed result."
+msgstr "La droite sélectionne le côté x > a de la variable d’approche dans un cadre ordonné, indépendamment du signe de sortie de la fonction. Elle consigne une condition mathématique d’approche plutôt qu’une instruction d’échantillonnage exécutable ou un résultat calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a source expression lim as x approaches 0 from above, limitFromRight records x > 0 near the point. It does not state whether the function values are positive, negative, finite or divergent."
+msgstr "Pour une expression source de limite lorsque x approche 0 par valeurs supérieures, limitFromRight consigne x > 0 près du point. Il ne dit pas si les valeurs de la fonction sont positives, négatives, finies ou divergentes."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied approach through values above the point, including cases where the other side is undefined or intentionally excluded by the source."
+msgstr "À utiliser pour une approche explicitement fournie par valeurs supérieures au point, y compris lorsque l’autre côté n’est pas défini ou est volontairement exclu par la source."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for positive outputs, drawing orientation or time progression without the source's ordered-domain meaning. A right-hand claim does not assert the left-hand or two-sided limit."
+msgstr "Éviter de l’utiliser pour des sorties positives, une orientation de dessin ou une progression temporelle sans le sens de domaine ordonné fourni par la source. Une affirmation par la droite n’affirme ni la limite par la gauche ni la limite bilatérale."
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitMode to limitFromRight where the source specifies that side. Preserve the expression, point and binder independently, and retain any convergence or result evidence without synthesizing the opposite side."
+msgstr "Définir limitMode vers limitFromRight lorsque la source précise ce côté. Conserver indépendamment l’expression, le point et la liaison, ainsi que tout élément probant de convergence ou de résultat, sans synthétiser l’autre côté."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "two-sided (x → a)"
+msgstr "bilatérale (x → a)"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two-sided limit: x approaches a from both sides, requiring the left and right limits to agree. The default when a math:Limit omits its mode."
+msgstr "La limite bilatérale : x approche a des deux côtés, en exigeant l’accord des limites par la gauche et par la droite. La lecture par défaut lorsqu’une math:Limit omet son mode."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records two-sided intent and the mathematical agreement requirement. The default in its definition is an interpretation convention, not a materialized limitMode edge. Neither an explicit marker nor omission proves that both one-sided limits exist and agree."
+msgstr "Ce marqueur consigne l’intention bilatérale et l’exigence mathématique d’accord. Le défaut mentionné dans sa définition est une convention d’interprétation, non une arête limitMode matérialisée. Ni un marqueur explicite ni l’omission ne prouvent que les deux limites unilatérales existent et sont égales."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#example"
+msgid "sincLimit explicitly supplies limitTwoSided in limit-framed.ttl. The record supplies the direction marker and a named expression; it does not calculate or prove the equality of the expression's one-sided limits."
+msgstr "sincLimit fournit explicitement limitTwoSided dans limit-framed.ttl. L’enregistrement fournit le marqueur de direction et une expression nommée ; il ne calcule ni ne prouve l’égalité des limites unilatérales de cette expression."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly asserts a two-sided approach or when documenting its stated two-sided interpretation, retaining whether the marker was actually supplied."
+msgstr "À utiliser lorsque la source affirme explicitement une approche bilatérale ou pour documenter son interprétation bilatérale déclarée, en conservant le fait que le marqueur a été effectivement fourni ou non."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a source's one-sided intent, treating two different side results as agreement, or inserting this marker solely because the native reader found no mode."
+msgstr "Éviter de remplacer l’intention unilatérale de la source, de traiter deux résultats latéraux différents comme un accord ou d’insérer ce marqueur uniquement parce que le lecteur natif n’a trouvé aucun mode."
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain an explicit limitMode limitTwoSided edge when supplied. Preserve omitted mode as omitted and keep the source's evidence for side agreement or a supplied LimitResult separate from the expression frame."
+msgstr "Conserver une arête explicite limitMode limitTwoSided lorsqu’elle est fournie. Conserver l’omission du mode et garder les éléments probants sources d’accord latéral ou un LimitResult fourni séparés du cadre de l’expression."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lim (limit binder)"
+msgstr "lim (opérateur de liaison de limite)"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath limit1 limit symbol."
+msgstr "L’opérateur de liaison de limite lim : le math:operator qu’applique une expression de liaison math:Limit, liant sur le corps la variable qui approche le point limite. Ancré au symbole limit du dictionnaire OpenMath limit1."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an Operation individual, not a BindingExpression instance or an evaluator. The generic binder lowerer retains the supplied operator IRI; it does not pin every Limit to this identity. The selected exact scalar profile supports four arithmetic operations, not numerical limit evaluation."
+msgstr "Il s’agit d’un individu Operation, non d’une instance de BindingExpression ni d’un évaluateur. L’abaisseur générique de liaison conserve l’IRI d’opérateur fournie ; il ne fixe pas chaque Limit à cette identité. Le profil scalaire exact sélectionné prend en charge quatre opérations arithmétiques, non l’évaluation numérique de limites."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing sincLimit uses operator limitBinder together with boundVariable limitVarDecl and an indexed body. With one body slot the native lowerer keeps that body bare; multiple slots become an application of the supplied binder operator inside the binder."
+msgstr "L’exemple existant sincLimit utilise operator limitBinder avec boundVariable limitVarDecl et un corps indexé. Avec un seul emplacement de corps, l’abaisseur natif garde ce corps sans enveloppe ; plusieurs emplacements deviennent une application de l’opérateur de liaison fourni à l’intérieur de la liaison."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the operator identity of a source limit binder, preserving the distinct expression node, declaration identity and body structure."
+msgstr "À utiliser comme identité d’opérateur d’une liaison de limite source, en conservant le nœud d’expression distinct, l’identité de déclaration et la structure du corps."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the operator IRI as the limit expression itself, requiring exactly one body slot, or assuming limitOf alone establishes lexical scope. Labels and bindsOccurrence metadata do not replace explicit declaration links and AST nesting."
+msgstr "Éviter de traiter l’IRI d’opérateur comme l’expression de limite elle-même, d’exiger exactement un emplacement de corps ou de supposer que limitOf seul établit la portée lexicale. Les étiquettes et les métadonnées bindsOccurrence ne remplacent pas les liens explicites de déclaration et l’imbrication de l’AST."
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."
+msgstr "Sur une BindingExpression concrète, fournir un opérateur, une déclaration boundVariable et des emplacements de corps non vides, contigus et indexés à partir de zéro ; le lecteur analyse les indices comme des entiers lexicaux i128. Résoudre les occurrences du corps vers les déclarations. La lecture native de la sorte liée utilise le domain fourni sur la déclaration, ou la sorte des individus non typés s’il est absent ; variableDomain fournit séparément le contexte des FreeVariableDeclaration. L’analyse des indices ne certifie pas une validation complète des types de données RDF."

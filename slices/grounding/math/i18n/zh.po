@@ -12158,3 +12158,285 @@ msgstr "不要对合法地不携带任何值的 math:divergesWithoutLimit 结果
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Use the existing LimitResult outcome restrictions and math:LimitResultOutcomeValueConstraint, which name this failure class through gmeow:enforcesFailureClass; inspect the selected validation or verification report."
 msgstr "使用 LimitResult 现有的结局限制以及 math:LimitResultOutcomeValueConstraint；它们通过 gmeow:enforcesFailureClass 指定此失败类。检查所选验证或核验报告。"
+
+# --- Limit expression, binder and direction guidance ----------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Limit"
+msgstr "极限"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit does not select a single approach side."
+msgstr "作为独立绑定表达式的极限 lim_{x→a} f(x)：它应用 math:limitBinder（math:operator），通过 math:limitOf 指定所取极限的表达式，通过 math:limitPoint 指定趋近点 a，并在需要时通过 math:limitMode 指定趋近方向或模式（左侧、右侧或双侧）。缺少表达式或趋近点的极限不符合规范（math:UnderspecifiedLimit）；模式可省略，因为双侧极限不选择单一的趋近侧。"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The limit frame records expression, point and any supplied mode; it does not calculate a limit. Native AST lowering needs an explicit concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body. Limit subclass entailment in another caller is distinct from that raw-reader requirement."
+msgstr "极限框架记录表达式、趋近点及来源提供的模式，不计算极限。原生 AST 降低需要显式的具体 BindingExpression 形式、一个算子、一个绑定声明及非空的带索引函数体。其他调用路径中的 Limit 子类推理，与该原始读取器要求不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-framed.ttl, sincLimit names limitBinder, sincExpr, zeroPoint, limitTwoSided, limitVarDecl and an index-zero body slot. Its source type is Limit only; the listed frame does not by itself certify direct concrete-AST admission or a computed sinc limit."
+msgstr "在 limit-framed.ttl 中，sincLimit 指定 limitBinder、sincExpr、zeroPoint、limitTwoSided、limitVarDecl 及索引为零的函数体槽位。其来源类型仅为 Limit；所列框架本身不认证具体 AST 的直接接纳，也不表明已计算 sinc 极限。"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an actual source limit expression with its approach point, direction and binding structure, separately from any supplied LimitResult."
+msgstr "用于保留来源中的实际极限表达式及其趋近点、方向和绑定结构，并与所提供的 LimitResult 分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a limit label, a result value or the three descriptive links as a complete executable binder. A complete frame proves neither convergence nor agreement with a supplied result."
+msgstr "不要把极限标签、结果值或三个描述性链接当作完整的可执行绑定结构。完整框架既不证明收敛，也不证明与来源结果一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/Limit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply limitOf and limitPoint under the existing Limit restrictions and closures. Retain any limitMode and inherited binder structure; for direct AST consumption supply the concrete BindingExpression type and indexed body, preserving explicit variable identities rather than relying on displayed glyphs."
+msgstr "按现有 Limit 限制及闭合提供 limitOf 和 limitPoint。保留 limitMode 及继承的绑定结构；若要直接消费 AST，提供具体 BindingExpression 类型及带索引函数体，并保留显式变量身份，不依赖显示字形。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Limit Mode"
+msgstr "极限模式"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The direction in which a math:Limit approaches its limit point: supplied modes include math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it does not select a single approach side."
+msgstr "math:Limit 趋近其趋近点的方向：提供的模式包括 math:limitFromLeft（x → a⁻）、math:limitFromRight（x → a⁺）和 math:limitTwoSided（x → a）。单侧极限声明其侧别；双侧极限可声明 math:limitTwoSided 或省略模式，因为它不选择单一的趋近侧。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an open class with three supplied approach markers, not a sealed enumeration. The two-sided reading of omitted mode is a source convention; it does not insert a limitMode triple or establish equality of one-sided limits. No numerical direction checker is supplied by this class."
+msgstr "这是具有三个现成趋近标记的开放类，不是封闭枚举。省略模式时按双侧理解是来源约定，不会插入 limitMode 三元组，也不确立两个单侧极限相等。此类不提供数值方向检查器。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "limitFromLeft and limitFromRight distinguish x < a from x > a near the approach point; limitTwoSided records the requirement to approach from both sides. These markers describe the input approach, not the sign of f(x)."
+msgstr "limitFromLeft 和 limitFromRight 区分趋近点附近的 x < a 与 x > a；limitTwoSided 记录从两侧趋近的要求。这些标记描述输入的趋近方式，不表示 f(x) 的符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's approach-direction classification in an ordered setting, keeping it separate from convergence mode and result outcome."
+msgstr "用于保留有序情境中来源的趋近方向分类，并与收敛模式和结果类别区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting left/right as negative/positive output, inventing a closed set of all possible modes, or assuming an omitted mode was materialized by a runtime."
+msgstr "不要把左侧或右侧解释为负输出或正输出，不要虚构包含所有可能模式的封闭集合，也不要假定运行时已物化被省略的模式。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied mode through limitMode, using the existing left, right or two-sided marker where it matches the source. Preserve an omitted mode as omitted; retain evidence for one-sided agreement separately from the marker."
+msgstr "通过 limitMode 链接来源提供的模式，在符合来源时使用现有左侧、右侧或双侧标记。保留来源的模式省略状态；将单侧极限一致性的证据与标记分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit of"
+msgstr "取极限的表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to the math:MathematicalExpression whose limit is taken. Domain math:Limit, range math:MathematicalExpression (stated in prose). Every limit names exactly one; a limit without it is ill-formed (math:UnderspecifiedLimit)."
+msgstr "将 math:Limit 关联到所取极限的 math:MathematicalExpression。定义域为 math:Limit，值域为 math:MathematicalExpression（以文字说明）。每个极限恰好指定一个；缺少此链接的极限不符合规范（math:UnderspecifiedLimit）。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptive expression link is distinct from the binder's argumentSlot/slotExpression body. The existing Limit restrictions require one target on Thing; native body lowering follows the slots and does not prove that their body equals the limitOf target."
+msgstr "此描述性表达式链接不同于绑定结构的 argumentSlot/slotExpression 函数体。现有 Limit 限制要求一个 Thing 目标；原生函数体降低沿槽位进行，并不证明函数体等于 limitOf 目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing sincLimit names sincExpr through limitOf and also through its index-zero body slot. sincExpr is a SymbolReference resolving to sincSymbol; the shared target is explicit source data, not an inferred equivalence rule."
+msgstr "现有 sincLimit 通过 limitOf 及索引为零的函数体槽位指定 sincExpr。sincExpr 是解析到 sincSymbol 的 SymbolReference；两者共用目标是显式来源数据，不是推断出的等价规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the source mathematical expression whose limit is being described, retaining its actual concrete expression form."
+msgstr "用于指定正在描述其极限的来源数学表达式，并保留其实际具体表达式形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at the approach point, result value or bound declaration. An abstract MathematicalExpression label or a function resource alone does not supply the binder's concrete body AST."
+msgstr "不要令其指向趋近点、结果值或绑定声明。抽象 MathematicalExpression 标签或单独的函数资源，不能提供绑定结构的具体函数体 AST。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitOf on the Limit to the supplied expression under its existing minimum, maximum and closure. Preserve its body representation through indexed slots separately and keep shared targets explicit when the source supplies them."
+msgstr "按现有最小基数、最大基数及闭合，在 Limit 上以 limitOf 指定所提供的表达式。单独通过带索引槽位保留其函数体表示；来源提供共用目标时，应显式保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit point"
+msgstr "极限趋近点"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to the point its variable approaches — a math:Number, math:PositiveInfinity, or a point of a space. Domain math:Limit, range a math:Number or point (stated in prose). Every limit names exactly one; a limit without a point is ill-formed (math:UnderspecifiedLimit)."
+msgstr "将 math:Limit 关联到其变量所趋近的点，即 math:Number、math:PositiveInfinity 或某空间中的点。定义域为 math:Limit，值域为 math:Number 或点（以文字说明）。每个极限恰好指定一个；缺少趋近点的极限不符合规范（math:UnderspecifiedLimit）。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The approach point a plays a different role from the bound variable x and the limit's resulting value. The approach point and result need not have unequal values or different RDF resources. Existing Limit checks require one target on Thing; they do not numerically decode the point or establish the function's limit there."
+msgstr "趋近点 a 与绑定变量 x 及极限结果值承担不同角色。趋近点与结果可以具有相同的值，也可以使用同一 RDF 资源。现有 Limit 检查要求一个 Thing 目标；它们不对该点进行数值解码，也不确立函数在该点的极限。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-framed.ttl, zeroPoint is the limitPoint and limitVarDecl is the bound declaration. The point is typed MathematicalObject; its name does not itself encode or verify the numeric value zero."
+msgstr "在 limit-framed.ttl 中，zeroPoint 是 limitPoint，limitVarDecl 是绑定声明。该点的类型为 MathematicalObject；其名称本身不编码或验证数值零。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied point approached by the limit variable, preserving its actual number or space-point interpretation and source evidence."
+msgstr "用于来源提供的极限变量趋近点，并保留其实际数或空间点解释及来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an output value for the source's approach point without evidence, replacing the point's role with a bound declaration, or assuming a resource name establishes numeric coordinates. Legitimate equality between the approach point's value and the result value is allowed."
+msgstr "不要在缺少证据时以输出值替代来源趋近点，不要用绑定声明替代趋近点角色，也不要假定资源名称确立了数值坐标。趋近点的值与结果值可以合法相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the source point through limitPoint under the existing Limit restrictions and closure. Retain any number-system or geometric context on its own surfaces, while keeping the body, bound declaration, mode and result separately linked."
+msgstr "按现有 Limit 限制及闭合，通过 limitPoint 指定来源点。在各自表述面上保留数系或几何上下文，并为函数体、绑定声明、模式和结果保留独立链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit mode"
+msgstr "极限模式"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit does not select a single approach side, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."
+msgstr "将 math:Limit 关联到其 math:LimitMode，即趋近方向（左侧、右侧或双侧）。定义域为 math:Limit，值域为 math:LimitMode（以文字说明）。此属性可省略：双侧极限不选择单一的趋近侧，因此极限可省略模式。若所指为单侧极限，则声明侧别，而不是假定侧别。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This optional direction link does not encode a result outcome or invoke a numerical evaluator. The current Limit restrictions do not add a limitMode cardinality or a sealed marker list; omitted mode does not cause the inspected native binder reader to insert a default edge."
+msgstr "此可省略的方向链接不编码结果类别，也不调用数值求值器。当前 Limit 限制未增加 limitMode 基数或封闭标记列表；省略模式不会使已检查的原生绑定读取器插入默认边。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "lorentzFactorLimit supplies limitMode limitFromLeft, while properTimeRateLimit supplies limitTwoSided. Their separately recorded result outcomes do not determine those approach modes."
+msgstr "lorentzFactorLimit 提供 limitMode limitFromLeft，而 properTimeRateLimit 提供 limitTwoSided。二者单独记录的结果类别并不决定这些趋近模式。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit approach-side or two-sided declaration supplied for a source limit expression."
+msgstr "用于保留来源极限表达式中明确提供的趋近侧或双侧声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the mode from the sign of an output pole, treating omission as a newly asserted two-sided triple, or claiming that recording a marker verifies the corresponding one-sided limit."
+msgstr "不要根据输出极点的符号推断模式，不要把省略当作新断言的双侧三元组，也不要声称记录标记就验证了相应的单侧极限。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitMode to the source's approach marker when supplied, preserving one-sided intent explicitly. If omitted, retain that absence and the documented two-sided convention without manufacturing data or convergence evidence."
+msgstr "来源提供趋近标记时，用 limitMode 指定它，并显式保留单侧意图。若来源省略模式，则保留该缺失状态及已记录的双侧约定，不制造数据或收敛证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Limit"
+msgstr "极限说明不完整"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Limit does not name the expression whose limit is taken (math:limitOf) and its limit point (math:limitPoint). A limit that does not say of what and at which point is ill-formed; its direction/mode is optional."
+msgstr "当 math:Limit 未指定所取极限的表达式（math:limitOf）及其趋近点（math:limitPoint）时引发的失败。未说明对什么表达式、在何点取极限的声明不符合规范；其方向或模式可省略。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This owns the existing Limit role-frame restrictions, including required expression and point. Inherited binder defects and slot or variable-scope failures have distinct owners; an optional absent mode or absent LimitResult is not the same missing-role condition."
+msgstr "此失败归属于 Limit 现有的角色框架限制，包括必需的表达式和趋近点。继承的绑定缺陷、槽位或变量作用域失败具有不同的责任归属；可省略的模式或 LimitResult 缺失，不是同一种角色缺失条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|http://www.w3.org/2004/02/skos/core#example"
+msgid "In limit-missing-point.ttl, pointlessLimit omits limitPoint and also supplies no bound declaration or body. Its ExampleConformance record pins the minimum-count component and source shape, explicitly without claiming a sole failure class."
+msgstr "在 limit-missing-point.ttl 中，pointlessLimit 省略 limitPoint，也未提供绑定声明或函数体。其 ExampleConformance 记录固定最小计数组件及来源形状，明确不声称只有一个失败类。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings associated with the existing Limit restrictions, retaining which missing or conflicting frame edge was actually reported."
+msgstr "用于与现有 Limit 限制关联的诊断，并保留实际报告的缺失或冲突框架边。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a generic no-answer or no-convergence marker, assuming a missing point is the only defect in an incomplete binder, or inventing an approach point to silence a report."
+msgstr "不要将其用作无答案或不收敛的通用标记，不要假定绑定结构不完整时缺少趋近点是唯一缺陷，也不要编造趋近点来消除报告。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report against the existing Limit restrictions and closures, then repair the source limitOf or limitPoint declaration as appropriate. Preserve separately reported binder and AST defects; generated validation is not a new hand-authored shape or a numerical limit solver."
+msgstr "按现有 Limit 限制及闭合检查所选验证报告，再按需修正来源 limitOf 或 limitPoint 声明。保留另行报告的绑定及 AST 缺陷；生成的验证不是新的手写形状，也不是数值极限求解器。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "from the left (x → a⁻)"
+msgstr "从左侧趋近（x → a⁻）"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-sided limit from below: x approaches a through values less than a."
+msgstr "从下方趋近的单侧极限：x 通过小于 a 的值趋近 a。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Left describes the approach variable's ordered side near a, not the sign of the function or its result. The marker retains a source assertion; it does not calculate that one-sided limit or show that the right-hand limit agrees."
+msgstr "左侧描述趋近变量在 a 附近的有序侧别，不表示函数或其结果的符号。该标记保留来源断言，不计算该单侧极限，也不表明右极限与之相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing lorentzFactorLimit uses limitFromLeft for approach to lightSpeed, while its separate result records the positive pole. Approach from below and a positive output are different claims."
+msgstr "现有 lorentzFactorLimit 使用 limitFromLeft 表示趋近 lightSpeed，而其独立结果记录正极。从下方趋近与输出为正是不同断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly takes a limit through values below the approach point in the relevant ordered domain."
+msgstr "用于来源明确在相关有序定义域中通过低于趋近点的值取极限的情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing it because f(x) is negative or the result is NegativeInfinity. It does not mean the approach point itself is negative, and it is not a general direction for an unordered space."
+msgstr "不要因为 f(x) 为负或结果为 NegativeInfinity 而选择它。它不表示趋近点本身为负，也不是无序空间中的通用方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromLeft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name limitFromLeft through limitMode and retain the actual limitPoint and expression. Keep any supplied result or proof separate; do not infer left-hand convergence from the marker."
+msgstr "通过 limitMode 指定 limitFromLeft，并保留实际 limitPoint 和表达式。单独保留来源结果或证明；不要由标记推断左侧收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "from the right (x → a⁺)"
+msgstr "从右侧趋近（x → a⁺）"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-sided limit from above: x approaches a through values greater than a."
+msgstr "从上方趋近的单侧极限：x 通过大于 a 的值趋近 a。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Right selects the approach variable's side x > a in an ordered setting, independently of the function's output sign. It records a mathematical approach condition rather than an executable sampling instruction or computed result."
+msgstr "右侧在有序情境中选择趋近变量的 x > a 一侧，与函数输出符号无关。它记录数学趋近条件，不是可执行采样指令或已计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a source expression lim as x approaches 0 from above, limitFromRight records x > 0 near the point. It does not state whether the function values are positive, negative, finite or divergent."
+msgstr "对于来源中 x 从上方趋近 0 的极限表达式，limitFromRight 记录该点附近的 x > 0。它不说明函数值为正、为负、有限或发散。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied approach through values above the point, including cases where the other side is undefined or intentionally excluded by the source."
+msgstr "用于明确提供的从高于该点的值趋近的情况，包括另一侧未定义或被来源有意排除的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for positive outputs, drawing orientation or time progression without the source's ordered-domain meaning. A right-hand claim does not assert the left-hand or two-sided limit."
+msgstr "不要在缺少来源有序定义域含义时，将其用于正输出、图示朝向或时间推进。右极限断言不声明左极限或双侧极限。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitFromRight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set limitMode to limitFromRight where the source specifies that side. Preserve the expression, point and binder independently, and retain any convergence or result evidence without synthesizing the opposite side."
+msgstr "来源指定右侧时，将 limitMode 设为 limitFromRight。独立保留表达式、趋近点及绑定结构，保留收敛或结果证据，不合成另一侧的断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "two-sided (x → a)"
+msgstr "双侧趋近（x → a）"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two-sided limit: x approaches a from both sides, requiring the left and right limits to agree. The default when a math:Limit omits its mode."
+msgstr "双侧极限：x 从两侧趋近 a，要求左极限与右极限一致。math:Limit 省略模式时采用的默认解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records two-sided intent and the mathematical agreement requirement. The default in its definition is an interpretation convention, not a materialized limitMode edge. Neither an explicit marker nor omission proves that both one-sided limits exist and agree."
+msgstr "此标记记录双侧意图及数学上的一致性要求。定义中的默认含义是解释约定，不是已物化的 limitMode 边。显式标记或模式省略均不证明两个单侧极限存在且相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|http://www.w3.org/2004/02/skos/core#example"
+msgid "sincLimit explicitly supplies limitTwoSided in limit-framed.ttl. The record supplies the direction marker and a named expression; it does not calculate or prove the equality of the expression's one-sided limits."
+msgstr "limit-framed.ttl 中的 sincLimit 显式提供 limitTwoSided。该记录提供方向标记及具名表达式，不计算或证明该表达式的两个单侧极限相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly asserts a two-sided approach or when documenting its stated two-sided interpretation, retaining whether the marker was actually supplied."
+msgstr "用于来源明确断言双侧趋近，或记录其已说明的双侧解释，并保留来源是否实际提供了标记的信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a source's one-sided intent, treating two different side results as agreement, or inserting this marker solely because the native reader found no mode."
+msgstr "不要替换来源的单侧意图，不要把不同的两侧结果当作一致，也不要仅因原生读取器未找到模式就插入此标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitTwoSided|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain an explicit limitMode limitTwoSided edge when supplied. Preserve omitted mode as omitted and keep the source's evidence for side agreement or a supplied LimitResult separate from the expression frame."
+msgstr "来源提供显式 limitMode limitTwoSided 边时予以保留。保留模式省略状态，并将来源的两侧一致性证据或所提供的 LimitResult 与表达式框架分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lim (limit binder)"
+msgstr "lim（极限绑定算子）"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The limit binder lim: the math:operator a math:Limit binding expression applies, binding the variable that approaches the limit point over the body. Anchored to the OpenMath limit1 limit symbol."
+msgstr "极限绑定算子 lim：math:Limit 绑定表达式所应用的 math:operator，在函数体上绑定趋近极限点的变量。锚定于 OpenMath limit1 的 limit 符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an Operation individual, not a BindingExpression instance or an evaluator. The generic binder lowerer retains the supplied operator IRI; it does not pin every Limit to this identity. The selected exact scalar profile supports four arithmetic operations, not numerical limit evaluation."
+msgstr "这是 Operation 个体，不是 BindingExpression 实例或求值器。通用绑定降低器保留来源提供的算子 IRI，不会把每个 Limit 固定为此身份。所选精确标量配置支持四种算术运算，不支持数值极限求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing sincLimit uses operator limitBinder together with boundVariable limitVarDecl and an indexed body. With one body slot the native lowerer keeps that body bare; multiple slots become an application of the supplied binder operator inside the binder."
+msgstr "现有 sincLimit 将 operator limitBinder 与 boundVariable limitVarDecl 及带索引函数体共同使用。只有一个函数体槽位时，原生降低器直接保留该函数体；多个槽位则在绑定结构内部组成所提供绑定算子的应用。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the operator identity of a source limit binder, preserving the distinct expression node, declaration identity and body structure."
+msgstr "用作来源极限绑定结构的算子身份，并保留独立的表达式节点、声明身份及函数体结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the operator IRI as the limit expression itself, requiring exactly one body slot, or assuming limitOf alone establishes lexical scope. Labels and bindsOccurrence metadata do not replace explicit declaration links and AST nesting."
+msgstr "不要把算子 IRI 当作极限表达式本身，不要要求恰好一个函数体槽位，也不要假定仅有 limitOf 就能确立词法作用域。标签及 bindsOccurrence 元数据不能替代显式声明链接和 AST 嵌套。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."
+msgstr "在具体 BindingExpression 上提供一个算子、一个 boundVariable 声明及非空、连续、从零开始的函数体槽位；读取器按 i128 词法整数解析槽位索引。将函数体中的出现位置解析到声明。原生绑定类型读取使用声明上提供的 domain；若未提供，则使用无类型个体的默认类型。variableDomain 单独提供 FreeVariableDeclaration 的上下文。索引解析不认证全面的 RDF 数据类型验证。"
