@@ -1103,7 +1103,11 @@ fn archive_shape_rows(bytes: &[u8]) -> gmeow_errors::Result<Vec<(&str, &[u8])>> 
     purrdf::ustar::archive_members(bytes)
         .map(|member| member.map(|member| (member.name, member.data)))
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|detail| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail }))
+        .map_err(|cause| {
+            gmeow_errors::Diag::of_kind(gmeow_gts_profile::error::NativeArchive {
+                cause: std::sync::Arc::new(cause),
+            })
+        })
 }
 
 /// Derive the selected shape surfaces from an already decoded archive, sharing

@@ -100,7 +100,11 @@ pub fn archive_member<'a>(
     let fail = |message: String| gmeow_errors::Diag::of_kind(crate::error::Archive { message });
     let mut selected = None;
     for member in purrdf::ustar::archive_members(bytes) {
-        let member = member.map_err(&fail)?;
+        let member = member.map_err(|cause| {
+            gmeow_errors::Diag::of_kind(crate::error::NativeArchive {
+                cause: Arc::new(cause),
+            })
+        })?;
         if member.name == member_path {
             if selected.is_some() {
                 return Err(fail(format!(
