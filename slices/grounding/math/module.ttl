@@ -4332,9 +4332,9 @@ math:LimitResult
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Limit Result"@x-gmeow-english ;
-    skos:definition "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."@x-gmeow-english ;
+    skos:definition "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for finite convergence or divergence to a pole, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Reach for it to record what a math:Limit evaluates to — its outcome and, for a finite limit, its value — as a structured object rather than a bare number."@x-gmeow-english ;
+    gmeow:useWhen "Reach for it to record what a math:Limit evaluates to — its outcome and, for finite convergence or divergence to a pole, its value — as a structured object rather than a bare number."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for the limit EXPRESSION lim_{x→a} f(x) (that is math:Limit, naming math:limitOf and math:limitPoint); the result is what the limit runs to, not the binding."@x-gmeow-english ;
     gmeow:howToUse "Attach it to its math:Limit through math:hasLimitResult, always name math:limitOutcome, and add math:limitResultValue only when the outcome is finite or pole-divergent."@x-gmeow-english ;
     skos:example "exf:res a math:LimitResult ; math:limitOutcome math:convergesFinitely ; math:limitResultValue 0 ."@x-gmeow-english .
@@ -4346,7 +4346,7 @@ math:LimitOutcome
     skos:definition "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the type of the four outcomes a limit runs to — finite convergence or one of the three modes of divergence."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not invent outcomes beyond the four members, and do not conflate math:divergesWithoutLimit (oscillation, no limit) with divergence to a pole (a definite point of ℝ̄)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute an arbitrary outcome marker without its own declared value contract, and do not conflate math:divergesWithoutLimit (oscillation, no limit) with divergence to a pole (a definite point of ℝ̄)."@x-gmeow-english ;
     gmeow:howToUse "Fill a math:limitOutcome slot with one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit; it is required on every math:LimitResult."@x-gmeow-english ;
     skos:example "exf:res math:limitOutcome math:divergesToPositiveInfinity ."@x-gmeow-english .
 
@@ -4531,7 +4531,7 @@ math:UnderspecifiedLimitResult
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the typed violation object when a math:LimitResult names no math:limitOutcome, or carries a math:limitResultValue that contradicts its declared outcome."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a math:divergesWithoutLimit result that legitimately carries NO value — absence of a value there is correct, not a violation."@x-gmeow-english ;
-    gmeow:howToUse "Point the shape enforcing outcome presence and outcome/value agreement on math:LimitResult at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    gmeow:howToUse "Use the existing LimitResult outcome restrictions and math:LimitResultOutcomeValueConstraint, which name this failure class through gmeow:enforcesFailureClass; inspect the selected validation or verification report."@x-gmeow-english ;
     skos:example "exf:res a math:LimitResult ; math:limitResultValue 3 . # no math:limitOutcome -> math:UnderspecifiedLimitResult"@x-gmeow-english .
 
 # --- Calculus properties ---------------------------------------------------- #
@@ -4610,11 +4610,11 @@ math:hasLimitResult
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has limit result"@x-gmeow-english ;
-    skos:definition "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for finite convergence or divergence to a pole, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to attach the evaluated result to a math:Limit — what the limit runs to, once you want to state it."@x-gmeow-english ;
     gmeow:avoidWhen "Do not treat it as required — a math:Limit may name only its expression, point, and mode; and do not point it at a bare literal, the range is a math:LimitResult so the outcome stays explicit."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Limit with range a math:LimitResult carrying math:limitOutcome and, where finite, math:limitResultValue."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:Limit with range a math:LimitResult carrying math:limitOutcome and math:limitResultValue for finite convergence or divergence to a pole."@x-gmeow-english ;
     skos:example "exf:lim math:hasLimitResult exf:limRes ."@x-gmeow-english .
 
 math:limitOutcome
@@ -4632,7 +4632,7 @@ math:limitResultValue
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "limit result value"@x-gmeow-english ;
-    skos:definition "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
+    skos:definition "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to carry the point a convergent or pole-divergent limit evaluates to — a finite literal or an extended-real pole."@x-gmeow-english ;
     gmeow:avoidWhen "Do not attach it to a math:divergesWithoutLimit result (there is no point of ℝ̄ to name), and do not carry a value that disagrees with the declared math:limitOutcome."@x-gmeow-english ;
@@ -16089,7 +16089,7 @@ math:erPole a logic:Formula ; logic:relation logic:termIn ;
                    [ logic:termIndex 2 ; logic:termIri math:NegativeInfinity ] .
 
 # A math:LimitResult's math:limitResultValue must AGREE with its math:limitOutcome:
-# a math:convergesFinitely result carries a finite (literal) value; a
+# a math:convergesFinitely result requires a finite numeric literal witness; a
 # math:divergesToPositiveInfinity result's value is the pole math:PositiveInfinity and a
 # math:divergesToNegativeInfinity result's value is math:NegativeInfinity; a
 # math:divergesWithoutLimit result carries NO value at all. A conjunction of four
@@ -16097,10 +16097,11 @@ math:erPole a logic:Formula ; logic:relation logic:termIn ;
 # sugar fits the literal-vs-pole-vs-absent case analysis. Each pole branch is an
 # existential (logic:exists) requiring the value to be present and equal to the pole
 # (the singleton logic:termIn membership committed by math:erPole above), the finite
-# branch requires the value to be a literal (logic:termIsLiteral),
+# branch requires a finite numeric literal witness (logic:termIsFiniteNumeric),
 # and the no-limit branch forbids any value (logic:not over an existential, as
-# math:cdNot). The max-one math:limitResultValue cardinality makes "the value is P"
-# and "some value is P" coincide, so the existential is exact.
+# math:cdNot). The existing value maximum is qualified on logic:Thing; the
+# finite and pole branches require matching existential witnesses, not a universal
+# per-value test.
 math:LimitResultOutcomeValueConstraint
     a logic:Constraint ;
     rdfs:label "Limit-result outcome/value agreement constraint"@x-gmeow-english ;
@@ -16119,7 +16120,7 @@ math:lrvGuard a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:LimitResult ] .
 math:lrvCases a logic:Formula ; logic:and math:lrvFinite , math:lrvPosInf , math:lrvNegInf , math:lrvNoLimit .
 
-# convergesFinitely ⟹ ∃ v ( limitResultValue(this, v) ∧ v is a literal )
+# convergesFinitely ⟹ ∃ v ( limitResultValue(this, v) ∧ v is a finite numeric literal )
 math:lrvFinite a logic:Formula ; logic:antecedent math:lrvFiniteGuard ; logic:consequent math:lrvFiniteExists .
 math:lrvFiniteGuard a logic:Formula ; logic:relation math:limitOutcome ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:convergesFinitely ] .
@@ -16129,7 +16130,7 @@ math:lrvFiniteExists a logic:Formula ;
 math:lrvFiniteBody a logic:Formula ; logic:and math:lrvFiniteVal , math:lrvFiniteLit .
 math:lrvFiniteVal a logic:Formula ; logic:relation math:limitResultValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vf" ] .
-math:lrvFiniteLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+math:lrvFiniteLit a logic:Formula ; logic:relation logic:termIsFiniteNumeric ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "vf" ] .
 
 # divergesToPositiveInfinity ⟹ ∃ v ( limitResultValue(this, v) ∧ v ∈ { math:PositiveInfinity } )
@@ -18385,3 +18386,49 @@ math:extendedRealValue
 
 math:MalformedExtendedReal
     skos:scopeNote "The existing ExtendedRealValueConstraint maps off-contract objects of extendedRealValue edges to this failure, without requiring a subject type. Text, arbitrary IRIs or blank nodes, NaN and floating infinities are not its finite-literal-or-named-poles representation. An absent edge is not tested by that guard, and the report need not mint a failure individual."@x-gmeow-english .
+
+math:LimitResult
+    skos:scopeNote "This records a supplied mathematical outcome, not the limit expression or a certificate that a runtime computed it. A Limit may leave its result unstated; once a result is supplied, its outcome and applicable value contract are explicit. Record validation alone proves neither convergence nor agreement with the underlying expression, approach point or mode."@x-gmeow-english .
+
+math:LimitOutcome
+    skos:scopeNote "This class is open, with four supplied outcome markers. Only those four supplied IRIs activate the existing outcome/value branches on a LimitResult. Adding another class member supplies no inferred case, value contract or runtime support; the practical use of the supplied markers does not seal the class."@x-gmeow-english .
+
+math:convergesFinitely
+    skos:scopeNote "This supplied marker selects the finite numeric witness case of the result contract. A finite value may be negative or zero; it is distinct from either named pole, floating infinity and NaN. Preserve the source literal's datatype and lexical identity without treating numeric value equality as RDF identity or the declaration as a convergence proof."@x-gmeow-english ;
+    skos:example "The existing finiteResult record declares this outcome with the xsd:double value 0.5. It illustrates a supplied result; it provides no derivation that an underlying limit equals 0.5 and no complete Limit binder."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source states that a limit exists with a finite numeric value, retaining the stated value and the source's own mathematical evidence separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this marker for a text value, NaN, floating infinity, a named number resource or an infinity pole, or as a default when the value or convergence claim is unknown."@x-gmeow-english ;
+    gmeow:howToUse "Set limitOutcome to this supplied IRI and retain a finite numeric witness through limitResultValue. Preserve the existing qualified cardinalities and the separate source expression, point and mode. The result record and finite predicate do not themselves calculate or prove the limit."@x-gmeow-english .
+
+math:divergesToPositiveInfinity
+    skos:scopeNote "This is the positive-pole outcome marker, distinct from the value math:PositiveInfinity that witnesses its value case. The source claims that, for each finite bound, values eventually exceed it as the input approaches the declared point in the stated mode; monotonic growth is not required. A positive finite value or an approach point at infinity alone does not supply that outcome."@x-gmeow-english ;
+    skos:example "The existing divergentResult record pairs this outcome with math:PositiveInfinity. This illustrates a supplied outcome/value pairing, not a derivation of the pole limit or a complete Limit expression."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source claims that, for each finite bound, values eventually exceed it as the input approaches the declared point in the stated mode, retaining the supporting mathematical evidence on the corresponding source structures."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the required pole witness with floating INF or a large finite number, using this marker as the result value, or confusing pole divergence with divergesWithoutLimit."@x-gmeow-english ;
+    gmeow:howToUse "Name this IRI through limitOutcome and provide math:PositiveInfinity as the matching limitResultValue witness. Keep the marker and pole identities separate and preserve the source cardinalities; neither the glyph nor this declaration registers native infinity arithmetic or computes the limit."@x-gmeow-english .
+
+math:divergesToNegativeInfinity
+    skos:scopeNote "This supplied outcome names divergence to the negative pole, with math:NegativeInfinity as its matching value witness. A negative finite result is a different case. The marker says nothing by itself about whether the input approaches from the left or right, or whether a runtime evaluated the expression."@x-gmeow-english ;
+    skos:example "The existing coolingResult example declares this outcome and math:NegativeInfinity as its value. That supplied result is distinct from a finite negative measurement or the claim that the limit was numerically evaluated."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source states that, for each finite bound, values eventually lie below it as the input approaches the declared point in the stated mode. Retain the expression, approach point, mode and mathematical warrant separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a very small finite value, floating -INF, a missing-value sentinel or the positive pole for the required negative-pole witness. An unknown result or unsuccessful computation is not this declared outcome."@x-gmeow-english ;
+    gmeow:howToUse "Place this supplied marker on limitOutcome and retain math:NegativeInfinity through limitResultValue as the matching witness. Preserve the qualified source restrictions and the separate input-mode information; this records a claim without deriving it or changing the numeric execution profile."@x-gmeow-english .
+
+math:divergesWithoutLimit
+    skos:scopeNote "This is an affirmative no-limit outcome: the source states that no finite value or single signed pole is the limit. It is different from absent data, a missing result record or an unexecuted calculation. The existing branch forbids any limitResultValue, rather than accepting a zero, NaN or pole placeholder."@x-gmeow-english ;
+    skos:example "A declared no-limit result for sin(1/x) as x approaches 0 names this outcome and carries no value. This is a result sketch; it omits the complete Limit binder and the analytic proof of oscillation."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source's explicit claim that the stated limit fails to settle to a finite value or either single pole, with its supplied reason or mathematical evidence retained."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting this marker merely because a value is absent, a solver failed or no evaluation ran. Do not add a zero, text, NaN or pole value to make the record look complete; those values contradict the supplied no-value case."@x-gmeow-english ;
+    gmeow:howToUse "Declare this outcome on the supplied LimitResult and omit all limitResultValue edges. Keep the source expression, approach point, mode and evidence separately. Validation of the no-value record is not a derivation that the mathematical limit fails to exist."@x-gmeow-english .
+
+math:hasLimitResult
+    skos:scopeNote "This optional attachment links a Limit expression to a supplied result record and computes no result. The source maximum is qualified on LimitResult-typed targets; it is not a new global count rule over every possible target. The existing one-edge example illustrates attachment rather than a complete expression or result frame."@x-gmeow-english .
+
+math:limitOutcome
+    skos:scopeNote "This names the declared result case, distinct from the limit's approach point or direction. Preserve the source's qualified minimum and maximum over LimitOutcome-typed values. The case marker alone supplies no corresponding value witness or proof; a typed extension does not acquire one of the four supplied value branches by classification alone."@x-gmeow-english .
+
+math:limitResultValue
+    skos:scopeNote "The value maximum remains qualified on logic:Thing. The finite and pole branches require an appropriate existential witness, not a universal finite-numeric check on every supplied object; the no-limit branch forbids any value. Keep these scopes and the mixed rdf:Property typing intact, and preserve literal datatype and lexical identity separately from decoded numeric value."@x-gmeow-english .
+
+math:UnderspecifiedLimitResult
+    skos:scopeNote "This is the existing diagnostic class, not a value or a computed outcome. Missing qualified outcomes and the supplied cases' witness obligations have separate canonical owners. Whole-law native lowering of the joined existential cases remains unqualified; inspect the selected report rather than assuming this annotation minted an instance or that every validation path executed."@x-gmeow-english .
