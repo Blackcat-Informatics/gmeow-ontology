@@ -19,6 +19,12 @@ validates the graph, binds each stage to its Rust implementation, and runs it si
 source-load → (statements, mappings) → reason → gts-compose → {docs-render + export leaves} → gts-sink
 ```
 
+Browser preparation selects `stage-native-codebook` with its sole dependency,
+`stage-parse-sources`. The native-codebook product carries the encoded GMN tables
+as an authenticated internal artifact. Full `stage-mappings` consumes those bytes
+and publishes the existing browser codebook while retaining its complete
+alignment and substrate-SPDX outputs.
+
 Each `gmeow:PipelineStage` is a `logic:ActionSchema` and declares:
 
 | Property | Meaning |

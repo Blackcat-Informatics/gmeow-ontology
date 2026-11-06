@@ -244,3 +244,11 @@ msgstr "此导出重建已生成的目标产物，不会提升其保留性判断
 msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
 msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
 msgstr "将 generated/projections/math/loss-ledger.ttl 与它所记录损失的目标产物一同导出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native codebook"
+msgstr "原生码本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Encode the native GMN dictionary and codebook from the admitted original language source as an authenticated internal artifact. The mappings stage publishes these exact bytes in the language-projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
+msgstr "从已准入的原始语言源编码原生 GMN 字典和码本，生成经过认证的内部制品。映射阶段在语言投影制品族中发布这些完全相同的字节。此阶段仅依赖源解析，因此可在底层组件一致性核对之前重新构建浏览器引擎。"

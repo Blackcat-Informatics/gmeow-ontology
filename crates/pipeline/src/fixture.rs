@@ -68,6 +68,7 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
     "stage-goal-directed",
     "stage-export-constraint-shapes",
     "stage-mappings",
+    crate::stages::mappings::native_codebook::STAGE_ID,
     "stage-slice-brief",
     "stage-validate-result-shape-composition",
     "stage-export-agreement",
@@ -94,16 +95,14 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
     "stage-export-lpg",
 ];
 
-const WASM_CODEBOOK_STAGE_IDS: &[&str] = &["stage-mappings"];
+const WASM_CODEBOOK_STAGE_IDS: &[&str] = &[crate::stages::mappings::native_codebook::STAGE_ID];
 const WASM_CODEBOOK_CLOSURE: &[&str] = &[
     "stage-parse-sources",
-    "stage-compile-logic",
-    "stage-export-constraint-shapes",
-    "stage-mappings",
+    crate::stages::mappings::native_codebook::STAGE_ID,
 ];
 const WASM_CODEBOOK_ARTIFACTS: &[(&str, &str)] = &[(
-    "stage-mappings",
-    gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH,
+    crate::stages::mappings::native_codebook::STAGE_ID,
+    crate::stages::mappings::native_codebook::CHANNEL,
 )];
 
 /// One exact production-stage fixture selected by the pre-test producer manifest.
@@ -579,12 +578,12 @@ pub fn prepare_wasm_codebook_fixtures(
     let run = prime_stage_fixtures(root, jobs, WASM_CODEBOOK_STAGE_IDS)?;
     let manifest = selected_fixture_manifest(&run.stage_receipts, WASM_CODEBOOK_STAGE_IDS)?;
     validate_wasm_codebook_manifest(&manifest)?;
-    let path = gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH;
+    let path = crate::stages::mappings::native_codebook::CHANNEL;
     let codebook = run
         .products
-        .get("stage-mappings")
+        .get(crate::stages::mappings::native_codebook::STAGE_ID)
         .and_then(|product| product.artifact(path))
-        .ok_or_else(|| fixture_manifest_error(format!("mappings product omitted {path}")))?
+        .ok_or_else(|| fixture_manifest_error(format!("native-codebook product omitted {path}")))?
         .to_vec();
     let exports =
         export_selected_source_artifacts(root, &run.stage_receipts, WASM_CODEBOOK_ARTIFACTS)?;
@@ -975,8 +974,8 @@ pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
     ),
     ("stage-mappings", crate::projection_profiles::CHANNEL),
     (
-        "stage-mappings",
-        gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH,
+        crate::stages::mappings::native_codebook::STAGE_ID,
+        crate::stages::mappings::native_codebook::CHANNEL,
     ),
     (
         "stage-mappings",
@@ -1243,8 +1242,8 @@ pub fn wasm_codebook_fixture(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
     verify_selected_source_artifact(
         root,
         &selected,
-        "stage-mappings",
-        gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH,
+        crate::stages::mappings::native_codebook::STAGE_ID,
+        crate::stages::mappings::native_codebook::CHANNEL,
     )
 }
 

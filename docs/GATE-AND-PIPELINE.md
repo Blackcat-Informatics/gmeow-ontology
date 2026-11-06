@@ -73,6 +73,13 @@ refreshing native witnesses. Final PR qualification still runs the normal produc
 consumer and parity lanes over the reviewed committed bytes. A codebook-only
 selector cannot satisfy the full test-fixture prefix.
 
+The bootstrap selects `stage-native-codebook` and its original-source parser.
+That complete stage emits the authenticated internal codebook; full mappings
+consumes its bytes and publishes the existing language-projection artifact.
+Mappings retains its mandatory SPDX substrate reconciliation. Browser bootstrap
+therefore requires a codebook receipt, rather than a mappings receipt that also
+depends on the shipped engines being replaced.
+
 ## 2. The principles
 
 ### P1 — One producer, one run

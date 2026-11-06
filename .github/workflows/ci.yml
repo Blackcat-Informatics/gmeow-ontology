@@ -297,6 +297,14 @@ jobs:
           tar xzf .cache/wasm-refresh/binaryen.tar.gz -C .cache/wasm-refresh/binaryen --strip-components=1
           echo "$GITHUB_WORKSPACE/.cache/wasm-refresh/binaryen/bin" >> "$GITHUB_PATH"
 
+      - name: Record the pipeline stage's source quality assessment
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/wasm-refresh
+          make --silent --no-print-directory slice-quality SLICE=slices/core/pipeline SLICE_QUALITY_FORMAT=rdf \
+            > dist/wasm-refresh/pipeline-quality.nq
+
       - name: Prepare all six browser images from authenticated codebook inputs
         if: ${{ inputs.maint_wasm_refresh == 'images' }}
         run: |

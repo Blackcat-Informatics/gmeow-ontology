@@ -175,6 +175,7 @@ MDBOOK_SMOKE_OUT := $(abspath dist/mdbook-smoke)
 # prebuild cannot compile them before their exact prepared bytes exist.
 RUST_PREBUILD_WORKSPACE_ARGS := --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm
 FIXTURE_TIMINGS_JSON ?=
+SLICE_QUALITY_FORMAT ?= text
 FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
 REASON_VERIFY_TIMINGS_JSON ?=
 REASON_VERIFY_TIMINGS_ARG := $(if $(REASON_VERIFY_TIMINGS_JSON),--timings-json $(REASON_VERIFY_TIMINGS_JSON),)
@@ -613,7 +614,7 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
 slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
-	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
+	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all) --format $(SLICE_QUALITY_FORMAT)
 
 .PHONY: slice-quality-projection-debt
 slice-quality-projection-debt: ## Report live repository projection residue and exact budget headroom.

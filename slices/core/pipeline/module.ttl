@@ -601,6 +601,7 @@ gmeow:pipeline-build
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-compile-logic ,
+        gmeow:stage-native-codebook ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
         gmeow:stage-gmn-training-corpus ,
@@ -653,6 +654,7 @@ gmeow:stage-source-load gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow
 gmeow:stage-statements gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-compile-logic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-mappings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-native-codebook gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-math-producers gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-gmn-training-corpus gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
@@ -742,6 +744,17 @@ gmeow:stage-compile-logic
     gmeow:stageImpl "compile_logic" ;
     gmeow:dataflowConsumes gmeow:stage-parse-sources .
 
+gmeow:stage-native-codebook
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "native codebook"@x-gmeow-english ;
+    skos:definition "Encode the native GMN dictionary and codebook from the admitted original language source as an authenticated internal artifact. The mappings stage publishes these exact bytes in the language-projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "native_codebook" ;
+    gmeow:dataflowConsumes gmeow:stage-parse-sources .
+
 gmeow:stage-mappings
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -753,6 +766,7 @@ gmeow:stage-mappings
     gmeow:stageImpl "mappings" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
         gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-native-codebook ,
         gmeow:stage-parse-sources .
 
 gmeow:stage-math-producers
