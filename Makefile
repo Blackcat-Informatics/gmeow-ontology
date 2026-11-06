@@ -84,6 +84,8 @@ WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 # is not a build dependency; THIS wasm-opt is.
 BINARYEN_VER := version_130
 BINARYEN_NUM := $(patsubst version_%,%,$(BINARYEN_VER))
+# Official version_130 x86_64-linux release asset SHA-256.
+BINARYEN_LINUX_X64_SHA256 := 0a18362361ad05465118cd8eeb72edaeec89de6894bc283576ef4e07aa3babcc
 
 # Refuse to optimize with an unpinned binaryen. `command -v` alone proved only that A
 # wasm-opt exists, which is how a version mismatch reached CI as an unknown-option error
@@ -202,6 +204,10 @@ TEST_FIXTURE_TOOL := $(abspath dist/bin/gmeow-dev)
 
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
+
+.PHONY: print-binaryen-linux-x64-sha256
+print-binaryen-linux-x64-sha256: ## Print the pinned Linux x86_64 Binaryen archive digest.
+	@echo "$(BINARYEN_LINUX_X64_SHA256)"
 
 print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exactly this).
 	@echo "$(MDBOOK_VERSION)"

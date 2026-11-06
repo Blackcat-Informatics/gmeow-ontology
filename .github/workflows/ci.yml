@@ -288,10 +288,12 @@ jobs:
         run: |
           set -euo pipefail
           ASSET_BINARYEN_TAG="$(make --no-print-directory print-binaryen-ver)"
+          ASSET_BINARYEN_SHA256="$(make --no-print-directory print-binaryen-linux-x64-sha256)"
           mkdir -p .cache/wasm-refresh/binaryen
           curl --proto '=https' --tlsv1.2 -fsSL \
             "https://github.com/WebAssembly/binaryen/releases/download/${ASSET_BINARYEN_TAG}/binaryen-${ASSET_BINARYEN_TAG}-x86_64-linux.tar.gz" \
             -o .cache/wasm-refresh/binaryen.tar.gz
+          printf '%s  %s\n' "$ASSET_BINARYEN_SHA256" .cache/wasm-refresh/binaryen.tar.gz | sha256sum --check --strict
           tar xzf .cache/wasm-refresh/binaryen.tar.gz -C .cache/wasm-refresh/binaryen --strip-components=1
           echo "$GITHUB_WORKSPACE/.cache/wasm-refresh/binaryen/bin" >> "$GITHUB_PATH"
 

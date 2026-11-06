@@ -19,12 +19,14 @@ fn is_grounding_owner(owner: &str) -> bool {
     )
 }
 
-/// Physical inputs that determine the owned grounding-source selection.
+/// Physical inputs required by semantic catalog admission and grounding selection.
 ///
 /// Every discovered manifest participates because changing an owner can admit
-/// or remove its mappings. Artifact roles and paths come from native discovery;
-/// input enumeration does not claim RDF validity or a semantic catalog identity.
-/// Semantic consumers must still use [`discover`] or an admitted catalog.
+/// or remove its mappings. Every artifact participates because native catalog
+/// admission reads more than the selected grounding mappings. Paths come from
+/// physical discovery without claiming RDF validity or a semantic catalog identity.
+/// Semantic consumers still use [`discover`]; [`owned_sources`] alone selects
+/// grounding authority by exact owner and Mapping role.
 pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let inventory = SliceInventory::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
         .map_err(|why| {
@@ -35,15 +37,12 @@ pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     for record in inventory.records() {
         files.push(record.slice_dir().join("manifest.ttl"));
-        if is_grounding_owner(&record.manifest().slice_iri) {
-            files.extend(
-                record
-                    .artifacts()
-                    .iter()
-                    .filter(|artifact| artifact.role() == &ArtifactRole::Mapping)
-                    .map(|artifact| record.slice_dir().join(artifact.logical_path())),
-            );
-        }
+        files.extend(
+            record
+                .artifacts()
+                .iter()
+                .map(|artifact| record.slice_dir().join(artifact.logical_path())),
+        );
     }
     files.sort();
     files.dedup();

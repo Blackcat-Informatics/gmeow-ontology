@@ -1689,7 +1689,7 @@ impl Stage for ResearchObjectsStage {
         // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
         // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
-        "research_objects.v7-physical-grounding-inputs"
+        "research_objects.v8-physical-catalog-admission-inputs"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
@@ -1706,6 +1706,8 @@ impl Stage for ResearchObjectsStage {
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.extend(module_files(root)?);
+        // DCAT's semantic catalog admits all physical slice artifacts before
+        // selecting grounding-owner mappings, so every admission input binds the key.
         files.extend(gmeow_validate::grounding_catalog::input_files(root)?);
         Ok(files)
     }
