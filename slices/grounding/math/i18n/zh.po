@@ -12948,3 +12948,257 @@ msgstr "不要要求在极限累积分布函数的不连续点处也收敛，不
 msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."
 msgstr "通过 convergenceMode 记录 inDistributionConvergence，以及来源随机变量的概率律和极限分布，保留实值累积分布背景或显式限定的更广空间。单独保留连续点及概率证据；不要推断特定耦合或更强模式。"
+
+# --- Sequence, series and convergence record guidance ----------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sequence"
+msgstr "序列"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. GMEOW records typed as math:Sequence require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode, together with the inherited math:Function domain and codomain frame. Missing the required convergence frame is math:UnderspecifiedConvergence; this record requirement does not assert that every mathematical sequence converges."
+msgstr "序列 (aₙ)：带索引的族，是 math:domain 为 ℕ 子集的 math:Function。类型为 math:Sequence 的 GMEOW 记录要求至少一个通过 math:hasConvergence 关联、指定目标及模式的 math:Convergence 记录，并保留继承自 math:Function 的定义域及陪域框架。缺少必需收敛框架会导致 math:UnderspecifiedConvergence；这一记录要求不声称所有数学序列都收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical sequence need not converge. GMEOW's current Sequence record contract nevertheless requires a supplied convergence frame; this limits admitted records rather than proving convergence. A divergent or convergence-unknown input without a supported assertion remains an explicit admission failure, not an invitation to invent a target or remove its source type."
+msgstr "数学序列不一定收敛。然而，GMEOW 当前的 Sequence 记录契约要求提供收敛框架；它限制所接纳的记录，而不证明收敛。若发散或收敛性未知的输入没有受支持的断言，应明确报告接纳失败，而不是编造目标或删除来源类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "sequence-convergent.ttl supplies harmonicSequence with domain and codomain sets and a pointwise record naming zeroValue. The labels 1/n and zero name the intended example; the record does not compute the sequence or verify a natural-number index domain."
+msgstr "sequence-convergent.ttl 为 harmonicSequence 提供定义域集合、陪域集合及指定 zeroValue 的逐点收敛记录。标签 1/n 和零表达示例意图；记录不计算序列，也不验证索引定义域属于自然数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source indexed family whose Function frame and supported convergence assertion can be retained under the current mandatory record contract."
+msgstr "用于能够按当前必需记录契约保留 Function 框架及受支持收敛断言的来源索引族。"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every sequence as convergent, replacing unknown convergence with a guessed value, or dropping input or typing to satisfy validation. Convergence of summands to zero alone does not prove convergence of their series."
+msgstr "不要把所有序列都当作收敛序列，不要用猜测值替代未知收敛性，也不要删除输入或类型来满足验证。求和项趋于零本身不证明相应级数收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited single domain and codomain Set frame and the required hasConvergence links to supported records. Preserve the actual index-set meaning and evidence separately; if the required assertion is unavailable, report that limitation without fabricating records or silently relaxing the contract."
+msgstr "保留继承的单一定义域和单一陪域 Set 框架，以及指向受支持记录的必需 hasConvergence 链接。单独保留实际索引集含义及证据；若无法提供所需断言，应报告这一限制，不编造记录，也不静默放宽契约。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Series"
+msgstr "级数"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator) and names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration). GMEOW records typed as math:Series also require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode. Missing a required term or convergence frame is math:UnderspecifiedConvergence; this requirement does not assert that every mathematical series converges."
+msgstr "作为独立绑定表达式的级数 ∑ aₙ：它应用 math:summationBinder（math:operator），通过 math:seriesTerm 指定通项（求和项，即由绑定的求和 math:VariableDeclaration 索引的函数体）。类型为 math:Series 的 GMEOW 记录还要求至少一个通过 math:hasConvergence 关联、指定目标及模式的 math:Convergence 记录。缺少必需项或收敛框架会导致 math:UnderspecifiedConvergence；这一要求不声称所有数学级数都收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A series concerns its summands and the convergence of partial sums, not just the limit of individual terms. The current GMEOW frame requires a supported convergence record as well as a general term and binder structure; divergent or unknown cases without that assertion cannot be made conforming by inventing a sum."
+msgstr "级数涉及求和项及部分和的收敛，而不只是单个项的极限。当前 GMEOW 框架要求受支持的收敛记录、通项及绑定结构；对于缺少该断言的发散或未知情形，不能通过编造和使其符合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#example"
+msgid "series-convergent.ttl records zetaSeries with a summation operator, declaration, index-zero body and absolute-convergence target. Its raw type is Series only; the supplied roles do not by themselves certify direct concrete BindingExpression admission or a computed zeta sum."
+msgstr "series-convergent.ttl 为 zetaSeries 记录求和算子、声明、索引为零的函数体及绝对收敛目标。其原始类型仅为 Series；这些角色本身不认证具体 BindingExpression 的直接接纳，也不表示已计算 ζ 级数的和。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source summation expression with its bound index, actual summand and supported convergence claim, keeping the series distinct from its sequence of individual terms."
+msgstr "用于保留来源求和表达式、绑定索引、实际求和项及受支持的收敛断言，并将级数与单项组成的序列区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a sum from a named term, asserting convergence because the terms tend to zero, or changing a divergent input into a positive convergence record. Structural acceptance is not mathematical convergence evidence."
+msgstr "不要由具名项推断级数和，不要因各项趋于零就断言收敛，也不要把发散输入改成正面收敛记录。结构接纳不是数学收敛证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply seriesTerm and the required hasConvergence frame while retaining the inherited binder obligations. For direct AST reading, use explicit concrete BindingExpression typing, one operator/declaration and nonempty indexed body slots. Keep seriesTerm and body links consistent with the source without claiming an implemented equality check between them."
+msgstr "提供 seriesTerm 及必需的 hasConvergence 框架，同时保留继承的绑定义务。若直接读取 AST，使用显式具体 BindingExpression 类型、一个算子和声明，以及非空带索引函数体槽位。按来源保持 seriesTerm 与函数体链接一致，不声称存在二者之间已实现的相等性检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Convergence"
+msgstr "收敛"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The convergence of a sequence or series, represented with its target through math:convergesTo and its selected mode through math:convergenceMode. GMEOW requires at least one target and exactly one typed mode in this record. An explicit mode identifies the notion being asserted; satisfying this frame does not prove the mathematical convergence. A record missing required fields is math:UnderspecifiedConvergence."
+msgstr "序列或级数的收敛，通过 math:convergesTo 表示其目标，通过 math:convergenceMode 表示所选模式。GMEOW 要求该记录至少有一个目标，且恰好有一个带类型的模式。显式模式标识所断言的收敛概念；满足此框架不证明数学收敛。缺少必需字段的记录会导致 math:UnderspecifiedConvergence。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This represents the supplied convergence assertion and its explicit frame. At least one target and exactly one typed mode are required; these restrictions impose no maximum number of targets. The record does not calculate a limit, check mode applicability or prove agreement with a summand or sequence body."
+msgstr "此对象表示来源提供的收敛断言及其显式框架。至少需要一个目标，且恰好需要一个带类型的模式；这些限制不规定目标数量上限。该记录不计算极限，不检查模式适用性，也不证明与求和项或序列函数体一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaConvergence in series-convergent.ttl names zetaValue and absoluteConvergence. The named target and mode record the supplied claim; they are not a numerical derivation of the series sum."
+msgstr "series-convergent.ttl 中的 zetaConvergence 指定 zetaValue 和 absoluteConvergence。具名目标及模式记录来源断言，不是级数和的数值推导。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when retaining a supported convergence statement with its target and actual notion of convergence, including distinct supplied statements in different modes."
+msgstr "用于保留受支持的收敛陈述、目标及实际收敛概念，包括以不同模式提供的独立陈述。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a generic computation status, failure to converge or unknown-answer container. Do not invent a target or interchangeable mode to satisfy a required record, or infer numerical proof from a valid frame."
+msgstr "不要将其用作通用计算状态、不收敛或未知答案的容器。不要为满足必需记录而编造目标或任意替换模式，也不要从有效框架推断数值证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain convergesTo targets and one convergenceMode typed ConvergenceMode under the existing restrictions and closures. Keep evidence for the assertion separately. Use distinct supported records for different modes rather than placing several modes on one record; an unattached Convergence is still directly constrained."
+msgstr "按现有限制及闭合保留 convergesTo 目标，以及一个类型为 ConvergenceMode 的 convergenceMode。单独保留断言证据。不同模式使用各自受支持的记录，不要在同一记录上放置多个模式；未被关联的 Convergence 仍直接受到约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "∑ (summation binder)"
+msgstr "∑（求和绑定算子）"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The summation binder ∑: the math:operator a math:Series binding expression applies, binding the summation index over the summand. A shadowed index ∑ᵢ(xᵢ + ∑ᵢ yᵢ) introduces two distinct math:VariableDeclarations. Anchored to the OpenMath arith1 sum symbol."
+msgstr "求和绑定算子 ∑：math:Series 绑定表达式所应用的 math:operator，在求和项上绑定求和索引。发生遮蔽的索引 ∑ᵢ(xᵢ + ∑ᵢ yᵢ) 引入两个不同的 math:VariableDeclaration。锚定于 OpenMath arith1 的 sum 符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operator is an Operation individual, not the series expression or an infinite-sum evaluator. Native binding retains the supplied operator IRI, one declaration and nonempty indexed operands; it does not pin every Series to this IRI or prove convergence."
+msgstr "该算子是 Operation 个体，不是级数表达式或无限求和求值器。原生绑定保留所提供的算子 IRI、一个声明及非空带索引操作数；它不会把每个 Series 固定为此 IRI，也不证明收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "The geometricSeries fixture uses operator summationBinder, boundVariable nVar and an index-zero slot naming geometricTerm. A second binder using the same displayed n would need its own declaration identity for lexical shadowing."
+msgstr "geometricSeries 夹具使用 operator summationBinder、boundVariable nVar 及指定 geometricTerm 的零索引槽位。另一个显示相同 n 的绑定结构，需要自身声明身份来表达词法遮蔽。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the supplied operator identity for a summation binder, retaining the distinct series node, index declaration and structured body."
+msgstr "用作来源提供的求和绑定算子身份，并保留独立级数节点、索引声明及结构化函数体。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating its glyph as a bound variable, merging declarations because their labels match, requiring a single body slot, or assuming a scalar arithmetic profile evaluates the infinite sum."
+msgstr "不要把其字形当作绑定变量，不要因声明标签相同就合并身份，不要要求单一函数体槽位，也不要假定标量算术配置会计算无限和。"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For direct AST use, supply concrete BindingExpression typing, one operator, one boundVariable declaration and contiguous nonnegative zero-based body slots. One body lowers bare; several become an operator application inside the binder. Preserve declaration domain or its untyped-sort fallback separately from free-variable variableDomain context."
+msgstr "直接使用 AST 时，提供具体 BindingExpression 类型、一个算子、一个 boundVariable 声明及连续、非负、从零开始的函数体槽位。单个函数体直接降低；多个函数体则在绑定结构内形成算子应用。将声明的 domain 或无类型默认类型，与自由变量的 variableDomain 上下文分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "series term"
+msgstr "级数项"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Series to its general term aₙ — the summand, a math:MathematicalExpression indexed by the bound summation variable. Domain math:Series, range math:MathematicalExpression (stated in prose). Every series names its general term."
+msgstr "将 math:Series 关联到其通项 aₙ，即由绑定求和变量索引的求和项 math:MathematicalExpression。定义域为 math:Series，值域为 math:MathematicalExpression（以文字说明）。每个级数都指定其通项。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names a summand, not a partial sum or convergence target. The existing Series contract requires at least one Thing target with no maximum imposed here. Native binder structure instead follows indexed body slots; it does not establish equality between those bodies and seriesTerm."
+msgstr "此属性指定求和项，不是部分和或收敛目标。现有 Series 契约要求至少一个 Thing 目标，此处不规定数量上限。原生绑定结构沿带索引函数体槽位读取，不确立函数体与 seriesTerm 相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaSeries explicitly names zetaTerm both through seriesTerm and through its body slot. zetaTerm is a SymbolReference resolving to zetaTermSymbol; a named summand is not an evaluated series sum."
+msgstr "zetaSeries 通过 seriesTerm 及函数体槽位显式指定 zetaTerm。zetaTerm 是解析到 zetaTermSymbol 的 SymbolReference；具名求和项不是已计算的级数和。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's general summand expression with its actual bound-index meaning and concrete expression form."
+msgstr "用于保留来源的一般求和项表达式、实际绑定索引含义及具体表达式形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at the sum, mode or bound declaration, or using a displayed formula string as a replacement for a structured body. A vanishing summand alone is insufficient evidence of series convergence."
+msgstr "不要令其指向级数和、模式或绑定声明，也不要以显示公式字符串替代结构化函数体。求和项趋于零不足以证明级数收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied general term through seriesTerm under the existing required path. Preserve the indexed body and declaration links separately, and report unsupported or inconsistent source structure without claiming that this descriptive edge supplies native body semantics."
+msgstr "按现有必需路径，通过 seriesTerm 保留来源通项。单独保留带索引函数体及声明链接；若来源结构不受支持或不一致，应予报告，不要声称该描述性边提供原生函数体语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has convergence"
+msgstr "具有收敛记录"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). Their GMEOW record contracts require at least one such link, and the linked convergence record requires a target and mode (math:UnderspecifiedConvergence). The link retains a supplied convergence assertion; it does not calculate or establish convergence."
+msgstr "将 math:Series 或 math:Sequence 关联到描述其收敛目标及模式的 math:Convergence。定义域为 math:Series 或 math:Sequence，值域为 math:Convergence（以文字说明）。其 GMEOW 记录契约要求至少一个此类链接，且所链接记录要求目标及模式（math:UnderspecifiedConvergence）。该链接保留来源提供的收敛断言，不计算或确立收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required link is unconditional for records typed Sequence or Series in the current contract, not guarded by a separate convergent marker. It restricts admitted records without proving that all mathematical sequences or series converge. Multiple supported convergence records are permitted; these restrictions impose no maximum number of links."
+msgstr "在当前契约中，类型为 Sequence 或 Series 的记录无条件要求此链接，不受另一个收敛标记守卫。它限制所接纳的记录，不证明所有数学序列或级数都收敛。允许多个受支持的收敛记录；这些限制不规定链接数量上限。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "harmonicSequence supplies a supported named convergence record, while sequence-missing-convergence.ttl omits the link and is a declared refusal case. The missing link is not repaired by guessing a target or erasing Sequence typing."
+msgstr "harmonicSequence 提供受支持的具名收敛记录；sequence-missing-convergence.ttl 省略此链接，是声明的拒绝案例。不能通过猜测目标或删除 Sequence 类型来修复缺失链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a source-supported convergence assertion to the sequence or series it concerns, preserving target, mode and provenance."
+msgstr "用于将来源支持的收敛断言关联到相应序列或级数，并保留目标、模式及来源信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a link for an unknown or divergent case, treating an output-status marker as Convergence, or claiming that a required link itself establishes mathematical truth. Preserve unsupported input visibly rather than dropping it."
+msgstr "不要为未知或发散情形编造链接，不要将输出状态标记当作 Convergence，也不要声称必需链接本身确立数学真理。应明确保留不受支持的输入，而不是丢弃它。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied assertion to a Convergence record with its required target and typed mode, retaining multiple records when supported. If no truthful assertion is available, report that the existing record contract cannot admit the case without changing or fabricating its meaning."
+msgstr "将每个来源断言链接到具有必需目标及带类型模式的 Convergence 记录；若有支持，可保留多个记录。若没有真实断言，应报告现有记录契约无法在不修改或编造含义的情况下接纳该情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "converges to"
+msgstr "收敛于"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Convergence to the value or expression its sequence/series converges to — a math:Number, a limit function, or a distribution. Domain math:Convergence, range a math:MathematicalObject or value (stated in prose). Every convergence names what it converges to."
+msgstr "将 math:Convergence 关联到其序列或级数所收敛的值或表达式，即 math:Number、极限函数或分布。定义域为 math:Convergence，值域为 math:MathematicalObject 或值（以文字说明）。每个收敛记录都指定其收敛目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the asserted target, not a summand, mode or computed answer. The current record requires at least one Thing target and does not impose a target maximum; the link does not decode a named value or verify its mathematical relation to the source sequence or series."
+msgstr "此属性指定所断言的目标，不是求和项、模式或计算答案。当前记录要求至少一个 Thing 目标，不规定目标数量上限；该链接不解码具名值，也不验证其与来源序列或级数的数学关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "harmonicSequenceConvergence names zeroValue through convergesTo. zeroValue is a named MathematicalObject; its label identifies the intended zero without itself supplying a numeric evaluation proof."
+msgstr "harmonicSequenceConvergence 通过 convergesTo 指定 zeroValue。zeroValue 是具名 MathematicalObject；其标签标识所指的零，本身不提供数值求值证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's convergence target, preserving whether it is a number, function or distribution and the context needed to interpret that claim."
+msgstr "用于保留来源收敛目标，并保留其数、函数或分布身份及解释断言所需的上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing an absent target with a convenient constant, confusing the target with a partial sum or mode, or requiring different RDF resources merely because two mathematical roles differ. Equal values or shared resources need not be erroneous."
+msgstr "不要用方便的常量替代缺失目标，不要将目标与部分和或模式混淆，也不要仅因数学角色不同就要求不同 RDF 资源。值相等或资源共用不一定是错误。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supported convergesTo targets on the Convergence record under its existing required path and closure. Retain the actual target representation and evidence, and inspect the report rather than assuming a named object is a validated numeric scalar."
+msgstr "按现有必需路径及闭合，在 Convergence 记录上保留受支持的 convergesTo 目标。保留实际目标表示及证据，检查报告，不要假定具名对象是已验证的数值标量。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "convergence mode"
+msgstr "收敛模式"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."
+msgstr "将 math:Convergence 关联到其 math:ConvergenceMode，即逐点、一致、绝对、条件、依测度、几乎处处、Lᵖ 范数或依分布收敛。定义域为 math:Convergence，值域为 math:ConvergenceMode（以文字说明）。模式是必需的；没有声明模式的收敛记录不符合规范（math:UnderspecifiedConvergence）。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each Convergence record requires exactly one typed mode. The mode vocabulary is open, and the supplied markers denote different mathematical notions rather than interchangeable labels. A structurally admitted link does not prove applicability, mode implications or convergence; retain p, measure and function-space context where relevant."
+msgstr "每个 Convergence 记录要求恰好一个带类型的模式。模式词汇是开放的，现有标记表示不同数学概念，不是可互换的标签。结构上被接纳的链接不证明适用性、模式间蕴含或收敛；应按需保留 p、测度及函数空间上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaConvergence supplies absoluteConvergence through convergenceMode. That marker records the supplied claim about the series, while a separate supported record would be needed to retain another mode without violating the one-mode frame."
+msgstr "zetaConvergence 通过 convergenceMode 提供 absoluteConvergence。该标记记录来源对级数的断言；若需在不违反单一模式框架的情况下保留另一模式，应使用另一个受支持的记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the precise convergence notion asserted for a supplied record, distinguishing scalar-series, function-space and probabilistic meanings."
+msgstr "用于保留来源记录所断言的精确收敛概念，并区分标量级数、函数空间及概率含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a stronger or more convenient mode without evidence, treating pointwise and almost-everywhere as equivalent, or assigning several modes to one record. Do not infer numerical convergence from the mode's type."
+msgstr "不要在缺少证据时选择更强或更方便的模式，不要把逐点与几乎处处当作等价，也不要为同一记录指定多个模式。不要从模式类型推断数值收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one ConvergenceMode target on each Convergence under the existing minimum, maxima, range and closure. Preserve separate supported records for distinct modes and retain their mathematical hypotheses; no new implication rule or closed enumeration follows from this link."
+msgstr "按现有最小基数、最大基数、值域及闭合，为每个 Convergence 提供一个 ConvergenceMode 目标。为不同模式保留独立且受支持的记录及数学假设；此链接不引入新的蕴含规则或封闭枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Convergence"
+msgstr "收敛说明不完整"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure class associated with the existing frame restrictions on math:Convergence, math:Series and math:Sequence. Those restrictions require a convergence target and mode, a series term and a convergence record, or a sequence's convergence record, respectively; missing required data or a conflicting mode frame is ill-formed. A standalone math:Convergence is constrained directly. This failure does not decide whether the mathematical sequence or series diverges."
+msgstr "与 math:Convergence、math:Series 和 math:Sequence 现有框架限制关联的失败类。这些限制分别要求收敛目标及模式、级数项及收敛记录，或序列的收敛记录；缺失必需数据或模式框架冲突均不符合规范。独立的 math:Convergence 直接受到约束。此失败不判定数学序列或级数是否发散。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The failure belongs directly to three class frames, not just to a linked convergence missing its mode. A standalone Convergence can fail its target/mode obligations; Series and Sequence can fail required record paths. Other Function, binder and slot diagnostics remain distinct, and no failure-instance minting is presumed."
+msgstr "此失败直接归属于三个类框架，不只是已链接收敛记录缺少模式。独立 Convergence 可违反目标或模式义务；Series 和 Sequence 可违反必需记录路径。其他 Function、绑定及槽位诊断仍各自独立，不预设会创建失败实例。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "sequence-missing-convergence.ttl supplies domain and codomain but no hasConvergence; its control explicitly expects the isolated frame finding. The series-missing-convergence control instead disclaims isolation because that fixture also omits bound declaration and body. These are source expectations, not executed convergence proofs."
+msgstr "sequence-missing-convergence.ttl 提供定义域及陪域，却没有 hasConvergence；其控制显式预期隔离的框架诊断。series-missing-convergence 控制则不声称隔离，因为该夹具还省略绑定声明及函数体。这些是来源预期，不是已执行的收敛证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings actually associated with the existing Convergence, Series or Sequence restrictions, preserving the reported subject, missing path, mode conflict and other simultaneous diagnostics."
+msgstr "用于实际关联到现有 Convergence、Series 或 Sequence 限制的诊断，并保留所报告主体、缺失路径、模式冲突及其他同时出现的诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a frame error with mathematical divergence or repairing it with unsupported convergence claims. Do not suppress other binder/function failures or assume a missing mode is the only possible cause of this class."
+msgstr "不要把框架错误等同于数学发散，也不要以无支持的收敛断言修复它。不要隐藏其他绑定或函数失败，也不要假定缺少模式是此类的唯一可能原因。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."
+msgstr "按现有类限制及闭合检查所选验证报告，包括没有传入 hasConvergence 链接时直接针对 Convergence 的诊断。只修复来源支持的字段；否则报告接纳限制。生成的验证派生自这些来源，不增加形状规则，也不作数值收敛判定。"

@@ -12948,3 +12948,257 @@ msgstr "Éviter d’exiger la convergence des fonctions de répartition aux disc
 msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."
 msgstr "Consigner inDistributionConvergence par convergenceMode avec les lois des variables aléatoires source et la distribution limite, en préservant le cadre des fonctions de répartition réelles ou l’espace plus large explicitement qualifié. Conserver séparément les éléments de continuité et de probabilité ; ne pas inférer un couplage particulier ou un mode plus fort."
+
+# --- Sequence, series and convergence record guidance ----------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sequence"
+msgstr "Suite"
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. GMEOW records typed as math:Sequence require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode, together with the inherited math:Function domain and codomain frame. Missing the required convergence frame is math:UnderspecifiedConvergence; this record requirement does not assert that every mathematical sequence converges."
+msgstr "Une suite (aₙ) : une famille indexée, une math:Function dont le math:domain est un sous-ensemble de ℕ. Les enregistrements GMEOW typés math:Sequence exigent au moins un enregistrement math:Convergence lié par math:hasConvergence et nommant une cible et un mode, ainsi que le cadre hérité de domaine et codomaine de math:Function. L’absence du cadre de convergence requis est math:UnderspecifiedConvergence ; cette exigence d’enregistrement n’affirme pas que toute suite mathématique converge."
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical sequence need not converge. GMEOW's current Sequence record contract nevertheless requires a supplied convergence frame; this limits admitted records rather than proving convergence. A divergent or convergence-unknown input without a supported assertion remains an explicit admission failure, not an invitation to invent a target or remove its source type."
+msgstr "Une suite mathématique ne converge pas nécessairement. Le contrat actuel des enregistrements Sequence de GMEOW exige néanmoins un cadre de convergence fourni ; il limite les enregistrements admis sans prouver la convergence. Une entrée divergente ou de convergence inconnue sans assertion étayée reste un échec explicite d’admission, non une invitation à inventer une cible ou à retirer son type source."
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "sequence-convergent.ttl supplies harmonicSequence with domain and codomain sets and a pointwise record naming zeroValue. The labels 1/n and zero name the intended example; the record does not compute the sequence or verify a natural-number index domain."
+msgstr "sequence-convergent.ttl fournit harmonicSequence avec des ensembles de domaine et de codomaine et un enregistrement ponctuel nommant zeroValue. Les étiquettes 1/n et zéro nomment l’exemple visé ; l’enregistrement ne calcule pas la suite et ne vérifie pas un domaine d’indices naturels."
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source indexed family whose Function frame and supported convergence assertion can be retained under the current mandatory record contract."
+msgstr "À utiliser pour une famille indexée source dont le cadre Function et l’assertion de convergence étayée peuvent être conservés selon le contrat actuel d’enregistrement obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every sequence as convergent, replacing unknown convergence with a guessed value, or dropping input or typing to satisfy validation. Convergence of summands to zero alone does not prove convergence of their series."
+msgstr "Éviter de traiter toute suite comme convergente, de remplacer une convergence inconnue par une valeur devinée ou de supprimer une entrée ou son type pour satisfaire la validation. La convergence des termes vers zéro ne suffit pas à prouver celle de leur série."
+
+msgctxt "https://blackcatinformatics.ca/math/Sequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited single domain and codomain Set frame and the required hasConvergence links to supported records. Preserve the actual index-set meaning and evidence separately; if the required assertion is unavailable, report that limitation without fabricating records or silently relaxing the contract."
+msgstr "Conserver le cadre hérité avec un seul domaine et un seul codomaine de type Set et les liens hasConvergence requis vers des enregistrements étayés. Préserver séparément le sens réel de l’ensemble d’indices et les éléments probants ; si l’assertion requise est indisponible, signaler cette limite sans fabriquer d’enregistrement ni assouplir silencieusement le contrat."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Series"
+msgstr "Série"
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator) and names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration). GMEOW records typed as math:Series also require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode. Missing a required term or convergence frame is math:UnderspecifiedConvergence; this requirement does not assert that every mathematical series converges."
+msgstr "Une série ∑ aₙ comme expression de liaison à part entière : elle applique math:summationBinder (math:operator) et nomme son terme général par math:seriesTerm (le terme à sommer, un corps indexé par la math:VariableDeclaration de sommation liée). Les enregistrements GMEOW typés math:Series exigent aussi au moins un enregistrement math:Convergence lié par math:hasConvergence et nommant une cible et un mode. L’absence d’un terme ou d’un cadre de convergence requis est math:UnderspecifiedConvergence ; cette exigence n’affirme pas que toute série mathématique converge."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A series concerns its summands and the convergence of partial sums, not just the limit of individual terms. The current GMEOW frame requires a supported convergence record as well as a general term and binder structure; divergent or unknown cases without that assertion cannot be made conforming by inventing a sum."
+msgstr "Une série concerne ses termes et la convergence des sommes partielles, non la seule limite des termes individuels. Le cadre GMEOW actuel exige un enregistrement de convergence étayé ainsi qu’un terme général et une structure de liaison ; les cas divergents ou inconnus sans cette assertion ne deviennent pas conformes en inventant une somme."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|http://www.w3.org/2004/02/skos/core#example"
+msgid "series-convergent.ttl records zetaSeries with a summation operator, declaration, index-zero body and absolute-convergence target. Its raw type is Series only; the supplied roles do not by themselves certify direct concrete BindingExpression admission or a computed zeta sum."
+msgstr "series-convergent.ttl consigne zetaSeries avec un opérateur de sommation, une déclaration, un corps d’indice zéro et une cible de convergence absolue. Son seul type brut est Series ; ces rôles ne certifient pas à eux seuls l’admission directe comme BindingExpression concrète ni une somme zêta calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source summation expression with its bound index, actual summand and supported convergence claim, keeping the series distinct from its sequence of individual terms."
+msgstr "À utiliser pour préserver une expression de sommation source avec son indice lié, son terme effectif et son affirmation de convergence étayée, en distinguant la série de la suite de ses termes individuels."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a sum from a named term, asserting convergence because the terms tend to zero, or changing a divergent input into a positive convergence record. Structural acceptance is not mathematical convergence evidence."
+msgstr "Éviter de déduire une somme d’un terme nommé, d’affirmer la convergence parce que les termes tendent vers zéro ou de transformer une entrée divergente en enregistrement positif de convergence. L’acceptation structurelle n’est pas une preuve mathématique de convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/Series|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply seriesTerm and the required hasConvergence frame while retaining the inherited binder obligations. For direct AST reading, use explicit concrete BindingExpression typing, one operator/declaration and nonempty indexed body slots. Keep seriesTerm and body links consistent with the source without claiming an implemented equality check between them."
+msgstr "Fournir seriesTerm et le cadre hasConvergence requis en conservant les obligations de liaison héritées. Pour une lecture directe de l’AST, utiliser le type concret BindingExpression explicite, un opérateur, une déclaration et des emplacements de corps indexés non vides. Garder les liens seriesTerm et de corps conformes à la source sans prétendre qu’un contrôle d’égalité entre eux est implémenté."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Convergence"
+msgstr "Convergence"
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The convergence of a sequence or series, represented with its target through math:convergesTo and its selected mode through math:convergenceMode. GMEOW requires at least one target and exactly one typed mode in this record. An explicit mode identifies the notion being asserted; satisfying this frame does not prove the mathematical convergence. A record missing required fields is math:UnderspecifiedConvergence."
+msgstr "La convergence d’une suite ou d’une série, représentée avec sa cible par math:convergesTo et son mode sélectionné par math:convergenceMode. GMEOW exige au moins une cible et exactement un mode typé dans cet enregistrement. Un mode explicite identifie la notion affirmée ; satisfaire ce cadre ne prouve pas la convergence mathématique. Un enregistrement sans champs requis est math:UnderspecifiedConvergence."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This represents the supplied convergence assertion and its explicit frame. At least one target and exactly one typed mode are required; these restrictions impose no maximum number of targets. The record does not calculate a limit, check mode applicability or prove agreement with a summand or sequence body."
+msgstr "Cet objet représente l’assertion de convergence fournie et son cadre explicite. Au moins une cible et exactement un mode typé sont requis ; ces restrictions n’imposent pas de nombre maximal de cibles. L’enregistrement ne calcule pas de limite, ne contrôle pas l’applicabilité du mode et ne prouve pas l’accord avec un terme ou un corps de suite."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaConvergence in series-convergent.ttl names zetaValue and absoluteConvergence. The named target and mode record the supplied claim; they are not a numerical derivation of the series sum."
+msgstr "zetaConvergence dans series-convergent.ttl nomme zetaValue et absoluteConvergence. La cible et le mode nommés consignent l’affirmation fournie ; ils ne sont pas une dérivation numérique de la somme de la série."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when retaining a supported convergence statement with its target and actual notion of convergence, including distinct supplied statements in different modes."
+msgstr "À utiliser pour conserver un énoncé de convergence étayé avec sa cible et sa notion réelle de convergence, notamment des énoncés distincts fournis selon différents modes."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a generic computation status, failure to converge or unknown-answer container. Do not invent a target or interchangeable mode to satisfy a required record, or infer numerical proof from a valid frame."
+msgstr "Éviter d’en faire un état générique de calcul, d’absence de convergence ou de réponse inconnue. Ne pas inventer de cible ou de mode supposé interchangeable pour satisfaire un enregistrement requis, ni déduire une preuve numérique d’un cadre valide."
+
+msgctxt "https://blackcatinformatics.ca/math/Convergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain convergesTo targets and one convergenceMode typed ConvergenceMode under the existing restrictions and closures. Keep evidence for the assertion separately. Use distinct supported records for different modes rather than placing several modes on one record; an unattached Convergence is still directly constrained."
+msgstr "Conserver les cibles convergesTo et un convergenceMode typé ConvergenceMode selon les restrictions et clôtures existantes. Garder séparément les éléments probants de l’assertion. Utiliser des enregistrements étayés distincts pour différents modes plutôt que plusieurs modes sur un même enregistrement ; une Convergence non attachée reste directement contrainte."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "∑ (summation binder)"
+msgstr "∑ (opérateur de liaison de sommation)"
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The summation binder ∑: the math:operator a math:Series binding expression applies, binding the summation index over the summand. A shadowed index ∑ᵢ(xᵢ + ∑ᵢ yᵢ) introduces two distinct math:VariableDeclarations. Anchored to the OpenMath arith1 sum symbol."
+msgstr "L’opérateur de liaison de sommation ∑ : le math:operator qu’applique une expression de liaison math:Series, liant l’indice de sommation sur le terme. Un indice masqué ∑ᵢ(xᵢ + ∑ᵢ yᵢ) introduit deux math:VariableDeclaration distinctes. Ancré au symbole sum du dictionnaire OpenMath arith1."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operator is an Operation individual, not the series expression or an infinite-sum evaluator. Native binding retains the supplied operator IRI, one declaration and nonempty indexed operands; it does not pin every Series to this IRI or prove convergence."
+msgstr "L’opérateur est un individu Operation, non l’expression de série ni un évaluateur de somme infinie. La liaison native conserve l’IRI d’opérateur fournie, une déclaration et des opérandes indexés non vides ; elle ne fixe pas chaque Series à cette IRI et ne prouve pas la convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "The geometricSeries fixture uses operator summationBinder, boundVariable nVar and an index-zero slot naming geometricTerm. A second binder using the same displayed n would need its own declaration identity for lexical shadowing."
+msgstr "La fixture geometricSeries utilise operator summationBinder, boundVariable nVar et un emplacement d’indice zéro nommant geometricTerm. Une seconde liaison affichant le même n aurait besoin de sa propre identité de déclaration pour le masquage lexical."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the supplied operator identity for a summation binder, retaining the distinct series node, index declaration and structured body."
+msgstr "À utiliser comme identité d’opérateur fournie pour une liaison de sommation, en conservant le nœud de série distinct, la déclaration d’indice et le corps structuré."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating its glyph as a bound variable, merging declarations because their labels match, requiring a single body slot, or assuming a scalar arithmetic profile evaluates the infinite sum."
+msgstr "Éviter de traiter son glyphe comme une variable liée, de fusionner des déclarations aux étiquettes identiques, d’exiger un seul emplacement de corps ou de supposer qu’un profil arithmétique scalaire évalue la somme infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/summationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For direct AST use, supply concrete BindingExpression typing, one operator, one boundVariable declaration and contiguous nonnegative zero-based body slots. One body lowers bare; several become an operator application inside the binder. Preserve declaration domain or its untyped-sort fallback separately from free-variable variableDomain context."
+msgstr "Pour un usage direct de l’AST, fournir le type concret BindingExpression, un opérateur, une déclaration boundVariable et des emplacements de corps contigus, non négatifs et indexés à partir de zéro. Un seul corps est abaissé sans enveloppe ; plusieurs deviennent une application d’opérateur dans la liaison. Préserver domain sur la déclaration ou sa sorte non typée par défaut, séparément du contexte variableDomain des variables libres."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "series term"
+msgstr "terme de série"
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Series to its general term aₙ — the summand, a math:MathematicalExpression indexed by the bound summation variable. Domain math:Series, range math:MathematicalExpression (stated in prose). Every series names its general term."
+msgstr "Relie une math:Series à son terme général aₙ : le terme à sommer, une math:MathematicalExpression indexée par la variable de sommation liée. Domaine math:Series, portée math:MathematicalExpression (énoncés en prose). Chaque série nomme son terme général."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names a summand, not a partial sum or convergence target. The existing Series contract requires at least one Thing target with no maximum imposed here. Native binder structure instead follows indexed body slots; it does not establish equality between those bodies and seriesTerm."
+msgstr "Cette propriété nomme un terme à sommer, non une somme partielle ni une cible de convergence. Le contrat existant de Series exige au moins une cible Thing sans maximum imposé ici. La structure native de liaison suit plutôt les emplacements de corps indexés ; elle n’établit pas l’égalité entre ces corps et seriesTerm."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaSeries explicitly names zetaTerm both through seriesTerm and through its body slot. zetaTerm is a SymbolReference resolving to zetaTermSymbol; a named summand is not an evaluated series sum."
+msgstr "zetaSeries nomme explicitement zetaTerm par seriesTerm et par son emplacement de corps. zetaTerm est une SymbolReference résolue vers zetaTermSymbol ; un terme nommé n’est pas une somme de série évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's general summand expression with its actual bound-index meaning and concrete expression form."
+msgstr "À utiliser pour conserver l’expression source du terme général avec son sens réel d’indice lié et sa forme concrète d’expression."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at the sum, mode or bound declaration, or using a displayed formula string as a replacement for a structured body. A vanishing summand alone is insufficient evidence of series convergence."
+msgstr "Éviter de la faire pointer vers la somme, le mode ou la déclaration liée, ou de remplacer un corps structuré par une chaîne de formule affichée. Un terme qui tend vers zéro ne suffit pas à établir la convergence de la série."
+
+msgctxt "https://blackcatinformatics.ca/math/seriesTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied general term through seriesTerm under the existing required path. Preserve the indexed body and declaration links separately, and report unsupported or inconsistent source structure without claiming that this descriptive edge supplies native body semantics."
+msgstr "Conserver le terme général fourni par seriesTerm selon le chemin requis existant. Préserver séparément les liens de corps indexé et de déclaration, et signaler une structure source non prise en charge ou incohérente sans prétendre que cette arête descriptive fournit la sémantique native du corps."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has convergence"
+msgstr "a pour convergence"
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). Their GMEOW record contracts require at least one such link, and the linked convergence record requires a target and mode (math:UnderspecifiedConvergence). The link retains a supplied convergence assertion; it does not calculate or establish convergence."
+msgstr "Relie une math:Series ou math:Sequence à la math:Convergence décrivant sa cible de convergence et son mode. Domaine une math:Series ou math:Sequence, portée math:Convergence (énoncés en prose). Leurs contrats d’enregistrement GMEOW exigent au moins un tel lien, et l’enregistrement lié exige une cible et un mode (math:UnderspecifiedConvergence). Le lien conserve une assertion de convergence fournie ; il ne calcule ni n’établit la convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The required link is unconditional for records typed Sequence or Series in the current contract, not guarded by a separate convergent marker. It restricts admitted records without proving that all mathematical sequences or series converge. Multiple supported convergence records are permitted; these restrictions impose no maximum number of links."
+msgstr "Le lien requis est inconditionnel pour les enregistrements typés Sequence ou Series dans le contrat actuel, sans garde par un marqueur convergent distinct. Il limite les enregistrements admis sans prouver que toute suite ou série mathématique converge. Plusieurs enregistrements de convergence étayés sont permis ; ces restrictions n’imposent pas de nombre maximal de liens."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "harmonicSequence supplies a supported named convergence record, while sequence-missing-convergence.ttl omits the link and is a declared refusal case. The missing link is not repaired by guessing a target or erasing Sequence typing."
+msgstr "harmonicSequence fournit un enregistrement de convergence nommé étayé, tandis que sequence-missing-convergence.ttl omet le lien et constitue un cas déclaré de refus. Le lien manquant ne se corrige pas en devinant une cible ou en effaçant le type Sequence."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a source-supported convergence assertion to the sequence or series it concerns, preserving target, mode and provenance."
+msgstr "À utiliser pour relier une assertion de convergence étayée par la source à la suite ou série concernée, en conservant cible, mode et provenance."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a link for an unknown or divergent case, treating an output-status marker as Convergence, or claiming that a required link itself establishes mathematical truth. Preserve unsupported input visibly rather than dropping it."
+msgstr "Éviter d’inventer un lien pour un cas inconnu ou divergent, de traiter un marqueur d’état de sortie comme Convergence ou de prétendre que le lien requis établit à lui seul une vérité mathématique. Préserver visiblement l’entrée non prise en charge plutôt que la supprimer."
+
+msgctxt "https://blackcatinformatics.ca/math/hasConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each supplied assertion to a Convergence record with its required target and typed mode, retaining multiple records when supported. If no truthful assertion is available, report that the existing record contract cannot admit the case without changing or fabricating its meaning."
+msgstr "Lier chaque assertion fournie à un enregistrement Convergence avec sa cible et son mode typé requis, en conservant plusieurs enregistrements lorsqu’ils sont étayés. Si aucune assertion véridique n’est disponible, signaler que le contrat existant ne peut admettre le cas sans modifier ou fabriquer son sens."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "converges to"
+msgstr "converge vers"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Convergence to the value or expression its sequence/series converges to — a math:Number, a limit function, or a distribution. Domain math:Convergence, range a math:MathematicalObject or value (stated in prose). Every convergence names what it converges to."
+msgstr "Relie une math:Convergence à la valeur ou expression vers laquelle sa suite ou série converge : un math:Number, une fonction limite ou une distribution. Domaine math:Convergence, portée une math:MathematicalObject ou une valeur (énoncés en prose). Chaque convergence nomme sa cible."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the asserted target, not a summand, mode or computed answer. The current record requires at least one Thing target and does not impose a target maximum; the link does not decode a named value or verify its mathematical relation to the source sequence or series."
+msgstr "Cette propriété nomme la cible affirmée, non un terme à sommer, un mode ou une réponse calculée. L’enregistrement actuel exige au moins une cible Thing sans imposer de maximum ; le lien ne décode pas une valeur nommée et ne vérifie pas sa relation mathématique avec la suite ou série source."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "harmonicSequenceConvergence names zeroValue through convergesTo. zeroValue is a named MathematicalObject; its label identifies the intended zero without itself supplying a numeric evaluation proof."
+msgstr "harmonicSequenceConvergence nomme zeroValue par convergesTo. zeroValue est un MathematicalObject nommé ; son étiquette identifie le zéro visé sans fournir elle-même une preuve d’évaluation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's convergence target, preserving whether it is a number, function or distribution and the context needed to interpret that claim."
+msgstr "À utiliser pour conserver la cible de convergence source, en préservant son caractère de nombre, fonction ou distribution et le contexte nécessaire à l’interprétation de l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing an absent target with a convenient constant, confusing the target with a partial sum or mode, or requiring different RDF resources merely because two mathematical roles differ. Equal values or shared resources need not be erroneous."
+msgstr "Éviter de remplacer une cible absente par une constante commode, de confondre la cible avec une somme partielle ou un mode, ou d’exiger des ressources RDF différentes pour des rôles mathématiques distincts. Des valeurs égales ou des ressources partagées ne sont pas nécessairement erronées."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supported convergesTo targets on the Convergence record under its existing required path and closure. Retain the actual target representation and evidence, and inspect the report rather than assuming a named object is a validated numeric scalar."
+msgstr "Conserver les cibles convergesTo étayées sur l’enregistrement Convergence selon le chemin requis et la clôture existants. Préserver la représentation réelle de la cible et les éléments probants, puis examiner le rapport plutôt que de supposer qu’un objet nommé est un scalaire numérique validé."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "convergence mode"
+msgstr "Mode de convergence"
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."
+msgstr "Relie une math:Convergence à son math:ConvergenceMode : ponctuel, uniforme, absolu, conditionnel, en mesure, presque partout, en norme Lᵖ ou en loi. Domaine math:Convergence, portée math:ConvergenceMode (énoncés en prose). Le mode est requis ; une convergence sans mode déclaré est mal formée (math:UnderspecifiedConvergence)."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each Convergence record requires exactly one typed mode. The mode vocabulary is open, and the supplied markers denote different mathematical notions rather than interchangeable labels. A structurally admitted link does not prove applicability, mode implications or convergence; retain p, measure and function-space context where relevant."
+msgstr "Chaque enregistrement Convergence exige exactement un mode typé. Le vocabulaire des modes est ouvert, et les marqueurs fournis désignent des notions mathématiques différentes plutôt que des étiquettes interchangeables. Un lien admis structurellement ne prouve ni l’applicabilité, ni les implications entre modes, ni la convergence ; conserver le contexte de p, de mesure et d’espace fonctionnel lorsqu’il importe."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "zetaConvergence supplies absoluteConvergence through convergenceMode. That marker records the supplied claim about the series, while a separate supported record would be needed to retain another mode without violating the one-mode frame."
+msgstr "zetaConvergence fournit absoluteConvergence par convergenceMode. Ce marqueur consigne l’affirmation fournie sur la série ; un autre enregistrement étayé serait nécessaire pour conserver un autre mode sans violer le cadre à mode unique."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the precise convergence notion asserted for a supplied record, distinguishing scalar-series, function-space and probabilistic meanings."
+msgstr "À utiliser pour préserver la notion précise de convergence affirmée pour un enregistrement fourni, en distinguant les sens des séries scalaires, des espaces fonctionnels et des probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a stronger or more convenient mode without evidence, treating pointwise and almost-everywhere as equivalent, or assigning several modes to one record. Do not infer numerical convergence from the mode's type."
+msgstr "Éviter de choisir un mode plus fort ou plus commode sans éléments probants, de traiter ponctuel et presque partout comme équivalents ou d’attribuer plusieurs modes à un même enregistrement. Ne pas déduire une convergence numérique du type du mode."
+
+msgctxt "https://blackcatinformatics.ca/math/convergenceMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one ConvergenceMode target on each Convergence under the existing minimum, maxima, range and closure. Preserve separate supported records for distinct modes and retain their mathematical hypotheses; no new implication rule or closed enumeration follows from this link."
+msgstr "Fournir une cible ConvergenceMode sur chaque Convergence selon le minimum, les maxima, la portée et la clôture existants. Préserver des enregistrements étayés distincts pour des modes différents et leurs hypothèses mathématiques ; ce lien n’introduit aucune nouvelle règle d’implication ni énumération fermée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Convergence"
+msgstr "Convergence sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure class associated with the existing frame restrictions on math:Convergence, math:Series and math:Sequence. Those restrictions require a convergence target and mode, a series term and a convergence record, or a sequence's convergence record, respectively; missing required data or a conflicting mode frame is ill-formed. A standalone math:Convergence is constrained directly. This failure does not decide whether the mathematical sequence or series diverges."
+msgstr "La classe d’échec associée aux restrictions existantes du cadre de math:Convergence, math:Series et math:Sequence. Ces restrictions exigent respectivement une cible et un mode de convergence, un terme de série et un enregistrement de convergence, ou l’enregistrement de convergence d’une suite ; des données requises absentes ou un cadre de mode conflictuel sont mal formés. Une math:Convergence autonome est directement contrainte. Cet échec ne décide pas si la suite ou série mathématique diverge."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The failure belongs directly to three class frames, not just to a linked convergence missing its mode. A standalone Convergence can fail its target/mode obligations; Series and Sequence can fail required record paths. Other Function, binder and slot diagnostics remain distinct, and no failure-instance minting is presumed."
+msgstr "L’échec relève directement de trois cadres de classe, non du seul mode absent d’une convergence liée. Une Convergence autonome peut violer ses obligations de cible et de mode ; Series et Sequence peuvent violer les chemins de leurs enregistrements requis. Les autres diagnostics Function, de liaison et d’emplacement restent distincts, sans présumer la création d’une instance d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "sequence-missing-convergence.ttl supplies domain and codomain but no hasConvergence; its control explicitly expects the isolated frame finding. The series-missing-convergence control instead disclaims isolation because that fixture also omits bound declaration and body. These are source expectations, not executed convergence proofs."
+msgstr "sequence-missing-convergence.ttl fournit domaine et codomaine mais aucun hasConvergence ; son contrôle attend explicitement le constat de cadre isolé. Le contrôle series-missing-convergence ne prétend au contraire pas à l’isolation, car cette fixture omet aussi déclaration liée et corps. Il s’agit d’attentes sources, non de preuves de convergence exécutées."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings actually associated with the existing Convergence, Series or Sequence restrictions, preserving the reported subject, missing path, mode conflict and other simultaneous diagnostics."
+msgstr "À utiliser pour les constats réellement associés aux restrictions existantes de Convergence, Series ou Sequence, en conservant le sujet signalé, le chemin absent, le conflit de mode et les autres diagnostics simultanés."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a frame error with mathematical divergence or repairing it with unsupported convergence claims. Do not suppress other binder/function failures or assume a missing mode is the only possible cause of this class."
+msgstr "Éviter d’assimiler une erreur de cadre à une divergence mathématique ou de la corriger par des affirmations de convergence non étayées. Ne pas supprimer les autres échecs de liaison ou de fonction, ni supposer qu’un mode absent est la seule cause possible de cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."
+msgstr "Examiner le rapport de validation sélectionné selon les restrictions et clôtures existantes des classes, y compris les constats directs sur Convergence sans lien hasConvergence entrant. Corriger uniquement les champs étayés par la source ; sinon signaler la limite d’admission. La validation générée dérive de ces sources, sans nouvelle règle de forme ni décision numérique de convergence."
