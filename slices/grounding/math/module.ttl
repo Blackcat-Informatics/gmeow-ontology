@@ -2774,7 +2774,7 @@ math:MeasurableSet
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Measurable Set"@x-gmeow-english ;
-    skos:definition "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."@x-gmeow-english ;
+    skos:definition "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets that the σ-algebra collects into a family closed under complement and countable union, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it to name one measurable piece of a space — the individual argument A of an evaluation μ(A), the region whose mass a math:MeasureEvaluation reads."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for the whole ground (X, Σ) a measure acts over (that is math:MeasurableSpace); a measurable set is one element of the σ-algebra, not the space itself."@x-gmeow-english ;
@@ -18302,3 +18302,27 @@ math:measuredSubset
 
 math:measureResult
     skos:scopeNote "The existing MeasureResultNonNegativeConstraint admits finite non-negative numeric literals or exactly PositiveInfinity. An arbitrary IRI, NegativeInfinity, NaN or floating INF is not a valid result. Recording an admitted value does not compute it or prove that it is the correct mass of the named subset."@x-gmeow-english .
+
+math:MeasurableSpace
+    skos:scopeNote "This is the structured-space role (X, Σ), pairing an underlying set X with a family Σ of measurable subsets. The roles of space, underlying set, family and member subset have different meanings; those conceptual distinctions do not require pairwise distinct RDF resources or declare the classes disjoint."@x-gmeow-english ;
+    skos:example "The existing configSpace example links configSet and configSigma through measurableSpaceOf, with their Set and SigmaAlgebra types supplied separately. This names the components without enumerating measurable subsets or proving the σ-algebra laws."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied measurable-space pairing used by a measure or integral, retaining the actual underlying set, σ-algebra and source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this role for an underlying set or one measurable region, treating a class label as a closure proof, or inferring a probability measure or normalization from measurable-space typing alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied component links through measurableSpaceOf and the source's measureOn or integrationDomain links where present. Preserve missing-component uncertainty rather than inventing a set or algebra from a label. This guidance supplies no new component-count gate or specialized native computation."@x-gmeow-english .
+
+math:SigmaAlgebra
+    skos:scopeNote "The closure laws concern the family of subsets over its underlying set, with complements relative to that set. A member subset does not carry those family laws by itself. A few listed subsets or a SigmaAlgebra type alone do not prove the complete countable-closure conditions."@x-gmeow-english ;
+    skos:example "The existing configSigma resource is named as a SigmaAlgebra beside configSet in the configSpace example. Its Borel label does not supply a Borel construction, a member enumeration or a proof that every named region belongs to it."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the actual supplied family of measurable subsets for a given underlying set, including a symbolic family whose members are not extensionally enumerated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting a power-set or Borel construction from a label alone, treating one subset as evidence of family closure, or assuming classification proves measurability, measure evaluation or integral admission."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual family resource and its supplied measurableSpaceOf component link. Keep source evidence about its underlying set and members on the existing owning surfaces. The shared component relation does not supply a dedicated algebra-membership path, a unique underlying-set role or a native closure proof."@x-gmeow-english .
+
+math:MeasurableSet
+    skos:scopeNote "This is the member-subset role A within Σ. Closure under complement and countable union belongs to the family Σ. Both the whole underlying set X and the empty subset can be measurable members. The existing example gives only a subset/evaluation link, not a complete measure evaluation or membership proof."@x-gmeow-english .
+
+math:measurableSpaceOf
+    skos:scopeNote "This records component links from the structured space to its underlying-set or σ-algebra role. The targets are unordered; writing one edge first assigns no position or role. Conceptual component roles do not impose resource inequality, class disjointness or a functional or exactly-two cardinality rule."@x-gmeow-english ;
+    skos:example "An edge to a supplied Set component and another to a supplied SigmaAlgebra component illustrate the two conceptual roles. These ordinary component links are not an RDF list and establish neither subset membership nor a complete mathematical proof."@x-gmeow-english ;
+    gmeow:useWhen "Use this existing relation to retain the actual supplied components of a named MeasurableSpace, without inventing parallel role properties or positional cells."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating these edges as a list, imposing a new exact count, inferring a component's role from written order, or using a component edge as a claim that its target is a member subset A of Σ."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."@x-gmeow-english .

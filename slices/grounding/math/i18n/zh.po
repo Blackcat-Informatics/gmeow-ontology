@@ -1128,13 +1128,13 @@ msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
 msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an OWL ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
 msgstr "将一个 math:ConformalCompactification 关联到其共形重标度因子 Ω——一个正函数，对度量作乘法，使无界的度量距离在边界处变为有限，同时保留角度。定义域 math:ConformalCompactification，值域为一个正的 math:Function 或 math:Quantity（一个个体，绝非裸字面量——因而是一个 OWL ObjectProperty 而非数据类型属性）（以散文说明）。每个共形紧化恰命名一个；缺少它的一个是病态的（math:UnderspecifiedCompactification）。"
 
-msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measurable Set"
 msgstr "可测集"
 
-msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
-msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
-msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的、对补运算和可数并封闭的子集之一，因而是一个 math:Measure 可以赋予质量的那种子集。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets that the σ-algebra collects into a family closed under complement and countable union, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的子集之一，所收集的整个子集族对补运算和可数并封闭，因而是一个 math:Measure 可以赋予质量的那种子集。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure Evaluation"
@@ -11614,3 +11614,107 @@ msgstr "不要在此存放 math:NegativeInfinity；测度是非负的，因此�
 msgctxt "https://blackcatinformatics.ca/math/measureResult|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Set it on a math:MeasureEvaluation to a non-negative numeric literal or math:PositiveInfinity; its rdf:Property typing spans literal and the pole individual."
 msgstr "在 math:MeasureEvaluation 上以此属性指定非负数值字面量或 math:PositiveInfinity；其 rdf:Property 类型涵盖字面量和极点个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Measurable Space"
+msgstr "可测空间"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measurable space (X, Σ): a set X together with a σ-algebra Σ of its measurable subsets. Names its underlying set and its σ-algebra through math:measurableSpaceOf. The domain a math:Measure assigns mass over and the domain a math:Integral integrates over; shared with the probability charter, where a probability space is a measurable space carrying a probability measure."
+msgstr "可测空间 (X, Σ)：集合 X 连同由其可测子集构成的 σ-代数 Σ。它通过 math:measurableSpaceOf 指定底层集合及 σ-代数。它是 math:Measure 赋予测度值的空间，也是 math:Integral 积分所涉及的空间；此概念与概率体系共享，其中概率空间是具有概率测度的可测空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the structured-space role (X, Σ), pairing an underlying set X with a family Σ of measurable subsets. The roles of space, underlying set, family and member subset have different meanings; those conceptual distinctions do not require pairwise distinct RDF resources or declare the classes disjoint."
+msgstr "这是结构化空间 (X, Σ) 的角色，将底层集合 X 与可测子集族 Σ 配对。空间、底层集合、集合族和成员子集这些角色的含义不同；概念上的区别并不要求 RDF 资源两两不同，也不声明这些类互斥。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing configSpace example links configSet and configSigma through measurableSpaceOf, with their Set and SigmaAlgebra types supplied separately. This names the components without enumerating measurable subsets or proving the σ-algebra laws."
+msgstr "现有 configSpace 示例通过 measurableSpaceOf 链接 configSet 和 configSigma，并分别提供其 Set 和 SigmaAlgebra 类型。这指定了组成部分，但不枚举可测子集，也不证明 σ-代数法则。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied measurable-space pairing used by a measure or integral, retaining the actual underlying set, σ-algebra and source evidence."
+msgstr "用于来源提供并由测度或积分使用的可测空间配对，保留实际底层集合、σ-代数及来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting this role for an underlying set or one measurable region, treating a class label as a closure proof, or inferring a probability measure or normalization from measurable-space typing alone."
+msgstr "不要以此角色替代底层集合或某个可测区域，不要将类标签当作封闭性证明，也不要仅凭可测空间类型标注推断存在概率测度或归一化。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied component links through measurableSpaceOf and the source's measureOn or integrationDomain links where present. Preserve missing-component uncertainty rather than inventing a set or algebra from a label. This guidance supplies no new component-count gate or specialized native computation."
+msgstr "保留通过 measurableSpaceOf 提供的组成部分链接，以及来源中已有的 measureOn 或 integrationDomain 链接。保留组成部分缺失时的不确定性，不要从标签编造集合或代数。本指导不提供新的组成部分数量检查或专门的原生计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "σ-Algebra"
+msgstr "σ-代数"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A σ-algebra over a set: a collection of subsets closed under complement and countable union (and hence countable intersection), containing the whole set. The measurable sets of a math:MeasurableSpace — the events a math:Measure can assign mass to. Shared with the probability charter, where the σ-algebra is the event space of a probability space."
+msgstr "集合上的 σ-代数：对子集取补及可数并封闭、因而也对可数交封闭，并包含整个集合的子集族。它收集 math:MeasurableSpace 的可测集，即 math:Measure 能赋予测度值的事件。此概念与概率体系共享，其中 σ-代数是概率空间的事件空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The closure laws concern the family of subsets over its underlying set, with complements relative to that set. A member subset does not carry those family laws by itself. A few listed subsets or a SigmaAlgebra type alone do not prove the complete countable-closure conditions."
+msgstr "封闭性法则适用于底层集合上的子集族，补集相对于该底层集合取值。单个成员子集本身不承载这些集合族法则。列出少数子集或仅有 SigmaAlgebra 类型，并不证明完整的可数封闭性条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing configSigma resource is named as a SigmaAlgebra beside configSet in the configSpace example. Its Borel label does not supply a Borel construction, a member enumeration or a proof that every named region belongs to it."
+msgstr "在现有 configSpace 示例中，configSigma 与 configSet 一同被指定为组成部分，并具有 SigmaAlgebra 类型。其 Borel 标签不提供 Borel 构造、成员枚举，也不证明每个已命名区域都属于它。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual supplied family of measurable subsets for a given underlying set, including a symbolic family whose members are not extensionally enumerated."
+msgstr "用于指定给定底层集合上实际提供的可测子集族，包括未逐个枚举成员的符号化集合族。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting a power-set or Borel construction from a label alone, treating one subset as evidence of family closure, or assuming classification proves measurability, measure evaluation or integral admission."
+msgstr "不要仅从标签选择幂集或 Borel 构造，不要将单个子集当作集合族封闭性的证据，也不要假定分类证明可测性、测度求值或积分准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/SigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual family resource and its supplied measurableSpaceOf component link. Keep source evidence about its underlying set and members on the existing owning surfaces. The shared component relation does not supply a dedicated algebra-membership path, a unique underlying-set role or a native closure proof."
+msgstr "保留实际集合族资源及来源提供的 measurableSpaceOf 组成部分链接。在现有归属表述面上保留关于底层集合和成员的来源证据。共享的组成部分关系不提供专用的代数成员路径、唯一底层集合角色或原生封闭性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the member-subset role A within Σ. Closure under complement and countable union belongs to the family Σ. Both the whole underlying set X and the empty subset can be measurable members. The existing example gives only a subset/evaluation link, not a complete measure evaluation or membership proof."
+msgstr "这是 Σ 中成员子集 A 的角色。对补运算和可数并的封闭性属于集合族 Σ。整个底层集合 X 和空子集都可以是可测成员。现有示例仅给出子集与求值的链接，不是完整测度求值或成员关系证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:ballB2 a math:MeasurableSet . exf:evalB2 math:measuredSubset exf:ballB2 ."
+msgstr "子集链接示例：exf:ballB2 a math:MeasurableSet . exf:evalB2 math:measuredSubset exf:ballB2 ."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name one measurable piece of a space — the individual argument A of an evaluation μ(A), the region whose mass a math:MeasureEvaluation reads."
+msgstr "用于指定空间的一个可测部分，即求值 μ(A) 的个体自变量 A，也是 math:MeasureEvaluation 所读取测度值的区域。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for the whole ground (X, Σ) a measure acts over (that is math:MeasurableSpace); a measurable set is one element of the σ-algebra, not the space itself."
+msgstr "不要将其用于测度作用的整个结构 (X, Σ)（该结构是 math:MeasurableSpace）；可测集是 σ-代数的一个元素，而不是空间结构本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name it as the math:measuredSubset of a math:MeasureEvaluation; in the probability charter the same object is an event."
+msgstr "将其指定为 math:MeasureEvaluation 的 math:measuredSubset；在概率体系中，同一对象是一个事件。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurable space of"
+msgstr "可测空间的组成部分"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MeasurableSpace to its underlying set or its σ-algebra — the components (X, Σ) that constitute it. Domain math:MeasurableSpace, range math:Set or math:SigmaAlgebra (stated in prose)."
+msgstr "将 math:MeasurableSpace 关联到底层集合或其 σ-代数，即构成它的组成部分 (X, Σ)。定义域为 math:MeasurableSpace，值域为 math:Set 或 math:SigmaAlgebra（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records component links from the structured space to its underlying-set or σ-algebra role. The targets are unordered; writing one edge first assigns no position or role. Conceptual component roles do not impose resource inequality, class disjointness or a functional or exactly-two cardinality rule."
+msgstr "此属性记录从结构化空间指向底层集合或 σ-代数角色的组成部分链接。目标无序；先写某条边不赋予位置或角色。概念上的组成部分角色不施加资源不等、类互斥、函数性或恰好两个值的基数规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "An edge to a supplied Set component and another to a supplied SigmaAlgebra component illustrate the two conceptual roles. These ordinary component links are not an RDF list and establish neither subset membership nor a complete mathematical proof."
+msgstr "指向来源 Set 组成部分的一条边与指向来源 SigmaAlgebra 组成部分的另一条边展示两个概念角色。这些普通组成部分链接不是 RDF 列表，既不确立子集成员关系，也不提供完整数学证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use this existing relation to retain the actual supplied components of a named MeasurableSpace, without inventing parallel role properties or positional cells."
+msgstr "使用此现有关系保留已命名 MeasurableSpace 实际提供的组成部分，不编造平行角色属性或位置单元。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating these edges as a list, imposing a new exact count, inferring a component's role from written order, or using a component edge as a claim that its target is a member subset A of Σ."
+msgstr "不要将这些边当作列表，不要施加新的精确数量要求，不要从书写顺序推断组成部分角色，也不要以组成部分边断言目标是 Σ 的成员子集 A。"
+
+msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."
+msgstr "保留来源主体、目标及所提供的类型标注，将组成部分链接与 measureOn、measuredSubset 区分。在现有归属表述面上保留成员关系及包含关系证据。当前声明不通过此属性提供专门的组成部分基数、类型、封闭性或成员关系强制检查。"
