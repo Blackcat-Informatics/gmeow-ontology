@@ -1143,8 +1143,9 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
 	@# frame to the real reasoning segment for an answer identical to the full engine's.
 	@# Digest records bind the exact candidate bytes. Coordinated preparation writes
-	@# them before bundle-dependent parity; this lane must execute all six Node suites
-	@# against the final images and current bundle before quality qualification passes.
+	@# them before bundle-dependent parity; this lane must execute all six Node package
+	@# suites before quality qualification passes. CI also runs console acceptance
+	@# against the committed MCP assets and current bundle.
 	@#
 	@# HEAVY, not per-commit: this release-builds SIX engine crates for wasm32 (the
 	@# four the site dispatches to, plus the console's two MCP segments), runs

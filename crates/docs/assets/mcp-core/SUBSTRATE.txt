@@ -1,1 +1,1 @@
-purrdf 2.0.0; wasm-bindgen 0.2.125; binaryen version_130
+purrdf 3.0.1; purrdf.git-rev 5d25c3a7d8e76064aa716e3e168d9f443aba7b13; wasm-bindgen 0.2.129; binaryen version_130

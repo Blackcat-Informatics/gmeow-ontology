@@ -56,7 +56,8 @@ lane over the fresh package, copies the four engine artifacts here, re-pins
 Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
 images and record candidate digests and exact substrate identities. Those records
 alone do not attest runtime parity. After current-bundle witness refresh, ordinary
-PR CI must pass all six Node lanes and console acceptance on the committed outputs.
+PR CI must pass all six Node package lanes and shipped-console acceptance for the
+final commit.
 
 Three gates guard against a stale or broken blob:
 

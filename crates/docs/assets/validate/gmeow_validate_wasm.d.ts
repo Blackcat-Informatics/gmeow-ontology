@@ -22,10 +22,9 @@
 export function bundle_dataset(gts: Uint8Array): string;
 
 /**
- * The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
- * hex. Lets a JS caller pin the EXACT codebook their document was validated against — the
- * same content address the codec's codebook-digest layer and the `gmeow gmn digest` CLI
- * report over the carrier bytes.
+ * The BLAKE3 digest of the original GMN-1 source document (`module.ttl`), as
+ * lowercase hex. The prepared native packet preserves this original-byte identity,
+ * so a JS caller can pin the source their document was validated against.
  */
 export function gmn_codebook_digest(): string;
 
@@ -34,8 +33,8 @@ export function gmn_codebook_digest(): string;
  * verdict.
  *
  * The `bytes` are the raw GMN-1 surface text (the `@gmn{…}` header plus one record per
- * line). They are read through [`gmn1_read`] — the production codec's reader — against the
- * dictionary/glyph registry resolved from the embedded [`GMN_CODEBOOK_TTL`]. Because the
+ * line). They are read through [`gmeow_lang_bridge::gmn1_read`] — the production codec's reader — against the
+ * dictionary/glyph registry hydrated from the embedded native packet. Because the
  * codebook is embedded, glyphs, dictionary aliases, and prefixed terms are actually
  * RESOLVED: a document whose grammar is well-formed but which names a term the codebook
  * does not cover is rejected as `lang:GmnUncoveredTerm`, and every other codec-tier
@@ -53,8 +52,8 @@ export function gmn_codebook_digest(): string;
  * # Errors
  *
  * Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
- * failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
- * a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+ * failure of the embedded native codebook is not a runtime condition — its complete
+ * tables are a pinned build artifact (see [`embedded_codebook`])
  * — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
  * degradation to a syntax-only check.
  */
