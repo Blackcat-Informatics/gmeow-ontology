@@ -735,6 +735,32 @@ fn extract_annotation_axioms(
     axioms
 }
 
+/// Lift only the selected default-graph annotation surface into canonical IR axioms.
+///
+/// Reuses the full compiler's annotation extractor, literal admission and diagnostics.
+/// Named annotation subjects and literal objects need no structural blank-node identity,
+/// so this operation neither canonicalizes the source graph nor constructs a logic program.
+/// Full source compilation and its diagnostic publication remain separate obligations.
+/// A nonempty source with no selected annotations has an empty, valid selection.
+///
+/// # Errors
+/// Returns the existing frontend error for an empty source. Recoverable annotation
+/// diagnostics retain their original severity, code, message and subject in the result.
+pub fn lift_annotation_axioms(
+    dataset: &RdfDataset,
+) -> Result<(Vec<LogicAxiom>, Vec<Diagnostic>), Diag> {
+    require_nonempty_source(dataset)?;
+    let mut diagnostics = Vec::new();
+    let mut seen = BTreeSet::new();
+    let mut axioms: Vec<LogicAxiom> = extract_annotation_axioms(dataset, &mut diagnostics)
+        .into_iter()
+        .map(|emission| emission.axiom)
+        .filter(|axiom| seen.insert(content_dedup_key(axiom)))
+        .collect();
+    axioms.sort_by_cached_key(LogicAxiom::sort_key);
+    Ok((axioms, diagnostics))
+}
+
 /// Lower one authored `owner <predicate> list` statement into the single IR list
 /// encoding: the constructor edge to the head cell (sourced from the authored statement)
 /// plus the `rdf:first`/`rdf:rest` cells (sourced from their class owner for class

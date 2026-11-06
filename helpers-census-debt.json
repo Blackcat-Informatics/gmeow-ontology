@@ -1184,8 +1184,7 @@
    "kind": "body",
    "members": [
     "gmeow_pipeline::stages::constraint_shapes::ConstraintShapesStage::input_files",
-    "gmeow_pipeline::stages::frame_shapes::FrameShapesStage::input_files",
-    "gmeow_pipeline::stages::skos_surface::SkosSurfaceStage::input_files"
+    "gmeow_pipeline::stages::frame_shapes::FrameShapesStage::input_files"
    ]
   },
   {

@@ -4,9 +4,9 @@
 //! The `skos-surface` export leaf (P4): the generated SKOS concept-scheme surface
 //! (AC1/R3).
 //!
-//! A pure projection of the lifted [`NodeKind::Annotation`] axioms: every
+//! A pure projection of lifted [`gmeow_logic_compile::ir::NodeKind::Annotation`] axioms: every
 //! GMEOW-authored, carrier-tagged (`@x-gmeow-english`) RDFS/SKOS annotation the
-//! `logic:` frontend lifts (`parse_logic_dataset`) is re-emitted as a triple on the
+//! `logic:` annotation frontend lifts is re-emitted as a triple on the
 //! authored term, and each term is bound into ONE minted `skos:ConceptScheme`
 //! individual. The surface is a pure function of the lifted axiom set (AC1
 //! anti-drift): [`render_skos_surface_from_axioms`] never re-reads the source
@@ -19,7 +19,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
-use gmeow_logic_compile::ir::{LogicAxiom, NodeKind};
+use gmeow_logic_compile::ir::LogicAxiom;
 use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, serialize_dataset};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -201,20 +201,15 @@ pub fn render_skos_surface_from_axioms(
 
 /// Render the SKOS concept-scheme surface for the authored corpus at `root`: load the
 /// full authored dataset, lift its RDFS/SKOS annotations into `NodeKind::Annotation`
-/// axioms via the `logic:` frontend, then project through the pure
-/// [`render_skos_surface_from_axioms`].
+/// axioms via the shared annotation frontend, then project through the pure
+/// [`render_skos_surface_from_axioms`]. Structural compilation remains independent.
 pub fn render_skos_surface(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let dataset = crate::stages::source_load::load_authored_dataset(root)?;
-    let (program, _diags) =
-        gmeow_logic_compile::frontend::parse_logic_dataset(dataset.as_ref(), None)
-            .map_err(|e| parse_err(format!("skos-surface: logic lift failed: {e}")))?;
-    let mut annotations: Vec<LogicAxiom> = program
-        .axioms
-        .iter()
-        .filter(|a| a.node_kind == NodeKind::Annotation)
-        .cloned()
-        .collect();
-    annotations.sort_by_key(LogicAxiom::sort_key);
+    // This artifact-only leaf keeps its existing diagnostic contract. Mandatory full
+    // compilation uses the same extractor and owns the durable report/replay outputs.
+    let (annotations, _diagnostics) =
+        gmeow_logic_compile::frontend::lift_annotation_axioms(dataset.as_ref())
+            .map_err(|error| error.with_context("skos-surface: annotation lift"))?;
     render_skos_surface_from_axioms(&annotations)
 }
 
@@ -231,15 +226,15 @@ impl Stage for SkosSurfaceStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "skos_surface.v1"
+        "skos_surface.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // The RDFS/SKOS annotations this leaf lifts ARE in the fold's authored default
-        // graph; declaring the SAME authored sources (root ontology + slice modules) as
-        // cache inputs keeps `consumes() == []` while busting the cache on any authored
-        // annotation change (mirrors `frame_shapes`).
-        let mut files = vec![root.join("ontology").join("gmeow.ttl")];
-        files.extend(crate::stages::source_load::module_files(root)?);
+        // Reuse every actually loaded source, including imports. The root remains a
+        // mandatory input even when authored_files omits its nonexistent path.
+        let mut files = crate::stages::source_load::authored_files(root)?;
+        files.push(root.join("ontology").join("gmeow.ttl"));
+        files.sort();
+        files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {

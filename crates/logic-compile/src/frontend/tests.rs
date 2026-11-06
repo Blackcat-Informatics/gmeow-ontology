@@ -22,6 +22,122 @@ fn parse(ttl: &str) -> (LogicProgram, Vec<Diagnostic>) {
     parse_logic_str(&full, Some("https://example.org/prog".to_owned())).expect("parse ok")
 }
 
+/// The selected surface retains literal facets and flags, matching full compilation.
+#[test]
+fn annotation_lift_preserves_selected_surface_and_full_compiler_parity() {
+    let source = r#"
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+g:Kept rdfs:label "name"@x-gmeow-english ;
+    rdfs:comment "quoted \"value\"\n中"@x-gmeow-english--rtl ;
+    skos:definition "definition"@x-gmeow-english ;
+    skos:prefLabel "preferred"@x-gmeow-english ;
+    skos:altLabel "alternative"@x-gmeow-english ;
+    skos:scopeNote "scope"@x-gmeow-english ;
+    rdfs:label "English"@en, "typed"^^xsd:string ;
+    skos:example "not a selected predicate"@x-gmeow-english ;
+    skos:definition g:NotALiteral .
+_:interior rdfs:label "blank subject"@x-gmeow-english .
+<https://example.org/foreign> rdfs:label "foreign subject"@x-gmeow-english .
+g:graph { g:Kept rdfs:label "named graph"@x-gmeow-english . }
+"#;
+    let dataset = parse_dataset(source.as_bytes(), "application/trig", None)
+        .expect("small annotation source");
+    let (annotations, diagnostics) = lift_annotation_axioms(&dataset).expect("annotation lift");
+    assert_eq!(annotations.len(), 6);
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    let predicates: BTreeSet<_> = annotations
+        .iter()
+        .map(|axiom| axiom.predicate.as_str())
+        .collect();
+    assert_eq!(predicates, ANNOTATION_LIFT_PREDS.iter().copied().collect());
+    for axiom in &annotations {
+        assert_eq!(axiom.subject, "https://blackcatinformatics.ca/gmeow/Kept");
+        assert_eq!(axiom.node_kind, NodeKind::Annotation);
+        assert_eq!(
+            axiom.load_bearing,
+            matches!(
+                axiom.predicate.as_str(),
+                "http://www.w3.org/2000/01/rdf-schema#comment"
+                    | "http://www.w3.org/2004/02/skos/core#definition"
+            )
+        );
+        assert_eq!(axiom.scope, ContextualScope::default());
+        assert!(!axiom.negated);
+        let literal = axiom.obj.as_literal().expect("literal annotation");
+        assert_eq!(literal.language.as_deref(), Some(X_GMEOW_ENGLISH_TAG));
+        assert!(literal.datatype.is_none(), "implied language datatype");
+    }
+    let comment = annotations
+        .iter()
+        .find(|axiom| axiom.predicate.ends_with("#comment"))
+        .expect("retained comment")
+        .obj
+        .as_literal()
+        .expect("literal comment");
+    assert_eq!(comment.lexical_form, "quoted \"value\"\n中");
+    assert_eq!(comment.direction, Some(purrdf::RdfTextDirection::Rtl));
+    assert_eq!(
+        comment.datatype_iri(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+    );
+    let keys: Vec<_> = annotations.iter().map(LogicAxiom::sort_key).collect();
+    assert!(keys.windows(2).all(|pair| pair[0] < pair[1]));
+
+    let (program, full_diagnostics) =
+        parse_logic_dataset(&dataset, None).expect("small full compilation");
+    let compiled: Vec<_> = program
+        .axioms
+        .into_iter()
+        .filter(|axiom| axiom.node_kind == NodeKind::Annotation)
+        .collect();
+    assert_eq!(annotations, compiled);
+    let annotation_diagnostics: Vec<_> = full_diagnostics
+        .into_iter()
+        .filter(|diagnostic| diagnostic.code == "MALFORMED_ANNOTATION")
+        .collect();
+    assert_eq!(diagnostics, annotation_diagnostics);
+}
+
+/// Unrelated structural growth and blank labels cannot alter named annotations.
+#[test]
+fn annotation_lift_is_independent_of_structural_blank_identity() {
+    let annotation = "<https://blackcatinformatics.ca/gmeow/Term> \
+        <http://www.w3.org/2004/02/skos/core#definition> \"retained\"@x-gmeow-english .";
+    let original = format!("{annotation}\n_:left <urn:edge> _:right .");
+    let changed = format!(
+        "_:renamedRight <urn:edge> _:extra .\n{annotation}\n\
+         _:renamedLeft <urn:edge> _:renamedRight .\n_:extra <urn:edge> _:renamedLeft ."
+    );
+    let original = parse_dataset(original.as_bytes(), "text/turtle", None).expect("small source");
+    let changed =
+        parse_dataset(changed.as_bytes(), "text/turtle", None).expect("structural growth");
+    assert_eq!(
+        lift_annotation_axioms(&original).expect("original annotations"),
+        lift_annotation_axioms(&changed).expect("unchanged annotations")
+    );
+}
+
+/// An empty source is refused, while a nonempty source may select no annotations.
+#[test]
+fn annotation_lift_distinguishes_empty_source_from_empty_selection() {
+    let empty = purrdf::RdfDatasetBuilder::new()
+        .freeze()
+        .expect("empty dataset");
+    let error = lift_annotation_axioms(&empty).expect_err("empty source must fail");
+    assert!(
+        error.to_string().contains("Source graph is empty"),
+        "{error}"
+    );
+    let unrelated = parse_dataset(b"<urn:s> <urn:p> <urn:o> .", "text/turtle", None)
+        .expect("nonempty unrelated source");
+    let (annotations, diagnostics) = lift_annotation_axioms(&unrelated).expect("empty selection");
+    assert!(annotations.is_empty());
+    assert!(diagnostics.is_empty());
+}
+
 #[test]
 fn native_structural_typing_extracts_rules_contracts_and_constraints_without_aliasing_domain_types()
 {
