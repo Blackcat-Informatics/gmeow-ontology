@@ -304,11 +304,11 @@ msgctxt "https://blackcatinformatics.ca/math/ExperimentalDesign|skos:definition"
 msgid "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."
 msgstr "Un plan expérimental : l'enregistrement de première classe de la manière dont les unités d'une étude ont été structurées et affectées — un plan complètement randomisé, en blocs, factoriel, croisé ou en parcelles divisées. Une sous-classe de math:MathematicalObject ; conjointement au math:RandomizationScheme qu'il nomme, il enregistre comment les unités ont été affectées aux modalités, de sorte que le plan soit une structure interrogeable plutôt qu'une phrase dans une section de méthodes. Nommer le plan comme objet est ce qui permet de vérifier les conditions de validité d'une analyse au regard de l'affectation qui a réellement produit les données."
 
-msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "extended real line (ℝ̄)"
 msgstr "droite réelle achevée (ℝ̄)"
 
-msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
 msgstr "La droite réelle achevée signée ℝ̄ = ℝ ∪ {−∞, +∞} : le système des nombres réels auquel ses deux pôles sont adjoints. Un individu math:NumberSystem, frère de math:realNumbers et math:complexNumbers, et non une classe — elle réutilise la machinerie des systèmes de nombres plutôt qu'une machinerie parallèle, reliant les réels comme un sous-système (math:realNumbers math:subsystemOf math:ExtendedRealLine) et adjoignant les deux points réels étendus math:PositiveInfinity et math:NegativeInfinity comme ses membres (chacun math:inNumberSystem math:ExtendedRealLine). Comme math:NumberSystem est une sous-classe de math:Set, le système EST l'ensemble de ses points, elle peut donc être le codomaine que parcourt un champ divergent signé — une fonction à valeurs réelles étendues dont la valeur peut filer vers l'un ou l'autre pôle. Distincte de ℂ : ℝ̄ compactifie la droite ordonnée au moyen de deux extrémités signées, elle ne la clôt pas algébriquement ; une valeur dans un emplacement réel étendu signé est un réel fini, +∞ ou −∞ (math:MalformedExtendedReal sinon)."
 
@@ -680,11 +680,11 @@ msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|skos:defin
 msgid "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."
 msgstr "Relie une math:PValue à la famille de comparaisons sur laquelle son ajustement pour la multiplicité est pris — l'ensemble de tests au sein duquel son taux d'erreur est contrôlé. Domaine math:PValue, portée l'objet famille de comparaisons (précisé en prose). La famille cadre l'ajustement : une correction n'a de sens que relativement à la famille de comparaisons sur laquelle elle contrôle le taux d'erreur."
 
-msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "−∞"
 msgstr "−∞"
 
-msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
 msgstr "L'infini négatif comme valeur réelle étendue : le pôle négatif de la droite réelle achevée signée math:ExtendedRealLine, le dual de math:PositiveInfinity. C'est le point réel étendu qui permet de déclarer une quantité non bornée inférieurement — une limite divergeant vers le bas, la borne inférieure d'un ensemble sans minorant — sans littéral fini. Ce n'est PAS un nombre fini (il ne se trouve nulle part dans ℝ) ; PAS une erreur, une exception ou une valeur manquante ; et PAS le résultat indéfini/indéterminé que donnerait math:PositiveInfinity + math:NegativeInfinity ou 0 · ∞ — un réel étendu est un point défini sur ℝ̄, jamais un NaN. Un emplacement réel étendu signé (math:extendedRealValue) contient soit un nombre fini, soit math:PositiveInfinity, soit cet individu."
 
@@ -11832,3 +11832,129 @@ msgstr "Éviter de traiter une dimension absente, une cellule mal formée ou une
 msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."
 msgstr "Suivre les arêtes réelles de rôle et examiner leurs vecteurs d’exposants rationnels résolus. Pour un constat d’homogénéité, comparer les dimensions des opérandes ; pour la composition intégrale, comparer le résultat déclaré à la composition réussie des dimensions de l’intégrande et de la mesure. Corriger la déclaration source en conservant séparément les éléments probants d’entrées absentes, de données mal formées et de lacunes arithmétiques."
+
+# --- Signed extended-real guidance ----------------------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "+∞"
+msgstr "+∞"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on a countably infinite space with all singletons measurable. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal. The positive pole of the signed extended real line math:ExtendedRealLine, adjoined to ℝ through math:inNumberSystem and dual to math:NegativeInfinity."
+msgstr "L’infini positif comme valeur réelle étendue : la masse totale d’une mesure σ-finie mais non finie telle qu’une math:LebesgueMeasure sur la droite ou une math:CountingMeasure sur un espace dénombrablement infini dont tous les singletons sont mesurables. Une math:totalMass est soit un nombre fini non négatif, soit cet individu ; c’est le point réel étendu qui permet de déclarer une mesure infinie sans littéral fini. Le pôle positif de la droite réelle achevée signée math:ExtendedRealLine, adjoint à ℝ par math:inNumberSystem et dual de math:NegativeInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This named individual is the positive pole, not a finite numeric literal, floating INF, NaN or a missing value. The signed extendedRealValue slot admits it by exact pole identity; non-negative measure slots have their own constraints. Naming the pole does not compute a limit or define arithmetic on infinities."
+msgstr "Cet individu nommé est le pôle positif, non un littéral numérique fini, une valeur flottante INF, un NaN ou une valeur absente. L’emplacement signé extendedRealValue l’admet par l’identité exacte du pôle ; les emplacements de mesure non négative ont leurs propres contraintes. Nommer le pôle ne calcule pas de limite et ne définit pas d’arithmétique sur les infinis."
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing volumeMeasure record uses totalMass PositiveInfinity for its whole-space mass while a separate evaluation records a finite subset result. An extendedRealValue edge may also name this same positive pole."
+msgstr "L’enregistrement existant volumeMeasure utilise totalMass PositiveInfinity pour la masse de l’espace entier, tandis qu’une évaluation distincte consigne un résultat fini sur un sous-ensemble. Une arête extendedRealValue peut aussi nommer ce même pôle positif."
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the positive extended-real pole, preserving whether it is a measure value, a signed slot value or a declared limit result."
+msgstr "À utiliser lorsque la source fournit explicitement le pôle réel étendu positif, en conservant son rôle de valeur de mesure, de valeur d’emplacement signé ou de résultat de limite déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a floating infinity, the text +∞, an arbitrary resource with that label or an unknown finite value. Do not infer infinite mass merely because a region is unbounded, or convergence merely because this pole is recorded."
+msgstr "Éviter de lui substituer un infini flottant, le texte +∞, une ressource quelconque portant cette étiquette ou une valeur finie inconnue. Ne pas déduire une masse infinie du seul caractère non borné d’une région, ni une convergence du seul enregistrement de ce pôle."
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the exact math:PositiveInfinity IRI in the value-bearing predicate allowed by the source model. Keep extendedRealValue, totalMass, measureResult and limitResultValue distinct and inspect their existing constraints; do not replace a finite result with the pole to bypass a value check."
+msgstr "Utiliser l’IRI exacte math:PositiveInfinity dans le prédicat porteur de valeur permis par le modèle source. Distinguer extendedRealValue, totalMass, measureResult et limitResultValue et examiner leurs contraintes existantes ; ne pas remplacer un résultat fini par le pôle pour contourner un contrôle de valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The negative pole is an admitted named value of signed extendedRealValue, but not of non-negative measure slots. It is distinct from a finite negative literal, floating -INF, NaN and absence. This representation does not establish a divergence claim or extend an executable arithmetic profile."
+msgstr "Le pôle négatif est une valeur nommée admise de l’emplacement signé extendedRealValue, mais non des emplacements de mesure non négative. Il se distingue d’un littéral négatif fini, d’une valeur flottante -INF, de NaN et de l’absence. Cette représentation n’établit pas une affirmation de divergence et n’étend pas un profil arithmétique exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:divergentField math:extendedRealValue math:NegativeInfinity . This records the supplied negative pole; the edge alone is not a proof that the field diverges downward."
+msgstr "exf:divergentField math:extendedRealValue math:NegativeInfinity . Cette arête consigne le pôle négatif fourni ; elle ne prouve pas à elle seule que le champ diverge vers le bas."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied negative extended-real pole in a signed slot or an outcome-compatible declared limit result, retaining the source evidence for that interpretation."
+msgstr "À utiliser pour un pôle réel étendu négatif explicitement fourni dans un emplacement signé ou dans un résultat de limite déclaré compatible avec son issue, en conservant les éléments probants sources de cette interprétation."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for missing information, an indeterminate expression or a non-negative mass. A negative finite value remains a numeric literal rather than this pole, and a floating -INF is not its RDF identity."
+msgstr "Éviter de l’utiliser pour une information absente, une expression indéterminée ou une masse non négative. Une valeur finie négative reste un littéral numérique plutôt que ce pôle, et une valeur flottante -INF n’est pas son identité RDF."
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the exact math:NegativeInfinity IRI where the signed value contract permits it. For extendedRealValue, retain the supplied edge and inspect ExtendedRealValueConstraint; for a limit result, retain the separate outcome agreement obligations rather than assuming slot admission proves convergence."
+msgstr "Utiliser l’IRI exacte math:NegativeInfinity lorsque le contrat de valeur signée l’autorise. Pour extendedRealValue, conserver l’arête fournie et examiner ExtendedRealValueConstraint ; pour un résultat de limite, conserver les obligations distinctes d’accord avec l’issue plutôt que de supposer que l’admission dans l’emplacement prouve une convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This NumberSystem individual represents ℝ with two signed poles adjoined; it is neither an RDF datatype IRI nor a class to assert on a literal. Finite numeric RDF literals and the two exact named poles form the slot representation, while field structure, convergence and permitted operations remain separate concerns."
+msgstr "Cet individu NumberSystem représente ℝ auquel sont adjoints deux pôles signés ; ce n’est ni une IRI de type de données RDF ni une classe à affirmer sur un littéral. Les littéraux RDF numériques finis et les deux pôles nommés exacts constituent la représentation des emplacements, tandis que la structure de corps, la convergence et les opérations permises restent des questions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#example"
+msgid "PositiveInfinity and NegativeInfinity each name ExtendedRealLine through inNumberSystem, while realNumbers names it through subsystemOf. Those existing membership links do not turn the system IRI into a datatype annotation for a literal."
+msgstr "PositiveInfinity et NegativeInfinity nomment chacun ExtendedRealLine par inNumberSystem, tandis que realNumbers le nomme par subsystemOf. Ces liens d’appartenance existants ne transforment pas l’IRI du système en annotation de type de données pour un littéral."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source's signed extended-real number-system interpretation, or to name ExtendedRealLine itself as a function's codomain, distinguishing it from the finite real system and from the complex numbers."
+msgstr "À utiliser pour conserver l’interprétation source d’un système numérique réel étendu signé, ou pour nommer ExtendedRealLine lui-même comme codomaine d’une fonction, en le distinguant du système réel fini et des nombres complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the system as a datatype suffix, treating it as an algebraically closed field, or inferring executable infinity arithmetic from its membership links. Declaring ExtendedRealLine as a function's codomain does not prove that function's limit behavior."
+msgstr "Éviter d’utiliser le système comme suffixe de type de données, de le traiter comme un corps algébriquement clos ou de déduire une arithmétique exécutable sur les infinis de ses liens d’appartenance. Déclarer ExtendedRealLine comme codomaine d’une fonction ne prouve pas le comportement limite de cette fonction."
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the existing NumberSystem individual and its subsystemOf/inNumberSystem relations. Use extendedRealValue for a supplied signed value with the existing finite-literal-or-poles constraint; keep any function frame, limit outcome and selected arithmetic profile on their own existing surfaces."
+msgstr "Conserver l’individu NumberSystem existant et ses relations subsystemOf/inNumberSystem. Utiliser extendedRealValue pour une valeur signée fournie selon la contrainte existante de littéral fini ou de pôles ; conserver tout cadre de fonction, toute issue de limite et tout profil arithmétique sélectionné sur leurs surfaces existantes propres."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extended-real value"
+msgstr "valeur réelle étendue"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The signed-extended-real value in an extended-real slot — a value on the extended real line ℝ̄ that may be finite or run off to either pole. Range a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Unlike math:totalMass (a non-negative mass), an extended-real value carries a sign, so its finite branch admits negatives. A slot holding anything else is a math:MalformedExtendedReal."
+msgstr "La valeur réelle étendue signée dans un emplacement réel étendu : une valeur sur la droite réelle achevée ℝ̄, finie ou atteignant l’un ou l’autre pôle. Portée : un littéral numérique fini, math:PositiveInfinity ou math:NegativeInfinity (énoncée en prose). Comme math:totalMass, c’est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée comprend à la fois un littéral de type de données (la valeur finie) et un individu (un pôle) : aucun des deux types de propriété DL n’admet les deux ; le supertype RDF porte donc cette portée réelle étendue sans contradiction DL. Contrairement à math:totalMass (une masse non négative), une valeur réelle étendue porte un signe ; sa branche finie admet donc les valeurs négatives. Un emplacement contenant autre chose est une math:MalformedExtendedReal."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ExtendedRealValueConstraint guards every extendedRealValue edge without a subject-class requirement. Its finite branch admits supported well-formed integer/decimal literals or finite float/double literals of either sign; its pole branch names exactly PositiveInfinity or NegativeInfinity. The guard checks supplied values, not required presence, cardinality, arithmetic or convergence, and this guidance claims no native/projection runtime parity."
+msgstr "ExtendedRealValueConstraint garde chaque arête extendedRealValue sans exigence de classe du sujet. Sa branche finie admet les littéraux entiers ou décimaux bien formés pris en charge, ou les littéraux float/double finis de l’un ou l’autre signe ; sa branche de pôles nomme exactement PositiveInfinity ou NegativeInfinity. La garde contrôle les valeurs fournies, non la présence requise, la cardinalité, l’arithmétique ou la convergence, et cette notice n’affirme aucune parité d’exécution entre natif et projection."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:divergentField math:extendedRealValue math:NegativeInfinity ."
+msgstr "exf:divergentField math:extendedRealValue math:NegativeInfinity ."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to carry a signed value on the extended real line ℝ̄ — one that may be finite of either sign or run off to either pole."
+msgstr "À utiliser pour porter une valeur signée sur la droite réelle achevée ℝ̄, qui peut être finie de l’un ou l’autre signe ou atteindre l’un ou l’autre pôle."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for a non-negative mass (use math:totalMass or math:measureResult), and do not put a non-ℝ̄ value in the slot; anything but a finite literal or a pole is math:MalformedExtendedReal."
+msgstr "Ne pas l’utiliser pour une masse non négative (utiliser math:totalMass ou math:measureResult), et ne pas placer de valeur hors de ℝ̄ dans l’emplacement ; toute valeur autre qu’un littéral fini ou un pôle est math:MalformedExtendedReal."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on the value-bearing object to a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; its rdf:Property typing is deliberate, spanning literal and pole individual."
+msgstr "La définir sur l’objet porteur de valeur vers un littéral numérique fini, math:PositiveInfinity ou math:NegativeInfinity ; son type rdf:Property est délibéré, couvrant le littéral et l’individu représentant le pôle."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Extended Real"
+msgstr "Réel étendu mal formé"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a signed-extended-real slot (a value of math:extendedRealValue) holds something that is not a point of the extended real line ℝ̄ — a non-numeric literal, or an IRI that is neither math:PositiveInfinity nor math:NegativeInfinity. A value on ℝ̄ is a finite numeric literal of either sign, math:PositiveInfinity, or math:NegativeInfinity; anything else is ill-formed."
+msgstr "L’échec levé lorsqu’un emplacement réel étendu signé (une valeur de math:extendedRealValue) contient quelque chose qui n’est pas un point de la droite réelle achevée ℝ̄ : un littéral non numérique ou une IRI qui n’est ni math:PositiveInfinity ni math:NegativeInfinity. Une valeur sur ℝ̄ est un littéral numérique fini de l’un ou l’autre signe, math:PositiveInfinity ou math:NegativeInfinity ; toute autre valeur est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing ExtendedRealValueConstraint maps off-contract objects of extendedRealValue edges to this failure, without requiring a subject type. Text, arbitrary IRIs or blank nodes, NaN and floating infinities are not its finite-literal-or-named-poles representation. An absent edge is not tested by that guard, and the report need not mint a failure individual."
+msgstr "La contrainte existante ExtendedRealValueConstraint associe les objets hors contrat des arêtes extendedRealValue à cet échec, sans exiger de type pour le sujet. Le texte, les IRI quelconques ou nœuds anonymes, NaN et les infinis flottants ne font pas partie de sa représentation par littéral fini ou pôles nommés. Une arête absente n’est pas contrôlée par cette garde, et le rapport ne doit pas nécessairement créer un individu d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:badSlot math:extendedRealValue exf:notAPole . # an IRI that is neither pole -> math:MalformedExtendedReal"
+msgstr "exf:badSlot math:extendedRealValue exf:notAPole . # une IRI qui n’est aucun des deux pôles -> math:MalformedExtendedReal"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it as the typed violation object when a signed-extended-real slot (a math:extendedRealValue) holds something off the extended real line ℝ̄ — a non-numeric literal or an IRI that is not one of the two poles."
+msgstr "À utiliser comme objet typé de violation lorsqu’un emplacement réel étendu signé (un math:extendedRealValue) contient une valeur hors de la droite réelle achevée ℝ̄ : un littéral non numérique ou une IRI qui n’est aucun des deux pôles."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not raise it for a legitimate +∞ or −∞: those ARE points of ℝ̄; it fires only for values outside the set {finite real, math:PositiveInfinity, math:NegativeInfinity}."
+msgstr "Ne pas le lever pour un +∞ ou −∞ légitime : ce SONT des points de ℝ̄ ; il ne concerne que les valeurs hors de l’ensemble {réel fini, math:PositiveInfinity, math:NegativeInfinity}."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report for the finding owned by the existing ExtendedRealValueConstraint and its gmeow:enforcesFailureClass association. Follow the reported extendedRealValue edge and repair its source value; validation projections derive from that logic source, and no newly minted failure instance is presumed."
+msgstr "Examiner le rapport de validation sélectionné pour le constat relevant de la contrainte existante ExtendedRealValueConstraint et de son association gmeow:enforcesFailureClass. Suivre l’arête extendedRealValue signalée et corriger sa valeur source ; les projections de validation dérivent de cette source logic, sans présumer la création d’une nouvelle instance d’échec."

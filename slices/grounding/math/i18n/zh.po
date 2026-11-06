@@ -304,11 +304,11 @@ msgctxt "https://blackcatinformatics.ca/math/ExperimentalDesign|skos:definition"
 msgid "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."
 msgstr "一个实验设计：关于一项研究的单元如何被结构化与分配的头等记录——一个完全随机、区组、析因、交叉或裂区设计。它是 math:MathematicalObject 的子类；连同它所命名的 math:RandomizationScheme，它记录了单元如何被分配到各方，使设计成为可查询的结构而非方法一节中的一句话。将设计命名为对象，正是让一次分析的有效性条件得以对照真正产出数据的那次分配加以核验。"
 
-msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "extended real line (ℝ̄)"
 msgstr "扩展实数轴（ℝ̄）"
 
-msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
 msgstr "带符号扩展实数轴 ℝ̄ = ℝ ∪ {−∞, +∞}：将其两个极点邻接到实数系统而成。它是一个 math:NumberSystem 个体，与 math:realNumbers 和 math:complexNumbers 同辈，而非一个类——它复用既有的数系机制而非另建平行机制，将实数关联为一个子系统（math:realNumbers math:subsystemOf math:ExtendedRealLine），并将两个扩展实数点 math:PositiveInfinity 与 math:NegativeInfinity 作为其成员邻接（各自 math:inNumberSystem math:ExtendedRealLine）。由于 math:NumberSystem 是 math:Set 的子类，该系统就是其各点构成的集合，因此它可以作为带符号发散场——其取值可能奔向任一极点的扩展实值函数——所遍历的陪域。与 ℂ 不同：ℝ̄ 以两个带符号的端点对有序直线作紧化，而非在代数上将其闭合；带符号扩展实数槽中的值是有限实数、+∞ 或 −∞（否则即为 math:MalformedExtendedReal）。"
 
@@ -680,11 +680,11 @@ msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|skos:defin
 msgid "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."
 msgstr "将一个 math:PValue 关联到其多重性调整所依据的比较族——其错误率在其中被控制的检验集合。定义域为 math:PValue，值域为比较族对象（在文字中说明）。族为调整框定范围：一个校正只有相对于它控制错误率所跨的比较族才有意义。"
 
-msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "−∞"
 msgstr "负无穷大（−∞）"
 
-msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
 msgstr "负无穷大作为一个扩展实数值：带符号扩展实数轴 math:ExtendedRealLine 的负极，是 math:PositiveInfinity 的对偶。它是这样一个扩展实数点：使一个无下界的量——向下发散的极限、无下界集合的下确界——无需有限字面量即可声明。它不是有限数（它不位于 ℝ 中的任何位置）；不是错误、异常或缺失值；也不是 math:PositiveInfinity + math:NegativeInfinity 或 0 · ∞ 所给出的未定义/不确定结果——扩展实数是 ℝ̄ 上的一个确定点，绝非 NaN。带符号扩展实数槽（math:extendedRealValue）中容纳的要么是有限数、要么是 math:PositiveInfinity，要么是这个个体。"
 
@@ -11832,3 +11832,129 @@ msgstr "不要将缺失量纲、畸形单元或未解析的内置运算当作已
 msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."
 msgstr "沿实际角色边检查其已解析的有理指数向量。对于齐次性诊断，比较操作数量纲；对于积分量纲复合，比较已声明结果量纲与被积函数及测度成功复合所得的量纲。修正来源声明，同时分别保留输入缺失、数据畸形及算术缺口的证据。"
+
+# --- Signed extended-real guidance ----------------------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "+∞"
+msgstr "正无穷大（+∞）"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on a countably infinite space with all singletons measurable. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal. The positive pole of the signed extended real line math:ExtendedRealLine, adjoined to ℝ through math:inNumberSystem and dual to math:NegativeInfinity."
+msgstr "正无穷大作为扩展实数值：σ 有限但总质量无限的测度的总质量，例如实数轴上的 math:LebesgueMeasure，或所有单点集均可测的可数无限空间上的 math:CountingMeasure。math:totalMass 是有限非负数或此个体；该扩展实数点使无限测度无需有限字面量即可声明。它是带符号扩展实数轴 math:ExtendedRealLine 的正极，通过 math:inNumberSystem 添加到 ℝ，并与 math:NegativeInfinity 对偶。"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This named individual is the positive pole, not a finite numeric literal, floating INF, NaN or a missing value. The signed extendedRealValue slot admits it by exact pole identity; non-negative measure slots have their own constraints. Naming the pole does not compute a limit or define arithmetic on infinities."
+msgstr "此具名个体是正极，不是有限数值字面量、浮点 INF、NaN 或缺失值。带符号的 extendedRealValue 槽位通过确切的极点身份接纳它；非负测度槽位具有各自的约束。指定极点并不计算极限，也不定义无穷值算术。"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing volumeMeasure record uses totalMass PositiveInfinity for its whole-space mass while a separate evaluation records a finite subset result. An extendedRealValue edge may also name this same positive pole."
+msgstr "现有 volumeMeasure 记录使用 totalMass PositiveInfinity 表示整个空间的质量，而单独的求值记录有限的子集结果。extendedRealValue 边也可以指定同一个正极。"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the positive extended-real pole, preserving whether it is a measure value, a signed slot value or a declared limit result."
+msgstr "用于来源明确提供正扩展实数极点的情况，并保留其作为测度值、带符号槽位值或已声明极限结果的角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a floating infinity, the text +∞, an arbitrary resource with that label or an unknown finite value. Do not infer infinite mass merely because a region is unbounded, or convergence merely because this pole is recorded."
+msgstr "不要以浮点无穷值、文本 +∞、任意带该标签的资源或未知有限值替代它。不要仅凭区域无界推断质量无限，也不要仅凭记录了此极点推断收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/PositiveInfinity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the exact math:PositiveInfinity IRI in the value-bearing predicate allowed by the source model. Keep extendedRealValue, totalMass, measureResult and limitResultValue distinct and inspect their existing constraints; do not replace a finite result with the pole to bypass a value check."
+msgstr "在来源模型允许的承载值的谓词中使用确切的 math:PositiveInfinity IRI。区分 extendedRealValue、totalMass、measureResult 和 limitResultValue，并检查各自的现有约束；不要以极点替换有限结果来绕过值检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The negative pole is an admitted named value of signed extendedRealValue, but not of non-negative measure slots. It is distinct from a finite negative literal, floating -INF, NaN and absence. This representation does not establish a divergence claim or extend an executable arithmetic profile."
+msgstr "负极是带符号 extendedRealValue 接纳的具名值，但不是非负测度槽位接纳的值。它不同于有限负数字面量、浮点 -INF、NaN 及缺失。这种表示不确立发散断言，也不扩展可执行算术配置。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:divergentField math:extendedRealValue math:NegativeInfinity . This records the supplied negative pole; the edge alone is not a proof that the field diverges downward."
+msgstr "exf:divergentField math:extendedRealValue math:NegativeInfinity . 这记录来源提供的负极；仅凭此边不能证明该场向下发散。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied negative extended-real pole in a signed slot or an outcome-compatible declared limit result, retaining the source evidence for that interpretation."
+msgstr "用于来源明确提供的带符号槽位中的负扩展实数极点，或与其结果类别一致的已声明极限结果，并保留该解释的来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for missing information, an indeterminate expression or a non-negative mass. A negative finite value remains a numeric literal rather than this pole, and a floating -INF is not its RDF identity."
+msgstr "不要将其用于缺失信息、不定表达式或非负质量。有限负值仍应是数值字面量，而不是此极点；浮点 -INF 也不是它的 RDF 身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the exact math:NegativeInfinity IRI where the signed value contract permits it. For extendedRealValue, retain the supplied edge and inspect ExtendedRealValueConstraint; for a limit result, retain the separate outcome agreement obligations rather than assuming slot admission proves convergence."
+msgstr "在带符号值契约允许时使用确切的 math:NegativeInfinity IRI。对于 extendedRealValue，保留所提供的边并检查 ExtendedRealValueConstraint；对于极限结果，保留独立的结果类别一致性义务，不要假定槽位接纳证明了收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This NumberSystem individual represents ℝ with two signed poles adjoined; it is neither an RDF datatype IRI nor a class to assert on a literal. Finite numeric RDF literals and the two exact named poles form the slot representation, while field structure, convergence and permitted operations remain separate concerns."
+msgstr "此 NumberSystem 个体表示添加了两个带符号极点的 ℝ；它既不是 RDF 数据类型 IRI，也不是用于断言字面量类型的类。有限数值 RDF 字面量及两个确切具名极点构成槽位表示，而域结构、收敛及允许的运算仍是独立问题。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|http://www.w3.org/2004/02/skos/core#example"
+msgid "PositiveInfinity and NegativeInfinity each name ExtendedRealLine through inNumberSystem, while realNumbers names it through subsystemOf. Those existing membership links do not turn the system IRI into a datatype annotation for a literal."
+msgstr "PositiveInfinity 和 NegativeInfinity 各自通过 inNumberSystem 指定 ExtendedRealLine，而 realNumbers 通过 subsystemOf 指定它。这些现有成员链接不会把该系统 IRI 变成字面量的数据类型标注。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source's signed extended-real number-system interpretation, or to name ExtendedRealLine itself as a function's codomain, distinguishing it from the finite real system and from the complex numbers."
+msgstr "用于保留来源的带符号扩展实数数系解释，或将 ExtendedRealLine 本身指定为函数的陪域，并将其与有限实数数系及复数区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the system as a datatype suffix, treating it as an algebraically closed field, or inferring executable infinity arithmetic from its membership links. Declaring ExtendedRealLine as a function's codomain does not prove that function's limit behavior."
+msgstr "不要将该系统用作数据类型后缀，不要将其当作代数闭域，也不要从其成员链接推断可执行的无穷值算术。将 ExtendedRealLine 声明为函数的陪域，不证明该函数的极限行为。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the existing NumberSystem individual and its subsystemOf/inNumberSystem relations. Use extendedRealValue for a supplied signed value with the existing finite-literal-or-poles constraint; keep any function frame, limit outcome and selected arithmetic profile on their own existing surfaces."
+msgstr "保留现有 NumberSystem 个体及其 subsystemOf/inNumberSystem 关系。按现有有限字面量或极点约束，用 extendedRealValue 表示来源提供的带符号值；函数框架、极限结果类别及所选算术配置仍保留在各自的现有表述面上。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extended-real value"
+msgstr "扩展实数值"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The signed-extended-real value in an extended-real slot — a value on the extended real line ℝ̄ that may be finite or run off to either pole. Range a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Unlike math:totalMass (a non-negative mass), an extended-real value carries a sign, so its finite branch admits negatives. A slot holding anything else is a math:MalformedExtendedReal."
+msgstr "扩展实数槽位中的带符号扩展实数值：扩展实数轴 ℝ̄ 上的值，可以有限，也可以到达任一极点。值域为有限数值字面量、math:PositiveInfinity 或 math:NegativeInfinity（以文字说明）。与 math:totalMass 相同，它是 rdf:Property，而非 OWL ObjectProperty 或 OWL DatatypeProperty，正因为其值域同时包含数据类型字面量（有限值）和个体（极点）：两种 DL 属性类型都不能同时接纳二者，因此 RDF 超类型在不造成 DL 矛盾的情况下承载该扩展实数值域。与 math:totalMass（非负质量）不同，扩展实数值具有符号，因此有限分支接纳负值。包含其他值的槽位属于 math:MalformedExtendedReal。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ExtendedRealValueConstraint guards every extendedRealValue edge without a subject-class requirement. Its finite branch admits supported well-formed integer/decimal literals or finite float/double literals of either sign; its pole branch names exactly PositiveInfinity or NegativeInfinity. The guard checks supplied values, not required presence, cardinality, arithmetic or convergence, and this guidance claims no native/projection runtime parity."
+msgstr "ExtendedRealValueConstraint 对每条 extendedRealValue 边实施守卫，不要求主体属于某个类。其有限分支接纳受支持且格式正确的整数或十进制数字面量，或任一符号的有限 float/double 字面量；其极点分支仅指定 PositiveInfinity 或 NegativeInfinity。该守卫检查已提供的值，不检查必需存在性、基数、算术或收敛；本说明不声称原生与投影运行时行为一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:divergentField math:extendedRealValue math:NegativeInfinity ."
+msgstr "exf:divergentField math:extendedRealValue math:NegativeInfinity ."
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to carry a signed value on the extended real line ℝ̄ — one that may be finite of either sign or run off to either pole."
+msgstr "用于承载扩展实数轴 ℝ̄ 上的带符号值；它可以是任一符号的有限值，也可以到达任一极点。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for a non-negative mass (use math:totalMass or math:measureResult), and do not put a non-ℝ̄ value in the slot; anything but a finite literal or a pole is math:MalformedExtendedReal."
+msgstr "不要将其用于非负质量（应使用 math:totalMass 或 math:measureResult），也不要在槽位中存放不属于 ℝ̄ 的值；有限字面量或极点之外的任何值都属于 math:MalformedExtendedReal。"
+
+msgctxt "https://blackcatinformatics.ca/math/extendedRealValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on the value-bearing object to a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; its rdf:Property typing is deliberate, spanning literal and pole individual."
+msgstr "在承载值的对象上以此属性指定有限数值字面量、math:PositiveInfinity 或 math:NegativeInfinity；其 rdf:Property 类型是有意的，涵盖字面量和极点个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Extended Real"
+msgstr "不符合规范的扩展实数值"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a signed-extended-real slot (a value of math:extendedRealValue) holds something that is not a point of the extended real line ℝ̄ — a non-numeric literal, or an IRI that is neither math:PositiveInfinity nor math:NegativeInfinity. A value on ℝ̄ is a finite numeric literal of either sign, math:PositiveInfinity, or math:NegativeInfinity; anything else is ill-formed."
+msgstr "当带符号扩展实数槽位（math:extendedRealValue 的值）包含不属于扩展实数轴 ℝ̄ 的对象时引发的失败，例如非数值字面量，或既不是 math:PositiveInfinity 也不是 math:NegativeInfinity 的 IRI。ℝ̄ 上的值是任一符号的有限数值字面量、math:PositiveInfinity 或 math:NegativeInfinity；其他值均不符合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing ExtendedRealValueConstraint maps off-contract objects of extendedRealValue edges to this failure, without requiring a subject type. Text, arbitrary IRIs or blank nodes, NaN and floating infinities are not its finite-literal-or-named-poles representation. An absent edge is not tested by that guard, and the report need not mint a failure individual."
+msgstr "现有 ExtendedRealValueConstraint 将 extendedRealValue 边中不符合契约的对象映射到此失败，不要求主体具有某个类型。文本、任意 IRI 或空白节点、NaN 及浮点无穷值都不属于其有限字面量或具名极点表示。该守卫不检查缺失的边，报告也不一定创建失败个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:badSlot math:extendedRealValue exf:notAPole . # an IRI that is neither pole -> math:MalformedExtendedReal"
+msgstr "exf:badSlot math:extendedRealValue exf:notAPole . # IRI 不是两个极点中的任何一个 -> math:MalformedExtendedReal"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it as the typed violation object when a signed-extended-real slot (a math:extendedRealValue) holds something off the extended real line ℝ̄ — a non-numeric literal or an IRI that is not one of the two poles."
+msgstr "当带符号扩展实数槽位（math:extendedRealValue）包含不属于扩展实数轴 ℝ̄ 的值，例如非数值字面量或不是两个极点之一的 IRI 时，用作具有类型的违规对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not raise it for a legitimate +∞ or −∞: those ARE points of ℝ̄; it fires only for values outside the set {finite real, math:PositiveInfinity, math:NegativeInfinity}."
+msgstr "不要因合法的 +∞ 或 −∞ 而报告此失败：它们确实是 ℝ̄ 上的点；此失败只针对集合 {有限实数, math:PositiveInfinity, math:NegativeInfinity} 之外的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedExtendedReal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the selected validation report for the finding owned by the existing ExtendedRealValueConstraint and its gmeow:enforcesFailureClass association. Follow the reported extendedRealValue edge and repair its source value; validation projections derive from that logic source, and no newly minted failure instance is presumed."
+msgstr "检查所选验证报告中归属于现有 ExtendedRealValueConstraint 及其 gmeow:enforcesFailureClass 关联的诊断结果。沿所报告的 extendedRealValue 边修正来源值；验证投影派生自该 logic 来源，不预设会创建新的失败实例。"
