@@ -187,6 +187,7 @@ BUNDLE_IMPORT_CACHE_ROOT ?= $(abspath .cache/gmeow-bundle-import)
 BUNDLE_IMPORT_CACHE_ENV = GMEOW_BUNDLE_IMPORT_CACHE="$(BUNDLE_IMPORT_CACHE_ROOT)" GMEOW_BUNDLE_IMPORT_SOURCE_SHA256="$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 BUNDLE_IMPORT_CACHE_ARGS = --bundle-import-cache-root "$(BUNDLE_IMPORT_CACHE_ROOT)" --expected-source-digest "$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.json)
+WASM_CODEBOOK_MANIFEST := $(abspath .cache/gmeow-sync/wasm-codebook-manifest-v2.json)
 # The selector is written only by the explicit producer. Each consumer receives its
 # exact digest before process start, so a missing, stale, or test-mutated selector fails
 # rather than causing a dependency walk or producer fallback.
@@ -925,7 +926,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	@# substrate identities. Parity consumers run after that producer, never against
 	@# an obsolete bundle which the new substrate may correctly reject.
 	$(MAKE) produce-wasm-codebook
-	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg
+	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg TEST_FIXTURE_MANIFEST="$(WASM_CODEBOOK_MANIFEST)"
 	$(MAKE) maint-refresh-reason-witness
 	$(call COPY_WASM_ASSET,query,)
 	$(call COPY_WASM_ASSET,validate,)
@@ -942,7 +943,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."
 
-verify-vendored-wasm-assets: ## Verify committed browser bytes, witnesses and exact substrate identities without producing a corpus.
+verify-vendored-wasm-assets: ## Verify committed file digests, witness structure and exact substrate identities without producing a corpus.
 	cargo test --locked -p gmeow-docs --test query_asset --test validate_asset --test reason_asset --test gmn_asset --test mcp_asset --test attestation_gate
 
 maint-refresh-wasm-witnesses: producer-verify verify-bundle-import-test-fixture verify-vendored-wasm-assets ## Refresh native witnesses from the authenticated current bundle after assets are rebuilt.

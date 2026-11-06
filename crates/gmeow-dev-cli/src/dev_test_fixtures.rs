@@ -25,6 +25,9 @@ mod selection_tests;
 
 type FixtureResult<T> = gmeow_errors::Result<T>;
 
+const WASM_CODEBOOK_MANIFEST_RELATIVE_PATH: &str =
+    ".cache/gmeow-sync/wasm-codebook-manifest-v2.json";
+
 fn fail(detail: impl std::fmt::Display) -> Diag {
     crate::error::sync(detail)
 }
@@ -183,7 +186,7 @@ fn produce_wasm_codebook(root: &Path, timings_path: Option<&Path>) -> FixtureRes
     let (selection, codebook) =
         gmeow_pipeline::fixture::prepare_wasm_codebook_fixtures(root, jobs)?;
     native::decode(&codebook, native::SOURCE_BLAKE3)?;
-    let prepared = prepare_fixture_selector_fields(root, Some(selection), BTreeMap::new())?;
+    let prepared = prepare_wasm_codebook_selector(root, selection)?;
     if let Some(path) = timings_path {
         write_json_atomic(
             path,
@@ -772,6 +775,27 @@ fn prepare_fixture_selector_fields(
     fields: BTreeMap<&str, Value>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
+    prepare_fixture_selector_at_path(path, stage_selection, fields)
+}
+
+/// Publish bootstrap credentials independently of every full-fixture selection.
+fn prepare_wasm_codebook_selector(
+    root: &Path,
+    stage_selection: Value,
+) -> FixtureResult<PreparedFixtureSelector> {
+    prepare_fixture_selector_at_path(
+        root.join(WASM_CODEBOOK_MANIFEST_RELATIVE_PATH),
+        Some(stage_selection),
+        BTreeMap::new(),
+    )
+}
+
+/// Encode one explicit destination without discovering or merging other selectors.
+fn prepare_fixture_selector_at_path(
+    path: std::path::PathBuf,
+    stage_selection: Option<Value>,
+    fields: BTreeMap<&str, Value>,
+) -> FixtureResult<PreparedFixtureSelector> {
     let mut value = match stage_selection {
         Some(value) => value,
         None => {

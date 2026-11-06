@@ -45,3 +45,20 @@ test("wasm GMN-1 round-trip reproduces the input canonical N-Quads", () => {
   // round-trip is a fixed point (the native witness pins the byte-exact N-Quads side).
   assert.equal(to_gmn1(back, "nquads"), gmn1, "GMN-1 round-trip is not a fixed point");
 });
+
+test("committed GMN bindings and image reproduce the native attestation and round-trip", async () => {
+  const shipped = new URL("../../../docs/assets/gmn/", import.meta.url);
+  const engine = await import(new URL("gmeow_gmn_wasm.js", shipped).href);
+  await engine.default({
+    module_or_path: await readFile(new URL("gmeow_gmn_wasm_bg.wasm", shipped)),
+  });
+  const attestation = await readFile(new URL("WITNESS.gmn1.txt", shipped), "utf8");
+  const nativeAttestation = await readFile(
+    new URL("../../tests/WITNESS.gmn1.txt", import.meta.url),
+    "utf8",
+  );
+  assert.equal(attestation, nativeAttestation, "the shipped witness differs from native");
+  const encoded = engine.to_gmn1(INPUT, "turtle");
+  assert.equal(encoded, attestation, "the committed GMN image differs from native");
+  assert.equal(engine.to_gmn1(engine.from_gmn1(encoded), "nquads"), encoded);
+});

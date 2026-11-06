@@ -340,18 +340,19 @@ jobs:
           sha256sum dist/wasm-refresh/outputs.tar.gz > dist/wasm-refresh/outputs.sha256
           cp dist/bin/gmeow-dev.receipt.json dist/wasm-refresh/producer.receipt.json
           rustc -Vv > dist/wasm-refresh/rustc.txt
-          cp .cache/gmeow-sync/test-fixture-manifest-v2.json dist/wasm-refresh/input-selector.json
-          ASSET_SELECTOR_SHA256="$(sha256sum dist/wasm-refresh/input-selector.json | cut -d ' ' -f1)"
           ASSET_CODEBOOK_SHA256=''
           ASSET_BUNDLE_SHA256=''
           if [[ "$ASSET_REFRESH_PHASE" == images ]]; then
+            cp .cache/gmeow-sync/wasm-codebook-manifest-v2.json dist/wasm-refresh/input-selector.json
             cp generated/projections/lang/gmn-codebook.cbor dist/wasm-refresh/codebook.cbor
             ASSET_CODEBOOK_SHA256="$(sha256sum dist/wasm-refresh/codebook.cbor | cut -d ' ' -f1)"
             wasm-bindgen --version > dist/wasm-refresh/wasm-bindgen.txt
             wasm-opt --version > dist/wasm-refresh/binaryen.txt
           else
+            cp .cache/gmeow-sync/test-fixture-manifest-v2.json dist/wasm-refresh/input-selector.json
             ASSET_BUNDLE_SHA256="$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
           fi
+          ASSET_SELECTOR_SHA256="$(sha256sum dist/wasm-refresh/input-selector.json | cut -d ' ' -f1)"
           ASSET_OUTPUT_SHA256="$(sha256sum dist/wasm-refresh/outputs.tar.gz | cut -d ' ' -f1)"
           jq -n --arg commit "$GITHUB_SHA" --arg phase "$ASSET_REFRESH_PHASE" \
             --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
@@ -733,6 +734,16 @@ jobs:
         run: >-
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
+
+      - name: Verify browser bootstrap preserves the full fixture selection
+        run: |
+          set -euo pipefail
+          prefix_selector=.cache/gmeow-sync/test-fixture-manifest-v2.json
+          prefix_sha256="$(sha256sum "$prefix_selector" | cut -d ' ' -f1)"
+          make produce-wasm-codebook
+          make verify-wasm-codebook TEST_FIXTURE_MANIFEST="$PWD/.cache/gmeow-sync/wasm-codebook-manifest-v2.json"
+          printf '%s  %s\n' "$prefix_sha256" "$prefix_selector" | sha256sum --check --strict
+          make verify-producer-independent-test-fixtures
 
       # A later failure must not discard receipts already published atomically.
       # A fresh run/attempt key advances the immutable cache after this producer.

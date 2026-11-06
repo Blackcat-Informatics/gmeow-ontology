@@ -73,6 +73,15 @@ refreshing native witnesses. Final PR qualification still runs the normal produc
 consumer and parity lanes over the reviewed committed bytes. A codebook-only
 selector cannot satisfy the full test-fixture prefix.
 
+Browser bootstrap writes its own
+`.cache/gmeow-sync/wasm-codebook-manifest-v2.json`. Image preparation explicitly
+selects that file; ordinary consumers continue to select the full
+`test-fixture-manifest-v2.json`. Bootstrap publication never replaces or reads
+the full selector. Both selections retain exact digest and action-receipt admission.
+The ordinary fixture producer verifies this boundary by producing the bootstrap
+after its full prefix, checking the original full-selector digest, and admitting
+both selections read-only before any test runner starts.
+
 The bootstrap selects `stage-native-codebook` and its original-source parser.
 That complete stage emits the authenticated internal codebook; full mappings
 consumes its bytes and publishes the existing language-projection artifact.
