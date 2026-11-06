@@ -1134,7 +1134,7 @@ msgstr "可测集"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets that the σ-algebra collects into a family closed under complement and countable union, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
-msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的子集之一，所收集的整个子集族对补运算和可数并封闭，因而是一个 math:Measure 可以赋予质量的那种子集。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
+msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的子集之一。整个子集族对补运算和可数并封闭；math:Measure 可以向其中的可测子集赋予质量。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure Evaluation"
