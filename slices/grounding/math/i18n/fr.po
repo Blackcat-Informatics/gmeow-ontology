@@ -11718,3 +11718,117 @@ msgstr "Éviter de traiter ces arêtes comme une liste, d’imposer un nouveau n
 msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."
 msgstr "Garder les sujets et cibles sources ainsi que leurs typages fournis, en distinguant les liens de composantes de measureOn et measuredSubset. Préserver les éléments probants d’appartenance et d’inclusion sur les surfaces existantes qui les portent. Les déclarations actuelles ne fournissent par cette propriété aucun contrôle dédié de cardinalité, de type, de clôture ou d’appartenance des composantes."
+
+# --- Integration and dimension failure guidance ---------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Integral"
+msgstr "Intégrale incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Integral does not name its integrand (math:integrand), its domain (math:integrationDomain), and the measure it integrates against (math:withRespectTo). An integral missing any of the three is ill-formed."
+msgstr "L’échec levé lorsqu’une math:Integral ne nomme pas son intégrande (math:integrand), son domaine (math:integrationDomain) et la mesure par rapport à laquelle elle intègre (math:withRespectTo). Une intégrale à laquelle manque l’un des trois est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the existing Integral role-frame obligations, not a computed integral value or a dimensional mismatch. The existing closed-world entries cover integrand and integrationDomain. A framed integral without a declared result dimension does not acquire the conditional dimension-presence obligations for its integrand and measure."
+msgstr "Cet échec identifie les obligations existantes du cadre de rôles d’Integral, non une valeur d’intégrale calculée ni une incompatibilité de dimensions. Les entrées existantes de clôture en monde fermé couvrent integrand et integrationDomain. Une intégrale cadrée sans dimension de résultat déclarée n’acquiert pas les obligations conditionnelles de présence d’une dimension pour son intégrande et sa mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#example"
+msgid "In integral-missing-measure.ttl, measurelessIntegral names densityFn and space but omits withRespectTo. Its conformance record pins the minimum-count diagnostic and explicitly does not claim that this fixture has only one finding or failure class."
+msgstr "Dans integral-missing-measure.ttl, measurelessIntegral nomme densityFn et space mais omet withRespectTo. Son enregistrement de conformité fixe le diagnostic de cardinalité minimale et ne prétend explicitement pas que cette fixture ne comporte qu’un seul constat ou une seule classe d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings owned by the existing Integral restrictions when inspecting the supplied function, domain and measure frame, keeping other binder or dimension findings separate."
+msgstr "À utiliser pour les constats relevant des restrictions existantes d’Integral lors de l’examen du cadre fourni de fonction, domaine et mesure, en distinguant les autres constats de liaison ou de dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a synonym for a missing numerical answer, a dimensional mismatch, or every malformed binder. Supplying the three integration roles alone does not establish a complete BindingExpression or compute an integral."
+msgstr "Éviter d’en faire un synonyme de réponse numérique absente, d’incompatibilité de dimensions ou de toute liaison mal formée. Fournir les trois rôles d’intégration ne suffit pas à établir une BindingExpression complète ni à calculer une intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect integrand, integrationDomain and withRespectTo on the reported Integral and repair the source under its existing restrictions. Retain its inherited binder obligations and any separately declared result dimension; do not invent a measure or numerical result to hide a missing role."
+msgstr "Examiner integrand, integrationDomain et withRespectTo sur l’Integral signalée, puis corriger la source selon ses restrictions existantes. Conserver les obligations de liaison héritées et toute dimension de résultat déclarée séparément ; ne pas inventer de mesure ou de résultat numérique pour masquer un rôle absent."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Undimensioned Quantity"
+msgstr "Grandeur sans dimension déclarée"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Quantity does not carry a math:Dimension through math:hasDimension. Every quantity carries a dimension; an undimensioned quantity is ill-formed. It also identifies missing math:hasDimension on a math:homogeneousOperand target and, when a subject declares a result dimension, on that subject's math:integrand or math:withRespectTo target; these role targets need not be quantities."
+msgstr "L’échec levé lorsqu’une math:Quantity ne porte pas de math:Dimension par math:hasDimension. Toute grandeur porte une dimension ; une grandeur sans dimension déclarée est mal formée. Cet échec identifie aussi l’absence de math:hasDimension sur une cible de math:homogeneousOperand et, lorsqu’un sujet déclare une dimension de résultat, sur la cible de math:integrand ou math:withRespectTo de ce sujet ; ces cibles de rôles ne sont pas nécessairement des grandeurs."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role-presence constraints join homogeneousOperand to a required hasDimension edge, or integrand/withRespectTo to a result hasDimension edge on their subject and a required hasDimension edge on their target. These joins do not require explicit Quantity, Integral or DimensionalExpression types. Missing dimension links are distinct from unequal resolved vectors and from malformed or unresolved dimension data."
+msgstr "Les contraintes de présence des rôles joignent homogeneousOperand à une arête hasDimension requise, ou integrand/withRespectTo à une arête hasDimension de résultat sur leur sujet et à une arête hasDimension requise sur leur cible. Ces jointures n’exigent pas de types explicites Quantity, Integral ou DimensionalExpression. Les liens de dimension absents se distinguent des vecteurs résolus inégaux et des données de dimension mal formées ou non résolues."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "In homogeneous-operand-undimensioned.ttl, undimensionedOperand is a MeasurableFunction with no hasDimension. The incoming homogeneousOperand edge triggers the existing dimension-presence constraint even though it is not a Quantity; the missing link does not supply the two resolved dimensions needed for an inhomogeneity comparison."
+msgstr "Dans homogeneous-operand-undimensioned.ttl, undimensionedOperand est une MeasurableFunction sans hasDimension. L’arête homogeneousOperand qui le cible déclenche la contrainte existante de présence d’une dimension, bien qu’il ne s’agisse pas d’une Quantity ; le lien absent ne fournit pas les deux dimensions résolues nécessaires à une comparaison d’homogénéité."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the existing Quantity dimension-frame findings or the three role-specific dimension-presence constraints, retaining which object, role and conditional result-dimension guard produced the finding."
+msgstr "À utiliser pour les constats existants du cadre de dimension de Quantity ou des trois contraintes de présence d’une dimension propres aux rôles, en conservant l’objet, le rôle et la garde conditionnelle de dimension de résultat à l’origine du constat."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a missing dimension with dimensionless. A dimensionless quantity carries the zero dimension; a missing link is absent information. Do not impose the integral-part obligation without the subject's result-dimension edge or treat a present but unresolvable dimension as the same missing-link case."
+msgstr "Éviter de remplacer une dimension absente par dimensionless. Une grandeur adimensionnelle porte la dimension nulle ; un lien absent est une information manquante. Ne pas imposer l’obligation sur une partie d’intégrale sans arête de dimension de résultat sur le sujet, ni assimiler une dimension présente mais non résoluble au même cas de lien absent."
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the reported hasDimension absence and the actual role edges. Repair source data under the Quantity restrictions or HomogeneousOperandDimensionedConstraint, IntegrandDimensionedConstraint and WithRespectToDimensionedConstraint as applicable; their validation projections derive from logic sources, not separately authored shape rules."
+msgstr "Examiner l’absence signalée de hasDimension et les arêtes réelles de rôle. Corriger les données sources selon les restrictions de Quantity ou, selon le cas, HomogeneousOperandDimensionedConstraint, IntegrandDimensionedConstraint et WithRespectToDimensionedConstraint ; leurs projections de validation dérivent des sources logic, non de règles de forme rédigées séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Dimension"
+msgstr "Dimension mal formée"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dimension is structurally ill-formed: a math:DerivedDimension with no directly linked math:baseDimensionExponent cells, an exponent cell whose math:exponentOfDimension is not a math:BaseDimension (so the exponent vector is undefined or cyclic), an exponent missing its numerator or denominator, or a math:dimensionVector string that does not match the canonical render of the directly linked exponent cells (a divergent second source). Also raised when a math:DimensionalExpression carries fewer than two math:homogeneousOperand."
+msgstr "L’échec levé lorsqu’une dimension est structurellement mal formée : une math:DerivedDimension sans cellules math:baseDimensionExponent directement liées, une cellule d’exposant dont math:exponentOfDimension n’est pas une math:BaseDimension (le vecteur d’exposants est alors indéfini ou cyclique), un exposant sans numérateur ou dénominateur, ou une chaîne math:dimensionVector qui ne correspond pas au rendu canonique des cellules d’exposants directement liées (une seconde source divergente). Cet échec est aussi levé lorsqu’une math:DimensionalExpression porte moins de deux math:homogeneousOperand."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical dimension structure uses direct baseDimensionExponent cell links, not an RDF collection. Existing required-cell, component and operand obligations remain in force; arithmetic-helper success alone is not canonical admission. Structural faults and display drift are distinct from a mismatch between resolved vectors, and not every arithmetic failure is reported as MalformedDimension."
+msgstr "La structure canonique d’une dimension utilise des liens directs vers les cellules baseDimensionExponent, non une collection RDF. Les obligations existantes sur les cellules requises, les composants et les opérandes restent applicables ; le succès d’un auxiliaire arithmétique ne suffit pas à l’admission canonique. Les défauts structurels et la dérive d’affichage se distinguent d’une incompatibilité entre vecteurs résolus, et tout échec arithmétique n’est pas signalé comme MalformedDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "In dimension-zero-denominator.ttl, zeroDenomDimension directly links zeroDenomCell, whose exponentDenominator is 0. The existing non-zero-denominator constraint rejects that cell; the conformance record does not claim a sole finding, and the native zero-denominator scan is a separate verification path."
+msgstr "Dans dimension-zero-denominator.ttl, zeroDenomDimension lie directement zeroDenomCell, dont exponentDenominator vaut 0. La contrainte existante de dénominateur non nul rejette cette cellule ; l’enregistrement de conformité ne prétend pas à un constat unique, et le balayage natif des dénominateurs nuls constitue un chemin de vérification distinct."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual structural, display-drift or malformed-transport diagnostic anchored to this class, preserving the reported source and detail rather than inferring its identity from an unsuccessful computation."
+msgstr "À utiliser pour le diagnostic réel de structure, de dérive d’affichage ou de transport mal formé ancré à cette classe, en conservant la source signalée et le détail plutôt qu’en déduisant son identité d’un calcul infructueux."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for every dimension failure: the public loader wraps detected structural and individual Rational-construction faults, while exponent accumulation can propagate ArithmeticOverflow or RationalDomain. Physical cell loading can return None, and DimEqual/DimProduct can return Unbound for unresolved inputs or composition failure."
+msgstr "Éviter de l’utiliser pour tout échec lié aux dimensions : le chargeur public enveloppe les défauts structurels détectés et les défauts de construction d’un Rational individuel, tandis que l’accumulation des exposants peut propager ArithmeticOverflow ou RationalDomain. Le chargement physique des cellules peut renvoyer None, et DimEqual/DimProduct peuvent renvoyer Unbound pour des entrées non résolues ou un échec de composition."
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect direct exponent cells, their base targets and integer numerator/denominator values, the non-zero-denominator constraint, operand counts and any authored dimensionVector display. Repair the reported source under existing logic restrictions and closures; retain distinct loader diagnostics and builtin mode gaps without relabelling them all as this class."
+msgstr "Examiner les cellules d’exposants directement liées, leurs cibles de base et leurs valeurs entières de numérateur et dénominateur, la contrainte de dénominateur non nul, le nombre d’opérandes et tout affichage dimensionVector rédigé. Corriger la source signalée selon les restrictions et clôtures logic existantes ; conserver les diagnostics distincts du chargeur et les lacunes de mode des primitives sans tous les réétiqueter comme cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimensional Inhomogeneity"
+msgstr "Inhomogénéité dimensionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when an expression is dimensionally inhomogeneous: the operands of a math:DimensionalExpression do not all share one dimension, or a math:Integral's declared result dimension does not equal its integrand's dimension combined with its measure's. This is the no-optionality posture applied to dimensions — a dimensionally inhomogeneous expression is ill-formed. It is a reasoned gate, computed exactly from the rational exponent vectors of the ℚ-vector space of dimensions, not asserted data — this is GMEOW's differentiator over unit vocabularies that record conversions as data rather than deriving homogeneity."
+msgstr "L’échec levé lorsqu’une expression est dimensionnellement inhomogène : les opérandes d’une math:DimensionalExpression ne partagent pas tous une même dimension, ou la dimension de résultat déclarée d’une math:Integral n’est pas égale à la dimension de son intégrande combinée à celle de sa mesure. C’est la posture sans dégradation silencieuse appliquée aux dimensions : une expression dimensionnellement inhomogène est mal formée. Il s’agit d’une barrière raisonnée, calculée exactement à partir des vecteurs d’exposants rationnels de l’espace vectoriel des dimensions sur ℚ, non d’une donnée assertée ; c’est ce qui distingue GMEOW des vocabulaires d’unités qui enregistrent les conversions comme données plutôt que de dériver l’homogénéité."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The authored laws use homogeneousOperand/hasDimension joins, or integrand/withRespectTo plus result and part hasDimension joins, without an explicit rdf:type guard. The native gate compares resolved exact vectors; unresolved inputs or overflowing composition leave DimEqual/DimProduct Unbound. Missing links have separate UndimensionedQuantity obligations, while incompatible quantity arithmetic can also anchor a DimensionMismatch error to this class."
+msgstr "Les lois rédigées utilisent des jointures homogeneousOperand/hasDimension, ou integrand/withRespectTo avec les jointures hasDimension du résultat et des parties, sans garde rdf:type explicite. La barrière native compare des vecteurs exacts résolus ; des entrées non résolues ou une composition débordante laissent DimEqual/DimProduct à Unbound. Les liens absents relèvent d’obligations UndimensionedQuantity distinctes, tandis qu’une arithmétique de grandeurs incompatibles peut aussi ancrer une erreur DimensionMismatch à cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#example"
+msgid "In dimensional-expression-inhomogeneous-mixed.ttl, mixedSum has homogeneousOperand targets lengthOperand and massOperand, which carry lengthDimension and massDimension respectively. Both canonical base dimensions resolve, and their unequal unit vectors give a homogeneity mismatch rather than a missing-dimension or malformed-vector example."
+msgstr "Dans dimensional-expression-inhomogeneous-mixed.ttl, mixedSum a pour cibles de homogeneousOperand lengthOperand et massOperand, qui portent respectivement lengthDimension et massDimension. Les deux dimensions de base canoniques sont résolues, et leurs vecteurs unitaires inégaux donnent une incompatibilité d’homogénéité plutôt qu’un exemple de dimension absente ou de vecteur mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a derived homogeneity or integral-composition mismatch, or an actual incompatible-quantity diagnostic anchored to this class, retaining which law or operation produced it."
+msgstr "À utiliser pour une incompatibilité dérivée d’homogénéité ou de composition intégrale, ou pour un diagnostic réel de grandeurs incompatibles ancré à cette classe, en conservant la loi ou l’opération qui l’a produit."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a missing dimension, malformed cell or unresolved builtin as a proved mismatch. Equal dimensions also do not prove a numerical result, a physical law or the correctness of an integral's supplied function and measure."
+msgstr "Éviter de traiter une dimension absente, une cellule mal formée ou une primitive non résolue comme une incompatibilité prouvée. Des dimensions égales ne prouvent pas non plus un résultat numérique, une loi physique ou la justesse de la fonction et de la mesure fournies pour une intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."
+msgstr "Suivre les arêtes réelles de rôle et examiner leurs vecteurs d’exposants rationnels résolus. Pour un constat d’homogénéité, comparer les dimensions des opérandes ; pour la composition intégrale, comparer le résultat déclaré à la composition réussie des dimensions de l’intégrande et de la mesure. Corriger la déclaration source en conservant séparément les éléments probants d’entrées absentes, de données mal formées et de lacunes arithmétiques."

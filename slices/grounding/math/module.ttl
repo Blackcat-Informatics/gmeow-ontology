@@ -3056,7 +3056,7 @@ math:UndimensionedQuantity
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Undimensioned Quantity"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:Quantity does not carry a math:Dimension through math:hasDimension. Every quantity carries a dimension; an undimensioned quantity is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Quantity does not carry a math:Dimension through math:hasDimension. Every quantity carries a dimension; an undimensioned quantity is ill-formed. It also identifies missing math:hasDimension on a math:homogeneousOperand target and, when a subject declares a result dimension, on that subject's math:integrand or math:withRespectTo target; these role targets need not be quantities."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MalformedDimension
@@ -3064,7 +3064,7 @@ math:MalformedDimension
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Malformed Dimension"@x-gmeow-english ;
-    skos:definition "The failure raised when a dimension is structurally ill-formed: a math:DerivedDimension with no math:baseDimensionExponent list, an exponent cell whose math:exponentOfDimension is not a math:BaseDimension (so the exponent vector is undefined or cyclic), an exponent missing its numerator or denominator, or a math:dimensionVector string that does not match the canonical render of the structured exponent list (a divergent second source). Also raised when a math:DimensionalExpression carries fewer than two math:homogeneousOperand."@x-gmeow-english ;
+    skos:definition "The failure raised when a dimension is structurally ill-formed: a math:DerivedDimension with no directly linked math:baseDimensionExponent cells, an exponent cell whose math:exponentOfDimension is not a math:BaseDimension (so the exponent vector is undefined or cyclic), an exponent missing its numerator or denominator, or a math:dimensionVector string that does not match the canonical render of the directly linked exponent cells (a divergent second source). Also raised when a math:DimensionalExpression carries fewer than two math:homogeneousOperand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DimensionalInhomogeneity
@@ -3398,7 +3398,7 @@ math:DimensionalHomogeneityConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:DimensionalInhomogeneity ;
     logic:severity "Violation" ;
-    logic:message "A math:DimensionalExpression's math:homogeneousOperand operands must share one dimension (equal ℚ⁷ exponent vectors); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on any undimensioned or differing operand." ;
+    logic:message "A math:DimensionalExpression's math:homogeneousOperand operands must share one dimension (equal ℚ⁷ exponent vectors); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on unequal resolved operand dimensions. Missing math:hasDimension is covered separately by math:HomogeneousOperandDimensionedConstraint (math:UndimensionedQuantity)." ;
     logic:integrity math:dimensionalHomogeneityLaw .
 
 math:IntegralDimensionCompositionConstraint
@@ -3409,7 +3409,7 @@ math:IntegralDimensionCompositionConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:DimensionalInhomogeneity ;
     logic:severity "Violation" ;
-    logic:message "A math:Integral's declared result dimension must equal dim(integrand) ⊕ dim(measure) (exponent-vector addition); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity on any undimensioned part or mismatch." ;
+    logic:message "A math:Integral's declared result dimension must equal dim(integrand) ⊕ dim(measure) (exponent-vector addition); the native measure-and-dimension reasoned gate raises math:DimensionalInhomogeneity when a successfully composed integrand/measure dimension differs from the resolved result dimension. Missing math:hasDimension on the integrand or measure is covered separately by math:IntegrandDimensionedConstraint or math:WithRespectToDimensionedConstraint (math:UndimensionedQuantity)." ;
     logic:integrity math:integralDimensionCompositionLaw .
 
 # --- Coverage: the operands the homogeneity/composition laws reason over must     --- #
@@ -18326,3 +18326,33 @@ math:measurableSpaceOf
     gmeow:useWhen "Use this existing relation to retain the actual supplied components of a named MeasurableSpace, without inventing parallel role properties or positional cells."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating these edges as a list, imposing a new exact count, inferring a component's role from written order, or using a component edge as a claim that its target is a member subset A of Σ."@x-gmeow-english ;
     gmeow:howToUse "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."@x-gmeow-english .
+
+# --- Integration and dimension failure guidance ---------------------------- #
+
+math:IncompleteIntegral
+    skos:scopeNote "This identifies the existing Integral role-frame obligations, not a computed integral value or a dimensional mismatch. The existing closed-world entries cover integrand and integrationDomain. A framed integral without a declared result dimension does not acquire the conditional dimension-presence obligations for its integrand and measure."@x-gmeow-english ;
+    skos:example "In integral-missing-measure.ttl, measurelessIntegral names densityFn and space but omits withRespectTo. Its conformance record pins the minimum-count diagnostic and explicitly does not claim that this fixture has only one finding or failure class."@x-gmeow-english ;
+    gmeow:useWhen "Use for findings owned by the existing Integral restrictions when inspecting the supplied function, domain and measure frame, keeping other binder or dimension findings separate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a synonym for a missing numerical answer, a dimensional mismatch, or every malformed binder. Supplying the three integration roles alone does not establish a complete BindingExpression or compute an integral."@x-gmeow-english ;
+    gmeow:howToUse "Inspect integrand, integrationDomain and withRespectTo on the reported Integral and repair the source under its existing restrictions. Retain its inherited binder obligations and any separately declared result dimension; do not invent a measure or numerical result to hide a missing role."@x-gmeow-english .
+
+math:UndimensionedQuantity
+    skos:scopeNote "The role-presence constraints join homogeneousOperand to a required hasDimension edge, or integrand/withRespectTo to a result hasDimension edge on their subject and a required hasDimension edge on their target. These joins do not require explicit Quantity, Integral or DimensionalExpression types. Missing dimension links are distinct from unequal resolved vectors and from malformed or unresolved dimension data."@x-gmeow-english ;
+    skos:example "In homogeneous-operand-undimensioned.ttl, undimensionedOperand is a MeasurableFunction with no hasDimension. The incoming homogeneousOperand edge triggers the existing dimension-presence constraint even though it is not a Quantity; the missing link does not supply the two resolved dimensions needed for an inhomogeneity comparison."@x-gmeow-english ;
+    gmeow:useWhen "Use for the existing Quantity dimension-frame findings or the three role-specific dimension-presence constraints, retaining which object, role and conditional result-dimension guard produced the finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a missing dimension with dimensionless. A dimensionless quantity carries the zero dimension; a missing link is absent information. Do not impose the integral-part obligation without the subject's result-dimension edge or treat a present but unresolvable dimension as the same missing-link case."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the reported hasDimension absence and the actual role edges. Repair source data under the Quantity restrictions or HomogeneousOperandDimensionedConstraint, IntegrandDimensionedConstraint and WithRespectToDimensionedConstraint as applicable; their validation projections derive from logic sources, not separately authored shape rules."@x-gmeow-english .
+
+math:MalformedDimension
+    skos:scopeNote "Canonical dimension structure uses direct baseDimensionExponent cell links, not an RDF collection. Existing required-cell, component and operand obligations remain in force; arithmetic-helper success alone is not canonical admission. Structural faults and display drift are distinct from a mismatch between resolved vectors, and not every arithmetic failure is reported as MalformedDimension."@x-gmeow-english ;
+    skos:example "In dimension-zero-denominator.ttl, zeroDenomDimension directly links zeroDenomCell, whose exponentDenominator is 0. The existing non-zero-denominator constraint rejects that cell; the conformance record does not claim a sole finding, and the native zero-denominator scan is a separate verification path."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual structural, display-drift or malformed-transport diagnostic anchored to this class, preserving the reported source and detail rather than inferring its identity from an unsuccessful computation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for every dimension failure: the public loader wraps detected structural and individual Rational-construction faults, while exponent accumulation can propagate ArithmeticOverflow or RationalDomain. Physical cell loading can return None, and DimEqual/DimProduct can return Unbound for unresolved inputs or composition failure."@x-gmeow-english ;
+    gmeow:howToUse "Inspect direct exponent cells, their base targets and integer numerator/denominator values, the non-zero-denominator constraint, operand counts and any authored dimensionVector display. Repair the reported source under existing logic restrictions and closures; retain distinct loader diagnostics and builtin mode gaps without relabelling them all as this class."@x-gmeow-english .
+
+math:DimensionalInhomogeneity
+    skos:scopeNote "The authored laws use homogeneousOperand/hasDimension joins, or integrand/withRespectTo plus result and part hasDimension joins, without an explicit rdf:type guard. The native gate compares resolved exact vectors; unresolved inputs or overflowing composition leave DimEqual/DimProduct Unbound. Missing links have separate UndimensionedQuantity obligations, while incompatible quantity arithmetic can also anchor a DimensionMismatch error to this class."@x-gmeow-english ;
+    skos:example "In dimensional-expression-inhomogeneous-mixed.ttl, mixedSum has homogeneousOperand targets lengthOperand and massOperand, which carry lengthDimension and massDimension respectively. Both canonical base dimensions resolve, and their unequal unit vectors give a homogeneity mismatch rather than a missing-dimension or malformed-vector example."@x-gmeow-english ;
+    gmeow:useWhen "Use for a derived homogeneity or integral-composition mismatch, or an actual incompatible-quantity diagnostic anchored to this class, retaining which law or operation produced it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a missing dimension, malformed cell or unresolved builtin as a proved mismatch. Equal dimensions also do not prove a numerical result, a physical law or the correctness of an integral's supplied function and measure."@x-gmeow-english ;
+    gmeow:howToUse "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."@x-gmeow-english .

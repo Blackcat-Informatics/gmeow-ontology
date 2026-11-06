@@ -11718,3 +11718,117 @@ msgstr "不要将这些边当作列表，不要施加新的精确数量要求，
 msgctxt "https://blackcatinformatics.ca/math/measurableSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the source subjects, targets and their supplied typing, distinguishing component links from measureOn and measuredSubset. Preserve membership and containment evidence on its existing owning surfaces. Current declarations provide no dedicated component cardinality, type, closure or membership enforcement through this property."
 msgstr "保留来源主体、目标及所提供的类型标注，将组成部分链接与 measureOn、measuredSubset 区分。在现有归属表述面上保留成员关系及包含关系证据。当前声明不通过此属性提供专门的组成部分基数、类型、封闭性或成员关系强制检查。"
+
+# --- Integration and dimension failure guidance ---------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Integral"
+msgstr "不完整积分"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Integral does not name its integrand (math:integrand), its domain (math:integrationDomain), and the measure it integrates against (math:withRespectTo). An integral missing any of the three is ill-formed."
+msgstr "当 math:Integral 未指定其被积函数（math:integrand）、积分域（math:integrationDomain）及所用测度（math:withRespectTo）时引发的失败。缺少三者中任意一个的积分都是不符合规范的。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the existing Integral role-frame obligations, not a computed integral value or a dimensional mismatch. The existing closed-world entries cover integrand and integrationDomain. A framed integral without a declared result dimension does not acquire the conditional dimension-presence obligations for its integrand and measure."
+msgstr "此失败标识 Integral 现有的角色框架义务，不表示已计算的积分值或量纲不匹配。现有闭世界闭合条目涵盖 integrand 和 integrationDomain。具有框架但未声明结果量纲的积分，不会因此承担针对被积函数及测度的条件性量纲存在义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|http://www.w3.org/2004/02/skos/core#example"
+msgid "In integral-missing-measure.ttl, measurelessIntegral names densityFn and space but omits withRespectTo. Its conformance record pins the minimum-count diagnostic and explicitly does not claim that this fixture has only one finding or failure class."
+msgstr "在 integral-missing-measure.ttl 中，measurelessIntegral 指定 densityFn 和 space，却省略 withRespectTo。其符合性记录固定了最小计数诊断，并明确不声称该夹具只有一个诊断结果或失败类。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for findings owned by the existing Integral restrictions when inspecting the supplied function, domain and measure frame, keeping other binder or dimension findings separate."
+msgstr "用于检查所提供的函数、积分域及测度框架时归属于现有 Integral 限制的诊断结果，并与其他绑定结构或量纲诊断区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a synonym for a missing numerical answer, a dimensional mismatch, or every malformed binder. Supplying the three integration roles alone does not establish a complete BindingExpression or compute an integral."
+msgstr "不要将其当作缺少数值答案、量纲不匹配或任何绑定结构畸形的同义词。仅提供三个积分角色，既不确立完整的 BindingExpression，也不计算积分。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteIntegral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect integrand, integrationDomain and withRespectTo on the reported Integral and repair the source under its existing restrictions. Retain its inherited binder obligations and any separately declared result dimension; do not invent a measure or numerical result to hide a missing role."
+msgstr "检查所报告 Integral 的 integrand、integrationDomain 和 withRespectTo，并按现有限制修正来源。保留其继承的绑定义务及另行声明的结果量纲；不要编造测度或数值结果来掩盖缺失角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Undimensioned Quantity"
+msgstr "未声明量纲的量"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Quantity does not carry a math:Dimension through math:hasDimension. Every quantity carries a dimension; an undimensioned quantity is ill-formed. It also identifies missing math:hasDimension on a math:homogeneousOperand target and, when a subject declares a result dimension, on that subject's math:integrand or math:withRespectTo target; these role targets need not be quantities."
+msgstr "当 math:Quantity 未通过 math:hasDimension 携带 math:Dimension 时引发的失败。每个量都具有量纲；未声明量纲的量是不符合规范的。此失败也标识 math:homogeneousOperand 目标缺少 math:hasDimension 的情况，以及在某主体声明结果量纲时，该主体的 math:integrand 或 math:withRespectTo 目标缺少 math:hasDimension 的情况；这些角色目标不一定是量。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The role-presence constraints join homogeneousOperand to a required hasDimension edge, or integrand/withRespectTo to a result hasDimension edge on their subject and a required hasDimension edge on their target. These joins do not require explicit Quantity, Integral or DimensionalExpression types. Missing dimension links are distinct from unequal resolved vectors and from malformed or unresolved dimension data."
+msgstr "角色存在约束将 homogeneousOperand 与必需的 hasDimension 边连接，或将 integrand/withRespectTo 与其主体上的结果 hasDimension 边及其目标上必需的 hasDimension 边连接。这些连接不要求显式的 Quantity、Integral 或 DimensionalExpression 类型。缺失量纲链接与已解析向量不相等、量纲数据畸形或未解析的情况不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "In homogeneous-operand-undimensioned.ttl, undimensionedOperand is a MeasurableFunction with no hasDimension. The incoming homogeneousOperand edge triggers the existing dimension-presence constraint even though it is not a Quantity; the missing link does not supply the two resolved dimensions needed for an inhomogeneity comparison."
+msgstr "在 homogeneous-operand-undimensioned.ttl 中，undimensionedOperand 是没有 hasDimension 的 MeasurableFunction。尽管它不是 Quantity，指向它的 homogeneousOperand 边仍触发现有的量纲存在约束；缺失的链接并不能提供判定量纲不齐次所需的两个已解析量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the existing Quantity dimension-frame findings or the three role-specific dimension-presence constraints, retaining which object, role and conditional result-dimension guard produced the finding."
+msgstr "用于现有 Quantity 量纲框架诊断，或三个针对角色的量纲存在约束诊断，并保留产生诊断的对象、角色及条件性的结果量纲守卫。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a missing dimension with dimensionless. A dimensionless quantity carries the zero dimension; a missing link is absent information. Do not impose the integral-part obligation without the subject's result-dimension edge or treat a present but unresolvable dimension as the same missing-link case."
+msgstr "不要以 dimensionless 替代缺失量纲。无量纲的量携带零量纲；链接缺失表示信息缺失。没有主体的结果量纲边时，不要施加针对积分组成部分的义务；也不要把已存在但无法解析的量纲当作相同的缺失链接情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/UndimensionedQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the reported hasDimension absence and the actual role edges. Repair source data under the Quantity restrictions or HomogeneousOperandDimensionedConstraint, IntegrandDimensionedConstraint and WithRespectToDimensionedConstraint as applicable; their validation projections derive from logic sources, not separately authored shape rules."
+msgstr "检查所报告的 hasDimension 缺失及实际角色边。按适用的 Quantity 限制或 HomogeneousOperandDimensionedConstraint、IntegrandDimensionedConstraint、WithRespectToDimensionedConstraint 修正来源数据；其验证投影派生自 logic 来源，不是另行编写的形状规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Dimension"
+msgstr "畸形量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dimension is structurally ill-formed: a math:DerivedDimension with no directly linked math:baseDimensionExponent cells, an exponent cell whose math:exponentOfDimension is not a math:BaseDimension (so the exponent vector is undefined or cyclic), an exponent missing its numerator or denominator, or a math:dimensionVector string that does not match the canonical render of the directly linked exponent cells (a divergent second source). Also raised when a math:DimensionalExpression carries fewer than two math:homogeneousOperand."
+msgstr "当量纲结构畸形时引发的失败：math:DerivedDimension 没有直接链接的 math:baseDimensionExponent 单元；某个指数单元的 math:exponentOfDimension 不是 math:BaseDimension（从而使指数向量未定义或循环）；指数缺少分子或分母；或 math:dimensionVector 字符串与直接链接的指数单元的规范呈现不一致（形成偏离的第二来源）。当 math:DimensionalExpression 具有少于两个 math:homogeneousOperand 时也引发此失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical dimension structure uses direct baseDimensionExponent cell links, not an RDF collection. Existing required-cell, component and operand obligations remain in force; arithmetic-helper success alone is not canonical admission. Structural faults and display drift are distinct from a mismatch between resolved vectors, and not every arithmetic failure is reported as MalformedDimension."
+msgstr "规范量纲结构使用直接的 baseDimensionExponent 单元链接，而非 RDF 集合。现有的必需单元、组成部分及操作数义务仍然有效；仅有算术辅助函数成功并不代表规范接纳。结构故障及显示偏离与已解析向量之间的不匹配不同，并非每种算术失败都报告为 MalformedDimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "In dimension-zero-denominator.ttl, zeroDenomDimension directly links zeroDenomCell, whose exponentDenominator is 0. The existing non-zero-denominator constraint rejects that cell; the conformance record does not claim a sole finding, and the native zero-denominator scan is a separate verification path."
+msgstr "在 dimension-zero-denominator.ttl 中，zeroDenomDimension 直接链接 zeroDenomCell，后者的 exponentDenominator 为 0。现有非零分母约束拒绝该单元；符合性记录不声称只有一个诊断结果，原生零分母扫描则是独立的验证路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual structural, display-drift or malformed-transport diagnostic anchored to this class, preserving the reported source and detail rather than inferring its identity from an unsuccessful computation."
+msgstr "用于实际锚定到此类的结构、显示偏离或畸形传输诊断；保留所报告的来源及细节，不要仅凭计算失败来推断诊断身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for every dimension failure: the public loader wraps detected structural and individual Rational-construction faults, while exponent accumulation can propagate ArithmeticOverflow or RationalDomain. Physical cell loading can return None, and DimEqual/DimProduct can return Unbound for unresolved inputs or composition failure."
+msgstr "不要将其用于所有量纲失败：公共加载器包装检测到的结构故障和单个 Rational 构造故障，而指数累加可以传播 ArithmeticOverflow 或 RationalDomain。物理单元加载可以返回 None，DimEqual/DimProduct 可以因输入未解析或复合失败而返回 Unbound。"
+
+msgctxt "https://blackcatinformatics.ca/math/MalformedDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect direct exponent cells, their base targets and integer numerator/denominator values, the non-zero-denominator constraint, operand counts and any authored dimensionVector display. Repair the reported source under existing logic restrictions and closures; retain distinct loader diagnostics and builtin mode gaps without relabelling them all as this class."
+msgstr "检查直接链接的指数单元、其基本量纲目标及整数分子和分母值、非零分母约束、操作数数量及任何编写的 dimensionVector 显示。按现有 logic 限制及闭合修正所报告的来源；保留不同的加载器诊断及内置运算模式缺口，不要全部改标为此类。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dimensional Inhomogeneity"
+msgstr "量纲不齐次"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when an expression is dimensionally inhomogeneous: the operands of a math:DimensionalExpression do not all share one dimension, or a math:Integral's declared result dimension does not equal its integrand's dimension combined with its measure's. This is the no-optionality posture applied to dimensions — a dimensionally inhomogeneous expression is ill-formed. It is a reasoned gate, computed exactly from the rational exponent vectors of the ℚ-vector space of dimensions, not asserted data — this is GMEOW's differentiator over unit vocabularies that record conversions as data rather than deriving homogeneity."
+msgstr "当表达式量纲不齐次时引发的失败：math:DimensionalExpression 的操作数并非都具有同一量纲，或 math:Integral 声明的结果量纲不等于其被积函数量纲与测度量纲的组合。这是禁止静默能力降级原则在量纲上的体现：量纲不齐次的表达式是不符合规范的。这是从量纲的 ℚ 向量空间中的有理指数向量精确计算得到的推理门禁，不是断言数据；这使 GMEOW 区别于将换算记录为数据而不推导齐次性的单位词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The authored laws use homogeneousOperand/hasDimension joins, or integrand/withRespectTo plus result and part hasDimension joins, without an explicit rdf:type guard. The native gate compares resolved exact vectors; unresolved inputs or overflowing composition leave DimEqual/DimProduct Unbound. Missing links have separate UndimensionedQuantity obligations, while incompatible quantity arithmetic can also anchor a DimensionMismatch error to this class."
+msgstr "所编写的法则使用 homogeneousOperand/hasDimension 连接，或使用 integrand/withRespectTo 加上结果及组成部分的 hasDimension 连接，没有显式 rdf:type 守卫。原生门禁比较已解析的精确向量；输入未解析或复合溢出会使 DimEqual/DimProduct 保持 Unbound。缺失链接由独立的 UndimensionedQuantity 义务处理，而不兼容量的算术运算也可以将 DimensionMismatch 错误锚定到此类。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|http://www.w3.org/2004/02/skos/core#example"
+msgid "In dimensional-expression-inhomogeneous-mixed.ttl, mixedSum has homogeneousOperand targets lengthOperand and massOperand, which carry lengthDimension and massDimension respectively. Both canonical base dimensions resolve, and their unequal unit vectors give a homogeneity mismatch rather than a missing-dimension or malformed-vector example."
+msgstr "在 dimensional-expression-inhomogeneous-mixed.ttl 中，mixedSum 的 homogeneousOperand 目标是 lengthOperand 和 massOperand，二者分别具有 lengthDimension 和 massDimension。两个规范基本量纲都能解析，其不相等的单位向量构成齐次性不匹配，而不是缺失量纲或畸形向量的例子。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a derived homogeneity or integral-composition mismatch, or an actual incompatible-quantity diagnostic anchored to this class, retaining which law or operation produced it."
+msgstr "用于推导出的齐次性或积分量纲复合不匹配，或实际锚定到此类的不兼容量诊断，并保留产生它的法则或运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a missing dimension, malformed cell or unresolved builtin as a proved mismatch. Equal dimensions also do not prove a numerical result, a physical law or the correctness of an integral's supplied function and measure."
+msgstr "不要将缺失量纲、畸形单元或未解析的内置运算当作已证明的不匹配。量纲相等也不证明数值结果、物理定律或积分所提供函数及测度的正确性。"
+
+msgctxt "https://blackcatinformatics.ca/math/DimensionalInhomogeneity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."
+msgstr "沿实际角色边检查其已解析的有理指数向量。对于齐次性诊断，比较操作数量纲；对于积分量纲复合，比较已声明结果量纲与被积函数及测度成功复合所得的量纲。修正来源声明，同时分别保留输入缺失、数据畸形及算术缺口的证据。"
