@@ -51,7 +51,7 @@ first-class object, never a bare literal: it names its `math:limitOutcome` (one 
 `math:divergesToNegativeInfinity`, `math:divergesWithoutLimit`) and, where the outcome has one, its
 `math:limitResultValue`. The value **agrees with the outcome** by construction: a convergent result
 carries a finite literal; a result diverging to a pole carries `math:PositiveInfinity` or
-`math:NegativeInfinity` (the same signed extended-real points a `math:totalMass` or an
+`math:NegativeInfinity` (the same signed extended-real points an
 `math:extendedRealValue` ranges over, which is why `math:limitResultValue` is an honest `rdf:Property`
 spanning literal and pole); a result diverging without a limit — an oscillating `sin(1/x)` at `0` —
 carries no value at all, because there is no point of `ℝ̄` to name. The result is **optional** on a

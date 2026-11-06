@@ -1195,7 +1195,7 @@ math:MalformedExtendedReal
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the typed violation object when a signed-extended-real slot (a math:extendedRealValue) holds something off the extended real line ℝ̄ — a non-numeric literal or an IRI that is not one of the two poles."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a legitimate +∞ or −∞: those ARE points of ℝ̄; it fires only for values outside the set {finite real, math:PositiveInfinity, math:NegativeInfinity}."@x-gmeow-english ;
-    gmeow:howToUse "Point the shape guarding math:extendedRealValue at it through gmeow:enforcesFailureClass; conformance mints the instance."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the selected validation report for the finding owned by the existing ExtendedRealValueConstraint and its gmeow:enforcesFailureClass association. Follow the reported extendedRealValue edge and repair its source value; validation projections derive from that logic source, and no newly minted failure instance is presumed."@x-gmeow-english ;
     skos:example "exf:badSlot math:extendedRealValue exf:notAPole . # an IRI that is neither pole -> math:MalformedExtendedReal"@x-gmeow-english .
 
 math:UnframedOperator
@@ -2851,7 +2851,7 @@ math:PositiveInfinity
     a logic:NamedIndividual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "+∞"@x-gmeow-english ;
-    skos:definition "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on an infinite set. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal. The positive pole of the signed extended real line math:ExtendedRealLine, adjoined to ℝ through math:inNumberSystem and dual to math:NegativeInfinity."@x-gmeow-english ;
+    skos:definition "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on a countably infinite space with all singletons measurable. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal. The positive pole of the signed extended real line math:ExtendedRealLine, adjoined to ℝ through math:inNumberSystem and dual to math:NegativeInfinity."@x-gmeow-english ;
     math:inNumberSystem math:ExtendedRealLine .
 
 math:NegativeInfinity
@@ -18356,3 +18356,32 @@ math:DimensionalInhomogeneity
     gmeow:useWhen "Use for a derived homogeneity or integral-composition mismatch, or an actual incompatible-quantity diagnostic anchored to this class, retaining which law or operation produced it."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a missing dimension, malformed cell or unresolved builtin as a proved mismatch. Equal dimensions also do not prove a numerical result, a physical law or the correctness of an integral's supplied function and measure."@x-gmeow-english ;
     gmeow:howToUse "Follow the actual role edges and inspect their resolved rational exponent vectors. For a homogeneity finding compare operand dimensions; for integral composition compare the declared result with the successfully composed integrand and measure dimensions. Repair the source declaration while preserving separate missing-input, malformed-data and arithmetic-gap evidence."@x-gmeow-english .
+
+# --- Signed extended-real guidance ----------------------------------------- #
+
+math:PositiveInfinity
+    skos:scopeNote "This named individual is the positive pole, not a finite numeric literal, floating INF, NaN or a missing value. The signed extendedRealValue slot admits it by exact pole identity; non-negative measure slots have their own constraints. Naming the pole does not compute a limit or define arithmetic on infinities."@x-gmeow-english ;
+    skos:example "The existing volumeMeasure record uses totalMass PositiveInfinity for its whole-space mass while a separate evaluation records a finite subset result. An extendedRealValue edge may also name this same positive pole."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies the positive extended-real pole, preserving whether it is a measure value, a signed slot value or a declared limit result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a floating infinity, the text +∞, an arbitrary resource with that label or an unknown finite value. Do not infer infinite mass merely because a region is unbounded, or convergence merely because this pole is recorded."@x-gmeow-english ;
+    gmeow:howToUse "Use the exact math:PositiveInfinity IRI in the value-bearing predicate allowed by the source model. Keep extendedRealValue, totalMass, measureResult and limitResultValue distinct and inspect their existing constraints; do not replace a finite result with the pole to bypass a value check."@x-gmeow-english .
+
+math:NegativeInfinity
+    skos:scopeNote "The negative pole is an admitted named value of signed extendedRealValue, but not of non-negative measure slots. It is distinct from a finite negative literal, floating -INF, NaN and absence. This representation does not establish a divergence claim or extend an executable arithmetic profile."@x-gmeow-english ;
+    skos:example "exf:divergentField math:extendedRealValue math:NegativeInfinity . This records the supplied negative pole; the edge alone is not a proof that the field diverges downward."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly supplied negative extended-real pole in a signed slot or an outcome-compatible declared limit result, retaining the source evidence for that interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for missing information, an indeterminate expression or a non-negative mass. A negative finite value remains a numeric literal rather than this pole, and a floating -INF is not its RDF identity."@x-gmeow-english ;
+    gmeow:howToUse "Use the exact math:NegativeInfinity IRI where the signed value contract permits it. For extendedRealValue, retain the supplied edge and inspect ExtendedRealValueConstraint; for a limit result, retain the separate outcome agreement obligations rather than assuming slot admission proves convergence."@x-gmeow-english .
+
+math:ExtendedRealLine
+    skos:scopeNote "This NumberSystem individual represents ℝ with two signed poles adjoined; it is neither an RDF datatype IRI nor a class to assert on a literal. Finite numeric RDF literals and the two exact named poles form the slot representation, while field structure, convergence and permitted operations remain separate concerns."@x-gmeow-english ;
+    skos:example "PositiveInfinity and NegativeInfinity each name ExtendedRealLine through inNumberSystem, while realNumbers names it through subsystemOf. Those existing membership links do not turn the system IRI into a datatype annotation for a literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source's signed extended-real number-system interpretation, or to name ExtendedRealLine itself as a function's codomain, distinguishing it from the finite real system and from the complex numbers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the system as a datatype suffix, treating it as an algebraically closed field, or inferring executable infinity arithmetic from its membership links. Declaring ExtendedRealLine as a function's codomain does not prove that function's limit behavior."@x-gmeow-english ;
+    gmeow:howToUse "Retain the existing NumberSystem individual and its subsystemOf/inNumberSystem relations. Use extendedRealValue for a supplied signed value with the existing finite-literal-or-poles constraint; keep any function frame, limit outcome and selected arithmetic profile on their own existing surfaces."@x-gmeow-english .
+
+math:extendedRealValue
+    skos:scopeNote "ExtendedRealValueConstraint guards every extendedRealValue edge without a subject-class requirement. Its finite branch admits supported well-formed integer/decimal literals or finite float/double literals of either sign; its pole branch names exactly PositiveInfinity or NegativeInfinity. The guard checks supplied values, not required presence, cardinality, arithmetic or convergence, and this guidance claims no native/projection runtime parity."@x-gmeow-english .
+
+math:MalformedExtendedReal
+    skos:scopeNote "The existing ExtendedRealValueConstraint maps off-contract objects of extendedRealValue edges to this failure, without requiring a subject type. Text, arbitrary IRIs or blank nodes, NaN and floating infinities are not its finite-literal-or-named-poles representation. An absent edge is not tested by that guard, and the report need not mint a failure individual."@x-gmeow-english .
