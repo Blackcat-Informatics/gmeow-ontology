@@ -12,9 +12,9 @@ use purrdf::gts::examples::agent_memory::StoreOptions;
 use std::collections::BTreeSet;
 
 #[cfg(feature = "reasoning")]
-use purrdf::RdfTerm;
+use crate::storage::ToolCallOptions;
 #[cfg(feature = "reasoning")]
-use purrdf::gts::examples::agent_memory::ToolCallOptions;
+use purrdf::RdfTerm;
 
 #[cfg(feature = "reasoning")]
 use crate::storage::{ClaimStore, InMemoryClaimStore};
@@ -197,14 +197,22 @@ fn store_segment_serializes_the_browser_claim_store() {
             },
         )
         .expect("stores");
+    let arguments = json!({"text": "the console can export what it stored", "null": null, "empty_map": {}, "empty_sequence": [], "repeat": [1, 1], "iri": "urn:source:value"});
+    let result = json!({"ok": true});
+    let payload =
+        crate::storage::StructuredPayload::from_json(Some(&arguments), Some(&result)).unwrap();
     store
         .record_tool_call(
             "urn:gmeow:tool:store_claim",
             ToolCallOptions {
-                arguments: Some(r#"{"text":"the console can export what it stored"}"#),
-                result: Some(r#"{"ok":true}"#),
+                arguments: Some(&purrdf::RdfLiteral::simple(
+                    r#"{"text":"the console can export what it stored"}"#,
+                )),
+                result: Some(&purrdf::RdfLiteral::simple(r#"{"ok":true}"#)),
                 invocation: None,
                 generated: &[claim.id.as_str()],
+                payload: Some(&payload),
+                ..ToolCallOptions::default()
             },
         )
         .expect("records");
@@ -246,6 +254,39 @@ fn store_segment_serializes_the_browser_claim_store() {
     assert_eq!(
         seeded.claims().expect("reads")[0].text,
         "the console can export what it stored"
+    );
+    let recorded = store.tool_calls().unwrap();
+    let payload = &recorded[0].payload.as_ref().unwrap().graph;
+    let rows = purrdf::flat_rdf_quads_from_dataset(payload);
+    assert_eq!(
+        rows.iter()
+            .filter(
+                |row| row.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                    && row.object
+                        == RdfTerm::iri("https://blackcatinformatics.ca/gmeow/StructuredNull")
+            )
+            .count(),
+        1
+    );
+    assert!(
+        rows.iter()
+            .any(|row| row.predicate.ends_with("/structuredTerm")
+                && row.object == RdfTerm::Literal(purrdf::RdfLiteral::simple("urn:source:value"))),
+        "IRI-looking JSON remains a string"
+    );
+    assert_eq!(
+        rows.iter()
+            .filter(|row| row.predicate.ends_with("/structuredItem"))
+            .count(),
+        2,
+        "repeated array values keep distinct indexed occurrences"
+    );
+    let exported = crate::storage::InMemoryClaimStore::default();
+    crate::storage::seed_claim_store(&exported, nquads).unwrap();
+    assert_eq!(
+        exported.segment_nquads().unwrap(),
+        nquads,
+        "structured browser export survives cold replay"
     );
 }
 
