@@ -4327,6 +4327,7 @@ fn derive_union_of_filler_lowers_to_sh_or() {
     );
 }
 
+/// Numeric datatype facets preserve their endpoint values and projected inclusivity.
 #[test]
 fn derive_range_facets_lower_to_numeric_range() {
     // A faceted datatype filler carrying xsd:minInclusive/maxExclusive lowers to ONE NumericRange.
@@ -4355,6 +4356,66 @@ fn derive_range_facets_lower_to_numeric_range() {
     assert_eq!(range.1, Some(100.0));
     assert!(range.2, "minInclusive");
     assert!(!range.3, "maxExclusive");
+    let projected = shapes
+        .iter()
+        .map(crate::projections::shapes::project_validation_shape_shacl)
+        .collect::<String>();
+    assert!(projected.contains("sh:minInclusive 0"), "{projected}");
+    assert!(projected.contains("sh:maxExclusive 100"), "{projected}");
+}
+
+/// Unsupported supplied facets refuse derivation even when another component is preferred.
+#[test]
+fn supplied_datatype_range_bounds_cannot_disappear_from_derived_shapes() {
+    for (predicate, bound, other) in [
+        ("minInclusive", "\"PT0S\"^^xsd:duration", ""),
+        (
+            "maxInclusive",
+            "\"PT30M\"^^xsd:duration",
+            "xsd:minInclusive 0 ;",
+        ),
+        (
+            "minExclusive",
+            "\"-PT1S\"^^xsd:duration",
+            "xsd:minInclusive 0 ;",
+        ),
+        (
+            "maxExclusive",
+            "\"broken\"^^xsd:decimal",
+            "xsd:maxInclusive 1 ;",
+        ),
+        ("minInclusive", "g:notALiteral", ""),
+        ("maxExclusive", "\"NaN\"^^xsd:double", ""),
+        ("minInclusive", "\"0\"^^xsd:string", ""),
+        ("minInclusive", "0, \"PT0S\"^^xsd:duration", ""),
+    ] {
+        let source = format!(
+            "g:M a logic:Class ; logic:subClassOf \
+             [ a logic:Restriction ; logic:onProperty g:value ; logic:allValuesFrom \
+               [ a logic:Datarange ; logic:onDatatype xsd:decimal ; \
+                 logic:withRestrictions ( g:facet ) ] ] . \
+             g:facet {other} xsd:{predicate} {bound} ."
+        );
+        let error = derive_validation_shapes(shape_dataset(&source).as_ref())
+            .expect_err("a supplied unsupported bound must refuse the whole derivation");
+        let message = error.message();
+        assert!(message.contains("/facet"), "{message}");
+        assert!(message.contains(predicate), "{message}");
+        assert!(message.contains("finite RDF numeric"), "{message}");
+        assert!(message.contains("supplied"), "{message}");
+    }
+    let qualified_union = shape_dataset(
+        "g:M a logic:Class ; logic:subClassOf \
+         [ a logic:Restriction ; logic:onProperty g:value ; \
+           logic:minQualifiedCardinality 1 ; logic:onDataRange \
+           [ a logic:Datarange ; logic:unionOf ( xsd:decimal xsd:integer ) ; \
+             logic:onDatatype xsd:decimal ; logic:withRestrictions ( g:facet ) ] ] . \
+         g:facet xsd:minInclusive \"PT0S\"^^xsd:duration .",
+    );
+    let error = derive_validation_shapes(qualified_union.as_ref())
+        .expect_err("a recognized qualifying union must not hide an unsupported facet");
+    assert!(error.message().contains("/facet"), "{error}");
+    assert!(error.message().contains("minInclusive"), "{error}");
 }
 
 #[test]
@@ -4480,6 +4541,75 @@ fn derive_value_range_record_lowers_to_min_and_max_inclusive_on_the_class_shape(
             } if *lo == 0.0 && *hi == 1.0)),
         "expected sh:minInclusive 0 / sh:maxInclusive 1 on g:magnitude: {shape:?}"
     );
+}
+
+/// Unsupported bounds refuse both shape projection and every procedural extraction entry.
+#[test]
+fn supplied_value_range_bounds_refuse_shape_and_source_extraction_together() {
+    for fields in [
+        "logic:minInclusiveBound \"PT0S\"^^xsd:duration",
+        "logic:minInclusiveBound 0 ; logic:maxInclusiveBound \"PT30M\"^^xsd:duration",
+        "logic:minInclusiveBound 0 ; logic:minExclusiveBound \"-PT1S\"^^xsd:duration",
+        "logic:maxInclusiveBound 1 ; logic:maxExclusiveBound \"broken\"^^xsd:decimal",
+        "logic:minInclusiveBound g:notALiteral",
+        "logic:maxExclusiveBound \"NaN\"^^xsd:double",
+        "logic:minInclusiveBound \"0\"^^xsd:string",
+        "logic:minInclusiveBound 0, \"PT0S\"^^xsd:duration",
+    ] {
+        let source = format!(
+            "g:range a logic:ValueRangeConstraint ; logic:onClass g:M ; \
+             logic:valuePath g:value ; logic:formalizes g:M ; {fields} ."
+        );
+        let dataset = shape_dataset(&source);
+        let shape_error = derive_validation_shapes(dataset.as_ref())
+            .expect_err("unsupported bounds must not leave weaker shapes");
+        let extraction_error = extract_all_constraints(dataset.as_ref())
+            .expect_err("mandatory extraction must not warn and skip the range");
+        let parse_error = parse_logic_dataset(dataset.as_ref(), None)
+            .expect_err("source compilation must refuse unsupported bounds");
+        let prepared = PreparedLogicSource::new(dataset.as_ref()).expect("prepared source");
+        let prepared_error = prepared
+            .constraints()
+            .expect_err("producer fixture extraction must propagate the same refusal");
+        for error in [shape_error, extraction_error, parse_error, prepared_error] {
+            let message = error.message();
+            assert!(message.contains("/range"), "{message}");
+            assert!(message.contains("Bound"), "{message}");
+            assert!(message.contains("finite RDF numeric"), "{message}");
+            assert!(message.contains("supplied"), "{message}");
+        }
+    }
+}
+
+/// Missing endpoints stay unbounded and admitted inclusive peers retain declared precedence.
+#[test]
+fn value_range_absent_endpoints_and_inclusive_precedence_remain_supported() {
+    for (fields, present, absent) in [
+        ("logic:minExclusiveBound 0", "sh:minExclusive 0", "sh:max"),
+        ("logic:maxInclusiveBound 1", "sh:maxInclusive 1", "sh:min"),
+        (
+            "logic:minInclusiveBound 0 ; logic:minExclusiveBound 1",
+            "sh:minInclusive 0",
+            "sh:minExclusive",
+        ),
+    ] {
+        let source = format!(
+            "g:range a logic:ValueRangeConstraint ; logic:onClass g:M ; \
+             logic:valuePath g:value ; logic:formalizes g:M ; {fields} ."
+        );
+        let dataset = shape_dataset(&source);
+        let shapes = derive_validation_shapes(dataset.as_ref()).expect("supported numeric range");
+        let projected = shapes
+            .iter()
+            .map(crate::projections::shapes::project_validation_shape_shacl)
+            .collect::<String>();
+        assert!(projected.contains(present), "{projected}");
+        assert!(!projected.contains(absent), "{projected}");
+        let (program, diagnostics) =
+            parse_logic_dataset(dataset.as_ref(), None).expect("supported source range");
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        assert_eq!(program.constraints.len(), 1);
+    }
 }
 
 #[test]

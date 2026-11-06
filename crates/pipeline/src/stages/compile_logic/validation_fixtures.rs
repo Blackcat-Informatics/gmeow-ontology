@@ -148,11 +148,15 @@ pub(super) fn record(
     Ok(())
 }
 
+/// Produce a prepared module's typed shapes, procedural projection and diagnostic record.
+///
+/// # Errors
+/// Propagates constraint, facet and serialization failures without publishing a partial product.
 fn compile_module(source: &PreparedLogicSource) -> gmeow_errors::Result<ModuleProduct> {
     // Reuse the prepared ownership/formula analysis, extracting only the
     // procedural constraints this output needs. Unrelated axioms and programs
     // are already compiled by the aggregate theory and are not lowered again.
-    let (constraints, diagnostics) = source.constraints();
+    let (constraints, diagnostics) = source.constraints()?;
     let program =
         LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None).with_constraints(constraints);
     let shapes = derive_validation_shapes(source.dataset())?

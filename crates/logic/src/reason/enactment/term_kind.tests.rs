@@ -35,7 +35,8 @@ fn findings(kind: &str, class_scoped: bool, data: &str) -> Vec<(String, String, 
 fn authored_findings(law: &str, data: &str, rule_count: usize) -> Vec<(String, String, String)> {
     let source = purrdf::parse_dataset(format!("{PREFIXES} {law}").as_bytes(), "text/turtle", None)
         .expect("independent authored law parses");
-    let (constraints, diagnostics) = extract_all_constraints(&source);
+    let (constraints, diagnostics) =
+        extract_all_constraints(&source).expect("supported constraints");
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(constraints.len(), 1);
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(constraints);
@@ -344,6 +345,7 @@ fn triple_values_do_not_masquerade_as_any_supported_node_kind() {
     }
 }
 
+/// Malformed node-kind laws retain diagnostics and cannot yield admitted integrity checks.
 #[test]
 fn malformed_kind_is_a_diagnostic_not_a_silently_omitted_check() {
     let source = purrdf::parse_dataset(
@@ -359,7 +361,8 @@ fn malformed_kind_is_a_diagnostic_not_a_silently_omitted_check() {
         None,
     )
     .unwrap();
-    let (constraints, diagnostics) = extract_all_constraints(&source);
+    let (constraints, diagnostics) =
+        extract_all_constraints(&source).expect("supported constraints");
     assert!(constraints.is_empty());
     assert!(!diagnostics.is_empty());
 }

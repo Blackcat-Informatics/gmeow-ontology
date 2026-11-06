@@ -41,6 +41,10 @@ pub(super) fn compose(vocabulary: &[u8], residual: &str) -> gmeow_errors::Result
     ))
 }
 
+/// Recover one canonical requiredness law for exactly the selected class and path.
+///
+/// # Errors
+/// Refuses missing, ambiguous or differently scoped laws and propagates source admission errors.
 pub(super) fn canonical_requiredness(
     source: &purrdf::RdfDataset,
     class: &str,
@@ -74,7 +78,7 @@ pub(super) fn canonical_requiredness(
             "selected requiredness <{law}> must require exactly <{path}>, without alternatives"
         )));
     }
-    let (constraints, diagnostics) = frontend::extract_all_constraints(source);
+    let (constraints, diagnostics) = frontend::extract_all_constraints(source)?;
     for diagnostic in diagnostics {
         if diagnostic.subject.as_deref() == Some(law)
             && diagnostic.severity == frontend::Severity::Error

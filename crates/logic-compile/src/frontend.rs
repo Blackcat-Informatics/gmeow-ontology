@@ -13,8 +13,8 @@
 //! * **Preserve diagnostics** — malformed rules, formulas and contracts are
 //!   excluded with error diagnostics. A malformed rule body never becomes a weaker
 //!   rule. Recoverable projection/annotation issues retain their named warnings.
-//! * **Raise** ([`Diag`]) on unparsable input: an empty graph or a
-//!   file that cannot be read/parsed.
+//! * **Raise** ([`Diag`]) on unparsable input or supplied range bounds outside the
+//!   supported finite numeric contract. Empty graphs and unreadable files also fail.
 //! * **Never silently skip** — every skipped element produces a named diagnostic.
 //!
 //! # Recognised RDF patterns
@@ -2397,6 +2397,54 @@ pub fn is_authoring_namespace(iri: &str) -> bool {
     AUTHORING_NAMESPACES.iter().any(|ns| iri.starts_with(ns))
 }
 
+/// Admit a supplied numeric range endpoint; only a missing predicate is unbounded.
+/// Validate all supplied objects before retaining the established first-value selection.
+///
+/// # Errors
+/// Refuses nonliteral, unsupported, malformed or nonfinite bounds with their source context.
+fn numeric_range_bound(
+    store: &RdfDataset,
+    owner: &Subject,
+    predicate: &Iri,
+) -> gmeow_errors::Result<Option<f64>> {
+    let mut selected = None;
+    for bound in objects(store, owner, predicate) {
+        let error = |reason: &str| {
+            Diag::of_kind(crate::error::Frontend {
+                detail: format!(
+                    "range bound on {} at <{}>: supplied {bound:?}; requires a finite RDF numeric \
+                     literal supported by the numeric range projection: {reason}",
+                    subject_str(owner),
+                    predicate.as_str(),
+                ),
+            })
+        };
+        let Node::Lit(literal) = &bound else {
+            return Err(error("the supplied term is not a literal"));
+        };
+        crate::ir::FiniteNumericLiteral::new(literal.clone())
+            .map_err(|detail| error(detail.message()))?;
+        let number = literal
+            .lexical_form
+            .trim()
+            .parse::<f64>()
+            .map_err(|detail| error(&detail.to_string()))?;
+        if !number.is_finite() {
+            return Err(error("the numeric range representation is not finite"));
+        }
+        // Preserve the existing first-value selection, but admit every supplied value.
+        if selected.is_none() {
+            selected = Some(number);
+        }
+    }
+    Ok(selected)
+}
+
+/// Derive and merge closed-world validation shapes from the selected authored source.
+/// Closure declarations, restrictions and validation descriptors determine the projected paths.
+///
+/// # Errors
+/// Propagates malformed closure or restriction metadata and unsupported numeric range bounds.
 pub fn derive_validation_shapes(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
@@ -2591,11 +2639,11 @@ pub fn derive_validation_shapes(
     let xsd_maxinclusive = nn(&format!("{xsd}maxInclusive"));
     let xsd_minexclusive = nn(&format!("{xsd}minExclusive"));
     let xsd_maxexclusive = nn(&format!("{xsd}maxExclusive"));
-    let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
+    let datatype_facets = |filler: &Subject| -> gmeow_errors::Result<Vec<ConstraintComponent>> {
         let Some(list_head) =
             restriction_value(filler, &p_withrestrictions, &p_logic_withrestrictions)
         else {
-            return Vec::new();
+            return Ok(Vec::new());
         };
         let mut comps = Vec::new();
         if let Some(Node::Iri(dt)) = restriction_value(filler, &p_ondatatype, &p_logic_ondatatype) {
@@ -2605,10 +2653,14 @@ pub fn derive_validation_shapes(
         // endpoint inclusivity) so an interval authored as two facet nodes projects to one
         // `sh:minInclusive`/`sh:maxInclusive` (or the exclusive peers) component, matching the
         // direct-emit oracle. An inclusive bound wins over an exclusive one on the same endpoint
-        // (an author who states both means the tighter closed reading).
+        // under the declared endpoint-selection contract.
         let (mut lo, mut hi): (Option<f64>, Option<f64>) = (None, None);
         let (mut lo_incl, mut hi_incl) = (true, true);
         for facet in read_list_member_subjects(store, &list_head) {
+            let min_inclusive = numeric_range_bound(store, &facet, &xsd_mininclusive)?;
+            let min_exclusive = numeric_range_bound(store, &facet, &xsd_minexclusive)?;
+            let max_inclusive = numeric_range_bound(store, &facet, &xsd_maxinclusive)?;
+            let max_exclusive = numeric_range_bound(store, &facet, &xsd_maxexclusive)?;
             if let Some(Node::Lit(purrdf::RdfLiteral {
                 lexical_form: regex,
                 ..
@@ -2630,35 +2682,21 @@ pub fn derive_validation_shapes(
             {
                 comps.push(ConstraintComponent::MaxLength(n));
             }
-            if let Some(Node::Lit(purrdf::RdfLiteral {
-                lexical_form: n, ..
-            })) = value(store, &facet, &xsd_mininclusive)
-                && let Ok(n) = n.trim().parse::<f64>()
-            {
+            if let Some(n) = min_inclusive {
                 lo = Some(n);
                 lo_incl = true;
             }
-            if let Some(Node::Lit(purrdf::RdfLiteral {
-                lexical_form: n, ..
-            })) = value(store, &facet, &xsd_minexclusive)
-                && let Ok(n) = n.trim().parse::<f64>()
+            if let Some(n) = min_exclusive
                 && lo.is_none()
             {
                 lo = Some(n);
                 lo_incl = false;
             }
-            if let Some(Node::Lit(purrdf::RdfLiteral {
-                lexical_form: n, ..
-            })) = value(store, &facet, &xsd_maxinclusive)
-                && let Ok(n) = n.trim().parse::<f64>()
-            {
+            if let Some(n) = max_inclusive {
                 hi = Some(n);
                 hi_incl = true;
             }
-            if let Some(Node::Lit(purrdf::RdfLiteral {
-                lexical_form: n, ..
-            })) = value(store, &facet, &xsd_maxexclusive)
-                && let Ok(n) = n.trim().parse::<f64>()
+            if let Some(n) = max_exclusive
                 && hi.is_none()
             {
                 hi = Some(n);
@@ -2673,7 +2711,7 @@ pub fn derive_validation_shapes(
                 max_inclusive: hi_incl,
             });
         }
-        comps
+        Ok(comps)
     };
 
     // The closed-world reading of a blank ANONYMOUS-CLASS-EXPRESSION filler (an
@@ -3016,7 +3054,7 @@ pub fn derive_validation_shapes(
                 // anonymous class expression, carried in the canon, never a bare blank shape → skip.
                 Some(filler @ Node::Blank { .. }) => {
                     if let Some(fs) = term_as_subject(&filler) {
-                        let facets = datatype_facets(&fs);
+                        let facets = datatype_facets(&fs)?;
                         if !facets.is_empty() {
                             let pc = PropertyConstraintIr::new(&on, None, None, None, facets)?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
@@ -3056,7 +3094,7 @@ pub fn derive_validation_shapes(
                 }
                 Some(filler @ Node::Blank { .. }) => {
                     if let Some(fs) = term_as_subject(&filler) {
-                        let facets = datatype_facets(&fs);
+                        let facets = datatype_facets(&fs)?;
                         if !facets.is_empty() {
                             let min = closed_requirements
                                 .contains(&(class_iri.clone(), on.clone()))
@@ -3178,9 +3216,11 @@ pub fn derive_validation_shapes(
                             }
                             Some(filler @ Node::Blank { .. }) => {
                                 let subject = term_as_subject(&filler).expect("blank data range");
-                                let comps = classify_filler(&subject)
-                                    .map(|component| vec![component])
-                                    .unwrap_or_else(|| datatype_facets(&subject));
+                                let facets = datatype_facets(&subject)?;
+                                let comps = match classify_filler(&subject) {
+                                    Some(component) => vec![component],
+                                    None => facets,
+                                };
                                 if !comps.is_empty() {
                                     let pc = PropertyConstraintIr::new(
                                         &on,
@@ -3858,7 +3898,7 @@ pub fn derive_validation_shapes(
     // Exclusive peers (`logic:minExclusiveBound` / `logic:maxExclusiveBound`) lower to
     // `sh:minExclusive` / `sh:maxExclusive` — the faithful record for a legacy shape whose bound
     // was authored open (e.g. `sh:minExclusive 0` for a strictly-positive denominator). An
-    // inclusive bound wins over an exclusive one on the same endpoint (the tighter closed reading).
+    // inclusive bound wins over an exclusive one under the declared endpoint-selection contract.
     let p_min_excl = nn(&logic_iri("minExclusiveBound"));
     let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
     for record in subjects_of_structural_class(store, &range_ty) {
@@ -3871,23 +3911,18 @@ pub fn derive_validation_shapes(
         let Some(Node::Iri(on)) = value(store, &record, &p_valuepath) else {
             continue;
         };
-        let bound_of = |p: &Iri| -> Option<f64> {
-            match value(store, &record, p) {
-                Some(Node::Lit(purrdf::RdfLiteral {
-                    lexical_form: lexical,
-                    ..
-                })) => lexical.trim().parse::<f64>().ok(),
-                _ => None,
-            }
-        };
+        let min_inclusive = numeric_range_bound(store, &record, &p_min_bound)?;
+        let min_exclusive = numeric_range_bound(store, &record, &p_min_excl)?;
+        let max_inclusive = numeric_range_bound(store, &record, &p_max_bound)?;
+        let max_exclusive = numeric_range_bound(store, &record, &p_max_excl)?;
         // Inclusive bound wins over the exclusive peer on the same endpoint.
-        let (lo, lo_incl) = match bound_of(&p_min_bound) {
+        let (lo, lo_incl) = match min_inclusive {
             Some(v) => (Some(v), true),
-            None => (bound_of(&p_min_excl), false),
+            None => (min_exclusive, false),
         };
-        let (hi, hi_incl) = match bound_of(&p_max_bound) {
+        let (hi, hi_incl) = match max_inclusive {
             Some(v) => (Some(v), true),
-            None => (bound_of(&p_max_excl), false),
+            None => (max_exclusive, false),
         };
         if lo.is_none() && hi.is_none() {
             continue;
@@ -5289,14 +5324,24 @@ fn extract_constraints(
 /// be authored in the slice that owns the constrained class (the constraint peer of
 /// [`derive_validation_shapes`], which already reads the merged dataset). The returned vector is
 /// unsorted; [`LogicProgram::with_constraints`] canonicalizes it.
-pub fn extract_all_constraints(store: &RdfDataset) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
+///
+/// # Errors
+/// Refuses supplied range bounds outside the supported finite numeric contract.
+pub fn extract_all_constraints(
+    store: &RdfDataset,
+) -> gmeow_errors::Result<(Vec<ConstraintIr>, Vec<Diagnostic>)> {
     extract_constraints_from_source(store, &StructuralSourceGraph::new(store))
 }
 
+/// Extract procedural constraints with the prepared source's ownership diagnostics.
+/// Malformed recoverable records remain excluded with their original diagnostics.
+///
+/// # Errors
+/// Propagates mandatory range-bound admission failures instead of returning partial constraints.
 fn extract_constraints_from_source(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
-) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
+) -> gmeow_errors::Result<(Vec<ConstraintIr>, Vec<Diagnostic>)> {
     let mut reader = FormulaReader::new(store);
     let mut diagnostics = source_graph.ownership_diagnostics(store);
     let malformed_formulas =
@@ -5312,14 +5357,14 @@ fn extract_constraints_from_source(
         store,
         &mut diagnostics,
         &mut lowerings,
-    ));
-    (
+    )?);
+    Ok((
         constraints
             .into_iter()
             .map(|emission| emission.value)
             .collect(),
         diagnostics,
-    )
+    ))
 }
 
 /// Build a `MALFORMED_CONSTRAINT`-grade frontend [`Diag`] from a message. The constraint-sugar
@@ -6606,14 +6651,17 @@ fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
 }
 
 /// Read every compact constraint-sugar record (P1–P5, P7, P8, and the aggregate P6) into
-/// [`ConstraintIr`]s. Fail-soft like the other extractors: a malformed record emits a
-/// `MALFORMED_CONSTRAINT` warning and is skipped, never silently dropped. A sugar-free source
-/// yields an empty vector (append-only, so the canonical key stays byte-identical).
+/// [`ConstraintIr`]s. Supplied numeric range bounds must be admitted before extraction;
+/// an unsupported bound refuses the source rather than weakening its constraint.
+/// Other malformed records retain the `MALFORMED_CONSTRAINT` warning policy.
+///
+/// # Errors
+/// Refuses any supplied range bound outside the finite numeric projection contract.
 fn extract_sugar_constraints(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
     lowerings: &mut Vec<OwnerLowering>,
-) -> Vec<OwnerEmission<ConstraintIr>> {
+) -> gmeow_errors::Result<Vec<OwnerEmission<ConstraintIr>>> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
     let readers: [(&str, Reader); 18] = [
         ("ChoiceGroupConstraint", read_choice_group),
@@ -6648,6 +6696,18 @@ fn extract_sugar_constraints(
     for (class_local, reader) in readers {
         let class_ty = Node::iri(logic_iri(class_local));
         for subj in subjects_of_structural_class(store, &class_ty) {
+            if class_local == "ValueRangeConstraint" {
+                // Validate every supplied endpoint, including a shadowed exclusive peer,
+                // outside the recoverable reader boundary. Failure must abort the source.
+                for local in [
+                    "minInclusiveBound",
+                    "minExclusiveBound",
+                    "maxInclusiveBound",
+                    "maxExclusiveBound",
+                ] {
+                    numeric_range_bound(store, &subj, &nn(&logic_iri(local)))?;
+                }
+            }
             if let Some(emitted) = capture_owner(
                 owner_source(store, &subj),
                 OwnerFamily::Constraint,
@@ -6668,7 +6728,7 @@ fn extract_sugar_constraints(
             }
         }
     }
-    out
+    Ok(out)
 }
 
 /// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
@@ -6706,6 +6766,11 @@ fn compile_canonical_source(
     Ok((program, diagnostics))
 }
 
+/// Compile source units into a canonical program with diagnostics and ownership traces.
+/// Recoverable exclusions retain diagnostics rather than contributing weaker records.
+///
+/// # Errors
+/// Propagates mandatory construction and range-bound admission failures.
 fn compile_source_graph(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
@@ -6815,7 +6880,7 @@ fn compile_source_graph(
         store,
         &mut diagnostics,
         &mut owner_lowerings,
-    ));
+    )?);
 
     // Authored `logic:ReasoningProgram` clause-set-plus-goal individuals. A structurally
     // malformed program emits an error-grade MALFORMED_REASONING_PROGRAM diagnostic above
