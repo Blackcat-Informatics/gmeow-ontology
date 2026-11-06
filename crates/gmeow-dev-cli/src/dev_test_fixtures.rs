@@ -69,9 +69,7 @@ pub(crate) fn run(
     if scope == TestFixtureScope::WasmCodebook {
         let result = match mode {
             TestFixtureMode::Verify => verify_wasm_codebook(&root),
-            TestFixtureMode::Produce => Err(fail(
-                "wasm-codebook is a read-only selector; the explicit pipeline producer emits its artifact",
-            )),
+            TestFixtureMode::Produce => produce_wasm_codebook(&root, timings_path),
         };
         return result.map_or_else(
             |error| crate::dev_common::fail(format!("wasm codebook: {error}")),
@@ -152,10 +150,7 @@ fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
     use gmeow_lang_bridge::gmn1_codec::native;
     use std::io::Read as _;
     let path = native::GENERATED_PATH;
-    gmeow_pipeline::fixture::verify_stage_fixtures(root, &["stage-mappings"])?;
-    let expected =
-        gmeow_action_cache::selection::source_artifacts::load(root, "stage-mappings", path)
-            .map_err(fail)?;
+    let expected = gmeow_pipeline::fixture::wasm_codebook_fixture(root)?;
     let mut actual = Vec::new();
     std::fs::File::open(root.join(path))
         .map_err(fail)?
@@ -173,6 +168,42 @@ fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
     println!(
         "native wasm codebook verified: artifact={path} bytes={}",
         actual.len()
+    );
+    Ok(())
+}
+
+/// Produce the one authenticated embedding needed before browser assets can be rebuilt.
+fn produce_wasm_codebook(root: &Path, timings_path: Option<&Path>) -> FixtureResult<()> {
+    use gmeow_lang_bridge::gmn1_codec::native;
+    let started = Instant::now();
+    let jobs = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let (selection, codebook) =
+        gmeow_pipeline::fixture::prepare_wasm_codebook_fixtures(root, jobs)?;
+    native::decode(&codebook, native::SOURCE_BLAKE3)?;
+    let prepared = prepare_fixture_selector_fields(root, Some(selection), BTreeMap::new())?;
+    if let Some(path) = timings_path {
+        write_json_atomic(
+            path,
+            &Object::new()
+                .with("schema_version", 1)
+                .with("scope", TestFixtureScope::WasmCodebook.name())
+                .with("elapsed_ms", started.elapsed().as_millis())
+                .with("codebook_bytes", codebook.len())
+                .with("manifest_sha256", prepared.sha256.clone())
+                .into(),
+        )
+        .map_err(fail)?;
+    }
+    write_bytes_atomic(&root.join(native::GENERATED_PATH), &codebook).map_err(fail)?;
+    let finalized = prepared.publish()?;
+    println!(
+        "native wasm codebook produced: artifact={} bytes={} selector={} sha256={}",
+        native::GENERATED_PATH,
+        codebook.len(),
+        finalized.path.display(),
+        finalized.sha256,
     );
     Ok(())
 }

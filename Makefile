@@ -673,6 +673,10 @@ produce-test-fixtures: ## Explicitly produce exact content-addressed corpus fixt
 produce-producer-independent-test-fixtures: ## Explicitly produce optimized DAG-stage fixtures before generated/ is available.
 	$(GMEOW_DEV) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
 
+.PHONY: produce-wasm-codebook
+produce-wasm-codebook: ## Produce only the authenticated browser codebook closure before rebuilding assets.
+	$(GMEOW_DEV) test-fixtures produce --scope wasm-codebook $(FIXTURE_TIMINGS_ARG)
+
 produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
 	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
@@ -905,7 +909,7 @@ query-wasm-pkg-test: query-wasm-pkg ## Build the query engine npm package and ru
 	cd crates/query-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-query-wasm Node native↔wasm parity witness lane passed"
 
-.PHONY: maint-prepare-wasm-assets maint-refresh-wasm-assets maint-refresh-validate-witness
+.PHONY: maint-prepare-wasm-assets maint-refresh-wasm-assets maint-refresh-validate-witness maint-refresh-wasm-witnesses verify-vendored-wasm-assets
 maint-refresh-validate-witness: ## Refresh the native validation attestation from the existing bundle; review the diff, then run native and Node parity.
 	cargo run -p gmeow-validate --example refresh-witness-validation
 
@@ -913,8 +917,9 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	@# Build inputs must exist before the optimized producer can reconcile their
 	@# substrate identities. Parity consumers run after that producer, never against
 	@# an obsolete bundle which the new substrate may correctly reject.
+	$(MAKE) produce-wasm-codebook
 	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg
-	$(MAKE) maint-refresh-reason-witness maint-refresh-mcp-witness
+	$(MAKE) maint-refresh-reason-witness
 	$(call COPY_WASM_ASSET,query,)
 	$(call COPY_WASM_ASSET,validate,)
 	$(call COPY_WASM_ASSET,reason,)
@@ -925,9 +930,20 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
 	cp crates/mcp-core-wasm/js/index.mjs crates/docs/assets/mcp-core/index.mjs
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json crates/docs/assets/mcp-core/WITNESS.core-deferral.json
+	cp crates/reason-wasm/tests/WITNESS.reason.nq crates/docs/assets/reason/WITNESS.reason.nq
 	@# Refresh all metadata in one process, after every embedded asset has changed.
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."
+
+verify-vendored-wasm-assets: ## Verify committed browser bytes, witnesses and exact substrate identities without producing a corpus.
+	cargo test --locked -p gmeow-docs --test query_asset --test validate_asset --test reason_asset --test gmn_asset --test mcp_asset --test attestation_gate
+
+maint-refresh-wasm-witnesses: producer-verify verify-bundle-import-test-fixture verify-vendored-wasm-assets ## Refresh native witnesses from the authenticated current bundle after assets are rebuilt.
+	$(MAKE) maint-refresh-mcp-witness maint-refresh-validate-witness maint-refresh-describe-witness
+	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
+	cp crates/mcp/tests/witness/describe.nt crates/docs/assets/query/WITNESS.describe.nt
+	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
+	$(MAKE) verify-vendored-wasm-assets
 
 maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once, then verify every Node parity lane against that bundle.
 	$(MAKE) maint-prepare-wasm-assets
@@ -1416,13 +1432,8 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# rather than a stop: the question was raised once and answered (the chain is kept —
 	@# see bench/README.md), and re-raising it every refresh would make the lane fail
 	@# forever.
-	@# BOOTSTRAP: `stage-medium-dictionaries` refuses to run without a committed table,
-	@# and the sweep runs the whole DAG to produce one, so a tree with no table needs a
-	@# declaration-derived seed to get in. It carries ZERO measurements and is
-	@# overwritten by the real sweep on the next line; a committed seed is refused by
-	@# `the_committed_winner_table_carries_real_measurements`.
-	@test -f bench/medium-baseline.json || \
-	  $(GMEOW_DEV) medium-seed --out bench/medium-baseline.json
+	@# The explicit sweep excludes its dictionary-table consumer and GTS sink.
+	@# It therefore needs no declaration-derived seed or preexisting bundle.
 	$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 

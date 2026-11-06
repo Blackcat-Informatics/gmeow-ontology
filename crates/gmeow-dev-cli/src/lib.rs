@@ -88,7 +88,7 @@ pub enum TestFixtureScope {
     Bundle,
     /// Exhaustive native divergence evidence, produced separately from required fixtures.
     ConformanceHeavy,
-    /// Read-only admission of the producer's native browser codebook embedding.
+    /// Produce only the native browser codebook closure, or verify its embedding read-only.
     WasmCodebook,
 }
 

@@ -2652,11 +2652,14 @@ pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::
 pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
     let lock_path = root.join("Cargo.lock");
     let resolution = crate::substrate::resolve_purrdf(&root.join("Cargo.toml"), &lock_path)?;
-    let purrdf = resolution.version;
+    let purrdf = match resolution.git_revision {
+        Some(revision) => format!("purrdf {}; purrdf.git-rev {revision}", resolution.version),
+        None => format!("purrdf {}", resolution.version),
+    };
     let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
     let binaryen = declared_binaryen_version(root)?;
     Ok(format!(
-        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+        "{purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
     ))
 }
 

@@ -61,6 +61,18 @@ its digest records identify candidate bytes and do not claim parity acceptance.
 Every verification step remains mandatory. Substrate provenance records manifest
 requirements and resolved versions as separate claim dimensions.
 
+The hosted `maint_wasm_refresh` maintenance profile separates image preparation
+from bundle-dependent witnesses. Its `images` operation produces only the closed
+browser-codebook stage closure, then builds all six engines and records the exact
+Git revision beside each crate version. It returns candidate assets, the producer
+receipt, selected codebook identity, tool identities and output digest for review.
+It never qualifies those candidates as ordinary CI or parity evidence. After the
+images and genuinely measured medium table are committed, its `witnesses`
+operation produces the current bundle and authenticates its import before
+refreshing native witnesses. Final PR qualification still runs the normal producer,
+consumer and parity lanes over the reviewed committed bytes. A codebook-only
+selector cannot satisfy the full test-fixture prefix.
+
 ## 2. The principles
 
 ### P1 — One producer, one run
