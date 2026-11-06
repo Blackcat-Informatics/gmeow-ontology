@@ -4325,7 +4325,7 @@ math:ConvergenceMode
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Convergence Mode"@x-gmeow-english ;
-    skos:definition "The mode in which a sequence or series converges: one of math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, or math:inDistributionConvergence. The mode is what distinguishes weak from strong convergence and is required on every math:Convergence."@x-gmeow-english ;
+    skos:definition "The mode in which a sequence or series converges: supplied modes include math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, and math:inDistributionConvergence. These notions have different hypotheses and do not form a universal weak-to-strong ordering. A mode is required on every math:Convergence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LimitResult
@@ -4378,55 +4378,55 @@ math:limitTwoSided
     rdfs:label "two-sided (x → a)"@x-gmeow-english ;
     skos:definition "The two-sided limit: x approaches a from both sides, requiring the left and right limits to agree. The default when a math:Limit omits its mode."@x-gmeow-english .
 
-# --- Convergence-mode individuals (the full enumeration) -------------------- #
+# --- Supplied convergence-mode individuals --------------------------------- #
 
 math:pointwiseConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "pointwise"@x-gmeow-english ;
-    skos:definition "Pointwise convergence: fₙ(x) → f(x) at each point x separately. The weakest of the function-convergence modes."@x-gmeow-english .
+    skos:definition "Pointwise convergence: fₙ(x) → f(x) at each point x separately on the common domain. The convergence requirement is imposed at every point; its index bound may depend on that point."@x-gmeow-english .
 
 math:uniformConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "uniform"@x-gmeow-english ;
-    skos:definition "Uniform convergence: sup_x |fₙ(x) − f(x)| → 0, one rate for all points. Stronger than pointwise; preserves continuity of the limit."@x-gmeow-english .
+    skos:definition "Uniform convergence of real- or complex-valued functions on a common domain: sup_x |fₙ(x) − f(x)| → 0, with one index bound for all points for each ε > 0. It implies pointwise convergence; a uniform limit of continuous functions on that common domain is continuous."@x-gmeow-english .
 
 math:absoluteConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "absolute"@x-gmeow-english ;
-    skos:definition "Absolute convergence of a series: ∑ |aₙ| converges. Implies convergence and permits reordering without changing the sum."@x-gmeow-english .
+    skos:definition "Absolute convergence of a real or complex scalar series: ∑ |aₙ| converges. It implies convergence and allows any rearrangement without changing the sum."@x-gmeow-english .
 
 math:conditionalConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "conditional"@x-gmeow-english ;
-    skos:definition "Conditional convergence of a series: ∑ aₙ converges but ∑ |aₙ| diverges. Reordering can change the sum (Riemann rearrangement)."@x-gmeow-english .
+    skos:definition "Conditional convergence of a real or complex scalar series: ∑ aₙ converges but ∑ |aₙ| diverges. For real scalar series, the Riemann rearrangement theorem shows that rearrangement can change the sum."@x-gmeow-english .
 
 math:inMeasureConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in measure"@x-gmeow-english ;
-    skos:definition "Convergence in measure: for every ε, the measure of {x : |fₙ(x) − f(x)| ≥ ε} → 0. A measure-theoretic mode, weaker than almost-everywhere on a finite measure space."@x-gmeow-english .
+    skos:definition "Convergence in measure of measurable real- or complex-valued functions on a common measure space: for every ε > 0, μ({x : |fₙ(x) − f(x)| ≥ ε}) → 0. Almost-everywhere convergence implies this on a finite measure space; on a probability space this mode is convergence in probability."@x-gmeow-english .
 
 math:almostEverywhereConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "almost everywhere"@x-gmeow-english ;
-    skos:definition "Almost-everywhere convergence: fₙ(x) → f(x) for all x outside a set of measure zero. The measure-theoretic strengthening of pointwise."@x-gmeow-english .
+    skos:definition "Almost-everywhere convergence on a common measure space: fₙ(x) → f(x) for every x outside a single set of measure zero. Pointwise convergence everywhere implies this condition; the converse need not hold. On a probability space this is almost-sure convergence."@x-gmeow-english .
 
 math:inLpNormConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in Lᵖ norm"@x-gmeow-english ;
-    skos:definition "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0. The mode of the Banach spaces Lᵖ; L² convergence (mean-square) is the Hilbert-space case."@x-gmeow-english .
+    skos:definition "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0 on a specified measure space. In the finite-p setting, fix 1 ≤ p < ∞ with fₙ and f in Lᵖ. These spaces are Banach spaces; p = 2 gives the Hilbert-space case, called mean-square convergence in a probability setting."@x-gmeow-english .
 
 math:inDistributionConvergence
     a logic:NamedIndividual , math:ConvergenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in distribution"@x-gmeow-english ;
-    skos:definition "Convergence in distribution (weak convergence of measures): the distribution functions converge at every continuity point. The probabilistic mode underlying the central limit theorem; shared with the probability charter."@x-gmeow-english .
+    skos:definition "Convergence in distribution of real-valued random variables: their cumulative distribution functions converge at every continuity point of the limiting cumulative distribution function. This is the real-line formulation of weak convergence of their probability laws, underlying the central limit theorem; shared with the probability charter."@x-gmeow-english .
 
 # --- Limit-outcome individuals (the outcome vocabulary of a LimitResult) ----- #
 
@@ -18569,3 +18569,68 @@ math:UnderspecifiedDerivative
     gmeow:useWhen "Use to interpret a finding actually mapped to the derivative frame's canonical failure class, retaining the specific missing or invalid path and the validation route that produced the finding."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using this class to mean that a well-framed function is not differentiable, that mixed partials disagree, or that every defect in an incomplete derivative fixture has one owner. Preserve simultaneous binder, expression or datatype findings rather than relabeling them all as this class."@x-gmeow-english ;
     gmeow:howToUse "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."@x-gmeow-english .
+
+# --- Convergence-mode guidance --------------------------------------------- #
+
+math:ConvergenceMode
+    skos:scopeNote "This is an open class with eight supplied markers, not a closed enumeration. A convergenceMode value records the source's mathematical notion; it does not prove convergence, evaluate a limit or create the domain, measure, norm or probability context needed to interpret that notion."@x-gmeow-english ;
+    skos:example "The existing zetaConvergence record uses convergenceMode absoluteConvergence, while harmonicSequenceConvergence uses pointwiseConvergence. Those fixture triples declare different modes; neither the names of their targets nor the presence of a mode triple numerically verifies the claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a supplied convergence claim by its actual mathematical meaning, preserving the source's function, scalar-series, measure, norm or probability setting."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid exchanging mode markers as synonyms, ranking every mode on one strength ladder, or inventing a convergence claim to fill missing structure. A declared mode is neither a theorem certificate nor proof that a surrounding record is complete."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied marker through convergenceMode on the relevant Convergence and retain its target separately. Carry the actual domain and any measure, p, norm or distribution context with the claim, and keep theorem hypotheses and supporting evidence explicit rather than inferring them from the marker."@x-gmeow-english .
+
+math:pointwiseConvergence
+    skos:scopeNote "For real- or complex-valued functions, each x and each ε > 0 may have its own N, with |fₙ(x) − f(x)| < ε for all n ≥ N. Uniform convergence instead uses one N for all x at a given ε. Almost-everywhere convergence permits a null exceptional set; pointwise convergence everywhere does not."@x-gmeow-english ;
+    skos:example "For a source claim about fₙ(x) = xⁿ on [0,1], the limit is zero for x < 1 and one at x = 1. pointwiseConvergence records this pointwise notion; it must not be replaced by uniformConvergence on that whole interval."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source asserts convergence at every point of a specified common domain, with the stage needed for a given accuracy allowed to vary with the point."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling this the weakest supplied mode, inferring a uniform rate, or silently discarding exceptional points. A scalar-sequence label in a fixture does not by itself identify the function-domain context of a pointwise claim."@x-gmeow-english ;
+    gmeow:howToUse "Use pointwiseConvergence as the supplied convergenceMode and retain the function sequence, common domain and limit function. Preserve the order of quantifiers and any proof separately; do not obtain an all-points or numerical verdict merely by adding the marker."@x-gmeow-english .
+
+math:uniformConvergence
+    skos:scopeNote "For each ε > 0 there is one N such that every n ≥ N and every x in the common domain satisfy |fₙ(x) − f(x)| < ε. The continuity-preservation theorem assumes continuous approximating functions with the common domain topology and real or complex codomain; the marker alone establishes none of these hypotheses."@x-gmeow-english ;
+    skos:example "A source claim for fₙ(x) = x + 1/n on [0,1], n ≥ 1, can use convergenceMode uniformConvergence toward f(x) = x: the error is 1/n throughout the domain. This mathematical example is not a numerical calculation performed by the mode record."@x-gmeow-english ;
+    gmeow:useWhen "Use when the supplied convergence claim controls approximation error simultaneously over the specified domain, retaining the domain on which that control is asserted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting separate pointwise bounds to a uniform bound, extending uniformity from a smaller domain to a larger one without evidence, or inferring continuity without continuous approximants. Uniform convergence is not a universal replacement for measure, norm or series modes."@x-gmeow-english ;
+    gmeow:howToUse "Retain uniformConvergence through convergenceMode together with the source domain, approximating functions and limit. State the shared index-bound requirement and retain any continuity assumptions or proof independently; the declaration does not execute the supremum or verify the theorem."@x-gmeow-english .
+
+math:absoluteConvergence
+    skos:scopeNote "The displayed absolute-value criterion and rearrangement conclusion concern real or complex scalar series. A series converges through its partial sums, not merely because its individual terms approach zero. General vector-valued series need their actual normed-space and completeness hypotheses; this marker does not supply them."@x-gmeow-english ;
+    skos:example "In series-convergent.ttl, zetaConvergence declares convergenceMode absoluteConvergence and a target zetaValue. The term is a SymbolReference and the target a MathematicalObject; those declarations do not encode a summand formula, calculate a zeta value or prove absolute convergence."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly claims convergence of the absolute-value series in a real or complex scalar setting, preserving the underlying series and its claimed sum."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating terms tending to zero as sufficient, relabeling a conditionally convergent series as absolute, or applying scalar rearrangement conclusions to arbitrary incomplete normed spaces. The marker does not authorize a runtime to reorder or sum source terms."@x-gmeow-english ;
+    gmeow:howToUse "Retain absoluteConvergence as the supplied convergenceMode and retain the scalar-series context, summands and target. Keep evidence for convergence of ∑ |aₙ| separately from the declaration; preserve source term order even when a scalar rearrangement theorem applies."@x-gmeow-english .
+
+math:conditionalConvergence
+    skos:scopeNote "Conditional means convergence together with failure of absolute convergence in the stated scalar setting, not an unspecified logical condition. The Riemann theorem's arbitrary prescribed real-sum conclusion is for conditionally convergent real series; do not transfer it unchanged to complex or general vector-valued series."@x-gmeow-english ;
+    skos:example "A source claim for the real alternating harmonic series ∑_{n≥1} (−1)^(n+1)/n can use convergenceMode conditionalConvergence: that series converges while ∑_{n≥1} 1/n diverges. The marker records the claim and does not choose or evaluate a rearrangement."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source asserts a convergent real or complex scalar series whose absolute-value series diverges, retaining the actual scalar setting and term order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using conditional to mean merely dependent on an assumption, omitting the convergence requirement, or treating every reordering as sum-preserving. A named conditional mode does not establish the hypotheses or outcome of a rearrangement theorem."@x-gmeow-english ;
+    gmeow:howToUse "Attach conditionalConvergence through convergenceMode to the source claim, preserving the series, target and original order. Retain support for both convergence and nonabsolute convergence; state the real-series hypotheses explicitly whenever invoking Riemann rearrangement."@x-gmeow-english .
+
+math:inMeasureConvergence
+    skos:scopeNote "The error-set measure must tend to zero for each positive ε, using the same underlying measure for the functions and limit. The general implication from almost-everywhere to in-measure holds on finite-measure spaces; an infinite-measure setting needs additional hypotheses or evidence for the particular sequence. In-measure alone does not force almost-everywhere convergence of the entire sequence."@x-gmeow-english ;
+    skos:example "On [0,1] with Lebesgue measure, let fₙ be the indicator of (0,1/n), n ≥ 1. A claim of convergence to zero can use convergenceMode inMeasureConvergence: for 0 < ε ≤ 1 the error-set measure is 1/n, and for ε > 1 it is zero."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source controls the measure of deviations beyond every positive tolerance, or records convergence in probability on a specified common probability space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid including ε = 0 in the displayed criterion, omitting the measure, or importing a finite-measure implication into an infinite-measure setting. This marker does not identify the exceptional set of almost-everywhere convergence or calculate probabilities."@x-gmeow-english ;
+    gmeow:howToUse "Retain inMeasureConvergence through convergenceMode with the measurable functions, limit and actual measure space. State the positive-tolerance criterion. When deriving the claim from almost-everywhere convergence, retain the finite-measure hypothesis or the additional support used in an infinite-measure setting; preserve probability context where applicable."@x-gmeow-english .
+
+math:almostEverywhereConvergence
+    skos:scopeNote "One null exceptional set is allowed for the sequence and limit on the specified measure space. This weakens the everywhere point requirement; it is not a strengthening of pointwise convergence. On a probability space the same notion is almost-sure convergence. The general implication to in-measure holds on finite-measure spaces; infinite total measure alone does not decide a particular sequence's in-measure claim."@x-gmeow-english ;
+    skos:example "On [0,1] with Lebesgue measure, let every fₙ be the indicator of {0}, with limit function zero. A claim using convergenceMode almostEverywhereConvergence may exclude {0}; convergence to zero fails at that point, so it is not pointwise convergence everywhere."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source asserts pointwise convergence outside a null set for its specified measure, including almost-sure convergence of random variables on a common probability space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a null set by a merely small positive-measure set, claiming convergence at every point, or inferring convergence in measure on an infinite-measure space merely from this marker. A mode declaration does not discover the null set or verify sample paths."@x-gmeow-english ;
+    gmeow:howToUse "Use almostEverywhereConvergence as the supplied convergenceMode and retain the measure, functions and limit together with any supported exceptional-set description. Keep the null-set claim and pointwise proof outside it explicit; do not silently turn almost-everywhere into everywhere."@x-gmeow-english .
+
+math:inLpNormConvergence
+    skos:scopeNote "Retain the actual fixed p, measure and Lᵖ functions or their almost-everywhere equivalence classes. A separately specified L∞ setting uses the essential-supremum norm, distinct from uniform control at every point. For p = 2 on a probability space, mean-square means expected squared error tends to zero. The marker does not select p, validate integrability or turn a quasi-norm for 0 < p < 1 into a norm."@x-gmeow-english ;
+    skos:example "On [0,1] with Lebesgue probability measure, fₙ(x) = 1/n, n ≥ 1, tends to zero in L²: the norm error is 1/n and the mean-square error is 1/n². A claim using convergenceMode inLpNormConvergence must retain p = 2 and that probability measure."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source claims norm convergence in a specified Lᵖ space, retaining finite p or the separate L∞ essential-supremum context, or mean-square convergence in the stated L² probability setting. Preserve the norm and measure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring uniform or whole-sequence almost-everywhere convergence from the norm label, dropping p or the measure, or calling every L² context probabilistic mean-square. No displayed norm or mode marker proves its own limit or supplies missing integrability assumptions."@x-gmeow-english ;
+    gmeow:howToUse "Retain inLpNormConvergence through convergenceMode and preserve the fixed p, measure space, functions and limit from the source. Keep membership and norm-limit evidence separate from the declaration; qualify any implication to another mode with its actual hypotheses."@x-gmeow-english .
+
+math:inDistributionConvergence
+    skos:scopeNote "The cumulative-distribution criterion is for real-valued random variables and their laws, not a definition for arbitrary ambient spaces. It need not imply convergence in probability or almost surely under a given coupling. A more general weak-convergence interpretation needs its actual space, measures and theorem hypotheses stated separately."@x-gmeow-english ;
+    skos:example "Let X take −1 and 1 with equal probability, and let Xₙ = −X for every n. A claim using convergenceMode inDistributionConvergence toward the law of X is valid because the laws agree, although |Xₙ − X| = 2 on that coupling, so there is no convergence in probability to X."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source asserts convergence of real random-variable laws by the limiting CDF continuity-point criterion, retaining a separately stated broader weak-convergence context where that is what the source supplies."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring CDF convergence at discontinuities of the limiting CDF, claiming samplewise agreement from equality of laws, or treating every distribution on every space as a real CDF. The mode does not fit a distribution or execute a central-limit calculation."@x-gmeow-english ;
+    gmeow:howToUse "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."@x-gmeow-english .

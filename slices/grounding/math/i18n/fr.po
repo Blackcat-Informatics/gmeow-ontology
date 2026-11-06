@@ -12694,3 +12694,257 @@ msgstr "Éviter d’utiliser cette classe pour dire qu’une fonction correcteme
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."
 msgstr "Examiner derivativeOf, withRespectToVariable et derivativeOrder selon leurs restrictions, clôtures et borne d’ordre existantes, puis examiner séparément les exigences héritées de liaison. Rétablir un cadre étayé par la source sans inventer de variable, de corps ou d’ordre, et conserver le composant, la forme source et l’attribution d’échec réels dans les éléments diagnostiques."
+
+# --- Convergence-mode guidance --------------------------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Convergence Mode"
+msgstr "Mode de convergence"
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mode in which a sequence or series converges: supplied modes include math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, and math:inDistributionConvergence. These notions have different hypotheses and do not form a universal weak-to-strong ordering. A mode is required on every math:Convergence."
+msgstr "Le mode selon lequel une suite ou une série converge : les modes fournis comprennent math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence et math:inDistributionConvergence. Ces notions ont des hypothèses différentes et ne forment pas un ordre universel allant du faible au fort. Un mode est requis sur chaque math:Convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an open class with eight supplied markers, not a closed enumeration. A convergenceMode value records the source's mathematical notion; it does not prove convergence, evaluate a limit or create the domain, measure, norm or probability context needed to interpret that notion."
+msgstr "Il s’agit d’une classe ouverte avec huit marqueurs fournis, non d’une énumération fermée. Une valeur convergenceMode consigne la notion mathématique de la source ; elle ne prouve pas la convergence, n’évalue pas de limite et ne crée pas le domaine, la mesure, la norme ou le contexte probabiliste nécessaires à son interprétation."
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing zetaConvergence record uses convergenceMode absoluteConvergence, while harmonicSequenceConvergence uses pointwiseConvergence. Those fixture triples declare different modes; neither the names of their targets nor the presence of a mode triple numerically verifies the claim."
+msgstr "L’enregistrement existant zetaConvergence utilise convergenceMode absoluteConvergence, tandis que harmonicSequenceConvergence utilise pointwiseConvergence. Ces triplets des jeux de données déclarent des modes différents ; ni les noms de leurs cibles ni la présence d’un triplet de mode ne vérifient numériquement l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a supplied convergence claim by its actual mathematical meaning, preserving the source's function, scalar-series, measure, norm or probability setting."
+msgstr "À utiliser pour classer une affirmation de convergence fournie selon son sens mathématique réel, en préservant le cadre source de fonctions, de séries scalaires, de mesure, de norme ou de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid exchanging mode markers as synonyms, ranking every mode on one strength ladder, or inventing a convergence claim to fill missing structure. A declared mode is neither a theorem certificate nor proof that a surrounding record is complete."
+msgstr "Éviter d’échanger les marqueurs de mode comme des synonymes, de ranger tous les modes sur une seule échelle de force ou d’inventer une affirmation de convergence pour combler une structure manquante. Un mode déclaré ne certifie ni un théorème ni la complétude de l’enregistrement qui le porte."
+
+msgctxt "https://blackcatinformatics.ca/math/ConvergenceMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied marker through convergenceMode on the relevant Convergence and retain its target separately. Carry the actual domain and any measure, p, norm or distribution context with the claim, and keep theorem hypotheses and supporting evidence explicit rather than inferring them from the marker."
+msgstr "Conserver le marqueur fourni par convergenceMode sur la Convergence concernée et conserver séparément sa cible. Garder avec l’affirmation le domaine effectif et tout contexte de mesure, de p, de norme ou de distribution, et rendre explicites les hypothèses de théorème et les éléments probants au lieu de les inférer du marqueur."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pointwise"
+msgstr "ponctuelle"
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Pointwise convergence: fₙ(x) → f(x) at each point x separately on the common domain. The convergence requirement is imposed at every point; its index bound may depend on that point."
+msgstr "Convergence ponctuelle : fₙ(x) → f(x) en chaque point x séparément sur le domaine commun. L’exigence de convergence s’applique en tout point ; sa borne d’indice peut dépendre de ce point."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For real- or complex-valued functions, each x and each ε > 0 may have its own N, with |fₙ(x) − f(x)| < ε for all n ≥ N. Uniform convergence instead uses one N for all x at a given ε. Almost-everywhere convergence permits a null exceptional set; pointwise convergence everywhere does not."
+msgstr "Pour des fonctions à valeurs réelles ou complexes, chaque x et chaque ε > 0 peuvent avoir leur propre N, avec |fₙ(x) − f(x)| < ε pour tout n ≥ N. La convergence uniforme utilise au contraire un même N pour tous les x à ε fixé. La convergence presque partout permet un ensemble exceptionnel négligeable ; la convergence ponctuelle en tout point ne le permet pas."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a source claim about fₙ(x) = xⁿ on [0,1], the limit is zero for x < 1 and one at x = 1. pointwiseConvergence records this pointwise notion; it must not be replaced by uniformConvergence on that whole interval."
+msgstr "Pour une affirmation source concernant fₙ(x) = xⁿ sur [0,1], la limite vaut zéro pour x < 1 et un en x = 1. pointwiseConvergence consigne cette notion ponctuelle ; il ne faut pas le remplacer par uniformConvergence sur l’intervalle entier."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts convergence at every point of a specified common domain, with the stage needed for a given accuracy allowed to vary with the point."
+msgstr "À utiliser lorsque la source affirme une convergence en tout point d’un domaine commun spécifié, le rang nécessaire pour une précision donnée pouvant varier selon le point."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling this the weakest supplied mode, inferring a uniform rate, or silently discarding exceptional points. A scalar-sequence label in a fixture does not by itself identify the function-domain context of a pointwise claim."
+msgstr "Éviter de l’appeler le plus faible des modes fournis, d’inférer un taux uniforme ou d’écarter silencieusement des points exceptionnels. L’étiquette d’une suite scalaire dans un jeu de données n’identifie pas à elle seule le contexte de domaine de fonctions d’une affirmation ponctuelle."
+
+msgctxt "https://blackcatinformatics.ca/math/pointwiseConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use pointwiseConvergence as the supplied convergenceMode and retain the function sequence, common domain and limit function. Preserve the order of quantifiers and any proof separately; do not obtain an all-points or numerical verdict merely by adding the marker."
+msgstr "Utiliser pointwiseConvergence comme convergenceMode fourni et conserver la suite de fonctions, le domaine commun et la fonction limite. Préserver l’ordre des quantificateurs et toute preuve séparément ; l’ajout du marqueur ne donne pas à lui seul un verdict en tout point ou numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "uniform"
+msgstr "uniforme"
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Uniform convergence of real- or complex-valued functions on a common domain: sup_x |fₙ(x) − f(x)| → 0, with one index bound for all points for each ε > 0. It implies pointwise convergence; a uniform limit of continuous functions on that common domain is continuous."
+msgstr "Convergence uniforme de fonctions à valeurs réelles ou complexes sur un domaine commun : sup_x |fₙ(x) − f(x)| → 0, avec une même borne d’indice pour tous les points à chaque ε > 0. Elle implique la convergence ponctuelle ; une limite uniforme de fonctions continues sur ce domaine commun est continue."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For each ε > 0 there is one N such that every n ≥ N and every x in the common domain satisfy |fₙ(x) − f(x)| < ε. The continuity-preservation theorem assumes continuous approximating functions with the common domain topology and real or complex codomain; the marker alone establishes none of these hypotheses."
+msgstr "Pour chaque ε > 0, il existe un même N tel que tout n ≥ N et tout x du domaine commun satisfassent |fₙ(x) − f(x)| < ε. Le théorème de préservation de la continuité suppose des fonctions approchantes continues pour la topologie du domaine commun et un codomaine réel ou complexe ; le marqueur seul n’établit aucune de ces hypothèses."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source claim for fₙ(x) = x + 1/n on [0,1], n ≥ 1, can use convergenceMode uniformConvergence toward f(x) = x: the error is 1/n throughout the domain. This mathematical example is not a numerical calculation performed by the mode record."
+msgstr "Une affirmation source pour fₙ(x) = x + 1/n sur [0,1], n ≥ 1, peut utiliser convergenceMode uniformConvergence vers f(x) = x : l’erreur vaut 1/n sur tout le domaine. Cet exemple mathématique n’est pas un calcul numérique effectué par l’enregistrement de mode."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the supplied convergence claim controls approximation error simultaneously over the specified domain, retaining the domain on which that control is asserted."
+msgstr "À utiliser lorsque l’affirmation de convergence fournie contrôle simultanément l’erreur d’approximation sur le domaine spécifié, en conservant le domaine sur lequel ce contrôle est affirmé."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting separate pointwise bounds to a uniform bound, extending uniformity from a smaller domain to a larger one without evidence, or inferring continuity without continuous approximants. Uniform convergence is not a universal replacement for measure, norm or series modes."
+msgstr "Éviter de transformer des bornes ponctuelles séparées en borne uniforme, d’étendre sans preuve l’uniformité d’un domaine plus petit à un plus grand ou d’inférer la continuité sans fonctions approchantes continues. La convergence uniforme ne remplace pas universellement les modes de mesure, de norme ou de série."
+
+msgctxt "https://blackcatinformatics.ca/math/uniformConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain uniformConvergence through convergenceMode together with the source domain, approximating functions and limit. State the shared index-bound requirement and retain any continuity assumptions or proof independently; the declaration does not execute the supremum or verify the theorem."
+msgstr "Conserver uniformConvergence par convergenceMode avec le domaine source, les fonctions approchantes et la limite. Énoncer l’exigence d’une borne d’indice commune et conserver séparément toute hypothèse de continuité ou preuve ; la déclaration ne calcule pas le supremum et ne vérifie pas le théorème."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absolute"
+msgstr "absolue"
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Absolute convergence of a real or complex scalar series: ∑ |aₙ| converges. It implies convergence and allows any rearrangement without changing the sum."
+msgstr "Convergence absolue d’une série scalaire réelle ou complexe : ∑ |aₙ| converge. Elle implique la convergence et permet tout réarrangement sans changer la somme."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The displayed absolute-value criterion and rearrangement conclusion concern real or complex scalar series. A series converges through its partial sums, not merely because its individual terms approach zero. General vector-valued series need their actual normed-space and completeness hypotheses; this marker does not supply them."
+msgstr "Le critère affiché de valeur absolue et la conclusion sur les réarrangements concernent les séries scalaires réelles ou complexes. Une série converge par ses sommes partielles, non du seul fait que ses termes individuels tendent vers zéro. Les séries générales à valeurs vectorielles exigent les hypothèses applicables d’espace normé et de complétude ; ce marqueur ne les fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "In series-convergent.ttl, zetaConvergence declares convergenceMode absoluteConvergence and a target zetaValue. The term is a SymbolReference and the target a MathematicalObject; those declarations do not encode a summand formula, calculate a zeta value or prove absolute convergence."
+msgstr "Dans series-convergent.ttl, zetaConvergence déclare convergenceMode absoluteConvergence et une cible zetaValue. Le terme est une SymbolReference et la cible un MathematicalObject ; ces déclarations n’encodent pas de formule du terme général, ne calculent pas de valeur zêta et ne prouvent pas la convergence absolue."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly claims convergence of the absolute-value series in a real or complex scalar setting, preserving the underlying series and its claimed sum."
+msgstr "À utiliser lorsque la source affirme explicitement la convergence de la série des valeurs absolues dans un cadre scalaire réel ou complexe, en préservant la série sous-jacente et sa somme affirmée."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating terms tending to zero as sufficient, relabeling a conditionally convergent series as absolute, or applying scalar rearrangement conclusions to arbitrary incomplete normed spaces. The marker does not authorize a runtime to reorder or sum source terms."
+msgstr "Éviter de considérer que des termes tendant vers zéro suffisent, de réétiqueter une série conditionnellement convergente comme absolue ou d’appliquer les conclusions scalaires de réarrangement à des espaces normés incomplets arbitraires. Le marqueur n’autorise pas un moteur à réordonner ou sommer les termes source."
+
+msgctxt "https://blackcatinformatics.ca/math/absoluteConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain absoluteConvergence as the supplied convergenceMode and retain the scalar-series context, summands and target. Keep evidence for convergence of ∑ |aₙ| separately from the declaration; preserve source term order even when a scalar rearrangement theorem applies."
+msgstr "Conserver absoluteConvergence comme convergenceMode fourni, ainsi que le contexte de série scalaire, les termes et la cible. Garder séparément de la déclaration les preuves de convergence de ∑ |aₙ| ; préserver l’ordre des termes source même lorsqu’un théorème scalaire de réarrangement s’applique."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional"
+msgstr "conditionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Conditional convergence of a real or complex scalar series: ∑ aₙ converges but ∑ |aₙ| diverges. For real scalar series, the Riemann rearrangement theorem shows that rearrangement can change the sum."
+msgstr "Convergence conditionnelle d’une série scalaire réelle ou complexe : ∑ aₙ converge mais ∑ |aₙ| diverge. Pour les séries scalaires réelles, le théorème de réarrangement de Riemann montre qu’un réarrangement peut changer la somme."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Conditional means convergence together with failure of absolute convergence in the stated scalar setting, not an unspecified logical condition. The Riemann theorem's arbitrary prescribed real-sum conclusion is for conditionally convergent real series; do not transfer it unchanged to complex or general vector-valued series."
+msgstr "Conditionnelle signifie convergence accompagnée de l’absence de convergence absolue dans le cadre scalaire indiqué, non une condition logique non précisée. La conclusion du théorème de Riemann permettant toute somme réelle prescrite concerne les séries réelles conditionnellement convergentes ; ne pas la transférer telle quelle aux séries complexes ou générales à valeurs vectorielles."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source claim for the real alternating harmonic series ∑_{n≥1} (−1)^(n+1)/n can use convergenceMode conditionalConvergence: that series converges while ∑_{n≥1} 1/n diverges. The marker records the claim and does not choose or evaluate a rearrangement."
+msgstr "Une affirmation source pour la série harmonique alternée réelle ∑_{n≥1} (−1)^(n+1)/n peut utiliser convergenceMode conditionalConvergence : cette série converge tandis que ∑_{n≥1} 1/n diverge. Le marqueur consigne l’affirmation sans choisir ni évaluer de réarrangement."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts a convergent real or complex scalar series whose absolute-value series diverges, retaining the actual scalar setting and term order."
+msgstr "À utiliser lorsque la source affirme qu’une série scalaire réelle ou complexe converge tandis que la série de ses valeurs absolues diverge, en conservant le cadre scalaire effectif et l’ordre des termes."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using conditional to mean merely dependent on an assumption, omitting the convergence requirement, or treating every reordering as sum-preserving. A named conditional mode does not establish the hypotheses or outcome of a rearrangement theorem."
+msgstr "Éviter d’employer conditionnelle au seul sens de dépendante d’une hypothèse, d’omettre l’exigence de convergence ou de considérer tout réordonnement comme préservant la somme. Un mode conditionnel nommé n’établit ni les hypothèses ni l’issue d’un théorème de réarrangement."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach conditionalConvergence through convergenceMode to the source claim, preserving the series, target and original order. Retain support for both convergence and nonabsolute convergence; state the real-series hypotheses explicitly whenever invoking Riemann rearrangement."
+msgstr "Attacher conditionalConvergence par convergenceMode à l’affirmation source, en préservant la série, la cible et l’ordre initial. Conserver les éléments étayant la convergence et la convergence non absolue ; expliciter les hypothèses de série réelle lors de toute invocation du réarrangement de Riemann."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in measure"
+msgstr "en mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in measure of measurable real- or complex-valued functions on a common measure space: for every ε > 0, μ({x : |fₙ(x) − f(x)| ≥ ε}) → 0. Almost-everywhere convergence implies this on a finite measure space; on a probability space this mode is convergence in probability."
+msgstr "Convergence en mesure de fonctions mesurables à valeurs réelles ou complexes sur un espace mesuré commun : pour tout ε > 0, μ({x : |fₙ(x) − f(x)| ≥ ε}) → 0. La convergence presque partout l’implique sur un espace de mesure finie ; sur un espace probabilisé, ce mode est la convergence en probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The error-set measure must tend to zero for each positive ε, using the same underlying measure for the functions and limit. The general implication from almost-everywhere to in-measure holds on finite-measure spaces; an infinite-measure setting needs additional hypotheses or evidence for the particular sequence. In-measure alone does not force almost-everywhere convergence of the entire sequence."
+msgstr "La mesure de l’ensemble d’erreur doit tendre vers zéro pour chaque ε positif, en utilisant la même mesure sous-jacente pour les fonctions et la limite. L’implication générale de presque partout vers en mesure vaut sur les espaces de mesure finie ; un cadre de mesure infinie exige des hypothèses ou des preuves supplémentaires pour la suite particulière. La convergence en mesure seule n’impose pas la convergence presque partout de la suite entière."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue measure, let fₙ be the indicator of (0,1/n), n ≥ 1. A claim of convergence to zero can use convergenceMode inMeasureConvergence: for 0 < ε ≤ 1 the error-set measure is 1/n, and for ε > 1 it is zero."
+msgstr "Sur [0,1] muni de la mesure de Lebesgue, soit fₙ l’indicatrice de (0,1/n), n ≥ 1. Une affirmation de convergence vers zéro peut utiliser convergenceMode inMeasureConvergence : pour 0 < ε ≤ 1, la mesure de l’ensemble d’erreur vaut 1/n et, pour ε > 1, elle vaut zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source controls the measure of deviations beyond every positive tolerance, or records convergence in probability on a specified common probability space."
+msgstr "À utiliser lorsque la source contrôle la mesure des écarts au-delà de toute tolérance positive, ou consigne une convergence en probabilité sur un espace probabilisé commun spécifié."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid including ε = 0 in the displayed criterion, omitting the measure, or importing a finite-measure implication into an infinite-measure setting. This marker does not identify the exceptional set of almost-everywhere convergence or calculate probabilities."
+msgstr "Éviter d’inclure ε = 0 dans le critère affiché, d’omettre la mesure ou d’importer une implication de mesure finie dans un cadre de mesure infinie. Ce marqueur n’identifie pas l’ensemble exceptionnel de la convergence presque partout et ne calcule pas de probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/inMeasureConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain inMeasureConvergence through convergenceMode with the measurable functions, limit and actual measure space. State the positive-tolerance criterion. When deriving the claim from almost-everywhere convergence, retain the finite-measure hypothesis or the additional support used in an infinite-measure setting; preserve probability context where applicable."
+msgstr "Conserver inMeasureConvergence par convergenceMode avec les fonctions mesurables, la limite et l’espace mesuré effectif. Énoncer le critère de tolérance positive. Pour déduire l’affirmation d’une convergence presque partout, conserver l’hypothèse de mesure finie ou les éléments supplémentaires utilisés dans un cadre de mesure infinie ; préserver le contexte probabiliste lorsqu’il s’applique."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "almost everywhere"
+msgstr "presque partout"
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Almost-everywhere convergence on a common measure space: fₙ(x) → f(x) for every x outside a single set of measure zero. Pointwise convergence everywhere implies this condition; the converse need not hold. On a probability space this is almost-sure convergence."
+msgstr "Convergence presque partout sur un espace mesuré commun : fₙ(x) → f(x) pour tout x hors d’un même ensemble de mesure nulle. La convergence ponctuelle en tout point implique cette condition ; la réciproque peut être fausse. Sur un espace probabilisé, il s’agit de convergence presque sûre."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One null exceptional set is allowed for the sequence and limit on the specified measure space. This weakens the everywhere point requirement; it is not a strengthening of pointwise convergence. On a probability space the same notion is almost-sure convergence. The general implication to in-measure holds on finite-measure spaces; infinite total measure alone does not decide a particular sequence's in-measure claim."
+msgstr "Un même ensemble exceptionnel négligeable est permis pour la suite et la limite sur l’espace mesuré spécifié. Cela affaiblit l’exigence en tout point ; ce n’est pas un renforcement de la convergence ponctuelle. Sur un espace probabilisé, cette même notion est la convergence presque sûre. L’implication générale vers en mesure vaut sur les espaces de mesure finie ; la seule mesure totale infinie ne décide pas l’affirmation de convergence en mesure d’une suite particulière."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue measure, let every fₙ be the indicator of {0}, with limit function zero. A claim using convergenceMode almostEverywhereConvergence may exclude {0}; convergence to zero fails at that point, so it is not pointwise convergence everywhere."
+msgstr "Sur [0,1] muni de la mesure de Lebesgue, soit chaque fₙ l’indicatrice de {0}, la fonction limite étant nulle. Une affirmation utilisant convergenceMode almostEverywhereConvergence peut exclure {0} ; la convergence vers zéro échoue en ce point, donc elle n’est pas ponctuelle en tout point."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source asserts pointwise convergence outside a null set for its specified measure, including almost-sure convergence of random variables on a common probability space."
+msgstr "À utiliser lorsque la source affirme une convergence ponctuelle hors d’un ensemble négligeable pour sa mesure spécifiée, notamment la convergence presque sûre de variables aléatoires sur un espace probabilisé commun."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a null set by a merely small positive-measure set, claiming convergence at every point, or inferring convergence in measure on an infinite-measure space merely from this marker. A mode declaration does not discover the null set or verify sample paths."
+msgstr "Éviter de remplacer un ensemble négligeable par un ensemble de mesure positive simplement petite, d’affirmer la convergence en tout point ou d’inférer la convergence en mesure sur un espace de mesure infinie à partir de ce seul marqueur. Une déclaration de mode ne découvre pas l’ensemble négligeable et ne vérifie pas les trajectoires."
+
+msgctxt "https://blackcatinformatics.ca/math/almostEverywhereConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use almostEverywhereConvergence as the supplied convergenceMode and retain the measure, functions and limit together with any supported exceptional-set description. Keep the null-set claim and pointwise proof outside it explicit; do not silently turn almost-everywhere into everywhere."
+msgstr "Utiliser almostEverywhereConvergence comme convergenceMode fourni et conserver la mesure, les fonctions et la limite avec toute description étayée de l’ensemble exceptionnel. Rendre explicites l’affirmation de mesure nulle et la preuve ponctuelle hors de cet ensemble ; ne pas transformer silencieusement presque partout en partout."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in Lᵖ norm"
+msgstr "en norme Lᵖ"
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in Lᵖ norm: ‖fₙ − f‖_p → 0 on a specified measure space. In the finite-p setting, fix 1 ≤ p < ∞ with fₙ and f in Lᵖ. These spaces are Banach spaces; p = 2 gives the Hilbert-space case, called mean-square convergence in a probability setting."
+msgstr "Convergence en norme Lᵖ : ‖fₙ − f‖_p → 0 sur un espace mesuré spécifié. Dans le cadre à p fini, fixer 1 ≤ p < ∞ avec fₙ et f dans Lᵖ. Ces espaces sont des espaces de Banach ; p = 2 donne le cas hilbertien, appelé convergence en moyenne quadratique dans un cadre probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the actual fixed p, measure and Lᵖ functions or their almost-everywhere equivalence classes. A separately specified L∞ setting uses the essential-supremum norm, distinct from uniform control at every point. For p = 2 on a probability space, mean-square means expected squared error tends to zero. The marker does not select p, validate integrability or turn a quasi-norm for 0 < p < 1 into a norm."
+msgstr "Conserver le p fixé effectif, la mesure et les fonctions Lᵖ ou leurs classes d’équivalence presque partout. Un cadre L∞ spécifié séparément utilise la norme du supremum essentiel, distincte du contrôle uniforme en tout point. Pour p = 2 sur un espace probabilisé, la moyenne quadratique signifie que l’espérance du carré de l’erreur tend vers zéro. Le marqueur ne choisit pas p, ne valide pas l’intégrabilité et ne transforme pas une quasi-norme pour 0 < p < 1 en norme."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "On [0,1] with Lebesgue probability measure, fₙ(x) = 1/n, n ≥ 1, tends to zero in L²: the norm error is 1/n and the mean-square error is 1/n². A claim using convergenceMode inLpNormConvergence must retain p = 2 and that probability measure."
+msgstr "Sur [0,1] muni de la mesure de Lebesgue de probabilité, fₙ(x) = 1/n, n ≥ 1, tend vers zéro dans L² : l’erreur en norme vaut 1/n et l’erreur quadratique moyenne vaut 1/n². Une affirmation utilisant convergenceMode inLpNormConvergence doit conserver p = 2 et cette mesure de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source claims norm convergence in a specified Lᵖ space, retaining finite p or the separate L∞ essential-supremum context, or mean-square convergence in the stated L² probability setting. Preserve the norm and measure."
+msgstr "À utiliser lorsque la source affirme une convergence en norme dans un espace Lᵖ spécifié, en conservant p fini ou le contexte distinct du supremum essentiel L∞, ou une convergence en moyenne quadratique dans le cadre probabiliste L² indiqué. Préserver la norme et la mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring uniform or whole-sequence almost-everywhere convergence from the norm label, dropping p or the measure, or calling every L² context probabilistic mean-square. No displayed norm or mode marker proves its own limit or supplies missing integrability assumptions."
+msgstr "Éviter d’inférer la convergence uniforme ou presque partout de la suite entière à partir de l’étiquette de norme, d’omettre p ou la mesure ou de qualifier tout contexte L² de moyenne quadratique probabiliste. Aucune norme affichée ni aucun marqueur de mode ne prouve sa propre limite et ne fournit des hypothèses d’intégrabilité manquantes."
+
+msgctxt "https://blackcatinformatics.ca/math/inLpNormConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain inLpNormConvergence through convergenceMode and preserve the fixed p, measure space, functions and limit from the source. Keep membership and norm-limit evidence separate from the declaration; qualify any implication to another mode with its actual hypotheses."
+msgstr "Conserver inLpNormConvergence par convergenceMode et préserver le p fixé, l’espace mesuré, les fonctions et la limite de la source. Garder séparément de la déclaration les éléments d’appartenance et de limite en norme ; qualifier toute implication vers un autre mode par ses hypothèses applicables."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in distribution"
+msgstr "en loi"
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence in distribution of real-valued random variables: their cumulative distribution functions converge at every continuity point of the limiting cumulative distribution function. This is the real-line formulation of weak convergence of their probability laws, underlying the central limit theorem; shared with the probability charter."
+msgstr "Convergence en loi de variables aléatoires réelles : leurs fonctions de répartition convergent en tout point de continuité de la fonction de répartition limite. C’est la formulation sur la droite réelle de la convergence faible de leurs lois de probabilité, sous-jacente au théorème central limite ; partagée avec la charte des probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The cumulative-distribution criterion is for real-valued random variables and their laws, not a definition for arbitrary ambient spaces. It need not imply convergence in probability or almost surely under a given coupling. A more general weak-convergence interpretation needs its actual space, measures and theorem hypotheses stated separately."
+msgstr "Le critère des fonctions de répartition concerne les variables aléatoires réelles et leurs lois, non une définition pour des espaces ambiants arbitraires. Il n’implique pas nécessairement une convergence en probabilité ou presque sûre sous un couplage donné. Une interprétation plus générale de convergence faible exige que son espace, ses mesures et ses hypothèses de théorème soient indiqués séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Let X take −1 and 1 with equal probability, and let Xₙ = −X for every n. A claim using convergenceMode inDistributionConvergence toward the law of X is valid because the laws agree, although |Xₙ − X| = 2 on that coupling, so there is no convergence in probability to X."
+msgstr "Soit X prenant −1 et 1 avec la même probabilité, et Xₙ = −X pour tout n. Une affirmation utilisant convergenceMode inDistributionConvergence vers la loi de X est valide car les lois coïncident, bien que |Xₙ − X| = 2 sous ce couplage, donc sans convergence en probabilité vers X."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source asserts convergence of real random-variable laws by the limiting CDF continuity-point criterion, retaining a separately stated broader weak-convergence context where that is what the source supplies."
+msgstr "À utiliser lorsque la source affirme une convergence de lois de variables aléatoires réelles selon le critère des points de continuité de la fonction de répartition limite, en conservant un contexte plus large de convergence faible indiqué séparément si c’est ce que fournit la source."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring CDF convergence at discontinuities of the limiting CDF, claiming samplewise agreement from equality of laws, or treating every distribution on every space as a real CDF. The mode does not fit a distribution or execute a central-limit calculation."
+msgstr "Éviter d’exiger la convergence des fonctions de répartition aux discontinuités de la fonction limite, d’affirmer un accord trajectoriel à partir de l’égalité des lois ou de traiter toute distribution sur tout espace comme une fonction de répartition réelle. Le mode n’ajuste pas de distribution et n’exécute pas de calcul de limite centrale."
+
+msgctxt "https://blackcatinformatics.ca/math/inDistributionConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."
+msgstr "Consigner inDistributionConvergence par convergenceMode avec les lois des variables aléatoires source et la distribution limite, en préservant le cadre des fonctions de répartition réelles ou l’espace plus large explicitement qualifié. Conserver séparément les éléments de continuité et de probabilité ; ne pas inférer un couplage particulier ou un mode plus fort."
