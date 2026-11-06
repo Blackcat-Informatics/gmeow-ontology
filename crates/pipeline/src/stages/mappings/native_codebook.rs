@@ -31,18 +31,12 @@ pub(crate) struct NativeCodebookStage {
     consumes: Vec<String>,
 }
 
-impl NativeCodebookStage {
+impl Default for NativeCodebookStage {
     /// Construct the stage over its declared original-source producer.
-    pub(crate) fn new() -> Self {
+    fn default() -> Self {
         Self {
             consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
         }
-    }
-}
-
-impl Default for NativeCodebookStage {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

@@ -163,7 +163,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
     registry.register(
         "native_codebook",
-        Arc::new(mappings::native_codebook::NativeCodebookStage::new()),
+        Arc::new(mappings::native_codebook::NativeCodebookStage::default()),
     );
     registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(

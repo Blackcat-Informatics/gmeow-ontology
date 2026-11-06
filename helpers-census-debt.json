@@ -1227,13 +1227,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::new",
-    "gmeow_pipeline::stages::mappings::MappingsStage::new"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::input_files",
     "gmeow_pipeline::stages::schemas::SchemasStage::input_files"
    ]
