@@ -2563,3 +2563,11 @@ ex:ecGroupActionActorMultiple a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:MalformedGroupActionActor ;
     gmeow:conformanceRationale "Two distinct RDF resources are supplied as actors, both fully framed Groups. The generated maximum count must raise only MalformedGroupActionActor on the module-plus-example reader view. This checks the declaration count, without requiring an owl:differentFrom assertion or claiming native equality reasoning rejects the data." .
+
+ex:ecLimitResultNonnumeric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/limit-result-nonnumeric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:LimitResultOutcomeValueConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A LimitResult declares convergesFinitely and one text value. The projected finite numeric witness requirement must reject it through LimitResultOutcomeValueConstraint; literal-kind checking alone would incorrectly accept it. This cell pins the component, source shape and sole-finding expectation through the code-only conformance branch; it does not certify whole-law native execution." .

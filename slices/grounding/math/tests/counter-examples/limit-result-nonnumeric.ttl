@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Source control: the finite outcome has its required marker and one text value.
+# The code-only conformance cell declares the expected procedural rejection;
+# this source fixture is not evidence of an executed native limit computation.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex: <http://example.org/math/> .
+
+ex:finiteTextResult a math:LimitResult ;
+    math:limitOutcome math:convergesFinitely ;
+    math:limitResultValue "not a number" .
