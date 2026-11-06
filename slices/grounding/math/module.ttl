@@ -320,7 +320,7 @@ math:NumberSystem
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
-    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
+    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the codomain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
     skos:scopeNote "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."@x-gmeow-english ;
     skos:example "math:naturalNumbers is a math:NumberSystem and math:subsystemOf math:integers. An exact natural-number object points to math:naturalNumbers through math:inNumberSystem, not to the class math:NaturalNumber."@x-gmeow-english ;
     gmeow:useWhen "Use to identify the set that situates a number or supplies a function domain or codomain, with containment between systems represented explicitly."@x-gmeow-english ;
@@ -4254,7 +4254,7 @@ math:logicLoweringPreservation
 # to which variable, at which order; a limit names its expression and its limit
 # point (and, where it matters, its direction/mode); a series/sequence carries a
 # math:Convergence with its mode. Special functions are first-class individuals
-# aligned to DLMF and OpenMath (calculus1/transc1), not new OWL classes.
+# with supplied external correspondences, not per-function subclasses.
 # =========================================================================== #
 
 # --- Calculus binders and analysis objects ---------------------------------- #
@@ -4355,7 +4355,7 @@ math:SpecialFunction
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Special Function"@x-gmeow-english ;
-    skos:definition "A special function: a named function of analysis — the gamma function Γ, the Riemann zeta function ζ, the Bessel functions, the error function erf — whose identity is the GMEOW individual, aligned to a DLMF equation ID and an OpenMath transc1/calculus1 symbol, not a rendering. The named functions are first-class individuals (math:gammaFunction, math:riemannZeta, …), not per-function OWL subclasses. A subclass of math:Function, so each declares its domain and codomain."@x-gmeow-english ;
+    skos:definition "A named function of analysis, such as the gamma, Riemann zeta, Bessel or error function, represented by a canonical individual rather than a rendering or a per-function subclass. A subclass of math:Function, so each declares its domain and codomain and is total on its declared domain. Supplied correspondences include DLMF chapter links and a related OpenMath dictionary-page link for this class; they do not supply individual OpenMath symbol mappings or analytic evaluation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Limit-mode individuals ------------------------------------------------- #
@@ -4454,23 +4454,23 @@ math:divergesWithoutLimit
     rdfs:label "diverges without a limit"@x-gmeow-english ;
     skos:definition "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."@x-gmeow-english .
 
-# --- Special-function individuals (DLMF/OpenMath anchored in mappings) ------- #
+# --- Special-function individuals (supplied external links) ----------------- #
 
 math:gammaFunction
     a logic:NamedIndividual , math:SpecialFunction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Γ (gamma function)"@x-gmeow-english ;
-    math:domain math:complexNumbers ;
+    math:domain math:gammaDomain ;
     math:codomain math:complexNumbers ;
-    skos:definition "The gamma function Γ(z): the analytic continuation of the factorial, Γ(n) = (n−1)!. Aligned to DLMF chapter 5 and OpenMath transc1; its identity is this individual, not a rendering."@x-gmeow-english .
+    skos:definition "The gamma function Γ(z), meromorphically continued from ∫₀^∞ t^(z−1)e^(−t) dt for Re(z) > 0, with simple poles at 0, −1, −2, …. Its finite complex-valued form has domain math:gammaDomain and codomain math:complexNumbers. For positive integers n, Γ(n) = (n−1)!. Supplied correspondences link this individual to DLMF chapter 5 and Wikidata."@x-gmeow-english .
 
 math:riemannZeta
     a logic:NamedIndividual , math:SpecialFunction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "ζ (Riemann zeta function)"@x-gmeow-english ;
-    math:domain math:complexNumbers ;
+    math:domain math:riemannZetaDomain ;
     math:codomain math:complexNumbers ;
-    skos:definition "The Riemann zeta function ζ(s) = ∑ n⁻ˢ (Re s > 1), analytically continued. Aligned to DLMF chapter 25 and Wikidata; the subject of the Riemann hypothesis."@x-gmeow-english .
+    skos:definition "The Riemann zeta function ζ(s) = ∑_{n≥1} n^(−s) for Re(s) > 1, meromorphically continued with a simple pole at s = 1. Its finite complex-valued form has domain math:riemannZetaDomain and codomain math:complexNumbers. Supplied correspondences link it to DLMF chapter 25 and Wikidata; naming it does not prove the Riemann hypothesis."@x-gmeow-english .
 
 math:besselJ
     a logic:NamedIndividual , math:SpecialFunction ;
@@ -4494,7 +4494,7 @@ math:errorFunction
     rdfs:label "erf (error function)"@x-gmeow-english ;
     math:domain math:realNumbers ;
     math:codomain math:realNumbers ;
-    skos:definition "The error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt: the Gaussian integral central to probability. Aligned to DLMF chapter 7 and OpenMath transc1."@x-gmeow-english .
+    skos:definition "The real error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt, a normalized Gaussian integral with domain and codomain math:realNumbers. Supplied correspondences link this individual to DLMF chapter 7 and Wikidata; no individual OpenMath symbol mapping is supplied."@x-gmeow-english .
 
 # --- Calculus conformance failures ------------------------------------------ #
 
@@ -18699,3 +18699,171 @@ math:UnderspecifiedConvergence
     gmeow:useWhen "Use for findings actually associated with the existing Convergence, Series or Sequence restrictions, preserving the reported subject, missing path, mode conflict and other simultaneous diagnostics."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid equating a frame error with mathematical divergence or repairing it with unsupported convergence claims. Do not suppress other binder/function failures or assume a missing mode is the only possible cause of this class."@x-gmeow-english ;
     gmeow:howToUse "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."@x-gmeow-english .
+
+# --- Scalar special-function domains and membership laws -------------------- #
+
+math:nonPositiveRealInterval
+    a logic:NamedIndividual , math:Interval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:lowerEndpoint math:NegativeInfinity ;
+    math:upperEndpoint "0"^^xsd:integer ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+math:oneSingletonInterval
+    a logic:NamedIndividual , math:Interval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:lowerEndpoint "1"^^xsd:integer ;
+    math:upperEndpoint "1"^^xsd:integer ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+math:gammaDomain
+    a logic:NamedIndividual , math:SetBuilderExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:memberCondition _:gammaDomainCondition ;
+    math:definingLaw math:gammaDomainMembershipLaw .
+
+math:riemannZetaDomain
+    a logic:NamedIndividual , math:SetBuilderExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:memberCondition _:riemannZetaDomainCondition ;
+    math:definingLaw math:riemannZetaDomainMembershipLaw .
+
+_:gammaDomainCondition
+    a logic:Formula ;
+    logic:and
+        [ a logic:Formula ; logic:relation math:hasElement ;
+          logic:argument [ logic:termIndex 0 ; logic:termIri math:complexNumbers ] ,
+                         [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+        [ a logic:Formula ; logic:not
+            [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation math:hasElement ;
+                  logic:argument [ logic:termIndex 0 ; logic:termIri math:integers ] ,
+                                 [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+                [ a logic:Formula ; logic:relation math:inIntervalRel ;
+                  logic:argument [ logic:termIndex 0 ; logic:termVariable "z" ] ,
+                                 [ logic:termIndex 1 ; logic:termIri math:nonPositiveRealInterval ] ] ] ] .
+
+_:riemannZetaDomainCondition
+    a logic:Formula ;
+    logic:and
+        [ a logic:Formula ; logic:relation math:hasElement ;
+          logic:argument [ logic:termIndex 0 ; logic:termIri math:complexNumbers ] ,
+                         [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+        [ a logic:Formula ; logic:not
+            [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation math:hasElement ;
+                  logic:argument [ logic:termIndex 0 ; logic:termIri math:realNumbers ] ,
+                                 [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+                [ a logic:Formula ; logic:relation math:inIntervalRel ;
+                  logic:argument [ logic:termIndex 0 ; logic:termVariable "z" ] ,
+                                 [ logic:termIndex 1 ; logic:termIri math:oneSingletonInterval ] ] ] ] .
+
+math:gammaDomainMembershipLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    logic:formalizes math:gammaDomain ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "z" ] ;
+    logic:forall
+        [ a logic:Formula ; logic:iff
+            [ a logic:Formula ; logic:relation math:hasElement ;
+              logic:argument [ logic:termIndex 0 ; logic:termIri math:gammaDomain ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+            _:gammaDomainCondition ] .
+
+math:riemannZetaDomainMembershipLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    logic:formalizes math:riemannZetaDomain ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "z" ] ;
+    logic:forall
+        [ a logic:Formula ; logic:iff
+            [ a logic:Formula ; logic:relation math:hasElement ;
+              logic:argument [ logic:termIndex 0 ; logic:termIri math:riemannZetaDomain ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "z" ] ] ,
+            _:riemannZetaDomainCondition ] .
+
+# --- Scalar special-function identities and domain guidance ----------------- #
+
+math:SpecialFunction
+    skos:scopeNote "A function identity, its domain set, an application AST and a computed value have different roles. The supplied mappings retain their own correspondence strengths; a chapter or dictionary page is not an executable definition."@x-gmeow-english ;
+    skos:example "gammaFunction names Γ and has gammaDomain as its domain; errorFunction names erf on realNumbers. Their identities are distinct from expression occurrences that apply them and from any supplied values."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify a named analytic function with its actual total domain and codomain, preserving any source parameters or branch conventions separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a glyph as function identity, admitting a pole into a finite-valued total domain, or treating a function resource as an automatically admitted AST operator or evaluator."@x-gmeow-english ;
+    gmeow:howToUse "Retain the canonical individual and its set-valued domain and codomain. Represent applications and numerical evidence separately; neither structural IRI interning nor a reference link proves domain membership or evaluates the function."@x-gmeow-english .
+
+math:gammaFunction
+    skos:scopeNote "gammaDomain excludes the nonpositive integer poles while retaining other complex inputs. The defining integral needs Re(z) > 0; meromorphic continuation supplies the mathematical function beyond that half-plane, not a native analytic evaluator."@x-gmeow-english ;
+    skos:example "The mathematical identities Γ(1) = 1 and Γ(1/2) = √π concern admitted inputs. Zero is a pole and is excluded by gammaDomain; it is not mapped to a finite complex value by the declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use for the named gamma function with its punctured complex domain, keeping factorial identities, continuation and supplied evaluation evidence distinct."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating Γ as the factorial of every complex input, using the integral outside its stated half-plane, or representing a pole by an arbitrary infinity in complexNumbers."@x-gmeow-english ;
+    gmeow:howToUse "Keep domain gammaDomain and codomain complexNumbers. Retain the domain's realized condition and membership law; supply actual argument, application and result evidence separately, without claiming numerical admission or evaluation from these records."@x-gmeow-english .
+
+math:riemannZeta
+    skos:scopeNote "The convergent positive-index series defines zeta only for Re(s) > 1; continuation extends the mathematical function to complex arguments other than one. riemannZetaDomain excludes the real value one without reducing the domain to that series half-plane."@x-gmeow-english ;
+    skos:example "The mathematical identity ζ(2) = π²/6 uses the convergent-series region. ζ(0) = −1/2 uses continuation; the positive-index series at zero diverges. The input one remains excluded."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify Riemann zeta with its actual punctured complex domain and distinguish a series representation from the continued function."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid summing the defining series where it diverges, admitting s = 1 as a finite-valued input, confusing other zeta functions with this identity, or inferring a theorem from its name."@x-gmeow-english ;
+    gmeow:howToUse "Keep domain riemannZetaDomain and codomain complexNumbers. Preserve the argument's actual representation and the hypotheses of any series or continuation statement; keep membership and evaluation evidence separate from the named function."@x-gmeow-english .
+
+math:errorFunction
+    skos:scopeNote "The normalization is 2/√π and the integration starts at zero. This individual names the real function, not an error estimate, Gaussian density, complementary error function or normal cumulative distribution function."@x-gmeow-english ;
+    skos:example "The mathematical identity erf(0) = 0 follows from the zero-length integral. The standard normal CDF instead satisfies Φ(x) = (1 + erf(x/√2))/2; erf itself is not that CDF."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source specifically names the real error function with this integral normalization, independently of any numerical approximation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting erfc, a probability density, a normal CDF or an approximation-error quantity merely because the labels mention Gaussian error."@x-gmeow-english ;
+    gmeow:howToUse "Retain errorFunction with realNumbers as both domain and codomain. Preserve the actual application and any approximation method or error evidence separately; its identity and links do not execute the integral."@x-gmeow-english .
+
+math:nonPositiveRealInterval
+    rdfs:label "nonpositive real interval (−∞, 0]"@x-gmeow-english ;
+    skos:definition "The ordered real interval (−∞, 0], with lower endpoint math:NegativeInfinity excluded and upper endpoint the integer literal zero included. It contains all finite nonpositive real values, not only the integer poles of gamma."@x-gmeow-english ;
+    skos:scopeNote "The interval is one part of the gamma exclusion condition. Integer-set membership and membership in this interval must both hold to identify a nonpositive integer pole; the negative-infinity boundary is not an interval member."@x-gmeow-english ;
+    skos:example "Zero and −2 lie in this interval, as does −1/2. Together with interval membership, integer membership excludes zero and −2 from gammaDomain; −1/2 is not excluded by that conjunction."@x-gmeow-english ;
+    gmeow:useWhen "Use as the fixed interval operand for nonpositive finite real values in the gamma-domain membership condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this interval alone as the gamma-pole set, closing its infinite boundary, or comparing arbitrary complex values by an ordered-real relation."@x-gmeow-english ;
+    gmeow:howToUse "Preserve both typed endpoint values and both inclusion markers. Use inIntervalRel with the integer-membership guard in gammaDomain's condition; do not replace numeric-value membership by RDF term identity."@x-gmeow-english .
+
+math:oneSingletonInterval
+    rdfs:label "singleton real interval [1, 1]"@x-gmeow-english ;
+    skos:definition "The closed real interval [1, 1], with both endpoints the integer literal one and both inclusions closed. It contains the single real numeric value one, independent of the RDF term used to represent that value."@x-gmeow-english ;
+    skos:scopeNote "The zeta exclusion condition combines real-set membership with this singleton interval. The two endpoint roles share the same value; they do not require unequal RDF resources or a comparison of arbitrary complex values."@x-gmeow-english ;
+    skos:example "The real numeric value represented by integer one lies in [1, 1]. The exclusion is about that numeric value, not whether an argument node is identical to the endpoint literal."@x-gmeow-english ;
+    gmeow:useWhen "Use as the fixed real-value singleton operand that isolates the pole at one in riemannZetaDomain's condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting [1, 1] as empty, opening either endpoint, or replacing its interval membership by an RDF same-node test."@x-gmeow-english ;
+    gmeow:howToUse "Preserve both integer-one endpoints and both closed markers. Combine inIntervalRel with the real-membership guard exactly as the zeta-domain condition states; retain representation and admission evidence separately."@x-gmeow-english .
+
+math:gammaDomain
+    rdfs:label "gamma function domain"@x-gmeow-english ;
+    skos:definition "The intensional set of complex numbers excluding the nonpositive integers: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). Its realized memberCondition is backed by gammaDomainMembershipLaw."@x-gmeow-english ;
+    skos:scopeNote "This is the actual total domain of gammaFunction's finite complex-valued form. The exclusion combines integer membership with a real interval condition; it neither rejects all negative reals nor admits a pole as an ordinary complex output."@x-gmeow-english ;
+    skos:example "The mathematical inputs 1, −1/2 and i are in gammaDomain; zero and −2 are excluded. These are consequences of the stated mathematical condition, not native membership checks executed by the declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared domain of the canonical finite complex-valued gamma function, retaining the explicit excluded-pole condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing it with the full complex plane, a prose-only pole list or the nonpositive real interval itself. An absent integer-membership fact is not by itself proof that a complex input is not an integer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the SetBuilderExpression memberCondition and its defining law, with the shared condition bound by z in that law. Keep actual set-membership evidence distinct from structural set framing; no numerical domain guard is qualified here."@x-gmeow-english .
+
+math:riemannZetaDomain
+    rdfs:label "Riemann zeta function domain"@x-gmeow-english ;
+    skos:definition "The intensional set of complex numbers excluding the real numeric value one: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). Its realized memberCondition is backed by riemannZetaDomainMembershipLaw."@x-gmeow-english ;
+    skos:scopeNote "This is the actual total domain of riemannZeta's finite complex-valued continuation. The singleton exclusion is a real numeric-value condition under a real-membership guard, not RDF identity with an integer-one literal or ordering on arbitrary complex values."@x-gmeow-english ;
+    skos:example "Zero, two and i belong to the mathematical zeta domain; the real value one is excluded. Zero is in this continued-function domain even though the defining positive-index series does not converge there."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared domain of the canonical finite complex-valued Riemann zeta function rather than restricting the continued function to Re(s) > 1."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a differently represented real one as a new admitted input, excluding all real numbers, or assuming missing real-membership data establishes a nonreal argument."@x-gmeow-english ;
+    gmeow:howToUse "Retain its realized memberCondition and defining law with the shared z variable. Preserve the real guard and singleton interval together; mathematical membership and any consumer's numerical admission remain separate evidence."@x-gmeow-english .
+
+math:gammaDomainMembershipLaw
+    rdfs:label "gamma domain membership equivalence"@x-gmeow-english ;
+    skos:definition "The universally bound first-order law ∀z: hasElement(gammaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). It backs gammaDomain with the same realized condition used by memberCondition."@x-gmeow-english ;
+    skos:scopeNote "The law binds z explicitly and states both directions of membership. The condition subtree remains owned mathematical syntax; its negation is logical negation, not a missing-triple test or an analytic evaluation procedure."@x-gmeow-english ;
+    skos:example "To conclude that −1/2 belongs, the condition needs its complex membership and the negated integer-and-interval conjunction. A graph containing only the input's label does not supply that proof."@x-gmeow-english ;
+    gmeow:useWhen "Use as the explicit defining-law backing for gammaDomain's membership equivalence, preserving its quantified Formula structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid weakening iff to only an inclusion, asserting the free condition as a standalone fact, or claiming the law computes gamma values or automatically discharges numeric membership."@x-gmeow-english ;
+    gmeow:howToUse "Keep the named law as a bound Formula root referenced through definingLaw, and keep memberCondition attached to the shared condition. Preserve argument order, constructor topology and the same z binding; do not replace the formula with a label."@x-gmeow-english .
+
+math:riemannZetaDomainMembershipLaw
+    rdfs:label "Riemann zeta domain membership equivalence"@x-gmeow-english ;
+    skos:definition "The universally bound first-order law ∀z: hasElement(riemannZetaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). It backs riemannZetaDomain with the same realized condition used by memberCondition."@x-gmeow-english ;
+    skos:scopeNote "The bound membership equivalence isolates the real value one through existing set and interval relations. It adds no opaque pole predicate, complex-order comparison, RDF-identity shortcut or numerical zeta evaluator."@x-gmeow-english ;
+    skos:example "Excluding an input denoting real one uses its real membership and membership in [1, 1], together with the complex-domain condition. It does not depend on the input IRI matching the interval's endpoint literal."@x-gmeow-english ;
+    gmeow:useWhen "Use as the explicit quantified backing law for the punctured domain of the continued Riemann zeta function."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting logical negation as absence of a membership triple, unbinding z, or replacing numeric interval membership by a same-node comparison with one."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."@x-gmeow-english .

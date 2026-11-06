@@ -3938,8 +3938,8 @@ msgid "Number System"
 msgstr "Système de nombres"
 
 msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
-msgstr "Un système de nombres : le domaine dans lequel se situe un nombre — ℕ, ℤ, ℚ, ℝ ou ℂ. Une sous-classe de math:Set — un système de nombres est l’ensemble de ses nombres et peut donc servir de math:domain ou de math:codomain d’une fonction (le plan complexe ℂ est le domaine de la fonction gamma). Ses instances sont les cinq systèmes nommés math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers et math:complexNumbers, ordonnés par math:subsystemOf en la tour d’inclusion ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, ainsi que la droite réelle achevée signée math:ExtendedRealLine, qui adjoint à ℝ les deux pôles math:PositiveInfinity et math:NegativeInfinity selon le même mécanisme (math:realNumbers en est un sous-système). Un math:Number pointe vers l’un d’eux par math:inNumberSystem."
+msgid "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the codomain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."
+msgstr "Un système de nombres : le domaine dans lequel se situe un nombre — ℕ, ℤ, ℚ, ℝ ou ℂ. Une sous-classe de math:Set — un système de nombres est l’ensemble de ses nombres et peut donc servir de math:domain ou de math:codomain d’une fonction (le plan complexe ℂ est le codomaine de la fonction gamma). Ses instances sont les cinq systèmes nommés math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers et math:complexNumbers, ordonnés par math:subsystemOf en la tour d’inclusion ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, ainsi que la droite réelle achevée signée math:ExtendedRealLine, qui adjoint à ℝ les deux pôles math:PositiveInfinity et math:NegativeInfinity selon le même mécanisme (math:realNumbers en est un sous-système). Un math:Number pointe vers l’un d’eux par math:inNumberSystem."
 
 msgctxt "https://blackcatinformatics.ca/math/NumberSystem|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A number system is a set individual used as a domain of numbers. Distinguish math:NaturalNumber, the class of number objects, from math:naturalNumbers, the system individual; math:subsystemOf relates systems rather than individual numbers."
@@ -13202,3 +13202,285 @@ msgstr "Éviter d’assimiler une erreur de cadre à une divergence mathématiqu
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedConvergence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."
 msgstr "Examiner le rapport de validation sélectionné selon les restrictions et clôtures existantes des classes, y compris les constats directs sur Convergence sans lien hasConvergence entrant. Corriger uniquement les champs étayés par la source ; sinon signaler la limite d’admission. La validation générée dérive de ces sources, sans nouvelle règle de forme ni décision numérique de convergence."
+
+# --- Scalar special-function identities and domains ------------------------- #
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Special Function"
+msgstr "Fonction spéciale"
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named function of analysis, such as the gamma, Riemann zeta, Bessel or error function, represented by a canonical individual rather than a rendering or a per-function subclass. A subclass of math:Function, so each declares its domain and codomain and is total on its declared domain. Supplied correspondences include DLMF chapter links and a related OpenMath dictionary-page link for this class; they do not supply individual OpenMath symbol mappings or analytic evaluation."
+msgstr "Une fonction nommée de l’analyse, telle que la fonction gamma, zêta de Riemann, de Bessel ou d’erreur, représentée par un individu canonique plutôt que par un rendu ou une sous-classe propre à chaque fonction. Sous-classe de math:Function, chaque fonction déclare donc son domaine et son codomaine et est totale sur son domaine déclaré. Les correspondances fournies comprennent des liens vers des chapitres du DLMF et un lien connexe vers une page de dictionnaire OpenMath pour cette classe ; elles ne fournissent ni correspondances individuelles de symboles OpenMath ni évaluation analytique."
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A function identity, its domain set, an application AST and a computed value have different roles. The supplied mappings retain their own correspondence strengths; a chapter or dictionary page is not an executable definition."
+msgstr "Une identité de fonction, son ensemble de définition, un AST d’application et une valeur calculée jouent des rôles différents. Les correspondances fournies conservent leurs propres forces ; un chapitre ou une page de dictionnaire n’est pas une définition exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "gammaFunction names Γ and has gammaDomain as its domain; errorFunction names erf on realNumbers. Their identities are distinct from expression occurrences that apply them and from any supplied values."
+msgstr "gammaFunction nomme Γ et a gammaDomain pour domaine ; errorFunction nomme erf sur realNumbers. Leurs identités se distinguent des occurrences d’expression qui les appliquent et de toute valeur fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a named analytic function with its actual total domain and codomain, preserving any source parameters or branch conventions separately."
+msgstr "À utiliser pour identifier une fonction analytique nommée avec son domaine total effectif et son codomaine, en conservant séparément tout paramètre ou convention de branche de la source."
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a glyph as function identity, admitting a pole into a finite-valued total domain, or treating a function resource as an automatically admitted AST operator or evaluator."
+msgstr "Éviter d’utiliser un glyphe comme identité de fonction, d’admettre un pôle dans un domaine total à valeurs finies ou de traiter une ressource de fonction comme un opérateur d’AST ou un évaluateur automatiquement admis."
+
+msgctxt "https://blackcatinformatics.ca/math/SpecialFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the canonical individual and its set-valued domain and codomain. Represent applications and numerical evidence separately; neither structural IRI interning nor a reference link proves domain membership or evaluates the function."
+msgstr "Conserver l’individu canonique ainsi que son domaine et son codomaine ensemblistes. Représenter séparément les applications et les preuves numériques ; ni l’internement structurel d’IRI ni un lien de référence ne prouve l’appartenance au domaine et n’évalue la fonction."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Γ (gamma function)"
+msgstr "Γ (fonction gamma)"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The gamma function Γ(z), meromorphically continued from ∫₀^∞ t^(z−1)e^(−t) dt for Re(z) > 0, with simple poles at 0, −1, −2, …. Its finite complex-valued form has domain math:gammaDomain and codomain math:complexNumbers. For positive integers n, Γ(n) = (n−1)!. Supplied correspondences link this individual to DLMF chapter 5 and Wikidata."
+msgstr "La fonction gamma Γ(z), prolongée méromorphiquement à partir de ∫₀^∞ t^(z−1)e^(−t) dt pour Re(z) > 0, avec des pôles simples en 0, −1, −2, …. Sa forme à valeurs complexes finies a pour domaine math:gammaDomain et pour codomaine math:complexNumbers. Pour les entiers positifs n, Γ(n) = (n−1)!. Les correspondances fournies relient cet individu au chapitre 5 du DLMF et à Wikidata."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "gammaDomain excludes the nonpositive integer poles while retaining other complex inputs. The defining integral needs Re(z) > 0; meromorphic continuation supplies the mathematical function beyond that half-plane, not a native analytic evaluator."
+msgstr "gammaDomain exclut les pôles entiers non positifs tout en conservant les autres arguments complexes. L’intégrale définissante exige Re(z) > 0 ; le prolongement méromorphe fournit la fonction mathématique au-delà de ce demi-plan, non un évaluateur analytique natif."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identities Γ(1) = 1 and Γ(1/2) = √π concern admitted inputs. Zero is a pole and is excluded by gammaDomain; it is not mapped to a finite complex value by the declaration."
+msgstr "Les identités mathématiques Γ(1) = 1 et Γ(1/2) = √π concernent des arguments admissibles. Zéro est un pôle exclu par gammaDomain ; la déclaration ne lui attribue pas une valeur complexe finie."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the named gamma function with its punctured complex domain, keeping factorial identities, continuation and supplied evaluation evidence distinct."
+msgstr "À utiliser pour la fonction gamma nommée avec son domaine complexe privé de ses pôles, en distinguant les identités factorielles, le prolongement et les preuves d’évaluation fournies."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating Γ as the factorial of every complex input, using the integral outside its stated half-plane, or representing a pole by an arbitrary infinity in complexNumbers."
+msgstr "Éviter de traiter Γ comme la factorielle de tout argument complexe, d’utiliser l’intégrale hors du demi-plan indiqué ou de représenter un pôle par un infini arbitraire dans complexNumbers."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain gammaDomain and codomain complexNumbers. Retain the domain's realized condition and membership law; supply actual argument, application and result evidence separately, without claiming numerical admission or evaluation from these records."
+msgstr "Conserver gammaDomain comme domaine et complexNumbers comme codomaine. Garder la condition réalisée du domaine et sa loi d’appartenance ; fournir séparément les preuves relatives à l’argument, à l’application et au résultat effectifs, sans attribuer à ces enregistrements une admission numérique ou une évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ζ (Riemann zeta function)"
+msgstr "ζ (fonction zêta de Riemann)"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Riemann zeta function ζ(s) = ∑_{n≥1} n^(−s) for Re(s) > 1, meromorphically continued with a simple pole at s = 1. Its finite complex-valued form has domain math:riemannZetaDomain and codomain math:complexNumbers. Supplied correspondences link it to DLMF chapter 25 and Wikidata; naming it does not prove the Riemann hypothesis."
+msgstr "La fonction zêta de Riemann ζ(s) = ∑_{n≥1} n^(−s) pour Re(s) > 1, prolongée méromorphiquement avec un pôle simple en s = 1. Sa forme à valeurs complexes finies a pour domaine math:riemannZetaDomain et pour codomaine math:complexNumbers. Les correspondances fournies la relient au chapitre 25 du DLMF et à Wikidata ; la nommer ne prouve pas l’hypothèse de Riemann."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The convergent positive-index series defines zeta only for Re(s) > 1; continuation extends the mathematical function to complex arguments other than one. riemannZetaDomain excludes the real value one without reducing the domain to that series half-plane."
+msgstr "La série convergente d’indices positifs définit zêta seulement pour Re(s) > 1 ; le prolongement étend la fonction mathématique aux arguments complexes autres que un. riemannZetaDomain exclut la valeur réelle un sans réduire le domaine à ce demi-plan de convergence de la série."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identity ζ(2) = π²/6 uses the convergent-series region. ζ(0) = −1/2 uses continuation; the positive-index series at zero diverges. The input one remains excluded."
+msgstr "L’identité mathématique ζ(2) = π²/6 utilise la région de convergence de la série. ζ(0) = −1/2 utilise le prolongement ; la série d’indices positifs en zéro diverge. L’argument un reste exclu."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify Riemann zeta with its actual punctured complex domain and distinguish a series representation from the continued function."
+msgstr "À utiliser pour identifier zêta de Riemann avec son domaine complexe effectif privé du pôle et distinguer une représentation en série de la fonction prolongée."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid summing the defining series where it diverges, admitting s = 1 as a finite-valued input, confusing other zeta functions with this identity, or inferring a theorem from its name."
+msgstr "Éviter de sommer la série définissante là où elle diverge, d’admettre s = 1 comme argument à valeur finie, de confondre d’autres fonctions zêta avec cette identité ou d’inférer un théorème de son nom."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZeta|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain riemannZetaDomain and codomain complexNumbers. Preserve the argument's actual representation and the hypotheses of any series or continuation statement; keep membership and evaluation evidence separate from the named function."
+msgstr "Conserver riemannZetaDomain comme domaine et complexNumbers comme codomaine. Préserver la représentation effective de l’argument et les hypothèses de tout énoncé de série ou de prolongement ; garder séparément de la fonction nommée les preuves d’appartenance et d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "erf (error function)"
+msgstr "erf (fonction d’erreur)"
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The real error function erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt, a normalized Gaussian integral with domain and codomain math:realNumbers. Supplied correspondences link this individual to DLMF chapter 7 and Wikidata; no individual OpenMath symbol mapping is supplied."
+msgstr "La fonction d’erreur réelle erf(x) = (2/√π) ∫₀ˣ e^(−t²) dt, une intégrale gaussienne normalisée dont le domaine et le codomaine sont math:realNumbers. Les correspondances fournies relient cet individu au chapitre 7 du DLMF et à Wikidata ; aucune correspondance individuelle de symbole OpenMath n’est fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The normalization is 2/√π and the integration starts at zero. This individual names the real function, not an error estimate, Gaussian density, complementary error function or normal cumulative distribution function."
+msgstr "La normalisation est 2/√π et l’intégration commence en zéro. Cet individu nomme la fonction réelle, non une estimation d’erreur, une densité gaussienne, la fonction d’erreur complémentaire ou une fonction de répartition normale."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical identity erf(0) = 0 follows from the zero-length integral. The standard normal CDF instead satisfies Φ(x) = (1 + erf(x/√2))/2; erf itself is not that CDF."
+msgstr "L’identité mathématique erf(0) = 0 découle de l’intégrale de longueur nulle. La fonction de répartition normale standard satisfait plutôt Φ(x) = (1 + erf(x/√2))/2 ; erf n’est pas elle-même cette fonction de répartition."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source specifically names the real error function with this integral normalization, independently of any numerical approximation."
+msgstr "À utiliser lorsqu’une source nomme précisément la fonction d’erreur réelle avec cette normalisation intégrale, indépendamment de toute approximation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting erfc, a probability density, a normal CDF or an approximation-error quantity merely because the labels mention Gaussian error."
+msgstr "Éviter de lui substituer erfc, une densité de probabilité, une fonction de répartition normale ou une quantité d’erreur d’approximation au seul motif que leurs étiquettes évoquent l’erreur gaussienne."
+
+msgctxt "https://blackcatinformatics.ca/math/errorFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain errorFunction with realNumbers as both domain and codomain. Preserve the actual application and any approximation method or error evidence separately; its identity and links do not execute the integral."
+msgstr "Conserver errorFunction avec realNumbers comme domaine et comme codomaine. Préserver séparément l’application effective ainsi que toute méthode d’approximation ou preuve d’erreur ; son identité et ses liens n’exécutent pas l’intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "nonpositive real interval (−∞, 0]"
+msgstr "intervalle réel non positif (−∞, 0]"
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered real interval (−∞, 0], with lower endpoint math:NegativeInfinity excluded and upper endpoint the integer literal zero included. It contains all finite nonpositive real values, not only the integer poles of gamma."
+msgstr "L’intervalle réel ordonné (−∞, 0], dont la borne inférieure math:NegativeInfinity est exclue et la borne supérieure, le littéral entier zéro, incluse. Il contient toutes les valeurs réelles finies non positives, non seulement les pôles entiers de gamma."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The interval is one part of the gamma exclusion condition. Integer-set membership and membership in this interval must both hold to identify a nonpositive integer pole; the negative-infinity boundary is not an interval member."
+msgstr "L’intervalle est une partie de la condition d’exclusion de gamma. L’appartenance à l’ensemble des entiers et l’appartenance à cet intervalle doivent toutes deux être satisfaites pour identifier un pôle entier non positif ; la borne d’infini négatif n’appartient pas à l’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|http://www.w3.org/2004/02/skos/core#example"
+msgid "Zero and −2 lie in this interval, as does −1/2. Together with interval membership, integer membership excludes zero and −2 from gammaDomain; −1/2 is not excluded by that conjunction."
+msgstr "Zéro et −2 appartiennent à cet intervalle, tout comme −1/2. Avec l’appartenance à l’intervalle, l’appartenance aux entiers exclut zéro et −2 de gammaDomain ; −1/2 n’est pas exclu par cette conjonction."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the fixed interval operand for nonpositive finite real values in the gamma-domain membership condition."
+msgstr "À utiliser comme opérande d’intervalle fixe pour les valeurs réelles finies non positives dans la condition d’appartenance au domaine de gamma."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this interval alone as the gamma-pole set, closing its infinite boundary, or comparing arbitrary complex values by an ordered-real relation."
+msgstr "Éviter de traiter cet intervalle seul comme l’ensemble des pôles de gamma, de fermer sa borne infinie ou de comparer des valeurs complexes arbitraires par une relation d’ordre réel."
+
+msgctxt "https://blackcatinformatics.ca/math/nonPositiveRealInterval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve both typed endpoint values and both inclusion markers. Use inIntervalRel with the integer-membership guard in gammaDomain's condition; do not replace numeric-value membership by RDF term identity."
+msgstr "Préserver les deux valeurs de borne typées et les deux marqueurs d’inclusion. Utiliser inIntervalRel avec la garde d’appartenance aux entiers dans la condition de gammaDomain ; ne pas remplacer l’appartenance par valeur numérique par l’identité des termes RDF."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "singleton real interval [1, 1]"
+msgstr "intervalle réel singleton [1, 1]"
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed real interval [1, 1], with both endpoints the integer literal one and both inclusions closed. It contains the single real numeric value one, independent of the RDF term used to represent that value."
+msgstr "L’intervalle réel fermé [1, 1], dont les deux bornes sont le littéral entier un et dont les deux inclusions sont fermées. Il contient l’unique valeur numérique réelle un, indépendamment du terme RDF utilisé pour représenter cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The zeta exclusion condition combines real-set membership with this singleton interval. The two endpoint roles share the same value; they do not require unequal RDF resources or a comparison of arbitrary complex values."
+msgstr "La condition d’exclusion de zêta combine l’appartenance aux réels et cet intervalle singleton. Les deux rôles de borne partagent la même valeur ; ils n’exigent ni des ressources RDF inégales ni une comparaison de valeurs complexes arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real numeric value represented by integer one lies in [1, 1]. The exclusion is about that numeric value, not whether an argument node is identical to the endpoint literal."
+msgstr "La valeur numérique réelle représentée par l’entier un appartient à [1, 1]. L’exclusion concerne cette valeur numérique, non l’identité éventuelle du nœud argument avec le littéral de borne."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the fixed real-value singleton operand that isolates the pole at one in riemannZetaDomain's condition."
+msgstr "À utiliser comme opérande singleton fixe de valeur réelle qui isole le pôle en un dans la condition de riemannZetaDomain."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting [1, 1] as empty, opening either endpoint, or replacing its interval membership by an RDF same-node test."
+msgstr "Éviter d’interpréter [1, 1] comme vide, d’ouvrir l’une des bornes ou de remplacer son appartenance à l’intervalle par un test d’identité de nœud RDF."
+
+msgctxt "https://blackcatinformatics.ca/math/oneSingletonInterval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve both integer-one endpoints and both closed markers. Combine inIntervalRel with the real-membership guard exactly as the zeta-domain condition states; retain representation and admission evidence separately."
+msgstr "Préserver les deux bornes entières un et les deux marqueurs fermés. Combiner inIntervalRel avec la garde d’appartenance aux réels exactement comme l’énonce la condition du domaine de zêta ; conserver séparément les preuves de représentation et d’admission."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gamma function domain"
+msgstr "domaine de la fonction gamma"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intensional set of complex numbers excluding the nonpositive integers: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). Its realized memberCondition is backed by gammaDomainMembershipLaw."
+msgstr "L’ensemble intensionnel des nombres complexes excluant les entiers non positifs : z appartient exactement lorsque hasElement(complexNumbers,z) et non à la fois hasElement(integers,z) et inIntervalRel(z,nonPositiveRealInterval). Son memberCondition réalisé est étayé par gammaDomainMembershipLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the actual total domain of gammaFunction's finite complex-valued form. The exclusion combines integer membership with a real interval condition; it neither rejects all negative reals nor admits a pole as an ordinary complex output."
+msgstr "Il s’agit du domaine total effectif de la forme à valeurs complexes finies de gammaFunction. L’exclusion combine l’appartenance aux entiers et une condition d’intervalle réel ; elle ne rejette pas tous les réels négatifs et n’admet pas un pôle comme sortie complexe ordinaire."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The mathematical inputs 1, −1/2 and i are in gammaDomain; zero and −2 are excluded. These are consequences of the stated mathematical condition, not native membership checks executed by the declaration."
+msgstr "Les arguments mathématiques 1, −1/2 et i appartiennent à gammaDomain ; zéro et −2 en sont exclus. Ce sont des conséquences de la condition mathématique énoncée, non des contrôles natifs d’appartenance exécutés par la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the declared domain of the canonical finite complex-valued gamma function, retaining the explicit excluded-pole condition."
+msgstr "À utiliser comme domaine déclaré de la fonction gamma canonique à valeurs complexes finies, en conservant la condition explicite d’exclusion des pôles."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing it with the full complex plane, a prose-only pole list or the nonpositive real interval itself. An absent integer-membership fact is not by itself proof that a complex input is not an integer."
+msgstr "Éviter de le remplacer par le plan complexe entier, une liste de pôles en prose seule ou l’intervalle réel non positif lui-même. L’absence d’un fait d’appartenance aux entiers ne prouve pas à elle seule qu’un argument complexe n’est pas entier."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the SetBuilderExpression memberCondition and its defining law, with the shared condition bound by z in that law. Keep actual set-membership evidence distinct from structural set framing; no numerical domain guard is qualified here."
+msgstr "Conserver le memberCondition de SetBuilderExpression et sa loi définissante, avec la condition partagée liée par z dans cette loi. Distinguer les preuves effectives d’appartenance de la structure d’ensemble ; aucune garde numérique de domaine n’est qualifiée ici."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemann zeta function domain"
+msgstr "domaine de la fonction zêta de Riemann"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intensional set of complex numbers excluding the real numeric value one: z belongs exactly when hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). Its realized memberCondition is backed by riemannZetaDomainMembershipLaw."
+msgstr "L’ensemble intensionnel des nombres complexes excluant la valeur numérique réelle un : z appartient exactement lorsque hasElement(complexNumbers,z) et non à la fois hasElement(realNumbers,z) et inIntervalRel(z,oneSingletonInterval). Son memberCondition réalisé est étayé par riemannZetaDomainMembershipLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the actual total domain of riemannZeta's finite complex-valued continuation. The singleton exclusion is a real numeric-value condition under a real-membership guard, not RDF identity with an integer-one literal or ordering on arbitrary complex values."
+msgstr "Il s’agit du domaine total effectif du prolongement à valeurs complexes finies de riemannZeta. L’exclusion singleton est une condition de valeur numérique réelle sous une garde d’appartenance aux réels, non l’identité RDF avec un littéral entier un ni un ordre sur des valeurs complexes arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "Zero, two and i belong to the mathematical zeta domain; the real value one is excluded. Zero is in this continued-function domain even though the defining positive-index series does not converge there."
+msgstr "Zéro, deux et i appartiennent au domaine mathématique de zêta ; la valeur réelle un en est exclue. Zéro appartient à ce domaine de la fonction prolongée même si la série définissante d’indices positifs n’y converge pas."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the declared domain of the canonical finite complex-valued Riemann zeta function rather than restricting the continued function to Re(s) > 1."
+msgstr "À utiliser comme domaine déclaré de la fonction zêta de Riemann canonique à valeurs complexes finies plutôt que de restreindre la fonction prolongée à Re(s) > 1."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a differently represented real one as a new admitted input, excluding all real numbers, or assuming missing real-membership data establishes a nonreal argument."
+msgstr "Éviter de traiter un réel un représenté différemment comme un nouvel argument admis, d’exclure tous les nombres réels ou de supposer que des données manquantes d’appartenance aux réels établissent un argument non réel."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its realized memberCondition and defining law with the shared z variable. Preserve the real guard and singleton interval together; mathematical membership and any consumer's numerical admission remain separate evidence."
+msgstr "Conserver son memberCondition réalisé et sa loi définissante avec la variable z partagée. Préserver ensemble la garde réelle et l’intervalle singleton ; l’appartenance mathématique et l’admission numérique d’un consommateur restent des preuves distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gamma domain membership equivalence"
+msgstr "équivalence d’appartenance au domaine de gamma"
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally bound first-order law ∀z: hasElement(gammaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(integers,z) and inIntervalRel(z,nonPositiveRealInterval). It backs gammaDomain with the same realized condition used by memberCondition."
+msgstr "La loi du premier ordre à quantification universelle ∀z : hasElement(gammaDomain,z) si et seulement si hasElement(complexNumbers,z) et non à la fois hasElement(integers,z) et inIntervalRel(z,nonPositiveRealInterval). Elle étaye gammaDomain par la même condition réalisée que celle utilisée par memberCondition."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law binds z explicitly and states both directions of membership. The condition subtree remains owned mathematical syntax; its negation is logical negation, not a missing-triple test or an analytic evaluation procedure."
+msgstr "La loi lie explicitement z et énonce les deux sens de l’appartenance. Le sous-arbre de condition reste rattaché à l’ensemble qui le porte ; sa négation est une négation logique, non un test de triplet manquant ni une procédure d’évaluation analytique."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "To conclude that −1/2 belongs, the condition needs its complex membership and the negated integer-and-interval conjunction. A graph containing only the input's label does not supply that proof."
+msgstr "Pour conclure que −1/2 appartient, la condition exige son appartenance aux complexes et la négation de la conjonction entier-et-intervalle. Un graphe ne contenant que l’étiquette de l’argument ne fournit pas cette preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit defining-law backing for gammaDomain's membership equivalence, preserving its quantified Formula structure."
+msgstr "À utiliser comme loi définissante explicite étayant l’équivalence d’appartenance de gammaDomain, en préservant sa structure Formula quantifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid weakening iff to only an inclusion, asserting the free condition as a standalone fact, or claiming the law computes gamma values or automatically discharges numeric membership."
+msgstr "Éviter d’affaiblir l’équivalence en une seule inclusion, d’affirmer la condition libre comme fait autonome ou de prétendre que la loi calcule des valeurs gamma ou établit automatiquement l’appartenance numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/gammaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the named law as a bound Formula root referenced through definingLaw, and keep memberCondition attached to the shared condition. Preserve argument order, constructor topology and the same z binding; do not replace the formula with a label."
+msgstr "Conserver la loi nommée comme racine Formula explicitement quantifiée référencée par definingLaw, et garder memberCondition attaché à la condition partagée. Préserver l’ordre des arguments, la topologie des constructeurs et la même liaison z ; ne pas remplacer la formule par une étiquette."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemann zeta domain membership equivalence"
+msgstr "équivalence d’appartenance au domaine de zêta de Riemann"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally bound first-order law ∀z: hasElement(riemannZetaDomain,z) iff hasElement(complexNumbers,z) and not both hasElement(realNumbers,z) and inIntervalRel(z,oneSingletonInterval). It backs riemannZetaDomain with the same realized condition used by memberCondition."
+msgstr "La loi du premier ordre à quantification universelle ∀z : hasElement(riemannZetaDomain,z) si et seulement si hasElement(complexNumbers,z) et non à la fois hasElement(realNumbers,z) et inIntervalRel(z,oneSingletonInterval). Elle étaye riemannZetaDomain par la même condition réalisée que celle utilisée par memberCondition."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound membership equivalence isolates the real value one through existing set and interval relations. It adds no opaque pole predicate, complex-order comparison, RDF-identity shortcut or numerical zeta evaluator."
+msgstr "L’équivalence d’appartenance liée isole la valeur réelle un par les relations existantes d’ensemble et d’intervalle. Elle n’ajoute ni prédicat opaque de pôle, ni comparaison d’ordre complexe, ni raccourci d’identité RDF, ni évaluateur numérique de zêta."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Excluding an input denoting real one uses its real membership and membership in [1, 1], together with the complex-domain condition. It does not depend on the input IRI matching the interval's endpoint literal."
+msgstr "Exclure un argument dénotant le réel un utilise son appartenance aux réels et à [1, 1], avec la condition de domaine complexe. Cela ne dépend pas d’une correspondance entre l’IRI d’argument et le littéral de borne de l’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit quantified backing law for the punctured domain of the continued Riemann zeta function."
+msgstr "À utiliser comme loi quantifiée explicite étayant le domaine privé du pôle de la fonction zêta de Riemann prolongée."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting logical negation as absence of a membership triple, unbinding z, or replacing numeric interval membership by a same-node comparison with one."
+msgstr "Éviter d’interpréter la négation logique comme absence d’un triplet d’appartenance, de délier z ou de remplacer l’appartenance numérique à l’intervalle par une comparaison d’identité de nœud avec un."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."
+msgstr "Préserver la racine Formula explicitement quantifiée, son lien definingLaw et le sous-arbre memberCondition partagé. Conserver les deux sens de iff et la garde réelle avec la condition singleton ; garder séparées les affirmations mathématiques et d’admission native."
