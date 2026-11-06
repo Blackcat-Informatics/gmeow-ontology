@@ -12440,3 +12440,257 @@ msgstr "不要把算子 IRI 当作极限表达式本身，不要要求恰好一�
 msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."
 msgstr "在具体 BindingExpression 上提供一个算子、一个 boundVariable 声明及非空、连续、从零开始的函数体槽位；读取器按 i128 词法整数解析槽位索引。将函数体中的出现位置解析到声明。原生绑定类型读取使用声明上提供的 domain；若未提供，则使用无类型个体的默认类型。variableDomain 单独提供 FreeVariableDeclaration 的上下文。索引解析不认证全面的 RDF 数据类型验证。"
+
+# --- Derivative frame, operator and binder guidance ------------------------ #
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Derivative"
+msgstr "导数"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. Differentiation acts on functions or expressions; this record is a structured application, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "作为独立绑定表达式的表达式导数 d/dx f：它应用 math:differentiationBinder（math:operator），通过 math:derivativeOf 指定求导对象，通过 math:withRespectToVariable 指定求导变量（它绑定的 math:VariableDeclaration），并通过 math:derivativeOrder 指定阶数。求导作用于函数或表达式；此记录是结构化应用，不是字符串 'dy/dx'。缺少求导对象、变量或阶数的导数不符合规范（math:UnderspecifiedDerivative）。"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A Derivative records a differentiation application and its what/variable/order frame, not a computed result. The generic AST reader needs a concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body; typing a raw source node only Derivative does not itself supply that concrete form."
+msgstr "Derivative 记录求导应用及其对象、变量和阶数框架，不记录计算所得结果。通用 AST 读取器需要具体的 BindingExpression 形式、一个算子、一个绑定声明及非空的带索引函数体；原始来源节点仅具有 Derivative 类型，本身并不提供该具体形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "In derivative-framed.ttl, velocity names differentiationBinder, positionFn, timeDecl and order one. Its boundVariable is also timeDecl, and its index-zero body slot also names the SymbolReference positionFn. These are supplied agreements in the fixture, not a differentiation calculation."
+msgstr "在 derivative-framed.ttl 中，velocity 指定 differentiationBinder、positionFn、timeDecl 及一阶。其 boundVariable 也是 timeDecl，索引为零的函数体槽位也指定 SymbolReference positionFn。这些一致关系由夹具提供，并非求导计算的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source derivative expression with its differentiated object, declaration identity, order and binding structure, separately from any asserted derivative value or differential operator."
+msgstr "用于保留来源导数表达式及其求导对象、声明身份、阶数和绑定结构，并与所断言的导数值或微分算子区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the string dy/dx, an operator resource or three descriptive links as the complete body AST. A complete derivative frame does not prove differentiability or cause a numerical evaluator to compute a derivative."
+msgstr "不要把字符串 dy/dx、算子资源或三个描述性链接当作完整的函数体 AST。完整导数框架不证明可导性，也不会使数值求值器计算导数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply derivativeOf, withRespectToVariable and derivativeOrder under the existing restrictions and closures. Preserve the intended agreement of differentiated object and body, and of differentiation declaration and boundVariable. For direct AST reading retain concrete BindingExpression typing, the source operator and indexed body; keep proof of those agreements separate from generic lowering."
+msgstr "按现有限制及闭合提供 derivativeOf、withRespectToVariable 和 derivativeOrder。保留求导对象与函数体、求导声明与 boundVariable 之间应有的一致关系。直接读取 AST 时，保留具体 BindingExpression 类型、来源算子及带索引函数体；将这些一致关系的证明与通用降低区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Partial Derivative"
+msgstr "偏导数"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial derivative ∂f/∂x: a math:Derivative that applies the math:partialDifferentiationBinder, differentiating with respect to one variable while others are held. Mixed partials ∂²f/∂x∂y are nested partial derivatives, each binding its own math:VariableDeclaration, so order and shadowing are explicit. A subclass of math:Derivative; it declares the same what/variable/order frame."
+msgstr "偏导数 ∂f/∂x：应用 math:partialDifferentiationBinder 的 math:Derivative，针对一个变量求导而保持其他变量不变。混合偏导数 ∂²f/∂x∂y 表示为嵌套的偏导数，每层绑定自己的 math:VariableDeclaration，使顺序和遮蔽显式化。它是 math:Derivative 的子类，声明相同的对象、变量和阶数框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "PartialDerivative specializes the derivative frame and uses partialDifferentiationBinder. Nested partial binders preserve the written order and explicit declaration identities. Their structure alone proves neither equality after exchanging the binders nor the smoothness conditions under which mixed partials commute."
+msgstr "PartialDerivative 特化导数框架，并使用 partialDifferentiationBinder。嵌套偏导绑定保留书写顺序及显式声明身份。结构本身既不证明交换绑定层次后相等，也不证明混合偏导可交换所需的光滑性条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "For ∂/∂x(∂f/∂y), retain an outer partial binder for the x declaration and an inner partial binder for the y declaration, each with its own derivative frame and body. Keep that nesting instead of sorting the variable names or collapsing them into an unordered pair."
+msgstr "对于 ∂/∂x(∂f/∂y)，保留绑定 x 声明的外层偏导绑定及绑定 y 声明的内层偏导绑定，每层各有导数框架和函数体。保留该嵌套关系，不要按变量名排序或将两者压成无序对。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source differentiates with respect to a selected variable while holding the others fixed, including mixed partials whose successive operations must retain their source order."
+msgstr "用于来源针对选定变量求导并保持其他变量不变的情形，包括必须保留来源操作顺序的混合偏导。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting ordinary differentiation silently, identifying declarations by matching glyphs, or deriving a total mixed order from slot indices. A partial binder marker does not calculate a partial derivative or establish class/operator agreement on its own."
+msgstr "不要静默替换为普通求导，不要仅按字形识别声明，也不要由槽位索引推导混合偏导的总阶数。偏导绑定标记本身不计算偏导数，也不确立类与算子的一致关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply partialDifferentiationBinder and retain derivativeOf, withRespectToVariable, derivativeOrder and the inherited binder body for each source application. Preserve declaration scope and shadowing at every nesting level; record the source's order explicitly without inferring commutation or an aggregate order."
+msgstr "应用 partialDifferentiationBinder，并为每个来源应用保留 derivativeOf、withRespectToVariable、derivativeOrder 及继承的绑定函数体。保留每层嵌套的声明作用域和遮蔽；显式记录来源阶数，不推断可交换性或汇总阶数。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Differential Operator"
+msgstr "微分算子"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A differential operator: a map of function spaces built from derivatives — the gradient ∇, the Laplacian Δ, a linear ODE operator. A subclass of math:Operation whose action is differentiation; the math:differentiationBinder is the elementary case it composes. Distinguished from a single math:Derivative, which is one application of the differentiation binder to one expression."
+msgstr "微分算子：由导数构成的函数空间之间的映射，例如梯度 ∇、拉普拉斯算子 Δ、线性常微分方程算子。它是 math:Operation 的子类，其作用为求导；math:differentiationBinder 是它所组合的基本情形。它与单个 math:Derivative 不同，后者是求导绑定算子对一个表达式的一次应用。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes the operation acting on functions, whereas Derivative describes an application record. The existing differentiationBinder and partialDifferentiationBinder individuals are explicitly Operation, without an explicit DifferentialOperator type; the explanatory relationship does not add that type or register an evaluator."
+msgstr "此类描述作用于函数的操作，而 Derivative 描述应用记录。现有 differentiationBinder 和 partialDifferentiationBinder 个体显式属于 Operation，并无显式 DifferentialOperator 类型；上述解释关系不添加该类型，也不注册求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Laplacian Δ is a differential operator; applying a specified operator to a particular expression is a separate application. Naming Δ or differentiationBinder does not by itself supply operands, a bound declaration or a resulting value."
+msgstr "拉普拉斯算子 Δ 是微分算子；把指定算子应用于某个表达式，是另一应用角色。仅指定 Δ 或 differentiationBinder，本身并不提供操作数、绑定声明或结果值。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a source operation such as a gradient, Laplacian or differential-equation operator, retaining its mathematical action separately from individual derivative expressions."
+msgstr "用于描述梯度、拉普拉斯算子或微分方程算子等来源操作，并将其数学作用与各个导数表达式区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the operator class as a substitute for a Derivative's body and variable frame, or treating a class assertion as proof of a computed action. Distinct operator and application roles do not require unequal RDF resources."
+msgstr "不要用算子类替代 Derivative 的函数体和变量框架，也不要把类断言当作已计算其作用的证明。算子与应用角色不同，并不要求 RDF 资源不相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the source operator with its own identity and supplied mathematical structure. Represent each differentiation application through the appropriate derivative and binder frame; preserve existing operator typing and keep any execution or function-space law supported by separate evidence."
+msgstr "以自身身份及来源提供的数学结构描述算子。通过适当的导数与绑定框架表示每次求导应用；保留现有算子类型，并为执行行为或函数空间定律另行提供证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "d/dx (differentiation binder)"
+msgstr "d/dx（求导绑定算子）"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The differentiation binder d/dx: the math:operator a math:Derivative binding expression applies, binding the variable of differentiation over the body it differentiates. Anchored to the OpenMath calculus1 diff symbol."
+msgstr "求导绑定算子 d/dx：math:Derivative 绑定表达式所应用的 math:operator，在所求导的函数体上绑定求导变量。锚定到 OpenMath calculus1 的 diff 符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This named Operation identifies the ordinary differentiation binder. The generic lowerer retains the operator identity and lexical binding structure but does not read derivativeOrder or calculate a derivative. The d/dx label does not choose a declaration by the displayed letter x."
+msgstr "此命名 Operation 标识普通求导绑定算子。通用降低保留算子身份及词法绑定结构，但不读取 derivativeOrder，也不计算导数。d/dx 标签不会按所显示的字母 x 选择声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity in derivative-framed.ttl uses differentiationBinder through operator and timeDecl through boundVariable. The label d/dx does not rename that time declaration or replace the explicit withRespectToVariable link."
+msgstr "derivative-framed.ttl 中的 velocity 通过 operator 使用 differentiationBinder，并通过 boundVariable 指定 timeDecl。d/dx 标签不会重命名该时间声明，也不会替代显式的 withRespectToVariable 链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the operator of an ordinary derivative binding expression when that matches the source, retaining the source's differentiated body, declaration and order."
+msgstr "当符合来源时，用作普通导数绑定表达式的算子，并保留来源的求导函数体、声明和阶数。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the marker as the derivative result, omitting the bound declaration or body, or replacing partialDifferentiationBinder without source justification. Its OpenMath closeMatch does not certify executable or lossless equivalence."
+msgstr "不要把该标记用作导数结果，不要省略绑定声明或函数体，也不要在缺少来源依据时替换 partialDifferentiationBinder。其 OpenMath closeMatch 不认证可执行等价或无损等价。"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set operator to differentiationBinder on the source derivative application and retain boundVariable plus indexed argumentSlot/slotExpression body. Keep derivativeOf and withRespectToVariable aligned with that application and supply derivativeOrder separately; generic lowering does not check those side-field agreements."
+msgstr "在来源导数应用上将 operator 设为 differentiationBinder，并保留 boundVariable 及带索引的 argumentSlot/slotExpression 函数体。使 derivativeOf 和 withRespectToVariable 与该应用一致，并单独提供 derivativeOrder；通用降低不检查这些描述字段的一致关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "∂ (partial-differentiation binder)"
+msgstr "∂（偏导绑定算子）"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The partial-differentiation binder ∂: the math:operator a math:PartialDerivative binding expression applies, binding one variable while others are held. Mixed partials ∂²/∂x∂y are nested binding expressions, each with its own math:VariableDeclaration. Anchored to the OpenMath calculus1 partialdiff symbol."
+msgstr "偏导绑定算子 ∂：math:PartialDerivative 绑定表达式所应用的 math:operator，绑定一个变量而保持其他变量不变。混合偏导 ∂²/∂x∂y 表示为嵌套绑定表达式，每层各有自己的 math:VariableDeclaration。锚定到 OpenMath calculus1 的 partialdiff 符号。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Operation marker identifies partial differentiation, not a declaration or a mixed-order result. Each nested binder retains its own lexical declaration and body; the same printed variable name does not merge declarations or erase shadowing. Existing typing does not explicitly make the marker DifferentialOperator."
+msgstr "此 Operation 标记标识偏导操作，不表示声明或混合阶数结果。每层嵌套绑定保留自己的词法声明和函数体；相同的显示变量名不会合并声明或消除遮蔽。现有类型并未显式将该标记设为 DifferentialOperator。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ∂/∂x(∂f/∂y) uses partialDifferentiationBinder in both nested applications, binding x outside and y inside. The shared operator marker does not make the two declarations identical or authorize exchanging the applications."
+msgstr "来源 ∂/∂x(∂f/∂y) 在两层嵌套应用中均使用 partialDifferentiationBinder，外层绑定 x，内层绑定 y。共用算子标记不使两个声明相同，也不授权交换两个应用。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as operator when a source PartialDerivative binds the selected differentiation variable and holds the other variables fixed, including each individual stage of a nested mixed partial."
+msgstr "当来源 PartialDerivative 绑定选定求导变量并保持其他变量不变时，用作其算子，包括嵌套混合偏导的每个独立阶段。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ∂ alone as a complete partial derivative, flattening nested binders into a set of variables, or inferring commuting mixed partials. The existing OpenMath partialdiff closeMatch neither computes the operation nor supplies missing source structure."
+msgstr "不要把单独的 ∂ 当作完整偏导数，不要将嵌套绑定展平为变量集合，也不要推断混合偏导可交换。现有 OpenMath partialdiff closeMatch 不计算该操作，也不补充缺失的来源结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain partialDifferentiationBinder through operator at each source partial-derivative node, with its boundVariable, indexed body and derivative frame. Preserve nesting order, declaration identities and each supplied derivativeOrder; keep mathematical commutation evidence separate."
+msgstr "在每个来源偏导节点上通过 operator 保留 partialDifferentiationBinder，以及该节点的 boundVariable、带索引函数体和导数框架。保留嵌套顺序、声明身份及各自提供的 derivativeOrder；单独保存数学可交换性证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivative of"
+msgstr "求导对象"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression or math:Function (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "将 math:Derivative 关联到它所求导的 math:MathematicalExpression（或 math:Function）。定义域为 math:Derivative，值域为 math:MathematicalExpression 或 math:Function（以文字说明）。每个导数恰好指定一个；缺少此链接的导数不符合规范（math:UnderspecifiedDerivative）。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptive link names what is differentiated; the binder body is separately represented by argumentSlot/slotExpression. Existing derivative restrictions qualify this path on Thing, not a narrower expression/function class. A Function resource alone is not a concrete body AST, and generic lowering follows the body slots without reading this link."
+msgstr "此描述性链接指定求导对象；绑定函数体单独通过 argumentSlot/slotExpression 表示。现有导数限制以 Thing 限定该路径，而非更窄的表达式或函数类。单独的 Function 资源不是具体的函数体 AST；通用降低沿函数体槽位进行，不读取此链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity links derivativeOf to positionFn, a SymbolReference resolving to positionFnSymbol. Its body slot also names positionFn. The repeated target makes the intended agreement explicit in this fixture; it does not establish a general rule equating every derivativeOf target with a body."
+msgstr "velocity 通过 derivativeOf 链接到 positionFn，即解析到 positionFnSymbol 的 SymbolReference。其函数体槽位也指定 positionFn。重复目标使该夹具中的应有一致关系显式化，并不建立将所有 derivativeOf 目标等同于函数体的一般规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual function or mathematical expression being differentiated, separately from the differentiation variable, operator and any supplied result."
+msgstr "用于保留实际求导的函数或数学表达式，并与求导变量、算子及所提供的结果区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the differentiated object with a derivative value, declaration or operator merely because their labels resemble the notation. Supplying derivativeOf alone does not supply the inherited binder body or prove that an asserted body represents the same object."
+msgstr "不要仅因标签与记号相似，就以导数值、声明或算子替代求导对象。单独提供 derivativeOf 既不提供继承的绑定函数体，也不证明所断言的函数体表示同一对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the source Derivative to its differentiated object under the existing minimum, maximum and closure. Preserve a concrete expression representation in the indexed body and maintain its agreement with this descriptive target; do not turn the prose range into an unverified runtime class guard."
+msgstr "按现有最小基数、最大基数及闭合，将来源 Derivative 链接到求导对象。在带索引函数体中保留具体表达式表示，并维持其与此描述目标的一致关系；不要将文字说明的值域变成未经验证的运行时类检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "with respect to variable"
+msgstr "所针对的求导变量"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Derivative to the math:VariableDeclaration it differentiates with respect to — the bound variable of the differentiation binder. Domain math:Derivative, range math:VariableDeclaration (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "将 math:Derivative 关联到它所针对的 math:VariableDeclaration，即求导绑定算子所绑定的变量。定义域为 math:Derivative，值域为 math:VariableDeclaration（以文字说明）。每个导数恰好指定一个；缺少此链接的导数不符合规范（math:UnderspecifiedDerivative）。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is the differentiation declaration, which is intended to agree with the binder's boundVariable, not a glyph or a VariableOccurrence. Existing derivative restrictions qualify the path on Thing; the generic binder reader consumes boundVariable and does not establish equality with this descriptive link."
+msgstr "目标是求导声明，应与绑定结构的 boundVariable 一致，不是字形或 VariableOccurrence。现有导数限制以 Thing 限定该路径；通用绑定读取器消费 boundVariable，不确立它与此描述性链接相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity names the VariableDeclaration timeDecl through both withRespectToVariable and boundVariable. If a nested binder displays the same letter for a different declaration, lexical scope still follows the explicit declaration identity, not the shared label."
+msgstr "velocity 通过 withRespectToVariable 和 boundVariable 均指定 VariableDeclaration timeDecl。若嵌套绑定用相同字母显示另一个声明，词法作用域仍按显式声明身份解析，而非共用标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say precisely which declaration is the variable of differentiation, especially when a multivariable expression or nested binder makes the printed variable name insufficient."
+msgstr "用于精确指定哪个声明是求导变量，尤其适用于多变量表达式或嵌套绑定中仅凭显示变量名不足以确定的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a symbol string, occurrence, numerical value or slot index in place of the declaration. Do not weaken the intended boundVariable agreement merely because the generic reader does not compare the two fields."
+msgstr "不要以符号字符串、出现项、数值或槽位索引代替声明。不要仅因通用读取器不比较这两个字段，就弱化它与 boundVariable 之间应有的一致关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the source VariableDeclaration through withRespectToVariable under the existing derivative restrictions and closure, and retain the corresponding boundVariable. Represent body references through VariableOccurrence/declaredVariable and preserve the enclosing declaration stack when binders nest or shadow names."
+msgstr "按现有导数限制及闭合，通过 withRespectToVariable 提供来源 VariableDeclaration，并保留对应的 boundVariable。通过 VariableOccurrence/declaredVariable 表示函数体引用，在绑定嵌套或发生名称遮蔽时保留外层声明栈。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivative order"
+msgstr "导数阶数"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:integer with a value of at least one (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "math:Derivative 的阶数：f′ 为 1，f″ 为 2，依此类推。定义域为 math:Derivative，值域为取值至少为一的 xsd:integer（以文字说明）。每个导数恰好指定一个；缺少阶数的导数不符合规范（math:UnderspecifiedDerivative）。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source uses an xsd:integer restriction and a separate DerivativeOrderPositiveConstraint with inclusive minimum one. The bound is validation content, not a numerical differentiation algorithm. This does not assert that xsd:integer and xsd:positiveInteger are identical RDF datatype terms or that every projection/native path has been qualified for datatype parity."
+msgstr "来源使用 xsd:integer 限制，并另有含下界一的 DerivativeOrderPositiveConstraint。该界限属于验证内容，不是数值求导算法。这并不断言 xsd:integer 与 xsd:positiveInteger 是相同的 RDF 数据类型项，也不表示每条投影或原生路径均已获得数据类型一致性认证。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity supplies derivativeOrder one and its body slot supplies slotIndex zero. One is the derivative order; zero is an operand position. For a source second derivative, preserve order two rather than copying a slot index or counting variable declarations."
+msgstr "velocity 提供 derivativeOrder 一，其函数体槽位提供 slotIndex 零。一是导数阶数，零是操作数位置。对于来源二阶导数，应保留阶数二，而非复制槽位索引或统计变量声明数。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicitly supplied order of an individual derivative application, whether ordinary or partial, under the existing integer and minimum-one requirements."
+msgstr "用于按现有整数及至少为一的要求，保留单次普通导数或偏导数应用所显式提供的阶数。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying zero for the unchanged function, inferring order from primes in a label, or treating a nested mixed partial's total order as a slot count. Generic binder lowering does not read this property, and the bound record alone does not establish a universal runtime failure-class mapping."
+msgstr "不要为未改变的函数提供零阶，不要从标签中的撇号推断阶数，也不要将嵌套混合偏导的总阶数当作槽位数。通用绑定降低不读取此属性；单独的界限记录不确立通用于所有运行时路径的失败类映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one source integer order of at least one through derivativeOrder, retaining its actual RDF literal and the existing qualified cardinality and closure. Preserve each nested application separately; do not coerce datatype identity, invent an order on missing input or infer a calculated derivative from a valid bound."
+msgstr "通过 derivativeOrder 提供来源中一个至少为一的整数阶数，保留其实际 RDF 字面量及现有限定基数和闭合。分别保留每层嵌套应用；不要强制数据类型相同，不要为空缺输入虚构阶数，也不要因界限有效就推断已计算导数。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Derivative"
+msgstr "未充分指定的导数"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Derivative does not name what it differentiates (math:derivativeOf), the variable of differentiation (math:withRespectToVariable), and its order (math:derivativeOrder). A derivative that does not say what, with respect to which variable, and at what order is ill-formed."
+msgstr "当 math:Derivative 未指定求导对象（math:derivativeOf）、求导变量（math:withRespectToVariable）及阶数（math:derivativeOrder）时报告的失败。未说明对什么、针对哪个变量以及按几阶求导的导数不符合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the canonical failure class associated with Derivative frame restrictions. The derived class-target validation shape obtains failure metadata from Derivative; the separate order-range formula record has no own enforcesFailureClass. Do not generalize that shape association to every native finding, binder error or mathematical nonexistence of a derivative."
+msgstr "这是与 Derivative 框架限制关联的规范失败类。派生的类目标验证形状从 Derivative 获取失败元数据；单独的阶数范围公式记录自身没有 enforcesFailureClass。不要将该形状关联推广到所有原生发现、绑定错误或导数在数学上不存在的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "derivative-missing-variable.ttl supplies a differentiated SymbolReference and order one, but omits withRespectToVariable, boundVariable and body slots. Its conformance control pins the minimum-count component and Derivative-shape without claiming this failure class or a sole finding."
+msgstr "derivative-missing-variable.ttl 提供求导对象 SymbolReference 及一阶，但省略 withRespectToVariable、boundVariable 和函数体槽位。其符合性控制指定最小计数组件及 Derivative-shape，并不声称报告此失败类或只有一个发现。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to interpret a finding actually mapped to the derivative frame's canonical failure class, retaining the specific missing or invalid path and the validation route that produced the finding."
+msgstr "用于解释实际映射到导数框架规范失败类的发现，并保留具体缺失或无效路径及产生该发现的验证路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class to mean that a well-framed function is not differentiable, that mixed partials disagree, or that every defect in an incomplete derivative fixture has one owner. Preserve simultaneous binder, expression or datatype findings rather than relabeling them all as this class."
+msgstr "不要用此类表示框架完整的函数不可导、混合偏导不相等，或不完整导数夹具中的所有缺陷均由同一类负责。保留同时出现的绑定、表达式或数据类型发现，不要将它们全部重标为此类。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."
+msgstr "按现有限制、闭合及阶数界限检查 derivativeOf、withRespectToVariable 和 derivativeOrder，再单独检查继承的绑定要求。依据来源恢复框架，不虚构变量、函数体或阶数，并在诊断证据中保留实际组件、来源形状及失败映射。"

@@ -12440,3 +12440,257 @@ msgstr "Éviter de traiter l’IRI d’opérateur comme l’expression de limite
 msgctxt "https://blackcatinformatics.ca/math/limitBinder|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."
 msgstr "Sur une BindingExpression concrète, fournir un opérateur, une déclaration boundVariable et des emplacements de corps non vides, contigus et indexés à partir de zéro ; le lecteur analyse les indices comme des entiers lexicaux i128. Résoudre les occurrences du corps vers les déclarations. La lecture native de la sorte liée utilise le domain fourni sur la déclaration, ou la sorte des individus non typés s’il est absent ; variableDomain fournit séparément le contexte des FreeVariableDeclaration. L’analyse des indices ne certifie pas une validation complète des types de données RDF."
+
+# --- Derivative frame, operator and binder guidance ------------------------ #
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Derivative"
+msgstr "Dérivée"
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. Differentiation acts on functions or expressions; this record is a structured application, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "La dérivée d/dx f d’une expression comme expression de liaison à part entière : elle applique math:differentiationBinder (math:operator), nomme ce qu’elle dérive par math:derivativeOf, la variable de dérivation par math:withRespectToVariable (une math:VariableDeclaration qu’elle lie) et son ordre par math:derivativeOrder. La dérivation agit sur des fonctions ou des expressions ; cet enregistrement est une application structurée, non la chaîne 'dy/dx'. Une dérivée sans objet de dérivation, sans variable ou sans ordre est mal formée (math:UnderspecifiedDerivative)."
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A Derivative records a differentiation application and its what/variable/order frame, not a computed result. The generic AST reader needs a concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body; typing a raw source node only Derivative does not itself supply that concrete form."
+msgstr "Une Derivative consigne une application de dérivation et son cadre objet/variable/ordre, non un résultat calculé. Le lecteur générique de l’AST exige une forme concrète BindingExpression, un opérateur, une déclaration liée et un corps indexé non vide ; typer un nœud source brut uniquement Derivative ne fournit pas à lui seul cette forme concrète."
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "In derivative-framed.ttl, velocity names differentiationBinder, positionFn, timeDecl and order one. Its boundVariable is also timeDecl, and its index-zero body slot also names the SymbolReference positionFn. These are supplied agreements in the fixture, not a differentiation calculation."
+msgstr "Dans derivative-framed.ttl, velocity nomme differentiationBinder, positionFn, timeDecl et l’ordre un. Son boundVariable est également timeDecl, et son emplacement de corps d’indice zéro nomme aussi la SymbolReference positionFn. Ces accords sont fournis dans le jeu de données, non issus d’un calcul de dérivée."
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a source derivative expression with its differentiated object, declaration identity, order and binding structure, separately from any asserted derivative value or differential operator."
+msgstr "À utiliser pour conserver une expression dérivée de la source avec son objet de dérivation, l’identité de sa déclaration, son ordre et sa structure de liaison, séparément de toute valeur dérivée affirmée ou de tout opérateur différentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the string dy/dx, an operator resource or three descriptive links as the complete body AST. A complete derivative frame does not prove differentiability or cause a numerical evaluator to compute a derivative."
+msgstr "Éviter de traiter la chaîne dy/dx, une ressource d’opérateur ou trois liens descriptifs comme l’AST complet du corps. Un cadre de dérivée complet ne prouve pas la dérivabilité et ne déclenche pas le calcul d’une dérivée par un évaluateur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Derivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply derivativeOf, withRespectToVariable and derivativeOrder under the existing restrictions and closures. Preserve the intended agreement of differentiated object and body, and of differentiation declaration and boundVariable. For direct AST reading retain concrete BindingExpression typing, the source operator and indexed body; keep proof of those agreements separate from generic lowering."
+msgstr "Fournir derivativeOf, withRespectToVariable et derivativeOrder selon les restrictions et clôtures existantes. Préserver l’accord voulu entre objet de dérivation et corps, ainsi qu’entre déclaration de dérivation et boundVariable. Pour la lecture directe de l’AST, conserver le type concret BindingExpression, l’opérateur source et le corps indexé ; distinguer la preuve de ces accords de l’abaissement générique."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Partial Derivative"
+msgstr "Dérivée partielle"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial derivative ∂f/∂x: a math:Derivative that applies the math:partialDifferentiationBinder, differentiating with respect to one variable while others are held. Mixed partials ∂²f/∂x∂y are nested partial derivatives, each binding its own math:VariableDeclaration, so order and shadowing are explicit. A subclass of math:Derivative; it declares the same what/variable/order frame."
+msgstr "Une dérivée partielle ∂f/∂x : une math:Derivative qui applique math:partialDifferentiationBinder, en dérivant par rapport à une variable tandis que les autres restent fixes. Les dérivées partielles mixtes ∂²f/∂x∂y sont des dérivées partielles imbriquées, chacune liant sa propre math:VariableDeclaration, afin de rendre explicites l’ordre et le masquage. Sous-classe de math:Derivative ; elle déclare le même cadre objet/variable/ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "PartialDerivative specializes the derivative frame and uses partialDifferentiationBinder. Nested partial binders preserve the written order and explicit declaration identities. Their structure alone proves neither equality after exchanging the binders nor the smoothness conditions under which mixed partials commute."
+msgstr "PartialDerivative spécialise le cadre de dérivée et utilise partialDifferentiationBinder. Les liaisons partielles imbriquées préservent l’ordre écrit et les identités explicites des déclarations. Leur seule structure ne prouve ni l’égalité après échange des liaisons ni les conditions de régularité permettant la commutation des dérivées partielles mixtes."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "For ∂/∂x(∂f/∂y), retain an outer partial binder for the x declaration and an inner partial binder for the y declaration, each with its own derivative frame and body. Keep that nesting instead of sorting the variable names or collapsing them into an unordered pair."
+msgstr "Pour ∂/∂x(∂f/∂y), conserver une liaison partielle externe pour la déclaration de x et une liaison partielle interne pour celle de y, chacune avec son cadre de dérivée et son corps. Garder cette imbrication au lieu de trier les noms des variables ou de les réduire à une paire non ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source differentiates with respect to a selected variable while holding the others fixed, including mixed partials whose successive operations must retain their source order."
+msgstr "À utiliser lorsque la source dérive par rapport à une variable choisie en maintenant les autres fixes, notamment pour des dérivées partielles mixtes dont les opérations successives doivent conserver l’ordre source."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting ordinary differentiation silently, identifying declarations by matching glyphs, or deriving a total mixed order from slot indices. A partial binder marker does not calculate a partial derivative or establish class/operator agreement on its own."
+msgstr "Éviter de substituer silencieusement une dérivation ordinaire, d’identifier les déclarations par leurs seuls glyphes ou de déduire un ordre mixte total des indices d’emplacement. Un marqueur de liaison partielle ne calcule pas une dérivée partielle et n’établit pas à lui seul l’accord entre classe et opérateur."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply partialDifferentiationBinder and retain derivativeOf, withRespectToVariable, derivativeOrder and the inherited binder body for each source application. Preserve declaration scope and shadowing at every nesting level; record the source's order explicitly without inferring commutation or an aggregate order."
+msgstr "Appliquer partialDifferentiationBinder et conserver derivativeOf, withRespectToVariable, derivativeOrder et le corps de liaison hérité pour chaque application source. Préserver la portée et le masquage des déclarations à chaque niveau d’imbrication ; consigner explicitement l’ordre de la source sans inférer de commutation ni d’ordre agrégé."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Differential Operator"
+msgstr "Opérateur différentiel"
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A differential operator: a map of function spaces built from derivatives — the gradient ∇, the Laplacian Δ, a linear ODE operator. A subclass of math:Operation whose action is differentiation; the math:differentiationBinder is the elementary case it composes. Distinguished from a single math:Derivative, which is one application of the differentiation binder to one expression."
+msgstr "Un opérateur différentiel : une application entre espaces de fonctions construite à partir de dérivées — le gradient ∇, le laplacien Δ, un opérateur linéaire d’équation différentielle ordinaire. Sous-classe de math:Operation dont l’action est la dérivation ; math:differentiationBinder est le cas élémentaire qu’il compose. À distinguer d’une math:Derivative unique, qui est une application de l’opérateur de liaison de dérivation à une expression."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes the operation acting on functions, whereas Derivative describes an application record. The existing differentiationBinder and partialDifferentiationBinder individuals are explicitly Operation, without an explicit DifferentialOperator type; the explanatory relationship does not add that type or register an evaluator."
+msgstr "Cette classe décrit l’opération agissant sur les fonctions, tandis que Derivative décrit un enregistrement d’application. Les individus existants differentiationBinder et partialDifferentiationBinder sont explicitement Operation, sans type DifferentialOperator explicite ; le rapport explicatif n’ajoute pas ce type et n’enregistre pas d’évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Laplacian Δ is a differential operator; applying a specified operator to a particular expression is a separate application. Naming Δ or differentiationBinder does not by itself supply operands, a bound declaration or a resulting value."
+msgstr "Le laplacien Δ est un opérateur différentiel ; appliquer un opérateur spécifié à une expression particulière constitue une application distincte. Nommer Δ ou differentiationBinder ne fournit pas à lui seul les opérandes, une déclaration liée ou une valeur résultante."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a source operation such as a gradient, Laplacian or differential-equation operator, retaining its mathematical action separately from individual derivative expressions."
+msgstr "À utiliser pour décrire une opération source telle qu’un gradient, un laplacien ou un opérateur d’équation différentielle, en conservant son action mathématique séparément des expressions dérivées individuelles."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the operator class as a substitute for a Derivative's body and variable frame, or treating a class assertion as proof of a computed action. Distinct operator and application roles do not require unequal RDF resources."
+msgstr "Éviter d’utiliser la classe d’opérateur à la place du corps et du cadre variable d’une Derivative, ou de prendre une assertion de classe pour la preuve d’une action calculée. Des rôles distincts d’opérateur et d’application n’exigent pas des ressources RDF inégales."
+
+msgctxt "https://blackcatinformatics.ca/math/DifferentialOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the source operator with its own identity and supplied mathematical structure. Represent each differentiation application through the appropriate derivative and binder frame; preserve existing operator typing and keep any execution or function-space law supported by separate evidence."
+msgstr "Décrire l’opérateur source avec son identité et sa structure mathématique fournie. Représenter chaque application de dérivation par le cadre approprié de dérivée et de liaison ; préserver le typage existant des opérateurs et étayer séparément toute exécution ou loi sur les espaces de fonctions."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "d/dx (differentiation binder)"
+msgstr "d/dx (opérateur de liaison de dérivation)"
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The differentiation binder d/dx: the math:operator a math:Derivative binding expression applies, binding the variable of differentiation over the body it differentiates. Anchored to the OpenMath calculus1 diff symbol."
+msgstr "L’opérateur de liaison de dérivation d/dx : le math:operator qu’applique une expression de liaison math:Derivative, liant la variable de dérivation sur le corps qu’elle dérive. Ancré au symbole diff du dictionnaire OpenMath calculus1."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This named Operation identifies the ordinary differentiation binder. The generic lowerer retains the operator identity and lexical binding structure but does not read derivativeOrder or calculate a derivative. The d/dx label does not choose a declaration by the displayed letter x."
+msgstr "Cette Operation nommée identifie l’opérateur de liaison de dérivation ordinaire. L’abaissement générique conserve l’identité de l’opérateur et la structure de liaison lexicale, mais ne lit pas derivativeOrder et ne calcule pas de dérivée. L’étiquette d/dx ne choisit pas une déclaration d’après la lettre x affichée."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity in derivative-framed.ttl uses differentiationBinder through operator and timeDecl through boundVariable. The label d/dx does not rename that time declaration or replace the explicit withRespectToVariable link."
+msgstr "Dans derivative-framed.ttl, velocity utilise differentiationBinder par operator et timeDecl par boundVariable. L’étiquette d/dx ne renomme pas cette déclaration de temps et ne remplace pas le lien explicite withRespectToVariable."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the operator of an ordinary derivative binding expression when that matches the source, retaining the source's differentiated body, declaration and order."
+msgstr "À utiliser comme opérateur d’une expression de liaison de dérivée ordinaire lorsque cela correspond à la source, en conservant le corps dérivé, la déclaration et l’ordre de celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the marker as the derivative result, omitting the bound declaration or body, or replacing partialDifferentiationBinder without source justification. Its OpenMath closeMatch does not certify executable or lossless equivalence."
+msgstr "Éviter d’utiliser le marqueur comme résultat de dérivée, d’omettre la déclaration liée ou le corps, ou de remplacer partialDifferentiationBinder sans justification source. Son closeMatch OpenMath ne certifie pas une équivalence exécutable ou sans perte."
+
+msgctxt "https://blackcatinformatics.ca/math/differentiationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set operator to differentiationBinder on the source derivative application and retain boundVariable plus indexed argumentSlot/slotExpression body. Keep derivativeOf and withRespectToVariable aligned with that application and supply derivativeOrder separately; generic lowering does not check those side-field agreements."
+msgstr "Définir operator à differentiationBinder sur l’application dérivée source et conserver boundVariable ainsi que le corps indexé argumentSlot/slotExpression. Maintenir derivativeOf et withRespectToVariable en accord avec cette application et fournir derivativeOrder séparément ; l’abaissement générique ne vérifie pas ces accords avec les champs descriptifs."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "∂ (partial-differentiation binder)"
+msgstr "∂ (opérateur de liaison de dérivation partielle)"
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The partial-differentiation binder ∂: the math:operator a math:PartialDerivative binding expression applies, binding one variable while others are held. Mixed partials ∂²/∂x∂y are nested binding expressions, each with its own math:VariableDeclaration. Anchored to the OpenMath calculus1 partialdiff symbol."
+msgstr "L’opérateur de liaison de dérivation partielle ∂ : le math:operator qu’applique une expression de liaison math:PartialDerivative, liant une variable tandis que les autres restent fixes. Les dérivées partielles mixtes ∂²/∂x∂y sont des expressions de liaison imbriquées, chacune avec sa propre math:VariableDeclaration. Ancré au symbole partialdiff du dictionnaire OpenMath calculus1."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Operation marker identifies partial differentiation, not a declaration or a mixed-order result. Each nested binder retains its own lexical declaration and body; the same printed variable name does not merge declarations or erase shadowing. Existing typing does not explicitly make the marker DifferentialOperator."
+msgstr "Ce marqueur Operation identifie la dérivation partielle, non une déclaration ou un résultat d’ordre mixte. Chaque liaison imbriquée conserve sa déclaration lexicale et son corps ; un même nom de variable imprimé ne fusionne pas les déclarations et n’efface pas le masquage. Le typage existant ne donne pas explicitement au marqueur le type DifferentialOperator."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source ∂/∂x(∂f/∂y) uses partialDifferentiationBinder in both nested applications, binding x outside and y inside. The shared operator marker does not make the two declarations identical or authorize exchanging the applications."
+msgstr "Une source ∂/∂x(∂f/∂y) utilise partialDifferentiationBinder dans les deux applications imbriquées, liant x à l’extérieur et y à l’intérieur. Le marqueur d’opérateur partagé ne rend pas les deux déclarations identiques et n’autorise pas l’échange des applications."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as operator when a source PartialDerivative binds the selected differentiation variable and holds the other variables fixed, including each individual stage of a nested mixed partial."
+msgstr "À utiliser comme opérateur lorsqu’une PartialDerivative source lie la variable de dérivation choisie et maintient les autres fixes, y compris à chaque étape individuelle d’une dérivée partielle mixte imbriquée."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ∂ alone as a complete partial derivative, flattening nested binders into a set of variables, or inferring commuting mixed partials. The existing OpenMath partialdiff closeMatch neither computes the operation nor supplies missing source structure."
+msgstr "Éviter de traiter ∂ seul comme une dérivée partielle complète, d’aplatir des liaisons imbriquées en ensemble de variables ou d’inférer la commutation des dérivées partielles mixtes. Le closeMatch OpenMath partialdiff existant ne calcule pas l’opération et ne fournit pas la structure source manquante."
+
+msgctxt "https://blackcatinformatics.ca/math/partialDifferentiationBinder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain partialDifferentiationBinder through operator at each source partial-derivative node, with its boundVariable, indexed body and derivative frame. Preserve nesting order, declaration identities and each supplied derivativeOrder; keep mathematical commutation evidence separate."
+msgstr "Conserver partialDifferentiationBinder par operator à chaque nœud source de dérivée partielle, avec son boundVariable, son corps indexé et son cadre de dérivée. Préserver l’ordre d’imbrication, les identités des déclarations et chaque derivativeOrder fourni ; garder séparément les preuves mathématiques de commutation."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivative of"
+msgstr "dérivée de"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression or math:Function (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "Relie une math:Derivative à la math:MathematicalExpression (ou math:Function) qu’elle dérive. Domaine math:Derivative, portée math:MathematicalExpression ou math:Function (énoncés en prose). Chaque dérivée en nomme exactement une ; une dérivée sans ce lien est mal formée (math:UnderspecifiedDerivative)."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This descriptive link names what is differentiated; the binder body is separately represented by argumentSlot/slotExpression. Existing derivative restrictions qualify this path on Thing, not a narrower expression/function class. A Function resource alone is not a concrete body AST, and generic lowering follows the body slots without reading this link."
+msgstr "Ce lien descriptif nomme ce qui est dérivé ; le corps de liaison est représenté séparément par argumentSlot/slotExpression. Les restrictions existantes de dérivée qualifient ce chemin sur Thing, non sur une classe plus étroite d’expression ou de fonction. Une ressource Function seule n’est pas un AST concret de corps, et l’abaissement générique suit les emplacements du corps sans lire ce lien."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity links derivativeOf to positionFn, a SymbolReference resolving to positionFnSymbol. Its body slot also names positionFn. The repeated target makes the intended agreement explicit in this fixture; it does not establish a general rule equating every derivativeOf target with a body."
+msgstr "velocity relie derivativeOf à positionFn, une SymbolReference résolue vers positionFnSymbol. Son emplacement de corps nomme également positionFn. La cible répétée rend l’accord voulu explicite dans ce jeu de données ; elle n’établit pas une règle générale égalant toute cible derivativeOf à un corps."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual function or mathematical expression being differentiated, separately from the differentiation variable, operator and any supplied result."
+msgstr "À utiliser pour conserver la fonction ou l’expression mathématique effectivement dérivée, séparément de la variable de dérivation, de l’opérateur et de tout résultat fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the differentiated object with a derivative value, declaration or operator merely because their labels resemble the notation. Supplying derivativeOf alone does not supply the inherited binder body or prove that an asserted body represents the same object."
+msgstr "Éviter de remplacer l’objet dérivé par une valeur de dérivée, une déclaration ou un opérateur au seul motif que leurs étiquettes ressemblent à la notation. Fournir derivativeOf seul ne fournit pas le corps de liaison hérité et ne prouve pas qu’un corps affirmé représente le même objet."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the source Derivative to its differentiated object under the existing minimum, maximum and closure. Preserve a concrete expression representation in the indexed body and maintain its agreement with this descriptive target; do not turn the prose range into an unverified runtime class guard."
+msgstr "Relier la Derivative source à son objet de dérivation selon les minimum, maximum et clôture existants. Conserver une représentation concrète d’expression dans le corps indexé et maintenir son accord avec cette cible descriptive ; ne pas transformer la portée énoncée en prose en garde de classe d’exécution non vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "with respect to variable"
+msgstr "par rapport à la variable"
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Derivative to the math:VariableDeclaration it differentiates with respect to — the bound variable of the differentiation binder. Domain math:Derivative, range math:VariableDeclaration (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "Relie une math:Derivative à la math:VariableDeclaration par rapport à laquelle elle dérive — la variable liée de l’opérateur de liaison de dérivation. Domaine math:Derivative, portée math:VariableDeclaration (énoncés en prose). Chaque dérivée en nomme exactement une ; une dérivée sans ce lien est mal formée (math:UnderspecifiedDerivative)."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target is the differentiation declaration, which is intended to agree with the binder's boundVariable, not a glyph or a VariableOccurrence. Existing derivative restrictions qualify the path on Thing; the generic binder reader consumes boundVariable and does not establish equality with this descriptive link."
+msgstr "La cible est la déclaration de dérivation, destinée à correspondre au boundVariable de la liaison, non un glyphe ou une VariableOccurrence. Les restrictions existantes de dérivée qualifient le chemin sur Thing ; le lecteur générique de liaison consomme boundVariable et n’établit pas l’égalité avec ce lien descriptif."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity names the VariableDeclaration timeDecl through both withRespectToVariable and boundVariable. If a nested binder displays the same letter for a different declaration, lexical scope still follows the explicit declaration identity, not the shared label."
+msgstr "velocity nomme la VariableDeclaration timeDecl par withRespectToVariable et par boundVariable. Si une liaison imbriquée affiche la même lettre pour une autre déclaration, la portée lexicale suit toujours l’identité explicite de déclaration, non l’étiquette partagée."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say precisely which declaration is the variable of differentiation, especially when a multivariable expression or nested binder makes the printed variable name insufficient."
+msgstr "À utiliser pour préciser quelle déclaration est la variable de dérivation, notamment lorsqu’une expression multivariable ou une liaison imbriquée rend le nom imprimé insuffisant."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a symbol string, occurrence, numerical value or slot index in place of the declaration. Do not weaken the intended boundVariable agreement merely because the generic reader does not compare the two fields."
+msgstr "Éviter de lier une chaîne de symbole, une occurrence, une valeur numérique ou un indice d’emplacement à la place de la déclaration. Ne pas affaiblir l’accord voulu avec boundVariable au seul motif que le lecteur générique ne compare pas les deux champs."
+
+msgctxt "https://blackcatinformatics.ca/math/withRespectToVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the source VariableDeclaration through withRespectToVariable under the existing derivative restrictions and closure, and retain the corresponding boundVariable. Represent body references through VariableOccurrence/declaredVariable and preserve the enclosing declaration stack when binders nest or shadow names."
+msgstr "Fournir la VariableDeclaration source par withRespectToVariable selon les restrictions et la clôture existantes de dérivée, et conserver le boundVariable correspondant. Représenter les références du corps par VariableOccurrence/declaredVariable et préserver la pile des déclarations englobantes lorsque des liaisons s’imbriquent ou masquent des noms."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivative order"
+msgstr "ordre de dérivation"
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:integer with a value of at least one (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."
+msgstr "L’ordre d’une math:Derivative — 1 pour f′, 2 pour f″, et ainsi de suite. Domaine math:Derivative, portée xsd:integer avec une valeur d’au moins un (énoncés en prose). Chaque dérivée en nomme exactement un ; une dérivée sans ordre est mal formée (math:UnderspecifiedDerivative)."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source uses an xsd:integer restriction and a separate DerivativeOrderPositiveConstraint with inclusive minimum one. The bound is validation content, not a numerical differentiation algorithm. This does not assert that xsd:integer and xsd:positiveInteger are identical RDF datatype terms or that every projection/native path has been qualified for datatype parity."
+msgstr "La source utilise une restriction xsd:integer et un DerivativeOrderPositiveConstraint distinct de minimum inclusif un. La borne relève de la validation, non d’un algorithme numérique de dérivation. Cela n’affirme ni que xsd:integer et xsd:positiveInteger sont des termes RDF de datatype identiques ni que chaque chemin de projection ou natif est qualifié pour la parité des datatypes."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "velocity supplies derivativeOrder one and its body slot supplies slotIndex zero. One is the derivative order; zero is an operand position. For a source second derivative, preserve order two rather than copying a slot index or counting variable declarations."
+msgstr "velocity fournit derivativeOrder un et son emplacement de corps fournit slotIndex zéro. Un est l’ordre de dérivation ; zéro est une position d’opérande. Pour une dérivée seconde de la source, conserver l’ordre deux au lieu de copier un indice d’emplacement ou de compter les déclarations de variables."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicitly supplied order of an individual derivative application, whether ordinary or partial, under the existing integer and minimum-one requirements."
+msgstr "À utiliser pour conserver l’ordre explicitement fourni d’une application individuelle de dérivée, ordinaire ou partielle, selon les exigences existantes d’entier et de minimum un."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying zero for the unchanged function, inferring order from primes in a label, or treating a nested mixed partial's total order as a slot count. Generic binder lowering does not read this property, and the bound record alone does not establish a universal runtime failure-class mapping."
+msgstr "Éviter de fournir zéro pour la fonction inchangée, d’inférer l’ordre des primes d’une étiquette ou de traiter l’ordre total d’une dérivée partielle mixte imbriquée comme un nombre d’emplacements. L’abaissement générique de liaison ne lit pas cette propriété, et le seul enregistrement de borne n’établit pas une attribution universelle de classe d’échec à l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/derivativeOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one source integer order of at least one through derivativeOrder, retaining its actual RDF literal and the existing qualified cardinality and closure. Preserve each nested application separately; do not coerce datatype identity, invent an order on missing input or infer a calculated derivative from a valid bound."
+msgstr "Fournir par derivativeOrder un ordre entier source d’au moins un, en conservant son littéral RDF réel ainsi que la cardinalité qualifiée et la clôture existantes. Préserver séparément chaque application imbriquée ; ne pas forcer l’identité des datatypes, inventer un ordre absent ou inférer une dérivée calculée d’une borne valide."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Derivative"
+msgstr "Dérivée insuffisamment spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Derivative does not name what it differentiates (math:derivativeOf), the variable of differentiation (math:withRespectToVariable), and its order (math:derivativeOrder). A derivative that does not say what, with respect to which variable, and at what order is ill-formed."
+msgstr "L’échec signalé lorsqu’une math:Derivative ne nomme pas ce qu’elle dérive (math:derivativeOf), la variable de dérivation (math:withRespectToVariable) et son ordre (math:derivativeOrder). Une dérivée qui ne dit pas quoi dériver, par rapport à quelle variable et à quel ordre est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the canonical failure class associated with Derivative frame restrictions. The derived class-target validation shape obtains failure metadata from Derivative; the separate order-range formula record has no own enforcesFailureClass. Do not generalize that shape association to every native finding, binder error or mathematical nonexistence of a derivative."
+msgstr "Il s’agit de la classe d’échec canonique associée aux restrictions du cadre Derivative. La forme de validation dérivée ciblant la classe obtient ses métadonnées d’échec de Derivative ; l’enregistrement distinct de formule de plage d’ordre n’a pas son propre enforcesFailureClass. Ne pas généraliser cette association de forme à tout constat natif, erreur de liaison ou inexistence mathématique d’une dérivée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|http://www.w3.org/2004/02/skos/core#example"
+msgid "derivative-missing-variable.ttl supplies a differentiated SymbolReference and order one, but omits withRespectToVariable, boundVariable and body slots. Its conformance control pins the minimum-count component and Derivative-shape without claiming this failure class or a sole finding."
+msgstr "derivative-missing-variable.ttl fournit une SymbolReference à dériver et l’ordre un, mais omet withRespectToVariable, boundVariable et les emplacements du corps. Son contrôle de conformité fixe le composant de comptage minimal et Derivative-shape sans revendiquer cette classe d’échec ni un constat unique."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to interpret a finding actually mapped to the derivative frame's canonical failure class, retaining the specific missing or invalid path and the validation route that produced the finding."
+msgstr "À utiliser pour interpréter un constat effectivement rattaché à la classe d’échec canonique du cadre de dérivée, en conservant le chemin manquant ou invalide précis et la voie de validation qui a produit le constat."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class to mean that a well-framed function is not differentiable, that mixed partials disagree, or that every defect in an incomplete derivative fixture has one owner. Preserve simultaneous binder, expression or datatype findings rather than relabeling them all as this class."
+msgstr "Éviter d’utiliser cette classe pour dire qu’une fonction correctement décrite n’est pas dérivable, que des dérivées partielles mixtes diffèrent ou que tout défaut d’un jeu de données de dérivée incomplet relève d’un seul responsable. Conserver les constats simultanés de liaison, d’expression ou de datatype au lieu de tous les réétiqueter avec cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedDerivative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."
+msgstr "Examiner derivativeOf, withRespectToVariable et derivativeOrder selon leurs restrictions, clôtures et borne d’ordre existantes, puis examiner séparément les exigences héritées de liaison. Rétablir un cadre étayé par la source sans inventer de variable, de corps ou d’ordre, et conserver le composant, la forme source et l’attribution d’échec réels dans les éléments diagnostiques."

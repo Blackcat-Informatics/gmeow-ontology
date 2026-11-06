@@ -4264,7 +4264,7 @@ math:Derivative
     rdfs:subClassOf math:BindingExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Derivative"@x-gmeow-english ;
-    skos:definition "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. A derivative is a map of function spaces, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    skos:definition "The derivative d/dx f of an expression as a first-class binding expression: it applies the math:differentiationBinder (math:operator), names what it differentiates through math:derivativeOf, the variable of differentiation through math:withRespectToVariable (a math:VariableDeclaration it binds), and its order through math:derivativeOrder. Differentiation acts on functions or expressions; this record is a structured application, not the string 'dy/dx'. A derivative missing what it differentiates, its variable, or its order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PartialDerivative
@@ -4540,7 +4540,7 @@ math:derivativeOf
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "derivative of"@x-gmeow-english ;
-    skos:definition "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    skos:definition "Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression or math:Function (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:withRespectToVariable
@@ -4554,7 +4554,7 @@ math:derivativeOrder
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "derivative order"@x-gmeow-english ;
-    skos:definition "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:positiveInteger (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
+    skos:definition "The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:integer with a value of at least one (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:limitOf
@@ -18504,3 +18504,68 @@ math:limitBinder
     gmeow:useWhen "Use as the operator identity of a source limit binder, preserving the distinct expression node, declaration identity and body structure."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating the operator IRI as the limit expression itself, requiring exactly one body slot, or assuming limitOf alone establishes lexical scope. Labels and bindsOccurrence metadata do not replace explicit declaration links and AST nesting."@x-gmeow-english ;
     gmeow:howToUse "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."@x-gmeow-english .
+
+# --- Derivative frame, operator and binder guidance ------------------------ #
+
+math:Derivative
+    skos:scopeNote "A Derivative records a differentiation application and its what/variable/order frame, not a computed result. The generic AST reader needs a concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body; typing a raw source node only Derivative does not itself supply that concrete form."@x-gmeow-english ;
+    skos:example "In derivative-framed.ttl, velocity names differentiationBinder, positionFn, timeDecl and order one. Its boundVariable is also timeDecl, and its index-zero body slot also names the SymbolReference positionFn. These are supplied agreements in the fixture, not a differentiation calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a source derivative expression with its differentiated object, declaration identity, order and binding structure, separately from any asserted derivative value or differential operator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the string dy/dx, an operator resource or three descriptive links as the complete body AST. A complete derivative frame does not prove differentiability or cause a numerical evaluator to compute a derivative."@x-gmeow-english ;
+    gmeow:howToUse "Supply derivativeOf, withRespectToVariable and derivativeOrder under the existing restrictions and closures. Preserve the intended agreement of differentiated object and body, and of differentiation declaration and boundVariable. For direct AST reading retain concrete BindingExpression typing, the source operator and indexed body; keep proof of those agreements separate from generic lowering."@x-gmeow-english .
+
+math:PartialDerivative
+    skos:scopeNote "PartialDerivative specializes the derivative frame and uses partialDifferentiationBinder. Nested partial binders preserve the written order and explicit declaration identities. Their structure alone proves neither equality after exchanging the binders nor the smoothness conditions under which mixed partials commute."@x-gmeow-english ;
+    skos:example "For ∂/∂x(∂f/∂y), retain an outer partial binder for the x declaration and an inner partial binder for the y declaration, each with its own derivative frame and body. Keep that nesting instead of sorting the variable names or collapsing them into an unordered pair."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source differentiates with respect to a selected variable while holding the others fixed, including mixed partials whose successive operations must retain their source order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting ordinary differentiation silently, identifying declarations by matching glyphs, or deriving a total mixed order from slot indices. A partial binder marker does not calculate a partial derivative or establish class/operator agreement on its own."@x-gmeow-english ;
+    gmeow:howToUse "Apply partialDifferentiationBinder and retain derivativeOf, withRespectToVariable, derivativeOrder and the inherited binder body for each source application. Preserve declaration scope and shadowing at every nesting level; record the source's order explicitly without inferring commutation or an aggregate order."@x-gmeow-english .
+
+math:DifferentialOperator
+    skos:scopeNote "This class describes the operation acting on functions, whereas Derivative describes an application record. The existing differentiationBinder and partialDifferentiationBinder individuals are explicitly Operation, without an explicit DifferentialOperator type; the explanatory relationship does not add that type or register an evaluator."@x-gmeow-english ;
+    skos:example "The Laplacian Δ is a differential operator; applying a specified operator to a particular expression is a separate application. Naming Δ or differentiationBinder does not by itself supply operands, a bound declaration or a resulting value."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe a source operation such as a gradient, Laplacian or differential-equation operator, retaining its mathematical action separately from individual derivative expressions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the operator class as a substitute for a Derivative's body and variable frame, or treating a class assertion as proof of a computed action. Distinct operator and application roles do not require unequal RDF resources."@x-gmeow-english ;
+    gmeow:howToUse "Describe the source operator with its own identity and supplied mathematical structure. Represent each differentiation application through the appropriate derivative and binder frame; preserve existing operator typing and keep any execution or function-space law supported by separate evidence."@x-gmeow-english .
+
+math:differentiationBinder
+    skos:scopeNote "This named Operation identifies the ordinary differentiation binder. The generic lowerer retains the operator identity and lexical binding structure but does not read derivativeOrder or calculate a derivative. The d/dx label does not choose a declaration by the displayed letter x."@x-gmeow-english ;
+    skos:example "velocity in derivative-framed.ttl uses differentiationBinder through operator and timeDecl through boundVariable. The label d/dx does not rename that time declaration or replace the explicit withRespectToVariable link."@x-gmeow-english ;
+    gmeow:useWhen "Use as the operator of an ordinary derivative binding expression when that matches the source, retaining the source's differentiated body, declaration and order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the marker as the derivative result, omitting the bound declaration or body, or replacing partialDifferentiationBinder without source justification. Its OpenMath closeMatch does not certify executable or lossless equivalence."@x-gmeow-english ;
+    gmeow:howToUse "Set operator to differentiationBinder on the source derivative application and retain boundVariable plus indexed argumentSlot/slotExpression body. Keep derivativeOf and withRespectToVariable aligned with that application and supply derivativeOrder separately; generic lowering does not check those side-field agreements."@x-gmeow-english .
+
+math:partialDifferentiationBinder
+    skos:scopeNote "This Operation marker identifies partial differentiation, not a declaration or a mixed-order result. Each nested binder retains its own lexical declaration and body; the same printed variable name does not merge declarations or erase shadowing. Existing typing does not explicitly make the marker DifferentialOperator."@x-gmeow-english ;
+    skos:example "A source ∂/∂x(∂f/∂y) uses partialDifferentiationBinder in both nested applications, binding x outside and y inside. The shared operator marker does not make the two declarations identical or authorize exchanging the applications."@x-gmeow-english ;
+    gmeow:useWhen "Use as operator when a source PartialDerivative binds the selected differentiation variable and holds the other variables fixed, including each individual stage of a nested mixed partial."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ∂ alone as a complete partial derivative, flattening nested binders into a set of variables, or inferring commuting mixed partials. The existing OpenMath partialdiff closeMatch neither computes the operation nor supplies missing source structure."@x-gmeow-english ;
+    gmeow:howToUse "Retain partialDifferentiationBinder through operator at each source partial-derivative node, with its boundVariable, indexed body and derivative frame. Preserve nesting order, declaration identities and each supplied derivativeOrder; keep mathematical commutation evidence separate."@x-gmeow-english .
+
+math:derivativeOf
+    skos:scopeNote "This descriptive link names what is differentiated; the binder body is separately represented by argumentSlot/slotExpression. Existing derivative restrictions qualify this path on Thing, not a narrower expression/function class. A Function resource alone is not a concrete body AST, and generic lowering follows the body slots without reading this link."@x-gmeow-english ;
+    skos:example "velocity links derivativeOf to positionFn, a SymbolReference resolving to positionFnSymbol. Its body slot also names positionFn. The repeated target makes the intended agreement explicit in this fixture; it does not establish a general rule equating every derivativeOf target with a body."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual function or mathematical expression being differentiated, separately from the differentiation variable, operator and any supplied result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the differentiated object with a derivative value, declaration or operator merely because their labels resemble the notation. Supplying derivativeOf alone does not supply the inherited binder body or prove that an asserted body represents the same object."@x-gmeow-english ;
+    gmeow:howToUse "Link the source Derivative to its differentiated object under the existing minimum, maximum and closure. Preserve a concrete expression representation in the indexed body and maintain its agreement with this descriptive target; do not turn the prose range into an unverified runtime class guard."@x-gmeow-english .
+
+math:withRespectToVariable
+    skos:scopeNote "The target is the differentiation declaration, which is intended to agree with the binder's boundVariable, not a glyph or a VariableOccurrence. Existing derivative restrictions qualify the path on Thing; the generic binder reader consumes boundVariable and does not establish equality with this descriptive link."@x-gmeow-english ;
+    skos:example "velocity names the VariableDeclaration timeDecl through both withRespectToVariable and boundVariable. If a nested binder displays the same letter for a different declaration, lexical scope still follows the explicit declaration identity, not the shared label."@x-gmeow-english ;
+    gmeow:useWhen "Use to say precisely which declaration is the variable of differentiation, especially when a multivariable expression or nested binder makes the printed variable name insufficient."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking a symbol string, occurrence, numerical value or slot index in place of the declaration. Do not weaken the intended boundVariable agreement merely because the generic reader does not compare the two fields."@x-gmeow-english ;
+    gmeow:howToUse "Supply the source VariableDeclaration through withRespectToVariable under the existing derivative restrictions and closure, and retain the corresponding boundVariable. Represent body references through VariableOccurrence/declaredVariable and preserve the enclosing declaration stack when binders nest or shadow names."@x-gmeow-english .
+
+math:derivativeOrder
+    skos:scopeNote "The source uses an xsd:integer restriction and a separate DerivativeOrderPositiveConstraint with inclusive minimum one. The bound is validation content, not a numerical differentiation algorithm. This does not assert that xsd:integer and xsd:positiveInteger are identical RDF datatype terms or that every projection/native path has been qualified for datatype parity."@x-gmeow-english ;
+    skos:example "velocity supplies derivativeOrder one and its body slot supplies slotIndex zero. One is the derivative order; zero is an operand position. For a source second derivative, preserve order two rather than copying a slot index or counting variable declarations."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicitly supplied order of an individual derivative application, whether ordinary or partial, under the existing integer and minimum-one requirements."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying zero for the unchanged function, inferring order from primes in a label, or treating a nested mixed partial's total order as a slot count. Generic binder lowering does not read this property, and the bound record alone does not establish a universal runtime failure-class mapping."@x-gmeow-english ;
+    gmeow:howToUse "Supply one source integer order of at least one through derivativeOrder, retaining its actual RDF literal and the existing qualified cardinality and closure. Preserve each nested application separately; do not coerce datatype identity, invent an order on missing input or infer a calculated derivative from a valid bound."@x-gmeow-english .
+
+math:UnderspecifiedDerivative
+    skos:scopeNote "This is the canonical failure class associated with Derivative frame restrictions. The derived class-target validation shape obtains failure metadata from Derivative; the separate order-range formula record has no own enforcesFailureClass. Do not generalize that shape association to every native finding, binder error or mathematical nonexistence of a derivative."@x-gmeow-english ;
+    skos:example "derivative-missing-variable.ttl supplies a differentiated SymbolReference and order one, but omits withRespectToVariable, boundVariable and body slots. Its conformance control pins the minimum-count component and Derivative-shape without claiming this failure class or a sole finding."@x-gmeow-english ;
+    gmeow:useWhen "Use to interpret a finding actually mapped to the derivative frame's canonical failure class, retaining the specific missing or invalid path and the validation route that produced the finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this class to mean that a well-framed function is not differentiable, that mixed partials disagree, or that every defect in an incomplete derivative fixture has one owner. Preserve simultaneous binder, expression or datatype findings rather than relabeling them all as this class."@x-gmeow-english ;
+    gmeow:howToUse "Inspect derivativeOf, withRespectToVariable and derivativeOrder against their existing restrictions, closures and order bound, then inspect inherited binder requirements separately. Restore source-supported framing without inventing a variable, body or order, and retain the actual component, source shape and failure mapping in diagnostic evidence."@x-gmeow-english .

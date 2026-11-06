@@ -59,7 +59,7 @@ limit (a limit may still carry only its expression, point, and mode), but once s
 convergence or the three modes of divergence the limit is, so `lim = ∞` is never a silent overload of a
 finite value. A result missing its outcome, or carrying a value that disagrees with it, is ill-formed
 (`math:UnderspecifiedLimitResult`). This is where a grounding layer
-becomes analysis: derivatives are maps of function spaces
+becomes analysis: differential operators act on function spaces
 ([`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md)), and integration is the measure
 charter's operator.
 
