@@ -26,17 +26,6 @@ use crate::registry::StageRegistry;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// An RDF object term surfaced from the native IR (the oxigraph-free replacement
-/// for the `oxigraph::model::Term` discrimination the loader relied on).
-enum ObjTerm {
-    /// An IRI object.
-    Named(String),
-    /// A literal object, by its lexical value.
-    Literal(String),
-    /// Any other term kind (blank / triple) — the loader never reads inside one.
-    Other,
-}
-
 /// A stage's typed dataflow: for each upstream producer it narrows to specific
 /// named-graph entities, a `(producer-local-name, sorted entity IRIs)` pair; the
 /// whole list sorted by producer. Empty = every consumed producer is a whole-product
@@ -196,6 +185,9 @@ impl PipelineSpec {
     }
 
     /// Extract the (single) `gmeow:Pipeline` and its stages from a parsed dataset.
+    /// Implementation keys, output formats and blob-representation labels require
+    /// complete native-valid, untagged string/token literals. Each stage declares
+    /// exactly one implementation key before any lexical projection.
     pub fn from_dataset(ds: &RdfDataset) -> Result<Self, gmeow_errors::Diag> {
         let pipeline_iri =
             single_subject_of_type(ds, &iri(GMEOW, "Pipeline"))?.ok_or_else(|| {
@@ -208,7 +200,7 @@ impl PipelineSpec {
         let has_stage = iri(GMEOW, "hasStage");
         let mut stage_iris: BTreeSet<String> = BTreeSet::new();
         for o in objects(ds, &pipeline_iri, &has_stage) {
-            if let ObjTerm::Named(nn) = o {
+            if let TermValue::Iri(nn) = o {
                 stage_iris.insert(nn);
             }
         }
@@ -256,29 +248,21 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
     let mut capabilities: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "hasCapability"))
         .into_iter()
         .filter_map(|t| match t {
-            ObjTerm::Named(nn) => Some(nn),
+            TermValue::Iri(nn) => Some(nn),
             _ => None,
         })
         .collect();
     capabilities.sort();
     capabilities.dedup();
 
-    // gmeow:stageImpl (exactly one string).
-    let impl_key = objects(ds, stage_iri, &iri(GMEOW, "stageImpl"))
-        .into_iter()
-        .find_map(literal_string)
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("stage {id} has no gmeow:stageImpl"),
-            })
-        })?;
+    let impl_key = required_string_declaration(ds, stage_iri, "stageImpl", &id)?;
 
     // gmeow:requiresResource (zero or more resource IRIs, kept whole — resources
     // are not stages, so they are not reduced to local names).
     let mut resources: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "requiresResource"))
         .into_iter()
         .filter_map(|t| match t {
-            ObjTerm::Named(nn) => Some(nn),
+            TermValue::Iri(nn) => Some(nn),
             _ => None,
         })
         .collect();
@@ -306,41 +290,28 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
     let mut consumes: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "dataflowConsumes"))
         .into_iter()
         .filter_map(|t| match t {
-            ObjTerm::Named(nn) => Some(local_name(&nn)),
+            TermValue::Iri(nn) => Some(local_name(&nn)),
             _ => None,
         })
         .collect();
     consumes.sort();
     consumes.dedup();
 
-    // gmeow:producesFormat (zero or more strings).
-    let mut formats: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "producesFormat"))
-        .into_iter()
-        .filter_map(literal_string)
-        .collect();
-    formats.sort();
-    formats.dedup();
+    let formats = string_declarations(ds, stage_iri, "producesFormat", &id)?;
 
     // gmeow:attachesGraph (zero or more named-graph IRIs, kept whole — they are graphs,
     // not stages, so they are not reduced to local names).
     let mut attaches_graphs: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "attachesGraph"))
         .into_iter()
         .filter_map(|t| match t {
-            ObjTerm::Named(nn) => Some(nn),
+            TermValue::Iri(nn) => Some(nn),
             _ => None,
         })
         .collect();
     attaches_graphs.sort();
     attaches_graphs.dedup();
 
-    // gmeow:attachesBlobRep (zero or more representation-lane label strings).
-    let mut attaches_blob_reps: Vec<String> =
-        objects(ds, stage_iri, &iri(GMEOW, "attachesBlobRep"))
-            .into_iter()
-            .filter_map(literal_string)
-            .collect();
-    attaches_blob_reps.sort();
-    attaches_blob_reps.dedup();
+    let attaches_blob_reps = string_declarations(ds, stage_iri, "attachesBlobRep", &id)?;
 
     Ok(StageSpec {
         id,
@@ -381,8 +352,8 @@ fn required_named_declaration(
         ));
     }
     match values.into_iter().next().expect("one value was checked") {
-        ObjTerm::Named(value) => Ok(value),
-        ObjTerm::Literal(_) | ObjTerm::Other => Err(gmeow_errors::Diag::of_kind(
+        TermValue::Iri(value) => Ok(value),
+        _ => Err(gmeow_errors::Diag::of_kind(
             crate::error::InvalidDeclaration {
                 message: format!(
                     "stage {stage_id} gmeow:{property} must name a closed-vocabulary IRI"
@@ -422,7 +393,7 @@ fn parse_dataflow_edges(
         let producer = objects(ds, edge, &iri(GMEOW, "buildFlowFrom"))
             .into_iter()
             .find_map(|t| match t {
-                ObjTerm::Named(nn) => Some(local_name(&nn)),
+                TermValue::Iri(nn) => Some(local_name(&nn)),
                 _ => None,
             })
             .ok_or_else(|| {
@@ -433,7 +404,7 @@ fn parse_dataflow_edges(
         let consumer = objects(ds, edge, &iri(GMEOW, "buildFlowTo"))
             .into_iter()
             .find_map(|t| match t {
-                ObjTerm::Named(nn) => Some(local_name(&nn)),
+                TermValue::Iri(nn) => Some(local_name(&nn)),
                 _ => None,
             })
             .ok_or_else(|| {
@@ -444,7 +415,7 @@ fn parse_dataflow_edges(
         let entities: BTreeSet<String> = objects(ds, edge, &iri(GMEOW, "flowEntity"))
             .into_iter()
             .filter_map(|t| match t {
-                ObjTerm::Named(nn) => Some(nn),
+                TermValue::Iri(nn) => Some(nn),
                 _ => None,
             })
             .collect();
@@ -672,7 +643,7 @@ fn local_name(iri: &str) -> String {
 /// All objects of `(subject, predicate, _)`, in dataset order. An IRI subject or
 /// predicate absent from the dataset's term table yields no matches (its id does
 /// not exist), matching the old empty-pattern scan.
-fn objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<ObjTerm> {
+fn objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<TermValue> {
     let (Some(s), Some(p)) = (
         ds.term_id_by_value(&TermValue::iri(subject)),
         ds.term_id_by_value(&TermValue::iri(predicate)),
@@ -680,11 +651,7 @@ fn objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<ObjTerm> {
         return Vec::new();
     };
     ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
-        .map(|q| match ds.resolve(q.o) {
-            TermRef::Iri(iri) => ObjTerm::Named(iri.to_owned()),
-            TermRef::Literal { lexical, .. } => ObjTerm::Literal(lexical.to_owned()),
-            _ => ObjTerm::Other,
-        })
+        .map(|q| ds.term_value(q.o))
         .collect()
 }
 
@@ -715,9 +682,95 @@ fn single_subject_of_type(
     }
 }
 
-fn literal_string(term: ObjTerm) -> Option<String> {
-    match term {
-        ObjTerm::Literal(v) => Some(v),
-        _ => None,
+/// Admit one complete machine-string declaration without changing its lexical bytes.
+///
+/// # Errors
+/// Rejects nonliterals, language/direction metadata, foreign datatypes and native
+/// lexical failures with the owning stage and property in the diagnostic.
+fn declaration_string(
+    term: TermValue,
+    stage_id: &str,
+    property: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let invalid = |detail: &str| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!("stage {stage_id} gmeow:{property} {detail}"),
+        })
+    };
+    let TermValue::Literal {
+        lexical_form,
+        datatype,
+        language,
+        direction,
+    } = term
+    else {
+        return Err(invalid(
+            "must be an untagged xsd:string or xsd:token literal",
+        ));
+    };
+    if language.is_some() || direction.is_some() {
+        return Err(invalid("must not carry language or direction"));
     }
+    match datatype.as_str() {
+        purrdf::xsd::datatype::XSD_STRING => purrdf::xsd::simple::read_xml_string(&lexical_form),
+        purrdf::xsd::datatype::XSD_TOKEN => purrdf::xsd::simple::read_token(&lexical_form),
+        _ => {
+            return Err(invalid(&format!(
+                "must use xsd:string or xsd:token; found <{datatype}>"
+            )));
+        }
+    }
+    .map_err(|detail| {
+        invalid(&format!(
+            "has an invalid <{datatype}> lexical form: {detail}"
+        ))
+    })?;
+    Ok(lexical_form)
+}
+
+/// Read exactly one native machine-string term before projecting its lexical value.
+///
+/// # Errors
+/// Rejects a missing or multiple declaration and every failure of literal admission.
+fn required_string_declaration(
+    ds: &RdfDataset,
+    stage_iri: &str,
+    property: &str,
+    stage_id: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let values = objects(ds, stage_iri, &iri(GMEOW, property));
+    if values.len() != 1 {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "stage {stage_id} must declare exactly one gmeow:{property}; found {}",
+                    values.len()
+                ),
+            },
+        ));
+    }
+    declaration_string(
+        values.into_iter().next().expect("one value was checked"),
+        stage_id,
+        property,
+    )
+}
+
+/// Admit every optional machine-string term, then retain the existing lexical set.
+///
+/// # Errors
+/// Rejects any supplied value that fails literal admission; invalid rows never vanish.
+fn string_declarations(
+    ds: &RdfDataset,
+    stage_iri: &str,
+    property: &str,
+    stage_id: &str,
+) -> Result<Vec<String>, gmeow_errors::Diag> {
+    let mut values = objects(ds, stage_iri, &iri(GMEOW, property))
+        .into_iter()
+        .map(|term| declaration_string(term, stage_id, property))
+        .collect::<Result<Vec<_>, _>>()?;
+    values.sort();
+    values.dedup();
+    Ok(values)
 }

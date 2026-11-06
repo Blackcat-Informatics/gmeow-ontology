@@ -451,6 +451,147 @@ fn turtle_dag_round_trips_and_validates() {
     assert_eq!(g.order(), vec!["stageSource", "stageReason", "stageSink"]);
 }
 
+/// Native string/token admission preserves each machine field's supplied lexical bytes.
+#[test]
+fn pipeline_machine_strings_admit_native_string_and_token_without_rewriting() {
+    for datatype in ["string", "token"] {
+        let literal = format!("\"source_load\"^^<http://www.w3.org/2001/XMLSchema#{datatype}>");
+        let dag = DAG_TTL.replacen("\"source_load\"", &literal, 1);
+        let labels = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             gmeow:stageSource gmeow:producesFormat {literal} ; \
+             gmeow:attachesBlobRep {literal} ."
+        );
+        let spec = PipelineSpec::from_turtle(&[&dag, &labels]).expect("valid machine literals");
+        let source = spec.stage("stageSource").expect("source stage");
+        assert_eq!(source.impl_key, "source_load");
+        assert_eq!(source.formats, vec!["source_load"]);
+        assert_eq!(source.attaches_blob_reps, vec!["source_load"]);
+    }
+
+    let labels = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:stageSource gmeow:producesFormat " raw format " ;
+    gmeow:attachesBlobRep " raw representation " .
+"#;
+    let spec =
+        PipelineSpec::from_turtle(&[DAG_TTL, labels]).expect("string whitespace is retained");
+    let source = spec.stage("stageSource").expect("source stage");
+    assert_eq!(source.formats, vec![" raw format "]);
+    assert_eq!(source.attaches_blob_reps, vec![" raw representation "]);
+}
+
+/// Every supplied field value validates, including invalid companions of valid labels.
+#[test]
+fn pipeline_machine_strings_reject_each_invalid_native_declaration() {
+    for property in ["stageImpl", "producesFormat", "attachesBlobRep"] {
+        for value in [
+            "\"7\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"source_load\"@en",
+            "\"source_load\"@en--ltr",
+            "<urn:invalid:machine-literal>",
+            "\" source_load \"^^<http://www.w3.org/2001/XMLSchema#token>",
+        ] {
+            let dag = if property == "stageImpl" {
+                DAG_TTL.replacen("\"source_load\"", value, 1)
+            } else {
+                format!("{DAG_TTL}\ngmeow:stageSource gmeow:{property} {value} .\n")
+            };
+            let err = PipelineSpec::from_turtle(&[&dag])
+                .expect_err("invalid machine declaration must fail");
+            assert!(
+                err.is::<crate::error::InvalidDeclaration>(),
+                "{property}: {err}"
+            );
+            assert!(err.to_string().contains("stageSource"), "{err}");
+            assert!(err.to_string().contains(property), "{err}");
+        }
+    }
+
+    for property in ["producesFormat", "attachesBlobRep"] {
+        let dag = format!(
+            "{DAG_TTL}\ngmeow:stageSource gmeow:{property} \
+             \"valid\", <urn:invalid:machine-literal> .\n"
+        );
+        let err = PipelineSpec::from_turtle(&[&dag])
+            .expect_err("a valid declaration must not hide an invalid companion");
+        assert!(err.is::<crate::error::InvalidDeclaration>(), "{err}");
+        assert!(err.to_string().contains(property), "{err}");
+    }
+}
+
+/// Implementation cardinality counts distinct RDF terms before extracting their text.
+#[test]
+fn pipeline_implementation_counts_native_terms_before_lexical_projection() {
+    let missing = DAG_TTL.replacen(
+        "gmeow:stageImpl \"source_load\"",
+        "gmeow:producesFormat \"source_load\"",
+        1,
+    );
+    let err = PipelineSpec::from_turtle(&[&missing]).expect_err("implementation is required");
+    assert!(err.is::<crate::error::InvalidDeclaration>(), "{err}");
+    assert!(err.to_string().contains("stageImpl; found 0"), "{err}");
+
+    for values in [
+        "\"source_load\", \"other\"",
+        "\"source_load\", \"source_load\"^^<http://www.w3.org/2001/XMLSchema#token>",
+        "\"source_load\", <urn:invalid:machine-literal>",
+    ] {
+        let dag = DAG_TTL.replacen("\"source_load\"", values, 1);
+        let err = PipelineSpec::from_turtle(&[&dag])
+            .expect_err("multiple native implementation objects must fail");
+        assert!(err.is::<crate::error::InvalidDeclaration>(), "{err}");
+        assert!(err.to_string().contains("stageImpl; found 2"), "{err}");
+    }
+}
+
+/// Optional labels retain their existing sorted, deduplicated lexical sets.
+#[test]
+fn pipeline_optional_machine_labels_keep_their_sorted_lexical_sets() {
+    let original = PipelineSpec::from_turtle(&[DAG_TTL]).expect("base DAG");
+    let source = original.stage("stageSource").expect("source stage");
+    assert!(source.formats.is_empty());
+    assert!(source.attaches_blob_reps.is_empty());
+
+    let labels = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+gmeow:stageSource gmeow:producesFormat "z", "a", "a"^^xsd:token, ""^^xsd:token ;
+    gmeow:attachesBlobRep "z", "a", "a"^^xsd:token, ""^^xsd:token .
+"#;
+    let spec = PipelineSpec::from_turtle(&[DAG_TTL, labels]).expect("valid optional label sets");
+    let source = spec.stage("stageSource").expect("source stage");
+    assert_eq!(source.formats, vec!["", "a", "z"]);
+    assert_eq!(source.attaches_blob_reps, vec!["", "a", "z"]);
+}
+
+/// An admitted unknown key reaches registry failure with its exact lexical bytes.
+#[test]
+fn native_admitted_unknown_implementation_keys_reach_registry_binding() {
+    for (key, datatype) in [
+        ("not_registered", "token"),
+        ("", "token"),
+        (" source_load ", "string"),
+    ] {
+        let literal = format!("\"{key}\"^^<http://www.w3.org/2001/XMLSchema#{datatype}>");
+        let dag = DAG_TTL.replacen("\"source_load\"", &literal, 1);
+        let spec = PipelineSpec::from_turtle(&[&dag]).expect("native-valid key");
+        assert_eq!(
+            spec.stage("stageSource").expect("source stage").impl_key,
+            key
+        );
+        let graph = spec.validate().expect("declared DAG remains valid");
+        let err = bind(&spec, &graph, &StageRegistry::new())
+            .map(|stages| stages.len())
+            .expect_err("an unknown key must retain the registry binding failure");
+        let failure = err
+            .downcast_ref::<crate::error::UnknownStageImpl>()
+            .expect("registry binding failure");
+        assert_eq!(failure.impl_key, key);
+        assert_eq!(failure.stage, "stageSource");
+    }
+}
+
 #[test]
 fn stage_cache_declarations_fail_closed() {
     let missing = DAG_TTL.replacen(
