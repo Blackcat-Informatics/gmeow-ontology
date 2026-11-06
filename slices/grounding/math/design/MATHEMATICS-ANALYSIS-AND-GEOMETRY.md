@@ -34,7 +34,7 @@ Core classes: `math:Limit`, `math:LimitResult`, `math:LimitOutcome`, `math:Deriv
 
 Core properties: `math:limitOf`, `math:limitPoint`, `math:hasLimitResult`, `math:limitOutcome`,
 `math:limitResultValue`, `math:derivativeOf`, `math:withRespectToVariable`, `math:derivativeOrder`,
-`math:seriesTerm`, `math:convergesTo`, and `math:convergenceMode`.
+`math:seriesTerm`, `math:hasConvergence`, `math:convergesTo`, and `math:convergenceMode`.
 
 Calculus expressions for `d/dx`, `∂`, `∫`, `∑`, and `lim` use `math:BindingExpression` to bind a
 variable over an indexed body AST; the operator itself is named through `math:operator`
@@ -43,6 +43,13 @@ differentiates, with respect to which variable, at which order; a `math:Limit` n
 its limit point, and — where it matters — the direction/mode; a `math:Series` and `math:Sequence`
 carry `math:Convergence` with its mode (pointwise, uniform, in-measure, …). Special functions align
 to **DLMF** by equation ID and to OpenMath `calculus1`/`transc1`.
+
+GMEOW records typed `math:Series` or `math:Sequence` require a supplied `math:Convergence` record
+linked through `math:hasConvergence`, naming its target and mode. This mandatory frame restricts admitted source records; it does
+not prove that every mathematical sequence or series converges. An unknown or divergent case
+without a supported convergence assertion does not meet this contract: retain the unresolved input
+and report the missing supported frame rather than inventing a target or mode, removing its source
+type, or dropping the input.
 
 Where a limit's **evaluated result** matters — not just the limit expression, but *what it runs to* —
 a `math:Limit` carries a structured `math:LimitResult` through `math:hasLimitResult`. The result is a

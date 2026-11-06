@@ -4303,7 +4303,7 @@ math:Sequence
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Sequence"@x-gmeow-english ;
-    skos:definition "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. It carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode. A subclass of math:Function, so it declares its domain and codomain; a sequence asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    skos:definition "A sequence (aₙ): an indexed family, a math:Function whose math:domain is a subset of ℕ. GMEOW records typed as math:Sequence require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode, together with the inherited math:Function domain and codomain frame. Missing the required convergence frame is math:UnderspecifiedConvergence; this record requirement does not assert that every mathematical sequence converges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Series
@@ -4311,14 +4311,14 @@ math:Series
     rdfs:subClassOf math:BindingExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Series"@x-gmeow-english ;
-    skos:definition "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator), names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration), and carries a math:Convergence through math:hasConvergence naming what it converges to and in which mode (absolute, conditional, …). A series asserted to converge without a math:Convergence naming the mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    skos:definition "A series ∑ aₙ as a first-class binding expression: it applies the math:summationBinder (math:operator) and names its general term through math:seriesTerm (the summand, a body indexed by the bound summation math:VariableDeclaration). GMEOW records typed as math:Series also require at least one math:Convergence record linked through math:hasConvergence and naming a target and mode. Missing a required term or convergence frame is math:UnderspecifiedConvergence; this requirement does not assert that every mathematical series converges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Convergence
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Convergence"@x-gmeow-english ;
-    skos:definition "The convergence of a sequence or series: names what it converges to through math:convergesTo and the mode through math:convergenceMode (pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, in-distribution). Convergence in which mode is a declared property, not an assumption — 'the series converges' is meaningless without the mode. A convergence without a mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    skos:definition "The convergence of a sequence or series, represented with its target through math:convergesTo and its selected mode through math:convergenceMode. GMEOW requires at least one target and exactly one typed mode in this record. An explicit mode identifies the notion being asserted; satisfying this frame does not prove the mathematical convergence. A record missing required fields is math:UnderspecifiedConvergence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ConvergenceMode
@@ -4519,7 +4519,7 @@ math:UnderspecifiedConvergence
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Convergence"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:Series or math:Sequence carries a math:Convergence that does not name what it converges to (math:convergesTo) and the mode (math:convergenceMode). 'It converges' is meaningless without the mode; a convergence without a mode is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure class associated with the existing frame restrictions on math:Convergence, math:Series and math:Sequence. Those restrictions require a convergence target and mode, a series term and a convergence record, or a sequence's convergence record, respectively; missing required data or a conflicting mode frame is ill-formed. A standalone math:Convergence is constrained directly. This failure does not decide whether the mathematical sequence or series diverges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnderspecifiedLimitResult
@@ -4589,7 +4589,7 @@ math:hasConvergence
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has convergence"@x-gmeow-english ;
-    skos:definition "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). A series/sequence asserted to converge names its convergence; the mode is required (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    skos:definition "Relates a math:Series or math:Sequence to the math:Convergence describing what it converges to and in which mode. Domain a math:Series or math:Sequence, range math:Convergence (stated in prose). Their GMEOW record contracts require at least one such link, and the linked convergence record requires a target and mode (math:UnderspecifiedConvergence). The link retains a supplied convergence assertion; it does not calculate or establish convergence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:convergesTo
@@ -18634,3 +18634,68 @@ math:inDistributionConvergence
     gmeow:useWhen "Use when a source asserts convergence of real random-variable laws by the limiting CDF continuity-point criterion, retaining a separately stated broader weak-convergence context where that is what the source supplies."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid requiring CDF convergence at discontinuities of the limiting CDF, claiming samplewise agreement from equality of laws, or treating every distribution on every space as a real CDF. The mode does not fit a distribution or execute a central-limit calculation."@x-gmeow-english ;
     gmeow:howToUse "Record inDistributionConvergence through convergenceMode with the source's random-variable laws and limiting distribution, preserving the real-valued CDF setting or the explicitly qualified broader space. Retain continuity-point and probabilistic evidence separately; do not infer a particular coupling or a stronger mode."@x-gmeow-english .
+
+# --- Sequence, series and convergence record guidance ----------------------- #
+
+math:Sequence
+    skos:scopeNote "A mathematical sequence need not converge. GMEOW's current Sequence record contract nevertheless requires a supplied convergence frame; this limits admitted records rather than proving convergence. A divergent or convergence-unknown input without a supported assertion remains an explicit admission failure, not an invitation to invent a target or remove its source type."@x-gmeow-english ;
+    skos:example "sequence-convergent.ttl supplies harmonicSequence with domain and codomain sets and a pointwise record naming zeroValue. The labels 1/n and zero name the intended example; the record does not compute the sequence or verify a natural-number index domain."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source indexed family whose Function frame and supported convergence assertion can be retained under the current mandatory record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every sequence as convergent, replacing unknown convergence with a guessed value, or dropping input or typing to satisfy validation. Convergence of summands to zero alone does not prove convergence of their series."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited single domain and codomain Set frame and the required hasConvergence links to supported records. Preserve the actual index-set meaning and evidence separately; if the required assertion is unavailable, report that limitation without fabricating records or silently relaxing the contract."@x-gmeow-english .
+
+math:Series
+    skos:scopeNote "A series concerns its summands and the convergence of partial sums, not just the limit of individual terms. The current GMEOW frame requires a supported convergence record as well as a general term and binder structure; divergent or unknown cases without that assertion cannot be made conforming by inventing a sum."@x-gmeow-english ;
+    skos:example "series-convergent.ttl records zetaSeries with a summation operator, declaration, index-zero body and absolute-convergence target. Its raw type is Series only; the supplied roles do not by themselves certify direct concrete BindingExpression admission or a computed zeta sum."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a source summation expression with its bound index, actual summand and supported convergence claim, keeping the series distinct from its sequence of individual terms."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a sum from a named term, asserting convergence because the terms tend to zero, or changing a divergent input into a positive convergence record. Structural acceptance is not mathematical convergence evidence."@x-gmeow-english ;
+    gmeow:howToUse "Supply seriesTerm and the required hasConvergence frame while retaining the inherited binder obligations. For direct AST reading, use explicit concrete BindingExpression typing, one operator/declaration and nonempty indexed body slots. Keep seriesTerm and body links consistent with the source without claiming an implemented equality check between them."@x-gmeow-english .
+
+math:Convergence
+    skos:scopeNote "This represents the supplied convergence assertion and its explicit frame. At least one target and exactly one typed mode are required; these restrictions impose no maximum number of targets. The record does not calculate a limit, check mode applicability or prove agreement with a summand or sequence body."@x-gmeow-english ;
+    skos:example "zetaConvergence in series-convergent.ttl names zetaValue and absoluteConvergence. The named target and mode record the supplied claim; they are not a numerical derivation of the series sum."@x-gmeow-english ;
+    gmeow:useWhen "Use when retaining a supported convergence statement with its target and actual notion of convergence, including distinct supplied statements in different modes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a generic computation status, failure to converge or unknown-answer container. Do not invent a target or interchangeable mode to satisfy a required record, or infer numerical proof from a valid frame."@x-gmeow-english ;
+    gmeow:howToUse "Retain convergesTo targets and one convergenceMode typed ConvergenceMode under the existing restrictions and closures. Keep evidence for the assertion separately. Use distinct supported records for different modes rather than placing several modes on one record; an unattached Convergence is still directly constrained."@x-gmeow-english .
+
+math:summationBinder
+    skos:scopeNote "The operator is an Operation individual, not the series expression or an infinite-sum evaluator. Native binding retains the supplied operator IRI, one declaration and nonempty indexed operands; it does not pin every Series to this IRI or prove convergence."@x-gmeow-english ;
+    skos:example "The geometricSeries fixture uses operator summationBinder, boundVariable nVar and an index-zero slot naming geometricTerm. A second binder using the same displayed n would need its own declaration identity for lexical shadowing."@x-gmeow-english ;
+    gmeow:useWhen "Use as the supplied operator identity for a summation binder, retaining the distinct series node, index declaration and structured body."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating its glyph as a bound variable, merging declarations because their labels match, requiring a single body slot, or assuming a scalar arithmetic profile evaluates the infinite sum."@x-gmeow-english ;
+    gmeow:howToUse "For direct AST use, supply concrete BindingExpression typing, one operator, one boundVariable declaration and contiguous nonnegative zero-based body slots. One body lowers bare; several become an operator application inside the binder. Preserve declaration domain or its untyped-sort fallback separately from free-variable variableDomain context."@x-gmeow-english .
+
+math:seriesTerm
+    skos:scopeNote "This names a summand, not a partial sum or convergence target. The existing Series contract requires at least one Thing target with no maximum imposed here. Native binder structure instead follows indexed body slots; it does not establish equality between those bodies and seriesTerm."@x-gmeow-english ;
+    skos:example "zetaSeries explicitly names zetaTerm both through seriesTerm and through its body slot. zetaTerm is a SymbolReference resolving to zetaTermSymbol; a named summand is not an evaluated series sum."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source's general summand expression with its actual bound-index meaning and concrete expression form."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the sum, mode or bound declaration, or using a displayed formula string as a replacement for a structured body. A vanishing summand alone is insufficient evidence of series convergence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied general term through seriesTerm under the existing required path. Preserve the indexed body and declaration links separately, and report unsupported or inconsistent source structure without claiming that this descriptive edge supplies native body semantics."@x-gmeow-english .
+
+math:hasConvergence
+    skos:scopeNote "The required link is unconditional for records typed Sequence or Series in the current contract, not guarded by a separate convergent marker. It restricts admitted records without proving that all mathematical sequences or series converge. Multiple supported convergence records are permitted; these restrictions impose no maximum number of links."@x-gmeow-english ;
+    skos:example "harmonicSequence supplies a supported named convergence record, while sequence-missing-convergence.ttl omits the link and is a declared refusal case. The missing link is not repaired by guessing a target or erasing Sequence typing."@x-gmeow-english ;
+    gmeow:useWhen "Use to connect a source-supported convergence assertion to the sequence or series it concerns, preserving target, mode and provenance."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a link for an unknown or divergent case, treating an output-status marker as Convergence, or claiming that a required link itself establishes mathematical truth. Preserve unsupported input visibly rather than dropping it."@x-gmeow-english ;
+    gmeow:howToUse "Link each supplied assertion to a Convergence record with its required target and typed mode, retaining multiple records when supported. If no truthful assertion is available, report that the existing record contract cannot admit the case without changing or fabricating its meaning."@x-gmeow-english .
+
+math:convergesTo
+    skos:scopeNote "This names the asserted target, not a summand, mode or computed answer. The current record requires at least one Thing target and does not impose a target maximum; the link does not decode a named value or verify its mathematical relation to the source sequence or series."@x-gmeow-english ;
+    skos:example "harmonicSequenceConvergence names zeroValue through convergesTo. zeroValue is a named MathematicalObject; its label identifies the intended zero without itself supplying a numeric evaluation proof."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source's convergence target, preserving whether it is a number, function or distribution and the context needed to interpret that claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing an absent target with a convenient constant, confusing the target with a partial sum or mode, or requiring different RDF resources merely because two mathematical roles differ. Equal values or shared resources need not be erroneous."@x-gmeow-english ;
+    gmeow:howToUse "Preserve supported convergesTo targets on the Convergence record under its existing required path and closure. Retain the actual target representation and evidence, and inspect the report rather than assuming a named object is a validated numeric scalar."@x-gmeow-english .
+
+math:convergenceMode
+    skos:scopeNote "Each Convergence record requires exactly one typed mode. The mode vocabulary is open, and the supplied markers denote different mathematical notions rather than interchangeable labels. A structurally admitted link does not prove applicability, mode implications or convergence; retain p, measure and function-space context where relevant."@x-gmeow-english ;
+    skos:example "zetaConvergence supplies absoluteConvergence through convergenceMode. That marker records the supplied claim about the series, while a separate supported record would be needed to retain another mode without violating the one-mode frame."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the precise convergence notion asserted for a supplied record, distinguishing scalar-series, function-space and probabilistic meanings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing a stronger or more convenient mode without evidence, treating pointwise and almost-everywhere as equivalent, or assigning several modes to one record. Do not infer numerical convergence from the mode's type."@x-gmeow-english ;
+    gmeow:howToUse "Supply one ConvergenceMode target on each Convergence under the existing minimum, maxima, range and closure. Preserve separate supported records for distinct modes and retain their mathematical hypotheses; no new implication rule or closed enumeration follows from this link."@x-gmeow-english .
+
+math:UnderspecifiedConvergence
+    skos:scopeNote "The failure belongs directly to three class frames, not just to a linked convergence missing its mode. A standalone Convergence can fail its target/mode obligations; Series and Sequence can fail required record paths. Other Function, binder and slot diagnostics remain distinct, and no failure-instance minting is presumed."@x-gmeow-english ;
+    skos:example "sequence-missing-convergence.ttl supplies domain and codomain but no hasConvergence; its control explicitly expects the isolated frame finding. The series-missing-convergence control instead disclaims isolation because that fixture also omits bound declaration and body. These are source expectations, not executed convergence proofs."@x-gmeow-english ;
+    gmeow:useWhen "Use for findings actually associated with the existing Convergence, Series or Sequence restrictions, preserving the reported subject, missing path, mode conflict and other simultaneous diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a frame error with mathematical divergence or repairing it with unsupported convergence claims. Do not suppress other binder/function failures or assume a missing mode is the only possible cause of this class."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the selected validation report against the existing class restrictions and closures, including direct Convergence findings without an incoming hasConvergence link. Repair only source-supported fields; otherwise report the admission limitation. Generated validation derives from those sources, without a new shape rule or a numerical convergence decision."@x-gmeow-english .
