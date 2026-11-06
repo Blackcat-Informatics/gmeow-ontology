@@ -69,9 +69,18 @@ fn physical_grounding_inputs_bind_owner_changes_and_preserve_semantic_refusal() 
     );
     write_owner("https://blackcatinformatics.ca/gmeow/slices/logic");
     assert_eq!(input_files(root).unwrap(), selected);
+    let refusal = discover(root).expect_err("off-owner mapping must be refused");
     assert!(
-        discover(root).is_err(),
-        "a grounding owner cannot claim an off-owner physical mapping path"
+        refusal
+            .message()
+            .contains("off-owner selected catalog artifact")
+            && refusal
+                .message()
+                .contains("slices/grounding/lang/mappings/grounding.ttl")
+            && refusal
+                .message()
+                .contains("https://blackcatinformatics.ca/gmeow/slices/logic"),
+        "{refusal}"
     );
 
     std::fs::write(&manifest, "invalid manifest RDF").unwrap();

@@ -146,6 +146,7 @@ fn require_bundle_args<'a>(
     Ok((cache_root, digest))
 }
 
+/// Require the embedding to match its authenticated action and pinned source identity.
 fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
     use gmeow_lang_bridge::gmn1_codec::native;
     use std::io::Read as _;

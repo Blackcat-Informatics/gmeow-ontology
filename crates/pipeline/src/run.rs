@@ -286,6 +286,11 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-parse-sources"],
         ),
+        st(
+            "stage-native-codebook",
+            "native_codebook",
+            &["stage-parse-sources"],
+        ),
         // Compute: RUN the ten math producers (five flagship producers — the rBridge
         // one being the executable r_lift — plus the probability-model seam, p-value
         // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
@@ -339,6 +344,7 @@ pub fn full_spec() -> PipelineSpec {
             &[
                 "stage-compile-logic",
                 "stage-export-constraint-shapes",
+                "stage-native-codebook",
                 "stage-parse-sources",
             ],
         ),

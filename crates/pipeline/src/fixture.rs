@@ -304,6 +304,7 @@ fn validate_stage_fixture_manifest(
     validate_stage_fixture_selection(manifest, AUTHENTICATED_TEST_STAGE_IDS)
 }
 
+/// Refuse missing or additional bootstrap actions beyond the parser and native encoder.
 fn validate_wasm_codebook_closure(actual: &BTreeSet<String>) -> Result<(), gmeow_errors::Diag> {
     let expected: BTreeSet<String> = WASM_CODEBOOK_CLOSURE
         .iter()
@@ -317,6 +318,7 @@ fn validate_wasm_codebook_closure(actual: &BTreeSet<String>) -> Result<(), gmeow
     Ok(())
 }
 
+/// Check selected receipt identities and the complete browser bootstrap closure.
 fn validate_wasm_codebook_manifest(
     manifest: &StageFixtureManifest,
 ) -> Result<(), gmeow_errors::Diag> {
@@ -324,6 +326,7 @@ fn validate_wasm_codebook_manifest(
     validate_wasm_codebook_closure(&manifest.closure_receipts.keys().cloned().collect())
 }
 
+/// Admit only the requested targets with coherent producer identities and receipt metadata.
 fn validate_stage_fixture_selection(
     manifest: &StageFixtureManifest,
     stage_ids: &[&str],
@@ -495,6 +498,7 @@ fn bound_fixture_closure() -> Result<BoundFixtureClosure, gmeow_errors::Diag> {
     bound_selected_fixture_closure(AUTHENTICATED_TEST_STAGE_IDS)
 }
 
+/// Resolve selected targets through the same registered DAG used by full production.
 fn bound_selected_fixture_closure(
     stage_ids: &[&str],
 ) -> Result<BoundFixtureClosure, gmeow_errors::Diag> {
@@ -516,6 +520,7 @@ fn stage_fixture_manifest(
     selected_fixture_manifest(run_receipts, AUTHENTICATED_TEST_STAGE_IDS)
 }
 
+/// Select complete producer receipts, refusing missing ancestors and duplicate actions.
 fn selected_fixture_manifest(
     run_receipts: &[StageReceipt],
     stage_ids: &[&str],
@@ -916,6 +921,7 @@ pub fn verify_stage_fixtures(
     verify_selected_stage_receipts(root, &manifest, stage_ids)
 }
 
+/// Compare selected receipts with the read-only action cache without running a producer.
 fn verify_selected_stage_receipts(
     root: &Path,
     manifest: &StageFixtureManifest,
@@ -1135,6 +1141,7 @@ pub fn export_source_artifacts(
     export_selected_source_artifacts(root, receipts, AUTHENTICATED_SOURCE_ARTIFACTS)
 }
 
+/// Publish compact original-source exports bound to their exact parent action receipts.
 fn export_selected_source_artifacts(
     root: &Path,
     receipts: &[StageReceipt],
@@ -1266,6 +1273,7 @@ pub fn verify_source_artifacts(root: &Path) -> gmeow_errors::Result<BTreeMap<Str
     Ok(sizes)
 }
 
+/// Authenticate one compact export against its selected parent receipt before loading it.
 fn verify_selected_source_artifact(
     root: &Path,
     selected: &FixtureSourceSelection,
