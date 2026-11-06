@@ -36,8 +36,8 @@ Core properties: `math:limitOf`, `math:limitPoint`, `math:hasLimitResult`, `math
 `math:limitResultValue`, `math:derivativeOf`, `math:withRespectToVariable`, `math:derivativeOrder`,
 `math:seriesTerm`, `math:convergesTo`, and `math:convergenceMode`.
 
-Every operator here is a **binder over the expression AST**: `d/dx`, `∂`, `∫`, `∑`, and `lim` are
-`math:BindingExpression`s binding the variable of differentiation, integration, or summation
+Calculus expressions for `d/dx`, `∂`, `∫`, `∑`, and `lim` use `math:BindingExpression` to bind a
+variable over an indexed body AST; the operator itself is named through `math:operator`
 ([`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md)). A `math:Derivative` names what it
 differentiates, with respect to which variable, at which order; a `math:Limit` names its expression,
 its limit point, and — where it matters — the direction/mode; a `math:Series` and `math:Sequence`

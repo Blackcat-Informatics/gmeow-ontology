@@ -4288,14 +4288,14 @@ math:Limit
     rdfs:subClassOf math:BindingExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Limit"@x-gmeow-english ;
-    skos:definition "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit has no direction."@x-gmeow-english ;
+    skos:definition "The limit lim_{x→a} f(x) as a first-class binding expression: it applies the math:limitBinder (math:operator), names the expression whose limit is taken through math:limitOf, the limit point a through math:limitPoint, and — where it matters — the direction/mode through math:limitMode (from the left, from the right, or two-sided). A limit missing its expression or its limit point is ill-formed (math:UnderspecifiedLimit); the mode is optional because a two-sided limit does not select a single approach side."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LimitMode
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Limit Mode"@x-gmeow-english ;
-    skos:definition "The direction in which a math:Limit approaches its limit point: one of math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it has no direction."@x-gmeow-english ;
+    skos:definition "The direction in which a math:Limit approaches its limit point: supplied modes include math:limitFromLeft (x → a⁻), math:limitFromRight (x → a⁺), or math:limitTwoSided (x → a). A one-sided limit declares its side; a two-sided limit either declares math:limitTwoSided or omits the mode, since it does not select a single approach side."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Sequence
@@ -4575,7 +4575,7 @@ math:limitMode
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "limit mode"@x-gmeow-english ;
-    skos:definition "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit has no direction, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to its math:LimitMode — the direction of approach (from the left, from the right, two-sided). Domain math:Limit, range math:LimitMode (stated in prose). Optional: a two-sided limit does not select a single approach side, so a limit may omit the mode. Where a one-sided limit is meant, the side is declared, never assumed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:seriesTerm
@@ -18432,3 +18432,75 @@ math:limitResultValue
 
 math:UnderspecifiedLimitResult
     skos:scopeNote "This is the existing diagnostic class, not a value or a computed outcome. Missing qualified outcomes and the supplied cases' witness obligations have separate canonical owners. Whole-law native lowering of the joined existential cases remains unqualified; inspect the selected report rather than assuming this annotation minted an instance or that every validation path executed."@x-gmeow-english .
+
+# --- Limit expression, binder and direction guidance ----------------------- #
+
+math:Limit
+    skos:scopeNote "The limit frame records expression, point and any supplied mode; it does not calculate a limit. Native AST lowering needs an explicit concrete BindingExpression form, one operator, one bound declaration and a nonempty indexed body. Limit subclass entailment in another caller is distinct from that raw-reader requirement."@x-gmeow-english ;
+    skos:example "In limit-framed.ttl, sincLimit names limitBinder, sincExpr, zeroPoint, limitTwoSided, limitVarDecl and an index-zero body slot. Its source type is Limit only; the listed frame does not by itself certify direct concrete-AST admission or a computed sinc limit."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an actual source limit expression with its approach point, direction and binding structure, separately from any supplied LimitResult."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a limit label, a result value or the three descriptive links as a complete executable binder. A complete frame proves neither convergence nor agreement with a supplied result."@x-gmeow-english ;
+    gmeow:howToUse "Supply limitOf and limitPoint under the existing Limit restrictions and closures. Retain any limitMode and inherited binder structure; for direct AST consumption supply the concrete BindingExpression type and indexed body, preserving explicit variable identities rather than relying on displayed glyphs."@x-gmeow-english .
+
+math:LimitMode
+    skos:scopeNote "This is an open class with three supplied approach markers, not a sealed enumeration. The two-sided reading of omitted mode is a source convention; it does not insert a limitMode triple or establish equality of one-sided limits. No numerical direction checker is supplied by this class."@x-gmeow-english ;
+    skos:example "limitFromLeft and limitFromRight distinguish x < a from x > a near the approach point; limitTwoSided records the requirement to approach from both sides. These markers describe the input approach, not the sign of f(x)."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source's approach-direction classification in an ordered setting, keeping it separate from convergence mode and result outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting left/right as negative/positive output, inventing a closed set of all possible modes, or assuming an omitted mode was materialized by a runtime."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied mode through limitMode, using the existing left, right or two-sided marker where it matches the source. Preserve an omitted mode as omitted; retain evidence for one-sided agreement separately from the marker."@x-gmeow-english .
+
+math:limitOf
+    skos:scopeNote "This descriptive expression link is distinct from the binder's argumentSlot/slotExpression body. The existing Limit restrictions require one target on Thing; native body lowering follows the slots and does not prove that their body equals the limitOf target."@x-gmeow-english ;
+    skos:example "The existing sincLimit names sincExpr through limitOf and also through its index-zero body slot. sincExpr is a SymbolReference resolving to sincSymbol; the shared target is explicit source data, not an inferred equivalence rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the source mathematical expression whose limit is being described, retaining its actual concrete expression form."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the approach point, result value or bound declaration. An abstract MathematicalExpression label or a function resource alone does not supply the binder's concrete body AST."@x-gmeow-english ;
+    gmeow:howToUse "Set limitOf on the Limit to the supplied expression under its existing minimum, maximum and closure. Preserve its body representation through indexed slots separately and keep shared targets explicit when the source supplies them."@x-gmeow-english .
+
+math:limitPoint
+    skos:scopeNote "The approach point a plays a different role from the bound variable x and the limit's resulting value. The approach point and result need not have unequal values or different RDF resources. Existing Limit checks require one target on Thing; they do not numerically decode the point or establish the function's limit there."@x-gmeow-english ;
+    skos:example "In limit-framed.ttl, zeroPoint is the limitPoint and limitVarDecl is the bound declaration. The point is typed MathematicalObject; its name does not itself encode or verify the numeric value zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for the supplied point approached by the limit variable, preserving its actual number or space-point interpretation and source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting an output value for the source's approach point without evidence, replacing the point's role with a bound declaration, or assuming a resource name establishes numeric coordinates. Legitimate equality between the approach point's value and the result value is allowed."@x-gmeow-english ;
+    gmeow:howToUse "Name the source point through limitPoint under the existing Limit restrictions and closure. Retain any number-system or geometric context on its own surfaces, while keeping the body, bound declaration, mode and result separately linked."@x-gmeow-english .
+
+math:limitMode
+    skos:scopeNote "This optional direction link does not encode a result outcome or invoke a numerical evaluator. The current Limit restrictions do not add a limitMode cardinality or a sealed marker list; omitted mode does not cause the inspected native binder reader to insert a default edge."@x-gmeow-english ;
+    skos:example "lorentzFactorLimit supplies limitMode limitFromLeft, while properTimeRateLimit supplies limitTwoSided. Their separately recorded result outcomes do not determine those approach modes."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit approach-side or two-sided declaration supplied for a source limit expression."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the mode from the sign of an output pole, treating omission as a newly asserted two-sided triple, or claiming that recording a marker verifies the corresponding one-sided limit."@x-gmeow-english ;
+    gmeow:howToUse "Set limitMode to the source's approach marker when supplied, preserving one-sided intent explicitly. If omitted, retain that absence and the documented two-sided convention without manufacturing data or convergence evidence."@x-gmeow-english .
+
+math:UnderspecifiedLimit
+    skos:scopeNote "This owns the existing Limit role-frame restrictions, including required expression and point. Inherited binder defects and slot or variable-scope failures have distinct owners; an optional absent mode or absent LimitResult is not the same missing-role condition."@x-gmeow-english ;
+    skos:example "In limit-missing-point.ttl, pointlessLimit omits limitPoint and also supplies no bound declaration or body. Its ExampleConformance record pins the minimum-count component and source shape, explicitly without claiming a sole failure class."@x-gmeow-english ;
+    gmeow:useWhen "Use for findings associated with the existing Limit restrictions, retaining which missing or conflicting frame edge was actually reported."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a generic no-answer or no-convergence marker, assuming a missing point is the only defect in an incomplete binder, or inventing an approach point to silence a report."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the selected validation report against the existing Limit restrictions and closures, then repair the source limitOf or limitPoint declaration as appropriate. Preserve separately reported binder and AST defects; generated validation is not a new hand-authored shape or a numerical limit solver."@x-gmeow-english .
+
+math:limitFromLeft
+    skos:scopeNote "Left describes the approach variable's ordered side near a, not the sign of the function or its result. The marker retains a source assertion; it does not calculate that one-sided limit or show that the right-hand limit agrees."@x-gmeow-english ;
+    skos:example "The existing lorentzFactorLimit uses limitFromLeft for approach to lightSpeed, while its separate result records the positive pole. Approach from below and a positive output are different claims."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly takes a limit through values below the approach point in the relevant ordered domain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing it because f(x) is negative or the result is NegativeInfinity. It does not mean the approach point itself is negative, and it is not a general direction for an unordered space."@x-gmeow-english ;
+    gmeow:howToUse "Name limitFromLeft through limitMode and retain the actual limitPoint and expression. Keep any supplied result or proof separate; do not infer left-hand convergence from the marker."@x-gmeow-english .
+
+math:limitFromRight
+    skos:scopeNote "Right selects the approach variable's side x > a in an ordered setting, independently of the function's output sign. It records a mathematical approach condition rather than an executable sampling instruction or computed result."@x-gmeow-english ;
+    skos:example "For a source expression lim as x approaches 0 from above, limitFromRight records x > 0 near the point. It does not state whether the function values are positive, negative, finite or divergent."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly supplied approach through values above the point, including cases where the other side is undefined or intentionally excluded by the source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for positive outputs, drawing orientation or time progression without the source's ordered-domain meaning. A right-hand claim does not assert the left-hand or two-sided limit."@x-gmeow-english ;
+    gmeow:howToUse "Set limitMode to limitFromRight where the source specifies that side. Preserve the expression, point and binder independently, and retain any convergence or result evidence without synthesizing the opposite side."@x-gmeow-english .
+
+math:limitTwoSided
+    skos:scopeNote "This records two-sided intent and the mathematical agreement requirement. The default in its definition is an interpretation convention, not a materialized limitMode edge. Neither an explicit marker nor omission proves that both one-sided limits exist and agree."@x-gmeow-english ;
+    skos:example "sincLimit explicitly supplies limitTwoSided in limit-framed.ttl. The record supplies the direction marker and a named expression; it does not calculate or prove the equality of the expression's one-sided limits."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly asserts a two-sided approach or when documenting its stated two-sided interpretation, retaining whether the marker was actually supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a source's one-sided intent, treating two different side results as agreement, or inserting this marker solely because the native reader found no mode."@x-gmeow-english ;
+    gmeow:howToUse "Retain an explicit limitMode limitTwoSided edge when supplied. Preserve omitted mode as omitted and keep the source's evidence for side agreement or a supplied LimitResult separate from the expression frame."@x-gmeow-english .
+
+math:limitBinder
+    skos:scopeNote "This is an Operation individual, not a BindingExpression instance or an evaluator. The generic binder lowerer retains the supplied operator IRI; it does not pin every Limit to this identity. The selected exact scalar profile supports four arithmetic operations, not numerical limit evaluation."@x-gmeow-english ;
+    skos:example "The existing sincLimit uses operator limitBinder together with boundVariable limitVarDecl and an indexed body. With one body slot the native lowerer keeps that body bare; multiple slots become an application of the supplied binder operator inside the binder."@x-gmeow-english ;
+    gmeow:useWhen "Use as the operator identity of a source limit binder, preserving the distinct expression node, declaration identity and body structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the operator IRI as the limit expression itself, requiring exactly one body slot, or assuming limitOf alone establishes lexical scope. Labels and bindsOccurrence metadata do not replace explicit declaration links and AST nesting."@x-gmeow-english ;
+    gmeow:howToUse "On a concrete BindingExpression, supply one operator, one boundVariable declaration and nonempty contiguous zero-based body slots; the reader parses slot indexes as i128 lexical integers. Resolve body occurrences to declarations. Native bound-sort reading uses supplied declaration domain, or the untyped individual sort when absent; variableDomain separately frames FreeVariableDeclaration context. Index parsing does not certify full RDF datatype validation."@x-gmeow-english .
