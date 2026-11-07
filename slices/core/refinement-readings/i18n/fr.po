@@ -2499,3 +2499,283 @@ msgstr "Lier positivement l’objet règle par frictionRule et vérifier quatre 
 msgctxt "https://blackcatinformatics.ca/gmeow/FrictionRuleParametersConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every ReadingRule release selected through frictionRule supplies frictionToolField, frictionArgumentsField, frictionOutcomeField and frictionUnsucceededOutcome on that same release."
 msgstr "Chaque version ReadingRule sélectionnée par frictionRule fournit frictionToolField, frictionArgumentsField, frictionOutcomeField et frictionUnsucceededOutcome sur cette même version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Link Resolution"
+msgstr "Résolution de liens"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observer's Refinement reading of one reference made by a source record against the records available to the holder. It retains the reference as written and the reading outcome without asserting identity from a match."
+msgstr "Une lecture d’affinement par un observateur d’une référence formulée dans un enregistrement source, au regard des enregistrements disponibles pour le détenteur. Elle conserve la référence telle qu’elle est écrite et l’issue de la lecture sans affirmer une identité à partir d’une correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Selected results and unselected candidates remain separate. Resolution is attributed to the named process and offered source scope, never automatically to the source author."
+msgstr "Les résultats retenus et les candidats non retenus restent séparés. La résolution est attribuée au processus nommé et au périmètre de sources proposé, jamais automatiquement à l’auteur de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a reference-resolution reading from other refinements of the same record."
+msgstr "Utiliser pour distinguer une lecture de résolution de référence des autres affinements du même enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a matching name or identifier as global identity, rewriting the source reference, or selecting every candidate as a result."
+msgstr "Éviter de traiter une correspondance de nom ou d’identifiant comme une identité globale, de réécrire la référence source ou de retenir chaque candidat comme résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the referring record with observedFeature and the versioned reader with vantage. Retain readingScope, relationVault, relationPredicate and relatedThing or relatedName; report refinementOutcome, selected observationResult and unselected refinementCandidate separately."
+msgstr "Désigner l’enregistrement qui porte la référence par observedFeature et le lecteur versionné par vantage. Conserver readingScope, relationVault, relationPredicate et relatedThing ou relatedName ; rapporter séparément refinementOutcome, les résultats retenus dans observationResult et les candidats non retenus dans refinementCandidate."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LinkResolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:resolution a gmeow:LinkResolution ; gmeow:observedFeature ex:referringRecord ; gmeow:refinementOutcome gmeow:refinementAmbiguous ; gmeow:refinementCandidate ex:recordA, ex:recordB ."
+msgstr "ex:resolution a gmeow:LinkResolution ; gmeow:observedFeature ex:referringRecord ; gmeow:refinementOutcome gmeow:refinementAmbiguous ; gmeow:refinementCandidate ex:recordA, ex:recordB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Time Join"
+msgstr "Rapprochement temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Refinement reading of a selected claim's missing assertion time from timed source evidence about its record, preserving any recovered value on the reading rather than asserting it as the selected claim's original time."
+msgstr "Une lecture d’affinement portant sur le temps d’assertion manquant d’une affirmation sélectionnée, à partir de preuves sources datées concernant son enregistrement. Toute valeur retrouvée est conservée sur la lecture plutôt qu’affirmée comme temps d’origine de l’affirmation sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A timed claim about the same record, a shared turn, equal source text or a shared packet may supply the reported basis. Typing this reading does not establish a successful join or an identity equivalence."
+msgstr "Une affirmation datée concernant le même enregistrement, un tour partagé, un texte source identique ou un paquet partagé peuvent fournir le fondement rapporté. Typer cette lecture n’établit ni la réussite d’un rapprochement ni une équivalence d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a reader reports a recovered time for a record whose selected claim lacks a source assertion time."
+msgstr "Utiliser lorsqu’un lecteur rapporte un temps retrouvé pour un enregistrement dont l’affirmation sélectionnée ne possède pas de temps d’assertion source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling missing time with the reader clock, padding a date into an instant, or copying a recovered value into relationAt or assertedAt on the undated source."
+msgstr "Éviter de combler un temps manquant avec l’horloge du lecteur, de compléter une date pour en faire un instant ou de copier une valeur retrouvée dans relationAt ou assertedAt sur la source non datée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain observedFeature, vantage, readingScope and its scopeChronology. Report refinementOutcome; when a time is selected, retain recoveredAt, timeJoinBasis and the actual timed evidence through timeJoinedTo. Keep unresolved alternatives separate."
+msgstr "Conserver observedFeature, vantage, readingScope et son scopeChronology. Rapporter refinementOutcome ; lorsqu’un temps est retenu, conserver recoveredAt, timeJoinBasis et les preuves datées réelles par timeJoinedTo. Garder les alternatives non résolues séparées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoin|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join a gmeow:TimeJoin ; gmeow:observedFeature ex:undatedRecord ; gmeow:timeJoinBasis gmeow:timeJoinText ; gmeow:timeJoinedTo ex:timedRecord ."
+msgstr "ex:join a gmeow:TimeJoin ; gmeow:observedFeature ex:undatedRecord ; gmeow:timeJoinBasis gmeow:timeJoinText ; gmeow:timeJoinedTo ex:timedRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recovered assertion time"
+msgstr "temps d’assertion retrouvé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The assertion-time value a time-join reading reports from its selected timed evidence, retained as an xsd:dateTime on that reading. It is not an original assertion time supplied by the undated source."
+msgstr "La valeur de temps d’assertion qu’une lecture de rapprochement temporel rapporte à partir des preuves datées qu’elle a retenues, conservée comme xsd:dateTime sur cette lecture. Ce n’est pas un temps d’assertion d’origine fourni par la source non datée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form, datatype and chronology. A date, month or year does not supply a date-time, and missing timezone information is not a default timezone."
+msgstr "Conserver la forme lexicale, le type de données et la chronologie fournis. Une date, un mois ou une année ne fournissent pas une date-heure, et l’absence d’information de fuseau horaire ne constitue pas un fuseau par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reading actually reports a selected recovered date-time."
+msgstr "Utiliser lorsque la lecture rapporte effectivement une date-heure retrouvée et retenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the reader's observation or transaction time as recovered evidence, inventing precision, or inferring this value from an absent source clock."
+msgstr "Éviter d’utiliser le temps d’observation ou de transaction du lecteur comme preuve retrouvée, d’inventer une précision ou d’inférer cette valeur d’une horloge source absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied date-time to the TimeJoin and retain its timeJoinedTo evidence, timeJoinBasis and ReadingScope chronology. No subproperty relation transfers this value to a source clock."
+msgstr "Associer la date-heure fournie au TimeJoin et conserver ses preuves timeJoinedTo, son timeJoinBasis et la chronologie de son ReadingScope. Aucune relation de sous-propriété ne transfère cette valeur à une horloge source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recoveredAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:recoveredAt \"2026-11-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:join gmeow:recoveredAt \"2026-11-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Time Join Basis"
+msgstr "Fondement du rapprochement temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary identifying the source relationship used for a reported time join: a timed claim about the record, a shared turn, equal source text or a shared packet."
+msgstr "Un vocabulaire ouvert de valeurs qualitatives qui identifie la relation source utilisée pour un rapprochement temporel rapporté : une affirmation datée concernant l’enregistrement, un tour partagé, un texte source identique ou un paquet partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values classify evidence, not confidence, world truth or a successful execution. The supplied values do not close the vocabulary."
+msgstr "Les valeurs de fondement classent les preuves, non la confiance, la vérité dans le monde ou la réussite d’une exécution. Les valeurs fournies ne ferment pas le vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name how the selected timed evidence relates to the undated record."
+msgstr "Utiliser pour nommer la manière dont les preuves datées retenues se rapportent à l’enregistrement non daté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid modelling each basis as a subclass of TimeJoin, inferring a default basis, or using basis membership as an identity proof."
+msgstr "Éviter de modéliser chaque fondement comme une sous-classe de TimeJoin, d’inférer un fondement par défaut ou d’utiliser l’appartenance à un fondement comme preuve d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an individual through timeJoinBasis. The requesting refiner selects bases in the order record, turn, text, packet; preserve the actual process policy rather than asserting a universal preference."
+msgstr "Référencer un individu par timeJoinBasis. Le raffineur demandeur sélectionne les fondements dans l’ordre enregistrement, tour, texte, paquet ; conserver la politique réelle du processus plutôt que d’affirmer une préférence universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeJoinBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:timeJoinText a gmeow:TimeJoinBasis ."
+msgstr "gmeow:timeJoinText a gmeow:TimeJoinBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time join basis"
+msgstr "fondement du rapprochement temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a time-join reading to its explicitly reported basis for associating the selected timed evidence with the undated record."
+msgstr "Relie une lecture de rapprochement temporel au fondement qu’elle rapporte explicitement pour associer les preuves datées retenues à l’enregistrement non daté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: absent basis data is unspecified, and competing attributed readings are not resolved by graph order."
+msgstr "Facultative et non fonctionnelle : un fondement absent reste non spécifié, et l’ordre du graphe ne départage pas les lectures attribuées concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader supplies the basis of its time join."
+msgstr "Utiliser lorsque le lecteur fournit le fondement de son rapprochement temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a basis from matching field values alone or silently substituting another basis when selected evidence is unavailable."
+msgstr "Éviter de déduire un fondement des seules correspondances de valeurs de champs ou de lui substituer silencieusement un autre fondement lorsque les preuves retenues sont indisponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the actual TimeJoinBasis individual to the TimeJoin and retain the timed record with timeJoinedTo. Keep the source scope and declaring process visible."
+msgstr "Associer l’individu TimeJoinBasis réel au TimeJoin et conserver l’enregistrement daté par timeJoinedTo. Garder visibles le périmètre source et le processus déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."
+msgstr "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time joined to"
+msgstr "rapproché temporellement de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual timed source record from whose supplied assertion time a time-join reading reports its recovered value. This is evidence identity, not an asserted equivalence with the undated record."
+msgstr "L’enregistrement source daté réel dont le temps d’assertion fourni permet à une lecture de rapprochement temporel de rapporter sa valeur retrouvée. Il s’agit de l’identité de la preuve, non d’une équivalence affirmée avec l’enregistrement non daté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the actual RDF resource, including a supplied blank node or triple term. The record basis may use another timed claim about the same record; distinct record identities are not universally required."
+msgstr "Conserver la ressource RDF réelle, y compris un nœud anonyme ou un terme triple fourni. Le fondement par enregistrement peut utiliser une autre affirmation datée concernant le même enregistrement ; des identités d’enregistrements distinctes ne sont pas universellement requises."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual timed evidence supporting a reported recovered time."
+msgstr "Utiliser pour conserver les preuves datées réelles qui étayent un temps retrouvé rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a guessed source node, treating a source reference as authorization, or merging records because a join was reported."
+msgstr "Éviter de substituer un nœud source deviné, de traiter une référence source comme une autorisation ou de fusionner des enregistrements parce qu’un rapprochement a été rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the TimeJoin to the timed source record as supplied; preserve the actual claim carrying its assertion time and include the offered evidence in readingScope."
+msgstr "Relier le TimeJoin à l’enregistrement source daté tel qu’il est fourni ; conserver l’affirmation réelle qui porte son temps d’assertion et inclure les preuves proposées dans readingScope."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinedTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinedTo ex:timedRecord ."
+msgstr "ex:join gmeow:timeJoinedTo ex:timedRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time join from the record"
+msgstr "rapprochement temporel depuis l’enregistrement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported join uses a timed claim about the same record whose selected claim lacks an assertion time."
+msgstr "Le rapprochement rapporté utilise une affirmation datée concernant le même enregistrement dont l’affirmation sélectionnée ne possède pas de temps d’assertion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selected claim can be undated while another claim about that record supplies a time. This basis does not require inventing a distinct record or adding time to the undated claim."
+msgstr "L’affirmation sélectionnée peut être non datée tandis qu’une autre affirmation concernant cet enregistrement fournit un temps. Ce fondement n’exige ni d’inventer un enregistrement distinct ni d’ajouter un temps à l’affirmation non datée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual timed evidence concerns the same record."
+msgstr "Utiliser lorsque les preuves datées réelles concernent le même enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an unrelated equal identifier as sufficient record identity or promoting the recovered reading to source metadata."
+msgstr "Éviter de considérer un identifiant égal mais sans lien établi comme une preuve suffisante d’identité de l’enregistrement ou de promouvoir la lecture retrouvée en métadonnées sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set timeJoinBasis to this value and retain the actual timed claim and record through timeJoinedTo and source provenance."
+msgstr "Définir timeJoinBasis à cette valeur et conserver l’affirmation datée réelle et l’enregistrement par timeJoinedTo et la provenance source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinBasis gmeow:timeJoinRecord ."
+msgstr "ex:join gmeow:timeJoinBasis gmeow:timeJoinRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time join from a shared turn"
+msgstr "rapprochement temporel depuis un tour partagé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported join uses assertion time from a timed record that shares the same source chat turn with the undated record."
+msgstr "Le rapprochement rapporté utilise le temps d’assertion d’un enregistrement daté qui partage le même tour de conversation source que l’enregistrement non daté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The shared turn is the existing chatTurn resource, with its source context. Turn membership does not identify the two records as one record or establish equal assertion times independently of the reading."
+msgstr "Le tour partagé est la ressource chatTurn existante, avec son contexte source. L’appartenance au tour n’identifie pas les deux enregistrements comme un seul enregistrement et n’établit pas l’égalité de leurs temps d’assertion indépendamment de la lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader actually selected timed evidence through shared chatTurn membership."
+msgstr "Utiliser lorsque le lecteur a effectivement retenu des preuves datées par l’appartenance à un même chatTurn."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying turns from equal labels, substituting conversation membership, or treating turn membership as successful time recovery."
+msgstr "Éviter d’identifier les tours à partir de libellés égaux, de substituer l’appartenance à une conversation ou de considérer l’appartenance au tour comme une récupération temporelle réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set timeJoinBasis to this value; retain the actual timed record, both source turn-membership claims and the scope in which the reader made the join."
+msgstr "Définir timeJoinBasis à cette valeur ; conserver l’enregistrement daté réel, les deux affirmations sources d’appartenance au tour et le périmètre dans lequel le lecteur a effectué le rapprochement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinBasis gmeow:timeJoinTurn ."
+msgstr "ex:join gmeow:timeJoinBasis gmeow:timeJoinTurn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time join from equal text"
+msgstr "rapprochement temporel depuis un texte identique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported join uses the earliest supplied assertion time among other offered records stating the same source text of at least thirty characters."
+msgstr "Le rapprochement rapporté utilise le temps d’assertion fourni le plus ancien parmi les autres enregistrements proposés qui énoncent le même texte source d’au moins trente caractères."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The threshold and earliest selection belong to this reported text-join contract. Text equality does not establish record identity, and this term supplies no normalization or character-count algorithm."
+msgstr "Le seuil et la sélection du temps le plus ancien appartiennent à ce contrat rapporté de rapprochement par le texte. L’égalité des textes n’établit pas l’identité des enregistrements, et ce terme ne fournit aucun algorithme de normalisation ou de comptage des caractères."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader reports an earliest timed match of the same source text with at least thirty characters."
+msgstr "Utiliser lorsque le lecteur rapporte une correspondance datée la plus ancienne du même texte source comportant au moins trente caractères."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid joining on shorter or merely similar text, inventing a time for an undated match, or selecting an arbitrary winner from unresolved time comparisons."
+msgstr "Éviter de faire des rapprochements sur des textes plus courts ou simplement similaires, d’inventer un temps pour une correspondance non datée ou de choisir arbitrairement un gagnant lorsque les comparaisons temporelles restent non résolues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set timeJoinBasis to this value; retain the matching source text, the actual timed record and the exact offered records and chronology supporting the reported earliest selection."
+msgstr "Définir timeJoinBasis à cette valeur ; conserver le texte source correspondant, l’enregistrement daté réel ainsi que les enregistrements exacts proposés et la chronologie qui étayent la sélection rapportée du temps le plus ancien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."
+msgstr "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "time join from a shared packet"
+msgstr "rapprochement temporel depuis un paquet partagé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported join uses assertion time from a timed record that shares the undated record's originating-packet identifier within the same producer context."
+msgstr "Le rapprochement rapporté utilise le temps d’assertion d’un enregistrement daté qui partage l’identifiant de paquet d’origine de l’enregistrement non daté dans le même contexte de producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "originatingPacket retains an unresolved string or token with its actual datatype and spelling. Equal packet strings from unrelated producers do not establish a shared packet."
+msgstr "originatingPacket conserve une chaîne ou un jeton non résolu avec son type de données et sa graphie réels. Des chaînes de paquet égales provenant de producteurs sans lien établi ne permettent pas d’établir un paquet partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader actually selected timed evidence through the same originatingPacket in its declaring producer context."
+msgstr "Utiliser lorsque le lecteur a effectivement retenu des preuves datées au moyen du même originatingPacket dans son contexte de producteur déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a packet identifier as a globally identified packet resource, merging producer namespaces, or inferring dispatch or receipt."
+msgstr "Éviter de traiter un identifiant de paquet comme une ressource de paquet identifiée globalement, de fusionner les espaces de noms des producteurs ou d’inférer un envoi ou une réception."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set timeJoinBasis to this value and preserve the timed record, both supplied packet values, their datatypes and producer attribution, and the selected reading scope."
+msgstr "Définir timeJoinBasis à cette valeur et conserver l’enregistrement daté, les deux valeurs de paquet fournies, leurs types de données et leur attribution aux producteurs, ainsi que le périmètre de lecture retenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeJoinPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:join gmeow:timeJoinBasis gmeow:timeJoinPacket ."
+msgstr "ex:join gmeow:timeJoinBasis gmeow:timeJoinPacket ."

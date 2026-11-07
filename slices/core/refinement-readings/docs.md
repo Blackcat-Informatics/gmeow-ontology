@@ -416,3 +416,67 @@ graph is not proof that the teller ran, its interpretation is true, or the
 later attempt succeeded. Preserve positive source evidence and actual method
 identity without replacing unsupported computation with a certificate or
 default (Principles 4, 9, 11, 17 and 19).
+
+## Resolving references and recovering missing claim times
+
+`LinkResolution` and `TimeJoin` specialize `Refinement`, preserving the canonical
+`Observation` grounding and the distinction between a reading and its source.
+A versioned reader is the `vantage`; `observedFeature` identifies the source
+record, and `readingScope` retains the exact offered records. Shared relation
+properties keep their existing domains and meanings.
+
+A `LinkResolution` reads one reference made by a record against what the holder's
+stores contain. Preserve its actual `relationPredicate`, `relationVault` and the
+reference as written through `relatedThing` or `relatedName`. The existing
+`refinementOutcome` distinguishes resolution, a best guess, ambiguity and an
+unresolved attempt. Selected referents belong in `observationResult`; unselected
+alternatives belong in `refinementCandidate`. Matching a name or an identifier
+does not establish global identity or rewrite the original reference.
+
+A `TimeJoin` concerns a selected claim that lacks an assertion time. Another
+claim about that same record may already carry a time. The reading retains the
+actual timed record through `timeJoinedTo`, its reported source relationship
+through `timeJoinBasis`, and any selected `xsd:dateTime` through `recoveredAt`.
+Keep the exact claim carrying the source clock in the derivation evidence.
+
+`recoveredAt` stays on the reading. It is separate from `relationAt`, which
+retains an original source assertion-time value, from statement-level
+`assertedAt`, and from the reader's `observedAt` or transaction clock. Retain
+`readingScope` and its `scopeChronology`; do not invent a timezone, pad a date,
+month or year into an instant, or order incomparable values by lexical spelling.
+A successful report does not add a source assertion time to the selected
+undated claim.
+
+The open `TimeJoinBasis` value vocabulary supplies four bases:
+
+| Basis | Reported source relationship |
+| --- | --- |
+| `timeJoinRecord` | A timed claim about the same record as the selected undated claim. A different record identity is not required. |
+| `timeJoinTurn` | A timed record shares the actual source `chatTurn` with the undated record. Retain the source membership claims and turn context. |
+| `timeJoinText` | Another record states the same source text of at least thirty characters; the reported time is the earliest supplied assertion time among those offered matches. |
+| `timeJoinPacket` | A timed record shares the supplied `originatingPacket` identifier within the same producer context. Preserve both literal datatypes and spellings. |
+
+The requesting refiner selects bases in the order **record, turn, text,
+packet**. This is its declared operational preference, not a global ranking of
+all evidence or observers. The text minimum and earliest selection belong to
+the text basis; the other bases do not acquire an unstated earliest-time rule.
+The vocabulary declares no normalization, case folding, source-text field or
+character-count algorithm. Preserve the actual text and process contract rather
+than guessing them. An unresolved comparison supplies no arbitrary tie winner.
+Equal text does not merge records, and equal packet strings from unrelated
+producers do not identify one packet.
+
+The new property endpoints have canonical `logic:` domains, ranges and
+supplied-value closure declarations. They are nonfunctional and do not require
+successful-result fields on every reading. An unresolved or ambiguous reading
+may omit a selected recovered time; missing fields select no default. These
+axioms type supplied data; they do not execute a store lookup, compare times,
+certify the text threshold or prove that a refiner ran. Existing generated
+validation and consumer execution keep their own qualification requirements.
+
+The [link and time scene](examples/link-and-time-readings.ttl) retains an
+ambiguous link, a text join over explicitly timed matching claims, and a join
+using another timed claim about the same record. Its hypothetical assertions
+retain exact RDF 1.2 statement provenance. The undated source claims remain
+undated. The turn basis is documented here without making this core slice
+depend on the chat extension.

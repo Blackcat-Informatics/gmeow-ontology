@@ -1,0 +1,461 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/link-and-time-readings/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Hypothetical reports, not an executed lookup or time-comparison certificate.
+# The ambiguous link has candidates and no selected observationResult.
+# The text is identical and exceeds thirty characters in all three records.
+# Only the timed source claims have assertedAt; the undated claims stay undated.
+# The record join uses another timed claim about the same record, not a new identity.
+
+ex:hypotheticalSource rdf:type gmeow:InformationObject .
+ex:holder rdf:type gmeow:Agent .
+ex:readerLineage rdf:type gmeow:SoftwareAgent .
+ex:readerV1 rdf:type gmeow:SoftwareAgent .
+ex:recordA rdf:type gmeow:InformationObject .
+ex:recordB rdf:type gmeow:InformationObject .
+ex:referringRecord rdf:type gmeow:InformationObject .
+ex:readerV1 gmeow:versionOf ex:readerLineage .
+ex:referringRecord ex:recipientName "Visitor"@en .
+ex:linkScope rdf:type gmeow:ReadingScope .
+ex:linkScope gmeow:scopeRecord ex:referringRecord .
+ex:linkScope gmeow:scopeRecord ex:recordA .
+ex:linkScope gmeow:scopeRecord ex:recordB .
+ex:linkScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:ambiguousLink rdf:type gmeow:LinkResolution .
+ex:ambiguousLink gmeow:observedFeature ex:referringRecord .
+ex:ambiguousLink gmeow:vantage ex:readerV1 .
+ex:ambiguousLink gmeow:readingScope ex:linkScope .
+ex:ambiguousLink gmeow:relationVault ex:hypotheticalSource .
+ex:ambiguousLink gmeow:relationPredicate ex:recipientName .
+ex:ambiguousLink gmeow:relatedName "Visitor"@en .
+ex:ambiguousLink gmeow:refinementOutcome gmeow:refinementAmbiguous .
+ex:ambiguousLink gmeow:refinementCandidate ex:recordA .
+ex:ambiguousLink gmeow:refinementCandidate ex:recordB .
+ex:undatedTextRecord rdf:type gmeow:InformationObject .
+ex:undatedTextRecord dcterms:description "The workshop opens after the morning briefing."@en .
+ex:earlyTextRecord rdf:type gmeow:InformationObject .
+ex:earlyTextRecord dcterms:description "The workshop opens after the morning briefing."@en .
+ex:lateTextRecord rdf:type gmeow:InformationObject .
+ex:lateTextRecord dcterms:description "The workshop opens after the morning briefing."@en .
+ex:undatedTextClaim rdf:reifies <<( ex:undatedTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> .
+ex:earlyTextClaim rdf:reifies <<( ex:earlyTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> .
+ex:lateTextClaim rdf:reifies <<( ex:lateTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> .
+ex:earlyTextClaim gmeow:assertedAt "2026-11-01T09:00:00Z"^^xsd:dateTime .
+ex:lateTextClaim gmeow:assertedAt "2026-11-01T11:00:00Z"^^xsd:dateTime .
+ex:textScope rdf:type gmeow:ReadingScope .
+ex:textScope gmeow:scopeRecord ex:undatedTextRecord .
+ex:textScope gmeow:scopeRecord ex:earlyTextRecord .
+ex:textScope gmeow:scopeRecord ex:lateTextRecord .
+ex:textScope gmeow:scopeRecord ex:undatedTextClaim .
+ex:textScope gmeow:scopeRecord ex:earlyTextClaim .
+ex:textScope gmeow:scopeRecord ex:lateTextClaim .
+ex:textScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:textJoin rdf:type gmeow:TimeJoin .
+ex:textJoin gmeow:observedFeature ex:undatedTextRecord .
+ex:textJoin gmeow:vantage ex:readerV1 .
+ex:textJoin gmeow:readingScope ex:textScope .
+ex:textJoin gmeow:timeJoinBasis gmeow:timeJoinText .
+ex:textJoin gmeow:timeJoinedTo ex:earlyTextRecord .
+ex:textJoin gmeow:recoveredAt "2026-11-01T09:00:00Z"^^xsd:dateTime .
+ex:textJoin gmeow:refinementOutcome gmeow:refinementResolved .
+ex:textJoin gmeow:wasDerivedFrom ex:undatedTextClaim .
+ex:textJoin gmeow:wasDerivedFrom ex:earlyTextClaim .
+ex:textJoin gmeow:wasDerivedFrom ex:lateTextClaim .
+ex:sameRecord rdf:type gmeow:InformationObject .
+ex:sameRecord ex:status "ready" .
+ex:selectedUntimedClaim rdf:reifies <<( ex:sameRecord ex:status "ready" )>> .
+ex:otherTimedClaim rdf:reifies <<( ex:sameRecord ex:status "ready" )>> .
+ex:otherTimedClaim gmeow:assertedAt "2026-11-02T10:00:00Z"^^xsd:dateTime .
+ex:recordScope rdf:type gmeow:ReadingScope .
+ex:recordScope gmeow:scopeRecord ex:sameRecord .
+ex:recordScope gmeow:scopeRecord ex:selectedUntimedClaim .
+ex:recordScope gmeow:scopeRecord ex:otherTimedClaim .
+ex:recordScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:recordJoin rdf:type gmeow:TimeJoin .
+ex:recordJoin gmeow:observedFeature ex:sameRecord .
+ex:recordJoin gmeow:vantage ex:readerV1 .
+ex:recordJoin gmeow:readingScope ex:recordScope .
+ex:recordJoin gmeow:timeJoinBasis gmeow:timeJoinRecord .
+ex:recordJoin gmeow:timeJoinedTo ex:sameRecord .
+ex:recordJoin gmeow:recoveredAt "2026-11-02T10:00:00Z"^^xsd:dateTime .
+ex:recordJoin gmeow:refinementOutcome gmeow:refinementResolved .
+ex:recordJoin gmeow:wasDerivedFrom ex:selectedUntimedClaim .
+ex:recordJoin gmeow:wasDerivedFrom ex:otherTimedClaim .
+
+# Exact-statement source, declaring perspective and recorder.
+
+ex:statement001 rdf:reifies <<( ex:hypotheticalSource rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement002 rdf:reifies <<( ex:holder rdf:type gmeow:Agent )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement003 rdf:reifies <<( ex:readerLineage rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement004 rdf:reifies <<( ex:readerV1 rdf:type gmeow:SoftwareAgent )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement005 rdf:reifies <<( ex:recordA rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement006 rdf:reifies <<( ex:recordB rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement007 rdf:reifies <<( ex:referringRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement008 rdf:reifies <<( ex:readerV1 gmeow:versionOf ex:readerLineage )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement009 rdf:reifies <<( ex:referringRecord ex:recipientName "Visitor"@en )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement010 rdf:reifies <<( ex:linkScope rdf:type gmeow:ReadingScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement011 rdf:reifies <<( ex:linkScope gmeow:scopeRecord ex:referringRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement012 rdf:reifies <<( ex:linkScope gmeow:scopeRecord ex:recordA )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement013 rdf:reifies <<( ex:linkScope gmeow:scopeRecord ex:recordB )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement014 rdf:reifies <<( ex:linkScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement015 rdf:reifies <<( ex:ambiguousLink rdf:type gmeow:LinkResolution )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement016 rdf:reifies <<( ex:ambiguousLink gmeow:observedFeature ex:referringRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement017 rdf:reifies <<( ex:ambiguousLink gmeow:vantage ex:readerV1 )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement018 rdf:reifies <<( ex:ambiguousLink gmeow:readingScope ex:linkScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement019 rdf:reifies <<( ex:ambiguousLink gmeow:relationVault ex:hypotheticalSource )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement020 rdf:reifies <<( ex:ambiguousLink gmeow:relationPredicate ex:recipientName )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement021 rdf:reifies <<( ex:ambiguousLink gmeow:relatedName "Visitor"@en )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement022 rdf:reifies <<( ex:ambiguousLink gmeow:refinementOutcome gmeow:refinementAmbiguous )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement023 rdf:reifies <<( ex:ambiguousLink gmeow:refinementCandidate ex:recordA )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement024 rdf:reifies <<( ex:ambiguousLink gmeow:refinementCandidate ex:recordB )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement025 rdf:reifies <<( ex:undatedTextRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement026 rdf:reifies <<( ex:undatedTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement027 rdf:reifies <<( ex:earlyTextRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement028 rdf:reifies <<( ex:earlyTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement029 rdf:reifies <<( ex:lateTextRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement030 rdf:reifies <<( ex:lateTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement031 rdf:reifies <<( ex:undatedTextClaim rdf:reifies <<( ex:undatedTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement032 rdf:reifies <<( ex:earlyTextClaim rdf:reifies <<( ex:earlyTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement033 rdf:reifies <<( ex:lateTextClaim rdf:reifies <<( ex:lateTextRecord dcterms:description "The workshop opens after the morning briefing."@en )>> )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement034 rdf:reifies <<( ex:earlyTextClaim gmeow:assertedAt "2026-11-01T09:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement035 rdf:reifies <<( ex:lateTextClaim gmeow:assertedAt "2026-11-01T11:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement036 rdf:reifies <<( ex:textScope rdf:type gmeow:ReadingScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement037 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:undatedTextRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement038 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:earlyTextRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement039 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:lateTextRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement040 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:undatedTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement041 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:earlyTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement042 rdf:reifies <<( ex:textScope gmeow:scopeRecord ex:lateTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement043 rdf:reifies <<( ex:textScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement044 rdf:reifies <<( ex:textJoin rdf:type gmeow:TimeJoin )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement045 rdf:reifies <<( ex:textJoin gmeow:observedFeature ex:undatedTextRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement046 rdf:reifies <<( ex:textJoin gmeow:vantage ex:readerV1 )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement047 rdf:reifies <<( ex:textJoin gmeow:readingScope ex:textScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement048 rdf:reifies <<( ex:textJoin gmeow:timeJoinBasis gmeow:timeJoinText )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement049 rdf:reifies <<( ex:textJoin gmeow:timeJoinedTo ex:earlyTextRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement050 rdf:reifies <<( ex:textJoin gmeow:recoveredAt "2026-11-01T09:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement051 rdf:reifies <<( ex:textJoin gmeow:refinementOutcome gmeow:refinementResolved )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement052 rdf:reifies <<( ex:textJoin gmeow:wasDerivedFrom ex:undatedTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement053 rdf:reifies <<( ex:textJoin gmeow:wasDerivedFrom ex:earlyTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement054 rdf:reifies <<( ex:textJoin gmeow:wasDerivedFrom ex:lateTextClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement055 rdf:reifies <<( ex:sameRecord rdf:type gmeow:InformationObject )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement056 rdf:reifies <<( ex:sameRecord ex:status "ready" )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement057 rdf:reifies <<( ex:selectedUntimedClaim rdf:reifies <<( ex:sameRecord ex:status "ready" )>> )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement058 rdf:reifies <<( ex:otherTimedClaim rdf:reifies <<( ex:sameRecord ex:status "ready" )>> )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement059 rdf:reifies <<( ex:otherTimedClaim gmeow:assertedAt "2026-11-02T10:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement060 rdf:reifies <<( ex:recordScope rdf:type gmeow:ReadingScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement061 rdf:reifies <<( ex:recordScope gmeow:scopeRecord ex:sameRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement062 rdf:reifies <<( ex:recordScope gmeow:scopeRecord ex:selectedUntimedClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement063 rdf:reifies <<( ex:recordScope gmeow:scopeRecord ex:otherTimedClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement064 rdf:reifies <<( ex:recordScope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement065 rdf:reifies <<( ex:recordJoin rdf:type gmeow:TimeJoin )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement066 rdf:reifies <<( ex:recordJoin gmeow:observedFeature ex:sameRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement067 rdf:reifies <<( ex:recordJoin gmeow:vantage ex:readerV1 )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement068 rdf:reifies <<( ex:recordJoin gmeow:readingScope ex:recordScope )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement069 rdf:reifies <<( ex:recordJoin gmeow:timeJoinBasis gmeow:timeJoinRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement070 rdf:reifies <<( ex:recordJoin gmeow:timeJoinedTo ex:sameRecord )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement071 rdf:reifies <<( ex:recordJoin gmeow:recoveredAt "2026-11-02T10:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement072 rdf:reifies <<( ex:recordJoin gmeow:refinementOutcome gmeow:refinementResolved )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement073 rdf:reifies <<( ex:recordJoin gmeow:wasDerivedFrom ex:selectedUntimedClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
+
+ex:statement074 rdf:reifies <<( ex:recordJoin gmeow:wasDerivedFrom ex:otherTimedClaim )>> ;
+    gmeow:wasDerivedFrom ex:hypotheticalSource ;
+    gmeow:accordingTo ex:holder ;
+    gmeow:wasAttributedTo ex:readerV1 .
