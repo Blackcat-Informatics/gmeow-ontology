@@ -88,9 +88,9 @@ impl PreparedLogicSource {
                 .iter()
                 .any(|entry| entry.document.path == document.path)
         {
-            return Err(Diag::of_kind(crate::error::Frontend {
-                detail: "incomplete or duplicate source document receipt".into(),
-            }));
+            return Err(Diag::of_kind(crate::error::Frontend::new(
+                "incomplete or duplicate source document receipt".into(),
+            )));
         }
 
         // Fixed-size native IDs make this a bounded per-document lookup cache.
@@ -107,12 +107,10 @@ impl PreparedLogicSource {
                 error.with_context(format!("source document {:?}", document.path))
             })?;
             let mapped = self.source_term(selected).ok_or_else(|| {
-                Diag::of_kind(crate::error::Frontend {
-                    detail: format!(
-                        "source term in {:?} has no canonical binding",
-                        document.path
-                    ),
-                })
+                Diag::of_kind(crate::error::Frontend::new(format!(
+                    "source term in {:?} has no canonical binding",
+                    document.path
+                )))
             })?;
             if remap.len() < MAX_REMAP_ENTRIES {
                 remap.insert(term, mapped);
@@ -209,9 +207,10 @@ impl PreparedLogicSource {
                     .is_some_and(|graph| graph.index() >= original.term_count())
                 || self.source_graph.unit(binding.canonical).is_none()
             {
-                return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("invalid structural source binding for {}", document.path),
-                }));
+                return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                    "invalid structural source binding for {}",
+                    document.path
+                ))));
             }
         }
         for binding in &statements {
@@ -227,9 +226,10 @@ impl PreparedLogicSource {
                     .g
                     .is_none_or(|graph| graph.index() < self.dataset().term_count());
             if !valid_canonical {
-                return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("invalid statement source binding for {}", document.path),
-                }));
+                return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                    "invalid statement source binding for {}",
+                    document.path
+                ))));
             }
         }
         statements.sort_unstable();

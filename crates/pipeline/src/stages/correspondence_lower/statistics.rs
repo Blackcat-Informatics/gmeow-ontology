@@ -36,6 +36,7 @@ pub(super) fn emit(
 ) -> gmeow_errors::Result<String> {
     let error = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_owned(),
             message: format!("DSL statistics: {message}"),
         })

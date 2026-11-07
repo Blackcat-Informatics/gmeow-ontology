@@ -105,16 +105,15 @@ impl FromJson for PurrdfPackageIdentity {
 }
 
 fn invalid(detail: impl Into<String>) -> Diag {
-    Diag::of_kind(crate::error::Parse {
-        detail: detail.into(),
-    })
+    Diag::of_kind(crate::error::Parse::new(detail.into()))
 }
 
 fn read_toml(path: &Path) -> Result<toml::Value> {
     let text = std::fs::read_to_string(path).map_err(|error| {
-        Diag::of_kind(crate::error::Io {
-            detail: format!("{}: {error}", path.display()),
-        })
+        Diag::of_kind(crate::error::Io::new(format!(
+            "{}: {error}",
+            path.display()
+        )))
     })?;
     text.parse()
         .map_err(|error| invalid(format!("{}: {error}", path.display())))

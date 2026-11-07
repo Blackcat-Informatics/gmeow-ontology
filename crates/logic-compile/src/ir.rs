@@ -517,9 +517,9 @@ impl ComplexityClass {
     pub fn new(label: impl Into<String>) -> gmeow_errors::Result<Self> {
         let label = label.into();
         if label.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "ComplexityClass.label must be a non-empty string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "ComplexityClass.label must be a non-empty string".to_owned(),
+            )));
         }
         Ok(Self { label })
     }
@@ -573,9 +573,9 @@ impl ContextualScope {
         if let Some(c) = confidence
             && !(0.0..=1.0).contains(&c)
         {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!("ContextualScope.confidence must be in [0, 1], got {c}"),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "ContextualScope.confidence must be in [0, 1], got {c}"
+            ))));
         }
         Ok(Self {
             standpoint,
@@ -662,26 +662,21 @@ impl LogicAxiom {
         let subject = subject.into();
         let predicate = predicate.into();
         if subject.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "LogicAxiom.subject must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "LogicAxiom.subject must be a non-empty IRI string".to_owned(),
+            )));
         }
         if predicate.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "LogicAxiom.predicate must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "LogicAxiom.predicate must be a non-empty IRI string".to_owned(),
+            )));
         }
         if predicate == CONTEXTUAL_APPLICATION_IRI {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "a contextual application requires a formula with context, relation and original argument coordinates, not a binary RDF axiom".into(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new("a contextual application requires a formula with context, relation and original argument coordinates, not a binary RDF axiom".into())));
         }
         if let AtomicTerm::Literal(literal) = &mut obj {
             literal_serde::normalize(literal).map_err(|detail| {
-                Diag::of_kind(crate::error::Ir {
-                    detail: detail.to_string(),
-                })
-                .with_source(detail)
+                Diag::of_kind(crate::error::Ir::caused_by(detail.to_string(), detail))
             })?;
         }
         Ok(Self {
@@ -1193,68 +1188,61 @@ impl PathShapeIr {
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "PathShapeIr.iri must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "PathShapeIr.iri must be a non-empty IRI string".to_owned(),
+            )));
         }
         if min_depth < 1 {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "PathShapeIr.min_depth must be >= 1".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "PathShapeIr.min_depth must be >= 1".to_owned(),
+            )));
         }
         // Cap min_depth too (CWE-400): an unbounded path (max_depth = None) with a
         // huge min_depth still unrolls a 1..min_depth edge chain in datalog_text,
         // exhausting memory. The cap on max_depth alone does not bound this.
         if min_depth as usize > MAX_PATH_DEPTH {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!(
-                    "PathShapeIr.min_depth ({min_depth}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "PathShapeIr.min_depth ({min_depth}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
                  no legitimate graph walk needs a deeper minimum"
-                ),
-            }));
+            ))));
         }
         if let Some(m) = max_depth {
             if min_depth > m {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
-                    ),
-                }));
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
+                ))));
             }
             if m as usize > MAX_PATH_DEPTH {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "PathShapeIr max_depth ({m}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "PathShapeIr max_depth ({m}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
                      use an unbounded path (max_depth = None) for deeper traversals"
-                    ),
-                }));
+                ))));
             }
         }
         if let PathBase::NamedPredicate(p) = &base
             && p.is_empty()
         {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "PathShapeIr named-predicate step must be a non-empty IRI".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "PathShapeIr named-predicate step must be a non-empty IRI".to_owned(),
+            )));
         }
         if let Some(ns) = &namespace_scope {
             if ns.trim().is_empty() {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail:
-                        "PathShapeIr.namespace_scope must be a non-empty IRI string when present; \
+                return Err(Diag::of_kind(crate::error::Ir::new(
+                    "PathShapeIr.namespace_scope must be a non-empty IRI string when present; \
                      pass None to leave it unset"
-                            .to_owned(),
-                }));
+                        .to_owned(),
+                )));
             }
             // namespace_scope only scopes a wildcard step (projections apply it
             // solely to wildcards). Carrying it on a named-predicate path is
             // malformed — reject rather than silently ignore it.
             if let PathBase::NamedPredicate(_) = &base {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: "PathShapeIr.namespace_scope is only meaningful for a wildcard step \
+                return Err(Diag::of_kind(crate::error::Ir::new(
+                    "PathShapeIr.namespace_scope is only meaningful for a wildcard step \
                      (logic:pathWildcard true); a named-predicate path must not carry one"
                         .to_owned(),
-                }));
+                )));
             }
         }
         // An empty/whitespace depth_param collides with None in content_key()
@@ -1263,11 +1251,11 @@ impl PathShapeIr {
         if let Some(dp) = &depth_param
             && dp.trim().is_empty()
         {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "PathShapeIr.depth_param must be a non-empty string when present; \
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "PathShapeIr.depth_param must be a non-empty string when present; \
                      pass None to leave it unset"
                     .to_owned(),
-            }));
+            )));
         }
         Ok(Self {
             iri,
@@ -1858,9 +1846,9 @@ impl RecoveryCaseIr {
     pub fn new(iri: impl Into<String>, transform: Formula) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "RecoveryCaseIr.iri must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "RecoveryCaseIr.iri must be a non-empty IRI string".to_owned(),
+            )));
         }
         Ok(Self { iri, transform })
     }
@@ -1984,9 +1972,9 @@ impl Correspondence {
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Correspondence.iri must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Correspondence.iri must be a non-empty IRI string".to_owned(),
+            )));
         }
         // Some("") collides with None in content_key() (content-addressing determinism
         // hazard): reject an empty/whitespace optional string so Some("") is never built.
@@ -1998,12 +1986,10 @@ impl Correspondence {
             if let Some(s) = val
                 && s.trim().is_empty()
             {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "Correspondence.{field} must be a non-empty IRI string when present; \
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "Correspondence.{field} must be a non-empty IRI string when present; \
                          pass None to leave it unset"
-                    ),
-                }));
+                ))));
             }
         }
         let mut law_claims = law_claims;
@@ -2052,24 +2038,23 @@ impl Correspondence {
         mut evidence: Vec<purrdf::RdfLiteral>,
     ) -> gmeow_errors::Result<Self> {
         if !evidence.is_empty() && self.preservation.is_none() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!(
-                    "Correspondence <{}> has loss evidence without logic:preservationKind",
-                    self.iri
-                ),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "Correspondence <{}> has loss evidence without logic:preservationKind",
+                self.iri
+            ))));
         }
         for literal in &mut evidence {
             if literal.lexical_form.trim().is_empty() {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!("Correspondence <{}> has blank loss evidence", self.iri),
-                }));
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "Correspondence <{}> has blank loss evidence",
+                    self.iri
+                ))));
             }
             literal_serde::normalize(literal).map_err(|error| {
-                Diag::of_kind(crate::error::Ir {
-                    detail: format!("Correspondence <{}> loss evidence: {error}", self.iri),
-                })
-                .with_source(error)
+                Diag::of_kind(crate::error::Ir::caused_by(
+                    format!("Correspondence <{}> loss evidence: {error}", self.iri),
+                    error,
+                ))
             })?;
         }
         evidence.sort_by(|a, b| literal_serde::sort_key(a).cmp(&literal_serde::sort_key(b)));
@@ -2087,19 +2072,17 @@ impl Correspondence {
         caveats.sort_by(|a, b| a.iri.cmp(&b.iri));
         for caveat in &mut caveats {
             if caveat.comments.is_empty() {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "Correspondence caveat <{}> requires at least one comment",
-                        caveat.iri
-                    ),
-                }));
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "Correspondence caveat <{}> requires at least one comment",
+                    caveat.iri
+                ))));
             }
             for comment in &mut caveat.comments {
                 literal_serde::normalize(comment).map_err(|error| {
-                    Diag::of_kind(crate::error::Ir {
-                        detail: format!("Correspondence caveat <{}>: {error}", caveat.iri),
-                    })
-                    .with_source(error)
+                    Diag::of_kind(crate::error::Ir::caused_by(
+                        format!("Correspondence caveat <{}>: {error}", caveat.iri),
+                        error,
+                    ))
                 })?;
             }
             caveat
@@ -2108,12 +2091,10 @@ impl Correspondence {
             caveat.comments.dedup();
         }
         if let Some(duplicate) = caveats.windows(2).find(|pair| pair[0].iri == pair[1].iri) {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!(
-                    "Correspondence caveat IRI <{}> is duplicated",
-                    duplicate[0].iri
-                ),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "Correspondence caveat IRI <{}> is duplicated",
+                duplicate[0].iri
+            ))));
         }
         self.caveats = caveats;
         Ok(self)
@@ -2133,9 +2114,9 @@ impl Correspondence {
         let source_endpoint = source_endpoint.into();
         let target_endpoint = target_endpoint.into();
         if source_endpoint.trim().is_empty() || target_endpoint.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Correspondence endpoints must both be non-empty IRI strings".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Correspondence endpoints must both be non-empty IRI strings".to_owned(),
+            )));
         }
         self.source_endpoint = Some(source_endpoint);
         self.target_endpoint = Some(target_endpoint);
@@ -2163,11 +2144,9 @@ impl Correspondence {
             .find(|pair| pair[0].iri == pair[1].iri)
             .map(|pair| pair[0].iri.clone())
         {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!(
-                    "Correspondence recovery-case IRI <{duplicate}> is duplicated; case identity must be unique"
-                ),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "Correspondence recovery-case IRI <{duplicate}> is duplicated; case identity must be unique"
+            ))));
         }
         self.recovery_cases = recovery_cases;
         Ok(self)
@@ -2313,14 +2292,12 @@ fn assert_unique_recovery_case_iris(
     if let Some(pair) = cases.windows(2).find(|w| w[0].0 == w[1].0) {
         let (case_iri, first_owner) = pair[0];
         let (_, second_owner) = pair[1];
-        return Err(Diag::of_kind(crate::error::Ir {
-            detail: format!(
-                "logic:RecoveryCase IRI <{case_iri}> is declared by two different \
+        return Err(Diag::of_kind(crate::error::Ir::new(format!(
+            "logic:RecoveryCase IRI <{case_iri}> is declared by two different \
                  correspondences (<{first_owner}> and <{second_owner}>); recovery-case \
                  identity must be unique across the whole program, not merely within one \
                  correspondence"
-            ),
-        }));
+        ))));
     }
     Ok(())
 }
@@ -2409,9 +2386,9 @@ impl Term {
     pub fn var(name: impl Into<String>) -> gmeow_errors::Result<Self> {
         let name = name.into();
         if name.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::Var name must be non-empty".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Term::Var name must be non-empty".to_owned(),
+            )));
         }
         Ok(Self::Var(name))
     }
@@ -2420,9 +2397,9 @@ impl Term {
     pub fn iri(iri: impl Into<String>) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::Iri must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Term::Iri must be a non-empty IRI string".to_owned(),
+            )));
         }
         Ok(Self::Iri(iri))
     }
@@ -2444,10 +2421,7 @@ impl Term {
     /// Admit a complete native literal without discarding its RDF identity.
     pub fn rdf_literal(mut literal: purrdf::RdfLiteral) -> gmeow_errors::Result<Self> {
         literal_serde::normalize(&mut literal).map_err(|detail| {
-            Diag::of_kind(crate::error::Ir {
-                detail: detail.to_string(),
-            })
-            .with_source(detail)
+            Diag::of_kind(crate::error::Ir::caused_by(detail.to_string(), detail))
         })?;
         Ok(Self::Literal(literal))
     }
@@ -2456,9 +2430,9 @@ impl Term {
     pub fn sequence_marker(name: impl Into<String>) -> gmeow_errors::Result<Self> {
         let name = name.into();
         if name.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::SequenceMarker name must be non-empty".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Term::SequenceMarker name must be non-empty".to_owned(),
+            )));
         }
         Ok(Self::SequenceMarker(name))
     }
@@ -2470,16 +2444,16 @@ impl Term {
     pub fn app(symbol: impl Into<String>, args: Vec<Term>) -> gmeow_errors::Result<Self> {
         let symbol = symbol.into();
         if symbol.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::App symbol must be a non-empty function-symbol IRI".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Term::App symbol must be a non-empty function-symbol IRI".to_owned(),
+            )));
         }
         if args.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Term::App requires at least one argument; a nullary application is a \
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Term::App requires at least one argument; a nullary application is a \
                  constant and must be a Term::Iri"
                     .to_owned(),
-            }));
+            )));
         }
         Ok(Self::App { symbol, args })
     }
@@ -2700,11 +2674,11 @@ impl Formula {
     /// Share atomic well-formedness between construction and checked projection.
     pub(crate) fn check_atom(relation: &Term, args: &[Term]) -> gmeow_errors::Result<()> {
         if !matches!(relation, Term::Iri(_)) {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
                  individual); a predicate variable would break first-orderness"
                     .to_owned(),
-            }));
+            )));
         }
         if matches!(relation, Term::Iri(iri) if iri == CONTEXTUAL_APPLICATION_IRI)
             && (args.len() < 3
@@ -2712,9 +2686,7 @@ impl Formula {
                     .iter()
                     .all(|arg| matches!(arg, Term::Iri(_) | Term::Var(_))))
         {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "a contextual application requires resource-valued context and relation coordinates followed by at least one original argument".into(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new("a contextual application requires resource-valued context and relation coordinates followed by at least one original argument".into())));
         }
         Ok(())
     }
@@ -3218,35 +3190,29 @@ impl ReasoningProgramIr {
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: "ReasoningProgramIr.iri must be a non-empty IRI string".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "ReasoningProgramIr.iri must be a non-empty IRI string".to_owned(),
+            )));
         }
         if clauses.is_empty() {
-            return Err(Diag::of_kind(crate::error::Ir {
-                detail: format!(
-                    "ReasoningProgramIr {iri} requires at least one logic:clause; a program \
+            return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                "ReasoningProgramIr {iri} requires at least one logic:clause; a program \
                      with no clauses has nothing to resolve its goal against"
-                ),
-            }));
+            ))));
         }
         for probe in &verdict_probes {
             if !matches!(probe, Formula::Atom { .. }) {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "ReasoningProgramIr {iri} logic:verdictProbe must be an atomic \
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "ReasoningProgramIr {iri} logic:verdictProbe must be an atomic \
                          logic:Formula (a single predication); found a compound formula"
-                    ),
-                }));
+                ))));
             }
             if !probe.is_ground() {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "ReasoningProgramIr {iri} logic:verdictProbe must be a GROUND atom (a \
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "ReasoningProgramIr {iri} logic:verdictProbe must be a GROUND atom (a \
                          probe reports one ground atom's three-valued well-founded verdict); a \
                          variable-bearing probe has no single verdict to report"
-                    ),
-                }));
+                ))));
             }
         }
         let mut clauses = clauses;
@@ -3261,14 +3227,12 @@ impl ReasoningProgramIr {
         // surviving adjacent pair with equal scope+name necessarily differs only in sort.
         for pair in variable_sorts.windows(2) {
             if pair[0].0 == pair[1].0 && pair[0].1 == pair[1].1 {
-                return Err(Diag::of_kind(crate::error::Ir {
-                    detail: format!(
-                        "ReasoningProgramIr {iri} logic:variableSort assigns variable {:?} two \
+                return Err(Diag::of_kind(crate::error::Ir::new(format!(
+                    "ReasoningProgramIr {iri} logic:variableSort assigns variable {:?} two \
                          distinct sorts ({:?} and {:?}) within one scope ({:?}); an order-sort \
                          context must be unambiguous per scope",
-                        pair[0].1, pair[0].2, pair[1].2, pair[0].0
-                    ),
-                }));
+                    pair[0].1, pair[0].2, pair[1].2, pair[0].0
+                ))));
             }
         }
         let mut constant_sorts = constant_sorts;

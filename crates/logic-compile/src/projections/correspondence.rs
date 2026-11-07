@@ -1068,9 +1068,9 @@ impl<'source> CorrespondenceView<'source> {
 }
 
 fn field_error(subject: &str, predicate: &str, detail: impl std::fmt::Display) -> Diag {
-    Diag::of_kind(crate::error::Correspondence {
-        detail: format!("<{subject}> <{predicate}> {detail}"),
-    })
+    Diag::of_kind(crate::error::Correspondence::new(format!(
+        "<{subject}> <{predicate}> {detail}"
+    )))
 }
 
 /// Read ONE [`Correspondence`] node by its IRI from the borrowed native view. The single reader
@@ -1108,12 +1108,10 @@ fn read_correspondence(
         .iri_obj(corr_iri, &p_target_endpoint())?
         .map(str::to_owned);
     if source_endpoint.is_some() != target_endpoint.is_some() {
-        return Err(Diag::of_kind(crate::error::Correspondence {
-            detail: format!(
-                "correspondence <{corr_iri}> must carry both sourceEndpoint and targetEndpoint, \
+        return Err(Diag::of_kind(crate::error::Correspondence::new(format!(
+            "correspondence <{corr_iri}> must carry both sourceEndpoint and targetEndpoint, \
                  or neither"
-            ),
-        }));
+        ))));
     }
     let grounding = idx
         .structural_types_of(corr_iri)?
@@ -1154,11 +1152,9 @@ fn read_correspondence(
             .structural_types_of(case_iri)?
             .contains(&class_recovery_case().as_str())
         {
-            return Err(Diag::of_kind(crate::error::Correspondence {
-                detail: format!(
-                    "recovery case <{case_iri}> on correspondence <{corr_iri}> is not typed logic:RecoveryCase"
-                ),
-            }));
+            return Err(Diag::of_kind(crate::error::Correspondence::new(format!(
+                "recovery case <{case_iri}> on correspondence <{corr_iri}> is not typed logic:RecoveryCase"
+            ))));
         }
         let transforms = objects(
             dataset,
@@ -1166,19 +1162,15 @@ fn read_correspondence(
             &nn(&p_recovery_transform()),
         );
         if transforms.len() != 1 {
-            return Err(Diag::of_kind(crate::error::Correspondence {
-                detail: format!(
-                    "recovery case <{case_iri}> on correspondence <{corr_iri}> requires exactly one logic:recoveryTransform; found {}",
-                    transforms.len()
-                ),
-            }));
+            return Err(Diag::of_kind(crate::error::Correspondence::new(format!(
+                "recovery case <{case_iri}> on correspondence <{corr_iri}> requires exactly one logic:recoveryTransform; found {}",
+                transforms.len()
+            ))));
         }
         let transform_subject = term_as_subject(&transforms[0]).ok_or_else(|| {
-            Diag::of_kind(crate::error::Correspondence {
-                detail: format!(
+            Diag::of_kind(crate::error::Correspondence::new(format!(
                     "recovery case <{case_iri}> on correspondence <{corr_iri}> has a non-resource logic:recoveryTransform"
-                ),
-            })
+                )))
         })?;
         let transform = reader.read(&transform_subject)?;
         recovery_cases.push(RecoveryCaseIr::new(case_iri, transform)?);
@@ -1254,7 +1246,12 @@ pub(crate) fn validate_loss_evidence(c: &Correspondence) -> gmeow_errors::Result
             literal.language.as_deref(),
             literal.direction,
         )
-        .map_err(|error| field_error(&c.iri, &p_lossy_drop(), error).with_source(error))?;
+        .map_err(|error| {
+            Diag::of_kind(crate::error::Correspondence::caused_by(
+                format!("<{}> <{}> {error}", c.iri, p_lossy_drop()),
+                error,
+            ))
+        })?;
     }
     let residue: Vec<&str> = c
         .loss_evidence
@@ -1612,10 +1609,9 @@ pub(crate) fn read_source_correspondence(
     source: &crate::graphutil::Subject,
 ) -> gmeow_errors::Result<Correspondence> {
     let crate::graphutil::Subject::Iri(iri) = source else {
-        return Err(Diag::of_kind(crate::error::Correspondence {
-            detail: "anonymous correspondence identity has no lowering to the current named IR"
-                .into(),
-        }));
+        return Err(Diag::of_kind(crate::error::Correspondence::new(
+            "anonymous correspondence identity has no lowering to the current named IR".into(),
+        )));
     };
     read_correspondence(
         reader,

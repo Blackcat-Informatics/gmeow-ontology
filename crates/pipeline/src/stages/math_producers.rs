@@ -146,6 +146,7 @@ fn producer_turtles() -> [(&'static str, String); 10] {
 fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::Diag> {
     let parsed = purrdf::parse_dataset(bytes, "text/turtle", None).map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-math-producers".to_owned(),
             message: format!("cannot parse {label} Turtle for producer parity: {error}"),
         })
@@ -153,6 +154,7 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
     let quads = purrdf::flat_rdf_quads_from_dataset(&parsed);
     let flat = purrdf::flat_dataset_from_quads(&quads).map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-math-producers".to_owned(),
             message: format!("cannot freeze {label} graph for producer parity: {error}"),
         })
@@ -163,6 +165,7 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
     )
     .map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-math-producers".to_owned(),
             message: format!("cannot canonicalize {label} graph for producer parity: {error}"),
         })
@@ -227,6 +230,7 @@ fn enforce_producer_fixture_parity(
         let fixture_path = root.join(relative_path);
         let fixture = std::fs::read(&fixture_path).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-math-producers".to_owned(),
                 message: format!(
                     "cannot read {label} producer fixture {}: {error}",
@@ -238,6 +242,7 @@ fn enforce_producer_fixture_parity(
         let producer_graph = canonical_turtle(produced[producer_index].1.as_bytes(), label)?;
         if fixture_graph != producer_graph {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-math-producers".to_owned(),
                 message: producer_parity_mismatch_message(
                     label,
@@ -351,6 +356,7 @@ impl Stage for MathProducersStage {
         // (no-optionality).
         let source = input.upstream.get("stage-source-load").ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: "missing declared source product for math projection requests".to_owned(),
             })
@@ -366,6 +372,7 @@ impl Stage for MathProducersStage {
         )?;
         let mappings = input.upstream.get("stage-mappings").ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: "missing declared correspondence product for mathematical projections"
                     .to_owned(),
@@ -380,6 +387,7 @@ impl Stage for MathProducersStage {
             gmeow_math::projection::project_requests(source.dataset(), &reference, &alignments)?;
         if artifacts.is_empty() {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: "no authored mathematical projection request was selected".to_owned(),
             }));

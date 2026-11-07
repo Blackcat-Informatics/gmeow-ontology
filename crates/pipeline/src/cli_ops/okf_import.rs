@@ -101,6 +101,7 @@ const NT_MEDIA_TYPE: &str = "application/n-triples";
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "okf-import".to_string(),
         message: message.into(),
     })

@@ -1036,6 +1036,7 @@ pub fn run_full_scoped_with_progress(
             .remove(&gmn_observation_key)
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "pipeline".to_owned(),
                     message: "required producer GMN observations are missing".to_owned(),
                 })
@@ -1129,6 +1130,7 @@ pub fn run_full_scoped_with_progress(
     // assertion above proves this removal cannot hide a second terminal.
     let terminal_product = products.remove(declared_sink).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "pipeline".to_string(),
             message: format!(
                 "declared sink {declared_sink} produced no product after the single-writer gate"
@@ -1458,6 +1460,7 @@ pub fn run_full_scoped_with_progress(
         let gts_path = root.join(GTS_PATH);
         let gts = std::fs::read(&gts_path).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "pipeline".to_string(),
                 message: format!(
                     "read freshly emitted {} for post-update gates: {error}",
@@ -1695,12 +1698,14 @@ fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, gmeow_errors::Diag> 
     match sinks.as_slice() {
         [id] => Ok(id),
         [] => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "pipeline".to_string(),
             message:
                 "no stage declares sinkCapability; PIPELINE_SPINE §4 requires exactly one terminal writer"
                     .to_string(),
         })),
         _ => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "pipeline".to_string(),
             message: format!(
                 "{} stages declare sinkCapability ({}); exactly one is allowed (PIPELINE_SPINE §4)",
@@ -1737,6 +1742,7 @@ fn assert_single_gts_writer(
             let writer = writers[0];
             if writer != declared_sink {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "pipeline".to_string(),
                     message: format!(
                         "stage {writer} emits the `{GTS_PATH}` bundle bytes but the declared sink (sinkCapability) is {declared_sink}; PIPELINE_SPINE §4/§7 requires the terminal writer's identity to match the declared sink"
@@ -1746,12 +1752,14 @@ fn assert_single_gts_writer(
             Ok(())
         }
         0 => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "pipeline".to_string(),
             message: format!(
                 "no stage emits the `{GTS_PATH}` bundle bytes; PIPELINE_SPINE §4 requires exactly one terminal writer"
             ),
         })),
         n => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "pipeline".to_string(),
             message: format!(
                 "{n} stages emit the `{GTS_PATH}` bundle bytes ({}); exactly one terminal writer is allowed (PIPELINE_SPINE §4)",

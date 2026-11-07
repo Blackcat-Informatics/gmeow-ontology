@@ -1352,14 +1352,12 @@ fn assertion_from_quad(
 ) -> gmeow_errors::Result<SourceAssertion> {
     let subject = atomic_term(dataset, quad.s, false)?;
     let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-            detail: "RDF predicate is not an IRI".into(),
-        }));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new(
+            "RDF predicate is not an IRI".into(),
+        )));
     };
     if predicate == crate::ir::CONTEXTUAL_APPLICATION_IRI {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-            detail: "a contextual application requires a formula carrying context, relation and original arguments, not a binary RDF assertion".into(),
-        }));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new("a contextual application requires a formula carrying context, relation and original arguments, not a binary RDF assertion".into())));
     }
     let object = atomic_term(dataset, quad.o, true)?;
     Ok(SourceAssertion {
@@ -1386,9 +1384,7 @@ fn atomic_term(
             direction,
         } if literal_allowed => {
             let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-                    detail: "literal datatype is not an IRI".into(),
-                }));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new("literal datatype is not an IRI".into())));
             };
             let language = language.map(str::to_owned);
             Ok(AtomicTerm::Literal(purrdf::RdfLiteral {
@@ -1402,13 +1398,9 @@ fn atomic_term(
                 direction,
             }))
         }
-        TermRef::Literal { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-            detail: "literal cannot occur in assertion subject position".into(),
-        })),
-        TermRef::Triple { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-            detail: "quoted triple term requires an explicit proposition-term translation and remains unasserted"
-                .into(),
-        })),
+        TermRef::Literal { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new("literal cannot occur in assertion subject position".into()))),
+        TermRef::Triple { .. } => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new("quoted triple term requires an explicit proposition-term translation and remains unasserted"
+                .into()))),
     }
 }
 

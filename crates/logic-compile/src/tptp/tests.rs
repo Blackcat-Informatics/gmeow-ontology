@@ -75,12 +75,10 @@ fn compile_documents(
                     .as_ref()
                     .term_id_by_value(&value)
                     .ok_or_else(|| {
-                        Diag::of_kind(crate::error::Frontend {
-                            detail: format!(
-                                "source term in {:?} has no materialized binding",
-                                receipt.path
-                            ),
-                        })
+                        Diag::of_kind(crate::error::Frontend::new(format!(
+                            "source term in {:?} has no materialized binding",
+                            receipt.path
+                        )))
                     })
             })
             .expect("document receipt");

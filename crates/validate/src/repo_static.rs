@@ -2534,14 +2534,16 @@ fn purrdf_source_key(
 /// "no purrdf at all" still compares unequal instead of vanishing.
 fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
     let text = fs::read_to_string(manifest_path).map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("{}: cannot read: {err}", manifest_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "{}: cannot read: {err}",
+            manifest_path.display()
+        )))
     })?;
     let manifest = text.parse::<toml::Value>().map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "{}: cannot parse: {err}",
+            manifest_path.display()
+        )))
     })?;
     let deps = if workspace {
         manifest
@@ -2607,14 +2609,16 @@ fn locked_package_version(
 /// caller asked for an identity it cannot substitute.
 pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
     let text = fs::read_to_string(lock_path).map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("{}: cannot read: {err}", lock_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "{}: cannot read: {err}",
+            lock_path.display()
+        )))
     })?;
     let lock = text.parse::<toml::Value>().map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("{}: cannot parse: {err}", lock_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "{}: cannot parse: {err}",
+            lock_path.display()
+        )))
     })?;
     lock.get("package")
         .and_then(toml::Value::as_array)
@@ -2626,12 +2630,10 @@ pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::
         .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
         .map(str::to_owned)
         .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!(
-                    "{}: resolves no package named {name:?}",
-                    lock_path.display()
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                "{}: resolves no package named {name:?}",
+                lock_path.display()
+            )))
         })
 }
 
@@ -2672,9 +2674,10 @@ pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
 fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
     let makefile = root.join("Makefile");
     let text = fs::read_to_string(&makefile).map_err(|err| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("{}: cannot read: {err}", makefile.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "{}: cannot read: {err}",
+            makefile.display()
+        )))
     })?;
     text.lines()
         .find_map(|line| {
@@ -2684,14 +2687,12 @@ fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
         })
         .filter(|v| !v.is_empty())
         .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!(
-                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+            gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
                      depend on the binaryen that optimized them, so the substrate they were \
                      built against cannot be stated without it",
-                    makefile.display()
-                ),
-            })
+                makefile.display()
+            )))
         })
 }
 

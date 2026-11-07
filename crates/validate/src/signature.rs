@@ -237,9 +237,10 @@ fn read_armored_key(path: &str) -> gmeow_errors::Result<String> {
     std::fs::read_to_string(trimmed)
         .map(|s| s.trim().to_owned())
         .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!("cannot read trusted key file {}: {e}", path),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                "cannot read trusted key file {}: {e}",
+                path
+            )))
         })
 }
 

@@ -82,6 +82,7 @@ const MODELS_DOCSTRING: &str = "GMEOW Pydantic v2 models: one model per compiled
 
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-export-pydantic".into(),
         message: message.into(),
     })

@@ -127,9 +127,7 @@ pub struct PreparedActionPolicy {
 }
 
 fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Ir {
-        detail: detail.into(),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Ir::new(detail.into()))
 }
 
 /// Comparable original policy statements, retaining all object kinds and annotations.

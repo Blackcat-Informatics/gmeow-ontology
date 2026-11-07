@@ -1722,6 +1722,7 @@ impl Stage for ResearchObjectsStage {
             .and_then(|p| p.artifact(DCAT_QUERY_PATH))
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: format!(
                         "missing {DCAT_QUERY_PATH} in the stage-mappings product; refusing to \
@@ -1739,6 +1740,7 @@ impl Stage for ResearchObjectsStage {
             .and_then(|p| p.artifact(SCORES_INPUT_LABEL))
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: format!(
                         "missing {SCORES_INPUT_LABEL} in the stage-export-evals product; refusing \

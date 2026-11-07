@@ -900,12 +900,12 @@ impl QueryScope {
         match raw {
             None | Some("bundle") => Ok(Self::BundleUnion),
             Some("input") => Ok(Self::InputOnly),
-            Some(other) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            Some(other) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "query_local: unknown scope `{other}`; accepted: {}",
                     Self::ACCEPTED.join(", ")
                 ),
-            })),
+            ))),
         }
     }
 }
@@ -930,11 +930,9 @@ impl CardFormat {
         match raw.unwrap_or("markdown") {
             "markdown" => Ok(Self::Markdown),
             "json" => Ok(Self::Json),
-            other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "doc_card: unknown format `{other}`; valid values: markdown, json"
-                ),
-            })),
+            other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!("doc_card: unknown format `{other}`; valid values: markdown, json"),
+            ))),
         }
     }
 
@@ -959,11 +957,9 @@ fn parse_card_detail(
         "summary" => Ok(CardDetail::Summary),
         "standard" => Ok(CardDetail::Standard),
         "full" => Ok(CardDetail::Full),
-        other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
-                "doc_card: unknown detail `{other}`; valid values: summary, standard, full"
-            ),
-        })),
+        other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("doc_card: unknown detail `{other}`; valid values: summary, standard, full"),
+        ))),
     }
 }
 
@@ -1156,11 +1152,11 @@ fn search_documentation(
     // HARD FAIL: the documentation graph is absent/empty in this bundle. docs_search
     // serves the documentation graph, so a missing graph is a genuine defect.
     if docs.quad_count() == 0 {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: "docs_search: the gmeow:graph/documentation named graph is absent or empty \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            "docs_search: the gmeow:graph/documentation named graph is absent or empty \
                       in this bundle — the searchable documentation projection is missing"
                 .to_string(),
-        }));
+        )));
     }
     let value = query_results::envelope(gmeow_bundle_view::native_query::query(
         docs,
@@ -1645,9 +1641,9 @@ impl McpView {
     #[cfg(feature = "core")]
     fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs_model::gmn1_primer::Gmn1Primer> {
         gmeow_docs_model::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("build GMN-1 teachability primer: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "build GMN-1 teachability primer: {e}"
+            )))
         })
     }
 
@@ -1840,9 +1836,9 @@ impl McpView {
             "PREFIX gm: <https://blackcatinformatics.ca/gmeow/> SELECT ?f ?rationale WHERE { ?f a gm:DocFixture ; gm:conformanceRationale ?rationale . }",
         )?;
         let invalid = |message: &str| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("fixture rationales: {message}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "fixture rationales: {message}"
+            )))
         };
         let purrdf::SparqlResult::Solutions {
             variables, rows, ..
@@ -1877,7 +1873,12 @@ impl McpView {
                 literal.language.as_deref(),
                 literal.direction,
             )
-            .map_err(|why| invalid(&format!("malformed rationale: {why}")).with_source(why))?;
+            .map_err(|why| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::caused_by(
+                    format!("fixture rationales: malformed rationale: {why}"),
+                    why,
+                ))
+            })?;
             values
                 .entry(subject.clone())
                 .or_default()
@@ -2100,13 +2101,13 @@ impl McpView {
         // unrecognized token hard-fails here naming the accepted set.
         let media = rdf_media_type("query_local", format)?;
         if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "query_local: overlay data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
                      ceiling; split the annex and query the parts (no silent truncation)",
                     data.len()
                 ),
-            }));
+            )));
         }
         let overlay = purrdf::parse_dataset(data.as_bytes(), media, None)
             .with_ctx(|| format!("parse query_local overlay ({format})"))?;
@@ -2202,13 +2203,13 @@ impl McpView {
         // very few quads) is refused before the quad ceiling below could measure it.
         let overlay_bytes = data.len() as u64;
         if overlay_bytes > MAX_VERIFY_OVERLAY_BYTES {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "verify_graph: overlay data is {overlay_bytes} bytes, \
                      exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte ceiling BEFORE any parse; \
                      split the annex and verify the parts (no silent truncation)"
                 ),
-            }));
+            )));
         }
 
         let overlay = purrdf::parse_dataset(data.as_bytes(), media, None)
@@ -2476,19 +2477,19 @@ impl McpView {
         // HARD FAIL: neither a known fingerprint IRI nor a known anchor IRI. Never a
         // fabricated empty DAG rendered as a success.
         if !is_finding && !is_anchor {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "unknown explain target `{target}`: not a finding fingerprint IRI or an \
                      anchor IRI in graph/diagnostics"
                 ),
-            }));
+            )));
         }
 
         let walk = |iri: &str| -> gmeow_errors::Result<String> {
             let dag = explain_finding(&index, iri).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("cannot walk provenance DAG for `{iri}`: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "cannot walk provenance DAG for `{iri}`: {e}"
+                )))
             })?;
             Ok(render_shared_dag(&dag))
         };
@@ -2732,12 +2733,12 @@ fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::
                     .bytes()
                     .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
             if !valid_digest {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!(
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    format!(
                         "{SOURCE_DIGEST_ENV} must be exactly 64 lowercase hexadecimal \
                          characters"
                     ),
-                }));
+                )));
             }
             let actual_digest = purrdf::ContentDigest::of(snapshot).to_hex();
             if actual_digest == selected_digest {
@@ -2749,11 +2750,9 @@ fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::
             }
         }
         _ => {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "{CACHE_ROOT_ENV} and {SOURCE_DIGEST_ENV} must be configured together"
-                ),
-            }));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!("{CACHE_ROOT_ENV} and {SOURCE_DIGEST_ENV} must be configured together"),
+            )));
         }
     }
 
@@ -4081,41 +4080,39 @@ impl McpServer {
         let format = required_str(args, "format")?;
         let media = rdf_media_type("encode_gmn1", format)?;
         if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "encode_gmn1: data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
                      ceiling; split the document and encode the parts (no silent truncation)",
                     data.len()
                 ),
-            }));
+            )));
         }
         let dataset = purrdf::parse_dataset(data.as_bytes(), media, None)
             .with_ctx(|| format!("parse encode_gmn1 input ({format})"))?;
         let dict = self.gmn_dictionary()?;
         let model = Gmn0Model::from_dataset(&dataset);
         let doc = gmn1_write(&model, dict).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("encode_gmn1: encoding the model to GMN-1 failed: {error}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "encode_gmn1: encoding the model to GMN-1 failed: {error}"
+            )))
         })?;
         // Round-trip witness, the mirror of `gmn_expand`'s: read the emitted surface back and
         // assert canonical equality with the input model. An encoding that does not read back
         // is a HARD FAIL, never a returned answer — the same no-lossy-answer discipline.
         let back = gmn1_read(&doc, dict).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "encode_gmn1: the emitted GMN-1 does not read back (lang:{}): {error}",
-                    iri_local_name(error.failure_class())
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "encode_gmn1: the emitted GMN-1 does not read back (lang:{}): {error}",
+                iri_local_name(error.failure_class())
+            )))
         })?;
         let round_trip = gmn0_canonically_equal(&model, &back)?;
         if !round_trip {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "encode_gmn1: the emitted GMN-1 does not round-trip to the input model \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                "encode_gmn1: the emitted GMN-1 does not round-trip to the input model \
                           (a lossy encoding is a hard error, never an answer)"
                     .to_string(),
-            }));
+            )));
         }
         Ok(json!({
             "ok": true,
@@ -4147,25 +4144,25 @@ impl McpServer {
         let format = required_str(args, "format")?;
         let media = rdf_media_type("reason_graph", format)?;
         if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "reason_graph: data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
                      ceiling; split the graph and reason over the parts (no silent truncation)",
                     data.len()
                 ),
-            }));
+            )));
         }
         let edb = purrdf::parse_dataset(data.as_bytes(), media, None)
             .with_ctx(|| format!("parse reason_graph input ({format})"))?;
         let edb_quads = edb.quad_count();
         if edb_quads > MAX_VERIFY_OVERLAY_QUADS {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "reason_graph: input is {} quads, exceeding the {MAX_VERIFY_OVERLAY_QUADS}-quad \
                      ceiling; the starting EDB of a governed chase is bounded",
                     edb_quads
                 ),
-            }));
+            )));
         }
         let budget = governed_budget(
             optional_step_count(args, "max_steps")?,
@@ -4197,9 +4194,9 @@ impl McpServer {
         )
         .with_ctx(|| "serialize reasoned closure".to_string())?;
         let closure_nquads = String::from_utf8(bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("reason_graph: closure N-Quads are not UTF-8: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "reason_graph: closure N-Quads are not UTF-8: {e}"
+            )))
         })?;
         Ok(json!({
             "ok": true,
@@ -4311,14 +4308,14 @@ impl McpServer {
         let canonical = canonical_rdf_format("validate_local", format)?;
 
         if data.len() > MAX_VALIDATE_DATA_BYTES {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "validate_local: data payload is {} bytes, exceeding the {} byte ceiling; \
                      split the graph and validate the parts (no silent truncation)",
                     data.len(),
                     MAX_VALIDATE_DATA_BYTES
                 ),
-            }));
+            )));
         }
 
         // Tier-1 SHACL + disciplines always run (fast). The Tier-2 semantic
@@ -4361,9 +4358,9 @@ impl McpServer {
             entailments_by_term,
         );
         serde_json::to_string(&enriched).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("validate_local: serialize enriched report: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "validate_local: serialize enriched report: {e}"
+            )))
         })
     }
 
@@ -4416,32 +4413,30 @@ impl McpServer {
         let dict = self.gmn_dictionary()?;
         let doc = Gmn1Document::from_text(gmn.to_owned());
         let model = gmn1_read(&doc, dict).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "gmn_expand: input is not a conformant GMN-1 document (lang:{}): {error}",
-                    iri_local_name(error.failure_class())
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_expand: input is not a conformant GMN-1 document (lang:{}): {error}",
+                iri_local_name(error.failure_class())
+            )))
         })?;
         // Round-trip witness: re-encode the expanded model and read it back; the expansion
         // is only sound if the reconstruction is canonically equal (no lossy expansion).
         let reencoded = gmn1_write(&model, dict).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_expand: re-encoding the expanded model failed: {error}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_expand: re-encoding the expanded model failed: {error}"
+            )))
         })?;
         let back = gmn1_read(&reencoded, dict).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_expand: re-reading the re-encoded model failed: {error}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_expand: re-reading the re-encoded model failed: {error}"
+            )))
         })?;
         if !gmn0_canonically_equal(&model, &back)? {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "gmn_expand: round-trip witness failed — the expanded GMN-0 normal form \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                "gmn_expand: round-trip witness failed — the expanded GMN-0 normal form \
                           is not canonically stable under re-encode/re-read (refusing a lossy \
                           expansion)"
                     .to_owned(),
-            }));
+            )));
         }
         Ok(json!({
             "ok": true,
@@ -4465,11 +4460,9 @@ impl McpServer {
         let dict = self.gmn_dictionary()?;
         let labels = harvest_dataset_labels(dataset);
         let forms = resolve_operator_forms(dict.glyph_registry(), &labels).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "gmn_explain: resolve GMN operator forms from the codebook: {error}"
-                ),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_explain: resolve GMN operator forms from the codebook: {error}"
+            )))
         })?;
         let Some(form) = forms.iter().find(|f| f.gmn_glyph == glyph) else {
             return Ok(json!({
@@ -4488,14 +4481,14 @@ impl McpServer {
         // (injective, disambiguated) corpus and read off this form's rendered pair, so the
         // gloss the LLM sees is the exact GMN⇄NL training-pair surface, not a re-derivation.
         let pairs = build_verbalization_pairs(&forms).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_explain: render the verbalizer gloss corpus: {error}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_explain: render the verbalizer gloss corpus: {error}"
+            )))
         })?;
         let rendered = pairs.iter().find(|p| &p.form == form).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("gmn_explain: no verbalizer pair for glyph {glyph:?}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "gmn_explain: no verbalizer pair for glyph {glyph:?}"
+            )))
         })?;
         // Precedence + the lang:Denotation IRI are NOT carried by the glyph registry (it keys
         // on fixity/arity only), so join them from the dataset by the (target, fixity, arity)
@@ -4574,11 +4567,9 @@ impl McpServer {
             "utf8" => data.as_bytes().to_vec(),
             "base64" => base64_decode("convert: `data`", data)?,
             other => {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!(
-                        "convert: unknown `encoding` {other:?} — expected `utf8` or `base64`"
-                    ),
-                }));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    format!("convert: unknown `encoding` {other:?} — expected `utf8` or `base64`"),
+                )));
             }
         };
 
@@ -4591,9 +4582,9 @@ impl McpServer {
         // as structured JSON in the envelope — never re-derived off the `Vec<RealizedLoss>`.
         let loss: Value =
             serde_json::from_str(&realized_loss_json(&output.realized)).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("convert: the realized-loss ledger is not valid JSON: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "convert: the realized-loss ledger is not valid JSON: {e}"
+                )))
             })?;
 
         let ingestion_receipt = output
@@ -4715,14 +4706,14 @@ impl McpServer {
         let canonical = canonical_rdf_format("advise", format)?;
 
         if data.len() > MAX_VALIDATE_DATA_BYTES {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "advise: data payload is {} bytes, exceeding the {} byte ceiling; \
                      split the graph and advise on the parts (no silent truncation)",
                     data.len(),
                     MAX_VALIDATE_DATA_BYTES
                 ),
-            }));
+            )));
         }
 
         // Shallow Tier-1 only (deep = false): advisory Notes come from the fast SHACL
@@ -4787,9 +4778,9 @@ impl McpServer {
             "recommendations": recommendations,
         });
         serde_json::to_string(&response).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("advise: serialize recommendations: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "advise: serialize recommendations: {e}"
+            )))
         })
     }
 
@@ -5321,9 +5312,7 @@ impl McpServer {
             &files,
         )
         .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("slice_quality: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!("slice_quality: {e}")))
         })?;
         let grades: Vec<Value> = report
             .assessment
@@ -6420,17 +6409,17 @@ fn resolve_lang(
                 .get(&token_lower)
                 .map(|tag| tag.to_ascii_lowercase())
                 .ok_or_else(|| {
-                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                        message: unknown_language(token, available),
-                    })
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp::new(unknown_language(
+                        token, available,
+                    )))
                 })?
         } else {
             token.to_ascii_lowercase()
         };
         if !available.contains(&normalized) {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: unknown_language(token, available),
-            }));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                unknown_language(token, available),
+            )));
         }
         if seen.insert(normalized.clone()) {
             out.push(normalized);
@@ -6586,11 +6575,11 @@ fn canonical_rdf_format(tool: &str, format: &str) -> gmeow_errors::Result<&'stat
         "rdfxml" | "rdf+xml" | "xml" | "rdf" => "rdf+xml",
         "jsonld" | "json-ld" => "json-ld",
         other => {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "{tool}: unrecognized RDF format `{other}`; accepted: {ACCEPTED_RDF_FORMATS}"
                 ),
-            }));
+            )));
         }
     };
     Ok(token)
@@ -6668,12 +6657,10 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
 /// query that resolves to no bundled GMEOW term.
 #[cfg(feature = "core")]
 fn unknown_term_err(term: &str) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-        message: format!(
-            "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+    gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+        "unknown term `{term}`: does not resolve to a bundled GMEOW term \
              (expected a CURIE, local name, IRI, or label)"
-        ),
-    })
+    )))
 }
 
 /// The shared cross-namespace-collision hard fail: a bare local name that exactly
@@ -6788,40 +6775,40 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
         };
         match &carried {
             Some((existing, _)) if *existing != subject => {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!(
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    format!(
                         "coherence_certificate: the bundle carries more than one distinct \
                          coherence subject in {graph} ({existing} and {subject}); an ambiguous \
                          coherence artifact set is a hard failure"
                     ),
-                }));
+                )));
             }
             // The SAME subject typed BOTH logic:CoherenceCertificate and
             // logic:CoherenceCheckAttestation is ambiguous — a hard fail, never a
             // silent first-wins pick of whichever `rdf:type` triple the dataset's
             // quad order happened to surface first.
             Some((_, existing_class)) if *existing_class != class_local => {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!(
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    format!(
                         "coherence_certificate: coherence subject {subject} is typed BOTH \
                          logic:CoherenceCertificate and logic:CoherenceCheckAttestation in \
                          {graph}; an ambiguously-typed coherence artifact is a hard failure"
                     ),
-                }));
+                )));
             }
             Some(_) => {}
             None => carried = Some((subject, class_local)),
         }
     }
     let Some((subject, class_local)) = carried else {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "coherence_certificate: the bundle carries no coherence certificate or \
                  attestation in {graph} (no logic:CoherenceCertificate / \
                  logic:CoherenceCheckAttestation subject); the bundle is missing its \
                  pipeline-time coherence proof — refusing to recompute"
             ),
-        }));
+        )));
     };
 
     // 2. Gather the scoped payload off the subject's quads.
@@ -6922,12 +6909,10 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
     //    silently launder that corruption past the caller (no-silent-degradation, `.goals`).
     //    Each hard-fail names the missing predicate so the caller can act on it.
     let missing = |field: &str| -> gmeow_errors::Diag {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
-                "coherence_certificate: coherence subject {subject} carries no logic:{field} \
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+            "coherence_certificate: coherence subject {subject} carries no logic:{field} \
                  (malformed coherence artifact)"
-            ),
-        })
+        )))
     };
     // bundle_hash / axiom_hashes are the load-bearing tamper surface. `axiomHash` rides
     // per-axiom-bearing-graph (`per_graph_axiom_hashes`), which hashes EVERY named graph in
@@ -7009,12 +6994,11 @@ fn object_term_n3(
     let term = match kind {
         "iri" => {
             if datatype.is_some() {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message:
-                        "explain_quad: object_datatype is only valid for object_kind=literal, \
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    "explain_quad: object_datatype is only valid for object_kind=literal, \
                               not an IRI object"
-                            .to_owned(),
-                }));
+                        .to_owned(),
+                )));
             }
             TermValue::iri(value)
         }
@@ -7023,11 +7007,9 @@ fn object_term_n3(
             None => TermValue::simple_literal(value),
         },
         other => {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "explain_quad: object_kind must be `iri` or `literal`, got `{other}`"
-                ),
-            }));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!("explain_quad: object_kind must be `iri` or `literal`, got `{other}`"),
+            )));
         }
     };
     Ok(term_display(&term))
@@ -7096,13 +7078,13 @@ fn locate_explain_target(
         .map(|(index, _)| index)
         .collect();
     if matches.is_empty() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "explain_quad: quad not in closure — reifier <{target_reifier}> matches no \
                  derived or asserted quad in the reasoned bundle (check the (subject, predicate, \
                  object) surface and the max_steps budget)"
             ),
-        }));
+        )));
     }
     // The distinct worlds the reifier appears in (sorted, for a deterministic message).
     let worlds: BTreeSet<&str> = matches
@@ -7117,15 +7099,13 @@ fn locate_explain_target(
         .collect();
 
     let ambiguity = || {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
-                "explain_quad: ambiguous quad — reifier <{target_reifier}> matches quads in {} \
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+            "explain_quad: ambiguous quad — reifier <{target_reifier}> matches quads in {} \
                  distinct worlds ({}); the supplied graph <{graph}> does not resolve it to \
                  exactly one row. Re-issue with graph set to the intended world.",
-                worlds.len(),
-                worlds.iter().copied().collect::<Vec<_>>().join(", ")
-            ),
-        })
+            worlds.len(),
+            worlds.iter().copied().collect::<Vec<_>>().join(", ")
+        )))
     };
 
     match in_world.len() {
@@ -7135,12 +7115,12 @@ fn locate_explain_target(
                 Err(ambiguity())
             } else {
                 let other = worlds.iter().next().copied().unwrap_or_default();
-                Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!(
+                Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                    format!(
                         "explain_quad: quad not in closure — reifier <{target_reifier}> matches a \
                          quad in world <{other}>, not the supplied graph <{graph}>"
                     ),
-                }))
+                )))
             }
         }
         // The requested world carries the reifier on several rows. If the reifier ALSO
@@ -7162,14 +7142,14 @@ fn locate_explain_target(
 #[cfg(feature = "core")]
 fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
     if gmn.len() > MAX_VALIDATE_DATA_BYTES {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "{tool}: gmn payload is {} bytes, exceeding the {} byte ceiling; split the \
                  document (no silent truncation)",
                 gmn.len(),
                 MAX_VALIDATE_DATA_BYTES
             ),
-        }));
+        )));
     }
     Ok(())
 }
@@ -7350,9 +7330,9 @@ fn base64_value(ch: u8) -> Option<u32> {
 #[cfg(feature = "core")]
 fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
     let refuse = |detail: String| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{what} is not valid base64: {detail}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+            "{what} is not valid base64: {detail}"
+        )))
     };
     let symbols: Vec<u8> = text
         .bytes()
@@ -7405,9 +7385,7 @@ fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
 /// Rejects a missing or non-string value with the native MCP diagnostic.
 pub fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
     optional_str(args, key).ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} is required"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!("{key} is required")))
     })
 }
 
@@ -7422,9 +7400,9 @@ pub fn optional_str_checked<'a>(
     match args.get(key) {
         None => Ok(None),
         Some(Value::String(value)) => Ok(Some(value.as_str())),
-        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} must be a string when supplied"),
-        })),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("{key} must be a string when supplied"),
+        ))),
     }
 }
 
@@ -7442,29 +7420,29 @@ fn required_file_map(
     key: &str,
 ) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
     let Some(value) = args.get(key) else {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "{tool}: missing required argument `{key}` (a JSON object mapping each \
                  slice-relative path to that file's text)"
             ),
-        }));
+        )));
     };
     let Some(object) = value.as_object() else {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "{tool}: argument `{key}` must be a JSON object mapping each slice-relative \
                  path to that file's text"
             ),
-        }));
+        )));
     };
     let mut files = BTreeMap::new();
     for (path, contents) in object {
         let Some(text) = contents.as_str() else {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                format!(
                     "{tool}: argument `{key}` entry `{path}` must be a string (the file's text)"
                 ),
-            }));
+            )));
         };
         files.insert(path.clone(), text.as_bytes().to_vec());
     }
@@ -7483,13 +7461,13 @@ fn optional_f64(args: &Value, key: &str) -> gmeow_errors::Result<Option<f64>> {
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
         Some(Value::Number(n)) => n.as_f64().map(Some).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("{key} must be a finite number"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "{key} must be a finite number"
+            )))
         }),
-        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} must be a number"),
-        })),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("{key} must be a number"),
+        ))),
     }
 }
 
@@ -7498,19 +7476,19 @@ fn optional_limit(args: &Value, key: &str) -> gmeow_errors::Result<Option<usize>
         None | Some(Value::Null) => Ok(None),
         Some(Value::Number(n)) => {
             let value = n.as_i64().ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("{key} must be an integer"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "{key} must be an integer"
+                )))
             })?;
             usize::try_from(value).map(Some).map_err(|_| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("{key} must be non-negative"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "{key} must be non-negative"
+                )))
             })
         }
-        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} must be an integer"),
-        })),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("{key} must be an integer"),
+        ))),
     }
 }
 
@@ -7521,19 +7499,19 @@ fn optional_step_count(args: &Value, key: &str) -> gmeow_errors::Result<Option<u
         None | Some(Value::Null) => Ok(None),
         Some(Value::Number(n)) => {
             let value = n.as_i64().ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("{key} must be an integer"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "{key} must be an integer"
+                )))
             })?;
             u64::try_from(value).map(Some).map_err(|_| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("{key} must be non-negative"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                    "{key} must be non-negative"
+                )))
             })
         }
-        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} must be an integer"),
-        })),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("{key} must be an integer"),
+        ))),
     }
 }
 
@@ -7544,9 +7522,9 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
         Some(Value::Bool(value)) => Ok(Some(*value)),
-        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("{key} must be a boolean"),
-        })),
+        Some(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("{key} must be a boolean"),
+        ))),
     }
 }
 
@@ -7710,9 +7688,7 @@ fn execute_memory_txn(
         CommitMode::Committed
     };
     execute_transaction_dataset(&dataset, TXN_WORLD, TXN_ROOT, mode).map_err(|error| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: error.message().to_owned(),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(error.message().to_owned()))
     })
 }
 
@@ -8042,9 +8018,10 @@ fn build_nt_segment(
             continue;
         }
         let malformed = |what: &str| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("conjecture projection line {} bad {what}", lineno + 1),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+                "conjecture projection line {} bad {what}",
+                lineno + 1
+            )))
         };
         // Delegate N-Triples lexing of THIS single statement to purrdf, one line at a time,
         // in DOCUMENT order. A whole-body parse cannot be used here: purrdf's dataset freeze
@@ -8232,22 +8209,22 @@ fn read_library(
     let mut sink = ConjectureSegments::default();
     let result = purrdf::gts::reader::read_to_sink(&bytes, true, None, &mut sink);
     if let Some(diag) = sink.diagnostic.take() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("conjecture library read diagnostic: {diag}"),
-        }));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("conjecture library read diagnostic: {diag}"),
+        )));
     }
     if let Some(first) = result.diagnostics.first() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "conjecture library read diagnostic: {}: {}",
                 first.code, first.detail
             ),
-        }));
+        )));
     }
     if let Some(offset) = result.torn {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!("conjecture library has a torn trailing item at byte {offset}"),
-        }));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!("conjecture library has a torn trailing item at byte {offset}"),
+        )));
     }
 
     let conjecture_iri = format!("{LOGIC_NAMESPACE}Conjecture");
@@ -8528,7 +8505,7 @@ pub fn extract_authoring_packets(
     axis: Option<&str>,
     batch: Option<u64>,
 ) -> gmeow_errors::Result<Value> {
-    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
+    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp::new(message));
     let packet_prefix = format!("{slice_iri}/authoring-packet/");
     let source_slice_p = format!("{GMEOW_NS}packetSourceSlice");
     let grounding_p = format!("{GMEOW_NS}packetGrounding");

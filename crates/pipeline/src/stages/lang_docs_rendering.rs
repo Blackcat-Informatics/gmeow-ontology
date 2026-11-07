@@ -126,6 +126,7 @@ pub fn build_corpus_from_sources(
         // silent lossy repair that would corrupt the surface text it carries.
         let text = std::str::from_utf8(&source.content).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!(
                     "lang-docs-rendering: translation catalog '{}' is not valid UTF-8: {e}",

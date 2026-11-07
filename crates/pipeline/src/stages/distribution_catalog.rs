@@ -926,6 +926,7 @@ fn emit_capability_laws(lines: &mut Vec<String>) -> Result<(), gmeow_errors::Dia
         let antecedent =
             emit_law_side(lines, &law, "premise", implication.premise).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "the Duquenne-Guigues basis yielded a law with an EMPTY premise \
                      (conclusion [{}]); an antecedent-free implication cannot be represented \
@@ -940,6 +941,7 @@ fn emit_capability_laws(lines: &mut Vec<String>) -> Result<(), gmeow_errors::Dia
         let consequent = emit_law_side(lines, &law, "conclusion", implication.conclusion)
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "the Duquenne-Guigues law with premise [{}] has an EMPTY conclusion, which \
                      contradicts its premise being pseudo-closed",

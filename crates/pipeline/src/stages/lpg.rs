@@ -55,6 +55,7 @@ const STATEMENTS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/state
 
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-export-lpg".into(),
         message: message.into(),
     })

@@ -48,6 +48,7 @@ impl AdmittedProjection<'_> {
             .with_ctx(|| format!("execute required projection {}", self.program.program.id))?;
         if !matches!(result, SparqlResult::Graph(_)) {
             return Err(Diag::of_kind(crate::error::Projection {
+                cause: None,
                 message: format!(
                     "{}: forward projection did not return a graph",
                     self.program.program.id
@@ -62,7 +63,7 @@ impl PreparedProjectionProfile {
     pub fn from_bundle(bytes: &[u8], profile: &str) -> gmeow_errors::Result<Self> {
         prepared_from_bundle(bytes, &[profile])
             .with_ctx(|| format!("prepare required installed projection {profile:?} from {profile}.projection.json"))?.into_iter().next()
-            .ok_or_else(|| Diag::of_kind(crate::error::Projection { message: format!("selected projection {profile:?} lost its required typed product") }))
+            .ok_or_else(|| Diag::of_kind(crate::error::Projection::new(format!("selected projection {profile:?} lost its required typed product"))))
     }
 
     pub fn prepare(
@@ -115,6 +116,7 @@ impl PreparedProjectionProfile {
             } = result
             else {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "{}: native input check did not return SELECT solutions",
                         check.id
@@ -129,6 +131,7 @@ impl PreparedProjectionProfile {
                 .collect();
             let [column] = columns.as_slice() else {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "{}: required source variable ?{variable} is absent or ambiguous",
                         check.id
@@ -143,6 +146,7 @@ impl PreparedProjectionProfile {
                 .collect();
             let [subject_column] = subjects.as_slice() else {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "{}: required source subject ?{subject_variable} is absent or ambiguous",
                         check.source_mapping
@@ -152,6 +156,7 @@ impl PreparedProjectionProfile {
             for (row_index, row) in rows.iter().enumerate() {
                 if row.len() != variables.len() {
                     return Err(Diag::of_kind(crate::error::Projection {
+                        cause: None,
                         message: format!("{}: malformed native SELECT row {row_index}", check.id),
                     }));
                 }
@@ -165,6 +170,7 @@ impl PreparedProjectionProfile {
                     let subject = diagnostic_term(row[*subject_column].as_ref())?;
                     let value = diagnostic_term(row[*column].as_ref())?;
                     return Err(Diag::of_kind(crate::error::Projection {
+                        cause: None,
                         message: format!(
                             "profile {} mapping <{}> binding <{}>: subject {} <{}> value {} for ?{} in row {} must be a complete RDF literal; IRI, blank, quoted and unbound values are refused before projection",
                             self.program.payload.profile,
@@ -180,13 +186,13 @@ impl PreparedProjectionProfile {
                 };
                 purrdf::RdfLiteral::validate_components(datatype, language.as_deref(), *direction)
                     .map_err(|why| {
-                        Diag::of_kind(crate::error::Projection {
-                            message: format!(
+                        Diag::of_kind(crate::error::Projection::caused_by(
+                            format!(
                                 "{}: malformed native RDF literal in row {row_index}: {why}",
                                 check.id
                             ),
-                        })
-                        .with_source(why)
+                            why,
+                        ))
                     })?;
             }
         }
@@ -204,6 +210,7 @@ fn diagnostic_term(value: Option<&TermValue>) -> gmeow_errors::Result<String> {
             .map(|term| term.to_string())
             .map_err(|why| {
                 Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!("malformed native matched term: {why}"),
                 })
             }),
@@ -240,6 +247,7 @@ pub fn programs_from_archive(
                 .collect();
             let [(_, bytes)] = matches.as_slice() else {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!(
                         "selected projection {profile:?} requires exactly one {filename} product"
                     ),
@@ -248,6 +256,7 @@ pub fn programs_from_archive(
             let program = ProjectionProfileProgram::from_bytes(bytes, catalog)?;
             if program.payload.profile != *profile {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!("{filename}: product declares a different profile"),
                 }));
             }
@@ -303,6 +312,7 @@ pub fn programs_from_required_archive(
             let program = ProjectionProfileProgram::from_bytes(bytes, catalog)?;
             if program.payload.profile != *profile {
                 return Err(Diag::of_kind(crate::error::Projection {
+                    cause: None,
                     message: format!("{path}: product declares a different profile"),
                 }));
             }

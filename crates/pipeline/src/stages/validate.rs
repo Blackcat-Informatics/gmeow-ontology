@@ -373,6 +373,7 @@ fn substrate_abox_from_source_load(
 ) -> Result<Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let product = upstream.get("stage-source-load").ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-validate".to_owned(),
             message: "missing stage-source-load product for the substrate A-Box".to_owned(),
         })
@@ -537,6 +538,7 @@ impl Stage for ValidateStage {
             .get(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH)
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: "missing required constraint-shapes product".to_owned(),
                 })
@@ -644,6 +646,7 @@ impl ValidateStage {
             .get("stage-source-load")
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: "missing stage-source-load product for the source-span table"
                         .to_owned(),
@@ -707,6 +710,7 @@ impl ValidateStage {
         // upstream is an incomplete build, not licence for a weaker abductive pass.
         let reason_product = input.upstream.get("stage-reason").ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: "missing stage-reason product — the D5 abductive tier requires the \
                           reasoned closure (asserted OR entailed), never the authored graph alone"
@@ -718,6 +722,7 @@ impl ValidateStage {
             .handle(GRAPH_REASONING)
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: format!(
                         "stage-reason product carries no typed Reasoning handle at \
@@ -727,6 +732,7 @@ impl ValidateStage {
             })?;
         let PipelineHandle::Reasoning(reasoning) = &reasoning_entry.payload else {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: format!("the handle at <{GRAPH_REASONING}> is not the Reasoning arm"),
             }));
@@ -780,6 +786,7 @@ impl ValidateStage {
         let meta = crate::stages::meta_findings::MetaProgram::from_compiled_theory(&theory)
             .map_err(|message| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: self.id().to_owned(),
                     message: format!("diagnostic meta-fold: {message}"),
                 })

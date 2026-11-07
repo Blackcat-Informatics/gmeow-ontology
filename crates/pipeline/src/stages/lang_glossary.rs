@@ -183,6 +183,7 @@ fn build_entries_from_sources(
         // never a silent lossy repair.
         let text = std::str::from_utf8(&source.content).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!(
                     "lang-glossary: translation catalog '{}' is not valid UTF-8: {e}",
@@ -622,6 +623,7 @@ fn vartrans_fanout_ttl(entries: &[Entry]) -> Result<Vec<u8>, gmeow_errors::Diag>
     .map(String::into_bytes)
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-export-glossary".to_string(),
             message: format!("canonicalize {GLOSSARY_VARTRANS_PATH}: {e}"),
         })

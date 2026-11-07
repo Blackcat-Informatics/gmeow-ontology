@@ -29,9 +29,7 @@ use super::{Formula, SEP, Term};
 /// Build an IR-grade [`Diag`] (the sole first-party error type — the Phase-6 Diag substrate)
 /// for a malformed procedural constraint.
 fn ir_err(detail: impl Into<String>) -> Diag {
-    Diag::of_kind(crate::error::Ir {
-        detail: detail.into(),
-    })
+    Diag::of_kind(crate::error::Ir::new(detail.into()))
 }
 
 /// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
@@ -534,7 +532,10 @@ impl ConstraintIr {
             return Err(ir_err("ConstraintIr.iri must be a non-empty IRI string"));
         }
         super::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
-            ir_err(format!("ConstraintIr.messages: {detail}")).with_source(detail)
+            Diag::of_kind(crate::error::Ir::caused_by(
+                format!("ConstraintIr.messages: {detail}"),
+                detail,
+            ))
         })?;
         let target = target_from_integrity(&integrity)?;
         Ok(Self {

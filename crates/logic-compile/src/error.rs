@@ -36,6 +36,7 @@ macro_rules! compile_grade {
 }
 
 define_diag_kind! {
+    native_cause;
     /// An intermediate-representation constructor rejected its arguments: an
     /// empty term name/IRI, a non-IRI relation that would break first-orderness,
     /// or any other well-formedness precondition on the AST nodes.
@@ -46,6 +47,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A validation-shape constructor or the shape normalizer rejected its input:
     /// a malformed constraint, an empty required field, or a normalization that
     /// could not close.
@@ -121,6 +123,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// The correspondence frontend/reader failed: a malformed correspondence node,
     /// an absent caveat/binding, or a typed-relation lookup that did not resolve.
     pub struct Correspondence { detail: String }
@@ -156,6 +159,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// The RDF-carrier frontend failed to lower a node into the IR: a malformed
     /// axiom node, or a validation-shape set that could not be derived.
     pub struct Frontend { detail: String }
@@ -238,6 +242,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// The relational-core projection/parse failed: an axiom/rule that could not
     /// be lowered, or an RDF term that could not be read into a core term.
     pub struct RelationalCore { detail: String }

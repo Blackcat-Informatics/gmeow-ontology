@@ -8,9 +8,9 @@ use purrdf::{BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, Ter
 use super::{LOGIC_NAMESPACE, RcTerm};
 
 pub(super) fn error(detail: impl std::fmt::Display) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::RelationalCore {
-        detail: format!("relational-core: {detail}"),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::RelationalCore::new(format!(
+        "relational-core: {detail}"
+    )))
 }
 
 pub(super) fn iri(builder: &mut RdfDatasetBuilder, value: &str) -> gmeow_errors::Result<TermId> {
@@ -31,8 +31,12 @@ fn payload(
         )),
         RcTerm::Literal(value) => {
             let mut value = value.clone();
-            crate::ir::literal_serde::normalize(&mut value)
-                .map_err(|cause| error(cause.to_string()).with_source(cause))?;
+            crate::ir::literal_serde::normalize(&mut value).map_err(|cause| {
+                gmeow_errors::Diag::of_kind(crate::error::RelationalCore::caused_by(
+                    format!("relational-core: {cause}"),
+                    cause,
+                ))
+            })?;
             purrdf::iri::BaseIri::parse(value.datatype_iri()).map_err(error)?;
             Ok(("rcLiteral", builder.intern_literal(value)?))
         }
@@ -131,8 +135,12 @@ pub(super) fn decode(dataset: &RdfDataset, value: TermId) -> gmeow_errors::Resul
             let RdfTerm::Literal(mut value) = dataset.to_owned_term(object) else {
                 return Err(error("rcLiteral requires a native literal"));
             };
-            crate::ir::literal_serde::normalize(&mut value)
-                .map_err(|cause| error(cause.to_string()).with_source(cause))?;
+            crate::ir::literal_serde::normalize(&mut value).map_err(|cause| {
+                gmeow_errors::Diag::of_kind(crate::error::RelationalCore::caused_by(
+                    format!("relational-core: {cause}"),
+                    cause,
+                ))
+            })?;
             Ok(RcTerm::Literal(value))
         }
         ("rcVariable", _) => Ok(RcTerm::Var(text(dataset, object)?.to_owned())),

@@ -65,6 +65,7 @@ pub fn producer_consumes() -> Vec<String> {
 
 fn stage_err(stage: &str, message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: stage.to_owned(),
         message,
     })

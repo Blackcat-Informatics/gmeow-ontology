@@ -400,6 +400,7 @@ pub fn dependency_closure(
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
     if targets.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "<scheduler>".to_string(),
             message: "dependency closure requires at least one target stage".to_string(),
         }));
@@ -414,6 +415,7 @@ pub fn dependency_closure(
         }
         let stage = by_id.get(stage_id.as_str()).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "<scheduler>".to_string(),
                 message: format!("dependency closure names unknown target stage {stage_id}"),
             })
@@ -477,6 +479,7 @@ pub fn run_without(
     {
         if !by_id.contains_key(retained.as_str()) || skip.contains(retained) {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "<scheduler>".to_string(),
                 message: format!(
                     "retained product `{retained}` does not name an executed production stage"
@@ -491,6 +494,7 @@ pub fn run_without(
         for consumed in stage.consumes() {
             if skip.contains(consumed) {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: stage.id().to_string(),
                     message: format!(
                         "cannot omit `{consumed}`: `{}` consumes it, so omitting it would leave a \
@@ -511,6 +515,7 @@ pub fn run_without(
         .build()
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "<scheduler>".to_string(),
                 message: format!("failed to build rayon pool: {e}"),
             })
@@ -553,6 +558,7 @@ pub fn run_without(
         .collect();
     if executed.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "<scheduler>".to_string(),
             message: "selected pipeline executes no stages".to_string(),
         }));
@@ -655,6 +661,7 @@ pub fn run_without(
                     .map(|producer| {
                         let product = products.get(producer).cloned().ok_or_else(|| {
                             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                cause: None,
                                 stage: stage_id.clone(),
                                 message: format!("missing published upstream product {producer}"),
                             })
@@ -699,6 +706,7 @@ pub fn run_without(
                     break;
                 }
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "<scheduler>".to_string(),
                     message: format!(
                         "completion-driven scheduling stalled with ready frontier {:?}",
@@ -709,6 +717,7 @@ pub fn run_without(
 
             let (stage_id, resources, result) = rx.recv().map_err(|error| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "<scheduler>".to_string(),
                     message: format!("scheduler worker channel closed: {error}"),
                 })
@@ -800,6 +809,7 @@ pub fn run_without(
                     }
                     let bytes = run.product.artifact(path).ok_or_else(|| {
                         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            cause: None,
                             stage: selected_stage.clone(),
                             message: format!("required post-run artifact `{path}` is missing"),
                         })
@@ -1013,6 +1023,7 @@ fn exec_stage(
     for dep in stage.consumes() {
         let p = products.get(dep).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.id().to_string(),
                 message: format!("missing upstream product {dep}"),
             })
@@ -1091,6 +1102,7 @@ fn exec_stage(
     for (lock, resource) in locks.iter().zip(&resources) {
         _guards.push(lock.lock().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.id().to_string(),
                 message: format!("resource lock {resource} poisoned: {e}"),
             })
@@ -1318,6 +1330,7 @@ pub(crate) fn verify_attach_drift(
         ] {
             if !inherited.is_empty() {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: stage.id().to_string(),
                     message: format!(
                         "persistent contribution inherits {lane} carrier state from its \
@@ -1492,6 +1505,7 @@ fn action_key_context_from_identities<T: ActionIdentity>(
     for (producer, identity) in upstream {
         if identity.producer_id() != producer {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.id().to_string(),
                 message: format!(
                     "upstream map key {producer} carries identity for {}",
@@ -1504,6 +1518,7 @@ fn action_key_context_from_identities<T: ActionIdentity>(
                 for entity in *selected {
                     let digest = identity.entity_digest(entity)?.ok_or_else(|| {
                         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            cause: None,
                             stage: stage.id().to_string(),
                             message: format!(
                                 "declared input entity <{entity}> is absent from producer \
@@ -1598,6 +1613,7 @@ fn input_file_digests_cached(
         } else {
             let digest = digest_input_file(path).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: stage.id().to_string(),
                     message: format!("declared input file {} could not be read: {e}", rel),
                 })

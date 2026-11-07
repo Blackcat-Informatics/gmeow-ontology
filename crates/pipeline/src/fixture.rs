@@ -141,6 +141,7 @@ pub struct ReusedStageFixtures {
 
 fn fixture_miss(stage_id: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: stage_id.to_string(),
         message: concat!(
             "authenticated corpus fixture is absent; tests are consumers and may not ",
@@ -152,6 +153,7 @@ fn fixture_miss(stage_id: &str) -> gmeow_errors::Diag {
 
 fn fixture_manifest_error(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "test-fixture-manifest".to_string(),
         message: message.into(),
     })
@@ -766,6 +768,7 @@ pub fn prime_stage_fixtures(
     let bound = bind(&spec, &graph, &default_registry())?;
     if stage_ids.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "test-corpus-producer".to_string(),
             message: "fixture producer target set must not be empty".to_string(),
         }));
@@ -776,6 +779,7 @@ pub fn prime_stage_fixtures(
             .find(|stage| stage.id() == *stage_id)
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: (*stage_id).to_string(),
                     message: format!("production DAG does not bind {stage_id}"),
                 })
@@ -784,6 +788,7 @@ pub fn prime_stage_fixtures(
             || stage.cache_policy() != CachePolicy::Persistent
         {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.id().to_string(),
                 message: format!(
                     "cross-process fixture requires stable persistent admission, got {} / {}",
@@ -1012,6 +1017,7 @@ pub fn authenticated_reasoned_gates(
 ) -> gmeow_errors::Result<gmeow_logic::verify::PreparedReasonedGates> {
     let fail = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-conformance".into(),
             message,
         })
@@ -1234,6 +1240,7 @@ pub fn authenticated_artifact(
         .remove(artifact_path)
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage_id.to_string(),
                 message: format!("authenticated stage product carries no artifact {artifact_path}"),
             })

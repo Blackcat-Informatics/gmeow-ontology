@@ -61,11 +61,23 @@ fn owned_exit_refuses_a_poisoned_prefix_with_the_exact_native_cause() {
         .unwrap();
     let quoted = source.intern_triple(subject, predicate, object).unwrap();
     source.push_quad(subject, predicate, quoted, None).unwrap();
-    let unsupported = source.freeze().expect("native quoted provenance value");
+    let dataset = source.freeze().expect("native quoted provenance value");
+    let quad = dataset.quads().next().expect("one quoted provenance row");
+    // The backing dataset is valid; this synthetic provider offers the quoted
+    // term in a forbidden subject slot at the publication boundary.
+    let unsupported = SyntheticFindingView {
+        dataset,
+        checkpoints: Cell::new(0),
+        completion_failure: false,
+        quad_override: Some(QuadIds { s: quad.o, ..quad }),
+    };
     let cause = snapshot
         .add_view(&unsupported)
         .expect_err("unsupported snapshot slot");
-    assert!(matches!(&cause, GtsIngestError::UnrepresentableTerm { .. }));
+    let GtsIngestError::UnrepresentableTerm { position, term } = &cause else {
+        panic!("the quoted subject must retain its native position refusal");
+    };
+    assert_eq!(*position, "quad subject");
     assert_eq!(snapshot.snapshot_payload(), accepted_payload);
 
     let error = publish(snapshot).expect_err("the accepted prefix is not the selected snapshot");
@@ -76,7 +88,15 @@ fn owned_exit_refuses_a_poisoned_prefix_with_the_exact_native_cause() {
     let typed = error
         .downcast_ref::<error::SnapshotAdmission>()
         .expect("typed admission");
-    assert_eq!(typed.cause, cause);
+    let GtsIngestError::UnrepresentableTerm {
+        position: retained_position,
+        term: retained_term,
+    } = &typed.cause
+    else {
+        panic!("publication must preserve the original native position refusal");
+    };
+    assert_eq!(retained_position, position);
+    assert_eq!(retained_term, term);
     assert_eq!(
         gmeow_errors::code::code_str(error.code()),
         error::SnapshotAdmission::CODE
@@ -353,12 +373,14 @@ fn selected_snapshot_medium_cannot_weaken_the_level_contract() {
     }
 }
 
-/// A selected input whose final completion check discovers a missing piece.
-/// The control grades GMEOW's error propagation; it does not exercise a parser,
-/// query engine or upstream format-conformance suite.
-struct IncompleteFinding {
+/// A synthetic provider for a refused row or failed completion checkpoint.
+/// These controls grade GMEOW's publication boundary over a valid backing
+/// dataset, without exercising a parser or upstream format-conformance suite.
+struct SyntheticFindingView {
     dataset: Arc<RdfDataset>,
     checkpoints: Cell<usize>,
+    completion_failure: bool,
+    quad_override: Option<QuadIds<TermId>>,
 }
 
 #[derive(Debug, Clone)]
@@ -372,7 +394,13 @@ impl std::fmt::Display for MissingFindingPartition {
 
 impl std::error::Error for MissingFindingPartition {}
 
-impl DatasetView for IncompleteFinding {
+impl purrdf::error::StructuredError for MissingFindingPartition {
+    fn visit<'error>(&'error self, visitor: &mut dyn purrdf::error::ErrorVisitor<'error>) {
+        visitor.variant("missing-finding-partition");
+    }
+}
+
+impl DatasetView for SyntheticFindingView {
     type Id = TermId;
     type ReadError = MissingFindingPartition;
     type TermGuard<'a> = TermRef<'a, TermId>;
@@ -381,7 +409,8 @@ impl DatasetView for IncompleteFinding {
     fn quads(&self) -> impl Iterator<Item = QuadIds<TermId>> + '_ {
         self.dataset
             .quads()
-            .filter(move |_| self.checkpoints.get() < 2)
+            .filter(move |_| !self.completion_failure || self.checkpoints.get() < 2)
+            .map(move |quad| self.quad_override.unwrap_or(quad))
     }
 
     fn resolve(&self, id: TermId) -> Result<TermRef<'_>, MissingFindingPartition> {
@@ -417,14 +446,14 @@ impl DatasetView for IncompleteFinding {
     }
 }
 
-impl FallibleDatasetView for IncompleteFinding {
+impl FallibleDatasetView for SyntheticFindingView {
     type Error = MissingFindingPartition;
     type Evidence = usize;
 
     fn operation_status(&self) -> ViewOperationStatus<Self::Error, Self::Evidence> {
         let sampled = self.checkpoints.get();
         self.checkpoints.set(sampled + 1);
-        if sampled == 0 {
+        if !self.completion_failure || sampled == 0 {
             ViewOperationStatus::Ready { evidence: sampled }
         } else {
             ViewOperationStatus::Failed {
@@ -437,9 +466,11 @@ impl FallibleDatasetView for IncompleteFinding {
 
 #[test]
 fn native_view_exit_keeps_the_failed_completion_checkpoint() {
-    let source = IncompleteFinding {
+    let source = SyntheticFindingView {
         dataset: native_finding(),
         checkpoints: Cell::new(0),
+        completion_failure: true,
+        quad_override: None,
     };
     // gmeow-test-input: synthetic-only
     let error = view_to_gmeow_gts(&source).expect_err("incomplete selected finding input");
@@ -450,10 +481,11 @@ fn native_view_exit_keeps_the_failed_completion_checkpoint() {
     let typed = error
         .downcast_ref::<error::SnapshotAdmission>()
         .expect("typed admission");
-    assert!(matches!(
-        &typed.cause,
-        GtsIngestError::ViewNotReady { checkpoint: IngestCheckpoint::AfterRows, cause }
-            if cause == "selected finding partition is missing"
-    ));
+    let GtsIngestError::ViewNotReady { checkpoint, cause } = &typed.cause else {
+        panic!("the failed completion checkpoint must retain its native cause");
+    };
+    assert_eq!(*checkpoint, IngestCheckpoint::AfterRows);
+    let native: &(dyn std::error::Error + 'static) = &***cause;
+    assert!(native.downcast_ref::<MissingFindingPartition>().is_some());
     assert!(source.checkpoints.get() >= 2);
 }

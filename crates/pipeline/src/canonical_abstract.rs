@@ -34,6 +34,7 @@ pub(crate) struct ProjectedAbstract {
 /// Build a stage-scoped diagnostic for malformed or unreadable projection inputs.
 fn error(detail: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "canonical-abstract".to_owned(),
         message: detail.into(),
     })

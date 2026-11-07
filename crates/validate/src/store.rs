@@ -225,9 +225,9 @@ pub fn dataset_from_paths(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfData
 /// Returns `Err` if the N-Triples fails to parse.
 pub fn dataset_from_nt(data_nt: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
     parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
-        Diag::of_kind(crate::error::Parse {
-            detail: format!("N-Triples parse error: {e}"),
-        })
+        Diag::of_kind(crate::error::Parse::new(format!(
+            "N-Triples parse error: {e}"
+        )))
     })
 }
 
@@ -259,13 +259,16 @@ pub fn dataset_from_gts_graph(
 pub fn parse_validation_shapes(
     text: &str,
 ) -> gmeow_errors::Result<(Arc<RdfDataset>, purrdf::shapes::shapes::Shapes)> {
-    let fail = |detail| Diag::of_kind(crate::error::Parse { detail });
     // One parse yields the dataset and the document prefix map the shapes resolve against.
-    let document = purrdf::shapes::text_ingest::parse_turtle_document(text, None)
-        .map_err(|errors| fail(errors.to_string()).with_source(errors))?;
-    let shapes =
-        purrdf::shapes::shapes::from_dataset_with_prefixes(&document.dataset, &document.prefixes)
-            .map_err(|error| fail(error.to_string()).with_source(error))?;
+    let document =
+        purrdf::shapes::text_ingest::parse_turtle_document(text, None).map_err(|errors| {
+            Diag::of_kind(crate::error::Parse::caused_by(errors.to_string(), errors))
+        })?;
+    let shapes = purrdf::shapes::shapes::from_dataset_with_prefixes(
+        &document.dataset,
+        &document.prefixes,
+    )
+    .map_err(|error| Diag::of_kind(crate::error::Parse::caused_by(error.to_string(), error)))?;
     Ok((document.dataset, shapes))
 }
 

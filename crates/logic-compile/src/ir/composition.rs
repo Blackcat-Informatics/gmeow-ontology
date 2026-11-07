@@ -42,9 +42,9 @@ impl CorrespondenceComposition {
             ("composite", &composite),
         ] {
             purrdf::sparql::NamedNode::new(value.as_str()).map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::Ir {
-                    detail: format!("correspondence composition {name}: {error}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Ir::new(format!(
+                    "correspondence composition {name}: {error}"
+                )))
             })?;
         }
         Ok(Self {
@@ -72,9 +72,9 @@ impl CorrespondenceComposition {
             .chain(probability_independence.iter())
         {
             purrdf::sparql::NamedNode::new(value.as_str()).map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::Ir {
-                    detail: format!("composition axis reference: {error}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Ir::new(format!(
+                    "composition axis reference: {error}"
+                )))
             })?;
         }
         rules.sort();

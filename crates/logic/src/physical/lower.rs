@@ -99,7 +99,7 @@ pub(crate) mod canon {
 /// `logic-compile.ir` diagnostic kind (the IR well-formedness surface), so a lowering
 /// defect surfaces as a typed [`Diag`], never a silent drop or a coercion.
 fn ir_err(detail: String) -> Diag {
-    Diag::of_kind(gmeow_logic_compile::error::Ir { detail })
+    Diag::of_kind(gmeow_logic_compile::error::Ir::new(detail))
 }
 
 /// Mint a bound-variable occurrence at de-Bruijn `distance`/`slot`, HARD-FAILING if either

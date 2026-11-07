@@ -169,6 +169,7 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), gmeow_errors:
     let owl_ntriples = emit_owl(&cells);
     let rdf12 = purrdf::statements::project_owl_to_rdf12(&owl_ntriples).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-statements".to_string(),
             message: format!("OWL → RDF 1.2 projection failed: {e}"),
         })
@@ -596,7 +597,7 @@ impl Stage for StatementsStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let (owl, rdf12) = compile_statements(input.root)?;
         // Carry the RDF 1.2 statement layer as the bundle's frozen dataset (the
-        // contribution `gts_compose` unions over the base graph). Parsing the rdf12
+        // contribution `gts_compose` unions over the base graph). Parsing the `rdf12`
         // Turtle folds the statement layer — `rdf:reifies` triple-term objects become
         // reifier bindings and the reifiers' other triples become annotations — so
         // the side-tables ride in the dataset, not flattened into base quads. The

@@ -1155,6 +1155,7 @@ impl Stage for FailureProbeStage {
         std::thread::sleep(self.delay);
         if self.fail {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id.clone(),
                 message: "intentional synthetic failure".to_string(),
             }));

@@ -48,6 +48,7 @@ pub fn compose(
         .get("stage-source-load")
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-gts-compose".to_string(),
                 message: "missing source_load product".to_string(),
             })
@@ -56,6 +57,7 @@ pub fn compose(
         .clone();
     if base.dataset().quad_count() == 0 {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-gts-compose".to_string(),
             message: "source_load base-graph dataset is empty".to_string(),
         }));
@@ -68,6 +70,7 @@ pub fn compose(
         .get("stage-statements")
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-gts-compose".to_string(),
                 message:
                     "missing stage-statements product (the RDF 1.2 statement layer is required)"
@@ -78,6 +81,7 @@ pub fn compose(
         .clone();
     if statements.dataset().quad_count() == 0 {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-gts-compose".to_string(),
             message: "stage-statements product carries an empty RDF 1.2 statement-layer dataset"
                 .to_string(),
@@ -127,6 +131,7 @@ fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, gmeow_err
     }
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-gts-compose".to_string(),
             message: format!("default-graph projection freeze: {e}"),
         })

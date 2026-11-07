@@ -45,9 +45,7 @@ pub(super) fn owns_kind(kind: &SourceUnitKind) -> bool {
 }
 
 fn error(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Ir {
-        detail: message.into(),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Ir::new(message.into()))
 }
 
 fn add_size(

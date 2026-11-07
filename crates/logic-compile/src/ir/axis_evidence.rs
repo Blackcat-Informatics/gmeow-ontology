@@ -28,9 +28,9 @@ impl AxisEvidence {
             .chain(probability_model.iter())
         {
             purrdf::sparql::NamedNode::new(value.as_str()).map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::Ir {
-                    detail: format!("correspondence axis evidence: {error}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Ir::new(format!(
+                    "correspondence axis evidence: {error}"
+                )))
             })?;
         }
         sources.sort();

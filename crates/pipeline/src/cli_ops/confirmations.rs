@@ -37,6 +37,7 @@ pub fn up_projection_gate_audit(
     for (name, ttl) in corpus_ttls {
         let nt = crate::up_projection_corpus::ttl_to_nt(ttl).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "up-projection-audit".to_string(),
                 message: format!("corpus {name} ttl→nt: {e}"),
             })
@@ -47,6 +48,7 @@ pub fn up_projection_gate_audit(
         crate::up_projection_gates::gate_derived_audit(sssom_texts, projection_ttls, &corpus_nts)
             .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "up-projection-audit".to_string(),
                 message: e.to_string(),
             })
@@ -98,6 +100,7 @@ pub fn compile_mappings(
 pub fn bundle_term_summaries(gts_bytes: &[u8]) -> Result<Vec<TermSummary>, gmeow_errors::Diag> {
     let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "bundle-checks".to_string(),
             message: format!("fold gts snapshot: {e}"),
         })
@@ -154,6 +157,7 @@ pub fn export_views(
 ) -> Result<Vec<String>, gmeow_errors::Diag> {
     let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "export".to_string(),
             message: format!("fold gts snapshot: {e}"),
         })
@@ -173,6 +177,7 @@ pub fn export_views(
         crate::stages::export::render_all_with_languages(&dataset, &langs, &modeled_defs)?;
     std::fs::create_dir_all(out_dir).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "export".to_string(),
             message: format!("cannot create {}: {e}", out_dir.display()),
         })
@@ -181,6 +186,7 @@ pub fn export_views(
     for (dist_path, bytes) in &artifacts {
         let name = Path::new(dist_path).file_name().ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "export".to_string(),
                 message: format!("export artifact {dist_path:?} has no file name"),
             })
@@ -188,6 +194,7 @@ pub fn export_views(
         let dest = out_dir.join(name);
         std::fs::write(&dest, bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "export".to_string(),
                 message: format!("cannot write {}: {e}", dest.display()),
             })
@@ -215,6 +222,7 @@ pub fn canonicalize_turtle(
     let canonical =
         purrdf::turtle_normalize::canonical_turtle(bytes, extra_prefixes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "normalize".to_string(),
                 message: format!("canonical turtle failed: {e}"),
             })

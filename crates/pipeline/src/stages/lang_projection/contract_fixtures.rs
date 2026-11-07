@@ -184,6 +184,7 @@ fn decode_native<T: purrdf_lex::json::record::FromJson>(
 
 fn fail(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: STAGE.to_owned(),
         message: message.into(),
     })
