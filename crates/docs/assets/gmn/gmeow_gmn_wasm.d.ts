@@ -17,7 +17,8 @@ export function from_gmn1(gmn1_text: string): string;
  *
  * # Errors
  *
- * Throws if the embedded codebook cannot be read.
+ * Throws if an admitted glyph lacks its required pinned token cost. Invalid
+ * embedded native tables hard-fail as a build-integrity violation.
  */
 export function glyph_legend(): string;
 

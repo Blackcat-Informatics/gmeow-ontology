@@ -25,6 +25,9 @@ mod selection_tests;
 
 type FixtureResult<T> = gmeow_errors::Result<T>;
 
+const WASM_CODEBOOK_MANIFEST_RELATIVE_PATH: &str =
+    ".cache/gmeow-sync/wasm-codebook-manifest-v2.json";
+
 fn fail(detail: impl std::fmt::Display) -> Diag {
     crate::error::sync(detail)
 }
@@ -58,6 +61,11 @@ impl TestFixtureScope {
     }
 }
 
+/// Dispatch the selected fixture operation and return its CLI exit status.
+///
+/// Verification reads existing selected evidence; production explicitly prepares
+/// the requested scope. Browser codebook operations use their separate selector.
+/// A failed operation reports its diagnostic and returns a nonzero status.
 pub(crate) fn run(
     mode: TestFixtureMode,
     scope: TestFixtureScope,
@@ -69,9 +77,7 @@ pub(crate) fn run(
     if scope == TestFixtureScope::WasmCodebook {
         let result = match mode {
             TestFixtureMode::Verify => verify_wasm_codebook(&root),
-            TestFixtureMode::Produce => Err(fail(
-                "wasm-codebook is a read-only selector; the explicit pipeline producer emits its artifact",
-            )),
+            TestFixtureMode::Produce => produce_wasm_codebook(&root, timings_path),
         };
         return result.map_or_else(
             |error| crate::dev_common::fail(format!("wasm codebook: {error}")),
@@ -128,6 +134,10 @@ pub(crate) fn run_slice_spec_worker(
     }
 }
 
+/// Require both explicit bundle-import inputs for the selected fixture scope.
+///
+/// # Errors
+/// Rejects an absent cache root or expected source digest without deriving either.
 fn require_bundle_args<'a>(
     scope: TestFixtureScope,
     bundle_cache_root: Option<&'a Path>,
@@ -148,14 +158,12 @@ fn require_bundle_args<'a>(
     Ok((cache_root, digest))
 }
 
+/// Require the embedding to match its authenticated action and pinned source identity.
 fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
     use gmeow_lang_bridge::gmn1_codec::native;
     use std::io::Read as _;
     let path = native::GENERATED_PATH;
-    gmeow_pipeline::fixture::verify_stage_fixtures(root, &["stage-mappings"])?;
-    let expected =
-        gmeow_action_cache::selection::source_artifacts::load(root, "stage-mappings", path)
-            .map_err(fail)?;
+    let expected = gmeow_pipeline::fixture::wasm_codebook_fixture(root)?;
     let mut actual = Vec::new();
     std::fs::File::open(root.join(path))
         .map_err(fail)?
@@ -177,6 +185,46 @@ fn verify_wasm_codebook(root: &Path) -> FixtureResult<()> {
     Ok(())
 }
 
+/// Produce the one authenticated embedding needed before browser assets can be rebuilt.
+fn produce_wasm_codebook(root: &Path, timings_path: Option<&Path>) -> FixtureResult<()> {
+    use gmeow_lang_bridge::gmn1_codec::native;
+    let started = Instant::now();
+    let jobs = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let (selection, codebook) =
+        gmeow_pipeline::fixture::prepare_wasm_codebook_fixtures(root, jobs)?;
+    native::decode(&codebook, native::SOURCE_BLAKE3)?;
+    let prepared = prepare_wasm_codebook_selector(root, selection)?;
+    if let Some(path) = timings_path {
+        write_json_atomic(
+            path,
+            &Object::new()
+                .with("schema_version", 1)
+                .with("scope", TestFixtureScope::WasmCodebook.name())
+                .with("elapsed_ms", started.elapsed().as_millis())
+                .with("codebook_bytes", codebook.len())
+                .with("manifest_sha256", prepared.sha256.clone())
+                .into(),
+        )
+        .map_err(fail)?;
+    }
+    write_bytes_atomic(&root.join(native::GENERATED_PATH), &codebook).map_err(fail)?;
+    let finalized = prepared.publish()?;
+    println!(
+        "native wasm codebook produced: artifact={} bytes={} selector={} sha256={}",
+        native::GENERATED_PATH,
+        codebook.len(),
+        finalized.path.display(),
+        finalized.sha256,
+    );
+    Ok(())
+}
+
+/// Read the existing bundle only when its content digest matches the selection.
+///
+/// # Errors
+/// Propagates a read failure or rejects a digest mismatch; never produces a bundle.
 fn selected_bundle(root: &Path, expected: &str) -> FixtureResult<Vec<u8>> {
     let path = root.join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&path)
@@ -740,6 +788,27 @@ fn prepare_fixture_selector_fields(
     fields: BTreeMap<&str, Value>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
+    prepare_fixture_selector_at_path(path, stage_selection, fields)
+}
+
+/// Publish bootstrap credentials independently of every full-fixture selection.
+fn prepare_wasm_codebook_selector(
+    root: &Path,
+    stage_selection: Value,
+) -> FixtureResult<PreparedFixtureSelector> {
+    prepare_fixture_selector_at_path(
+        root.join(WASM_CODEBOOK_MANIFEST_RELATIVE_PATH),
+        Some(stage_selection),
+        BTreeMap::new(),
+    )
+}
+
+/// Encode one explicit destination without discovering or merging other selectors.
+fn prepare_fixture_selector_at_path(
+    path: std::path::PathBuf,
+    stage_selection: Option<Value>,
+    fields: BTreeMap<&str, Value>,
+) -> FixtureResult<PreparedFixtureSelector> {
     let mut value = match stage_selection {
         Some(value) => value,
         None => {

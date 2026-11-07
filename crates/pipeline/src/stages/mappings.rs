@@ -50,7 +50,7 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{GRAPH_LOGIC, PROJECTION_REPORT_PATH};
 use crate::stages::correspondence_lower;
 
-mod native_codebook;
+pub(crate) mod native_codebook;
 
 /// Directory (logical-path prefix) of the SSSOM TSV sets.
 pub const SSSOM_DIR: &str = "generated/mappings";
@@ -160,13 +160,19 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     compile_mappings_with_sources(root, &sources)
 }
 
+/// Compile mapping projections from the supplied original sources.
+///
+/// Catalog admission and source-policy checks remain mandatory for the selected
+/// projections. The separate native-codebook stage owns its final artifact.
+///
+/// # Errors
+/// Propagates source, catalog, policy, lowering and serialization failures.
 fn compile_mappings_with_sources(
     root: &Path,
     sources: &crate::stages::parse_sources::SourceCatalog,
 ) -> Result<CompiledMappings, gmeow_errors::Diag> {
     let vocab = gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    native_codebook::emit(sources, &mut artifacts)?;
     correspondence_lower::record_worked_envelope(sources, &mut artifacts)?;
 
     // Discover the slice catalog ONCE, here, and share the single in-memory instance across
@@ -345,7 +351,8 @@ fn compile_mappings_with_sources(
     // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This
     // reads `aligned` before its dialect maps are moved out below. HARD-fails on any refuted
     // law (AC2) — an executed round-trip that does not hold is a real overclaim.
-    let correspondence_laws_corpus = discharge_correspondence_laws(&aligned)?;
+    let discharged_program = discharge_correspondence_laws(&aligned)?;
+    let correspondence_laws_corpus = project_correspondence(&discharged_program)?.into_bytes();
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
@@ -554,7 +561,9 @@ fn compile_mappings_with_sources(
     );
 
     Ok(CompiledMappings {
-        grounding_catalog: aligned.grounding_catalog,
+        grounding_catalog: aligned
+            .grounding_catalog
+            .with_discharged_program(discharged_program)?,
         artifacts,
         ledger,
         loss,
@@ -575,7 +584,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
     )
 }
 
-/// Execute each correspondence's native cell/profile legs and project its law-bearing set.
+/// Execute each correspondence's native cell/profile legs and retain its law-bearing program.
 /// Required profile query files are output artifacts; their unions are not law domains.
 /// Both legs share one admitted preparation, with separate source and edited-view seeds.
 /// A missing put is the declared Unsupported floor. A non-injective rung supplies no
@@ -583,7 +592,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
 /// declared laws fail the stage, and no claim authorizes an unrestricted rewrite.
 fn discharge_correspondence_laws(
     aligned: &correspondence_lower::CorrespondenceArtifacts,
-) -> gmeow_errors::Result<Vec<u8>> {
+) -> gmeow_errors::Result<CorrespondenceProgram> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             cause: None,
@@ -709,14 +718,14 @@ fn discharge_correspondence_laws(
         }
     }
 
-    // Re-project the now-law-bearing correspondence set (reusing the existing
-    // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
+    // Preserve the complete program while extending only its executed law evidence.
     let program = CorrespondenceProgram::new(rebuilt, aligned.correspondences.preservation)
+        .with_compositions(aligned.correspondences.compositions.clone())
         .with_leg_programs(aligned.correspondences.leg_programs.clone())
         .with_native_sources(aligned.correspondences.native_sources.clone())?
         .with_projection_bindings(aligned.correspondences.projection_bindings.clone())?
         .with_projection_profiles(aligned.correspondences.projection_profiles.clone())?;
-    Ok(project_correspondence(&program)?.into_bytes())
+    Ok(program)
 }
 
 /// The A→B authorization set computed straight from `root`: the `gmeow:ProjectionMapping` cell
@@ -756,14 +765,8 @@ pub fn discharged_section_cells_from_root(
             message: format!("correspondence lowering failed: {e}"),
         })
     })?;
-    let corr_laws = discharge_correspondence_laws(&aligned)?;
-    let nt = String::from_utf8(corr_laws).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "stage-mappings".to_string(),
-            message: format!("correspondence-laws graph is not UTF-8: {e}"),
-        })
-    })?;
+    let program = discharge_correspondence_laws(&aligned)?;
+    let nt = project_correspondence(&program)?;
     crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             cause: None,
@@ -1255,44 +1258,29 @@ fn collect_files_recursive(
 /// The `mappings` pipeline stage — complete: all five mapping families (SSSOM +
 /// FnO + EDOAL + SPARQL + standpoint projections) plus the DSL surface-count summary,
 /// and the FINAL projection-report loss ledger (logic rows ∪ correspondence rows).
-pub struct MappingsStage {
-    consumes: Vec<String>,
-}
-
-impl MappingsStage {
-    /// Construct the stage. It consumes the compile-logic product to obtain the logic
-    /// projection rows + report-header counts it unions with the correspondence ledger
-    /// when assembling the final `generated/logic/projection-report.ttl` (plus the
-    /// procedural-constraint surface the shape-grounding ledger re-certifies), and the
-    /// constraint-shapes export leaf for the FOL-constraint surface of the same ledger.
-    pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-constraint-shapes".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_owned(),
-            ],
-        }
-    }
-}
-
-impl Default for MappingsStage {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+#[derive(Default)]
+pub struct MappingsStage;
 
 impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
+    /// Borrow the immutable compiler, constraint and original-source dependencies.
+    /// All instances share these identifiers fixed by the pipeline contract.
     fn consumes(&self) -> &[String] {
         // Reads dsl/mappings + slice mapping cells from the root, the compile-logic
         // product (the logic projection rows + header counts for the FINAL projection
         // report, plus the procedural-constraint surface the shape-grounding ledger
         // re-certifies), AND the constraint-shapes export leaf (the FOL-constraint
         // surface of the same ledger — THIS run's bytes, never a stale disk read).
-        &self.consumes
+        static DEPS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+        DEPS.get_or_init(|| {
+            vec![
+                "stage-compile-logic".to_string(),
+                "stage-export-constraint-shapes".to_string(),
+                crate::stages::parse_sources::STAGE_ID.to_owned(),
+            ]
+        })
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
@@ -1306,18 +1294,20 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "mappings.v24-declared-source-authority"
+        "mappings.v27-admitted-grounding-publication"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
         // tree plus the per-slice mapping cells in the slice modules — none of which
         // any upstream product reflects. The vendored coverage corpus
         // (tests/fixtures/coverage/external/*.ttl) is also a raw source input that
-        // feeds the committed audit ledger. Declare them ALL so any edit busts the
-        // cache. `consumes() == []` (the leaf reads sources, not upstream products).
+        // feeds the committed audit ledger. Declare them ALL so any edit busts the cache.
         let mut files = Vec::new();
         // Module/Example/Mapping roles and their physical owners are manifest-selected authority.
         files.extend(crate::stages::source_load::all_manifest_files(root)?);
+        // Native semantic admission reads every declared slice artifact before
+        // selecting grounding-owner mappings; the typed publication binds that closure.
+        files.extend(gmeow_validate::grounding_catalog::input_files(root)?);
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         // Translation and glossary products consume every registered DSL owner,
         // including owners outside the mapping DSL source tree.
@@ -1552,10 +1542,29 @@ impl Stage for MappingsStage {
             correspondence_laws_graph.as_ref(),
             substrate_sbom_graph.as_ref(),
         ])?);
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            self.id(),
+        let mut bundle = crate::bundle::bundle_from_artifacts_over(
             dataset,
             artifacts,
+            purrdf::provenance::DatasetProvenance::new(),
+        );
+        let graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
+        let pin = bundle.graph_digest(
+            graph,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?;
+        bundle
+            .pin_handle(
+                graph,
+                PipelineHandle::GroundingCatalog(std::sync::Arc::new(compiled.grounding_catalog)),
+                pin,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|error| {
+                crate::error::parse_diag(format!("pin admitted grounding catalog: {error}"))
+            })?;
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            std::sync::Arc::new(bundle),
         )?))
     }
 }

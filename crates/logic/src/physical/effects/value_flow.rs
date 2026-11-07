@@ -119,6 +119,16 @@ impl Domain {
         values.next().is_none().then_some(value)
     }
     fn union_intersection(&mut self, left: &Self, right: &Self) -> bool {
+        debug_assert_eq!(
+            self.0.len(),
+            left.0.len(),
+            "shared value-flow universe width"
+        );
+        debug_assert_eq!(
+            self.0.len(),
+            right.0.len(),
+            "shared value-flow universe width"
+        );
         let mut present = false;
         for ((output, left), right) in self.0.iter_mut().zip(&left.0).zip(&right.0) {
             let intersection = left & right;
@@ -262,6 +272,13 @@ struct HeadSupport {
     opposite: AdaptiveDomain,
 }
 
+impl HeadSupport {
+    /// Allocated vector payload, excluding container overhead and process RSS.
+    fn payload_bytes(&self) -> usize {
+        self.predicates.capacity() * std::mem::size_of::<usize>() + self.opposite.payload_bytes()
+    }
+}
+
 /// One support row, shared by every key whose row holds the same content.
 type Row = std::sync::Arc<AdaptiveDomain>;
 
@@ -269,10 +286,21 @@ type Row = std::sync::Arc<AdaptiveDomain>;
 /// under many keys (the corpus closure holds 2.7M rows of 126,740 distinct
 /// contents), so each distinct content is resident once. A row is never
 /// mutated in place once shared: growth interns the grown content.
+/// Replacement retires unshared displaced content eagerly; the count-based sweep
+/// collects other stale entries, including those whose snapshot owners later end.
 #[derive(Debug, Clone, Default)]
 struct RowTable {
     rows: std::collections::HashSet<InternedRow>,
     live_at_sweep: usize,
+}
+
+/// Allocated row payload only: excludes table/Arc overhead, other domains and RSS.
+#[derive(Debug, Default)]
+struct RowTableFootprint {
+    rows: usize,
+    payload_bytes: usize,
+    stale_rows: usize,
+    stale_payload_bytes: usize,
 }
 
 /// A table entry keyed by the content its row denotes.
@@ -294,6 +322,30 @@ impl std::hash::Hash for InternedRow {
 }
 
 impl RowTable {
+    /// Retire a replaced content only when the table and this displaced owner
+    /// are its sole owners. Other keyed rows and cloned summaries keep it live.
+    fn retire(&mut self, displaced: Row) {
+        if Row::strong_count(&displaced) == 2 {
+            self.rows.remove(&InternedRow(displaced));
+        }
+    }
+
+    /// One scan of allocated table payloads. Stale means the table is the only
+    /// strong owner; references in another summary's table also keep a row live.
+    fn footprint(&self) -> RowTableFootprint {
+        let mut result = RowTableFootprint::default();
+        for row in &self.rows {
+            let bytes = row.0.payload_bytes();
+            result.rows += 1;
+            result.payload_bytes += bytes;
+            if Row::strong_count(&row.0) == 1 {
+                result.stale_rows += 1;
+                result.stale_payload_bytes += bytes;
+            }
+        }
+        result
+    }
+
     /// The resident row for this content, adopting `row` when it is new.
     fn intern(&mut self, row: AdaptiveDomain) -> Row {
         let entry = InternedRow(Row::new(row));
@@ -302,8 +354,8 @@ impl RowTable {
         }
         let shared = Row::clone(&entry.0);
         self.rows.insert(entry);
-        // Superseded contents linger only until the table doubles past its last
-        // live size; a sweep keeps what some row still holds.
+        // Replacements retire their unshared old contents directly. A sweep
+        // collects other stale entries once the table doubles past its last live size.
         if self.rows.len() > 2 * self.live_at_sweep.max(1 << 12) {
             self.rows.retain(|row| Row::strong_count(&row.0) > 1);
             self.live_at_sweep = self.rows.len();
@@ -864,6 +916,14 @@ enum AdaptiveDomain {
 }
 
 impl AdaptiveDomain {
+    /// Allocated backing payload only; sparse indices use the target's usize width.
+    fn payload_bytes(&self) -> usize {
+        match self {
+            Self::Dense(domain) => domain.0.capacity() * std::mem::size_of::<u64>(),
+            Self::Sparse { values, .. } => values.capacity() * std::mem::size_of::<usize>(),
+        }
+    }
+
     fn empty(size: usize) -> Self {
         Self::Sparse {
             size,
@@ -969,13 +1029,7 @@ impl AdaptiveDomain {
 
     fn intersect_union_into(&self, filter: &Domain, output: &mut Domain) -> bool {
         match self {
-            Self::Dense(domain) => {
-                let mut intersection = domain.clone();
-                intersection.intersect(filter);
-                let present = !intersection.is_empty();
-                output.union(&intersection);
-                present
-            }
+            Self::Dense(domain) => output.union_intersection(domain, filter),
             Self::Sparse { values, .. } => {
                 let mut present = false;
                 for &value in values {
@@ -1129,10 +1183,7 @@ impl RelationSummary {
             if !rectangle[side].overlaps(values) {
                 continue;
             }
-            let mut contribution = rectangle[1 - side].clone();
-            contribution.intersect(filter);
-            if !contribution.is_empty() {
-                output.union(&contribution);
+            if output.union_intersection(&rectangle[1 - side], filter) {
                 present.union_intersection(&rectangle[side], values);
             }
         }
@@ -1178,7 +1229,68 @@ pub(crate) struct FlowSummary {
     rows: RowTable,
 }
 
+/// Domain backing capacities only, without inspecting any stored bitset words.
+#[derive(Debug, Default)]
+struct DomainFootprint {
+    sparse: usize,
+    dense: usize,
+    payload_bytes: usize,
+}
+
+impl DomainFootprint {
+    fn include(&mut self, domain: &AdaptiveDomain) {
+        match domain {
+            AdaptiveDomain::Sparse { .. } => self.sparse += 1,
+            AdaptiveDomain::Dense(_) => self.dense += 1,
+        }
+        self.payload_bytes += domain.payload_bytes();
+    }
+}
+
+/// Backing payload and exact entry counts. Bytes exclude allocator slack, map
+/// nodes, Arc bookkeeping, container headers and RSS. Row payload may be shared
+/// with other summaries, so separate summary totals must not be added blindly.
+#[derive(Debug, Default)]
+struct FlowSummaryFootprint {
+    relations: usize,
+    columns: DomainFootprint,
+    subject_predicate_index: DomainFootprint,
+    object_predicate_index: DomainFootprint,
+    subject_support_keys: usize,
+    object_support_keys: usize,
+    rectangles: usize,
+    rectangle_payload_bytes: usize,
+    table: RowTableFootprint,
+}
+
 impl FlowSummary {
+    /// Scan map entries and backing capacities, never domain members or bits.
+    fn footprint(&self) -> FlowSummaryFootprint {
+        let mut result = FlowSummaryFootprint {
+            relations: self.relations.len(),
+            table: self.rows.footprint(),
+            ..FlowSummaryFootprint::default()
+        };
+        for relation in self.relations.values() {
+            for column in &relation.columns {
+                result.columns.include(column);
+            }
+            result.subject_support_keys += relation.by_subject.len();
+            result.object_support_keys += relation.by_object.len();
+            result.rectangles += relation.rectangles.len();
+            for side in relation.rectangles.iter().flatten() {
+                result.rectangle_payload_bytes += side.0.capacity() * std::mem::size_of::<u64>();
+            }
+        }
+        for domain in self.predicates_by_subject.values() {
+            result.subject_predicate_index.include(domain);
+        }
+        for domain in self.predicates_by_object.values() {
+            result.object_predicate_index.include(domain);
+        }
+        result
+    }
+
     /// Trace the resident footprint of a large closed summary: support rows by
     /// representation, how many hold distinct content, and the heaviest relation.
     /// Share every row with each other row of equal content. Source rows are
@@ -1512,7 +1624,7 @@ impl FlowSummary {
         let shared = self.rows.intern(grown);
         match row {
             std::collections::btree_map::Entry::Occupied(mut row) => {
-                row.insert(shared);
+                self.rows.retire(row.insert(shared));
             }
             std::collections::btree_map::Entry::Vacant(row) => {
                 row.insert(shared);
@@ -2695,6 +2807,7 @@ impl ValueFlow {
                 .collect();
             let started = crate::timing::Instant::now();
             if candidates.len() >= 1_000 {
+                let footprint = std::cell::LazyCell::new(|| state.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2706,6 +2819,12 @@ impl ValueFlow {
                     producer = rule.name.as_str(),
                     variables = rule.variables,
                     body_atoms = rule.body.len(),
+                    relations = footprint.relations,
+                    table_rows = footprint.table.rows,
+                    table_payload_bytes = footprint.table.payload_bytes,
+                    table_stale_rows = footprint.table.stale_rows,
+                    table_stale_payload_bytes = footprint.table.stale_payload_bytes,
+                    state_backing = ?*footprint,
                     "large native value-flow refinement",
                 );
             }
@@ -2722,19 +2841,125 @@ impl ValueFlow {
                 // dynamic readers, so a later fixed-point visit sees support added
                 // by sibling candidates.
                 let partitioned = crate::timing::Instant::now();
+                let trace_large = candidates.len() >= 1_000;
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-classes",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        universe_cells = self.universe.size(),
+                        domain_bytes = self.universe.size().div_ceil(64) * std::mem::size_of::<u64>(),
+                        "native head refinement subphase",
+                    );
+                }
                 let classes = self.value_classes(rule, state, bindings, &candidates);
                 classes_evaluated = classes.len();
                 timings[0] = partitioned.elapsed().as_millis();
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-classes",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        classes = classes.len(),
+                        universe_cells = self.universe.size(),
+                        domain_bytes = self.universe.size().div_ceil(64) * std::mem::size_of::<u64>(),
+                        elapsed_ms = timings[0],
+                        "native head refinement subphase",
+                    );
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-evaluate",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        classes = classes.len(),
+                        "native head refinement subphase",
+                    );
+                }
                 let evaluated = crate::timing::Instant::now();
                 let mut supports = Vec::with_capacity(classes.len());
-                for batch in classes.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
+                for (batch_index, batch) in classes
+                    .chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE)
+                    .enumerate()
+                {
                     supports.par_extend(batch.par_iter().map(|members| {
                         let refinement = self
                             .bindings_for_head_value(rule, head, slot, members[0], state, bindings);
                         self.head_value_support(head, slot, refinement)
                     }));
+                    if trace_large && (batch_index + 1).is_power_of_two() {
+                        // Field evaluation is lazy when tracing is disabled. Geometric
+                        // checkpoints scan only retained result headers, never row contents.
+                        let payload = std::cell::LazyCell::new(|| {
+                            supports
+                                .iter()
+                                .flatten()
+                                .map(HeadSupport::payload_bytes)
+                                .sum::<usize>()
+                        });
+                        tracing::info!(
+                            target: "pipeline_reasoning_detail",
+                            phase = "refine-head-evaluate",
+                            event = "progress",
+                            slot,
+                            rule_index,
+                            visit,
+                            producer = rule.name.as_str(),
+                            processed_batches = batch_index + 1,
+                            processed_classes = supports.len(),
+                            classes = classes.len(),
+                            retained_support_payload_bytes = *payload,
+                            elapsed_ms = evaluated.elapsed().as_millis(),
+                            "native head refinement vector payload excludes overhead and RSS",
+                        );
+                    }
                 }
                 timings[1] = evaluated.elapsed().as_millis();
+                if trace_large {
+                    let payload = std::cell::LazyCell::new(|| {
+                        supports
+                            .iter()
+                            .flatten()
+                            .map(HeadSupport::payload_bytes)
+                            .sum::<usize>()
+                    });
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-evaluate",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        classes = classes.len(),
+                        retained_support_payload_bytes = *payload,
+                        elapsed_ms = timings[1],
+                        "native head refinement vector payload excludes overhead and RSS",
+                    );
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-publish",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        "native head refinement subphase",
+                    );
+                }
                 let published = crate::timing::Instant::now();
                 let mut publications: Vec<(usize, usize)> = classes
                     .iter()
@@ -2764,6 +2989,20 @@ impl ValueFlow {
                     );
                 }
                 timings[2] = published.elapsed().as_millis();
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-publish",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        elapsed_ms = timings[2],
+                        "native head refinement subphase",
+                    );
+                }
             } else {
                 for value in candidates.iter().copied() {
                     let refinement =
@@ -2783,9 +3022,10 @@ impl ValueFlow {
                 }
             }
             if candidates.len() >= 1_000 {
-                // Field expressions run only for an enabled event. The three
-                // fields share one scan, and a disabled event performs none.
+                // Enabled fields share each footprint scan; a disabled event
+                // evaluates neither aggregate.
                 let support = std::cell::LazyCell::new(|| state.support_bytes());
+                let footprint = std::cell::LazyCell::new(|| state.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2799,6 +3039,12 @@ impl ValueFlow {
                     logical_support_mb = support.0 >> 20,
                     resident_support_mb = support.1 >> 20,
                     resident_dense_rows = support.2,
+                    relations = footprint.relations,
+                    table_rows = footprint.table.rows,
+                    table_payload_bytes = footprint.table.payload_bytes,
+                    table_stale_rows = footprint.table.stale_rows,
+                    table_stale_payload_bytes = footprint.table.stale_payload_bytes,
+                    state_backing = ?*footprint,
                     transposed_dense_mb = transposed_dense_bytes >> 20,
                     rule_index,
                     visit,
@@ -3069,6 +3315,20 @@ impl ValueFlow {
         partition_min_candidates: usize,
     ) -> (FlowSummary, Vec<Option<RuleRefinement>>) {
         let mut state = input.clone();
+        {
+            // The clone may trim Vec capacities. Neither header scan runs for a
+            // disabled event, and these borrows end before closure mutates state.
+            let input_backing = std::cell::LazyCell::new(|| input.footprint());
+            let working_backing = std::cell::LazyCell::new(|| state.footprint());
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "refine-closure-backing",
+                event = "start",
+                input_backing = ?*input_backing,
+                working_backing = ?*working_backing,
+                "value-flow backing payload excludes allocator, nodes, Arc, headers and RSS",
+            );
+        }
         let mut readers: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
         let mut dynamic_readers = BTreeSet::new();
         for (index, (rule, enabled)) in self.rules.iter().zip(enabled).enumerate() {

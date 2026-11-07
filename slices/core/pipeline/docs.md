@@ -19,6 +19,13 @@ validates the graph, binds each stage to its Rust implementation, and runs it si
 source-load → (statements, mappings) → reason → gts-compose → {docs-render + export leaves} → gts-sink
 ```
 
+Browser preparation selects `stage-native-codebook` with its sole dependency,
+`stage-parse-sources`. That stage owns the authenticated encoded GMN tables at
+`generated/projections/lang/gmn-codebook.cbor`. The archive stage reads those exact
+bytes directly into the language projection family. Full `stage-mappings` retains
+its complete alignment and substrate-SPDX outputs without copying the codebook
+into its independently cached contribution.
+
 Each `gmeow:PipelineStage` is a `logic:ActionSchema` and declares:
 
 | Property | Meaning |

@@ -68,6 +68,8 @@ pub struct PurrdfResolution {
     pub requirement: String,
     /// The exact resolved release, never a compatibility range.
     pub version: String,
+    /// Exact admitted Git revision; registry selections have no Git revision.
+    pub git_revision: Option<String>,
     /// Complete source identities, uniquely named and sorted by package name.
     pub packages: Vec<PurrdfPackageIdentity>,
 }
@@ -369,6 +371,11 @@ pub fn resolve_purrdf(manifest_path: &Path, lock_path: &Path) -> Result<PurrdfRe
     Ok(PurrdfResolution {
         requirement: requirement.to_string(),
         version: version.clone(),
+        // Source admission above permits only the official registry or the
+        // exact official Git form. Only the latter has a revision fragment.
+        git_revision: source
+            .rsplit_once('#')
+            .map(|(_, revision)| revision.to_owned()),
         packages: packages.into_values().collect(),
     })
 }

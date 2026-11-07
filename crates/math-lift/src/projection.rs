@@ -694,6 +694,9 @@ pub fn project_requests(
             .or_default()
             .extend(emission.ledger.into_bytes());
     }
+    // Completed emissions own their bytes and loss evidence; serialization no
+    // longer needs the full source index.
+    drop(input);
     for (path, bytes) in rdf {
         let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)?;
         let bytes = purrdf::serialize_dataset(

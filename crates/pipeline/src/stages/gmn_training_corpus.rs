@@ -68,6 +68,7 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::Arc;
 
 use gmeow_lang_bridge::{
     Gmn0Model, Gmn1Document, GmnDictionary, GmnOperatorForm, RingLattice, consume_project,
@@ -75,9 +76,9 @@ use gmeow_lang_bridge::{
 };
 use gmeow_logic::goal_directed::evaluate_reasoning_programs;
 use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
-use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
 
 /// The bundle-internal named graph the enumerated + certified corpus (and the recorded
 /// rejections) is folded into. A sibling of `graph/goal-directed`: a queryable projection of a
@@ -226,7 +227,7 @@ fn iri(iri: &str) -> RdfTerm {
     RdfTerm::Iri(iri.to_owned())
 }
 
-/// Enumerate every well-typed candidate up to bounded depth, in a fixed deterministic order,
+/// Visit every well-typed candidate up to bounded depth, in a fixed deterministic order,
 /// then append the deterministic ADVERSARIAL probe set so the rejection filter is exercised
 /// LIVE over the shipped corpus (not merely in a unit test).
 ///
@@ -234,14 +235,17 @@ fn iri(iri: &str) -> RdfTerm {
 ///   single-triple term `x op y`.
 /// * **depth 2** — for each pair of operators `(op1, op2)` and each ORDERED triple of DISTINCT
 ///   atoms `(x, y, z)`, the chained term `{ x op1 y, y op2 z }` (a two-hop term graph). Bounded
-///   at depth 2 (no deeper nesting) so the corpus is finite and small.
+///   at depth 2 (no deeper nesting), without retaining the complete enumeration.
 ///
 /// Well-typedness is arity-consistent BY CONSTRUCTION (every operator is arity-2, every triple
 /// binary) and RE-CHECKED independently by the typecheck verifier — the enumeration is the
 /// producer, the verifier the rejection filter, never the same code.
-fn enumerate(ctx: &GenContext) -> Vec<Candidate> {
+fn visit_candidates(
+    ctx: &GenContext,
+    mut visit: impl FnMut(usize, Candidate) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<()> {
     let atoms: Vec<String> = ctx.atom_sorts.keys().cloned().collect();
-    let mut out: Vec<Candidate> = Vec::new();
+    let mut index = 0;
     // depth 1
     for op in &ctx.operators {
         for x in &atoms {
@@ -249,9 +253,13 @@ fn enumerate(ctx: &GenContext) -> Vec<Candidate> {
                 if x == y {
                     continue;
                 }
-                out.push(Candidate {
-                    triples: vec![(iri(x), op.term_iri.clone(), iri(y))],
-                });
+                visit(
+                    index,
+                    Candidate {
+                        triples: vec![(iri(x), op.term_iri.clone(), iri(y))],
+                    },
+                )?;
+                index += 1;
             }
         }
     }
@@ -264,19 +272,26 @@ fn enumerate(ctx: &GenContext) -> Vec<Candidate> {
                         if x == y || y == z || x == z {
                             continue;
                         }
-                        out.push(Candidate {
-                            triples: vec![
-                                (iri(x), op1.term_iri.clone(), iri(y)),
-                                (iri(y), op2.term_iri.clone(), iri(z)),
-                            ],
-                        });
+                        visit(
+                            index,
+                            Candidate {
+                                triples: vec![
+                                    (iri(x), op1.term_iri.clone(), iri(y)),
+                                    (iri(y), op2.term_iri.clone(), iri(z)),
+                                ],
+                            },
+                        )?;
+                        index += 1;
                     }
                 }
             }
         }
     }
-    out.extend(adversarial_probes(ctx));
-    out
+    for candidate in adversarial_probes(ctx) {
+        visit(index, candidate)?;
+        index += 1;
+    }
+    Ok(())
 }
 
 /// The deterministic ADVERSARIAL probe set: a small, fixed batch of DELIBERATELY ill-formed
@@ -556,29 +571,83 @@ fn term_bytes(t: &RdfTerm) -> String {
 
 // ── Corpus assembly (the certificate graph) ────────────────────────────────────────────
 
+/// One native builder; each temporary quad is released after checked ingestion.
+struct CorpusWriter {
+    builder: RdfDatasetBuilder,
+    emitted_quads: usize,
+}
+
+impl CorpusWriter {
+    fn push(&mut self, quad: RdfQuad) -> gmeow_errors::Result<()> {
+        self.builder.push_owned_quad(&quad)?;
+        self.emitted_quads += 1;
+        Ok(())
+    }
+}
+
 /// Build the corpus named graph: iterate the enumerated candidates in order, rejection-sample
 /// each, and emit — for a KEPT pair — a `gmeow:GmnTrainingExample` carrying task/input/target,
 /// the five verdicts, the discharged proof-obligation derivation IRI, and the version quad;
 /// for a REJECTED candidate — a `gmeow:GmnRejectedCandidate` carrying its typed reason. Returns
-/// the quads (all in [`GRAPH_GMN_TRAINING_CORPUS`]) plus the kept/rejected counts.
-fn build_corpus(ctx: &GenContext) -> gmeow_errors::Result<(Vec<RdfQuad>, usize, usize)> {
+/// the frozen graph plus the kept/rejected counts. Checked ingestion is interleaved
+/// with sampling: it may fail before a later sample would have failed. Every failure
+/// drops the private builder and returns no partial product.
+fn build_corpus(ctx: &GenContext) -> gmeow_errors::Result<(Arc<RdfDataset>, usize, usize)> {
+    const STAGE: &str = "stage-gmn-training-corpus";
     let schema_version = resolved_schema_version(&ctx.dict);
-    let mut quads: Vec<RdfQuad> = Vec::new();
+    let mut writer = CorpusWriter {
+        builder: RdfDatasetBuilder::new(),
+        emitted_quads: 0,
+    };
     let mut kept = 0usize;
     let mut rejected = 0usize;
-    for (index, candidate) in enumerate(ctx).into_iter().enumerate() {
-        match sample(&candidate, ctx)? {
-            Outcome::Kept(cert) => {
-                emit_kept(&mut quads, index, &cert, &schema_version);
-                kept += 1;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = STAGE,
+        phase = "gmn-build-corpus",
+        operators = ctx.operators.len(),
+        base_atoms = ctx.atom_sorts.len(),
+        "native GMN corpus signature counts",
+    );
+    measure_stage_phase(STAGE, "gmn-build-corpus", || {
+        visit_candidates(ctx, |index, candidate| {
+            match sample(&candidate, ctx)? {
+                Outcome::Kept(cert) => {
+                    emit_kept(&mut writer, index, &cert, &schema_version)?;
+                    kept += 1;
+                }
+                Outcome::Rejected(reason) => {
+                    emit_rejected(&mut writer, index, &reason)?;
+                    rejected += 1;
+                }
             }
-            Outcome::Rejected(reason) => {
-                emit_rejected(&mut quads, index, &reason);
-                rejected += 1;
-            }
-        }
-    }
-    Ok((quads, kept, rejected))
+            Ok(())
+        })
+    })?;
+    let CorpusWriter {
+        builder,
+        emitted_quads,
+    } = writer;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = STAGE,
+        phase = "gmn-build-corpus",
+        candidates = kept + rejected,
+        kept,
+        rejected,
+        emitted_quads,
+        "native GMN corpus emission counts exclude allocator and RSS",
+    );
+    let dataset = measure_stage_phase(STAGE, "gmn-freeze-corpus", || builder.freeze())
+        .map_err(|error| stage_err(format!("freeze corpus dataset: {error}")))?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = STAGE,
+        phase = "gmn-freeze-corpus",
+        unique_quads = dataset.quad_count(),
+        "native GMN corpus frozen quad count",
+    );
+    Ok((dataset, kept, rejected))
 }
 
 fn iri_quad(subject: &str, predicate: &str, object: &str) -> RdfQuad {
@@ -607,32 +676,37 @@ fn str_quad(subject: &str, predicate: &str, lexical: &str, datatype: Option<&str
 }
 
 /// Emit the acceptance certificate for one kept training pair.
-fn emit_kept(quads: &mut Vec<RdfQuad>, index: usize, cert: &Certificate, schema_version: &str) {
+fn emit_kept(
+    writer: &mut CorpusWriter,
+    index: usize,
+    cert: &Certificate,
+    schema_version: &str,
+) -> gmeow_errors::Result<()> {
     let subject = format!("{EX}example-{index}");
-    quads.push(iri_quad(
+    writer.push(iri_quad(
         &subject,
         RDF_TYPE,
         &format!("{GMEOW}GmnTrainingExample"),
-    ));
+    ))?;
     // task / input / target — the paired training example.
-    quads.push(str_quad(
+    writer.push(str_quad(
         &subject,
         &format!("{GMEOW}gmnTrainingTask"),
         "verbalize",
         None,
-    ));
-    quads.push(str_quad(
+    ))?;
+    writer.push(str_quad(
         &subject,
         &format!("{GMEOW}gmnTrainingInput"),
         &cert.input,
         None,
-    ));
-    quads.push(str_quad(
+    ))?;
+    writer.push(str_quad(
         &subject,
         &format!("{GMEOW}gmnTrainingTarget"),
         &cert.target,
         None,
-    ));
+    ))?;
     // The five verdicts (all true on a kept pair).
     for verdict in [
         "gmnVerdictParsed",
@@ -641,47 +715,53 @@ fn emit_kept(quads: &mut Vec<RdfQuad>, index: usize, cert: &Certificate, schema_
         "gmnVerdictProofObligation",
         "gmnVerdictRingClean",
     ] {
-        quads.push(str_quad(
+        writer.push(str_quad(
             &subject,
             &format!("{GMEOW}{verdict}"),
             "true",
             Some(XSD_BOOLEAN),
-        ));
+        ))?;
     }
     // The discharged proof obligation (the Curry–Howard checked derivation).
-    quads.push(iri_quad(
+    writer.push(iri_quad(
         &subject,
         &format!("{GMEOW}gmnTrainingProofDerivation"),
         &cert.derivation_iri,
-    ));
+    ))?;
     // Version provenance: exactly one gmnSchemaVersion per kept pair.
-    quads.push(str_quad(
+    writer.push(str_quad(
         &subject,
         gmeow_lang_bridge::PRED_GMN_SCHEMA_VERSION,
         schema_version,
         Some("http://www.w3.org/2001/XMLSchema#string"),
-    ));
+    ))?;
+    Ok(())
 }
 
 /// Record one rejected candidate with its TYPED reason (never a silent drop).
-fn emit_rejected(quads: &mut Vec<RdfQuad>, index: usize, reason: &Rejection) {
+fn emit_rejected(
+    writer: &mut CorpusWriter,
+    index: usize,
+    reason: &Rejection,
+) -> gmeow_errors::Result<()> {
     let subject = format!("{EX}rejected-{index}");
-    quads.push(iri_quad(
+    writer.push(iri_quad(
         &subject,
         RDF_TYPE,
         &format!("{GMEOW}GmnRejectedCandidate"),
-    ));
-    quads.push(str_quad(
+    ))?;
+    writer.push(str_quad(
         &subject,
         &format!("{GMEOW}gmnRejectionStage"),
         reason.stage.as_str(),
         None,
-    ));
-    quads.push(iri_quad(
+    ))?;
+    writer.push(iri_quad(
         &subject,
         &format!("{GMEOW}gmnRejectionReason"),
         &reason.failure_class,
-    ));
+    ))?;
+    Ok(())
 }
 
 // ── The stage ──────────────────────────────────────────────────────────────────────────
@@ -735,8 +815,11 @@ impl Stage for GmnTrainingCorpusStage {
         Ok(GROUNDING_MODULES.iter().map(|rel| root.join(rel)).collect())
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let ctx = GenContext::resolve(crate::stages::parse_sources::catalog(&input)?)?;
-        let (quads, kept, _rejected) = build_corpus(&ctx)?;
+        let ctx = measure_stage_phase(self.id(), "gmn-resolve-context", || {
+            GenContext::resolve(crate::stages::parse_sources::catalog(&input)?)
+        })?;
+        let (dataset, kept, _rejected) = build_corpus(&ctx)?;
+        drop(ctx);
         if kept == 0 {
             return Err(stage_err(
                 "the productive functor kept ZERO training pairs — every enumerated well-typed \
@@ -744,17 +827,9 @@ impl Stage for GmnTrainingCorpusStage {
                  or codec/prover regression)",
             ));
         }
-        let mut builder = RdfDatasetBuilder::new();
-        for quad in &quads {
-            builder.push_owned_quad(quad)?;
-        }
-        let dataset = builder
-            .freeze()
-            .map_err(|e| stage_err(format!("freeze corpus dataset: {e}")))?;
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            self.id(),
-            dataset,
-            BTreeMap::new(),
-        )?))
+        let product = measure_stage_phase(self.id(), "gmn-build-product", || {
+            StageProduct::from_artifacts_over(self.id(), dataset, BTreeMap::new())
+        })?;
+        Ok(StageOutput::new(product))
     }
 }

@@ -77,7 +77,7 @@ impl ClassExecutionOutcome {
 
 use super::super::native::NativeFamilyInput;
 use super::super::{NativeObstructionKind, NativeRead, NativeReadKind, NativeSupportedClash};
-use super::{PreparedClassAnalysis, Support, WorldOutcome};
+use super::{PreparedClassAnalysis, Support, WorldOutcome, proof::SourcePool};
 use crate::rule_ir::Fact;
 use std::collections::BTreeSet;
 
@@ -145,6 +145,7 @@ pub(super) struct NativeClassState {
     graph: Option<TermValue>,
     contract: [u8; 32],
     observed_rows: usize,
+    source_pool: SourcePool,
     last: Option<ClassExecutionOutcome>,
 }
 
@@ -166,9 +167,10 @@ fn native_support(
     input: &NativeFamilyInput<'_>,
     ledger: &mut NativeFamilyLedger,
     facts: &[Fact],
+    pool: &mut SourcePool,
 ) -> gmeow_errors::Result<Support> {
     let (ids, sources) = input.support_with_sources(facts, ledger)?;
-    Ok(Support::from_native(sources, ids))
+    Ok(Support::from_native(sources, ids, pool))
 }
 
 fn relevant(predicate: &str) -> bool {
@@ -233,11 +235,19 @@ impl PreparedClassAnalysis {
         {
             return Ok(NativeFamilyCompletion::Obstructed);
         }
+        let mut source_pool = SourcePool::default();
         let world = self
             .scan
             .worlds
             .get_mut(input.world())
             .expect("checked native world");
+        let sources_started = crate::timing::Instant::now();
+        super::trace_class_phase(
+            input.world(),
+            "bind-native-class-source-support",
+            "start",
+            0,
+        );
         for support in world
             .source_premises
             .values_mut()
@@ -245,15 +255,30 @@ impl PreparedClassAnalysis {
             .chain(world.list_premises.values_mut())
             .chain(world.admission_issues.values_mut())
         {
+            source_pool.seed(support);
             let facts: Vec<_> = support.rows().iter().map(source_fact).collect();
-            *support = native_support(input, ledger, &facts)?;
+            *support = native_support(input, ledger, &facts, &mut source_pool)?;
         }
+        super::trace_class_phase(
+            input.world(),
+            "bind-native-class-source-support",
+            "end",
+            sources_started.elapsed().as_millis(),
+        );
+        let derived_started = crate::timing::Instant::now();
+        super::trace_class_phase(
+            input.world(),
+            "ingest-native-class-derived-schema",
+            "start",
+            0,
+        );
         let mut schema_changed = false;
         for fact in input.store.facts().iter().skip(input.original_row_count()) {
             if !relevant(&super::semantic_predicate(&fact.predicate)) {
                 continue;
             }
-            let support = native_support(input, ledger, std::slice::from_ref(fact))?;
+            let support =
+                native_support(input, ledger, std::slice::from_ref(fact), &mut source_pool)?;
             self.scan.ingest(
                 super::supported_quad(&fact.subject, &fact.predicate, &fact.object, input.graph())?,
                 support,
@@ -270,8 +295,27 @@ impl PreparedClassAnalysis {
                             || super::CONSISTENT_BLOCKING_TYPE_OBJECTS.contains(&marker)
                     }));
         }
+        super::trace_class_phase(
+            input.world(),
+            "ingest-native-class-derived-schema",
+            "end",
+            derived_started.elapsed().as_millis(),
+        );
         if schema_changed {
+            let schema_started = crate::timing::Instant::now();
+            super::trace_class_phase(
+                input.world(),
+                "prepare-native-class-derived-schema",
+                "start",
+                0,
+            );
             self.scan.prepare_schema();
+            super::trace_class_phase(
+                input.world(),
+                "prepare-native-class-derived-schema",
+                "end",
+                schema_started.elapsed().as_millis(),
+            );
         }
         if self
             .scan
@@ -286,6 +330,7 @@ impl PreparedClassAnalysis {
             graph: input.graph().cloned(),
             contract: *input.input_contract(),
             observed_rows: input.store.row_count(),
+            source_pool,
             last: None,
         });
         Ok(NativeFamilyCompletion::Complete)
@@ -338,7 +383,12 @@ impl PreparedClassAnalysis {
                     "a class schema writer committed after its completed preparation frontier",
                 ));
             }
-            let support = native_support(input, ledger, std::slice::from_ref(fact))?;
+            let support = native_support(
+                input,
+                ledger,
+                std::slice::from_ref(fact),
+                &mut native.source_pool,
+            )?;
             self.scan.ingest(
                 super::supported_quad(&fact.subject, &fact.predicate, &fact.object, input.graph())?,
                 support,

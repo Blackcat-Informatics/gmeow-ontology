@@ -1873,10 +1873,10 @@ fn validate_help_matches_the_phase_coverage_registry() {
 fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
     let recipe = target_recipe(&makefile(), "maint-medium-sweep");
     assert!(
-        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
-            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
+        recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
+            && !recipe.contains("medium-seed")
             && !recipe.contains("cargo run"),
-        "both bootstrap and measured production must use the authenticated producer"
+        "measured production must use the authenticated producer without a bootstrap seed"
     );
     assert!(
         !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")

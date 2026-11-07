@@ -36,6 +36,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 use crate::bundle::PipelineHandle;
 use crate::node::{
     CachePolicy, ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct, StageRunTiming,
+    measure_stage_phase,
 };
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
@@ -172,6 +173,11 @@ pub fn reason_over_dataset(
         "stage phase boundary",
     );
     let input = prepare_reasoning_input(canon.as_ref())?;
+    // Prepared input owns its canonical terms. Release the temporary dataset
+    // and reclaim free allocator pages before consuming reasoning starts. The
+    // original EDB remains available for authored expression projections.
+    drop(canon);
+    crate::scheduler::reclaim_allocator_slack();
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -228,7 +234,9 @@ fn reason_prepared_input(
     let native = result.native_execution()?;
     // Admit the exact committed native minting heads and their world-local proof;
     // certificate findings cite those heads, including subject-only value nulls.
-    let witness_projections = resolve_witness_projections(&native.witness_derivations, &result)?;
+    let witness_projections = measure_stage_phase("stage-reason", "project-witnesses", || {
+        resolve_witness_projections(&native.witness_derivations, &result)
+    })?;
     let mut world_reifiers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for projection in &witness_projections {
         world_reifiers
@@ -277,30 +285,41 @@ fn reason_prepared_input(
     // in-process reasoned graph). Serializing it here is what puts the joinable α-class node
     // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
     // file — instead of only inside a gate process.
-    let alpha_edges = gmeow_logic::math_expression::alpha_equivalence_edges(edb);
+    let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
+        gmeow_logic::math_expression::alpha_equivalence_edges(edb)
+    });
     // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
     let mut builder = RdfDatasetBuilder::new();
-    let closure =
-        build_inferred_closure_into(&result, &alpha_edges, &mut builder).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                cause: None,
-                stage: "stage-reason".to_string(),
-                message: format!("closure serialization failed: {e}"),
-            })
-        })?;
-    let explanations = build_explanations_ttl(&result).map_err(|e| {
+    let closure = measure_stage_phase("stage-reason", "project-inferred-closure", || {
+        build_inferred_closure_into(&result, &alpha_edges, &mut builder)
+    })
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: "stage-reason".to_string(),
+            message: format!("closure serialization failed: {e}"),
+        })
+    })?;
+    let explanations = measure_stage_phase("stage-reason", "project-explanations", || {
+        build_explanations_ttl(&result)
+    })
+    .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             cause: None,
             stage: "stage-reason".to_string(),
             message: format!("explanations serialization failed: {e}"),
         })
     })?;
-    let ledger = build_dl_el_ledger_ttl(&result)?;
+    let ledger = measure_stage_phase("stage-reason", "project-dl-el-ledger", || {
+        build_dl_el_ledger_ttl(&result)
+    })?;
     // The performance ledger is canonical static content (a property of the native
     // physical engine's lever staging, not of this run's data), so it is byte-stable
     // run to run regardless of the reasoned result.
     let perf = perf_ledger().to_turtle();
-    let dataset = reason_dataset(builder, &result, &chase_report, &witness_projections)?;
+    let dataset = measure_stage_phase("stage-reason", "project-reason-dataset", || {
+        reason_dataset(builder, &result, &chase_report, &witness_projections)
+    })?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",

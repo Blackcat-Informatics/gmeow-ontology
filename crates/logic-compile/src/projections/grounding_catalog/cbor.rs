@@ -7,7 +7,37 @@ use std::io::{self, Write};
 
 use purrdf_lex::cbor::head;
 
-use super::{GroundingSourceIdentity, LiteralProjectionSupport, PropertyPremise};
+use super::{GroundingCatalog, GroundingSourceIdentity, LiteralProjectionSupport, PropertyPremise};
+
+impl GroundingCatalog {
+    /// Commit the complete admitted program, property values and physical-source authority.
+    /// This payload identity is broader than the selected native catalog identity.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure without reporting partial success.
+    pub fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+        head::write_head(out, head::ARRAY, 5)?;
+        head::write_text(out, "grounding-catalog-v1")?;
+        self.program.write_cbor(out)?;
+        head::write_head(out, head::ARRAY, self.properties.len() as u64)?;
+        for ((subject, predicate), values) in &self.properties {
+            head::write_head(out, head::ARRAY, 3)?;
+            head::write_text(out, subject)?;
+            head::write_text(out, predicate)?;
+            head::write_head(out, head::ARRAY, values.values.len() as u64)?;
+            for value in &values.values {
+                crate::term_serde::write_cbor(value, out)?;
+            }
+        }
+        head::write_head(out, head::MAP, self.authority_cells.len() as u64)?;
+        for (iri, commitment) in &self.authority_cells {
+            head::write_text(out, iri)?;
+            head::write_text(out, commitment)?;
+        }
+        head::write_text(out, &self.identity)?;
+        Ok(())
+    }
+}
 
 impl GroundingSourceIdentity {
     /// Retain the complete physical source identity in declaration order.

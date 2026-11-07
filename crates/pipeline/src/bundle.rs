@@ -81,6 +81,9 @@ pub enum PipelineHandle {
     /// Typed correspondences and their evidence, pinned to the
     /// `graph/correspondence` projection.
     Correspondence(Arc<CorrespondenceProgram>),
+    /// Final law-bearing correspondences and admitted property/source authority,
+    /// pinned to mappings' `graph/correspondence-laws` projection.
+    GroundingCatalog(Arc<gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog>),
 }
 
 /// The compiler-owned input to mappings' final projection report.
@@ -123,7 +126,8 @@ impl PipelineHandle {
             | Self::Diagnostics(_)
             | Self::Reasoning(_)
             | Self::RelationalCore(_)
-            | Self::Correspondence(_) => None,
+            | Self::Correspondence(_)
+            | Self::GroundingCatalog(_) => None,
         }
     }
 }

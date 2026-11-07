@@ -8,6 +8,7 @@ use std::io::Write as _;
 
 use gmeow_action_cache::ActionReceipt;
 use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId, parse_dataset};
 
 fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
@@ -604,9 +605,9 @@ fn cached_compiled_logic_rejects_report_metadata_and_loss_tampering() {
     }
 }
 
-/// Missing or noncanonical byte envelopes cannot hydrate a report publication.
+/// Missing or noncanonical byte envelopes cannot hydrate a native publication.
 #[test]
-fn compiled_logic_codec_refuses_missing_truncated_and_trailing_payloads() {
+fn native_publication_codecs_refuse_missing_truncated_and_trailing_payloads() {
     #[derive(Serialize)]
     struct ProgramOnly<'a> {
         program: &'a LogicProgram,
@@ -627,6 +628,46 @@ fn compiled_logic_codec_refuses_missing_truncated_and_trailing_payloads() {
     assert!(rebuild_handle("compiled-logic", Some(&bytes[..bytes.len() - 1])).is_err());
     bytes.push(0);
     assert!(rebuild_handle("compiled-logic", Some(&bytes)).is_err());
+
+    let program = crate::stages::compile_logic::synthetic_affine_program();
+    let ontology = parse_dataset(b"", "text/turtle", None).unwrap();
+    let catalog = GroundingCatalog::from_program(
+        program,
+        &gmeow_logic_compile::ingest::DslView::new(&ontology),
+        &[],
+    )
+    .unwrap();
+    let mut malformed = catalog.program().clone();
+    malformed.correspondences[0].source_endpoint = Some("urn:malformed:source".to_owned());
+    malformed.correspondences[0].target_endpoint = None;
+    // Bincode records use positional fields. Forge a complete envelope so native
+    // admission, rather than a truncated-record failure, must refuse the half-pair.
+    let malformed = bincode::serialize(&(
+        malformed,
+        BTreeMap::<(String, String), Vec<String>>::new(),
+        BTreeMap::<String, String>::new(),
+        catalog.identity(),
+    ))
+    .unwrap();
+    let error = rebuild_handle("grounding-catalog", Some(&malformed))
+        .expect_err("incomplete endpoints must refuse before content-key computation");
+    assert!(
+        error
+            .to_string()
+            .contains("endpoints must be present together")
+    );
+    let handle = PipelineHandle::GroundingCatalog(Arc::new(catalog));
+    let mut bytes = encode_handle(&handle).unwrap();
+    assert!(rebuild_handle("grounding-catalog", None).is_err());
+    assert!(rebuild_handle("grounding-catalog", Some(&bytes[..bytes.len() - 1])).is_err());
+    bytes.push(0);
+    assert!(rebuild_handle("grounding-catalog", Some(&bytes)).is_err());
+    bytes.truncate(bytes.len() - 1);
+    *bytes.last_mut().unwrap() ^= 1;
+    assert!(
+        rebuild_handle("grounding-catalog", Some(&bytes)).is_err(),
+        "derived native catalog identity must authenticate its payload"
+    );
 }
 
 fn canon_hex(ds: &purrdf::RdfDataset) -> String {
@@ -2354,43 +2395,57 @@ fn correspondence_bundle() -> (
 }
 
 #[test]
-fn cached_correspondence_refuses_to_publish_a_changed_standpoint() {
-    let dir = tempfile::tempdir().unwrap();
-    let cache = PipelineCache::open(dir.path()).unwrap();
-    let (mut bundle, mut program) = correspondence_bundle();
-    let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
-    let backing_digest = bundle
-        .graph_digest(
-            graph_iri,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )
-        .unwrap();
-    program.correspondences[0].according_to = Some("https://example.org/other-observer".into());
-    bundle
-        .pin_handle(
-            graph_iri,
-            PipelineHandle::Correspondence(Arc::new(program)),
-            backing_digest,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )
-        .expect("graph bytes still match; the cache must also admit the semantic payload");
-    let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
-        .expect("the stage carrier digests");
-    let context = test_context("stage-compile-logic", "changed-correspondence-standpoint");
-    let error = cache
-        .put(
-            &context,
-            "stable",
-            "persistent",
-            &full_selection(&product),
-            &product,
-        )
-        .expect_err("a different standpoint must be refused before cache publication");
-    assert!(error.is::<crate::error::Decode>(), "{error}");
-    assert!(
-        cache.get(&context).unwrap().is_none(),
-        "no invalid action receipt may be published"
-    );
+fn cached_correspondence_publications_refuse_a_changed_standpoint() {
+    for grounding in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let (mut bundle, mut program) = correspondence_bundle();
+        let graph_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+        let backing_digest = bundle
+            .graph_digest(
+                graph_iri,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .unwrap();
+        program.correspondences[0].according_to = Some("https://example.org/other-observer".into());
+        let handle = if grounding {
+            let ontology = parse_dataset(b"", "text/turtle", None).unwrap();
+            let catalog = GroundingCatalog::from_program(
+                program,
+                &gmeow_logic_compile::ingest::DslView::new(&ontology),
+                &[],
+            )
+            .unwrap();
+            PipelineHandle::GroundingCatalog(Arc::new(catalog))
+        } else {
+            PipelineHandle::Correspondence(Arc::new(program))
+        };
+        bundle
+            .pin_handle(
+                graph_iri,
+                handle,
+                backing_digest,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .expect("graph bytes still match; the cache must also admit the semantic payload");
+        let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+            .expect("the stage carrier digests");
+        let context = test_context("stage-compile-logic", "changed-correspondence-standpoint");
+        let error = cache
+            .put(
+                &context,
+                "stable",
+                "persistent",
+                &full_selection(&product),
+                &product,
+            )
+            .expect_err("a different standpoint must be refused before cache publication");
+        assert!(error.is::<crate::error::Decode>(), "{error}");
+        assert!(
+            cache.get(&context).unwrap().is_none(),
+            "no invalid action receipt may be published"
+        );
+    }
 }
 
 /// Complete correspondence payloads and their governed graph pins survive

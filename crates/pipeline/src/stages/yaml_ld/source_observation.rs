@@ -9,6 +9,11 @@ use std::path::Path;
 pub(crate) const SOURCE: &str = "slices/core/standpoint/examples/claim-bullshit.yamlld";
 pub(crate) const CHANNEL: &str = "pipeline/yaml-ld-statement-observation.purrpack";
 
+/// Convert the authored example and retain its native packet as producer evidence.
+///
+/// # Errors
+/// Propagates source reads, statement conversion, dataset admission and finite-policy
+/// canonicalization failures; publishes the observation only after encoding succeeds.
 pub(crate) fn record(
     root: &Path,
     artifacts: &mut BTreeMap<String, Vec<u8>>,
@@ -22,8 +27,10 @@ pub(crate) fn record(
     };
     let bytes = std::fs::read(root.join(SOURCE))
         .map_err(|error| fail(format!("read {SOURCE}: {error}")))?;
-    let nquads = super::yaml_ld_star_to_gmeow_statement_metadata_nquads(&bytes)?;
-    let native = super::dataset_from_nquads(nquads.as_bytes())?;
+    let nquads = super::yaml_ld_star_to_gmeow_statement_metadata_nquads(&bytes)
+        .map_err(|error| error.with_context(SOURCE))?;
+    let native = super::dataset_from_nquads(nquads.as_bytes())
+        .map_err(|error| error.with_context(SOURCE))?;
     let pack = purrdf::PackBuilder::build_bytes(
         &native,
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),

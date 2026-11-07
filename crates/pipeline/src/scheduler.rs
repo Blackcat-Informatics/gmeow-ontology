@@ -58,30 +58,28 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
     )
 }
 
-/// Return allocator slack from completed DAG waves before the one terminal constructs
-/// its whole-carrier wire value.
+/// Return wholly free allocator pages at an explicit pipeline phase handoff.
 ///
-/// Dropping a carrier makes its allocations unreachable, but glibc may retain their
-/// pages in process arenas. A cold run can otherwise carry mapping/dictionary arena
-/// slack into a large canonical payload construction and cross the 16-GiB runner boundary
-/// even though the live Rust values fit. `malloc_trim` is thread-safe; calls occur while
-/// the declarative serialization permit excludes every other carrier-scale serializer.
-/// Other cheap stages may still be active at a permit handoff, which is safe under that
-/// process-wide MT-Safe contract. It is only a reclamation hint and cannot change a
-/// product, cache key, or stage order. Allocators without this interface keep the
+/// Dropping phase-local owners makes their allocations unreachable, but glibc may
+/// retain their pages in process arenas. Callers use this after canonical input
+/// preparation and at declared serialization-resource handoffs. The GNU hint scans
+/// all arenas for whole free pages; fragmented free bytes may remain resident.
+/// `malloc_trim` is MT-Safe, including when sibling stages still allocate, although
+/// its arena locks and reclamation work can contend with them. It cannot change a
+/// product, cache key, or stage order. Allocators without this interface retain
 /// ordinary drop behavior.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-fn reclaim_allocator_slack_before_serialization() {
+pub(crate) fn reclaim_allocator_slack() {
     // SAFETY: glibc documents `malloc_trim` as MT-Safe. The argument merely requests
-    // release of every wholly free top-level heap page; no Rust allocation is exposed or
-    // accessed through the call.
+    // release of whole free pages in all arenas; no live Rust allocation is exposed
+    // or accessed. Returning zero is a valid result when no pages can be returned.
     unsafe {
         libc::malloc_trim(0);
     }
 }
 
 #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
-fn reclaim_allocator_slack_before_serialization() {}
+pub(crate) fn reclaim_allocator_slack() {}
 
 /// What the scheduler does with a stage's carrier once its LAST declared carrier
 /// consumer has run.
@@ -1115,7 +1113,7 @@ fn exec_stage(
     // is live. This scales with the declared resource, never a fixed thread cap or stage
     // name list.
     if resources.contains(&SERIALIZATION_BUFFER_RESOURCE) {
-        reclaim_allocator_slack_before_serialization();
+        reclaim_allocator_slack();
     }
     let out = stage.run(input)?;
     drop(_guards);

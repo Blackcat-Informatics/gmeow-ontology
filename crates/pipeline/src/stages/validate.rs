@@ -748,6 +748,10 @@ impl ValidateStage {
         ])?);
         let abductive_suggestions =
             gmeow_validate::abductive::abductive_advisories(reasoned_dataset.as_ref());
+        // Suggestions own their evidence; retire the two temporary datasets
+        // before building the diagnostic graphs and persistent stage product.
+        drop(reasoned_dataset);
+        drop(closure_dataset);
         for suggestion in abductive_suggestions {
             let warrant_ref =
                 advisory_ledger.attach(suggestion.warrant, StageId::new("validate.advisory"));

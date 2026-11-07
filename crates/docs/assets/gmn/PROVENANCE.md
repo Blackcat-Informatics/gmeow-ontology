@@ -20,3 +20,11 @@ and the zstd-dictionary transport are NOT here — that notation is still being 
 |------|------|
 | `gmeow_gmn_wasm.js` | wasm-bindgen `--target web` ES-module bindings (exposes `to_gmn1`, `from_gmn1`, `glyph_legend`, `version`). |
 | `gmeow_gmn_wasm_bg.wasm` | The compiled GMN-0↔GMN-1 codec, with the `lang:` glyph/alias codebook embedded. |
+
+## Coordinated refresh
+
+Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
+images and record candidate digests and exact substrate identities. Those records
+alone do not attest runtime parity. After current-bundle witness refresh, ordinary
+PR CI must pass all six Node package lanes and shipped-console acceptance for the
+final commit.

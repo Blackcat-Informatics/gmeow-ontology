@@ -45,6 +45,21 @@ carry `math:Convergence` with its mode (pointwise, uniform, in-measure, …). Sp
 links, and a related OpenMath `transc1` dictionary-page link for the class; they do not supply
 individual OpenMath symbol mappings or analytic evaluation.
 
+The indexed `math:besselJ` and `math:besselY` resources are curried integer-order families: each
+takes an order in `math:integers` and returns a member function. Their codomains are the all-map
+`math:besselJMemberFunctionSpace` and `math:besselYMemberFunctionSpace`, respectively, each a
+`math:FunctionSpace` and `math:SetBuilderExpression` with a realized membership condition and a
+separately bound membership-equivalence law. J members map `math:realNumbers` to `math:realNumbers`;
+Y members map the fully framed open interval `math:besselPositiveRealArguments`, (0,+∞), to
+`math:realNumbers`. The family resources are `math:Function` maps; selected members are
+`math:SpecialFunction` maps. Two applications of `math:functionValueRel` retain the order selection
+and the selected member application as distinct steps. The conditional family-frame laws require
+the member frame for an established integer-order selection and real output membership for an
+established in-domain application. They do not establish existence or uniqueness of selections or
+outputs, uniquely characterize Bessel analytic values, or implement evaluation. Intended totality
+belongs to the existing `math:Function` meaning on each declared domain; the forward implications
+are not proofs of that totality.
+
 GMEOW records typed `math:Series` or `math:Sequence` require a supplied `math:Convergence` record
 linked through `math:hasConvergence`, naming its target and mode. This mandatory frame restricts admitted source records; it does
 not prove that every mathematical sequence or series converges. An unknown or divergent case

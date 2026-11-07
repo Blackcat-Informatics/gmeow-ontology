@@ -33,6 +33,7 @@ pub(crate) fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
         PipelineHandle::Reasoning(_) => "reasoning",
         PipelineHandle::RelationalCore(_) => "relational-core",
         PipelineHandle::Correspondence(_) => "correspondence",
+        PipelineHandle::GroundingCatalog(_) => "grounding-catalog",
     }
 }
 
@@ -123,6 +124,10 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::Correspondence(program) => native_digest(
             |sink| program.write_cbor(sink),
             "native correspondence serialization into an infallible hash sink",
+        ),
+        PipelineHandle::GroundingCatalog(catalog) => native_digest(
+            |sink| catalog.write_cbor(sink),
+            "native grounding catalog serialization into an infallible hash sink",
         ),
     };
     content_digest(&[

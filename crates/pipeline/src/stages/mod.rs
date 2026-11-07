@@ -160,7 +160,11 @@ pub fn register_default(registry: &mut StageRegistry) {
         "goal_directed",
         Arc::new(goal_directed::GoalDirectedStage::new()),
     );
-    registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register("mappings", Arc::new(mappings::MappingsStage));
+    registry.register(
+        "native_codebook",
+        Arc::new(mappings::native_codebook::NativeCodebookStage::default()),
+    );
     registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(
         "math_producers",
