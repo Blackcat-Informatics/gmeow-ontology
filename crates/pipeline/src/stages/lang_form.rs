@@ -217,6 +217,7 @@ pub fn prose_lift_coverage(
     let corpus = build_corpus(catalog)?;
     let nt = String::from_utf8(corpus.ntriples).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("lang-form: corpus N-Triples are not UTF-8: {e}"),
         })
@@ -314,6 +315,7 @@ fn build_prose(text: &str, binding: &CarrierBinding) -> Result<Prose, gmeow_erro
     // verbatim before minting anything (never a silent lossy repair).
     let lifted = PlainTextBridge.lift(text.as_bytes()).map_err(|d| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: plain-text lift hard-failed on a source literal ({}): {}",
@@ -324,6 +326,7 @@ fn build_prose(text: &str, binding: &CarrierBinding) -> Result<Prose, gmeow_erro
     })?;
     if PlainTextBridge.emit(&lifted) != text.as_bytes() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: "lang-form: plain-text surface round-trip is not byte-exact".to_string(),
         }));
@@ -342,6 +345,7 @@ fn build_prose(text: &str, binding: &CarrierBinding) -> Result<Prose, gmeow_erro
     let surface_key = surface.surface_key();
     let correspondence = exact_surface_correspondence(&surface).map_err(|d| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: exact surface correspondence hard-failed ({}): {}",
@@ -493,6 +497,7 @@ fn binding_for_tag<'a>(
 ) -> Result<&'a CarrierBinding, gmeow_errors::Diag> {
     bindings.get(tag).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-form: no lang:Script binding for language tag '{tag}'; declare its \

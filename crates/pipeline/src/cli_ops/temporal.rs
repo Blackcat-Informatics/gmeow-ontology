@@ -99,6 +99,7 @@ fn query_text(query_dir: &Path, name: &str) -> Result<String, gmeow_errors::Diag
     if !registry.contains_key(name) {
         let known: Vec<&str> = registry.keys().copied().collect();
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "temporal-query".to_string(),
             message: format!(
                 "unknown temporal query {name:?}; known: {}",
@@ -109,6 +110,7 @@ fn query_text(query_dir: &Path, name: &str) -> Result<String, gmeow_errors::Diag
     let path = query_dir.join(format!("{name}.rq"));
     std::fs::read_to_string(&path).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "temporal-query".to_string(),
             message: format!("read TQL query {}: {e}", path.display()),
         })
@@ -141,6 +143,7 @@ pub fn run_temporal_query(
 ) -> Result<Solutions, gmeow_errors::Diag> {
     let spec = temporal_queries().get(name).cloned().ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "temporal-query".to_string(),
             message: format!("unknown temporal query {name:?}"),
         })
@@ -156,6 +159,7 @@ pub fn run_temporal_query(
         .collect();
     if !missing.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "temporal-query".to_string(),
             message: format!(
                 "temporal query {name:?} needs parameter(s) {}",
@@ -174,6 +178,7 @@ pub fn run_temporal_query(
                 .collect();
             let parameter_error = |detail: String| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "temporal-query".to_owned(),
                     message: format!(
                         "{parameter} requires one well-formed zoned xsd:dateTime: {detail}"
@@ -222,6 +227,7 @@ pub fn run_temporal_query(
         )
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "temporal-query".to_string(),
                 message: format!("temporal query {name:?} evaluation failed: {e}"),
             })
@@ -233,6 +239,7 @@ pub fn run_temporal_query(
         } => Ok(Solutions { variables, rows }),
         SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
             Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "temporal-query".to_string(),
                 message: format!("temporal query {name:?} must be a SELECT"),
             }))

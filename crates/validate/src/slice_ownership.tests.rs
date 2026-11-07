@@ -12,6 +12,12 @@ fn nn(iri: &str) -> NamedNode {
 
 #[test]
 fn diagnostics_map_to_the_gate_severity_split() {
+    let cause = purrdf::slice::QueryArtifactError::Utf8(
+        String::from_utf8(vec![b'a', 0xff])
+            .expect_err("the query artifact contains invalid UTF-8")
+            .utf8_error(),
+    );
+    let cause_message = cause.to_string();
     let report = OwnershipReport {
         ownership: HashMap::default(),
         edges: Vec::new(),
@@ -25,6 +31,11 @@ fn diagnostics_map_to_the_gate_severity_split() {
                 to_slice: "s/2".into(),
                 edge_kind: EdgeKind::Ontology,
             },
+            OwnershipDiagnostic::UnparseableQuery {
+                slice: "s/query".into(),
+                logical_path: "queries/invalid.rq".into(),
+                cause,
+            },
             // The analyzer also emits an Unowned diagnostic; it must be
             // skipped here (the ownership-table pass owns it) — no double count.
             OwnershipDiagnostic::Unowned {
@@ -37,7 +48,7 @@ fn diagnostics_map_to_the_gate_severity_split() {
 
     assert_eq!(
         findings.len(),
-        2,
+        3,
         "Unowned diagnostic is not double-counted"
     );
     let conflict = findings
@@ -51,6 +62,16 @@ fn diagnostics_map_to_the_gate_severity_split() {
         .find(|f| f.code == "slice-ownership.undeclared-dependency")
         .expect("undeclared-dependency finding");
     assert_eq!(undeclared.severity, Severity::Error); // R4/AC1: gates make validate
+    let query = findings
+        .iter()
+        .find(|f| f.code == crate::codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY)
+        .expect("query artifact finding");
+    assert_eq!(query.severity, Severity::Warning);
+    assert_eq!(
+        query.message,
+        format!("s/query: query queries/invalid.rq failed to parse — {cause_message}")
+    );
+    assert_eq!(query.locations[0].logical.as_deref(), Some("s/query"));
 }
 
 #[test]

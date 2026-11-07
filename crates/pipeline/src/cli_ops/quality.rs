@@ -28,6 +28,7 @@ const OOPS_REQUEST_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "quality".to_string(),
         message: message.into(),
     })

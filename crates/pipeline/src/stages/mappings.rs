@@ -191,6 +191,7 @@ fn compile_mappings_with_sources(
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "stage-mappings".to_string(),
                     message: format!("slice catalog discovery: {e}"),
                 })
@@ -207,12 +208,14 @@ fn compile_mappings_with_sources(
     // all reject a shadow.
     let prefix_problems = lint_prefix_consistency(root, &vocab).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("prefix-consistency lint failed: {e}"),
         })
     })?;
     if let Some(first) = prefix_problems.first() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "prefix-consistency: {} registry-prefix shadow(s); first: {}",
@@ -229,12 +232,14 @@ fn compile_mappings_with_sources(
     // strict sync / `make check` reject a stray cell.
     let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("dsl mapping-purity gate failed: {e}"),
         })
     })?;
     if let Some(first) = purity_problems.first() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "dsl-linkage-purity: {} dsl/mappings file(s) author alignment linkage that must \
@@ -263,6 +268,7 @@ fn compile_mappings_with_sources(
     // sources drives all four.
     let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("correspondence lowering failed: {e}"),
         })
@@ -307,6 +313,7 @@ fn compile_mappings_with_sources(
             gmeow_slice_quality::load_repo_rubric(root)
                 .map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        cause: None,
                         stage: "stage-mappings".to_string(),
                         message: format!(
                             "residue-ratchet carve-out gate: cannot load the guarded \
@@ -445,6 +452,7 @@ fn compile_mappings_with_sources(
     // and fold its honest per-page + per-boundary rows into the loss ledger. The RDF graph
     // rides as a named graph by the stage `run` below (never a `generated/` file).
     let docs_catalog = catalog.as_ref().ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-mappings".to_owned(),
         message: "selected docs-rendering corpus requires its actual slice catalog and term-page inventory".to_owned(),
     }))?;
@@ -491,6 +499,7 @@ fn compile_mappings_with_sources(
     // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("standpoint emission failed: {e}"),
         })
@@ -541,6 +550,7 @@ fn compile_mappings_with_sources(
     // complete them the same way `logic-compile`'s `fno.rs` does.
     let list_functions = emit_list_functions(&vocab).map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("purrdf refused the list-functions FnO catalog: {error}"),
         })
@@ -585,6 +595,7 @@ fn discharge_correspondence_laws(
 ) -> gmeow_errors::Result<CorrespondenceProgram> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message,
         })
@@ -738,6 +749,7 @@ pub fn discharged_section_cells_from_root(
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "stage-mappings".to_string(),
                     message: format!("slice catalog discovery: {e}"),
                 })
@@ -748,6 +760,7 @@ pub fn discharged_section_cells_from_root(
     };
     let aligned = correspondence_lower::lower_all(root, catalog.as_ref()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("correspondence lowering failed: {e}"),
         })
@@ -756,6 +769,7 @@ pub fn discharged_section_cells_from_root(
     let nt = project_correspondence(&program)?;
     crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!("extract discharged section cells: {e}"),
         })
@@ -774,6 +788,7 @@ fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, gmeow_errors::Diag> {
         .map(String::into_bytes)
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!("canonicalize RDF projection: {e}"),
             })
@@ -858,6 +873,7 @@ fn complete_list_functions_abox(
     let admitted =
         purrdf::slice::list_functions::list_functions_catalog(vocab).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!("purrdf refused the list-functions FnO catalog: {error}"),
             })
@@ -899,6 +915,7 @@ fn logic_report_inputs(
         })
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".into(),
                 message: "stage-compile-logic carries no complete native report publication".into(),
             })
@@ -930,6 +947,7 @@ fn build_union_report(
     let report = build_projection_report_rows(header, rows, &[&channel.loss, correspondence_loss])
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!("projection-report assembly: {e}"),
             })
@@ -953,6 +971,7 @@ fn build_shape_grounding_ledger(
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message,
         })
@@ -1028,6 +1047,7 @@ fn fold_up_projection_audit(
 ) -> Result<ReportHeader, gmeow_errors::Diag> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message,
         })
@@ -1388,6 +1408,7 @@ impl Stage for MappingsStage {
         let rdf_dataset = mappings_rdf_dataset(&artifacts)?;
         let report_ttl = artifacts.get(PROJECTION_REPORT_PATH).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: format!("mappings run omitted {PROJECTION_REPORT_PATH}"),
             })
@@ -1492,6 +1513,7 @@ impl Stage for MappingsStage {
         let spdx_program_path = format!("{QUERIES_DIR}/spdx.projection.json");
         let spdx_bytes = artifacts.get(&spdx_program_path).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: self.id().to_owned(),
                 message: format!("mappings run omitted required {spdx_program_path}"),
             })

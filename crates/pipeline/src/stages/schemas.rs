@@ -55,6 +55,7 @@ const DESCRIPTION: &str = "GMEOW developer schema generated from canonical OWL. 
 
 fn schema_error(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-export-schemas".into(),
         message: message.into(),
     })

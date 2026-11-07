@@ -2455,7 +2455,6 @@
     "gmeow_pipeline::stages::conformance::logic_module_contracts::fail",
     "gmeow_pipeline::stages::conformance::medium_axis::fail",
     "gmeow_pipeline::stages::conformance::operator_scenes::fail",
-    "gmeow_pipeline::stages::conformance::production_shapes::fail",
     "gmeow_pipeline::stages::conformance::source_lint::fail",
     "gmeow_pipeline::stages::conformance::supplemental::fail",
     "gmeow_pipeline::stages::conformance::verify_gates::fail"

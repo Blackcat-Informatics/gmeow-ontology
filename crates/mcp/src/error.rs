@@ -31,6 +31,7 @@
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 define_diag_kind! {
+    native_cause;
     /// A hard defect raised by the MCP server surface (snapshot decode, query
     /// dispatch, memory access, or transaction append).
     pub struct Mcp { message: String }

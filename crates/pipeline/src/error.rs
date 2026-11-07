@@ -219,10 +219,31 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// A stage's `run` failed.
-    pub struct StageFailed { stage: String, message: String }
+    pub struct StageFailed {
+        stage: String,
+        message: String,
+        cause: Option<std::sync::Arc<dyn std::error::Error + Send + Sync>>
+    }
     code = "pipeline.stage.failed";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "stage {} failed: {}", stage, message;
+    source = failure => failure.cause.as_deref()
+        .map(|cause| cause as &(dyn std::error::Error + 'static));
+}
+
+impl StageFailed {
+    /// Retain the native refusal beneath the stage's downcastable diagnostic.
+    pub fn caused_by(
+        stage: String,
+        message: String,
+        cause: impl std::error::Error + Send + Sync + 'static,
+    ) -> Self {
+        Self {
+            stage,
+            message,
+            cause: Some(std::sync::Arc::new(cause)),
+        }
+    }
 }
 
 define_diag_kind! {
@@ -235,6 +256,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A hard defect raised while projecting the GTS base graph into a lossy
     /// surface (flat-quad decode, namespace scan, or transpile).
     pub struct Projection { message: String }

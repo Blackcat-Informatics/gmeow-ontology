@@ -732,6 +732,7 @@ pub(crate) fn provenance_keys(
         .map(|(quad_index, unit, kind, artifact, location)| {
             let quad = quads.get(quad_index).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: format!(
                         "provenance row references absent quad index {quad_index} of {}",
@@ -761,6 +762,7 @@ pub(crate) fn content_store_keys(
     let bundle = product.bundle();
     bundle.blobs().verify_all().map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: product.stage_id.clone(),
             message: format!("content store digest verification failed: {error}"),
         })
@@ -774,12 +776,14 @@ pub(crate) fn content_store_keys(
     for record in &bundle.lookaside().blobs {
         let digest = ContentDigest::from_hex(&record.digest).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: product.stage_id.clone(),
                 message: format!("blob record carries malformed digest {:?}", record.digest),
             })
         })?;
         let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: product.stage_id.clone(),
                 message: format!("blob record references missing content {}", record.digest),
             })
@@ -789,6 +793,7 @@ pub(crate) fn content_store_keys(
             .is_some_and(|declared| declared != bytes.len() as u64)
         {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: product.stage_id.clone(),
                 message: format!(
                     "blob record {} decoded_len {:?} != stored bytes {}",
@@ -804,12 +809,14 @@ pub(crate) fn content_store_keys(
         if let Some(digest_hex) = &resource.content_digest {
             let digest = ContentDigest::from_hex(digest_hex).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: format!("resource carries malformed content digest {digest_hex:?}"),
                 })
             })?;
             if bundle.blobs().get(&digest).is_none() {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: format!("resource references missing content {digest_hex}"),
                 }));
@@ -819,6 +826,7 @@ pub(crate) fn content_store_keys(
     }
     if actual != referenced {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: product.stage_id.clone(),
             message: format!(
                 "persistent content store is not closed over lookaside references: orphan={:?}, missing={:?}",
@@ -1227,6 +1235,7 @@ impl CachedBundle {
             let unselected: Vec<String> = actual.difference(&selected).cloned().collect();
             let absent: Vec<String> = selected.difference(&actual).cloned().collect();
             Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.to_string(),
                 message: format!(
                     "persistent cache unit is not an exact bounded contribution on {lane}: \
@@ -1246,6 +1255,7 @@ impl CachedBundle {
                 return Ok(());
             }
             Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: stage.to_string(),
                 message: format!(
                     "persistent cache unit commitment mismatch on {lane}: product={actual:?}, \
@@ -1262,6 +1272,7 @@ impl CachedBundle {
             .map(|term| match term {
                 purrdf::RdfTerm::Iri(iri) => Ok(iri),
                 other => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: format!(
                         "persistent contribution carries a non-IRI named graph {other:?}"
@@ -1294,6 +1305,7 @@ impl CachedBundle {
         for record in &bundle.lookaside().blobs {
             let representation = record.representation.clone().ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: "persistent contribution carries a blob without a representation"
                         .to_string(),
@@ -1312,6 +1324,7 @@ impl CachedBundle {
         for resource in &bundle.lookaside().resources {
             let name = resource.name.clone().ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: "persistent contribution carries a resource without a logical name"
                         .to_string(),
@@ -1319,6 +1332,7 @@ impl CachedBundle {
             })?;
             if resource.content_digest.is_none() {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: product.stage_id.clone(),
                     message: format!(
                         "persistent contribution artifact {name:?} has no content digest"
@@ -1382,6 +1396,7 @@ impl CachedBundle {
             .map(|(quad_index, unit, kind, artifact, location)| {
                 let quad = quads.get(quad_index).ok_or_else(|| {
                     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        cause: None,
                         stage: product.stage_id.clone(),
                         message: format!(
                             "provenance row references absent quad index {quad_index} of {}",
@@ -1960,6 +1975,7 @@ impl PipelineCache {
                         .map(|bytes| (path.to_owned(), bytes.to_vec()))
                         .ok_or_else(|| {
                             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                cause: None,
                                 stage: context.stage_id.clone(),
                                 message: format!(
                                     "authenticated stage product carries no artifact {path}"
@@ -2001,6 +2017,7 @@ impl PipelineCache {
         let serialized_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
         if serialized_bytes > MAX_ENTRY_BYTES || serialized_bytes > self.max_bytes {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: context.stage_id.clone(),
                 message: format!(
                     "cache entry is {serialized_bytes} bytes, above its configured \

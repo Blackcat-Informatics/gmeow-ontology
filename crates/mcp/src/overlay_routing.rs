@@ -34,9 +34,9 @@ pub(super) fn transient_union(
         .checked_add(1)
         .map(BlankScope)
         .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "no blank scope remains for the external overlay".to_owned(),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+                "no blank scope remains for the external overlay".to_owned(),
+            ))
         })?;
     let external = RdfTerm::iri(super::EXTERNAL_OVERLAY_GRAPH);
     let external_id = builder.intern_owned_term(&external)?;
@@ -70,13 +70,13 @@ pub(super) fn transient_union(
 pub(super) fn verify_record_limit(overlay: &RdfDataset, limit: usize) -> gmeow_errors::Result<()> {
     let records = overlay.rdf_row_count();
     if records > limit {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: format!(
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            format!(
                 "verify_graph: overlay carries {records} RDF records (quads, reifiers and annotations), \
                  exceeding the {limit} quad ceiling; split the annex \
                  and verify the parts (no silent truncation)"
             ),
-        }));
+        )));
     }
     Ok(())
 }

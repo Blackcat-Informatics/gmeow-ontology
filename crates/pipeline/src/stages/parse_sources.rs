@@ -345,6 +345,7 @@ impl SourceCatalog {
 
 fn stage_error(message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: STAGE_ID.into(),
         message,
     })

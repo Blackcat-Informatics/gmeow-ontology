@@ -200,23 +200,24 @@ fn fixture_paths(fixtures_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut stack = vec![fixtures_dir.to_path_buf()];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!("failed to read fixtures dir {}: {e}", dir.display()),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                "failed to read fixtures dir {}: {e}",
+                dir.display()
+            )))
         })? {
             let entry = entry.map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Io {
-                    detail: format!("failed to read fixtures dir entry: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                    "failed to read fixtures dir entry: {e}"
+                )))
             })?;
             // Use the dirent file type (no stat, no symlink follow) so a circular symlink
             // can't drive the walk into an infinite loop.
             let is_dir = entry
                 .file_type()
                 .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Io {
-                        detail: format!("failed to read fixtures dir entry type: {e}"),
-                    })
+                    gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                        "failed to read fixtures dir entry type: {e}"
+                    )))
                 })?
                 .is_dir();
             let path = entry.path();

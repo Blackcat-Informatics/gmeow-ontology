@@ -142,10 +142,12 @@ pub(crate) fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> 
         )),
         // Covered by the ownership-table pass — do not double-count.
         OwnershipDiagnostic::Unowned { .. } => None,
-        other => Some(finding(
+        _ => Some(finding(
             Severity::Error,
             crate::codes::SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC,
-            format!("unsupported native ownership diagnostic: {other:?}"),
+            format!(
+                "unsupported native ownership diagnostic; update the ownership projection: {diag:?}"
+            ),
             None,
         )),
     }

@@ -237,6 +237,7 @@ pub fn render_diagnostics_artifacts(
 ) -> Result<RenderedDiagnostics, gmeow_errors::Diag> {
     let stage_err = |what: &str, detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: stage.to_owned(),
             message: format!("render {what} diagnostics: {detail}"),
         })

@@ -96,8 +96,8 @@ pub(crate) fn record(
                 let generated =
                     std::str::from_utf8(constraint_shapes).map_err(gmeow_errors::Diag::from)?;
                 let shape_text = format!("{authored}\n{generated}");
-                let shapes = parse_shapes(&shape_text, None)
-                    .map_err(|error| super::stage_err(&error.to_string()))?;
+                let shapes =
+                    parse_shapes(&shape_text, None).map_err(super::production_shapes::fail)?;
                 Ok((module, PreparedShapes::new(Arc::new(shapes))))
             })?;
             let instance = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
@@ -109,9 +109,9 @@ pub(crate) fn record(
             let data = builder.freeze().map_err(gmeow_errors::Diag::from)?;
             let report = shapes
                 .bind_projected_dataset(data)
-                .map_err(|error| super::stage_err(&error.to_string()))?
+                .map_err(super::production_shapes::fail)?
                 .validate()
-                .map_err(|message| super::stage_err(&message))?;
+                .map_err(super::production_shapes::fail)?;
             let mut results: Vec<_> = report
                 .results
                 .into_iter()

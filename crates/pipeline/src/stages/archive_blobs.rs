@@ -792,6 +792,7 @@ fn authored_archive_sources(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::D
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: STAGE_ID.to_string(),
         message: message.to_string(),
     })

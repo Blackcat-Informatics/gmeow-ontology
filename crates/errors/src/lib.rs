@@ -41,8 +41,8 @@ pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed
 pub use dag::{DagError, DagNode, walk};
 pub use diag::{
     Advice, Diag, DiagInner, DiagKind, DiagRef, DiagSink, Focus, Guidance, GuidanceModality,
-    GuidanceSource, Label, PipelineLocus, ResultExt, ResultIterExt, Slot, SourceContext, StageId,
-    TermRole,
+    GuidanceSource, Label, PipelineLocus, PreservedDiagnostic, ResultExt, ResultIterExt, Slot,
+    SourceContext, StageId, TermRole,
 };
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,

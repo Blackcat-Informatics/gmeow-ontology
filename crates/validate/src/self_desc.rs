@@ -362,14 +362,13 @@ pub fn default_self_desc_path(root: &Path) -> PathBuf {
 /// metadata is missing / malformed.
 pub fn load_self_description(path: &Path) -> gmeow_errors::Result<SelfDescription> {
     let bytes = std::fs::read(path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("{}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!("{}: {e}", path.display())))
     })?;
     let ds = purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("{}: does not parse: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "{}: does not parse: {e}",
+            path.display()
+        )))
     })?;
     load_self_description_from_dataset(&ds)
 }

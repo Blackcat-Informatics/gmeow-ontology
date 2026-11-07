@@ -92,15 +92,11 @@ fn finding(severity: Severity, code: &str, message: String, logical: Option<Stri
 }
 
 fn io_err(path: &Path, e: &std::io::Error) -> Diag {
-    Diag::of_kind(crate::error::Io {
-        detail: format!("{}: {e}", path.display()),
-    })
+    Diag::of_kind(crate::error::Io::new(format!("{}: {e}", path.display())))
 }
 
 fn parse_err(path: &Path, e: &str) -> Diag {
-    Diag::of_kind(crate::error::Parse {
-        detail: format!("{}: {e}", path.display()),
-    })
+    Diag::of_kind(crate::error::Parse::new(format!("{}: {e}", path.display())))
 }
 
 /// Parse a Turtle file into a native [`Dataset`], hard-failing on read/parse error
@@ -171,42 +167,38 @@ fn require_non_vacuous_corpus(
     docs_terms: &BTreeSet<String>,
 ) -> Result<()> {
     let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
-        .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
+        .map_err(|cause| Diag::of_kind(crate::error::Io::caused_by(cause.to_string(), cause)))?;
     if shape_files.is_empty() {
-        return Err(Diag::of_kind(crate::error::Io {
-            detail: "authoring-integrity: merged shape-file corpus floor 1 not met (got 0 \
+        return Err(Diag::of_kind(crate::error::Io::new(
+            "authoring-integrity: merged shape-file corpus floor 1 not met (got 0 \
                       files) — corpus read is vacuous, refusing to pass"
                 .to_string(),
-        }));
+        )));
     }
 
     if declared.len() <= 50 {
-        return Err(Diag::of_kind(crate::error::Io {
-            detail: format!(
-                "authoring-integrity: declared ontology terms floor 50 not met (got {}) — \
+        return Err(Diag::of_kind(crate::error::Io::new(format!(
+            "authoring-integrity: declared ontology terms floor 50 not met (got {}) — \
                  corpus read is vacuous, refusing to pass",
-                declared.len()
-            ),
-        }));
+            declared.len()
+        ))));
     }
 
     if docs_terms.is_empty() {
-        return Err(Diag::of_kind(crate::error::Io {
-            detail: "authoring-integrity: docs gmeow: term-reference floor 1 not met (got 0) \
+        return Err(Diag::of_kind(crate::error::Io::new(
+            "authoring-integrity: docs gmeow: term-reference floor 1 not met (got 0) \
                       — the per-document authority comparison would be vacuous, refusing to pass"
                 .to_string(),
-        }));
+        )));
     }
 
     let catalog_names = catalog_uri_names(project_root)?;
     if catalog_names.len() <= 1 {
-        return Err(Diag::of_kind(crate::error::Io {
-            detail: format!(
-                "authoring-integrity: catalog <uri> entries floor 1 not met (got {}) — corpus \
+        return Err(Diag::of_kind(crate::error::Io::new(format!(
+            "authoring-integrity: catalog <uri> entries floor 1 not met (got {}) — corpus \
                  read is vacuous, refusing to pass",
-                catalog_names.len()
-            ),
-        }));
+            catalog_names.len()
+        ))));
     }
 
     // The R7 seam-registry drift floor: a comparison against ZERO `gmeow:Seam`
@@ -216,13 +208,11 @@ fn require_non_vacuous_corpus(
     // the detectors are pointed at.
     let seams = seam_registry_of_slices(&project_root.join("slices"))?;
     if seams.is_empty() {
-        return Err(Diag::of_kind(crate::error::Io {
-            detail: format!(
-                "authoring-integrity: gmeow:Seam registry floor 1 not met (got 0) under {} — \
+        return Err(Diag::of_kind(crate::error::Io::new(format!(
+            "authoring-integrity: gmeow:Seam registry floor 1 not met (got 0) under {} — \
                  the seam-registry drift comparison would be vacuous, refusing to pass",
-                project_root.join("slices").display(),
-            ),
-        }));
+            project_root.join("slices").display(),
+        ))));
     }
 
     Ok(())
@@ -272,7 +262,7 @@ pub fn authoring_integrity_findings(
 /// fail-closed `generated/shapes/*.ttl`, and every `slices/*/*/shapes.ttl`).
 pub fn shape_iri_collision_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     let files = purrdf::shapes::shape_union::shape_files(repo_root)
-        .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
+        .map_err(|cause| Diag::of_kind(crate::error::Io::caused_by(cause.to_string(), cause)))?;
     let mut loaded: Vec<(PathBuf, Dataset)> = Vec::with_capacity(files.len());
     for f in files {
         let ds = parse_ttl(&f)?;

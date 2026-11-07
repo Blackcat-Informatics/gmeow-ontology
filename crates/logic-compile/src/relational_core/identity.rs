@@ -22,9 +22,9 @@ const RECORD_SCOPE: BlankScope = BlankScope(1);
 pub(super) use crate::ir::atomic::frame;
 
 fn error(detail: impl std::fmt::Display) -> Diag {
-    Diag::of_kind(crate::error::RelationalCore {
-        detail: format!("relational-core identity: {detail}"),
-    })
+    Diag::of_kind(crate::error::RelationalCore::new(format!(
+        "relational-core identity: {detail}"
+    )))
 }
 
 pub(super) fn program_key(program: &RelationalCoreProgram) -> gmeow_errors::Result<String> {

@@ -646,6 +646,7 @@ pub fn build_substrate_sbom_projection(
 
 fn stage_err(msg: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-substrate".to_string(),
         message: msg.to_string(),
     })

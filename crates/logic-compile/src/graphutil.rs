@@ -147,9 +147,9 @@ pub(crate) fn atomic_object(node: &Node) -> gmeow_errors::Result<crate::ir::Atom
         Node::Iri(value) => Ok(AtomicTerm::Iri(value.clone())),
         Node::Blank { label, .. } => Ok(AtomicTerm::Blank(label.clone())),
         Node::Lit(value) => Ok(AtomicTerm::Literal(value.clone())),
-        Node::Triple(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend {
-            detail: "a nested proposition requires typed formula lowering".to_owned(),
-        })),
+        Node::Triple(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new(
+            "a nested proposition requires typed formula lowering".to_owned(),
+        ))),
     }
 }
 

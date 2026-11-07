@@ -1918,13 +1918,13 @@ jobs:
           echo "${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
           make verify-wasm-codebook
 
-      # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.129) byte
+      # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.130) byte
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
         if: ${{ matrix.task == 'wasm-parity' }}
         uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
         with:
-          tool: wasm-bindgen-cli@0.2.129
+          tool: wasm-bindgen-cli@0.2.130
 
       # wasm-opt (binaryen) is a REQUIRED build step: `make validate-wasm-pkg` /
       # `validate-wasm-pkg-test` hard-fail without it. Provision a PINNED official

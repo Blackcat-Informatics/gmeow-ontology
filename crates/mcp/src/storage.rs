@@ -72,9 +72,7 @@ use crate::error::Mcp;
 
 /// Raise a storage-layer defect as the crate's typed `mcp` diagnostic.
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(Mcp {
-        message: message.into(),
-    })
+    gmeow_errors::Diag::of_kind(Mcp::new(message.into()))
 }
 
 /// Build selected audit bytes before publishing any part of a call.

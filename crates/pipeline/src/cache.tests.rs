@@ -1769,6 +1769,7 @@ fn fixture_coordinator_preserves_the_producer_diagnostic_kind() {
             |_| Ok(ReceiptOutputSelection::default()),
             || {
                 Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "fixture-failure".to_string(),
                     message: "intentional producer refusal".to_string(),
                 }))

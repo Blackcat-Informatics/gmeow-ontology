@@ -267,6 +267,7 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
     for path in files {
         let bytes = std::fs::read(path).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-source-load".to_string(),
                 message: format!("read {}: {e}", path.display()),
             })
@@ -280,6 +281,7 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
     }
     let unioned = builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-source-load".to_string(),
             message: format!("freeze examples union: {e}"),
         })
@@ -556,6 +558,7 @@ impl Stage for SourceLoadStage {
             gmeow_slice_quality::assessment_artifacts_with_catalog(input.root, &catalog_bytes)
                 .map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        cause: None,
                         stage: self.id().to_string(),
                         message: format!("quality-assessment sweep: {e}"),
                     })

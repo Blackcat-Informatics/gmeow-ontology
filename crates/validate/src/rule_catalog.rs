@@ -624,7 +624,7 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     ),
     (
         codes::SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC,
-        "Update the native ownership diagnostic adapter to handle the reported variant explicitly, retaining its evidence and gate severity.",
+        "Update the ownership diagnostic projection to handle the reported native diagnostic variant.",
     ),
     (
         codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,

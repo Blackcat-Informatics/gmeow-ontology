@@ -491,7 +491,9 @@ fn emit_snapshot_payload_with_medium(
 /// # Errors
 /// Refuses incomplete or unrepresentable native input, or any failure of the
 /// mandatory snapshot profile. The typed ingestion cause remains on the diagnostic.
-pub fn view_to_gmeow_gts<D: purrdf::FallibleDatasetView>(
+pub fn view_to_gmeow_gts<
+    D: purrdf::FallibleDatasetView<ReadError: purrdf::error::StructuredError>,
+>(
     view: &D,
 ) -> gmeow_errors::Result<GmeowGtsEmission> {
     let mut builder = SnapshotBuilder::new();
@@ -548,7 +550,9 @@ impl GmeowGtsWriter {
     ///
     /// # Errors
     /// Incomplete ingestion, omitted graph declarations, or frame encoding failure.
-    pub fn finish_view_scoped<D: purrdf::FallibleDatasetView>(
+    pub fn finish_view_scoped<
+        D: purrdf::FallibleDatasetView<ReadError: purrdf::error::StructuredError>,
+    >(
         mut self,
         view: &D,
         scope: &str,

@@ -168,6 +168,7 @@ pub(crate) fn dependency_closure(
 ) -> Result<Vec<String>, gmeow_errors::Diag> {
     if members.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-export-profiles".to_string(),
             message: format!("named profile {name} has no declared members"),
         }));
@@ -179,6 +180,7 @@ pub(crate) fn dependency_closure(
             continue;
         }
         let s = slices.get(&iri).ok_or_else(|| gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-export-profiles".to_string(),
             message: format!(
                 "profile dependency closure escapes the registry: {iri} is not a discovered slice"
@@ -228,6 +230,7 @@ fn profile_document(
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-export-profiles".to_string(),
             message: format!("canonicalize profile <{iri}>: {e}"),
         })

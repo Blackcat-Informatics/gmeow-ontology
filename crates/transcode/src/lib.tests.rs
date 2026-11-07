@@ -240,9 +240,65 @@ fn logic_to_canonical_rdf12_succeeds_nonempty() {
 // ── Error path tests ──────────────────────────────────────────────────────
 
 #[test]
-fn read_to_dataset_on_owl_dl_is_non_invertible_source_error() {
+fn codec_refusals_retain_native_parse_and_gts_admission_causes() {
     let err = read_to_dataset(b"anything", Codec::OwlDl).expect_err("expected NonInvertibleSource");
     assert!(err.is::<crate::NonInvertibleSource>(), "got {err:?}");
+
+    // A syntax source passes admission, then retains its actual native parse
+    // refusal beneath the codec kind rather than flattening it into text.
+    let malformed = read_to_dataset(b"not valid Turtle", Codec::Turtle)
+        .expect_err("malformed admitted syntax must retain its codec refusal");
+    assert_eq!(malformed.code(), crate::CodecError::register());
+    let kind = malformed
+        .downcast_ref::<crate::CodecError>()
+        .expect("the codec kind remains downcastable");
+    let native = std::error::Error::source(kind)
+        .expect("the codec kind retains its native parse cause")
+        .downcast_ref::<purrdf::RdfDiagnostic>()
+        .expect("the original RDF diagnostic remains inspectable");
+    assert_eq!(malformed.message(), format!("codec error: {native}"));
+
+    let admission = gmeow_errors::Diag::of_kind(gmeow_gts_profile::error::SnapshotAdmission {
+        cause: purrdf::gts_compose::GtsIngestError::UnrepresentableTerm {
+            position: "quad subject",
+            term: purrdf::gts_compose::OffendingTerm::Cutoff,
+        },
+    })
+    .with_context("selected GTS conversion");
+    let original_code = admission.code();
+    let original_grade = admission.grade();
+    let original_message = admission.message().to_owned();
+    let refused = gts_codec_error(admission);
+    assert_eq!(refused.code(), CodecError::register());
+    assert_eq!(
+        refused.message(),
+        format!("codec error: {original_message}")
+    );
+    let codec = refused.downcast_ref::<CodecError>().unwrap();
+    let preserved = std::error::Error::source(codec)
+        .and_then(|cause| cause.downcast_ref::<PreservedDiagnostic>())
+        .expect("the GTS diagnostic remains owned beneath the codec kind");
+    assert_eq!(preserved.0.code(), original_code);
+    assert_eq!(preserved.0.grade(), original_grade);
+    assert_eq!(preserved.0.message(), original_message);
+    assert_eq!(
+        preserved.0.inner().context[0].label,
+        "selected GTS conversion"
+    );
+    assert_eq!(
+        preserved.0.inner().failure_class.as_deref(),
+        gmeow_gts_profile::error::SnapshotAdmission::FAILURE_CLASS,
+    );
+    let typed = std::error::Error::source(preserved)
+        .and_then(|cause| cause.downcast_ref::<gmeow_gts_profile::error::SnapshotAdmission>())
+        .expect("the original typed GTS admission remains inspectable");
+    assert!(matches!(
+        &typed.cause,
+        purrdf::gts_compose::GtsIngestError::UnrepresentableTerm {
+            position: "quad subject",
+            term: purrdf::gts_compose::OffendingTerm::Cutoff,
+        }
+    ));
 }
 
 #[test]

@@ -62,6 +62,7 @@ pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Di
     let gts_path = root.join(GTS_PATH);
     let gts = std::fs::read(&gts_path).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "fanout".to_string(),
             message: format!("read {}: {e}", gts_path.display()),
         })
@@ -78,6 +79,7 @@ pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Di
         .build()
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "fanout".to_string(),
                 message: format!("failed to build rayon pool: {e}"),
             })
@@ -124,6 +126,7 @@ fn remove_stale_generated(
         if !expected.contains(&rel) {
             std::fs::remove_file(&path).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "fanout".to_string(),
                     message: format!("remove stale generated artifact {}: {e}", path.display()),
                 })
@@ -139,6 +142,7 @@ fn remove_stale_generated(
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
             Err(e) => {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "fanout".to_string(),
                     message: format!("prune empty generated directory {}: {e}", path.display()),
                 }));
@@ -156,6 +160,7 @@ fn collect_generated_members(
 ) -> Result<(), gmeow_errors::Diag> {
     let entries = std::fs::read_dir(dir).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "fanout".to_string(),
             message: format!("read generated directory {}: {e}", dir.display()),
         })
@@ -163,6 +168,7 @@ fn collect_generated_members(
     for entry in entries {
         let entry = entry.map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "fanout".to_string(),
                 message: format!("read generated directory entry: {e}"),
             })
@@ -173,6 +179,7 @@ fn collect_generated_members(
         let path = entry.path();
         let kind = entry.file_type().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "fanout".to_string(),
                 message: format!("read file type for {}: {e}", path.display()),
             })

@@ -37,19 +37,17 @@ pub(super) fn envelope(result: SparqlResult) -> gmeow_errors::Result<Value> {
     {
         let unique: BTreeSet<_> = variables.iter().collect();
         if unique.len() != variables.len() {
-            return Err(Diag::of_kind(crate::error::Mcp {
-                message: "native SPARQL result has duplicate variable headers".to_owned(),
-            }));
+            return Err(Diag::of_kind(crate::error::Mcp::new(
+                "native SPARQL result has duplicate variable headers".to_owned(),
+            )));
         }
         for (index, row) in rows.iter().enumerate() {
             if row.len() != variables.len() {
-                return Err(Diag::of_kind(crate::error::Mcp {
-                    message: format!(
-                        "native SPARQL result row {index} has {} cells for {} variable headers",
-                        row.len(),
-                        variables.len()
-                    ),
-                }));
+                return Err(Diag::of_kind(crate::error::Mcp::new(format!(
+                    "native SPARQL result row {index} has {} cells for {} variable headers",
+                    row.len(),
+                    variables.len()
+                ))));
             }
         }
     }
@@ -57,17 +55,17 @@ pub(super) fn envelope(result: SparqlResult) -> gmeow_errors::Result<Value> {
         purrdf::sparql::to_json(&result, &purrdf::sparql::ResultProvenance::default(), None)
             .with_ctx(|| "serialize native MCP SPARQL results".to_owned())?;
     if outcome.provenance_dropped {
-        return Err(Diag::of_kind(crate::error::Mcp {
-            message: "native MCP SPARQL results unexpectedly dropped provenance".to_owned(),
-        }));
+        return Err(Diag::of_kind(crate::error::Mcp::new(
+            "native MCP SPARQL results unexpectedly dropped provenance".to_owned(),
+        )));
     }
     // Same-native envelope composition: no RDF term decoder or Serde bridge.
     let mut value = read_document(&outcome.bytes)
         .with_ctx(|| "read native MCP SPARQL result envelope".to_owned())?;
     let Some(object) = value.as_object_mut() else {
-        return Err(Diag::of_kind(crate::error::Mcp {
-            message: "native SPARQL result writer did not return an object".to_owned(),
-        }));
+        return Err(Diag::of_kind(crate::error::Mcp::new(
+            "native SPARQL result writer did not return an object".to_owned(),
+        )));
     };
     let form = if matches!(result, SparqlResult::Boolean(_)) {
         // MCP's boolean form carries no head, unlike the standalone SRJ document.

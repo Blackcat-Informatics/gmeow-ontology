@@ -434,6 +434,31 @@ pub struct DiagInner {
 /// [`DiagNode`](crate::ledger::DiagNode) is serializable).
 pub struct Diag(Box<DiagInner>);
 
+/// Keep a complete diagnostic inside a standard error chain without flattening
+/// its code, grade, context or original typed source. Display includes its full
+/// diagnostic context; the owned value remains available for structured inspection.
+#[derive(Debug)]
+pub struct PreservedDiagnostic(
+    /// The complete original diagnostic and its live typed source.
+    pub Diag,
+);
+
+impl fmt::Display for PreservedDiagnostic {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{:#}", self.0)
+    }
+}
+
+impl StdError for PreservedDiagnostic {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.0
+            .inner()
+            .source
+            .as_deref()
+            .map(|source| source as &dyn StdError)
+    }
+}
+
 impl Diag {
     /// Build a diagnostic from an explicit registered code, grade, and message.
     #[track_caller]

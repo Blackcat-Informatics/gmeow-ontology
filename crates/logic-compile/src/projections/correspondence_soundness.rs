@@ -403,19 +403,19 @@ pub fn parse_sssom_tsv(text: &str) -> gmeow_errors::Result<Vec<Mapping>> {
     let idx = |name: &str| columns.iter().position(|c| *c == name);
 
     let subject_idx = idx("subject_id").ok_or_else(|| {
-        Diag::of_kind(crate::error::Correspondence {
-            detail: "missing subject_id column".to_owned(),
-        })
+        Diag::of_kind(crate::error::Correspondence::new(
+            "missing subject_id column".to_owned(),
+        ))
     })?;
     let predicate_idx = idx("predicate_id").ok_or_else(|| {
-        Diag::of_kind(crate::error::Correspondence {
-            detail: "missing predicate_id column".to_owned(),
-        })
+        Diag::of_kind(crate::error::Correspondence::new(
+            "missing predicate_id column".to_owned(),
+        ))
     })?;
     let object_idx = idx("object_id").ok_or_else(|| {
-        Diag::of_kind(crate::error::Correspondence {
-            detail: "missing object_id column".to_owned(),
-        })
+        Diag::of_kind(crate::error::Correspondence::new(
+            "missing object_id column".to_owned(),
+        ))
     })?;
     let justification_idx = idx("mapping_justification");
     let confidence_idx = idx("confidence");

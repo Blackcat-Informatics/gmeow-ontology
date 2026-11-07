@@ -287,9 +287,7 @@ fn first_named_object_of_subject(ds: &Dataset, subject: &Subject, pred: &str) ->
 }
 
 fn parse_err(path: &Path, e: &str) -> Diag {
-    Diag::of_kind(crate::error::Parse {
-        detail: format!("{}: {e}", path.display()),
-    })
+    Diag::of_kind(crate::error::Parse::new(format!("{}: {e}", path.display())))
 }
 
 /// Every `gmeow:Seam` individual declared in a manifest typed

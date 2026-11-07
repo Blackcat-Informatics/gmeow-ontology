@@ -106,6 +106,7 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
         let mut receipt = Receipt(Vec::new());
         record.write_cbor(&mut receipt).map_err(|error| {
             let kind = crate::error::StageFailed {
+                cause: None,
                 stage: "stage-conformance".to_owned(),
                 message: format!("encode source-admission receipt: {error}"),
             };

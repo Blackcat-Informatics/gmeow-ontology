@@ -138,7 +138,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -149,7 +149,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1057,7 +1057,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2591,7 +2591,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2890,7 +2890,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2967,7 +2967,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3333,8 +3333,8 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 
 [[package]]
 name = "purrdf"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-columnar",
  "purrdf-core",
@@ -3369,8 +3369,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-cdt"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-events",
  "purrdf-hash",
@@ -3381,8 +3381,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-columnar"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-deflate",
@@ -3394,8 +3394,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-core"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-cdt",
  "purrdf-deflate",
@@ -3412,8 +3412,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-datalog"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3423,16 +3423,16 @@ dependencies = [
 
 [[package]]
 name = "purrdf-deflate"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
 ]
 
 [[package]]
 name = "purrdf-ed25519"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
  "sha2 0.11.0",
@@ -3440,8 +3440,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-entail"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-datalog",
@@ -3453,16 +3453,16 @@ dependencies = [
 
 [[package]]
 name = "purrdf-events"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
 ]
 
 [[package]]
 name = "purrdf-geo"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-geo-kernel",
  "purrdf-sparql-eval",
@@ -3470,8 +3470,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-geo-kernel"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3482,8 +3482,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-glob"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3493,8 +3493,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-gts"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "aes-gcm",
  "purrdf-deflate",
@@ -3511,13 +3511,13 @@ dependencies = [
 
 [[package]]
 name = "purrdf-hash"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 
 [[package]]
 name = "purrdf-hnsw"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3529,8 +3529,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-iri"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
  "purrdf-lex",
@@ -3538,8 +3538,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-json"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3548,8 +3548,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-jsonschema"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
  "purrdf-iri",
@@ -3560,16 +3560,16 @@ dependencies = [
 
 [[package]]
 name = "purrdf-lex"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
 ]
 
 [[package]]
 name = "purrdf-markdown"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3578,8 +3578,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-mime"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3589,8 +3589,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-rdf"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-ed25519",
@@ -3609,8 +3609,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-retrieval"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3623,8 +3623,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shapes"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-datalog",
@@ -3644,8 +3644,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shex"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3657,8 +3657,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-slice"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-gts",
@@ -3674,8 +3674,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-algebra"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-cdt",
  "purrdf-hash",
@@ -3686,8 +3686,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-eval"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "getrandom 0.4.3",
  "purrdf-cdt",
@@ -3707,8 +3707,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-results"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3718,8 +3718,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-stack"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "libc",
  "purrdf-hash",
@@ -3728,8 +3728,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-text"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3740,8 +3740,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-toml"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3751,8 +3751,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-validate"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-datalog",
@@ -3772,8 +3772,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-xsd"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
  "purrdf-lex",
@@ -3781,8 +3781,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-yaml"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -3791,8 +3791,8 @@ dependencies = [
 
 [[package]]
 name = "purrdf-zstd"
-version = "3.0.1"
-source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=5d25c3a7d8e76064aa716e3e168d9f443aba7b13#5d25c3a7d8e76064aa716e3e168d9f443aba7b13"
+version = "4.0.0"
+source = "git+https://github.com/Blackcat-Informatics/purrdf?rev=c58898ddf3357b7d2baa817dc5a652e6be83e588#c58898ddf3357b7d2baa817dc5a652e6be83e588"
 dependencies = [
  "purrdf-hash",
  "purrdf-lex",
@@ -4095,7 +4095,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4441,7 +4441,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "psm",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4606,10 +4606,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5606,12 +5606,11 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.129"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bb54f33acc68fd454578d9820b0bde1a1a3d17aa17bb7b6595806d02886d409"
+checksum = "a0181c14ddd6c7b8b0b0132a5f1ea2f32be0d893cd3ea97b6e3b28886b8a3d1c"
 dependencies = [
  "cfg-if",
- "once_cell",
  "rustversion",
  "wasm-bindgen-macro",
  "wasm-bindgen-shared",
@@ -5619,9 +5618,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.129"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e29d0c35b16e224a7eeb5cd2d25e3e1968fbd65604117b44d3b789d00ee8535"
+checksum = "6e931a02a39abdbf66966fc35902b5ed58344750a70885bed4ebb3d8eaf28ed9"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -5629,9 +5628,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.129"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f501a8bc3719dba86ef8ae4728879c08001bea749eb1333ac5b91e040e2a6b7"
+checksum = "2ca4b54280e455bd831e33a6b8e734baf432fe63fbc35c42ac14ce67a043a53a"
 dependencies = [
  "bumpalo",
  "proc-macro2",
@@ -5642,9 +5641,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.129"
+version = "0.2.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f0c9c52aa7cd7d77769a4cfe2a9adb1b331f489a41d912ce14513d5ab995c6"
+checksum = "3b1f9c3798725016c6ee5f2f57869ec0831e8bbc0ab0310a86e787e97f41389e"
 dependencies = [
  "unicode-ident",
 ]
@@ -5724,7 +5723,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

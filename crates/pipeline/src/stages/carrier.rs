@@ -4350,6 +4350,7 @@ pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, gmeow_errors::Di
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-gts-sink".to_string(),
         message: message.to_string(),
     })

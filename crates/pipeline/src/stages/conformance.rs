@@ -769,6 +769,7 @@ fn record_failure(error: impl Into<gmeow_errors::Diag>) -> gmeow_errors::Recorde
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-conformance".to_string(),
         message: message.to_string(),
     })

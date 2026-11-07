@@ -54,6 +54,7 @@ pub struct ProjectionProfile {
 
 fn inventory_err(message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-mappings".to_string(),
         message: format!("projection-profile inventory ({PROJECTION_PROFILES_PATH}): {message}"),
     })

@@ -84,29 +84,6 @@ pub(crate) struct ProverFailed {
     pub(crate) cause: Option<Box<dyn std::error::Error + Send + Sync>>,
 }
 
-/// Keep a shared diagnostic live inside a prover diagnostic's standard error
-/// chain when a lower typed boundary fails. This wrapper preserves the original
-/// code, grade, context and downcastable source rather than flattening the
-/// diagnostic to its display text.
-#[derive(Debug)]
-pub(crate) struct PreservedDiagnostic(pub(crate) gmeow_errors::Diag);
-
-impl std::fmt::Display for PreservedDiagnostic {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "{:#}", self.0)
-    }
-}
-
-impl std::error::Error for PreservedDiagnostic {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.0
-            .inner()
-            .source
-            .as_deref()
-            .map(|source| source as &dyn std::error::Error)
-    }
-}
-
 impl std::fmt::Display for ProverFailed {
     /// Render the prover failure summary without flattening its retained evidence.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

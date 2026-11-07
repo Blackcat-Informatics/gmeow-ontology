@@ -145,7 +145,7 @@ impl DigestAlgorithm {
 }
 
 fn digest_error(message: String) -> Diag {
-    Diag::of_kind(Projection { message })
+    Diag::of_kind(Projection::new(message))
 }
 
 /// Admit a complete source digest term without erasing algorithm or literal facets.
@@ -240,7 +240,7 @@ fn source_public_tags(
     use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
     const CARRIER: &str = "https://blackcatinformatics.ca/lang/carrierTag";
-    let fail = |message| Diag::of_kind(Projection { message });
+    let fail = |message| Diag::of_kind(Projection::new(message));
     let mut carriers = BTreeMap::new();
     let mut owners = BTreeMap::new();
     if let Some(predicate) = source.term_id_by_value(&TermValue::iri(CARRIER)) {
@@ -369,6 +369,7 @@ pub(crate) fn publicize_turtle(
             {
                 let public = map.get(&language.to_ascii_lowercase()).ok_or_else(|| {
                     Diag::of_kind(Projection {
+                        cause: None,
                         message: format!("private language tag {language:?} has no public mapping"),
                     })
                 })?;
@@ -475,6 +476,7 @@ fn flat_quads_from_nt(nt: &str) -> gmeow_errors::Result<Vec<RdfQuad>> {
 fn quads_to_nt(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
     let flat = purrdf::flat_dataset_from_quads(quads).map_err(|e| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("N-Triples flatten failed: {e}"),
         })
     })?;
@@ -542,6 +544,7 @@ pub fn project_graph(
     let source_quads = flat_quads_from_nt(source_nt)?;
     let ds = purrdf::flat_dataset_from_quads(&source_quads).map_err(|e| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("source dataset build failed: {e}"),
         })
     })?;
@@ -551,6 +554,7 @@ pub fn project_graph(
     let result = program.execute(&ds)?;
     let SparqlResult::Graph(triples) = result else {
         return Err(Diag::of_kind(Projection {
+            cause: None,
             message: "projection query did not return a graph".to_owned(),
         }));
     };
@@ -602,6 +606,7 @@ pub fn discharged_section_cells_from_bundle(
     // would silently drop it. Read the named graph's triples by term value and extract.
     let graph = purrdf::gts::read_graph(gts_bytes, true).map_err(|e| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("gts read_graph failed: {e}"),
         })
     })?;
@@ -639,6 +644,7 @@ pub fn view_namespaces(view: &str) -> gmeow_errors::Result<BTreeSet<String>> {
     let profiles = profiles();
     let profile = profiles.get(view).ok_or_else(|| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("unknown gts view / projection profile: {view}"),
         })
     })?;
@@ -826,11 +832,13 @@ fn harvest_reasoned_types(
 
     let user = purrdf::flat_dataset_from_quads(lifted).map_err(|e| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("reasoned harvest: lifted dataset build failed: {e}"),
         })
     })?;
     let bundle = purrdf::flat_dataset_from_quads(&fragment).map_err(|e| {
         Diag::of_kind(Projection {
+            cause: None,
             message: format!("reasoned harvest: TBox fragment dataset build failed: {e}"),
         })
     })?;
@@ -849,6 +857,7 @@ fn harvest_reasoned_types(
         gmeow_logic::reason::reason_all_with_data(bundle.as_ref(), user.as_ref(), &domains)
             .map_err(|e| {
                 Diag::of_kind(Projection {
+                    cause: None,
                     message: format!("reasoned harvest: native reasoning failed: {e}"),
                 })
             })?;
@@ -952,6 +961,7 @@ pub fn transpile_graph(
 ) -> gmeow_errors::Result<TranspileReport> {
     if stem.trim().is_empty() {
         return Err(Diag::of_kind(Projection {
+            cause: None,
             message: "transpile_graph: stem must be a non-empty string".to_owned(),
         }));
     }
@@ -959,6 +969,7 @@ pub fn transpile_graph(
     let lift = up_project(source_nt, up_inputs, internal_tag_map)?;
     if lift.graph_nt.trim().is_empty() {
         return Err(Diag::of_kind(Projection {
+            cause: None,
             message: format!("transpile: nothing lifted to GMEOW from {stem} — empty draft"),
         }));
     }
