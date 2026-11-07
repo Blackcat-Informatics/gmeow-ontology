@@ -171,6 +171,11 @@ pub fn reason_over_dataset(
         "stage phase boundary",
     );
     let input = prepare_reasoning_input(canon.as_ref())?;
+    // Prepared input owns its canonical terms. Release the temporary dataset
+    // and reclaim free allocator pages before consuming reasoning starts. The
+    // original EDB remains available for authored expression projections.
+    drop(canon);
+    crate::scheduler::reclaim_allocator_slack();
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",

@@ -108,11 +108,69 @@ pub struct LiteralProjectionSupport {
 
 /// Complete admitted native program plus canonical property facts. Construction
 /// is mandatory even when the selected surface contains no raw external IRI.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct GroundingCatalog {
     program: CorrespondenceProgram,
-    properties: BTreeMap<(String, String), Vec<DslTerm>>,
+    properties: BTreeMap<(String, String), PropertyValues>,
+    authority_cells: BTreeMap<String, String>,
     identity: String,
+}
+
+/// Preserve every admitted value, including malformed values rejected only when selected.
+#[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+struct PropertyValues {
+    #[serde(with = "crate::term_serde::vec")]
+    values: Vec<DslTerm>,
+}
+
+impl<'de> serde::Deserialize<'de> for GroundingCatalog {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(serde::Deserialize)]
+        struct Publication {
+            program: CorrespondenceProgram,
+            properties: BTreeMap<(String, String), PropertyValues>,
+            authority_cells: BTreeMap<String, String>,
+            identity: String,
+        }
+
+        let publication = <Publication as serde::Deserialize>::deserialize(deserializer)?;
+        let catalog = Self::from_admitted_properties(
+            publication.program,
+            publication.properties,
+            publication.authority_cells,
+        )
+        .map_err(serde::de::Error::custom)?;
+        if catalog.identity != publication.identity {
+            return Err(serde::de::Error::custom(
+                "grounding catalog identity differs from its complete native publication",
+            ));
+        }
+        Ok(catalog)
+    }
+}
+
+fn cell_commitment(cell: &crate::ir::Correspondence) -> String {
+    use sha2::{Digest, Sha256};
+
+    struct CellDigest(Sha256);
+
+    impl std::io::Write for CellDigest {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            self.0.update(bytes);
+            Ok(bytes.len())
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    let mut sink = CellDigest(Sha256::new());
+    // The complete borrowed native writer preserves representation distinctions;
+    // this sink cannot fail and never retains a serialization buffer.
+    cell.write_cbor(&mut sink)
+        .expect("native correspondence serialization into an infallible hash sink");
+    purrdf_hash::hex::encode(&sink.0.finalize())
 }
 
 pub(crate) fn error(detail: impl Into<String>) -> gmeow_errors::Diag {
@@ -197,17 +255,22 @@ impl GroundingCatalog {
             }
             native_sources.extend(program.native_sources);
         }
+        let authority_cells = correspondences
+            .iter()
+            .map(|cell| (cell.iri.clone(), cell_commitment(cell)))
+            .collect();
         Self::from_admitted_program(
             CorrespondenceProgram::new(correspondences, PreservationKind::SoundUnder)
                 .with_native_sources(native_sources)?,
             ontology,
+            authority_cells,
         )
     }
 
     /// Admit source cells through the correspondence frontend's native owner.
     pub fn admit(mappings: &DslView, ontology: &DslView) -> gmeow_errors::Result<Self> {
         let program = super::correspondence_frontend::admit_native_cells(mappings)?.program;
-        Self::from_admitted_program(program, ontology)
+        Self::from_admitted_program(program, ontology, BTreeMap::new())
     }
 
     /// Read a shipped native program structurally from its named graph before
@@ -236,28 +299,72 @@ impl GroundingCatalog {
                 ));
             }
         }
-        Self::from_admitted_program(program, ontology)
+        Self::from_admitted_program(program, ontology, authority.authority_cells)
     }
 
     fn from_admitted_program(
         program: CorrespondenceProgram,
         ontology: &DslView,
+        authority_cells: BTreeMap<String, String>,
     ) -> gmeow_errors::Result<Self> {
-        // Reapply the program's alias collision and membership admission.
-        let program = program
-            .clone()
-            .with_native_sources(program.native_sources.clone())?
-            .with_projection_bindings(program.projection_bindings.clone())?
-            .with_projection_profiles(program.projection_profiles)?;
-        let mut properties: BTreeMap<(String, String), Vec<DslTerm>> = BTreeMap::new();
+        let mut properties: BTreeMap<(String, String), PropertyValues> = BTreeMap::new();
         for predicate in [TYPE, OWNER, RANGE, SUBPROPERTY] {
             for (subject, object) in ontology.quads_with_predicate(predicate) {
                 if let Some(subject) = subject.as_iri() {
                     properties
                         .entry((subject.to_owned(), predicate.to_owned()))
                         .or_default()
+                        .values
                         .push(object);
                 }
+            }
+        }
+        Self::from_admitted_properties(program, properties, authority_cells)
+    }
+
+    fn from_admitted_properties(
+        program: CorrespondenceProgram,
+        properties: BTreeMap<(String, String), PropertyValues>,
+        authority_cells: BTreeMap<String, String>,
+    ) -> gmeow_errors::Result<Self> {
+        if program
+            .correspondences
+            .iter()
+            .any(|cell| cell.source_endpoint.is_some() != cell.target_endpoint.is_some())
+        {
+            return Err(error(
+                "admitted grounding correspondence endpoints must be present together",
+            ));
+        }
+        // Reapply the program's alias collision and membership admission.
+        let program = program
+            .clone()
+            .with_native_sources(program.native_sources.clone())?
+            .with_projection_bindings(program.projection_bindings.clone())?
+            .with_projection_profiles(program.projection_profiles)?;
+        if properties.iter().any(|((subject, predicate), values)| {
+            !crate::ir::atomic::is_absolute_iri(subject)
+                || ![TYPE, OWNER, RANGE, SUBPROPERTY].contains(&predicate.as_str())
+                || values.values.is_empty()
+        }) {
+            return Err(error("invalid admitted grounding property inventory"));
+        }
+        if program.native_sources.iter().any(|source| {
+            source.ownership.is_some() && !authority_cells.contains_key(&source.correspondence)
+        }) {
+            return Err(error(
+                "physical source declaration has no admitted cell commitment",
+            ));
+        }
+        for (iri, commitment) in &authority_cells {
+            if !program
+                .correspondences
+                .iter()
+                .any(|cell| cell.iri == *iri && cell_commitment(cell) == *commitment)
+            {
+                return Err(error(
+                    "retained native correspondence differs from admitted actual owned source envelope",
+                ));
             }
         }
         // This is the native alignment-program identity, not an alias hash.
@@ -290,12 +397,58 @@ impl GroundingCatalog {
         let catalog = Self {
             program,
             properties,
+            authority_cells,
             identity,
         };
         for profile in &catalog.program.projection_profiles {
             profile.validate(&catalog)?;
         }
         Ok(catalog)
+    }
+
+    /// Reuse admitted property support after extending this exact program's law evidence.
+    /// Actual owned source envelopes remain byte-independent semantic commitments;
+    /// an altered or removed authority cell cannot be authorized by a new law claim.
+    ///
+    /// # Errors
+    /// Refuses changes outside added non-refuted law claims, removed prior claims,
+    /// changed physical authority, invalid aliases or unsupported profile premises.
+    pub fn with_discharged_program(
+        self,
+        program: CorrespondenceProgram,
+    ) -> gmeow_errors::Result<Self> {
+        let mut prior = program.clone();
+        if prior.correspondences.len() != self.program.correspondences.len() {
+            return Err(error(
+                "law discharge changed the admitted correspondence inventory",
+            ));
+        }
+        for (current, original) in prior
+            .correspondences
+            .iter_mut()
+            .zip(&self.program.correspondences)
+        {
+            if original
+                .law_claims
+                .iter()
+                .any(|claim| !current.law_claims.contains(claim))
+                || current
+                    .law_claims
+                    .iter()
+                    .any(|claim| claim.verdict == crate::ir::DischargeVerdict::ObligationViolated)
+            {
+                return Err(error(
+                    "law discharge removed evidence or retained a refuted claim",
+                ));
+            }
+            current.law_claims.clone_from(&original.law_claims);
+        }
+        if prior != self.program {
+            return Err(error(
+                "law discharge changed the admitted program outside law evidence",
+            ));
+        }
+        Self::from_admitted_properties(program, self.properties, self.authority_cells)
     }
 
     pub fn program(&self) -> &CorrespondenceProgram {
@@ -309,7 +462,7 @@ impl GroundingCatalog {
         self.properties
             .get(&(subject.to_owned(), predicate.to_owned()))
             .into_iter()
-            .flatten()
+            .flat_map(|values| &values.values)
             .map(|term| {
                 term.as_iri().ok_or_else(|| {
                     error(format!(

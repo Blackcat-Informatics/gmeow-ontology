@@ -61,6 +61,7 @@ pub(crate) mod joint;
 pub(crate) mod property;
 mod reduce;
 
+use std::borrow::Cow;
 use std::collections::BTreeSet;
 
 use hashbrown::HashTable;
@@ -2146,17 +2147,18 @@ impl RoundCandidateBuffer {
 }
 
 /// Build the common provenance winner from actual source rows in the shared store.
+/// Owned premises move into provenance after the same source and height checks.
 fn record_candidate(
     rule_iri: &str,
     head: Fact,
-    source_facts: &[Fact],
+    source_facts: Cow<'_, [Fact]>,
     snapshot: RoundSnapshot<'_>,
 ) -> gmeow_errors::Result<RuleRoundCandidate> {
     // Provenance: reifiers of matched POSITIVE body facts in body order.
     let mut sources: Vec<String> = Vec::with_capacity(source_facts.len());
     let mut max_sd = ProofHeight::ASSERTED;
     let mut sum_sd: u64 = 0;
-    for sf in source_facts {
+    for sf in source_facts.iter() {
         sources.push(sf.reifier()?);
         let source_key = sf.key();
         let row = snapshot.store.row_index(&source_key).ok_or_else(|| {
@@ -2185,7 +2187,7 @@ fn record_candidate(
             cross_world: None,
             sources,
             sorted_sources,
-            source_facts: source_facts.to_vec(),
+            source_facts: source_facts.into_owned(),
             deriv,
             rule_iri: rule_iri.to_owned(),
             proof_height,
@@ -2229,7 +2231,7 @@ fn evaluate_rule_into_round(
 
         let candidate = match snapshot.mode {
             ProvenanceMode::Record => {
-                record_candidate(&rule.rule_iri, head, &sol.source_facts, snapshot)?
+                record_candidate(&rule.rule_iri, head, sol.source_facts.into(), snapshot)?
             }
             ProvenanceMode::Skip => {
                 // Facts-only: every candidate under `key` has the same content-derived head,

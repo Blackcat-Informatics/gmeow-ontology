@@ -7,20 +7,57 @@ use std::collections::BTreeMap;
 
 use gmeow_lang_bridge::gmn1_codec::native;
 
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::parse_sources::SourceCatalog;
 
-/// Emit the complete native codebook into the existing language-projection family.
-pub(super) fn emit(
-    catalog: &SourceCatalog,
-    artifacts: &mut BTreeMap<String, Vec<u8>>,
-) -> gmeow_errors::Result<()> {
+/// Independent producer whose closure does not reconcile shipped browser assets.
+pub(crate) const STAGE_ID: &str = "stage-native-codebook";
+/// Final artifact owned by this producer and consumed by archives and browser bootstrap.
+pub(crate) const CHANNEL: &str = native::GENERATED_PATH;
+
+/// Encode the original native tables through their single production encoder.
+fn encode(catalog: &SourceCatalog) -> gmeow_errors::Result<Vec<u8>> {
     let language = catalog.language()?;
-    let bytes = native::encode(
+    native::encode(
         &language.dictionary,
         &language.codebook,
         catalog.document_digest(native::SOURCE_PATH)?,
         catalog.document_blake3_digest(native::SOURCE_PATH)?,
-    )?;
-    artifacts.insert(native::GENERATED_PATH.to_owned(), bytes);
-    Ok(())
+    )
+}
+
+/// Authenticated native-codebook production before browser substrate reconciliation.
+pub(crate) struct NativeCodebookStage {
+    consumes: Vec<String>,
+}
+
+impl Default for NativeCodebookStage {
+    /// Construct the stage over its declared original-source producer.
+    fn default() -> Self {
+        Self {
+            consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
+        }
+    }
+}
+
+impl Stage for NativeCodebookStage {
+    fn id(&self) -> &str {
+        STAGE_ID
+    }
+
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+
+    fn impl_version(&self) -> &str {
+        "native-codebook.v2-final-artifact-owner"
+    }
+
+    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {
+        let bytes = encode(crate::stages::parse_sources::catalog(&input)?)?;
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            BTreeMap::from([(CHANNEL.to_owned(), bytes)]),
+        )?))
+    }
 }

@@ -244,3 +244,11 @@ msgstr "Cette extraction reconstitue un artefact cible émis ; elle ne renforce 
 msgctxt "https://blackcatinformatics.ca/gmeow/fanout-math-loss-ledger|http://www.w3.org/2004/02/skos/core#example"
 msgid "Extract generated/projections/math/loss-ledger.ttl together with the target artifacts whose loss records it carries."
 msgstr "Extraire generated/projections/math/loss-ledger.ttl avec les artefacts cibles dont il porte les relevés de perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native codebook"
+msgstr "table de codes native"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Encode the native GMN dictionary and codebook from the admitted original language source and publish their authenticated language projection artifact. The archive stage carries these exact bytes in the language projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
+msgstr "Encode le dictionnaire et la table de codes GMN natifs à partir de la source linguistique originale admise et publie leur artefact de projection linguistique authentifié. L'étape d'archivage reprend ces octets exacts dans la famille des projections linguistiques. Sa seule dépendance est l'analyse des sources, ce qui permet de reconstruire les moteurs de navigateur avant la vérification de cohérence du substrat."

@@ -151,6 +151,52 @@ fn unknown_subcommand_is_a_usage_error() {
         .code(2);
 }
 
+/// Help and usage errors return through observer shutdown, including native
+/// report capture and C stream closure, without reaching any corpus producer.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+#[test]
+fn selected_allocator_observer_finishes_for_help_and_usage_error() {
+    for (argument, status) in [("--help", 0), ("definitely-not-a-real-command", 2)] {
+        let output = dev_cmd()
+            .env("GMEOW_ALLOCATOR_OBSERVATIONS", "glibc")
+            .arg(argument)
+            .output()
+            .expect("run observed CLI metadata command");
+        assert_eq!(output.status.code(), Some(status));
+        let stderr = String::from_utf8(output.stderr).expect("allocator XML and CLI diagnostics");
+        if status == 0 {
+            let stdout = String::from_utf8(output.stdout).expect("CLI help");
+            assert!(stdout.contains("Usage:"));
+        } else {
+            assert!(stderr.contains("unrecognized subcommand"));
+        }
+        for phase in ["baseline", "final"] {
+            let frame = stderr
+                .split("allocator-observation start ")
+                .skip(1)
+                .find(|frame| {
+                    frame
+                        .lines()
+                        .next()
+                        .is_some_and(|header| header.contains(&format!("phase={phase} ")))
+                })
+                .expect("baseline and final allocator frames");
+            let (_, body) = frame.split_once('\n').expect("allocator frame header");
+            let (xml, end) = body
+                .split_once("\nallocator-observation end ")
+                .expect("allocator frame completion");
+            assert!(xml.starts_with("<malloc "));
+            assert!(xml.trim_end().ends_with("</malloc>"));
+            assert!(
+                end.lines()
+                    .next()
+                    .expect("frame end")
+                    .ends_with(&format!("phase={phase}"))
+            );
+        }
+    }
+}
+
 /// The query command maps a tiny user rule and data file to JSON bindings.
 /// Recursive corpus verdicts belong to authenticated producer observations.
 #[test]

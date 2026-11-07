@@ -12,7 +12,7 @@ use crate::physical::effects::value_flow::FlowRule;
 use crate::physical::effects::{ProducerEffect, StatementPattern};
 use crate::reason::refute::native::{
     NativeFamilyCompletion, NativeFamilyInput, NativeFamilyLedger, NativeFamilyOutcome,
-    NativeObligationScope, NativeRead, NativeReadKind, NativeRefutationFamily,
+    NativeObligationScope, NativeProofId, NativeRead, NativeReadKind, NativeRefutationFamily,
 };
 use crate::rule_ir::{EvalTerm, Fact};
 use std::collections::{BTreeMap, BTreeSet};
@@ -484,6 +484,7 @@ pub(super) fn evaluate(
 pub(super) fn candidates(
     families: &[NativeRefutationFamily],
     ledger: &NativeFamilyLedger,
+    proof_index: &BTreeMap<NativeProofId, usize>,
     snapshot: RoundSnapshot<'_>,
     round: &mut RoundCandidateBuffer,
 ) -> gmeow_errors::Result<()> {
@@ -492,21 +493,17 @@ pub(super) fn candidates(
         .iter()
         .filter(|outcome| families.contains(&outcome.family))
     {
-        candidates_from(&outcome.conclusions, ledger, snapshot, round)?;
+        candidates_from(&outcome.conclusions, ledger, proof_index, snapshot, round)?;
     }
     Ok(())
 }
 fn candidates_from(
     conclusions: &[crate::reason::refute::native::NativeSupportedClash],
     ledger: &NativeFamilyLedger,
+    proof_index: &BTreeMap<NativeProofId, usize>,
     snapshot: RoundSnapshot<'_>,
     round: &mut RoundCandidateBuffer,
 ) -> gmeow_errors::Result<()> {
-    let proofs: BTreeMap<_, _> = ledger
-        .proofs
-        .iter()
-        .map(|proof| (proof.id, &proof.statement))
-        .collect();
     for clash in conclusions {
         let head = Fact {
             subject: clash.subject.clone(),
@@ -520,9 +517,13 @@ fn candidates_from(
             .support
             .iter()
             .map(|id| {
-                let statement = proofs.get(id).ok_or_else(|| {
-                    super::seminaive_err("family candidate references absent native support")
-                })?;
+                let statement = proof_index
+                    .get(id)
+                    .and_then(|index| ledger.proofs.get(*index))
+                    .map(|proof| &proof.statement)
+                    .ok_or_else(|| {
+                        super::seminaive_err("family candidate references absent native support")
+                    })?;
                 Ok(Fact {
                     subject: statement.subject.clone(),
                     predicate: statement.predicate.clone(),
@@ -532,7 +533,7 @@ fn candidates_from(
             .collect::<gmeow_errors::Result<Vec<_>>>()?;
         round.insert(
             head.key(),
-            record_candidate(&clash.rule, head, &premises, snapshot)?,
+            record_candidate(&clash.rule, head, premises.into(), snapshot)?,
             ProvenanceMode::Record,
         )?;
     }
@@ -561,6 +562,18 @@ pub(super) fn completed(
     }
 }
 
+/// Extend the shared proof lookup with only the newly appended ledger suffix.
+fn extend_proof_index(
+    ledger: &NativeFamilyLedger,
+    proof_index: &mut BTreeMap<NativeProofId, usize>,
+    indexed_proofs: &mut usize,
+) {
+    for (index, proof) in ledger.proofs.iter().enumerate().skip(*indexed_proofs) {
+        proof_index.insert(proof.id, index);
+    }
+    *indexed_proofs = ledger.proofs.len();
+}
+
 /// One source-bound evidence column accompanies the existing native fact store.
 pub(super) struct State {
     pub(super) ledger: NativeFamilyLedger,
@@ -570,7 +583,7 @@ pub(super) struct State {
     pub(super) coverage: crate::reason::dl::SourceCoverageWorld,
     coverage_rows: usize,
     governance_rows: usize,
-    proof_index: BTreeMap<crate::reason::refute::native::NativeProofId, usize>,
+    proof_index: BTreeMap<NativeProofId, usize>,
     indexed_proofs: usize,
     analyses: analysis::Observations,
     class: Option<crate::reason::refute::PreparedClassAnalysis>,
@@ -703,20 +716,15 @@ impl State {
     }
 
     pub(super) fn index_proofs(&mut self) {
-        for (index, proof) in self
-            .ledger
-            .proofs
-            .iter()
-            .enumerate()
-            .skip(self.indexed_proofs)
-        {
-            self.proof_index.insert(proof.id, index);
-        }
-        self.indexed_proofs = self.ledger.proofs.len();
+        extend_proof_index(
+            &self.ledger,
+            &mut self.proof_index,
+            &mut self.indexed_proofs,
+        );
     }
     pub(super) fn recorded_proof(
         &self,
-        id: &crate::reason::refute::native::NativeProofId,
+        id: &NativeProofId,
     ) -> Option<&crate::reason::refute::native::NativeProofNode> {
         self.proof_index
             .get(id)
@@ -934,7 +942,12 @@ impl State {
         );
         let publication_started = crate::timing::Instant::now();
         trace_boundary("publish-native-family-candidates", "start", 0);
-        candidates(&families, &self.ledger, snapshot, round)?;
+        extend_proof_index(
+            &self.ledger,
+            &mut self.proof_index,
+            &mut self.indexed_proofs,
+        );
+        candidates(&families, &self.ledger, &self.proof_index, snapshot, round)?;
         trace_boundary(
             "publish-native-family-candidates",
             "end",
@@ -962,7 +975,18 @@ impl State {
             );
             let publication_started = crate::timing::Instant::now();
             trace_boundary("publish-native-class-candidates", "start", 0);
-            candidates_from(&outcome.local_conclusions(), &self.ledger, snapshot, round)?;
+            extend_proof_index(
+                &self.ledger,
+                &mut self.proof_index,
+                &mut self.indexed_proofs,
+            );
+            candidates_from(
+                &outcome.local_conclusions(),
+                &self.ledger,
+                &self.proof_index,
+                snapshot,
+                round,
+            )?;
             self.classes = Some(outcome);
             trace_boundary(
                 "publish-native-class-candidates",

@@ -122,6 +122,8 @@ pub const SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY: &str = "slice-ownership.undecla
 pub const SLICE_OWNERSHIP_STALE_DEPENDENCY: &str = "slice-ownership.stale-dependency";
 /// `crates/validate/src/slice_ownership.rs` — a slice query failed to parse.
 pub const SLICE_OWNERSHIP_UNPARSEABLE_QUERY: &str = "slice-ownership.unparseable-query";
+/// An unknown native ownership diagnostic cannot be silently dropped at a gate.
+pub const SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC: &str = "slice-ownership.unsupported-diagnostic";
 /// `crates/validate/src/slice_peerage.rs` — an undeclared semantic cross-slice
 /// edge between two mutually declared co-foundational grounding peers names a
 /// term that is not carried by any registered `gmeow:Seam` covering that
@@ -336,6 +338,7 @@ pub const ALL_CODES: &[&str] = &[
     SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
     SLICE_OWNERSHIP_STALE_DEPENDENCY,
     SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
+    SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC,
     SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
     SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
     SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,

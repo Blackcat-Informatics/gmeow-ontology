@@ -26,10 +26,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
 use crate::stages::native_query;
 use crate::stages::source_load::module_files;
 
@@ -1397,11 +1397,11 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
 
 /// Render every committed research-object artifact under `root`, keyed by its
 /// logical (repo-relative) path. The native correspondence program comes directly
-/// from the same run's mappings carrier and is admitted against actual owned sources.
+/// from the same run's mappings carrier, including its admitted native property authority.
 pub fn render_research_objects(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_program: CorrespondenceProgram,
+    catalog: &GroundingCatalog,
     scores_ttl: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let store = load_instance_graph(root, scores_ttl)?;
@@ -1468,7 +1468,7 @@ pub fn render_research_objects(
     }
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root, dcat_program, correspondence_program, scores_ttl)?;
+    let dcat = render_dcat(root, dcat_program, catalog, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML — purrdf project_datacite.
@@ -1501,51 +1501,55 @@ pub fn render_research_objects(
 }
 
 /// Admit the exact typed DCAT product against this run's native correspondence
-/// catalog and original ontology, then execute over the worked-example A-Box.
+/// catalog, then execute over the original ontology and worked-example A-Box.
 fn render_dcat(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_program: CorrespondenceProgram,
+    catalog: &GroundingCatalog,
     scores_ttl: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
-    // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
-    let onto = root.join("ontology").join("gmeow.ttl");
-    let bytes = std::fs::read(&onto)?;
-    parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
-    for module in module_files(root)? {
-        let bytes = std::fs::read(&module)?;
-        parsed.push(parse_into(&bytes, &module.display().to_string())?);
-    }
-    let ontology_refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let ontology = RdfDataset::union(&ontology_refs)?;
-    let catalog =
-        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
-            correspondence_program,
-            &gmeow_logic_compile::ingest::DslView::new(&ontology),
-            &gmeow_validate::grounding_catalog::discover(root)?,
-        )?;
+    const STAGE: &str = "stage-export-research-objects";
+    let mut parsed = measure_stage_phase(STAGE, "dcat-parse-ontology", || {
+        let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
+        // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
+        let onto = root.join("ontology").join("gmeow.ttl");
+        let bytes = std::fs::read(&onto)?;
+        parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
+        for module in module_files(root)? {
+            let bytes = std::fs::read(&module)?;
+            parsed.push(parse_into(&bytes, &module.display().to_string())?);
+        }
+        Ok::<_, gmeow_errors::Diag>(parsed)
+    })?;
     let product =
         gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(
             dcat_program,
-            &catalog,
+            catalog,
         )?;
     if product.payload.profile != "dcat" {
         return Err(ro_err(
             "selected DCAT product has a different profile".to_owned(),
         ));
     }
-    let prepared =
-        crate::projection_execution::PreparedProjectionProfile::prepare(&product, &catalog)?;
+    let prepared = measure_stage_phase(STAGE, "dcat-prepare-profile", || {
+        crate::projection_execution::PreparedProjectionProfile::prepare(&product, catalog)
+    })?;
+    drop(product);
     // The worked-example A-Box (scores.ttl rides in from the consumed evals product).
     for (label, _name, bytes) in example_inputs(root, scores_ttl)? {
         parsed.push(parse_into(&bytes, label)?);
     }
-    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let dataset = Arc::new(RdfDataset::union(&refs)?);
+    let dataset = measure_stage_phase(STAGE, "dcat-union-examples", || {
+        let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+        RdfDataset::union(&refs)
+    })?;
+    // The exact same ordered union now owns the execution input.
+    drop(parsed);
 
-    crate::projections::admit_dcat_digest_sources(&dataset)?;
-    let graph = match prepared.execute(&dataset)? {
+    measure_stage_phase(STAGE, "dcat-admit-digests", || {
+        crate::projections::admit_dcat_digest_sources(&dataset)
+    })?;
+    let graph = match measure_stage_phase(STAGE, "dcat-execute", || prepared.execute(&dataset))? {
         SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -1553,10 +1557,15 @@ fn render_dcat(
             }));
         }
     };
+    drop(dataset);
+    drop(prepared);
     // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical
     // forms to the W3C XSD mapping (the native codecs preserve raw lexical forms),
     // serialize to N-Triples (NO gts round-trip), then canonicalize to Turtle.
-    let mut quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&graph);
+    let mut quads = measure_stage_phase(STAGE, "dcat-flatten-output", || {
+        purrdf::native_quads::flat_rdf_quads_from_dataset(&graph)
+    });
+    drop(graph);
     // SPDX fixes lowercase hex, whereas XSD's generic canonical hex is uppercase.
     // Validate each external algorithm/value pair before preserving that selected spelling.
     for quad in &quads {
@@ -1591,26 +1600,35 @@ fn render_dcat(
             canonicalize_term_xsd(&mut quad.object)?;
         }
     }
-    let canon = purrdf::native_quads::flat_dataset_from_quads(&quads).map_err(|e| {
+    let canon = measure_stage_phase(STAGE, "dcat-freeze-output", || {
+        purrdf::native_quads::flat_dataset_from_quads(&quads)
+    })
+    .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("typed DCAT projection re-freeze: {e}"),
         })
     })?;
-    let nt = purrdf::serialize_dataset(
-        &canon,
-        "application/n-triples",
-        purrdf::SerializeGraph::Dataset,
-    )
+    drop(quads);
+    let nt = measure_stage_phase(STAGE, "dcat-serialize-output", || {
+        purrdf::serialize_dataset(
+            &canon,
+            "application/n-triples",
+            purrdf::SerializeGraph::Dataset,
+        )
+    })
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("typed DCAT projection serialize N-Triples: {e}"),
         })
     })?;
+    drop(canon);
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
     // `nt` is already bytes from the native serializer, so pass it by reference.
-    purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-        .map_err(gmeow_errors::Diag::from)
+    measure_stage_phase(STAGE, "dcat-normalize-output", || {
+        purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+            .map_err(gmeow_errors::Diag::from)
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -1618,24 +1636,25 @@ fn render_dcat(
 /// Required typed product, consumed from this run's mappings stage.
 const DCAT_QUERY_PATH: &str = "generated/queries/dcat.projection.json";
 
-/// Read this run's native correspondence program from the mappings RDF carrier.
-/// Missing or malformed selected graph data fails native admission; byte artifacts
-/// and generated files are never alternate authorities for this catalog. Project
-/// only the required graph into the native reader's default-graph view, including
-/// its graph-scoped statement layer; the original carrier is unchanged.
-fn mappings_correspondence_program(
+/// Borrow this run's complete admitted mappings publication. A graph or byte
+/// artifact cannot substitute for its physical source and property authority.
+fn mappings_grounding_catalog(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<CorrespondenceProgram, gmeow_errors::Diag> {
-    let product = upstream.get("stage-mappings").ok_or_else(|| {
-        ro_err(format!(
-            "missing stage-mappings product for the <{}> graph",
-            super::carrier::GRAPH_CORRESPONDENCE_LAWS,
-        ))
-    })?;
-    let graph = product.dataset().project_graph(Some(&RdfTerm::iri(
-        super::carrier::GRAPH_CORRESPONDENCE_LAWS,
-    )))?;
-    gmeow_logic_compile::projections::correspondence::parse_correspondence(&graph)
+) -> Result<&GroundingCatalog, gmeow_errors::Diag> {
+    upstream
+        .get("stage-mappings")
+        .and_then(|product| {
+            product
+                .bundle()
+                .handle(super::carrier::GRAPH_CORRESPONDENCE_LAWS)
+        })
+        .and_then(|entry| match &entry.payload {
+            crate::bundle::PipelineHandle::GroundingCatalog(catalog) => Some(catalog.as_ref()),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            ro_err("stage-mappings carries no complete admitted grounding catalog".into())
+        })
 }
 
 /// The `research-objects` export-leaf stage.
@@ -1689,7 +1708,7 @@ impl Stage for ResearchObjectsStage {
         // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
         // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
-        "research_objects.v6"
+        "research_objects.v9-admitted-grounding-publication"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
@@ -1706,11 +1725,8 @@ impl Stage for ResearchObjectsStage {
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.extend(module_files(root)?);
-        files.extend(
-            gmeow_validate::grounding_catalog::discover(root)?
-                .iter()
-                .map(|source| root.join(&source.identity().path)),
-        );
+        // Complete physical catalog admission is bound by the mappings product;
+        // these local files remain the exact original DCAT execution inputs.
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -1729,7 +1745,7 @@ impl Stage for ResearchObjectsStage {
                     ),
                 })
             })?;
-        let correspondence_program = mappings_correspondence_program(input.upstream)?;
+        let catalog = mappings_grounding_catalog(input.upstream)?;
         // `generated/evals/scores.ttl` from THIS run's stage-export-evals product
         // (fail-closed: a missing artifact is a hard error, never a disk fallback of the
         // git-ignored generated tree).
@@ -1748,7 +1764,7 @@ impl Stage for ResearchObjectsStage {
             })?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_research_objects(input.root, dcat_program, correspondence_program, scores_ttl)?,
+            render_research_objects(input.root, dcat_program, catalog, scores_ttl)?,
         )?))
     }
 }

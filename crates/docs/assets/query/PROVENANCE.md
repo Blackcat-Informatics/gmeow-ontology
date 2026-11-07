@@ -36,7 +36,7 @@ detected it drifting from the `purrdf` the workspace actually pins.
 
 ## Why pinned (not built at regenerate time)
 
-The regeneration pipeline is Rust-only — it does not invoke `cargo` or `wasm-bindgen`.
+The Rust synchronization pipeline does not build wasm or invoke `wasm-bindgen`.
 A browser-executable wasm engine cannot be produced during the synchronization pipeline
 (`make check-sync`), so it is pinned here as a build **input** (like
 `crates/docs/assets/gmeow.css`). Because it is a constant `include_bytes!` input, the
@@ -50,8 +50,14 @@ make maint-refresh-query-asset
 
 This rebuilds the wasm package (`make query-wasm-pkg`: release `wasm32` build,
 `wasm-bindgen --target web`, then a **required** `wasm-opt -Oz`), runs the Node parity
-lane, copies the four engine artifacts here, and re-pins `DIGESTS.blake3`. It depends on
-`query-wasm-pkg-test`, so bytes that never passed parity can never be pinned.
+lane over the fresh package, copies the four engine artifacts here, re-pins
+`DIGESTS.blake3`, and verifies the shipped engine against the same attestation.
+
+Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
+images and record candidate digests and exact substrate identities. Those records
+alone do not attest runtime parity. After current-bundle witness refresh, ordinary
+PR CI must pass all six Node package lanes and shipped-console acceptance for the
+final commit.
 
 Three gates guard against a stale or broken blob:
 
@@ -64,8 +70,7 @@ Three gates guard against a stale or broken blob:
   `make wasm-parity`) loads `js/pkg/` — this crate's own `cargo build` +
   `wasm-bindgen` output, not yet vendored anywhere — and runs the committed query
   corpus, byte-comparing every result against the native attestation
-  (`WITNESS.query.txt`) BEFORE those bytes are ever copied here. This is a
-  refresh-pipeline gate, not proof of what ships;
+  (`WITNESS.query.txt`). This verifies the freshly built package;
 - a **Node execution test against the SHIPPED engine**
   (`crates/query-wasm/js/tests/shipped.test.mjs`, on `make query-wasm-pkg-test` /
   `make wasm-parity`) loads the committed files under THIS directory directly — never

@@ -42,10 +42,9 @@ export function bundle_dataset(gts) {
 }
 
 /**
- * The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
- * hex. Lets a JS caller pin the EXACT codebook their document was validated against — the
- * same content address the codec's codebook-digest layer and the `gmeow gmn digest` CLI
- * report over the carrier bytes.
+ * The BLAKE3 digest of the original GMN-1 source document (`module.ttl`), as
+ * lowercase hex. The prepared native packet preserves this original-byte identity,
+ * so a JS caller can pin the source their document was validated against.
  * @returns {string}
  */
 export function gmn_codebook_digest() {
@@ -66,8 +65,8 @@ export function gmn_codebook_digest() {
  * verdict.
  *
  * The `bytes` are the raw GMN-1 surface text (the `@gmn{…}` header plus one record per
- * line). They are read through [`gmn1_read`] — the production codec's reader — against the
- * dictionary/glyph registry resolved from the embedded [`GMN_CODEBOOK_TTL`]. Because the
+ * line). They are read through [`gmeow_lang_bridge::gmn1_read`] — the production codec's reader — against the
+ * dictionary/glyph registry hydrated from the embedded native packet. Because the
  * codebook is embedded, glyphs, dictionary aliases, and prefixed terms are actually
  * RESOLVED: a document whose grammar is well-formed but which names a term the codebook
  * does not cover is rejected as `lang:GmnUncoveredTerm`, and every other codec-tier
@@ -85,8 +84,8 @@ export function gmn_codebook_digest() {
  * # Errors
  *
  * Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
- * failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
- * a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+ * failure of the embedded native codebook is not a runtime condition — its complete
+ * tables are a pinned build artifact (see [`embedded_codebook`])
  * — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
  * degradation to a syntax-only check.
  * @param {Uint8Array} bytes
@@ -192,18 +191,15 @@ export function version() {
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg_Error_fdd633d4bb5dd76a: function(arg0, arg1) {
+        __wbg_Error_30c8987f7c2ed4e2: function(arg0, arg1) {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return ret;
         },
-        __wbg___wbindgen_throw_ea4887a5f8f9a9db: function(arg0, arg1) {
-            throw new Error(getStringFromWasm0(arg0, arg1));
-        },
-        __wbg_now_d2e0afbad4edbe82: function() {
+        __wbg_now_b43fbe11590aa2be: function() {
             const ret = Date.now();
             return ret;
         },
-        __wbg_random_3182549db57fb083: function() {
+        __wbg_random_704f1adb99ef0917: function() {
             const ret = Math.random();
             return ret;
         },
@@ -326,11 +322,15 @@ function __wbg_finalize_init(instance, module) {
 
 async function __wbg_load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
+        if (!module.ok) {
+            throw new Error(`failed to fetch Wasm: ${module.status} ${module.statusText} fetching '${module.url}'`);
+        }
+
         if (typeof WebAssembly.instantiateStreaming === 'function') {
             try {
                 return await WebAssembly.instantiateStreaming(module, imports);
             } catch (e) {
-                const validResponse = module.ok && expectedResponseType(module.type);
+                const validResponse = expectedResponseType(module.type);
 
                 if (validResponse && module.headers.get('Content-Type') !== 'application/wasm') {
                     console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve Wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);

@@ -46,6 +46,7 @@ fn compatibility_range_retains_the_exact_locked_release() {
     let resolution = resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock")).unwrap();
     assert_eq!(resolution.requirement, "^3");
     assert_eq!(resolution.version, "3.0.0");
+    assert_eq!(resolution.git_revision, None);
     assert_eq!(
         resolution
             .packages
@@ -321,12 +322,27 @@ fn git_fixture() -> tempfile::TempDir {
 fn exact_official_git_revision_is_authenticated_in_both_workspaces() {
     let temp = git_fixture();
     verify_fuzz_substrate(temp.path()).unwrap();
+    let lock_path = temp.path().join("Cargo.lock");
+    let lock = std::fs::read_to_string(&lock_path).unwrap();
+    std::fs::write(
+        &lock_path,
+        format!("{lock}\n[[package]]\nname = 'wasm-bindgen'\nversion = '0.2.129'\n"),
+    )
+    .unwrap();
+    std::fs::write(
+        temp.path().join("Makefile"),
+        "BINARYEN_VER := version_130\n",
+    )
+    .unwrap();
+    let stamp = crate::repo_static::workspace_substrate_key(temp.path()).unwrap();
+    assert!(stamp.contains(&format!("purrdf.git-rev {REVISION};")));
     let resolution = resolve_purrdf(
         &temp.path().join("Cargo.toml"),
         &temp.path().join("Cargo.lock"),
     )
     .unwrap();
     assert_eq!(resolution.version, "3.0.1");
+    assert_eq!(resolution.git_revision.as_deref(), Some(REVISION));
     assert!(resolution.packages.iter().all(|package| {
         package.source == git_source(REVISION).unwrap() && package.checksum.is_empty()
     }));
@@ -343,6 +359,11 @@ fn exact_official_git_revision_is_authenticated_in_both_workspaces() {
     .unwrap();
     assert_eq!(resolution.version, other.version);
     assert_ne!(resolution.packages, other.packages);
+    assert_ne!(
+        stamp,
+        crate::repo_static::workspace_substrate_key(temp.path()).unwrap(),
+        "a same-version Git change invalidates shipped engine attestations"
+    );
     for file in ["Cargo.toml", "Cargo.lock"] {
         let path = temp.path().join(file);
         let text = std::fs::read_to_string(&path).unwrap();

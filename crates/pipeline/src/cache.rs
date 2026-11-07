@@ -720,11 +720,14 @@ pub(crate) fn default_graph_commitment(
 pub(crate) fn provenance_keys(
     product: &StageProduct,
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
-    let quads = product.dataset().owned_quads().collect::<Vec<_>>();
-    product
-        .bundle()
-        .provenance()
-        .public_projection()
+    let dataset = product.dataset();
+    let provenance = product.bundle().provenance().public_projection();
+    // Empty occurrence lanes need no quad lookup, even on a large carrier.
+    if provenance.is_empty() {
+        return Ok(BTreeSet::new());
+    }
+    let quads = dataset.owned_quads().collect::<Vec<_>>();
+    provenance
         .into_iter()
         .map(|(quad_index, unit, kind, artifact, location)| {
             let quad = quads.get(quad_index).ok_or_else(|| {
@@ -926,6 +929,14 @@ fn validate_handle_projection(
             // every governed correspondence, composition, leg and loss witness.
             program.content_key() == projected.content_key()
         }
+        PipelineHandle::GroundingCatalog(catalog) => {
+            let projected =
+                gmeow_logic_compile::projections::correspondence::parse_correspondence(graph)
+                    .map_err(|e| error(e.to_string()))?;
+            // Property support and physical authority are authenticated by the complete
+            // native payload; the governed graph carries the final law-bearing program.
+            catalog.program().content_key() == projected.content_key()
+        }
     };
     if !agrees {
         return Err(error(format!(
@@ -978,6 +989,7 @@ fn encode_handle(handle: &PipelineHandle) -> Result<Vec<u8>, gmeow_errors::Diag>
         PipelineHandle::Reasoning(result) => bincode::serialize(result.as_ref()),
         PipelineHandle::RelationalCore(program) => bincode::serialize(program.as_ref()),
         PipelineHandle::Correspondence(program) => bincode::serialize(program.as_ref()),
+        PipelineHandle::GroundingCatalog(catalog) => bincode::serialize(catalog.as_ref()),
     };
     encoded.map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -1037,6 +1049,15 @@ fn rebuild_handle(
         "correspondence" => PipelineHandle::Correspondence(Arc::new(
             bincode::deserialize(bytes).map_err(decode_error)?,
         )),
+        "grounding-catalog" => {
+            use bincode::Options;
+            let catalog = bincode::DefaultOptions::new()
+                .with_fixint_encoding()
+                .reject_trailing_bytes()
+                .deserialize(bytes)
+                .map_err(decode_error)?;
+            PipelineHandle::GroundingCatalog(Arc::new(catalog))
+        }
         other => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
                 format!("cached handle has unknown PipelineHandle arm tag {other:?}"),
@@ -1350,10 +1371,13 @@ impl CachedBundle {
         }
 
         // provenance → PUBLIC projection rows only.
-        let quads = bundle.dataset().owned_quads().collect::<Vec<_>>();
-        let provenance = bundle
-            .provenance()
-            .public_projection()
+        let provenance = bundle.provenance().public_projection();
+        let quads = if provenance.is_empty() {
+            Vec::new()
+        } else {
+            bundle.dataset().owned_quads().collect::<Vec<_>>()
+        };
+        let provenance = provenance
             .into_iter()
             .map(|(quad_index, unit, kind, artifact, location)| {
                 let quad = quads.get(quad_index).ok_or_else(|| {

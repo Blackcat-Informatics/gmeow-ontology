@@ -169,6 +169,16 @@ statistics share this admission and preserve per-file memberships even when the
 canonical program deduplicates a correspondence. This analysis lives only for the
 lowering invocation; it neither adds a persistent carrier nor certifies a rewrite.
 
+Mappings publishes its admitted grounding catalog as a native handle pinned to
+`graph/correspondence-laws`. The complete payload retains the final law-bearing
+program, every admitted property value and the exact physical-source cell
+commitments. Its selected native catalog identity alone does not identify that
+payload. Research-object DCAT preparation borrows this publication instead of
+rediscovering the slice catalog or reconstructing authority from the graph.
+Mappings binds every physical slice-admission input into its action key; its full
+source slice catalog stays local to the lowering invocation. Persistent restoration
+authenticates the complete native catalog and graph binding without source reads.
+
 Compiler carrier assembly places the existing canonical, relational-core and
 correspondence datasets through one composite view and materializes the final
 carrier once. Routing moves ordinary statements, reifier bindings, annotations and

@@ -199,17 +199,17 @@ cargo-config2 = "0.1.45"
 # major bump edits every requirement here and in fuzz/Cargo.toml first. Every
 # declared `purrdf*` requirement must agree and admit nothing below major 3
 # (`gmeow_validate::substrate::PURRDF_MAJOR_FLOOR`).
-purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 # Diagnostics and gate orchestration use the RDF kernel without parser/query/shape engines.
-purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf-core = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 # The substrate's one JSON/YAML/CBOR/XML home; the facade does not re-export it.
-purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf-lex = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 # The substrate JSON Schema engine; meta-schemas are embedded by the validator.
-purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf-jsonschema = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 # The substrate's one Ed25519 implementation (GTS signing and verification keys).
-purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf-ed25519 = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 # The substrate's one BLAKE3/hex home.
-purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "981439ee6416d592fa7be819880e94b74df5d001" }
+purrdf-hash = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.
@@ -229,9 +229,9 @@ ciborium = "0.2"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }
-# Unix process resource accounting for the report-only performance sampler. The
-# sampler reads `getrusage(RUSAGE_CHILDREN)` around exactly one measured command;
-# production libraries never call libc through this dependency.
+# Native Unix resource accounting and GNU allocator operations. Performance sampling
+# reads child resource usage; the pipeline reclaims unused pages at explicit phase
+# handoffs and supports selected all-arena allocator observations.
 libc = "0.2"
 # Pure-Rust template engine for the static site: no build scripts, deterministic
 # rendering.
