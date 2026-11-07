@@ -392,7 +392,7 @@ pub(super) fn add_named(
     reject_base_quoted_triples(&dataset, graph_name)?;
     builder
         .add_dataset_scoped(&dataset, Some(graph_name), Some(scope))
-        .map_err(|e| stage_err(&e))?;
+        .map_err(gts_ingest_failure)?;
     Ok(())
 }
 
@@ -411,8 +411,18 @@ pub(super) fn add_base_nq(
     reject_base_quoted_triples(&dataset, "default")?;
     builder
         .add_dataset_scoped(&dataset, None, Some(scope))
-        .map_err(|e| stage_err(&e))?;
+        .map_err(gts_ingest_failure)?;
     Ok(())
+}
+
+/// Retain native snapshot-ingestion failures beneath the existing sink diagnostic.
+#[cfg(test)]
+fn gts_ingest_failure(error: purrdf::gts_compose::GtsIngestError) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+        "stage-gts-sink".to_owned(),
+        error.to_string(),
+        error,
+    ))
 }
 
 /// The standardize-apart union of several Turtle sources into ONE default-graph
