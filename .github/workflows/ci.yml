@@ -203,7 +203,18 @@ jobs:
         id: sweep
         run: |
           set -euo pipefail
-          make maint-medium-sweep GMEOW_DEV=./dist/bin/gmeow-dev
+          bash .github/scripts/observe-producer.sh medium-sweep dist/medium-sweep/resources.log -- \
+            make maint-medium-sweep GMEOW_DEV=./dist/bin/gmeow-dev
+
+      # Console snapshots remain useful if runner loss prevents this upload.
+      - name: Upload medium producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: medium-resources-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/medium-sweep/resources.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Record hosted measurement provenance
         if: always()
@@ -414,7 +425,18 @@ jobs:
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
           mkdir -p dist/sync
-          make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
+          bash .github/scripts/observe-producer.sh cold-generation dist/sync/resources.log -- \
+            make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
+
+      # A dead runner may prevent artifact upload; snapshots also stream to the job log.
+      - name: Upload cold producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: generation-resources-${{ github.sha }}-${{ matrix.generation }}-${{ github.run_attempt }}
+          path: dist/sync/resources.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
         env:
@@ -732,8 +754,18 @@ jobs:
         env:
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: >-
+          bash .github/scripts/observe-producer.sh fixture-prefix dist/nextest/fixture-resources.log --
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
+
+      - name: Upload fixture producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fixture-resources-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/nextest/fixture-resources.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Verify browser bootstrap preserves the full fixture selection
         run: |
