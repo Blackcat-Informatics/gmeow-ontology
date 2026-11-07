@@ -628,6 +628,8 @@ fn reason_dataset(
         routed.graph = Some(graph.clone());
         builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope))?;
     }
+    // The builder owns every routed row; release the completed projection.
+    drop(reasoning_ds);
     let graph_id = builder.intern_owned_term(&graph)?;
     builder.declare_named_graph(graph_id)?;
     gmeow_errors::render::append_gmeow_findings(
