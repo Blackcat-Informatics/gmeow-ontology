@@ -17,9 +17,32 @@ fn union<T: Ord + Clone>(left: &Arc<BTreeSet<T>>, right: &Arc<BTreeSet<T>>) -> A
     }
 }
 
+/// One class preparation shares immutable original leaves across native supports.
+/// Complete premise values remain the lookup and proof-ordering authority.
+#[derive(Default)]
+pub(super) struct SourcePool {
+    leaves: BTreeSet<Arc<RefutationPremise>>,
+}
+
+impl SourcePool {
+    /// Retain existing source allocations before replacing their support wrapper.
+    pub(super) fn seed(&mut self, support: &Support) {
+        self.leaves.extend(support.sources.iter().cloned());
+    }
+
+    fn intern(&mut self, premise: RefutationPremise) -> Arc<RefutationPremise> {
+        if let Some(existing) = self.leaves.get(&premise) {
+            return Arc::clone(existing);
+        }
+        let premise = Arc::new(premise);
+        self.leaves.insert(Arc::clone(&premise));
+        premise
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct Support {
-    sources: Arc<BTreeSet<RefutationPremise>>,
+    sources: Arc<BTreeSet<Arc<RefutationPremise>>>,
     native: Arc<BTreeSet<NativeProofId>>,
 }
 
@@ -29,13 +52,21 @@ impl Support {
     }
     pub(super) fn one(premise: RefutationPremise) -> Self {
         Self {
-            sources: Arc::new(BTreeSet::from([premise])),
+            sources: Arc::new(BTreeSet::from([Arc::new(premise)])),
             native: Arc::default(),
         }
     }
-    pub(super) fn from_native(sources: Vec<RefutationPremise>, native: Vec<NativeProofId>) -> Self {
+    pub(super) fn from_native(
+        sources: Vec<RefutationPremise>,
+        native: Vec<NativeProofId>,
+        pool: &mut SourcePool,
+    ) -> Self {
+        let sources = sources
+            .into_iter()
+            .map(|source| pool.intern(source))
+            .collect();
         Self {
-            sources: Arc::new(sources.into_iter().collect()),
+            sources: Arc::new(sources),
             native: Arc::new(native.into_iter().collect()),
         }
     }
@@ -55,7 +86,10 @@ impl Support {
         *self = self.merge(other);
     }
     pub(super) fn rows(&self) -> Vec<RefutationPremise> {
-        self.sources.iter().cloned().collect()
+        self.sources
+            .iter()
+            .map(|source| source.as_ref().clone())
+            .collect()
     }
     pub(super) fn native(&self) -> Vec<NativeProofId> {
         self.native.iter().copied().collect()
