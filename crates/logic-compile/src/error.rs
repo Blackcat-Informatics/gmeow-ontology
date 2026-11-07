@@ -46,6 +46,11 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+/// Report an authored IR refusal without a lower native cause.
+pub(crate) fn ir_diagnostic(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(Ir::new(detail.into()))
+}
+
 define_diag_kind! {
     native_cause;
     /// A validation-shape constructor or the shape normalizer rejected its input:

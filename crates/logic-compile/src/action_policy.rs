@@ -8,6 +8,9 @@ use std::collections::BTreeSet;
 use std::sync::{Arc, OnceLock};
 
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection};
+
+use crate::error::ir_diagnostic as fail;
+
 mod json;
 
 /// Canonical authored action-policy document.
@@ -124,10 +127,6 @@ pub struct PreparedActionPolicy {
     omitted_annotations: BTreeSet<String>,
     nquads: String,
     dataset: OnceLock<Arc<RdfDataset>>,
-}
-
-fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Ir::new(detail.into()))
 }
 
 /// Comparable original policy statements, retaining all object kinds and annotations.

@@ -13,6 +13,7 @@ use super::{
     Diagnostic, OwnerDisposition, OwnerFamily, OwnerLowering, SourceEdgeRole, SourceNode,
     SourceUnitKind, StructuralSourceGraph,
 };
+use crate::error::ir_diagnostic as error;
 use crate::ir::presentation::*;
 use crate::ir::{Formula, LOGIC_NAMESPACE, LogicModality, LogicProgram, PreservationKind};
 
@@ -42,10 +43,6 @@ pub(super) fn owns_kind(kind: &SourceUnitKind) -> bool {
             kind,
             SourceUnitKind::PresentationBinding | SourceUnitKind::ScopedBlankReference
         )
-}
-
-fn error(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Ir::new(message.into()))
 }
 
 fn add_size(
