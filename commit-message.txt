@@ -1,0 +1,8 @@
+feat: add link resolution and time join readings
+
+Ground ten terms in the canonical Refinement observation spine and an open
+QualityValue basis vocabulary. Preserve original source clocks, actual timed
+claims, attributed outcomes and producer context. Include complete English,
+French and Chinese guidance and hypothetical RDF 1.2 statement provenance.
+
+Principles 2, 4, 7, 9, 11, 17 and 19.

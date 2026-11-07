@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2615,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution",
+  "branch": "paudley/2615-refinement-readings-a-link-resolution",
+  "slug": "refinement-readings-a-link-resolution",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "4cc53d5c98f398a3205336b6b415413757ba5789",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution",
+    "branch:paudley/2615-refinement-readings-a-link-resolution",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/principia-v6-fol-f91e5b91 caches into /home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution plus 0 dependency units from 0 other checkouts in 3.1s; 12564 unchanged files keep their built mtimes; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-07T15:46:09-0600",
+  "seed_error": ""
+}

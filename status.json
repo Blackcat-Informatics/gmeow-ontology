@@ -1,0 +1,113 @@
+{
+  "issue": 2615,
+  "pr_number": 2617,
+  "branch": "paudley/2615-refinement-readings-a-link-resolution",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution",
+  "observed_at": "2026-11-07T22:00:06.636295+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2615-refinement-readings-a-link-resolution/.stage/refinement-readings-a-link-resolution/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "4cc53d5c98f398a3205336b6b415413757ba5789",
+    "headRefName": "paudley/2615-refinement-readings-a-link-resolution",
+    "headRefOid": "18ae8851195e9a0a4d455ff2301ce761f34d07c7",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2617,
+    "state": "OPEN",
+    "title": "Add grounded link-resolution and time-join readings",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2617"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42418482419/job/128541621086",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42418482419/job/128541620792",
+        "name": "helpers",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42418482419/job/128541621072",
+        "name": "lint",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42418482419/job/128541620963",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2617",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "18ae8851195e9a0a4d455ff2301ce761f34d07c7",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 0,
+    "change_token": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "local": {
+    "head": "18ae8851195e9a0a4d455ff2301ce761f34d07c7",
+    "branch": "paudley/2615-refinement-readings-a-link-resolution",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2617,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2617 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
