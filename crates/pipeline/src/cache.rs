@@ -720,11 +720,14 @@ pub(crate) fn default_graph_commitment(
 pub(crate) fn provenance_keys(
     product: &StageProduct,
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
-    let quads = product.dataset().owned_quads().collect::<Vec<_>>();
-    product
-        .bundle()
-        .provenance()
-        .public_projection()
+    let dataset = product.dataset();
+    let provenance = product.bundle().provenance().public_projection();
+    // Empty occurrence lanes need no quad lookup, even on a large carrier.
+    if provenance.is_empty() {
+        return Ok(BTreeSet::new());
+    }
+    let quads = dataset.owned_quads().collect::<Vec<_>>();
+    provenance
         .into_iter()
         .map(|(quad_index, unit, kind, artifact, location)| {
             let quad = quads.get(quad_index).ok_or_else(|| {
@@ -1368,10 +1371,13 @@ impl CachedBundle {
         }
 
         // provenance → PUBLIC projection rows only.
-        let quads = bundle.dataset().owned_quads().collect::<Vec<_>>();
-        let provenance = bundle
-            .provenance()
-            .public_projection()
+        let provenance = bundle.provenance().public_projection();
+        let quads = if provenance.is_empty() {
+            Vec::new()
+        } else {
+            bundle.dataset().owned_quads().collect::<Vec<_>>()
+        };
+        let provenance = provenance
             .into_iter()
             .map(|(quad_index, unit, kind, artifact, location)| {
                 let quad = quads.get(quad_index).ok_or_else(|| {
