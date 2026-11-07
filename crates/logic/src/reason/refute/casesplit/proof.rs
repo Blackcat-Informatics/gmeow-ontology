@@ -6,6 +6,17 @@
 use super::super::{NativeProofId, RefutationPremise};
 use std::{collections::BTreeSet, sync::Arc};
 
+/// Reuse immutable operands when their union already has an owned representation.
+fn union<T: Ord + Clone>(left: &Arc<BTreeSet<T>>, right: &Arc<BTreeSet<T>>) -> Arc<BTreeSet<T>> {
+    if Arc::ptr_eq(left, right) || right.is_subset(left) {
+        Arc::clone(left)
+    } else if left.is_subset(right) {
+        Arc::clone(right)
+    } else {
+        Arc::new(left.union(right).cloned().collect())
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct Support {
     sources: Arc<BTreeSet<RefutationPremise>>,
@@ -36,8 +47,8 @@ impl Support {
             return other.clone();
         }
         Self {
-            sources: Arc::new(self.sources.union(&other.sources).cloned().collect()),
-            native: Arc::new(self.native.union(&other.native).copied().collect()),
+            sources: union(&self.sources, &other.sources),
+            native: union(&self.native, &other.native),
         }
     }
     pub(super) fn extend(&mut self, other: &Self) {

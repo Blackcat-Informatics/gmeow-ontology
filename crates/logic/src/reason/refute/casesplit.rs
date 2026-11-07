@@ -40,6 +40,18 @@ use super::{
     resource_key, world_key,
 };
 
+/// Execution observations never participate in class proofs or work accounting.
+fn trace_class_phase(world: &str, phase: &'static str, event: &'static str, elapsed_ms: u128) {
+    tracing::info!(
+        target: "pipeline_reasoning_detail",
+        world,
+        phase,
+        event,
+        elapsed_ms,
+        "native class analysis phase",
+    );
+}
+
 // ── IRI constants ────────────────────────────────────────────────────────────────
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
@@ -958,11 +970,21 @@ impl Scan {
             );
         }
 
+        let context_started = crate::timing::Instant::now();
+        trace_class_phase(world, "construct-native-class-context", "start", 0);
         let ctx = Ctx::build(w);
+        trace_class_phase(
+            world,
+            "construct-native-class-context",
+            "end",
+            context_started.elapsed().as_millis(),
+        );
         let resolver = Resolver { w };
         let outcome = (|| {
             // Initial tableau: assert every individual's membership concepts, then the
             // sameAs merges and differentFrom constraints.
+            let seed_started = crate::timing::Instant::now();
+            trace_class_phase(world, "seed-native-class-tableau", "start", 0);
             let mut state = State::default();
             let mut all_individuals: BTreeSet<String> = BTreeSet::new();
             for (ind, classes) in &w.types {
@@ -1024,7 +1046,22 @@ impl Scan {
                 }
             }
 
-            match search(&mut state, &ctx, budget, 0) {
+            trace_class_phase(
+                world,
+                "seed-native-class-tableau",
+                "end",
+                seed_started.elapsed().as_millis(),
+            );
+            let search_started = crate::timing::Instant::now();
+            trace_class_phase(world, "search-native-class-tableau", "start", 0);
+            let searched = search(&mut state, &ctx, budget, 0);
+            trace_class_phase(
+                world,
+                "search-native-class-tableau",
+                "end",
+                search_started.elapsed().as_millis(),
+            );
+            match searched {
                 SearchResult::Unsat(proof) => WorldOutcome::Inconsistent(proof),
                 SearchResult::Bound(bound) => WorldOutcome::SearchBoundary(bound),
                 SearchResult::Sat => {

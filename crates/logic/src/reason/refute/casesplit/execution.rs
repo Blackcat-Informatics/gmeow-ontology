@@ -238,6 +238,13 @@ impl PreparedClassAnalysis {
             .worlds
             .get_mut(input.world())
             .expect("checked native world");
+        let sources_started = crate::timing::Instant::now();
+        super::trace_class_phase(
+            input.world(),
+            "bind-native-class-source-support",
+            "start",
+            0,
+        );
         for support in world
             .source_premises
             .values_mut()
@@ -248,6 +255,19 @@ impl PreparedClassAnalysis {
             let facts: Vec<_> = support.rows().iter().map(source_fact).collect();
             *support = native_support(input, ledger, &facts)?;
         }
+        super::trace_class_phase(
+            input.world(),
+            "bind-native-class-source-support",
+            "end",
+            sources_started.elapsed().as_millis(),
+        );
+        let derived_started = crate::timing::Instant::now();
+        super::trace_class_phase(
+            input.world(),
+            "ingest-native-class-derived-schema",
+            "start",
+            0,
+        );
         let mut schema_changed = false;
         for fact in input.store.facts().iter().skip(input.original_row_count()) {
             if !relevant(&super::semantic_predicate(&fact.predicate)) {
@@ -270,8 +290,27 @@ impl PreparedClassAnalysis {
                             || super::CONSISTENT_BLOCKING_TYPE_OBJECTS.contains(&marker)
                     }));
         }
+        super::trace_class_phase(
+            input.world(),
+            "ingest-native-class-derived-schema",
+            "end",
+            derived_started.elapsed().as_millis(),
+        );
         if schema_changed {
+            let schema_started = crate::timing::Instant::now();
+            super::trace_class_phase(
+                input.world(),
+                "prepare-native-class-derived-schema",
+                "start",
+                0,
+            );
             self.scan.prepare_schema();
+            super::trace_class_phase(
+                input.world(),
+                "prepare-native-class-derived-schema",
+                "end",
+                schema_started.elapsed().as_millis(),
+            );
         }
         if self
             .scan
