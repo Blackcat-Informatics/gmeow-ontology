@@ -249,6 +249,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Enforcement::Governance,
     ),
     (
+        codes::SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
         codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
         Severity::Error,
         Enforcement::Governance,
@@ -616,6 +621,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
         "Fix the malformed slice query so it parses.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_UNSUPPORTED_DIAGNOSTIC,
+        "Update the ownership diagnostic projection to handle the reported native diagnostic variant.",
     ),
     (
         codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
