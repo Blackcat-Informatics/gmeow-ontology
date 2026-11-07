@@ -13904,3 +13904,171 @@ msgstr "Éviter de la traiter comme une métrique riemannienne définie positive
 msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select this value through manifoldStructureKind and retain the actual metricTensor, metricSignature counts and stated sign convention. Keep physical interpretations in their own attributed downstream records."
 msgstr "Sélectionner cette valeur par manifoldStructureKind et conserver le metricTensor effectivement fourni, les nombres de metricSignature et la convention de signe énoncée. Garder les interprétations physiques dans leurs propres enregistrements attribués en aval."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Manifold"
+msgstr "Variété"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A manifold: a topological space locally homeomorphic to ℝⁿ, Hausdorff and second-countable, covered by a math:Atlas of charts. A subclass of math:TopologicalSpace. It declares both its dimension through math:manifoldDimension and its structure kind through math:manifoldStructureKind (topological, smooth, complex, Riemannian, Lorentzian) — a manifold missing either is ill-formed (math:UnderspecifiedManifold)."
+msgstr "Une variété : un espace topologique localement homéomorphe à ℝⁿ, de Hausdorff et à base dénombrable, recouvert par un math:Atlas de cartes. Sous-classe de math:TopologicalSpace. Elle déclare à la fois sa dimension par math:manifoldDimension et son type de structure par math:manifoldStructureKind (topologique, lisse, complexe, riemannienne, lorentzienne) ; une variété à laquelle manque l’un des deux est mal formée (math:UnderspecifiedManifold)."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The mathematical object must have the stated local Euclidean, Hausdorff and second-countable structure. A record of dimension and selected kind does not supply its atlas or prove those topological obligations."
+msgstr "L’objet mathématique doit posséder la structure énoncée : localement euclidienne, de Hausdorff et à base dénombrable. Un enregistrement indiquant la dimension et le type sélectionné ne fournit pas son atlas et ne prouve pas ces obligations topologiques."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of a declared frame: ex:M a math:Manifold ; math:manifoldDimension 2 ; math:manifoldStructureKind math:topologicalStructure ."
+msgstr "Illustration d’un cadre déclaré : ex:M a math:Manifold ; math:manifoldDimension 2 ; math:manifoldStructureKind math:topologicalStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a mathematical space with the local Euclidean, Hausdorff and second-countable structure required by this class."
+msgstr "Utiliser pour un espace mathématique doté de la structure localement euclidienne, de Hausdorff et à base dénombrable requise par cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for an arbitrary topological space, deriving chart coverage or separation from a label, or treating missing dimension or kind as an implicit default."
+msgstr "Éviter de l’utiliser pour un espace topologique quelconque, de déduire la couverture par les cartes ou la séparation d’un libellé, ou de traiter une dimension ou un type manquant comme une valeur par défaut implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual manifoldDimension and one selected manifoldStructureKind. Identify the supplied atlas, charts and topology evidence separately; the frame declarations do not replace that mathematical structure."
+msgstr "Conserver la manifoldDimension effectivement fournie et un seul manifoldStructureKind sélectionné. Identifier séparément l’atlas, les cartes et les justifications topologiques fournis ; les déclarations de cadre ne remplacent pas cette structure mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Smooth Manifold"
+msgstr "Variété lisse"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A smooth (C^∞) manifold: a manifold whose atlas has smooth transition maps, so differentiation is well-defined. A subclass of math:Manifold; its math:manifoldStructureKind is math:smoothStructure. The setting for tangent spaces, tensor fields, and differential geometry."
+msgstr "Une variété lisse (C^∞) : une variété dont l’atlas possède des applications de transition lisses, de sorte que la différentiation est bien définie. Sous-classe de math:Manifold ; son math:manifoldStructureKind est math:smoothStructure. Le cadre des espaces tangents, des champs tensoriels et de la géométrie différentielle."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Smoothness belongs to compatible transition maps of the actual atlas. This class does not by itself supply a metric, connection or complex structure; class inheritance does not require several selected-kind values."
+msgstr "La régularité lisse appartient aux applications de transition compatibles de l’atlas effectivement fourni. Cette classe ne fournit pas à elle seule une métrique, une connexion ou une structure complexe ; l’héritage de classes n’exige pas plusieurs valeurs de type sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind: ex:M a math:SmoothManifold ; math:manifoldStructureKind math:smoothStructure ."
+msgstr "Illustration de la classe et du type : ex:M a math:SmoothManifold ; math:manifoldStructureKind math:smoothStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a manifold equipped with compatible smooth transition maps when differential constructions require that structure."
+msgstr "Utiliser pour une variété munie d’applications de transition lisses compatibles lorsque les constructions différentielles nécessitent cette structure."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring smoothness from continuity alone, claiming a supplied atlas or derivative from the type name, or adding ancestor-kind values to a more specific selection."
+msgstr "Éviter d’inférer la régularité lisse de la seule continuité, de prétendre disposer d’un atlas ou d’une dérivée à partir du nom du type, ou d’ajouter les valeurs de type des ancêtres à une sélection plus spécifique."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the smooth atlas and transition evidence. Select smoothStructure when that is the declared structure; a more specific subclass retains its actual single selected kind instead of adding every ancestor kind."
+msgstr "Conserver l’atlas lisse et les justifications relatives aux transitions. Sélectionner smoothStructure lorsque c’est la structure déclarée ; une sous-classe plus spécifique conserve son unique type effectivement sélectionné au lieu d’ajouter chaque type ancestral."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complex Manifold"
+msgstr "Variété complexe"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex manifold: a manifold with holomorphic transition maps, locally modeled on ℂⁿ. A subclass of math:SmoothManifold (a complex structure refines a smooth one); its math:manifoldStructureKind is math:complexStructure. Its real dimension is twice its complex dimension."
+msgstr "Une variété complexe : une variété munie d’applications de transition holomorphes, localement modelée sur ℂⁿ. Sous-classe de math:SmoothManifold (une structure complexe raffine une structure lisse) ; son math:manifoldStructureKind est math:complexStructure. Sa dimension réelle est le double de sa dimension complexe."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complex manifold of complex dimension n has underlying real dimension 2n. These dimensions have different meanings; naming the class or kind does not supply compatible chart declarations or a conversion between their recorded coordinate dimensions."
+msgstr "Une variété complexe de dimension complexe n possède une dimension réelle sous-jacente 2n. Ces dimensions ont des significations différentes ; nommer la classe ou le type ne fournit pas des déclarations de cartes compatibles ni une conversion entre leurs dimensions de coordonnées enregistrées."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind only: ex:C a math:ComplexManifold ; math:manifoldStructureKind math:complexStructure ."
+msgstr "Illustration de la classe et du type uniquement : ex:C a math:ComplexManifold ; math:manifoldStructureKind math:complexStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a manifold with holomorphic coordinate transitions and the resulting complex structure."
+msgstr "Utiliser pour une variété munie de transitions de coordonnées holomorphes et de la structure complexe qui en résulte."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a complex manifold from complex-valued data on a real space, choosing coordinate-space counts from a bare dimension number, or treating the type as a chart-comparison certificate."
+msgstr "Éviter d’inférer une variété complexe de données à valeurs complexes sur un espace réel, de choisir les nombres de coordonnées de l’espace à partir d’un simple nombre de dimension ou de traiter le type comme un certificat de comparaison de cartes."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain complexStructure, the actual holomorphic chart and transition evidence, and the separately stated dimension conventions. Keep real and complex dimensions explicit without guessing target-space counts or asserting automatic reconciliation."
+msgstr "Conserver complexStructure, les justifications relatives aux cartes holomorphes et aux transitions effectivement fournies, ainsi que les conventions de dimension énoncées séparément. Expliciter les dimensions réelles et complexes sans deviner les nombres de coordonnées des espaces cibles ni affirmer une mise en concordance automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemannian Manifold"
+msgstr "Variété riemannienne"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Riemannian manifold: a smooth manifold with a positive-definite math:MetricTensor giving lengths and angles. A subclass of math:SmoothManifold; its math:manifoldStructureKind is math:riemannianStructure and its metric's math:metricSignature is (n, 0). The setting of curvature, geodesics, and classical differential geometry."
+msgstr "Une variété riemannienne : une variété lisse munie d’un math:MetricTensor défini positif donnant les longueurs et les angles. Sous-classe de math:SmoothManifold ; son math:manifoldStructureKind est math:riemannianStructure et la math:metricSignature de sa métrique est (n, 0). Le cadre de la courbure, des géodésiques et de la géométrie différentielle classique."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A positive-definite metric is additional mathematical structure on a smooth manifold. A type assertion does not supply tensor components, establish their laws or compute lengths, angles, geodesics or curvature."
+msgstr "Une métrique définie positive est une structure mathématique supplémentaire sur une variété lisse. Une assertion de type ne fournit pas les composantes du tenseur, n’établit pas leurs lois et ne calcule ni longueurs, ni angles, ni géodésiques, ni courbure."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind: ex:M a math:RiemannianManifold ; math:manifoldStructureKind math:riemannianStructure ."
+msgstr "Illustration de la classe et du type : ex:M a math:RiemannianManifold ; math:manifoldStructureKind math:riemannianStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a smooth manifold equipped with a positive-definite metric in a Riemannian geometric construction."
+msgstr "Utiliser pour une variété lisse munie d’une métrique définie positive dans une construction géométrique riemannienne."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for an indefinite Lorentzian metric, assuming a chosen signature is available on every smooth manifold, or claiming a geometric calculation from classification alone."
+msgstr "Éviter d’utiliser cette classe pour une métrique lorentzienne indéfinie, de supposer qu’une signature choisie est disponible sur toute variété lisse ou de revendiquer un calcul géométrique à partir de la seule classification."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain riemannianStructure and the actual metricTensor, its metricSignature and the smooth chart evidence. Preserve the positive-definite signature convention and the metric relationship to this manifold."
+msgstr "Conserver riemannianStructure, le metricTensor effectivement fourni, sa metricSignature et les justifications relatives aux cartes lisses. Préserver la convention de signature définie positive et la relation de la métrique à cette variété."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lorentzian Manifold"
+msgstr "Variété lorentzienne"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Lorentzian manifold: a smooth manifold with a metric tensor of signature (1, n−1) (or (n−1, 1)) — one timelike and n−1 spacelike directions. A subclass of math:SmoothManifold (a pseudo-Riemannian manifold, sibling to math:RiemannianManifold, not a subclass of it since the metric is indefinite); its math:manifoldStructureKind is math:lorentzianStructure. The math object a physics slice builds spacetime on — the metric and manifold stay here on the math side; spacetime, worldlines, and proper time are physics."
+msgstr "Une variété lorentzienne : une variété lisse munie d’un tenseur métrique de signature (1, n−1) (ou (n−1, 1)), avec une direction de genre temps et n−1 directions de genre espace. Sous-classe de math:SmoothManifold (une variété pseudo-riemannienne, sœur de math:RiemannianManifold et non sous-classe de celle-ci, car la métrique est indéfinie) ; son math:manifoldStructureKind est math:lorentzianStructure. L’objet mathématique sur lequel une tranche de physique construit l’espace-temps : la métrique et la variété restent ici du côté mathématique ; l’espace-temps, les lignes d’univers et le temps propre relèvent de la physique."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The manifold and indefinite metric are mathematical objects. One timelike direction and the remaining spacelike directions follow the declared sign convention; physical spacetime, worldlines and proper-time observations need their own interpretation and attribution."
+msgstr "La variété et la métrique indéfinie sont des objets mathématiques. La direction de genre temps et les autres directions de genre espace suivent la convention de signe déclarée ; l’espace-temps physique, les lignes d’univers et les observations de temps propre nécessitent leur propre interprétation et leur propre attribution."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing analysis-and-geometry scene types ex:minkowski as math:LorentzianManifold and supplies math:metricTensor ex:minkowskiMetric ."
+msgstr "La scène analysis-and-geometry existante attribue à ex:minkowski le type math:LorentzianManifold et fournit math:metricTensor ex:minkowskiMetric ."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a smooth manifold equipped with a metric of Lorentzian signature under an explicitly stated sign convention."
+msgstr "Utiliser pour une variété lisse munie d’une métrique de signature lorentzienne selon une convention de signe explicitement énoncée."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as a positive-definite Riemannian manifold, inferring physical spacetime or measured time from the type, or assuming every smooth manifold carries the selected metric."
+msgstr "Éviter de la traiter comme une variété riemannienne définie positive, d’inférer un espace-temps physique ou un temps mesuré du type, ou de supposer que toute variété lisse porte la métrique sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain lorentzianStructure, the actual metricTensor and metricSignature counts, and the supplied sign convention. Preserve smooth chart evidence without adding a second ancestor-kind value; keep physical interpretations separately attributed."
+msgstr "Conserver lorentzianStructure, le metricTensor effectivement fourni, les nombres de metricSignature et la convention de signe fournie. Préserver les justifications relatives aux cartes lisses sans ajouter une seconde valeur de type ancestral ; garder les interprétations physiques attribuées séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "manifold structure kind"
+msgstr "type de structure de variété"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold)."
+msgstr "Relie une math:Manifold au math:ManifoldStructureKind qu’elle porte : topologique, lisse, complexe, riemannienne ou lorentzienne. Domaine : math:Manifold ; portée : math:ManifoldStructureKind (indiqués en prose). Chaque variété en déclare exactement un ; une variété sans type de structure est mal formée (math:UnderspecifiedManifold)."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the resource naming the single selected structure context, not a string code or proof of the supporting mathematics. Missing selection is not topologicalStructure, and subclass membership does not materialize additional kind values."
+msgstr "L’objet est la ressource qui nomme l’unique contexte structurel sélectionné, non un code textuel ni une preuve des fondements mathématiques. Une sélection manquante n’est pas topologicalStructure, et l’appartenance à une sous-classe ne matérialise pas de valeurs de type supplémentaires."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of an explicit resource selection: ex:M math:manifoldStructureKind math:complexStructure ."
+msgstr "Illustration d’une sélection explicite de ressource : ex:M math:manifoldStructureKind math:complexStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the actual structure-kind selection of a manifold declaration."
+msgstr "Utiliser pour consigner le type de structure effectivement sélectionné dans une déclaration de variété."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string labels, silent defaults, selecting the strongest available label, or adding every ancestor kind because a manifold has a more specific class."
+msgstr "Éviter les libellés textuels, les valeurs par défaut silencieuses, la sélection du libellé disponible le plus fort ou l’ajout de chaque type ancestral parce qu’une variété possède une classe plus spécifique."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."
+msgstr "Référencer une seule ressource ManifoldStructureKind effectivement fournie et conserver séparément les justifications appropriées de dimension, de cartes, de transitions et de métrique. Préserver les sélections différentes dans leurs propres contextes déclarés plutôt que de choisir selon l’ordre du graphe ou d’accumuler plusieurs types sélectionnés sur une même déclaration."

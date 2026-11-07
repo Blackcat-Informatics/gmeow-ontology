@@ -19196,3 +19196,47 @@ math:lorentzianStructure
     gmeow:useWhen "Use when the selected manifold structure includes the indefinite metric required by a Lorentzian geometric model."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as a positive-definite Riemannian metric, inferring physical interpretation from a kind label, or discarding the actual metric sign convention."@x-gmeow-english ;
     gmeow:howToUse "Select this value through manifoldStructureKind and retain the actual metricTensor, metricSignature counts and stated sign convention. Keep physical interpretations in their own attributed downstream records."@x-gmeow-english .
+
+# Manifold class and structure selection usage guidance.
+
+math:Manifold
+    skos:scopeNote "The mathematical object must have the stated local Euclidean, Hausdorff and second-countable structure. A record of dimension and selected kind does not supply its atlas or prove those topological obligations."@x-gmeow-english ;
+    skos:example "Illustration of a declared frame: ex:M a math:Manifold ; math:manifoldDimension 2 ; math:manifoldStructureKind math:topologicalStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a mathematical space with the local Euclidean, Hausdorff and second-countable structure required by this class."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for an arbitrary topological space, deriving chart coverage or separation from a label, or treating missing dimension or kind as an implicit default."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual manifoldDimension and one selected manifoldStructureKind. Identify the supplied atlas, charts and topology evidence separately; the frame declarations do not replace that mathematical structure."@x-gmeow-english .
+
+math:SmoothManifold
+    skos:scopeNote "Smoothness belongs to compatible transition maps of the actual atlas. This class does not by itself supply a metric, connection or complex structure; class inheritance does not require several selected-kind values."@x-gmeow-english ;
+    skos:example "Illustration of class and kind: ex:M a math:SmoothManifold ; math:manifoldStructureKind math:smoothStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a manifold equipped with compatible smooth transition maps when differential constructions require that structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring smoothness from continuity alone, claiming a supplied atlas or derivative from the type name, or adding ancestor-kind values to a more specific selection."@x-gmeow-english ;
+    gmeow:howToUse "Retain the smooth atlas and transition evidence. Select smoothStructure when that is the declared structure; a more specific subclass retains its actual single selected kind instead of adding every ancestor kind."@x-gmeow-english .
+
+math:ComplexManifold
+    skos:scopeNote "A complex manifold of complex dimension n has underlying real dimension 2n. These dimensions have different meanings; naming the class or kind does not supply compatible chart declarations or a conversion between their recorded coordinate dimensions."@x-gmeow-english ;
+    skos:example "Illustration of class and kind only: ex:C a math:ComplexManifold ; math:manifoldStructureKind math:complexStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a manifold with holomorphic coordinate transitions and the resulting complex structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a complex manifold from complex-valued data on a real space, choosing coordinate-space counts from a bare dimension number, or treating the type as a chart-comparison certificate."@x-gmeow-english ;
+    gmeow:howToUse "Retain complexStructure, the actual holomorphic chart and transition evidence, and the separately stated dimension conventions. Keep real and complex dimensions explicit without guessing target-space counts or asserting automatic reconciliation."@x-gmeow-english .
+
+math:RiemannianManifold
+    skos:scopeNote "A positive-definite metric is additional mathematical structure on a smooth manifold. A type assertion does not supply tensor components, establish their laws or compute lengths, angles, geodesics or curvature."@x-gmeow-english ;
+    skos:example "Illustration of class and kind: ex:M a math:RiemannianManifold ; math:manifoldStructureKind math:riemannianStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a smooth manifold equipped with a positive-definite metric in a Riemannian geometric construction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this class for an indefinite Lorentzian metric, assuming a chosen signature is available on every smooth manifold, or claiming a geometric calculation from classification alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain riemannianStructure and the actual metricTensor, its metricSignature and the smooth chart evidence. Preserve the positive-definite signature convention and the metric relationship to this manifold."@x-gmeow-english .
+
+math:LorentzianManifold
+    skos:scopeNote "The manifold and indefinite metric are mathematical objects. One timelike direction and the remaining spacelike directions follow the declared sign convention; physical spacetime, worldlines and proper-time observations need their own interpretation and attribution."@x-gmeow-english ;
+    skos:example "The existing analysis-and-geometry scene types ex:minkowski as math:LorentzianManifold and supplies math:metricTensor ex:minkowskiMetric ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a smooth manifold equipped with a metric of Lorentzian signature under an explicitly stated sign convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a positive-definite Riemannian manifold, inferring physical spacetime or measured time from the type, or assuming every smooth manifold carries the selected metric."@x-gmeow-english ;
+    gmeow:howToUse "Retain lorentzianStructure, the actual metricTensor and metricSignature counts, and the supplied sign convention. Preserve smooth chart evidence without adding a second ancestor-kind value; keep physical interpretations separately attributed."@x-gmeow-english .
+
+math:manifoldStructureKind
+    skos:scopeNote "The object is the resource naming the single selected structure context, not a string code or proof of the supporting mathematics. Missing selection is not topologicalStructure, and subclass membership does not materialize additional kind values."@x-gmeow-english ;
+    skos:example "Illustration of an explicit resource selection: ex:M math:manifoldStructureKind math:complexStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the actual structure-kind selection of a manifold declaration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid string labels, silent defaults, selecting the strongest available label, or adding every ancestor kind because a manifold has a more specific class."@x-gmeow-english ;
+    gmeow:howToUse "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."@x-gmeow-english .
