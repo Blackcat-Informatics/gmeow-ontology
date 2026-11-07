@@ -5787,7 +5787,7 @@ math:TangentSpace
     rdfs:subClassOf math:VectorSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Tangent Space"@x-gmeow-english ;
-    skos:definition "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Tensor fields are sections over the tangent bundle — the disjoint union of the tangent spaces."@x-gmeow-english ;
+    skos:definition "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Vector fields are sections of the tangent bundle — the disjoint union of the tangent spaces."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:TensorField
@@ -19240,3 +19240,26 @@ math:manifoldStructureKind
     gmeow:useWhen "Use to record the actual structure-kind selection of a manifold declaration."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid string labels, silent defaults, selecting the strongest available label, or adding every ancestor kind because a manifold has a more specific class."@x-gmeow-english ;
     gmeow:howToUse "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."@x-gmeow-english .
+
+# Tangent fibre and point/base role usage guidance.
+
+math:TangentSpace
+    skos:scopeNote "The fibre T_pM is a vector space attached to an actual point of a differentiable manifold. It is distinct from that point, the base manifold, a tangent vector, a metric, coordinates and the whole tangent bundle; general tensor fields use the appropriate tensor bundles."@x-gmeow-english ;
+    skos:example "The existing analysis-and-geometry scene records ex:tangentAtOrigin at ex:originPoint and of ex:minkowski, with math:spaceDimension 4 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the tangent vector space at a supplied point of a differentiable manifold, rather than one vector or a field over the whole base."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying fibres at different points from equal dimension counts, inferring parallel transport without supporting structure, or treating a bare topological declaration as supplied smooth structure."@x-gmeow-english ;
+    gmeow:howToUse "Retain tangentSpaceAt, tangentSpaceOf and the actual dimension and scalar conventions. Keep point membership, atlas, basis and differentiation evidence separately supplied; role names and dimension metadata do not construct or certify them."@x-gmeow-english .
+
+math:tangentSpaceAt
+    skos:scopeNote "This names the point p in T_pM. The supplied link does not itself prove that the point belongs to the named manifold, provide a coordinate chart, or identify the tangent fibre with the point."@x-gmeow-english ;
+    skos:example "The existing scene states ex:tangentAtOrigin math:tangentSpaceAt ex:originPoint ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual base point at which a tangent space is taken."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the manifold, a coordinate tuple, one tangent vector or an assumed origin for the supplied point, and avoid turning this role into a point-membership validation claim."@x-gmeow-english ;
+    gmeow:howToUse "Write the TangentSpace as subject and the actual point resource as object. Retain its manifold separately through tangentSpaceOf and preserve supplied membership and chart evidence; missing point evidence does not justify inventing an origin or claiming a complete fibre declaration."@x-gmeow-english .
+
+math:tangentSpaceOf
+    skos:scopeNote "This names the manifold M in T_pM, separate from the fibre and its point. The existing dimension-count obligation does not construct a basis, prove point membership or reconcile real and complex scalar interpretations."@x-gmeow-english ;
+    skos:example "The existing scene states ex:tangentAtOrigin math:tangentSpaceOf ex:minkowski ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual base manifold of a tangent space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a point, coordinate space, metric or entire tangent bundle for the base, inferring transport from equal dimensions, or claiming complete value-equality admission from the supplied-term comparator."@x-gmeow-english ;
+    gmeow:howToUse "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."@x-gmeow-english .

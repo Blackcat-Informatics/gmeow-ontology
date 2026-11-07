@@ -14072,3 +14072,87 @@ msgstr "Éviter les libellés textuels, les valeurs par défaut silencieuses, la
 msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."
 msgstr "Référencer une seule ressource ManifoldStructureKind effectivement fournie et conserver séparément les justifications appropriées de dimension, de cartes, de transitions et de métrique. Préserver les sélections différentes dans leurs propres contextes déclarés plutôt que de choisir selon l’ordre du graphe ou d’accumuler plusieurs types sélectionnés sur une même déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tangent Space"
+msgstr "Espace tangent"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Vector fields are sections of the tangent bundle — the disjoint union of the tangent spaces."
+msgstr "L’espace tangent T_pM en un point p d’une variété M : l’espace vectoriel des vecteurs tangents en ce point. Sous-classe de math:VectorSpace ; il nomme son point de base par math:tangentSpaceAt et sa variété par math:tangentSpaceOf, et sa math:spaceDimension est égale à la math:manifoldDimension de la variété (sinon math:DimensionMismatch). Les champs vectoriels sont des sections du fibré tangent, la réunion disjointe des espaces tangents."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The fibre T_pM is a vector space attached to an actual point of a differentiable manifold. It is distinct from that point, the base manifold, a tangent vector, a metric, coordinates and the whole tangent bundle; general tensor fields use the appropriate tensor bundles."
+msgstr "La fibre T_pM est un espace vectoriel attaché à un point effectif d’une variété différentiable. Elle se distingue de ce point, de la variété de base, d’un vecteur tangent, d’une métrique, des coordonnées et du fibré tangent entier ; les champs tensoriels généraux utilisent les fibrés tensoriels appropriés."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing analysis-and-geometry scene records ex:tangentAtOrigin at ex:originPoint and of ex:minkowski, with math:spaceDimension 4 ."
+msgstr "La scène analysis-and-geometry existante consigne ex:tangentAtOrigin en ex:originPoint et sur ex:minkowski, avec math:spaceDimension 4 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the tangent vector space at a supplied point of a differentiable manifold, rather than one vector or a field over the whole base."
+msgstr "Utiliser pour l’espace vectoriel tangent en un point fourni d’une variété différentiable, plutôt que pour un vecteur ou un champ sur toute la base."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying fibres at different points from equal dimension counts, inferring parallel transport without supporting structure, or treating a bare topological declaration as supplied smooth structure."
+msgstr "Éviter d’identifier les fibres en des points différents à partir de nombres de dimensions égaux, d’inférer un transport parallèle sans structure justificative ou de traiter une simple déclaration topologique comme une structure lisse fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain tangentSpaceAt, tangentSpaceOf and the actual dimension and scalar conventions. Keep point membership, atlas, basis and differentiation evidence separately supplied; role names and dimension metadata do not construct or certify them."
+msgstr "Conserver tangentSpaceAt, tangentSpaceOf et les conventions de dimension et de scalaires effectivement utilisées. Garder séparément les justifications fournies d’appartenance du point, d’atlas, de base et de différentiation ; les noms de rôles et les métadonnées de dimension ne les construisent ni ne les certifient."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tangent space at"
+msgstr "espace tangent en"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TangentSpace to the point of the manifold it is the tangent space at — the p in T_pM. Domain math:TangentSpace, range a point (stated in prose). A tangent space is at a point; naming it makes the tangent bundle's fibres explicit."
+msgstr "Relie un math:TangentSpace au point de la variété en lequel il est l’espace tangent, le p de T_pM. Domaine : math:TangentSpace ; portée : un point (indiqués en prose). Un espace tangent est situé en un point ; le nommer explicite les fibres du fibré tangent."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the point p in T_pM. The supplied link does not itself prove that the point belongs to the named manifold, provide a coordinate chart, or identify the tangent fibre with the point."
+msgstr "Cette relation nomme le point p de T_pM. Le lien fourni ne prouve pas à lui seul que le point appartient à la variété nommée, ne fournit pas une carte de coordonnées et n’assimile pas la fibre tangente au point."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:tangentAtOrigin math:tangentSpaceAt ex:originPoint ."
+msgstr "La scène existante énonce ex:tangentAtOrigin math:tangentSpaceAt ex:originPoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual base point at which a tangent space is taken."
+msgstr "Utiliser pour conserver le point de base effectif en lequel un espace tangent est considéré."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the manifold, a coordinate tuple, one tangent vector or an assumed origin for the supplied point, and avoid turning this role into a point-membership validation claim."
+msgstr "Éviter de remplacer le point fourni par la variété, un tuple de coordonnées, un vecteur tangent ou une origine supposée, et de transformer ce rôle en une revendication de validation de l’appartenance du point."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the TangentSpace as subject and the actual point resource as object. Retain its manifold separately through tangentSpaceOf and preserve supplied membership and chart evidence; missing point evidence does not justify inventing an origin or claiming a complete fibre declaration."
+msgstr "Écrire le TangentSpace comme sujet et la ressource du point effectivement fourni comme objet. Conserver séparément sa variété par tangentSpaceOf et préserver les justifications fournies d’appartenance et de cartes ; l’absence de justifications relatives au point ne permet ni d’inventer une origine ni de revendiquer une déclaration de fibre complète."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tangent space of"
+msgstr "espace tangent de"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TangentSpace to the math:Manifold it is a tangent space of. Domain math:TangentSpace, range math:Manifold (stated in prose). Its math:spaceDimension must equal that manifold's math:manifoldDimension (math:DimensionMismatch)."
+msgstr "Relie un math:TangentSpace à la math:Manifold dont il est un espace tangent. Domaine : math:TangentSpace ; portée : math:Manifold (indiqués en prose). Sa math:spaceDimension doit être égale à la math:manifoldDimension de cette variété (math:DimensionMismatch)."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the manifold M in T_pM, separate from the fibre and its point. The existing dimension-count obligation does not construct a basis, prove point membership or reconcile real and complex scalar interpretations."
+msgstr "Cette relation nomme la variété M de T_pM, distincte de la fibre et de son point. L’obligation existante sur les nombres de dimensions ne construit pas une base, ne prouve pas l’appartenance du point et ne met pas en concordance les interprétations scalaires réelles et complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:tangentAtOrigin math:tangentSpaceOf ex:minkowski ."
+msgstr "La scène existante énonce ex:tangentAtOrigin math:tangentSpaceOf ex:minkowski ."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual base manifold of a tangent space."
+msgstr "Utiliser pour conserver la variété de base effective d’un espace tangent."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a point, coordinate space, metric or entire tangent bundle for the base, inferring transport from equal dimensions, or claiming complete value-equality admission from the supplied-term comparator."
+msgstr "Éviter de remplacer la base par un point, un espace de coordonnées, une métrique ou le fibré tangent entier, d’inférer un transport à partir de dimensions égales ou de revendiquer une admission complète de l’égalité des valeurs à partir du comparateur de termes fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."
+msgstr "Relier la fibre tangente à sa variété effective et conserver tangentSpaceAt. Préserver les spaceDimension et manifoldDimension déclarées selon leurs conventions effectives ; ne pas compléter les valeurs manquantes ni convertir silencieusement les dimensions tangentes réelles et complexes."
