@@ -31,7 +31,7 @@ fn cq_rationale_pipeline_source_controllers_bind_registered_dsl_sources_and_cata
     std::fs::write(&foreign, b"# unrelated catalog\n").unwrap();
     for paths in [
         docs_source_files(root.path()).unwrap(),
-        MappingsStage::default().input_files(root.path()).unwrap(),
+        MappingsStage.input_files(root.path()).unwrap(),
     ] {
         for path in [
             "dsl/tests/vocabulary.ttl",
@@ -49,5 +49,5 @@ fn cq_rationale_pipeline_source_controllers_refuse_partial_registered_dsl_owner(
     let root = authored_root();
     std::fs::remove_file(root.path().join("dsl/tests/vocabulary.ttl")).unwrap();
     assert!(docs_source_files(root.path()).is_err());
-    assert!(MappingsStage::default().input_files(root.path()).is_err());
+    assert!(MappingsStage.input_files(root.path()).is_err());
 }

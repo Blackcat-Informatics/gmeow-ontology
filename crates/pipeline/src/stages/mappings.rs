@@ -1240,44 +1240,29 @@ fn collect_files_recursive(
 /// The `mappings` pipeline stage — complete: all five mapping families (SSSOM +
 /// FnO + EDOAL + SPARQL + standpoint projections) plus the DSL surface-count summary,
 /// and the FINAL projection-report loss ledger (logic rows ∪ correspondence rows).
-pub struct MappingsStage {
-    consumes: Vec<String>,
-}
-
-impl MappingsStage {
-    /// Construct the stage. It consumes the compile-logic product to obtain the logic
-    /// projection rows + report-header counts it unions with the correspondence ledger
-    /// when assembling the final `generated/logic/projection-report.ttl` (plus the
-    /// procedural-constraint surface the shape-grounding ledger re-certifies), and the
-    /// constraint-shapes export leaf for the FOL-constraint surface of the same ledger.
-    pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-constraint-shapes".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_owned(),
-            ],
-        }
-    }
-}
-
-impl Default for MappingsStage {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+#[derive(Default)]
+pub struct MappingsStage;
 
 impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
+    /// Borrow the immutable compiler, constraint and original-source dependencies.
+    /// All instances share these identifiers fixed by the pipeline contract.
     fn consumes(&self) -> &[String] {
         // Reads dsl/mappings + slice mapping cells from the root, the compile-logic
         // product (the logic projection rows + header counts for the FINAL projection
         // report, plus the procedural-constraint surface the shape-grounding ledger
         // re-certifies), AND the constraint-shapes export leaf (the FOL-constraint
         // surface of the same ledger — THIS run's bytes, never a stale disk read).
-        &self.consumes
+        static DEPS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+        DEPS.get_or_init(|| {
+            vec![
+                "stage-compile-logic".to_string(),
+                "stage-export-constraint-shapes".to_string(),
+                crate::stages::parse_sources::STAGE_ID.to_owned(),
+            ]
+        })
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
@@ -1298,8 +1283,7 @@ impl Stage for MappingsStage {
         // tree plus the per-slice mapping cells in the slice modules — none of which
         // any upstream product reflects. The vendored coverage corpus
         // (tests/fixtures/coverage/external/*.ttl) is also a raw source input that
-        // feeds the committed audit ledger. Declare them ALL so any edit busts the
-        // cache. `consumes() == []` (the leaf reads sources, not upstream products).
+        // feeds the committed audit ledger. Declare them ALL so any edit busts the cache.
         let mut files = Vec::new();
         // Module/Example/Mapping roles and their physical owners are manifest-selected authority.
         files.extend(crate::stages::source_load::all_manifest_files(root)?);
