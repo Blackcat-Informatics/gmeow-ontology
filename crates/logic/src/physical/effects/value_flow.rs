@@ -2778,8 +2778,7 @@ impl ValueFlow {
                 // dynamic readers, so a later fixed-point visit sees support added
                 // by sibling candidates.
                 let partitioned = crate::timing::Instant::now();
-                let trace_large = candidates.len() >= 1_000
-                    && tracing::enabled!(target: "pipeline_reasoning_detail", tracing::Level::INFO);
+                let trace_large = candidates.len() >= 1_000;
                 if trace_large {
                     tracing::info!(
                         target: "pipeline_reasoning_detail",
@@ -2828,46 +2827,51 @@ impl ValueFlow {
                 }
                 let evaluated = crate::timing::Instant::now();
                 let mut supports = Vec::with_capacity(classes.len());
-                let mut retained_support_payload_bytes = 0usize;
                 for (batch_index, batch) in classes
                     .chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE)
                     .enumerate()
                 {
-                    let previous = supports.len();
                     supports.par_extend(batch.par_iter().map(|members| {
                         let refinement = self
                             .bindings_for_head_value(rule, head, slot, members[0], state, bindings);
                         self.head_value_support(head, slot, refinement)
                     }));
-                    if trace_large {
-                        // Count only newly retained results, once per result. This
-                        // diagnostic never scans the row pool or materializes a domain.
-                        retained_support_payload_bytes += supports[previous..]
-                            .iter()
-                            .flatten()
-                            .map(HeadSupport::payload_bytes)
-                            .sum::<usize>();
-                        if (batch_index + 1).is_power_of_two() {
-                            tracing::info!(
-                                target: "pipeline_reasoning_detail",
-                                phase = "refine-head-evaluate",
-                                event = "progress",
-                                slot,
-                                rule_index,
-                                visit,
-                                producer = rule.name.as_str(),
-                                processed_batches = batch_index + 1,
-                                processed_classes = supports.len(),
-                                classes = classes.len(),
-                                retained_support_payload_bytes,
-                                elapsed_ms = evaluated.elapsed().as_millis(),
-                                "native head refinement vector payload excludes overhead and RSS",
-                            );
-                        }
+                    if trace_large && (batch_index + 1).is_power_of_two() {
+                        // Field evaluation is lazy when tracing is disabled. Geometric
+                        // checkpoints scan only retained result headers, never row contents.
+                        let payload = std::cell::LazyCell::new(|| {
+                            supports
+                                .iter()
+                                .flatten()
+                                .map(HeadSupport::payload_bytes)
+                                .sum::<usize>()
+                        });
+                        tracing::info!(
+                            target: "pipeline_reasoning_detail",
+                            phase = "refine-head-evaluate",
+                            event = "progress",
+                            slot,
+                            rule_index,
+                            visit,
+                            producer = rule.name.as_str(),
+                            processed_batches = batch_index + 1,
+                            processed_classes = supports.len(),
+                            classes = classes.len(),
+                            retained_support_payload_bytes = *payload,
+                            elapsed_ms = evaluated.elapsed().as_millis(),
+                            "native head refinement vector payload excludes overhead and RSS",
+                        );
                     }
                 }
                 timings[1] = evaluated.elapsed().as_millis();
                 if trace_large {
+                    let payload = std::cell::LazyCell::new(|| {
+                        supports
+                            .iter()
+                            .flatten()
+                            .map(HeadSupport::payload_bytes)
+                            .sum::<usize>()
+                    });
                     tracing::info!(
                         target: "pipeline_reasoning_detail",
                         phase = "refine-head-evaluate",
@@ -2877,7 +2881,7 @@ impl ValueFlow {
                         visit,
                         producer = rule.name.as_str(),
                         classes = classes.len(),
-                        retained_support_payload_bytes,
+                        retained_support_payload_bytes = *payload,
                         elapsed_ms = timings[1],
                         "native head refinement vector payload excludes overhead and RSS",
                     );
