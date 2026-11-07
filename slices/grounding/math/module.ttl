@@ -13201,7 +13201,12 @@ math:ProbabilitySpace
     rdfs:subClassOf math:MeasurableSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Space"@x-gmeow-english ;
-    skos:definition "A probability space: the Kolmogorov triple (Ω, ℱ, P) made explicit as one object — a sample space Ω named through math:sampleSpace (a math:SampleSpace), an event σ-algebra ℱ named through math:eventSigmaAlgebra (a math:SigmaAlgebra), and a probability measure P named through math:probabilityMeasure (a math:ProbabilityMeasure). A subclass of math:MeasurableSpace carrying a probability measure — the probability charter SPECIALIZES the measure-theoretic bedrock rather than re-minting it. Each of the three components must be present, but any of them may be symbolic or generative (a math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, a math:MeasureDefinitionExpression) rather than extensionally enumerated; a probability space missing any of the three components is ill-formed (math:IncompleteProbabilitySpace). The gate requires presence and structural completeness, never impossible enumeration."@x-gmeow-english ;
+    skos:definition "A probability space: the Kolmogorov triple (Ω, ℱ, P) made explicit as one object — a sample space Ω named through math:sampleSpace (a math:SampleSpace), an event σ-algebra ℱ named through math:eventSigmaAlgebra (a math:SigmaAlgebra), and a probability measure P named through math:probabilityMeasure (a math:ProbabilityMeasure). A subclass of math:MeasurableSpace carrying a probability measure — the probability charter SPECIALIZES the measure-theoretic bedrock rather than re-minting it. Each of the three components must be present, but any of them may be symbolic or generative (a math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, a probability measure defined by a math:MeasureDefinitionExpression) rather than extensionally enumerated; a probability space missing any of the three components is ill-formed (math:IncompleteProbabilitySpace). The gate requires presence and structural completeness, never impossible enumeration."@x-gmeow-english ;
+    skos:scopeNote "The three roles distinguish the outcome carrier Ω, the measurable-event family ℱ and the probability measure P. Symbolic or generative descriptions retain those objects without enumerating all outcomes or events; a measure-definition expression defines P rather than replacing its ProbabilityMeasure resource."@x-gmeow-english ;
+    skos:example "The existing probability scene links ex:weatherSpace to ex:rainfallOutcomes through sampleSpace, ex:rainfallBorel through eventSigmaAlgebra and ex:weatherMeasure through probabilityMeasure. The measure separately names ex:weatherMeasurableSpace through measureOn and declares totalMass 1."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied Kolmogorov probability-space record whose sample-space, event-algebra and measure roles remain explicit, including symbolic or generative components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a confidence score, event occurrence, outcome list or density expression alone as a probability space. Three named roles do not prove σ-algebra closure, countable additivity, normalization or agreement of all supplied component descriptions."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual sampleSpace, eventSigmaAlgebra and probabilityMeasure resources and inherited MeasurableSpace obligations. Preserve supplied measureOn and totalMass evidence separately; missing roles require source evidence, not invented defaults, numerical evaluation or automatic query-model selection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SampleSpace
@@ -13276,6 +13281,11 @@ math:sampleSpace
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "sample space"@x-gmeow-english ;
     skos:definition "Names the sample space Ω of a probability space. Domain math:ProbabilitySpace, range math:SampleSpace (stated in prose). Every math:ProbabilitySpace names one; the sample space may be symbolic or generative but never absent — a space missing it is ill-formed (math:IncompleteProbabilitySpace)."@x-gmeow-english ;
+    skos:scopeNote "This names Ω, the carrier of possible outcomes, rather than ℱ, one measurable event-set or an observed occurrence. A symbolic or generated outcome description still supplies a sample-space object; a label alone does not establish its elements or event membership."@x-gmeow-english ;
+    skos:example "The existing scene states ex:weatherSpace math:sampleSpace ex:rainfallOutcomes, with ex:rainfallOutcomes typed math:SymbolicSampleSpace. It does not enumerate every rainfall outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the actual outcome carrier of a ProbabilitySpace, preserving its declared symbolic, generated or extensional representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting one outcome, an event occurrence, a σ-algebra or a list assumed complete from a label. Do not infer a distribution, probability law or missing sample-space object from the role name."@x-gmeow-english ;
+    gmeow:howToUse "Write the probability-space resource as subject and its supplied SampleSpace resource as object. Retain eventSigmaAlgebra and probabilityMeasure separately, and keep evidence for outcome and event membership rather than manufacturing an enumeration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eventSigmaAlgebra
@@ -13283,6 +13293,11 @@ math:eventSigmaAlgebra
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "event σ-algebra"@x-gmeow-english ;
     skos:definition "Names the event σ-algebra ℱ of a probability space — the algebra of measurable sets against which event membership is decided. Domain math:ProbabilitySpace, range math:SigmaAlgebra (stated in prose). Every math:ProbabilitySpace names one (extensional or symbolic, e.g. a math:BorelSigmaAlgebra); a space missing it is ill-formed (math:IncompleteProbabilitySpace). The σ-algebra is the sole event algebra — there is no separate EventSet class."@x-gmeow-english ;
+    skos:scopeNote "This names ℱ, the family of measurable subsets used as probability events, rather than Ω, one event-set or an occurrence in time. Symbolic generators can describe that family without listing every member; declaring the role does not prove the σ-algebra laws."@x-gmeow-english ;
+    skos:example "The existing scene states ex:weatherSpace math:eventSigmaAlgebra ex:rainfallBorel, with ex:rainfallBorel typed math:BorelSigmaAlgebra. No complete list of its measurable subsets is supplied by that link."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the supplied event σ-algebra against which probability events in the space are interpreted, including a symbolic or generative algebra."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an arbitrary collection of occurrences as a σ-algebra, substituting one event for its family, or claiming closure, measurability or a numerical event probability from the link alone."@x-gmeow-english ;
+    gmeow:howToUse "Write the ProbabilitySpace as subject and the actual SigmaAlgebra resource as object. Preserve sampleSpace, probabilityMeasure and supplied generator or membership evidence; absent family evidence does not authorize a new event algebra or an enumeration requirement."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:probabilityMeasure
@@ -13290,6 +13305,11 @@ math:probabilityMeasure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "probability measure"@x-gmeow-english ;
     skos:definition "Names the probability measure P of a probability space — the math:ProbabilityMeasure of total mass one assigning probabilities to the events of its σ-algebra. Domain math:ProbabilitySpace, range math:ProbabilityMeasure (stated in prose). Every math:ProbabilitySpace names one, possibly given by a math:MeasureDefinitionExpression; a space missing it is ill-formed (math:IncompleteProbabilitySpace)."@x-gmeow-english ;
+    skos:scopeNote "This names P, the ProbabilityMeasure assigning mass to measurable events, rather than a bare probability literal, confidence score or expression AST. A supplied measure-definition expression may describe P symbolically; it does not replace the measure object or prove its laws by being present."@x-gmeow-english ;
+    skos:example "The existing scene states ex:weatherSpace math:probabilityMeasure ex:weatherMeasure. That measure is typed math:ProbabilityMeasure, names ex:weatherMeasurableSpace through measureOn and declares totalMass 1; the scene does not supply a density-expression link for it."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual probability-measure resource of a supplied ProbabilitySpace, including one whose law is defined symbolically."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing a confidence score, raw number or MeasureDefinitionExpression in place of the measure resource, computing event probabilities from totalMass 1 alone, or assuming that a declared normalization proves countable additivity."@x-gmeow-english ;
+    gmeow:howToUse "Link the ProbabilitySpace to its supplied ProbabilityMeasure and retain that measure's measureOn frame and normalization evidence. Retain any supplied defining expression with its actual source association; do not invent a density AST, identify distinct space resources or select an execution model implicitly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eventInSpace
