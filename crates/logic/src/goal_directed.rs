@@ -39,11 +39,11 @@ use purrdf::TermValue;
 // now lowers into PurRDF's `TermDag`/`FolProgram` and reads back PurRDF's `FolProof`. gmeow keeps
 // its OWN derivation-IRI scheme
 // (`provenance::DERIVATION_PREFIX` over PurRDF's content digest) — PurRDF mints no IRIs
-// (`docs/CUTOVER.md`: "deriving an IRI from the digest is caller vocabulary").
+// (deriving an IRI from the native digest is caller vocabulary).
 use purrdf::datalog::id::{MetaId, NodeId};
 use purrdf::datalog::resolve_fol::{
-    FolBudget, FolClause, FolControl, FolLit, FolProgram, FolStatus, Truth, check_fol_proof,
-    derivation_id, render, resolve_fol,
+    FolAnswerContract, FolBudget, FolClause, FolControl, FolLit, FolOutcome, FolProgram, FolStatus,
+    FolUnestablished, FolVerdict, Truth, check_fol_proof, render, resolve_fol,
 };
 use purrdf::datalog::term::TermDag;
 use purrdf::datalog::unify::{SortContext, SortOrder};
@@ -87,7 +87,7 @@ pub struct GoalDirectedAnswer {
     pub bindings: BTreeMap<String, String>,
     /// The content-addressed derivation IRI of this answer's proof
     /// (the GMEOW derivation namespace over PurRDF's content-addressed
-    /// [`derivation_id`]).
+    /// [`purrdf::datalog::resolve_fol::FolBinding::derivation_id`]).
     pub derivation_iri: String,
     /// Whether PurRDF's [`check_fol_proof`] re-derived exactly [`Self::atom`]. Always
     /// `true` for a shipped answer (a proof that fails to check HARD-fails the evaluation).
@@ -208,24 +208,30 @@ fn evaluate_demonstrator(
         verdict_probes,
     } = built;
     // Render the goal template BEFORE resolution (free metavariables still present).
-    let goal = render(&dag, program.goal);
+    let goal = render(&dag, program.goal());
     // U2: render the AUTHORED program structure itself (clauses + verdict-probe atoms) via
     // the SAME `render` helper the goal/answers use, so the shipped bundle carries the
     // authored program alongside its evaluated result. Rendered from `program`/`dag` BEFORE
     // resolution mutates `dag` further — the clause/probe NodeIds are unaffected either way
     // (the arena only grows), but this mirrors `goal`'s own pre-resolution rendering.
     let clauses: Vec<String> = program
-        .clauses
+        .clauses()
         .iter()
         .map(|clause| render_clause(&dag, clause))
-        .collect();
+        .collect::<gmeow_errors::Result<_>>()?;
     let verdict_probe_atoms: Vec<String> = verdict_probes
         .iter()
         .map(|probe| render(&dag, *probe))
         .collect();
     // Native storage failures propagate separately from the backward engine's
     // structural Unsupported decision, which remains a hard Physical diagnostic.
-    let outcome = match resolve_fol(&mut dag, &program, &ctx, &GROUNDING_BUDGET)? {
+    let outcome = match resolve_fol(
+        &mut dag,
+        &program,
+        &ctx,
+        FolAnswerContract::GroundOnly,
+        &GROUNDING_BUDGET,
+    )? {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -239,55 +245,50 @@ fn evaluate_demonstrator(
     // grounding is `Partial`, and its negation is no longer trusted); project it to the SAME
     // stable surface the retired native engine shipped (`ok`/`partial`). With `GROUNDING_BUDGET`
     // unbounded the authored corpus always grounds `Complete` ⇒ `ok`.
-    let status = match outcome.status {
+    let status = match outcome.status() {
         FolStatus::Complete => "ok",
         FolStatus::Partial => "partial",
     }
     .to_owned();
-    // The `not_false` predicate `check_fol_proof` charges each negative literal against: an atom
-    // is admissible as "not false" iff the well-founded model does not place it in the false set.
-    // Read straight from THIS outcome's three-valued model (`truth_of`), so the proof checker and
-    // the shipped verdicts agree by construction. Captures `&outcome` only; `dag` is passed in.
-    let not_false = |d: &TermDag, n: NodeId| outcome.truth_of(d, n) != Truth::False;
     let mut answers = Vec::with_capacity(outcome.answers.len());
     for ans in &outcome.answers {
         // Curry–Howard check: the proof MUST re-derive exactly the answer atom. A proof
         // that fails to check, or checks to a different atom, is a hard fail — the whole
         // point of shipping proof objects is that every shipped answer is proof-carrying.
-        let checked = check_fol_proof(
-            &mut dag,
-            &ans.proof,
-            &program.clauses,
-            &program.meta_sorts,
-            &ctx,
-            &not_false,
-        )
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Physical {
-                detail: format!(
-                    "goal-directed program {iri:?} answer proof failed to check: {e:?}"
-                ),
-            })
-        })?;
-        if checked != ans.atom {
+        let checked =
+            check_fol_proof(&mut dag, ans.proof(), outcome.checking_evidence()).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Physical {
+                    detail: format!(
+                        "goal-directed program {iri:?} answer proof failed to check: {e:?}"
+                    ),
+                })
+                .with_source(e)
+            })?;
+        if !ans
+            .term(checked)
+            .is_some_and(|term| term.same_node(ans.atom()))
+        {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
-                    "goal-directed program {iri:?} proof re-derives a different atom than its answer"
+                    "goal-directed program {iri:?} proof does not re-derive its retained answer atom"
                 ),
             }));
         }
         // gmeow's derivation IRI = its OWN vocabulary (`DERIVATION_PREFIX`) over PurRDF's
-        // content-addressed proof digest (`derivation_id`, a SHA-1 over `FolProof::rule_identity`
+        // content-addressed proof digest (a SHA-1 over the native rule identity
         // and the recursive sub-proof digests). PurRDF mints no IRIs; the digest is byte-stable
-        // run-to-run, so the derived IRI is too (`docs/CUTOVER.md` §4).
+        // run-to-run, so the derived IRI is too.
         let derivation_iri = format!(
             "{}{}",
             crate::provenance::DERIVATION_PREFIX,
-            derivation_id(&dag, &ans.proof)
+            ans.derivation_id()
         );
         answers.push(GoalDirectedAnswer {
-            atom: render(&dag, ans.atom),
-            bindings: ans.bindings.clone(),
+            atom: ans.atom().render(),
+            bindings: ans
+                .bindings()
+                .map(|entry| (entry.name().to_owned(), entry.value().render()))
+                .collect(),
             derivation_iri,
             proof_checks: true,
         });
@@ -306,13 +307,11 @@ fn evaluate_demonstrator(
             .then_with(|| a.bindings.cmp(&b.bindings))
             .then_with(|| a.derivation_iri.cmp(&b.derivation_iri))
     });
-    // Record the three-valued well-founded verdict of each probed ground atom. `truth_of`
-    // reads the well-founded model by content key, so a probe the grounding never founded is
-    // (correctly) `false`, an atom in a negative loop is `undefined`, and a founded atom is
-    // `true` — the observable SLG-WFS behaviour.
+    // Every authored probe requires an established verdict in an actual ground
+    // demand scope. A nonground query does not evaluate all its ground instances.
     let mut verdicts = Vec::with_capacity(verdict_probes.len());
     for probe in &verdict_probes {
-        let verdict = match outcome.truth_of(&dag, *probe) {
+        let verdict = match ground_probe_truth(iri, &mut dag, &program, &ctx, &outcome, *probe)? {
             Truth::True => "true",
             Truth::False => "false",
             Truth::Undefined => "undefined",
@@ -339,28 +338,89 @@ fn evaluate_demonstrator(
     })
 }
 
+/// Establish an authored ground probe under the original program and sort context.
+/// A probe outside the query's demand scope gets its own ground execution; its
+/// completion evidence is never used to check the original query's answer proofs.
+fn ground_probe_truth(
+    iri: &str,
+    dag: &mut TermDag,
+    program: &FolProgram,
+    ctx: &SortContext,
+    outcome: &FolOutcome,
+    probe: NodeId,
+) -> gmeow_errors::Result<Truth> {
+    let verdict = match outcome.truth_of(dag, probe) {
+        FolVerdict::NotEstablished(FolUnestablished::Unevaluated) => {
+            let demanded = FolProgram::new(
+                dag,
+                program.clauses().to_vec(),
+                probe,
+                Vec::new(),
+                program.meta_sorts().clone(),
+            )
+            .map_err(|error| {
+                reasoning_program_err(format!(
+                    "reasoning program {iri:?} ground probe {probe:?} is invalid: {error}"
+                ))
+                .with_source(error)
+            })?;
+            let evaluated = match resolve_fol(
+                dag,
+                &demanded,
+                ctx,
+                FolAnswerContract::GroundOnly,
+                &GROUNDING_BUDGET,
+            )? {
+                FolControl::Decided(evaluated) => evaluated,
+                FolControl::Unsupported(kind) => {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                        detail: format!(
+                            "goal-directed program {iri:?} ground probe {probe:?} is unsupported: {kind:?}"
+                        ),
+                    }));
+                }
+            };
+            evaluated.truth_of(dag, probe)
+        }
+        verdict => verdict,
+    };
+    match verdict {
+        FolVerdict::Established(truth) => Ok(truth),
+        unavailable => Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+            detail: format!(
+                "goal-directed program {iri:?} probe {probe:?} ({}) has no established verdict: {unavailable:?}",
+                render(dag, probe)
+            ),
+        })),
+    }
+}
+
 /// Render one program clause to its authored functional surface via the SAME [`render`]
 /// helper the answer/goal surfaces use, so the projected program-structure text is
 /// byte-consistent with the evaluated answers: `"head."` for a fact (empty body), and
 /// `"head :- b1, b2."` for a rule, with a negation-as-failure body literal rendered
 /// `"not atom"` (mirrors the authored `logic:not[atom]` surface).
-fn render_clause(dag: &TermDag, clause: &FolClause) -> String {
-    let head = render(dag, clause.head);
-    if clause.body.is_empty() {
-        return format!("{head}.");
+fn render_clause(dag: &TermDag, clause: &FolClause) -> gmeow_errors::Result<String> {
+    let head = render(dag, clause.head());
+    if clause.body().is_empty() {
+        return Ok(format!("{head}."));
     }
     // `clause.body` is already in canonical (`content_key`) order — `lower_body` flattens and
     // sorts the authored conjunction before lowering — so publishing it in `Vec` order here is
     // byte-stable regardless of the authored RDF object order.
     let body: Vec<String> = clause
-        .body
+        .body()
         .iter()
         .map(|lit| match lit {
-            FolLit::Pos(node) => render(dag, *node),
-            FolLit::Neg(node) => format!("not {}", render(dag, *node)),
+            FolLit::Pos(node) => Ok(render(dag, *node)),
+            FolLit::Neg(node) => Ok(format!("not {}", render(dag, *node))),
+            unsupported => Err(reasoning_program_err(format!(
+                "unsupported native literal {unsupported:?} in clause with head {:?}",
+                clause.head()
+            ))),
         })
-        .collect();
-    format!("{head} :- {}.", body.join(", "))
+        .collect::<gmeow_errors::Result<_>>()?;
+    Ok(format!("{head} :- {}.", body.join(", ")))
 }
 
 /// Intern an atomic IRI leaf under a program-local surface name.
@@ -401,8 +461,7 @@ type VarScope = HashMap<String, (MetaId, NodeId)>;
 
 /// Encode a `logic:` literal as an injective PurRDF leaf-symbol string.
 ///
-/// PurRDF-datalog's `TermDag::intern_leaf` interns a bare `&str` symbol (the gmeow-term-arena
-/// `TermValue` coupling was stripped at the substrate boundary — `docs/CUTOVER.md` §4), so a
+/// This lowering selects the opaque-symbol contract of `TermDag::intern_leaf`. A
 /// literal is carried as its N-Triples-quoted lexical form (`"lex"` or `"lex"^^dt`) with the
 /// lexical form backslash/quote-escaped. The surrounding quotes keep a literal leaf injectively
 /// DISTINCT from an IRI/function-symbol leaf (which is interned as its bare IRI text), and the
@@ -549,16 +608,16 @@ fn flatten_and_conjuncts<'a>(formula: &'a Formula, out: &mut Vec<&'a Formula>) {
 /// Lower one clause [`Formula`] (a fact atom, or `Formula::Implies(antecedent, consequent)`
 /// rule) under a FRESH [`VarScope`] into a [`FolClause`]. `rule_index` is the clause's position
 /// in AUTHORED program order (`program.clauses` is already the stable post-`ReasoningProgramIr`
-/// order), which is exactly what PurRDF's [`FolClause::rule`] addresses.
+/// order). PurRDF proof rule indices address that same [`FolProgram::clauses`] order.
 ///
 /// PurRDF (unlike the retired native engine) does NOT mint a digest-addressed rule-firing IRI
 /// on the clause: the content-addressed identity gmeow ships is now the PROOF digest — PurRDF's
-/// [`derivation_id`] hashes `FolProof::rule_identity` (which folds in the fired clause's content),
+/// [`purrdf::datalog::resolve_fol::derivation_id`] hashes the native rule identity,
+/// which folds in the fired clause's content,
 /// and [`evaluate_demonstrator`] derives the answer's `derivation_iri` from it under
 /// [`crate::provenance::DERIVATION_PREFIX`]. So the run-to-run-stable content-addressing
-/// requirement is met at the proof layer, not on the clause; the clause carries only its
-/// authored-order index. See `docs/CUTOVER.md` §4 ("deriving an IRI from the digest is caller
-/// vocabulary").
+/// requirement is met at the proof layer. The constructor validates resident term
+/// handles while the enclosing program retains authored clause order.
 fn lower_clause(
     dag: &mut TermDag,
     program_iri: &str,
@@ -582,10 +641,11 @@ fn lower_clause(
         }
     };
     let head = lower_atom(dag, head_formula, scope)?;
-    Ok(FolClause {
-        head,
-        body,
-        rule: rule_index,
+    FolClause::new(dag, head, body).map_err(|error| {
+        reasoning_program_err(format!(
+            "reasoning program {program_iri:?} clause {rule_index} is invalid: {error}"
+        ))
+        .with_source(error)
     })
 }
 
@@ -764,14 +824,17 @@ pub(crate) fn lower_reasoning_program(
     let order = SortOrder::from_subclass_edges(&edges);
     let ctx = SortContext::new(order, term_sorts, BTreeMap::new());
 
+    let native_program =
+        FolProgram::new(&dag, clauses, goal, goal_vars, meta_sorts).map_err(|error| {
+            reasoning_program_err(format!(
+                "reasoning program {:?} is invalid for native execution: {error}",
+                program.iri
+            ))
+            .with_source(error)
+        })?;
     Ok(BuiltDemonstrator {
         dag,
-        program: FolProgram {
-            clauses,
-            goal,
-            goal_vars,
-            meta_sorts,
-        },
+        program: native_program,
         ctx,
         verdict_probes,
     })

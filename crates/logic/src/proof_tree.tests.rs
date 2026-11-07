@@ -94,6 +94,7 @@ fn proof_tree_derivation_iris_match_the_proof_projection() {
         &mut dag,
         &fol,
         &ctx,
+        FolAnswerContract::GroundOnly,
         &crate::goal_directed::GROUNDING_BUDGET,
     )
     .unwrap()
@@ -102,8 +103,8 @@ fn proof_tree_derivation_iris_match_the_proof_projection() {
         FolControl::Unsupported(kind) => panic!("unsupported: {kind:?}"),
     };
     assert_eq!(outcome.answers.len(), 1);
-    let proof = &outcome.answers[0].proof;
-    let tree = ProofTree::of_answer(&dag, proof).expect("tree");
+    let proof = outcome.answers[0].proof();
+    let tree = ProofTree::of_answer(proof).expect("tree");
 
     // Walk the FolProof term independently (root, then its single premise chain) and compare.
     let mut node = proof;
@@ -111,19 +112,18 @@ fn proof_tree_derivation_iris_match_the_proof_projection() {
         let expected = format!(
             "{}{}",
             provenance::DERIVATION_PREFIX,
-            derivation_id(&dag, node)
+            purrdf::datalog::resolve_fol::derivation_id(&dag, node)
         );
         assert_eq!(
             step.derivation_iri, expected,
             "tree step identity must equal the flattened derivation_id projection"
         );
-        match node {
-            FolProof::ByRule { premises, .. } => {
-                assert_eq!(premises.len(), 1);
-                node = &premises[0];
-            }
-            FolProof::Assert { .. } => break,
+        if node.is_assert() {
+            break;
         }
+        let premises = node.premises();
+        assert_eq!(premises.len(), 1);
+        node = &premises[0];
     }
     // And every step's IRI is a genuine derivation-namespace address.
     for step in tree.steps() {
