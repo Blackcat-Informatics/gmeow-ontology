@@ -295,7 +295,7 @@ struct RowTable {
 }
 
 /// Allocated row payload only: excludes table/Arc overhead, other domains and RSS.
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct RowTableFootprint {
     rows: usize,
     payload_bytes: usize,
@@ -1229,7 +1229,68 @@ pub(crate) struct FlowSummary {
     rows: RowTable,
 }
 
+/// Domain backing capacities only, without inspecting any stored bitset words.
+#[derive(Debug, Default)]
+struct DomainFootprint {
+    sparse: usize,
+    dense: usize,
+    payload_bytes: usize,
+}
+
+impl DomainFootprint {
+    fn include(&mut self, domain: &AdaptiveDomain) {
+        match domain {
+            AdaptiveDomain::Sparse { .. } => self.sparse += 1,
+            AdaptiveDomain::Dense(_) => self.dense += 1,
+        }
+        self.payload_bytes += domain.payload_bytes();
+    }
+}
+
+/// Backing payload and exact entry counts. Bytes exclude allocator slack, map
+/// nodes, Arc bookkeeping, container headers and RSS. Row payload may be shared
+/// with other summaries, so separate summary totals must not be added blindly.
+#[derive(Debug, Default)]
+struct FlowSummaryFootprint {
+    relations: usize,
+    columns: DomainFootprint,
+    subject_predicate_index: DomainFootprint,
+    object_predicate_index: DomainFootprint,
+    subject_support_keys: usize,
+    object_support_keys: usize,
+    rectangles: usize,
+    rectangle_payload_bytes: usize,
+    table: RowTableFootprint,
+}
+
 impl FlowSummary {
+    /// Scan map entries and backing capacities, never domain members or bits.
+    fn footprint(&self) -> FlowSummaryFootprint {
+        let mut result = FlowSummaryFootprint {
+            relations: self.relations.len(),
+            table: self.rows.footprint(),
+            ..FlowSummaryFootprint::default()
+        };
+        for relation in self.relations.values() {
+            for column in &relation.columns {
+                result.columns.include(column);
+            }
+            result.subject_support_keys += relation.by_subject.len();
+            result.object_support_keys += relation.by_object.len();
+            result.rectangles += relation.rectangles.len();
+            for side in relation.rectangles.iter().flatten() {
+                result.rectangle_payload_bytes += side.0.capacity() * std::mem::size_of::<u64>();
+            }
+        }
+        for domain in self.predicates_by_subject.values() {
+            result.subject_predicate_index.include(domain);
+        }
+        for domain in self.predicates_by_object.values() {
+            result.object_predicate_index.include(domain);
+        }
+        result
+    }
+
     /// Trace the resident footprint of a large closed summary: support rows by
     /// representation, how many hold distinct content, and the heaviest relation.
     /// Share every row with each other row of equal content. Source rows are
@@ -2746,7 +2807,7 @@ impl ValueFlow {
                 .collect();
             let started = crate::timing::Instant::now();
             if candidates.len() >= 1_000 {
-                let table = std::cell::LazyCell::new(|| state.rows.footprint());
+                let footprint = std::cell::LazyCell::new(|| state.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2758,10 +2819,12 @@ impl ValueFlow {
                     producer = rule.name.as_str(),
                     variables = rule.variables,
                     body_atoms = rule.body.len(),
-                    table_rows = table.rows,
-                    table_payload_bytes = table.payload_bytes,
-                    table_stale_rows = table.stale_rows,
-                    table_stale_payload_bytes = table.stale_payload_bytes,
+                    relations = footprint.relations,
+                    table_rows = footprint.table.rows,
+                    table_payload_bytes = footprint.table.payload_bytes,
+                    table_stale_rows = footprint.table.stale_rows,
+                    table_stale_payload_bytes = footprint.table.stale_payload_bytes,
+                    state_backing = ?*footprint,
                     "large native value-flow refinement",
                 );
             }
@@ -2959,10 +3022,10 @@ impl ValueFlow {
                 }
             }
             if candidates.len() >= 1_000 {
-                // Field expressions run only for an enabled event. The three
-                // fields share one scan, and a disabled event performs none.
+                // Enabled fields share each footprint scan; a disabled event
+                // evaluates neither aggregate.
                 let support = std::cell::LazyCell::new(|| state.support_bytes());
-                let table = std::cell::LazyCell::new(|| state.rows.footprint());
+                let footprint = std::cell::LazyCell::new(|| state.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2976,10 +3039,12 @@ impl ValueFlow {
                     logical_support_mb = support.0 >> 20,
                     resident_support_mb = support.1 >> 20,
                     resident_dense_rows = support.2,
-                    table_rows = table.rows,
-                    table_payload_bytes = table.payload_bytes,
-                    table_stale_rows = table.stale_rows,
-                    table_stale_payload_bytes = table.stale_payload_bytes,
+                    relations = footprint.relations,
+                    table_rows = footprint.table.rows,
+                    table_payload_bytes = footprint.table.payload_bytes,
+                    table_stale_rows = footprint.table.stale_rows,
+                    table_stale_payload_bytes = footprint.table.stale_payload_bytes,
+                    state_backing = ?*footprint,
                     transposed_dense_mb = transposed_dense_bytes >> 20,
                     rule_index,
                     visit,
@@ -3250,6 +3315,20 @@ impl ValueFlow {
         partition_min_candidates: usize,
     ) -> (FlowSummary, Vec<Option<RuleRefinement>>) {
         let mut state = input.clone();
+        {
+            // The clone may trim Vec capacities. Neither header scan runs for a
+            // disabled event, and these borrows end before closure mutates state.
+            let input_backing = std::cell::LazyCell::new(|| input.footprint());
+            let working_backing = std::cell::LazyCell::new(|| state.footprint());
+            tracing::info!(
+                target: "pipeline_reasoning_detail",
+                phase = "refine-closure-backing",
+                event = "start",
+                input_backing = ?*input_backing,
+                working_backing = ?*working_backing,
+                "value-flow backing payload excludes allocator, nodes, Arc, headers and RSS",
+            );
+        }
         let mut readers: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
         let mut dynamic_readers = BTreeSet::new();
         for (index, (rule, enabled)) in self.rules.iter().zip(enabled).enumerate() {
