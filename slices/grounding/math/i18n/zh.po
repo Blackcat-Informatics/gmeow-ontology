@@ -14072,3 +14072,87 @@ msgstr "避免使用字符串标签、隐含默认值、选择最强的可用标
 msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."
 msgstr "引用一个实际 ManifoldStructureKind 资源，并另行保留适当的维数、坐标图、过渡及度量依据。将不同选择保留在各自声明的上下文中，不按图中顺序择一，也不在同一声明上累积多个选定种类。"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tangent Space"
+msgstr "切空间"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tangent space T_pM at a point p of a manifold M: the vector space of tangent vectors at that point. A subclass of math:VectorSpace; it names its base point through math:tangentSpaceAt and its manifold through math:tangentSpaceOf, and its math:spaceDimension equals the manifold's math:manifoldDimension (math:DimensionMismatch otherwise). Vector fields are sections of the tangent bundle — the disjoint union of the tangent spaces."
+msgstr "流形 M 在点 p 处的切空间 T_pM，即该点处切向量构成的向量空间。它是 math:VectorSpace 的子类；通过 math:tangentSpaceAt 指明基点，通过 math:tangentSpaceOf 指明流形，其 math:spaceDimension 等于流形的 math:manifoldDimension（否则为 math:DimensionMismatch）。向量场是切丛的截面；切丛是各切空间的不交并。"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The fibre T_pM is a vector space attached to an actual point of a differentiable manifold. It is distinct from that point, the base manifold, a tangent vector, a metric, coordinates and the whole tangent bundle; general tensor fields use the appropriate tensor bundles."
+msgstr "纤维 T_pM 是附着于可微流形某个实际点的向量空间。它不同于该点、底流形、切向量、度量、坐标及整个切丛；一般张量场使用适当的张量丛。"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing analysis-and-geometry scene records ex:tangentAtOrigin at ex:originPoint and of ex:minkowski, with math:spaceDimension 4 ."
+msgstr "现有 analysis-and-geometry 场景记录 ex:tangentAtOrigin 位于 ex:originPoint、属于 ex:minkowski，并带有 math:spaceDimension 4 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the tangent vector space at a supplied point of a differentiable manifold, rather than one vector or a field over the whole base."
+msgstr "用于可微流形在某个已提供点处的切向量空间，不用于单个向量或整个底流形上的场。"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying fibres at different points from equal dimension counts, inferring parallel transport without supporting structure, or treating a bare topological declaration as supplied smooth structure."
+msgstr "避免因维数计数相等就认定不同点处的纤维相同、在没有支持结构时推断平行移动，或将单纯的拓扑声明视为已提供光滑结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/TangentSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain tangentSpaceAt, tangentSpaceOf and the actual dimension and scalar conventions. Keep point membership, atlas, basis and differentiation evidence separately supplied; role names and dimension metadata do not construct or certify them."
+msgstr "保留 tangentSpaceAt、tangentSpaceOf 及实际维数和标量约定。点归属、图册、基和微分依据须另行提供；角色名称和维数元数据不会构造或证明它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tangent space at"
+msgstr "切空间所在点"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TangentSpace to the point of the manifold it is the tangent space at — the p in T_pM. Domain math:TangentSpace, range a point (stated in prose). A tangent space is at a point; naming it makes the tangent bundle's fibres explicit."
+msgstr "将 math:TangentSpace 关联到流形上该切空间所在的点，即 T_pM 中的 p。定义域为 math:TangentSpace，值域为点（以文字说明）。切空间位于某个点处；指明该点使切丛的纤维明确。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the point p in T_pM. The supplied link does not itself prove that the point belongs to the named manifold, provide a coordinate chart, or identify the tangent fibre with the point."
+msgstr "此关系指明 T_pM 中的点 p。所提供链接本身不证明该点属于所指明流形、不提供坐标图，也不将切纤维与该点等同。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:tangentAtOrigin math:tangentSpaceAt ex:originPoint ."
+msgstr "现有场景声明 ex:tangentAtOrigin math:tangentSpaceAt ex:originPoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual base point at which a tangent space is taken."
+msgstr "用于保留所考察切空间所在的实际基点。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the manifold, a coordinate tuple, one tangent vector or an assumed origin for the supplied point, and avoid turning this role into a point-membership validation claim."
+msgstr "避免用流形、坐标元组、单个切向量或假定原点替代所提供的点，也不要将此角色变为已验证点归属的声称。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the TangentSpace as subject and the actual point resource as object. Retain its manifold separately through tangentSpaceOf and preserve supplied membership and chart evidence; missing point evidence does not justify inventing an origin or claiming a complete fibre declaration."
+msgstr "以 TangentSpace 为主语，以实际点资源为宾语。通过 tangentSpaceOf 另行保留其流形，并保留所提供的归属及坐标图依据；缺少点依据不能成为编造原点或声称纤维声明完整的理由。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tangent space of"
+msgstr "切空间所属流形"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:TangentSpace to the math:Manifold it is a tangent space of. Domain math:TangentSpace, range math:Manifold (stated in prose). Its math:spaceDimension must equal that manifold's math:manifoldDimension (math:DimensionMismatch)."
+msgstr "将 math:TangentSpace 关联到它所属的 math:Manifold。定义域为 math:TangentSpace，值域为 math:Manifold（以文字说明）。其 math:spaceDimension 必须等于该流形的 math:manifoldDimension（math:DimensionMismatch）。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the manifold M in T_pM, separate from the fibre and its point. The existing dimension-count obligation does not construct a basis, prove point membership or reconcile real and complex scalar interpretations."
+msgstr "此关系指明 T_pM 中的流形 M，与纤维及其点分开。现有维数计数义务不构造基、不证明点归属，也不协调实标量与复标量解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:tangentAtOrigin math:tangentSpaceOf ex:minkowski ."
+msgstr "现有场景声明 ex:tangentAtOrigin math:tangentSpaceOf ex:minkowski ."
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual base manifold of a tangent space."
+msgstr "用于保留切空间的实际底流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a point, coordinate space, metric or entire tangent bundle for the base, inferring transport from equal dimensions, or claiming complete value-equality admission from the supplied-term comparator."
+msgstr "避免用点、坐标空间、度量或整个切丛替代底流形、根据维数相等推断输运，或根据针对所提供项的比较器声称完整的值相等性准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."
+msgstr "将切纤维链接到其实际流形，并保留 tangentSpaceAt。按实际约定保留所声明的 spaceDimension 及 manifoldDimension；不填补缺失值，也不暗中转换实切空间与复切空间的维数。"
