@@ -42,8 +42,8 @@ impl PreparedProductionShapes {
     }
 }
 
-/// Preserve shape admission failures on the conformance diagnostic surface.
-fn fail(error: impl std::error::Error + Send + Sync + 'static) -> gmeow_errors::Diag {
+/// Preserve shape admission and execution failures on the conformance diagnostic surface.
+pub(super) fn fail(error: impl std::error::Error + Send + Sync + 'static) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
         "stage-conformance".to_owned(),
         error.to_string(),
