@@ -1099,6 +1099,10 @@ pub fn shape_corpus_variants_from_archive(
     shape_corpus_variants_from_rows(archive_shape_rows(bytes)?)
 }
 
+/// Collect borrowed shape-archive members without copying their names or payloads.
+///
+/// # Errors
+/// Retains any detected native archive failure as the typed diagnostic cause.
 fn archive_shape_rows(bytes: &[u8]) -> gmeow_errors::Result<Vec<(&str, &[u8])>> {
     purrdf::ustar::archive_members(bytes)
         .map(|member| member.map(|member| (member.name, member.data)))

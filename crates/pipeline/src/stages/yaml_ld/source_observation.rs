@@ -9,6 +9,11 @@ use std::path::Path;
 pub(crate) const SOURCE: &str = "slices/core/standpoint/examples/claim-bullshit.yamlld";
 pub(crate) const CHANNEL: &str = "pipeline/yaml-ld-statement-observation.purrpack";
 
+/// Convert the authored example and retain its native packet as producer evidence.
+///
+/// # Errors
+/// Propagates source reads, statement conversion, dataset admission and finite-policy
+/// canonicalization failures; publishes the observation only after encoding succeeds.
 pub(crate) fn record(
     root: &Path,
     artifacts: &mut BTreeMap<String, Vec<u8>>,

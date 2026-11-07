@@ -161,6 +161,13 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     compile_mappings_with_sources(root, &sources, &codebook)
 }
 
+/// Compile mapping projections from the supplied sources and native codebook bytes.
+///
+/// Catalog admission and source-policy checks remain mandatory for the selected
+/// projections; callers provide the codebook rather than rebuilding it here.
+///
+/// # Errors
+/// Propagates source, catalog, policy, lowering and serialization failures.
 fn compile_mappings_with_sources(
     root: &Path,
     sources: &crate::stages::parse_sources::SourceCatalog,

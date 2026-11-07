@@ -61,6 +61,11 @@ impl TestFixtureScope {
     }
 }
 
+/// Dispatch the selected fixture operation and return its CLI exit status.
+///
+/// Verification reads existing selected evidence; production explicitly prepares
+/// the requested scope. Browser codebook operations use their separate selector.
+/// A failed operation reports its diagnostic and returns a nonzero status.
 pub(crate) fn run(
     mode: TestFixtureMode,
     scope: TestFixtureScope,
@@ -129,6 +134,10 @@ pub(crate) fn run_slice_spec_worker(
     }
 }
 
+/// Require both explicit bundle-import inputs for the selected fixture scope.
+///
+/// # Errors
+/// Rejects an absent cache root or expected source digest without deriving either.
 fn require_bundle_args<'a>(
     scope: TestFixtureScope,
     bundle_cache_root: Option<&'a Path>,
@@ -212,6 +221,10 @@ fn produce_wasm_codebook(root: &Path, timings_path: Option<&Path>) -> FixtureRes
     Ok(())
 }
 
+/// Read the existing bundle only when its content digest matches the selection.
+///
+/// # Errors
+/// Propagates a read failure or rejects a digest mismatch; never produces a bundle.
 fn selected_bundle(root: &Path, expected: &str) -> FixtureResult<Vec<u8>> {
     let path = root.join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&path)

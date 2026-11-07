@@ -298,6 +298,7 @@ fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+/// Admit the full fixture target set against its selected producer receipts.
 fn validate_stage_fixture_manifest(
     manifest: &StageFixtureManifest,
 ) -> Result<(), gmeow_errors::Diag> {
@@ -514,6 +515,7 @@ fn bound_selected_fixture_closure(
     })
 }
 
+/// Build the full fixture selector from the completed production closure.
 fn stage_fixture_manifest(
     run_receipts: &[StageReceipt],
 ) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
@@ -1296,6 +1298,10 @@ fn verify_selected_source_artifact(
         .map_err(action_cache_error)
 }
 
+/// Bind an exported artifact to the exact selected parent receipt and payload identity.
+///
+/// # Errors
+/// Rejects a missing logical artifact or mismatched origin, path, digest or byte count.
 fn verify_source_artifact_origin(
     receipt: &StageReceipt,
     path: &str,
