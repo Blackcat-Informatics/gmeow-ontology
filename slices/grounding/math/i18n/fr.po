@@ -13736,3 +13736,171 @@ msgstr "Éviter d'interpréter une garde fausse ou l'absence d'éléments l'éta
 msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the family application besselY,n,f separate from the member application f,x,y. Reuse the positive-real φ(f), bind all variables and retain the domain-membership guard on x. Preserve source evidence and unresolved values without inventing numerical witnesses."
 msgstr "Garder l'application familiale besselY,n,f distincte de l'application du membre f,x,y. Réutiliser φ(f) pour le domaine réel strictement positif, lier toutes les variables et conserver la garde d'appartenance au domaine sur x. Préserver les éléments fournis par la source et les valeurs non résolues sans inventer de témoins numériques."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Manifold Structure Kind"
+msgstr "Type de structure de variété"
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The structure kind a manifold carries: one of math:topologicalStructure, math:smoothStructure, math:complexStructure, math:riemannianStructure, or math:lorentzianStructure. A manifold declares exactly one through math:manifoldStructureKind; the kind fixes what is well-defined on it (continuity only, differentiation, holomorphy, a definite or indefinite metric)."
+msgstr "Le type de structure que porte une variété : math:topologicalStructure, math:smoothStructure, math:complexStructure, math:riemannianStructure ou math:lorentzianStructure. Une variété en déclare exactement un par math:manifoldStructureKind ; ce type détermine ce qui y est bien défini : la continuité seule, la différentiation, l’holomorphie, une métrique définie ou indéfinie."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the selected structure context of a manifold declaration. Naming a kind does not construct an atlas, establish transition laws, supply a metric or identify a physical spacetime."
+msgstr "Il s’agit du contexte structurel sélectionné pour une déclaration de variété. Nommer un type ne construit pas un atlas, n’établit pas les lois de transition, ne fournit pas une métrique et n’identifie pas un espace-temps physique."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration: ex:M math:manifoldStructureKind math:smoothStructure ."
+msgstr "Illustration : ex:M math:manifoldStructureKind math:smoothStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state which manifold structure a mathematical record declares for its operations and obligations."
+msgstr "Utiliser pour indiquer quelle structure de variété un enregistrement mathématique déclare pour ses opérations et ses obligations."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing a kind from missing metadata, selecting the strongest label by default, or treating several kind labels as a substitute for the existing single-selection contract."
+msgstr "Éviter de deviner un type à partir de métadonnées manquantes, de sélectionner par défaut le libellé le plus fort ou de remplacer le contrat existant de sélection unique par plusieurs libellés de type."
+
+msgctxt "https://blackcatinformatics.ca/math/ManifoldStructureKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select one supplied kind through manifoldStructureKind and retain the manifold dimension and the actual charts, transitions and metric data appropriate to that selection. Record additional structures explicitly rather than inferring them from the label."
+msgstr "Sélectionner un type fourni par manifoldStructureKind et conserver la dimension de la variété ainsi que les cartes, transitions et données métriques effectivement fournies et adaptées à cette sélection. Consigner explicitement les structures supplémentaires au lieu de les inférer du libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "topological"
+msgstr "topologique"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The topological structure kind: a manifold with only a topology — continuity is well-defined, differentiation is not. The weakest structure a math:Manifold can declare."
+msgstr "Le type de structure topologique : une variété munie seulement d’une topologie, où la continuité est bien définie, mais pas la différentiation. La structure la plus faible qu’une math:Manifold puisse déclarer."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selection retains topology and continuity without declaring a smooth, complex or metric refinement. It does not assert that the manifold can never support such an additional structure."
+msgstr "Cette sélection conserve la topologie et la continuité sans déclarer de raffinement lisse, complexe ou métrique. Elle n’affirme pas que la variété ne pourra jamais porter une telle structure supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration: ex:M math:manifoldStructureKind math:topologicalStructure ."
+msgstr "Illustration : ex:M math:manifoldStructureKind math:topologicalStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the manifold record selects its topological structure and supplies no stronger structure for the declared operation."
+msgstr "Utiliser lorsque l’enregistrement de la variété sélectionne sa structure topologique et ne fournit aucune structure plus forte pour l’opération déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an absent kind as this value, denying all possible smooth structures, or inferring derivatives and metric lengths from topology alone."
+msgstr "Éviter de remplacer un type absent par cette valeur, de nier toute structure lisse possible ou d’inférer des dérivées et des longueurs métriques à partir de la seule topologie."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value explicitly through manifoldStructureKind. Retain the declared topology and chart evidence; a later smooth, complex or metric construction needs its own actual supporting data."
+msgstr "Sélectionner explicitement cette valeur par manifoldStructureKind. Conserver la topologie déclarée et les justifications relatives aux cartes ; toute construction lisse, complexe ou métrique ultérieure nécessite ses propres données justificatives effectivement fournies."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "smooth"
+msgstr "lisse"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The smooth (C^∞) structure kind: a manifold with smooth transition maps, on which differentiation, tangent spaces, and tensor fields are well-defined."
+msgstr "Le type de structure lisse (C^∞) : une variété munie d’applications de transition lisses, sur laquelle la différentiation, les espaces tangents et les champs tensoriels sont bien définis."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The declared smooth structure requires compatible smooth transition maps. Its selection alone does not supply those maps, a metric, a connection or the result of differentiating a field."
+msgstr "La structure lisse déclarée exige des applications de transition lisses compatibles. Sa seule sélection ne fournit ni ces applications, ni une métrique, ni une connexion, ni le résultat de la différentiation d’un champ."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration: ex:M math:manifoldStructureKind math:smoothStructure ."
+msgstr "Illustration : ex:M math:manifoldStructureKind math:smoothStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the manifold record selects a smooth structure for differential constructions."
+msgstr "Utiliser lorsque l’enregistrement de la variété sélectionne une structure lisse pour des constructions différentielles."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring smoothness from continuity alone, treating a chosen kind as a completed atlas proof, or assuming a metric from differentiability."
+msgstr "Éviter d’inférer la régularité lisse de la seule continuité, de traiter un type choisi comme une preuve d’atlas achevée ou de supposer une métrique à partir de la différentiabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through manifoldStructureKind and retain the actual smooth atlas and transition data. State a metric or complex structure separately when that additional structure is supplied."
+msgstr "Sélectionner cette valeur par manifoldStructureKind et conserver l’atlas lisse effectivement fourni ainsi que les données de transition. Déclarer séparément une métrique ou une structure complexe lorsque cette structure supplémentaire est fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complex"
+msgstr "complexe"
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complex structure kind: a manifold with holomorphic transition maps, locally modeled on ℂⁿ."
+msgstr "Le type de structure complexe : une variété munie d’applications de transition holomorphes, localement modelée sur ℂⁿ."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selection concerns holomorphic transition maps on complex coordinate neighborhoods. It is distinct from merely attaching complex-valued data to a real manifold and does not supply missing chart or dimension declarations."
+msgstr "Cette sélection concerne les applications de transition holomorphes sur des voisinages de coordonnées complexes. Elle se distingue du simple ajout de données à valeurs complexes à une variété réelle et ne fournit pas les déclarations de cartes ou de dimension manquantes."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration: ex:M math:manifoldStructureKind math:complexStructure ."
+msgstr "Illustration : ex:M math:manifoldStructureKind math:complexStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the manifold record selects a complex structure supported by holomorphic coordinate transitions."
+msgstr "Utiliser lorsque l’enregistrement de la variété sélectionne une structure complexe étayée par des transitions de coordonnées holomorphes."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a complex structure from complex-valued functions alone, assuming a metric, or using the kind label to guess coordinate dimensions."
+msgstr "Éviter d’inférer une structure complexe des seules fonctions à valeurs complexes, de supposer une métrique ou de deviner les dimensions des coordonnées à partir du libellé du type."
+
+msgctxt "https://blackcatinformatics.ca/math/complexStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through manifoldStructureKind. Retain the actual complex charts, their target spaces and the holomorphic transition obligations; declare dimensions using the actual coordinate-space convention."
+msgstr "Sélectionner cette valeur par manifoldStructureKind. Conserver les cartes complexes effectivement fournies, leurs espaces cibles et les obligations d’holomorphie des transitions ; déclarer les dimensions selon la convention effectivement utilisée pour l’espace de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemannian"
+msgstr "riemannienne"
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Riemannian structure kind: a smooth manifold with a positive-definite metric tensor (signature (n, 0)) giving lengths and angles."
+msgstr "Le type de structure riemannienne : une variété lisse munie d’un tenseur métrique défini positif, de signature (n, 0), donnant les longueurs et les angles."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selection includes a positive-definite metric on the smooth manifold. A metric label does not supply its tensor components, certify positive definiteness or compute geodesics or curvature."
+msgstr "Cette sélection comprend une métrique définie positive sur la variété lisse. Un libellé métrique ne fournit pas les composantes du tenseur, ne certifie pas son caractère défini positif et ne calcule ni géodésiques ni courbure."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration: ex:M math:manifoldStructureKind math:riemannianStructure ."
+msgstr "Illustration : ex:M math:manifoldStructureKind math:riemannianStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected manifold structure includes a positive-definite metric for lengths and angles."
+msgstr "Utiliser lorsque la structure de variété sélectionnée comprend une métrique définie positive pour les longueurs et les angles."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value for an indefinite Lorentzian metric, treating coordinate distances as a supplied metric tensor, or claiming geometric calculations from the classification alone."
+msgstr "Éviter d’utiliser cette valeur pour une métrique lorentzienne indéfinie, de traiter des distances en coordonnées comme un tenseur métrique fourni ou de revendiquer des calculs géométriques à partir de la seule classification."
+
+msgctxt "https://blackcatinformatics.ca/math/riemannianStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through manifoldStructureKind and retain the actual metricTensor and its metricSignature, together with the smooth chart data. Preserve the existing positive-definite signature convention."
+msgstr "Sélectionner cette valeur par manifoldStructureKind et conserver le metricTensor effectivement fourni et sa metricSignature, avec les données des cartes lisses. Préserver la convention existante de signature définie positive."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lorentzian"
+msgstr "lorentzienne"
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Lorentzian structure kind: a smooth manifold with an indefinite metric tensor of signature (1, n−1) — one timelike direction. The structure spacetime requires; it stays math-side."
+msgstr "Le type de structure lorentzienne : une variété lisse munie d’un tenseur métrique indéfini de signature (1, n−1), avec une direction de genre temps. C’est la structure requise par l’espace-temps ; elle reste du côté mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the mathematical smooth-manifold structure with one time direction and the remaining space directions under the declared metric convention. It does not assert a physical spacetime, worldline or proper-time observation."
+msgstr "Il s’agit de la structure mathématique de variété lisse comportant une direction temporelle et les autres directions spatiales selon la convention métrique déclarée. Elle n’affirme ni espace-temps physique, ni ligne d’univers, ni observation de temps propre."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing analysis-and-geometry scene declares ex:minkowski math:manifoldStructureKind math:lorentzianStructure ."
+msgstr "La scène analysis-and-geometry existante déclare ex:minkowski math:manifoldStructureKind math:lorentzianStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected manifold structure includes the indefinite metric required by a Lorentzian geometric model."
+msgstr "Utiliser lorsque la structure de variété sélectionnée comprend la métrique indéfinie requise par un modèle géométrique lorentzien."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as a positive-definite Riemannian metric, inferring physical interpretation from a kind label, or discarding the actual metric sign convention."
+msgstr "Éviter de la traiter comme une métrique riemannienne définie positive, d’inférer une interprétation physique du libellé du type ou d’écarter la convention de signe métrique effectivement utilisée."
+
+msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through manifoldStructureKind and retain the actual metricTensor, metricSignature counts and stated sign convention. Keep physical interpretations in their own attributed downstream records."
+msgstr "Sélectionner cette valeur par manifoldStructureKind et conserver le metricTensor effectivement fourni, les nombres de metricSignature et la convention de signe énoncée. Garder les interprétations physiques dans leurs propres enregistrements attribués en aval."
