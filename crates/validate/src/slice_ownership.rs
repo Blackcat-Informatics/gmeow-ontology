@@ -133,11 +133,11 @@ pub(crate) fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> 
         OwnershipDiagnostic::UnparseableQuery {
             slice,
             logical_path,
-            message,
+            cause,
         } => Some(finding(
             Severity::Warning,
             crate::codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
-            format!("{slice}: query {logical_path} failed to parse — {message}"),
+            format!("{slice}: query {logical_path} failed to parse — {cause}"),
             Some(slice.to_string()),
         )),
         // Covered by the ownership-table pass — do not double-count.
