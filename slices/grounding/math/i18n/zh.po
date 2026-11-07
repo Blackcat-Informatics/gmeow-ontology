@@ -14212,3 +14212,115 @@ msgstr "避免根据坐标图标签填补缺失角色、假定存在全局坐标
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the failure class associated with the canonical chart restrictions and closed required paths. Supply the actual domain, coordinate map and target space from evidence; retain their type, cardinality, dimension and mathematical obligations for their own checks without silently assigning defaults."
 msgstr "保持失败类与规范坐标图限制及封闭的必需路径相关联。依据证据提供实际定义域、坐标映射及目标空间；保留其类型、基数、维数及数学义务供各自检查，不暗中赋予默认值。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Space"
+msgstr "概率空间"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability space: the Kolmogorov triple (Ω, ℱ, P) made explicit as one object — a sample space Ω named through math:sampleSpace (a math:SampleSpace), an event σ-algebra ℱ named through math:eventSigmaAlgebra (a math:SigmaAlgebra), and a probability measure P named through math:probabilityMeasure (a math:ProbabilityMeasure). A subclass of math:MeasurableSpace carrying a probability measure — the probability charter SPECIALIZES the measure-theoretic bedrock rather than re-minting it. Each of the three components must be present, but any of them may be symbolic or generative (a math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, a probability measure defined by a math:MeasureDefinitionExpression) rather than extensionally enumerated; a probability space missing any of the three components is ill-formed (math:IncompleteProbabilitySpace). The gate requires presence and structural completeness, never impossible enumeration."
+msgstr "概率空间：将柯尔莫哥洛夫三元组 (Ω, ℱ, P) 显式表示为一个对象，包含通过 math:sampleSpace 指明的样本空间 Ω（math:SampleSpace）、通过 math:eventSigmaAlgebra 指明的事件 σ-代数 ℱ（math:SigmaAlgebra）及通过 math:probabilityMeasure 指明的概率测度 P（math:ProbabilityMeasure）。它是具有概率测度的 math:MeasurableSpace 的子类；概率体系特化测度论基础，而非重新创建它。三个组成部分均须存在，但其中任何一个都可以是符号化或生成式的（math:SymbolicSampleSpace、math:BorelSigmaAlgebra、由 math:MeasureDefinitionExpression 定义的概率测度），而不必逐个枚举；缺少任一组成部分的概率空间均为不良形式（math:IncompleteProbabilitySpace）。检查要求存在性及结构完整性，绝不要求不可能完成的枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The three roles distinguish the outcome carrier Ω, the measurable-event family ℱ and the probability measure P. Symbolic or generative descriptions retain those objects without enumerating all outcomes or events; a measure-definition expression defines P rather than replacing its ProbabilityMeasure resource."
+msgstr "三个角色区分结果载体 Ω、可测事件族 ℱ 及概率测度 P。符号化或生成式描述保留这些对象，无须枚举全部结果或事件；测度定义表达式定义 P，而不替代其 ProbabilityMeasure 资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing probability scene links ex:weatherSpace to ex:rainfallOutcomes through sampleSpace, ex:rainfallBorel through eventSigmaAlgebra and ex:weatherMeasure through probabilityMeasure. The measure separately names ex:weatherMeasurableSpace through measureOn and declares totalMass 1."
+msgstr "现有概率场景通过 sampleSpace 将 ex:weatherSpace 链接到 ex:rainfallOutcomes，通过 eventSigmaAlgebra 链接到 ex:rainfallBorel，通过 probabilityMeasure 链接到 ex:weatherMeasure。该测度另行通过 measureOn 指明 ex:weatherMeasurableSpace，并声明 totalMass 1。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied Kolmogorov probability-space record whose sample-space, event-algebra and measure roles remain explicit, including symbolic or generative components."
+msgstr "用于所提供的柯尔莫哥洛夫概率空间记录，其中样本空间、事件代数及测度角色保持明确，包括符号化或生成式组成部分。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a confidence score, event occurrence, outcome list or density expression alone as a probability space. Three named roles do not prove σ-algebra closure, countable additivity, normalization or agreement of all supplied component descriptions."
+msgstr "避免将置信分数、事件的实际发生、结果列表或单独的密度表达式视为概率空间。三个已指明角色不证明 σ-代数封闭性、可列可加性、归一化或全部已提供组成部分描述的一致性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual sampleSpace, eventSigmaAlgebra and probabilityMeasure resources and inherited MeasurableSpace obligations. Preserve supplied measureOn and totalMass evidence separately; missing roles require source evidence, not invented defaults, numerical evaluation or automatic query-model selection."
+msgstr "保留实际 sampleSpace、eventSigmaAlgebra 和 probabilityMeasure 资源及继承的 MeasurableSpace 义务。另行保留所提供的 measureOn 和 totalMass 依据；缺失角色需要来源证据，而非编造默认值、数值求值或自动查询模型选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sample space"
+msgstr "样本空间"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the sample space Ω of a probability space. Domain math:ProbabilitySpace, range math:SampleSpace (stated in prose). Every math:ProbabilitySpace names one; the sample space may be symbolic or generative but never absent — a space missing it is ill-formed (math:IncompleteProbabilitySpace)."
+msgstr "指明概率空间的样本空间 Ω。定义域为 math:ProbabilitySpace，值域为 math:SampleSpace（以文字说明）。每个 math:ProbabilitySpace 都指明一个样本空间；样本空间可以是符号化或生成式的，但绝不能缺失，缺少它的空间为不良形式（math:IncompleteProbabilitySpace）。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names Ω, the carrier of possible outcomes, rather than ℱ, one measurable event-set or an observed occurrence. A symbolic or generated outcome description still supplies a sample-space object; a label alone does not establish its elements or event membership."
+msgstr "此关系指明可能结果的载体 Ω，而非 ℱ、单个可测事件子集或观测到的实际发生。符号化或生成的结果描述仍提供一个样本空间对象；仅有标签不确立其元素或事件归属。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:sampleSpace ex:rainfallOutcomes, with ex:rainfallOutcomes typed math:SymbolicSampleSpace. It does not enumerate every rainfall outcome."
+msgstr "现有场景声明 ex:weatherSpace math:sampleSpace ex:rainfallOutcomes，并将 ex:rainfallOutcomes 标注为 math:SymbolicSampleSpace。它并未枚举每一种降雨结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual outcome carrier of a ProbabilitySpace, preserving its declared symbolic, generated or extensional representation."
+msgstr "用于指明 ProbabilitySpace 的实际结果载体，保留其所声明的符号化、生成式或逐个列举的表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting one outcome, an event occurrence, a σ-algebra or a list assumed complete from a label. Do not infer a distribution, probability law or missing sample-space object from the role name."
+msgstr "避免用单个结果、事件的实际发生、σ-代数或仅根据标签就假定完整的列表替代它。不要根据角色名称推断分布、概率律或缺失的样本空间对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the probability-space resource as subject and its supplied SampleSpace resource as object. Retain eventSigmaAlgebra and probabilityMeasure separately, and keep evidence for outcome and event membership rather than manufacturing an enumeration."
+msgstr "以概率空间资源为主语，以其所提供的 SampleSpace 资源为宾语。另行保留 eventSigmaAlgebra 和 probabilityMeasure，并保留结果及事件归属的依据，不编造枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event σ-algebra"
+msgstr "事件 σ-代数"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the event σ-algebra ℱ of a probability space — the algebra of measurable sets against which event membership is decided. Domain math:ProbabilitySpace, range math:SigmaAlgebra (stated in prose). Every math:ProbabilitySpace names one (extensional or symbolic, e.g. a math:BorelSigmaAlgebra); a space missing it is ill-formed (math:IncompleteProbabilitySpace). The σ-algebra is the sole event algebra — there is no separate EventSet class."
+msgstr "指明概率空间的事件 σ-代数 ℱ，即据以判定事件归属的可测集代数。定义域为 math:ProbabilitySpace，值域为 math:SigmaAlgebra（以文字说明）。每个 math:ProbabilitySpace 都指明一个事件 σ-代数（逐个列举或符号化，例如 math:BorelSigmaAlgebra）；缺少它的空间为不良形式（math:IncompleteProbabilitySpace）。σ-代数是唯一的事件代数，不存在单独的 EventSet 类。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names ℱ, the family of measurable subsets used as probability events, rather than Ω, one event-set or an occurrence in time. Symbolic generators can describe that family without listing every member; declaring the role does not prove the σ-algebra laws."
+msgstr "此关系指明用作概率事件的可测子集族 ℱ，而非 Ω、单个事件子集或时间中的一次发生。符号生成元可描述该集合族而无须列出每个成员；声明角色不证明 σ-代数法则。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:eventSigmaAlgebra ex:rainfallBorel, with ex:rainfallBorel typed math:BorelSigmaAlgebra. No complete list of its measurable subsets is supplied by that link."
+msgstr "现有场景声明 ex:weatherSpace math:eventSigmaAlgebra ex:rainfallBorel，并将 ex:rainfallBorel 标注为 math:BorelSigmaAlgebra。该链接不提供其可测子集的完整列表。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied event σ-algebra against which probability events in the space are interpreted, including a symbolic or generative algebra."
+msgstr "用于指明所提供的事件 σ-代数，空间中的概率事件据此解释，包括符号化或生成式代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary collection of occurrences as a σ-algebra, substituting one event for its family, or claiming closure, measurability or a numerical event probability from the link alone."
+msgstr "避免将任意发生事项的集合视为 σ-代数、用单个事件替代其集合族，或仅凭链接声称封闭性、可测性或数值事件概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the ProbabilitySpace as subject and the actual SigmaAlgebra resource as object. Preserve sampleSpace, probabilityMeasure and supplied generator or membership evidence; absent family evidence does not authorize a new event algebra or an enumeration requirement."
+msgstr "以 ProbabilitySpace 为主语，以实际 SigmaAlgebra 资源为宾语。保留 sampleSpace、probabilityMeasure 及所提供的生成元或归属依据；缺少集合族依据并不授权创建新的事件代数或提出枚举要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability measure"
+msgstr "概率测度"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the probability measure P of a probability space — the math:ProbabilityMeasure of total mass one assigning probabilities to the events of its σ-algebra. Domain math:ProbabilitySpace, range math:ProbabilityMeasure (stated in prose). Every math:ProbabilitySpace names one, possibly given by a math:MeasureDefinitionExpression; a space missing it is ill-formed (math:IncompleteProbabilitySpace)."
+msgstr "指明概率空间的概率测度 P，即总质量为一、对其 σ-代数中的事件赋予概率的 math:ProbabilityMeasure。定义域为 math:ProbabilitySpace，值域为 math:ProbabilityMeasure（以文字说明）。每个 math:ProbabilitySpace 都指明一个概率测度，可能由 math:MeasureDefinitionExpression 给出；缺少它的空间为不良形式（math:IncompleteProbabilitySpace）。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names P, the ProbabilityMeasure assigning mass to measurable events, rather than a bare probability literal, confidence score or expression AST. A supplied measure-definition expression may describe P symbolically; it does not replace the measure object or prove its laws by being present."
+msgstr "此关系指明向可测事件赋予质量的 ProbabilityMeasure P，而非单独的概率字面量、置信分数或表达式 AST。所提供的测度定义表达式可符号化地描述 P；它不替代测度对象，也不因存在就证明测度法则。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:probabilityMeasure ex:weatherMeasure. That measure is typed math:ProbabilityMeasure, names ex:weatherMeasurableSpace through measureOn and declares totalMass 1; the scene does not supply a density-expression link for it."
+msgstr "现有场景声明 ex:weatherSpace math:probabilityMeasure ex:weatherMeasure。该测度标注为 math:ProbabilityMeasure，通过 measureOn 指明 ex:weatherMeasurableSpace，并声明 totalMass 1；场景没有为其提供密度表达式链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual probability-measure resource of a supplied ProbabilitySpace, including one whose law is defined symbolically."
+msgstr "用于保留所提供 ProbabilitySpace 的实际概率测度资源，包括其概率律由符号方式定义的测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a confidence score, raw number or MeasureDefinitionExpression in place of the measure resource, computing event probabilities from totalMass 1 alone, or assuming that a declared normalization proves countable additivity."
+msgstr "避免以置信分数、裸数值或 MeasureDefinitionExpression 替代测度资源、仅根据 totalMass 1 计算事件概率，或假定已声明的归一化证明可列可加性。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ProbabilitySpace to its supplied ProbabilityMeasure and retain that measure's measureOn frame and normalization evidence. Retain any supplied defining expression with its actual source association; do not invent a density AST, identify distinct space resources or select an execution model implicitly."
+msgstr "将 ProbabilitySpace 链接到其所提供的 ProbabilityMeasure，并保留该测度的 measureOn 框架及归一化依据。保留任何已提供的定义表达式及其实际来源关联；不编造密度 AST、不等同不同的空间资源，也不隐含选择执行模型。"

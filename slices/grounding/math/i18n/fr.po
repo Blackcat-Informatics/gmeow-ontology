@@ -14212,3 +14212,115 @@ msgstr "Éviter de compléter les rôles manquants à partir du libellé d’une
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the failure class associated with the canonical chart restrictions and closed required paths. Supply the actual domain, coordinate map and target space from evidence; retain their type, cardinality, dimension and mathematical obligations for their own checks without silently assigning defaults."
 msgstr "Garder la classe d’échec associée aux restrictions canoniques des cartes et aux chemins requis assortis d’une clôture. Fournir le domaine, l’application de coordonnées et l’espace cible effectifs à partir de justifications ; conserver leurs obligations de type, de cardinalité, de dimension et leurs obligations mathématiques pour leurs propres contrôles, sans affecter silencieusement de valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Space"
+msgstr "Espace de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability space: the Kolmogorov triple (Ω, ℱ, P) made explicit as one object — a sample space Ω named through math:sampleSpace (a math:SampleSpace), an event σ-algebra ℱ named through math:eventSigmaAlgebra (a math:SigmaAlgebra), and a probability measure P named through math:probabilityMeasure (a math:ProbabilityMeasure). A subclass of math:MeasurableSpace carrying a probability measure — the probability charter SPECIALIZES the measure-theoretic bedrock rather than re-minting it. Each of the three components must be present, but any of them may be symbolic or generative (a math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, a probability measure defined by a math:MeasureDefinitionExpression) rather than extensionally enumerated; a probability space missing any of the three components is ill-formed (math:IncompleteProbabilitySpace). The gate requires presence and structural completeness, never impossible enumeration."
+msgstr "Un espace de probabilité : le triplet de Kolmogorov (Ω, ℱ, P) explicité en un objet, avec un espace des issues Ω nommé par math:sampleSpace (un math:SampleSpace), une σ-algèbre d’événements ℱ nommée par math:eventSigmaAlgebra (une math:SigmaAlgebra) et une mesure de probabilité P nommée par math:probabilityMeasure (une math:ProbabilityMeasure). Sous-classe de math:MeasurableSpace portant une mesure de probabilité : le cadre probabiliste SPÉCIALISE le socle de la théorie de la mesure au lieu de le recréer. Chacune des trois composantes doit être présente, mais chacune peut être symbolique ou générative (un math:SymbolicSampleSpace, une math:BorelSigmaAlgebra, une mesure de probabilité définie par une math:MeasureDefinitionExpression) plutôt qu’énumérée en extension ; un espace de probabilité auquel manque l’une des trois composantes est mal formé (math:IncompleteProbabilitySpace). Le contrôle exige la présence et la complétude structurelle, jamais une énumération impossible."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The three roles distinguish the outcome carrier Ω, the measurable-event family ℱ and the probability measure P. Symbolic or generative descriptions retain those objects without enumerating all outcomes or events; a measure-definition expression defines P rather than replacing its ProbabilityMeasure resource."
+msgstr "Les trois rôles distinguent le support des issues Ω, la famille d’événements mesurables ℱ et la mesure de probabilité P. Les descriptions symboliques ou génératives conservent ces objets sans énumérer toutes les issues ou tous les événements ; une expression de définition de mesure définit P au lieu de remplacer sa ressource ProbabilityMeasure."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing probability scene links ex:weatherSpace to ex:rainfallOutcomes through sampleSpace, ex:rainfallBorel through eventSigmaAlgebra and ex:weatherMeasure through probabilityMeasure. The measure separately names ex:weatherMeasurableSpace through measureOn and declares totalMass 1."
+msgstr "La scène de probabilité existante relie ex:weatherSpace à ex:rainfallOutcomes par sampleSpace, à ex:rainfallBorel par eventSigmaAlgebra et à ex:weatherMeasure par probabilityMeasure. La mesure nomme séparément ex:weatherMeasurableSpace par measureOn et déclare totalMass 1."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied Kolmogorov probability-space record whose sample-space, event-algebra and measure roles remain explicit, including symbolic or generative components."
+msgstr "Utiliser pour un enregistrement fourni d’espace de probabilité de Kolmogorov dont les rôles d’espace des issues, d’algèbre d’événements et de mesure restent explicites, y compris avec des composantes symboliques ou génératives."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a confidence score, event occurrence, outcome list or density expression alone as a probability space. Three named roles do not prove σ-algebra closure, countable additivity, normalization or agreement of all supplied component descriptions."
+msgstr "Éviter de traiter un score de confiance, une occurrence d’événement, une liste d’issues ou une seule expression de densité comme un espace de probabilité. Trois rôles nommés ne prouvent ni la clôture de σ-algèbre, ni l’additivité dénombrable, ni la normalisation, ni la concordance de toutes les descriptions de composantes fournies."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilitySpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual sampleSpace, eventSigmaAlgebra and probabilityMeasure resources and inherited MeasurableSpace obligations. Preserve supplied measureOn and totalMass evidence separately; missing roles require source evidence, not invented defaults, numerical evaluation or automatic query-model selection."
+msgstr "Conserver les ressources sampleSpace, eventSigmaAlgebra et probabilityMeasure effectivement fournies et les obligations héritées de MeasurableSpace. Préserver séparément les éléments probants fournis pour measureOn et totalMass ; les rôles manquants exigent des éléments probants sources, non des valeurs par défaut inventées, une évaluation numérique ou une sélection automatique de modèle de requête."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sample space"
+msgstr "espace des issues"
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the sample space Ω of a probability space. Domain math:ProbabilitySpace, range math:SampleSpace (stated in prose). Every math:ProbabilitySpace names one; the sample space may be symbolic or generative but never absent — a space missing it is ill-formed (math:IncompleteProbabilitySpace)."
+msgstr "Nomme l’espace des issues Ω d’un espace de probabilité. Domaine : math:ProbabilitySpace ; portée : math:SampleSpace (indiqués en prose). Chaque math:ProbabilitySpace en nomme un ; l’espace des issues peut être symbolique ou génératif, mais jamais absent : un espace auquel il manque est mal formé (math:IncompleteProbabilitySpace)."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names Ω, the carrier of possible outcomes, rather than ℱ, one measurable event-set or an observed occurrence. A symbolic or generated outcome description still supplies a sample-space object; a label alone does not establish its elements or event membership."
+msgstr "Cette relation nomme Ω, le support des issues possibles, plutôt que ℱ, un ensemble constituant un événement mesurable ou une occurrence observée. Une description symbolique ou générée des issues fournit toujours un objet d’espace des issues ; un libellé seul n’établit ni ses éléments ni l’appartenance à un événement."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:sampleSpace ex:rainfallOutcomes, with ex:rainfallOutcomes typed math:SymbolicSampleSpace. It does not enumerate every rainfall outcome."
+msgstr "La scène existante énonce ex:weatherSpace math:sampleSpace ex:rainfallOutcomes, ex:rainfallOutcomes étant typé math:SymbolicSampleSpace. Elle n’énumère pas toutes les issues de précipitations."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual outcome carrier of a ProbabilitySpace, preserving its declared symbolic, generated or extensional representation."
+msgstr "Utiliser pour nommer le support effectif des issues d’un ProbabilitySpace, en préservant sa représentation déclarée, symbolique, générée ou en extension."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting one outcome, an event occurrence, a σ-algebra or a list assumed complete from a label. Do not infer a distribution, probability law or missing sample-space object from the role name."
+msgstr "Éviter de lui substituer une issue, une occurrence d’événement, une σ-algèbre ou une liste supposée complète à partir d’un libellé. Ne pas inférer une distribution, une loi de probabilité ou un objet d’espace des issues manquant du nom du rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/sampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the probability-space resource as subject and its supplied SampleSpace resource as object. Retain eventSigmaAlgebra and probabilityMeasure separately, and keep evidence for outcome and event membership rather than manufacturing an enumeration."
+msgstr "Écrire la ressource d’espace de probabilité comme sujet et sa ressource SampleSpace fournie comme objet. Conserver séparément eventSigmaAlgebra et probabilityMeasure, et garder les éléments probants d’appartenance des issues et des événements au lieu de fabriquer une énumération."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event σ-algebra"
+msgstr "σ-algèbre des événements"
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the event σ-algebra ℱ of a probability space — the algebra of measurable sets against which event membership is decided. Domain math:ProbabilitySpace, range math:SigmaAlgebra (stated in prose). Every math:ProbabilitySpace names one (extensional or symbolic, e.g. a math:BorelSigmaAlgebra); a space missing it is ill-formed (math:IncompleteProbabilitySpace). The σ-algebra is the sole event algebra — there is no separate EventSet class."
+msgstr "Nomme la σ-algèbre d’événements ℱ d’un espace de probabilité, l’algèbre d’ensembles mesurables selon laquelle l’appartenance des événements est décidée. Domaine : math:ProbabilitySpace ; portée : math:SigmaAlgebra (indiqués en prose). Chaque math:ProbabilitySpace en nomme une (en extension ou symbolique, par exemple une math:BorelSigmaAlgebra) ; un espace auquel elle manque est mal formé (math:IncompleteProbabilitySpace). La σ-algèbre est l’unique algèbre d’événements : il n’existe pas de classe EventSet distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names ℱ, the family of measurable subsets used as probability events, rather than Ω, one event-set or an occurrence in time. Symbolic generators can describe that family without listing every member; declaring the role does not prove the σ-algebra laws."
+msgstr "Cette relation nomme ℱ, la famille de sous-ensembles mesurables utilisés comme événements probabilistes, plutôt que Ω, un seul ensemble constituant un événement ou une occurrence dans le temps. Des générateurs symboliques peuvent décrire cette famille sans énumérer chacun de ses membres ; déclarer le rôle ne prouve pas les lois de σ-algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:eventSigmaAlgebra ex:rainfallBorel, with ex:rainfallBorel typed math:BorelSigmaAlgebra. No complete list of its measurable subsets is supplied by that link."
+msgstr "La scène existante énonce ex:weatherSpace math:eventSigmaAlgebra ex:rainfallBorel, ex:rainfallBorel étant typé math:BorelSigmaAlgebra. Ce lien ne fournit aucune liste complète de ses sous-ensembles mesurables."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied event σ-algebra against which probability events in the space are interpreted, including a symbolic or generative algebra."
+msgstr "Utiliser pour nommer la σ-algèbre d’événements fournie selon laquelle les événements probabilistes de l’espace sont interprétés, y compris une algèbre symbolique ou générative."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an arbitrary collection of occurrences as a σ-algebra, substituting one event for its family, or claiming closure, measurability or a numerical event probability from the link alone."
+msgstr "Éviter de traiter une collection quelconque d’occurrences comme une σ-algèbre, de substituer un événement à sa famille ou de revendiquer la clôture, la mesurabilité ou une probabilité numérique d’événement à partir du seul lien."
+
+msgctxt "https://blackcatinformatics.ca/math/eventSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the ProbabilitySpace as subject and the actual SigmaAlgebra resource as object. Preserve sampleSpace, probabilityMeasure and supplied generator or membership evidence; absent family evidence does not authorize a new event algebra or an enumeration requirement."
+msgstr "Écrire le ProbabilitySpace comme sujet et la ressource SigmaAlgebra effectivement fournie comme objet. Préserver sampleSpace, probabilityMeasure et les éléments probants fournis de génération ou d’appartenance ; l’absence d’éléments probants sur la famille n’autorise ni une nouvelle algèbre d’événements ni une exigence d’énumération."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability measure"
+msgstr "mesure de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the probability measure P of a probability space — the math:ProbabilityMeasure of total mass one assigning probabilities to the events of its σ-algebra. Domain math:ProbabilitySpace, range math:ProbabilityMeasure (stated in prose). Every math:ProbabilitySpace names one, possibly given by a math:MeasureDefinitionExpression; a space missing it is ill-formed (math:IncompleteProbabilitySpace)."
+msgstr "Nomme la mesure de probabilité P d’un espace de probabilité, la math:ProbabilityMeasure de masse totale un qui attribue des probabilités aux événements de sa σ-algèbre. Domaine : math:ProbabilitySpace ; portée : math:ProbabilityMeasure (indiqués en prose). Chaque math:ProbabilitySpace en nomme une, éventuellement donnée par une math:MeasureDefinitionExpression ; un espace auquel elle manque est mal formé (math:IncompleteProbabilitySpace)."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names P, the ProbabilityMeasure assigning mass to measurable events, rather than a bare probability literal, confidence score or expression AST. A supplied measure-definition expression may describe P symbolically; it does not replace the measure object or prove its laws by being present."
+msgstr "Cette relation nomme P, la ProbabilityMeasure qui attribue une masse aux événements mesurables, plutôt qu’un simple littéral de probabilité, un score de confiance ou un AST d’expression. Une expression de définition de mesure fournie peut décrire P symboliquement ; elle ne remplace pas l’objet mesure et sa présence ne prouve pas ses lois."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:weatherSpace math:probabilityMeasure ex:weatherMeasure. That measure is typed math:ProbabilityMeasure, names ex:weatherMeasurableSpace through measureOn and declares totalMass 1; the scene does not supply a density-expression link for it."
+msgstr "La scène existante énonce ex:weatherSpace math:probabilityMeasure ex:weatherMeasure. Cette mesure est typée math:ProbabilityMeasure, nomme ex:weatherMeasurableSpace par measureOn et déclare totalMass 1 ; la scène ne fournit pas de lien d’expression de densité pour cette mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual probability-measure resource of a supplied ProbabilitySpace, including one whose law is defined symbolically."
+msgstr "Utiliser pour conserver la ressource effective de mesure de probabilité d’un ProbabilitySpace fourni, y compris lorsque sa loi est définie symboliquement."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing a confidence score, raw number or MeasureDefinitionExpression in place of the measure resource, computing event probabilities from totalMass 1 alone, or assuming that a declared normalization proves countable additivity."
+msgstr "Éviter de placer un score de confiance, un nombre brut ou une MeasureDefinitionExpression à la place de la ressource mesure, de calculer des probabilités d’événements à partir du seul totalMass 1 ou de supposer qu’une normalisation déclarée prouve l’additivité dénombrable."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ProbabilitySpace to its supplied ProbabilityMeasure and retain that measure's measureOn frame and normalization evidence. Retain any supplied defining expression with its actual source association; do not invent a density AST, identify distinct space resources or select an execution model implicitly."
+msgstr "Relier le ProbabilitySpace à sa ProbabilityMeasure fournie et conserver le cadre measureOn de cette mesure ainsi que les éléments probants de normalisation. Conserver toute expression de définition fournie avec son association source effective ; ne pas inventer un AST de densité, assimiler des ressources d’espace distinctes ou sélectionner implicitement un modèle d’exécution."
