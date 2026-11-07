@@ -26,7 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
+use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
@@ -1397,11 +1397,11 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), gmeow_errors::Diag> {
 
 /// Render every committed research-object artifact under `root`, keyed by its
 /// logical (repo-relative) path. The native correspondence program comes directly
-/// from the same run's mappings carrier and is admitted against actual owned sources.
+/// from the same run's mappings carrier, including its admitted native property authority.
 pub fn render_research_objects(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_program: CorrespondenceProgram,
+    catalog: &GroundingCatalog,
     scores_ttl: &[u8],
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let store = load_instance_graph(root, scores_ttl)?;
@@ -1468,7 +1468,7 @@ pub fn render_research_objects(
     }
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root, dcat_program, correspondence_program, scores_ttl)?;
+    let dcat = render_dcat(root, dcat_program, catalog, scores_ttl)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML — purrdf project_datacite.
@@ -1501,11 +1501,11 @@ pub fn render_research_objects(
 }
 
 /// Admit the exact typed DCAT product against this run's native correspondence
-/// catalog and original ontology, then execute over the worked-example A-Box.
+/// catalog, then execute over the original ontology and worked-example A-Box.
 fn render_dcat(
     root: &Path,
     dcat_program: &[u8],
-    correspondence_program: CorrespondenceProgram,
+    catalog: &GroundingCatalog,
     scores_ttl: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
     const STAGE: &str = "stage-export-research-objects";
@@ -1521,23 +1521,10 @@ fn render_dcat(
         }
         Ok::<_, gmeow_errors::Diag>(parsed)
     })?;
-    let ontology = measure_stage_phase(STAGE, "dcat-union-ontology", || {
-        let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-        RdfDataset::union(&refs)
-    })?;
-    let catalog = measure_stage_phase(STAGE, "dcat-admit-catalog", || {
-        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
-            correspondence_program,
-            &gmeow_logic_compile::ingest::DslView::new(&ontology),
-            &gmeow_validate::grounding_catalog::discover(root)?,
-        )
-    })?;
-    // The catalog owns its admitted properties; it no longer reads the union.
-    drop(ontology);
     let product =
         gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(
             dcat_program,
-            &catalog,
+            catalog,
         )?;
     if product.payload.profile != "dcat" {
         return Err(ro_err(
@@ -1545,10 +1532,9 @@ fn render_dcat(
         ));
     }
     let prepared = measure_stage_phase(STAGE, "dcat-prepare-profile", || {
-        crate::projection_execution::PreparedProjectionProfile::prepare(&product, &catalog)
+        crate::projection_execution::PreparedProjectionProfile::prepare(&product, catalog)
     })?;
     drop(product);
-    drop(catalog);
     // The worked-example A-Box (scores.ttl rides in from the consumed evals product).
     for (label, _name, bytes) in example_inputs(root, scores_ttl)? {
         parsed.push(parse_into(&bytes, label)?);
@@ -1650,24 +1636,25 @@ fn render_dcat(
 /// Required typed product, consumed from this run's mappings stage.
 const DCAT_QUERY_PATH: &str = "generated/queries/dcat.projection.json";
 
-/// Read this run's native correspondence program from the mappings RDF carrier.
-/// Missing or malformed selected graph data fails native admission; byte artifacts
-/// and generated files are never alternate authorities for this catalog. Project
-/// only the required graph into the native reader's default-graph view, including
-/// its graph-scoped statement layer; the original carrier is unchanged.
-fn mappings_correspondence_program(
+/// Borrow this run's complete admitted mappings publication. A graph or byte
+/// artifact cannot substitute for its physical source and property authority.
+fn mappings_grounding_catalog(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<CorrespondenceProgram, gmeow_errors::Diag> {
-    let product = upstream.get("stage-mappings").ok_or_else(|| {
-        ro_err(format!(
-            "missing stage-mappings product for the <{}> graph",
-            super::carrier::GRAPH_CORRESPONDENCE_LAWS,
-        ))
-    })?;
-    let graph = product.dataset().project_graph(Some(&RdfTerm::iri(
-        super::carrier::GRAPH_CORRESPONDENCE_LAWS,
-    )))?;
-    gmeow_logic_compile::projections::correspondence::parse_correspondence(&graph)
+) -> Result<&GroundingCatalog, gmeow_errors::Diag> {
+    upstream
+        .get("stage-mappings")
+        .and_then(|product| {
+            product
+                .bundle()
+                .handle(super::carrier::GRAPH_CORRESPONDENCE_LAWS)
+        })
+        .and_then(|entry| match &entry.payload {
+            crate::bundle::PipelineHandle::GroundingCatalog(catalog) => Some(catalog.as_ref()),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            ro_err("stage-mappings carries no complete admitted grounding catalog".into())
+        })
 }
 
 /// The `research-objects` export-leaf stage.
@@ -1721,7 +1708,7 @@ impl Stage for ResearchObjectsStage {
         // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
         // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
-        "research_objects.v8-physical-catalog-admission-inputs"
+        "research_objects.v9-admitted-grounding-publication"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
@@ -1738,9 +1725,8 @@ impl Stage for ResearchObjectsStage {
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.extend(module_files(root)?);
-        // DCAT's semantic catalog admits all physical slice artifacts before
-        // selecting grounding-owner mappings, so every admission input binds the key.
-        files.extend(gmeow_validate::grounding_catalog::input_files(root)?);
+        // Complete physical catalog admission is bound by the mappings product;
+        // these local files remain the exact original DCAT execution inputs.
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -1759,7 +1745,7 @@ impl Stage for ResearchObjectsStage {
                     ),
                 })
             })?;
-        let correspondence_program = mappings_correspondence_program(input.upstream)?;
+        let catalog = mappings_grounding_catalog(input.upstream)?;
         // `generated/evals/scores.ttl` from THIS run's stage-export-evals product
         // (fail-closed: a missing artifact is a hard error, never a disk fallback of the
         // git-ignored generated tree).
@@ -1778,7 +1764,7 @@ impl Stage for ResearchObjectsStage {
             })?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_research_objects(input.root, dcat_program, correspondence_program, scores_ttl)?,
+            render_research_objects(input.root, dcat_program, catalog, scores_ttl)?,
         )?))
     }
 }

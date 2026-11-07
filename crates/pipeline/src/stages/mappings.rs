@@ -344,7 +344,8 @@ fn compile_mappings_with_sources(
     // the resulting `logic:LawClaim`s, and project the law-bearing set to a named graph. This
     // reads `aligned` before its dialect maps are moved out below. HARD-fails on any refuted
     // law (AC2) — an executed round-trip that does not hold is a real overclaim.
-    let correspondence_laws_corpus = discharge_correspondence_laws(&aligned)?;
+    let discharged_program = discharge_correspondence_laws(&aligned)?;
+    let correspondence_laws_corpus = project_correspondence(&discharged_program)?.into_bytes();
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
@@ -550,7 +551,9 @@ fn compile_mappings_with_sources(
     );
 
     Ok(CompiledMappings {
-        grounding_catalog: aligned.grounding_catalog,
+        grounding_catalog: aligned
+            .grounding_catalog
+            .with_discharged_program(discharged_program)?,
         artifacts,
         ledger,
         loss,
@@ -571,7 +574,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
     )
 }
 
-/// Execute each correspondence's native cell/profile legs and project its law-bearing set.
+/// Execute each correspondence's native cell/profile legs and retain its law-bearing program.
 /// Required profile query files are output artifacts; their unions are not law domains.
 /// Both legs share one admitted preparation, with separate source and edited-view seeds.
 /// A missing put is the declared Unsupported floor. A non-injective rung supplies no
@@ -579,7 +582,7 @@ fn normalize_mapping_source_banner(query: String) -> String {
 /// declared laws fail the stage, and no claim authorizes an unrestricted rewrite.
 fn discharge_correspondence_laws(
     aligned: &correspondence_lower::CorrespondenceArtifacts,
-) -> gmeow_errors::Result<Vec<u8>> {
+) -> gmeow_errors::Result<CorrespondenceProgram> {
     let stage_err = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -704,14 +707,14 @@ fn discharge_correspondence_laws(
         }
     }
 
-    // Re-project the now-law-bearing correspondence set (reusing the existing
-    // `logic:hasLawClaim` emission). Deterministic: `project_correspondence` sorts + dedups.
+    // Preserve the complete program while extending only its executed law evidence.
     let program = CorrespondenceProgram::new(rebuilt, aligned.correspondences.preservation)
+        .with_compositions(aligned.correspondences.compositions.clone())
         .with_leg_programs(aligned.correspondences.leg_programs.clone())
         .with_native_sources(aligned.correspondences.native_sources.clone())?
         .with_projection_bindings(aligned.correspondences.projection_bindings.clone())?
         .with_projection_profiles(aligned.correspondences.projection_profiles.clone())?;
-    Ok(project_correspondence(&program)?.into_bytes())
+    Ok(program)
 }
 
 /// The A→B authorization set computed straight from `root`: the `gmeow:ProjectionMapping` cell
@@ -749,13 +752,8 @@ pub fn discharged_section_cells_from_root(
             message: format!("correspondence lowering failed: {e}"),
         })
     })?;
-    let corr_laws = discharge_correspondence_laws(&aligned)?;
-    let nt = String::from_utf8(corr_laws).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-mappings".to_string(),
-            message: format!("correspondence-laws graph is not UTF-8: {e}"),
-        })
-    })?;
+    let program = discharge_correspondence_laws(&aligned)?;
+    let nt = project_correspondence(&program)?;
     crate::up_projection_gates::discharged_section_cells_from_corpus(&nt).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -1276,7 +1274,7 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "mappings.v26-single-codebook-owner"
+        "mappings.v27-admitted-grounding-publication"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -1287,6 +1285,9 @@ impl Stage for MappingsStage {
         let mut files = Vec::new();
         // Module/Example/Mapping roles and their physical owners are manifest-selected authority.
         files.extend(crate::stages::source_load::all_manifest_files(root)?);
+        // Native semantic admission reads every declared slice artifact before
+        // selecting grounding-owner mappings; the typed publication binds that closure.
+        files.extend(gmeow_validate::grounding_catalog::input_files(root)?);
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         // Translation and glossary products consume every registered DSL owner,
         // including owners outside the mapping DSL source tree.
@@ -1519,10 +1520,29 @@ impl Stage for MappingsStage {
             correspondence_laws_graph.as_ref(),
             substrate_sbom_graph.as_ref(),
         ])?);
-        Ok(StageOutput::new(StageProduct::from_artifacts_over(
-            self.id(),
+        let mut bundle = crate::bundle::bundle_from_artifacts_over(
             dataset,
             artifacts,
+            purrdf::provenance::DatasetProvenance::new(),
+        );
+        let graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
+        let pin = bundle.graph_digest(
+            graph,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?;
+        bundle
+            .pin_handle(
+                graph,
+                PipelineHandle::GroundingCatalog(std::sync::Arc::new(compiled.grounding_catalog)),
+                pin,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|error| {
+                crate::error::parse_diag(format!("pin admitted grounding catalog: {error}"))
+            })?;
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id(),
+            std::sync::Arc::new(bundle),
         )?))
     }
 }

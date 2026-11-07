@@ -926,6 +926,14 @@ fn validate_handle_projection(
             // every governed correspondence, composition, leg and loss witness.
             program.content_key() == projected.content_key()
         }
+        PipelineHandle::GroundingCatalog(catalog) => {
+            let projected =
+                gmeow_logic_compile::projections::correspondence::parse_correspondence(graph)
+                    .map_err(|e| error(e.to_string()))?;
+            // Property support and physical authority are authenticated by the complete
+            // native payload; the governed graph carries the final law-bearing program.
+            catalog.program().content_key() == projected.content_key()
+        }
     };
     if !agrees {
         return Err(error(format!(
@@ -978,6 +986,7 @@ fn encode_handle(handle: &PipelineHandle) -> Result<Vec<u8>, gmeow_errors::Diag>
         PipelineHandle::Reasoning(result) => bincode::serialize(result.as_ref()),
         PipelineHandle::RelationalCore(program) => bincode::serialize(program.as_ref()),
         PipelineHandle::Correspondence(program) => bincode::serialize(program.as_ref()),
+        PipelineHandle::GroundingCatalog(catalog) => bincode::serialize(catalog.as_ref()),
     };
     encoded.map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -1037,6 +1046,15 @@ fn rebuild_handle(
         "correspondence" => PipelineHandle::Correspondence(Arc::new(
             bincode::deserialize(bytes).map_err(decode_error)?,
         )),
+        "grounding-catalog" => {
+            use bincode::Options;
+            let catalog = bincode::DefaultOptions::new()
+                .with_fixint_encoding()
+                .reject_trailing_bytes()
+                .deserialize(bytes)
+                .map_err(decode_error)?;
+            PipelineHandle::GroundingCatalog(Arc::new(catalog))
+        }
         other => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
                 format!("cached handle has unknown PipelineHandle arm tag {other:?}"),
