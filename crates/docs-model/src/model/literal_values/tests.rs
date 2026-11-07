@@ -61,6 +61,15 @@ fn cq_rationale_literal_transport_refuses_inconsistent_language_direction_and_da
         error.downcast_ref::<LiteralTransportError>(),
         Some(LiteralTransportError::Components(_))
     ));
+    let typed = error
+        .downcast_ref::<LiteralTransportError>()
+        .expect("literal validation retains its typed transport refusal");
+    assert!(matches!(
+        std::error::Error::source(typed)
+            .expect("component refusal retains the native literal cause")
+            .downcast_ref::<purrdf_core::LiteralComponentError>(),
+        Some(purrdf_core::LiteralComponentError::DirectionWithoutLanguage)
+    ));
 
     let invalid_datatype = Envelope {
         values: vec![RdfLiteral {

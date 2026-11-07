@@ -125,14 +125,19 @@ fn literal<'a>(term: Option<&'a RdfTerm>, field: &str) -> gmeow_errors::Result<&
         literal.language.as_deref(),
         literal.direction,
     )
-    .map_err(|why| invalid(&format!("malformed {field}: {why}")))?;
+    .map_err(|why| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::caused_by(
+            format!("competency_questions: malformed {field}: {why}"),
+            why,
+        ))
+    })?;
     Ok(literal)
 }
 
 fn invalid(message: &str) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-        message: format!("competency_questions: {message}"),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
+        "competency_questions: {message}"
+    )))
 }
 
 #[cfg(test)]

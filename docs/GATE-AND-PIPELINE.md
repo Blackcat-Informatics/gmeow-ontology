@@ -41,17 +41,19 @@
 separate regeneration step to perform first; performing one runs the whole
 pipeline twice and queues the machine behind you.
 
-The PurRDF manifests declare the compatible major release (`purrdf = "3"`), and no
+The PurRDF manifests declare the compatible major release (`purrdf = "4"`), and no
 `purrdf*` requirement or locked package may admit a release below major 3
 (`PURRDF_MAJOR_FLOOR`).
-`Cargo.lock` selects the concrete version, registry source, and package checksum.
-The standalone fuzz workspace commits its own lockfile and must resolve every
+`Cargo.lock` selects the concrete version and source: a checksum identifies a
+registry package, while an exact commit identifies a Git dependency. The detached
+fuzz and CLIF workspaces commit their own lockfiles. `make maint-pin-purrdf`
+resolves the authored Git revision in all three. The fuzz workspace resolves every
 PurRDF package it selects to the same identity in the production lockfile.
 Production-only components need not be linked into fuzzers; a fuzz-only component
 or any version, source or checksum drift is rejected. `make fuzz-substrate-check` verifies that
 agreement read-only before `make fuzz-smoke` starts. Browser engines retain
 mandatory stamps and parity witnesses for the exact root-lockfile substrate.
-`make maint-bump-purrdf VERSION=...` updates both lockfiles within the authored
+`make maint-bump-purrdf VERSION=...` updates the root and fuzz lockfiles within the authored
 requirements, then runs `make maint-refresh-wasm-assets`: prepare all six browser
 engines and their stamps, run one full `make check` to produce and gate the current
 bundle, and run all six Node parity lanes against it. This order avoids asking a

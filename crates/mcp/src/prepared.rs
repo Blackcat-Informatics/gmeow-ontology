@@ -15,9 +15,7 @@ use gmeow_logic::verify::PreparedReasonedGates;
 use gmeow_validate::data_validate::PreparedReasonedGates;
 
 fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-        message: detail.into(),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Mcp::new(detail.into()))
 }
 
 fn decode_policy(bytes: &[u8]) -> gmeow_errors::Result<PreparedActionPolicy> {

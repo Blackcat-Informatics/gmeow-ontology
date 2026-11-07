@@ -1357,6 +1357,7 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), gmeow_erro
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-superset-gate".to_string(),
         message: message.to_string(),
     })

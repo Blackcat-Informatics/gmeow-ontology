@@ -162,6 +162,18 @@ fn value_set_literal_with_datatype_and_lang_is_rejected() {
         err.message().contains("literal datatype does not match"),
         "got: {err}"
     );
+    let refusal = err
+        .downcast_ref::<crate::error::Validation>()
+        .expect("malformed value-set literal retains its validation classification");
+    let normalization = std::error::Error::source(refusal)
+        .expect("validation refusal retains literal normalization cause");
+    assert!(
+        normalization
+            .source()
+            .expect("normalization refusal retains native component cause")
+            .downcast_ref::<purrdf_core::LiteralComponentError>()
+            .is_some()
+    );
 }
 
 #[test]

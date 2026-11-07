@@ -84,14 +84,14 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> gmeow_errors::Result<DslMerge
     for path in paths {
         let path_str = path.display().to_string();
         let bytes = std::fs::read(path).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("failed to read {path_str}: {e}"),
-            })
+            Diag::of_kind(crate::error::Io::new(format!(
+                "failed to read {path_str}: {e}"
+            )))
         })?;
         let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            Diag::of_kind(crate::error::Parse {
-                detail: format!("syntax error in {path_str}: {e}"),
-            })
+            Diag::of_kind(crate::error::Parse::new(format!(
+                "syntax error in {path_str}: {e}"
+            )))
         })?;
         // Record the first source file for each named-IRI subject, in document order
         // (the parsed per-file dataset preserves source order in its quad table).

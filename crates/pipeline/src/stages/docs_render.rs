@@ -145,6 +145,7 @@ pub(crate) fn reasoning_verdict_from_product(
 /// Attribute documentation verdict and term-panel admission failures to their reader.
 pub(crate) fn reasoning_verdict_error(message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-docs-render".to_owned(),
         message,
     })
@@ -191,12 +192,14 @@ pub(crate) fn diagnostics_digest_from_upstream(
 ) -> Result<DiagnosticsDigest, gmeow_errors::Diag> {
     let validate = upstream.get("stage-validate").ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-docs-render".to_string(),
             message: "missing stage-validate product for the diagnostics digest".to_string(),
         })
     })?;
     let compile_logic = upstream.get("stage-compile-logic").ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-docs-render".to_string(),
             message: "missing stage-compile-logic product for the diagnostics digest".to_string(),
         })
@@ -514,6 +517,7 @@ pub fn schema_fragments_from_generated(
         let path = root.join(rel);
         let bytes = std::fs::read(&path).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "sync-docs".to_string(),
                 message: format!(
                     "missing committed schema source {} for the schema-fragment digest: {e}",
@@ -523,6 +527,7 @@ pub fn schema_fragments_from_generated(
         })?;
         serde_json::from_slice(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "sync-docs".to_string(),
                 message: format!(
                     "parse committed schema source {} for the schema-fragment digest: {e}",
@@ -555,6 +560,7 @@ pub(crate) fn schema_fragments_from_upstream(
             .and_then(|p| p.artifact(rel))
             .ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "stage-docs-render".to_string(),
                     message: format!(
                         "stage-export-json-schema produced no {rel} product for the \
@@ -565,6 +571,7 @@ pub(crate) fn schema_fragments_from_upstream(
             })?;
         serde_json::from_slice(bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-docs-render".to_string(),
                 message: format!(
                     "parse the stage-export-json-schema {rel} product for the \
@@ -667,6 +674,7 @@ pub fn render_docs_graph(
         .and_then(|p| p.artifact(crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH))
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-docs-render".to_string(),
                 message: format!(
                     "stage-term-manifest produced no {} product for the per-term content \
@@ -690,6 +698,7 @@ pub fn render_docs_graph(
         DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "stage-docs-render".to_string(),
                     message: format!("docs model discovery failed: {e}"),
                 })

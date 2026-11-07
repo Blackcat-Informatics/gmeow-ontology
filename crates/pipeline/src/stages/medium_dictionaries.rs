@@ -103,6 +103,7 @@ const CONSUMES: [&str; 4] = [
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: STAGE_ID.to_string(),
         message: message.into(),
     })

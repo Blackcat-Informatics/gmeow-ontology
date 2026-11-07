@@ -255,14 +255,16 @@ pub fn compliance_report(
     evidence_mode: &str,
 ) -> gmeow_errors::Result<String> {
     let ttl = std::fs::read(manifest_path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("{}: cannot read: {e}", manifest_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "{}: cannot read: {e}",
+            manifest_path.display()
+        )))
     })?;
     let dataset = purrdf::parse_dataset(&ttl, "text/turtle", None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("{}: does not parse: {e}", manifest_path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "{}: does not parse: {e}",
+            manifest_path.display()
+        )))
     })?;
     let principles = collect_principles(&dataset);
     let enforcements = collect_enforcements(&dataset);

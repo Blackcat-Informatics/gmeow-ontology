@@ -743,11 +743,8 @@ pub fn build_deposit_xml(
     timestamp: &str,
     batch_id: &str,
 ) -> gmeow_errors::Result<String> {
-    let input: DepositInput = serde_json::from_str(json).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: e.to_string(),
-        })
-    })?;
+    let input: DepositInput = serde_json::from_str(json)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Parse::new(e.to_string())))?;
     let sd = &input.self_description;
     let config = &input.config;
 
@@ -936,11 +933,8 @@ pub fn build_deposit_xml(
 /// CITATION.cff and ontology files and passes their text in, so this function
 /// never does I/O.
 pub fn lint_deposit(json: &str) -> gmeow_errors::Result<Vec<String>> {
-    let input: LintInput = serde_json::from_str(json).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: e.to_string(),
-        })
-    })?;
+    let input: LintInput = serde_json::from_str(json)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Parse::new(e.to_string())))?;
     let sd = &input.self_description;
     let config = &input.config;
     let mut problems: Vec<String> = vec![];

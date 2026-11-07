@@ -227,5 +227,5 @@ fn require_shapes(root: &Path, rel: &str) -> gmeow_errors::Result<String> {
 }
 
 fn io_err(detail: String) -> Diag {
-    Diag::of_kind(crate::error::Io { detail })
+    Diag::of_kind(crate::error::Io::new(detail))
 }

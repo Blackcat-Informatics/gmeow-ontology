@@ -300,7 +300,16 @@ fn dataset_from_nt_loads_and_rejects_malformed() {
     let nt = "<https://example.org/a> <https://example.org/p> <https://example.org/b> .\n";
     let ds = dataset_from_nt(nt).expect("valid N-Triples must load");
     assert_eq!(ds.quad_count(), 1);
-    assert!(dataset_from_nt("this is not n-triples @@@").is_err());
+    let error =
+        dataset_from_nt("this is not n-triples @@@").expect_err("malformed N-Triples must fail");
+    let kind = error
+        .downcast_ref::<crate::error::Parse>()
+        .expect("N-Triples retains the validation parse classification");
+    let cause = std::error::Error::source(kind)
+        .and_then(|cause| cause.downcast_ref::<purrdf::RdfDiagnostic>())
+        .expect("original native parser diagnostic remains accessible");
+    assert!(!cause.message.is_empty());
+    assert!(error.message().contains("N-Triples parse error:"));
 }
 
 #[test]

@@ -15,6 +15,7 @@ pub(crate) fn record(
 ) -> gmeow_errors::Result<()> {
     let fail = |error: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-conformance".to_owned(),
             message: error,
         })

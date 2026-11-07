@@ -35,6 +35,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use gmeow_errors::PreservedDiagnostic;
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{
@@ -270,11 +271,20 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A codec-level error during parsing or serialization.
     pub struct CodecError { message: String }
     code = "pipeline.transcode.codec";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "codec error: {}", message;
+}
+
+/// Preserve the codec presentation while retaining the selected GTS refusal intact.
+fn gts_codec_error(cause: gmeow_errors::Diag) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(CodecError::caused_by(
+        cause.to_string(),
+        PreservedDiagnostic(cause),
+    ))
 }
 
 /// Parse `input` bytes in the `from` codec into a frozen [`RdfDataset`] IR.
@@ -308,9 +318,7 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
     match from {
         Codec::Gts => {
             let bundle = import_gts_events(input).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: e.to_string(),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(e.to_string(), e))
             })?;
             Ok(bundle.dataset)
         }
@@ -318,21 +326,22 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
         // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), which now
         // returns the frozen IR directly — the RDF 1.2 statement layer is folded at
         // `dataset_from_quads` freeze time inside the parser (no oxigraph quad bridge).
-        Codec::JsonLd => jsonld::parse_jsonld(input, None)
-            .map_err(|e| e.to_string())
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("jsonld parse: {e}"),
-                })
-            }),
+        Codec::JsonLd => jsonld::parse_jsonld(input, None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                format!("jsonld parse: {e}"),
+                e,
+            ))
+        }),
         _ => {
             let fmt = codec_to_native_format(from).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("no native format mapping for `{}`", from.name()),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::new(format!(
+                    "no native format mapping for `{}`",
+                    from.name()
+                )))
             })?;
-            dataset_from_bytes(input, fmt)
-                .map_err(|m| gmeow_errors::Diag::of_kind(crate::CodecError { message: m }))
+            dataset_from_bytes(input, fmt).map_err(|m| {
+                gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(m.to_string(), m))
+            })
         }
     }
 }
@@ -372,11 +381,7 @@ pub fn transcode(
         // mandated door. `purrdf::gts_write::to_gts` cannot: it authors its frames
         // through `Writer::deterministic`, which passes no transform chain at all,
         // so `gmeow convert --to gts` used to ship identity-framed bytes.
-        let emission = gmeow_gts_profile::view_to_gmeow_gts(&dataset).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::CodecError {
-                message: e.to_string(),
-            })
-        })?;
+        let emission = gmeow_gts_profile::view_to_gmeow_gts(&dataset).map_err(gts_codec_error)?;
         let realized = realize_losses(ledger.entries(), named_graph_count, 0, 0);
         return Ok(TranscodeOutput {
             bytes: emission.bytes,
@@ -393,21 +398,21 @@ pub fn transcode(
     // through the native `yaml_ld` serializer (no gts round-trip — GTS is exit-only).
     if matches!(to, Codec::JsonLdStar | Codec::YamlLdStar) {
         let text = match to {
-            Codec::JsonLdStar => jsonld::serialize_dataset_to_jsonld(&dataset)
-                .map_err(|e| e.to_string())
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::CodecError {
-                        message: format!("jsonld-star serialize: {e}"),
-                    })
-                })?,
+            Codec::JsonLdStar => jsonld::serialize_dataset_to_jsonld(&dataset).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                    format!("jsonld-star serialize: {e}"),
+                    e,
+                ))
+            })?,
             Codec::YamlLdStar => {
-                jsonld::serialize_dataset_to_yamlld(&dataset, Some(GMEOW_BUNDLED_SCHEMA))
-                    .map_err(|e| e.to_string())
-                    .map_err(|e| {
-                        gmeow_errors::Diag::of_kind(crate::CodecError {
-                            message: format!("yaml-ld-star serialize: {e}"),
-                        })
-                    })?
+                jsonld::serialize_dataset_to_yamlld(&dataset, Some(GMEOW_BUNDLED_SCHEMA)).map_err(
+                    |e| {
+                        gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                            format!("yaml-ld-star serialize: {e}"),
+                            e,
+                        ))
+                    },
+                )?
             }
             _ => unreachable!(),
         };
@@ -422,7 +427,7 @@ pub fn transcode(
 
     // JSON-LD target: no `NativeRdfFormat` variant. Serialize the star-FREE base quads
     // through the native `yaml_ld` serializer; the dropped statement rows are declared
-    // loss (rdf12-star-jsonld-rejected), never silent (P7). The base-only N-Quads are
+    // loss (`rdf12-star-jsonld-rejected`), never silent (P7). The base-only N-Quads are
     // re-parsed into a star-free carrier dataset (no gts round-trip).
     if to == Codec::JsonLd {
         // `StatementLayer::Project` is what the retired `serialize_dataset_base_only`
@@ -439,23 +444,24 @@ pub fn transcode(
             },
         )
         .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::CodecError {
-                message: format!("jsonld base nquads serialize: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                format!("jsonld base nquads serialize: {e}"),
+                e,
+            ))
         })?
         .bytes;
         let base = dataset_from_bytes(&nq, NativeRdfFormat::NQuads).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::CodecError {
-                message: format!("jsonld base nquads->dataset: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                format!("jsonld base nquads->dataset: {e}"),
+                e,
+            ))
         })?;
-        let text = jsonld::serialize_dataset_to_jsonld(&base)
-            .map_err(|e| e.to_string())
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("jsonld serialize: {e}"),
-                })
-            })?;
+        let text = jsonld::serialize_dataset_to_jsonld(&base).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                format!("jsonld serialize: {e}"),
+                e,
+            ))
+        })?;
         let star_dropped = (dataset.reifiers().count() + dataset.annotations().count()) as u64;
         let realized = realize_losses(ledger.entries(), named_graph_count, star_dropped, 0);
         return Ok(TranscodeOutput {
@@ -467,15 +473,13 @@ pub fn transcode(
 
     // Syntax-to-syntax path via the native codecs.
     let fmt = codec_to_native_format(to).ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::CodecError {
-            message: format!("no native format mapping for `{}`", to.name()),
-        })
+        gmeow_errors::Diag::of_kind(crate::CodecError::new(format!(
+            "no native format mapping for `{}`",
+            to.name()
+        )))
     })?;
-    let outcome = serialize_dataset_to_format(&dataset, fmt, base_iri).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::CodecError {
-            message: e.to_string(),
-        })
-    })?;
+    let outcome = serialize_dataset_to_format(&dataset, fmt, base_iri)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(e.to_string(), e)))?;
 
     let star_dropped = outcome.statement_rows_dropped as u64;
     let realized = realize_losses(ledger.entries(), named_graph_count, star_dropped, 0);
@@ -500,14 +504,16 @@ fn transcode_to_projection(
     // Serialize the IR to Turtle via the native codecs.
     let turtle_outcome = serialize_dataset_to_format(dataset, NativeRdfFormat::Turtle, None)
         .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::CodecError {
-                message: format!("projection pre-step turtle serialize: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+                format!("projection pre-step turtle serialize: {e}"),
+                e,
+            ))
         })?;
     let turtle_str = String::from_utf8(turtle_outcome.bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::CodecError {
-            message: format!("projection pre-step turtle utf8: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::CodecError::caused_by(
+            format!("projection pre-step turtle utf8: {e}"),
+            e,
+        ))
     })?;
 
     // Parse with the logic front-end.
@@ -522,18 +528,18 @@ fn transcode_to_projection(
     let (content, actual_drop_count) = match to {
         Codec::OwlDl => {
             let result = project_owl_dl(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("owl-dl projection: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::new(format!(
+                    "owl-dl projection: {e}"
+                )))
             })?;
             let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
         Codec::OwlEl => {
             let result = project_owl_el(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("owl-el projection: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::new(format!(
+                    "owl-el projection: {e}"
+                )))
             })?;
             let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
@@ -550,9 +556,7 @@ fn transcode_to_projection(
         }
         Codec::Gufo => {
             let result = project_gufo(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("gufo projection: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::new(format!("gufo projection: {e}")))
             })?;
             let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
@@ -560,9 +564,9 @@ fn transcode_to_projection(
         Codec::CanonicalRdf12 => {
             // Exact: interns nothing, so its realized-loss count is 0 by construction.
             let result = project_canonical_rdf12(&program).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("canonical-rdf12 projection: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::CodecError::new(format!(
+                    "canonical-rdf12 projection: {e}"
+                )))
             })?;
             (result.content, 0)
         }

@@ -66,6 +66,7 @@ pub struct CatalogFamily {
 /// Build the registry-load hard failure.
 fn registry_err(message: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-mappings".to_string(),
         message: format!("catalog-family registry ({CATALOG_FAMILIES_PATH}): {message}"),
     })

@@ -392,26 +392,26 @@ fn identical_clauses_with_distinct_sorts_each_lower_under_their_own_sort() {
     // bug), a single clause scope would have carried BOTH sorts and lowering would apply an
     // ambiguous sort — here each clause's X gets exactly its own.
     assert_eq!(
-        program.meta_sorts.len(),
+        program.meta_sorts().len(),
         2,
         "each identical clause's X is a distinct sorted metavariable: {:?}",
-        program.meta_sorts
+        program.meta_sorts()
     );
     // Hash-consing: re-interning a sort IRI returns the SAME NodeId lowering used, so the
     // two authored sorts must BOTH appear among the metavariable sort tags.
     let nat = leaf(&mut dag, &format!("{EX}Nat")).unwrap();
     let real = leaf(&mut dag, &format!("{EX}Real")).unwrap();
     let sort_nodes: std::collections::HashSet<NodeId> =
-        program.meta_sorts.values().copied().collect();
+        program.meta_sorts().values().copied().collect();
     assert!(
         sort_nodes.contains(&nat),
         "one identical clause's X lowers under ex:Nat: {:?}",
-        program.meta_sorts
+        program.meta_sorts()
     );
     assert!(
         sort_nodes.contains(&real),
         "the other identical clause's X lowers under ex:Real: {:?}",
-        program.meta_sorts
+        program.meta_sorts()
     );
 }
 
@@ -728,6 +728,55 @@ fn authored_goal_observation() -> GoalDirectedObservation {
     )
     .expect("authenticated goal-directed observation");
     purrdf_lex::json::record::from_slice(&bytes).expect("typed goal-directed observation")
+}
+
+#[test]
+fn authored_ground_probes_outside_query_scope_are_evaluated() {
+    const SOURCE: &str = r#"
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix ex: <https://example.org/goal-directed-test/> .
+        ex:probes a logic:ReasoningProgram ;
+            logic:evaluationMode logic:BackwardEvaluation ;
+            logic:programQuery [ a logic:Formula ; logic:relation ex:root ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ] ;
+            logic:clause [ a logic:Formula ; logic:relation ex:root ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ] ,
+                [ a logic:Formula ; logic:relation ex:unrelated ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ] ;
+            logic:verdictProbe [ a logic:Formula ; logic:relation ex:unrelated ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:b ] ] ,
+                [ a logic:Formula ; logic:relation ex:absent ;
+                logic:argument [ logic:termIndex 0 ; logic:termIri ex:c ] ] .
+    "#;
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_str(SOURCE, None).expect("parse probe program");
+    assert!(
+        diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != gmeow_logic_compile::frontend::Severity::Error),
+        "unexpected diagnostics: {diagnostics:?}"
+    );
+    let evaluations = evaluate_reasoning_programs(&program.reasoning_programs, &[])
+        .expect("evaluate authored ground probes");
+    let evaluation = evaluations
+        .iter()
+        .find(|evaluation| evaluation.iri == "https://example.org/goal-directed-test/probes")
+        .expect("the authored program is evaluated");
+    assert_eq!(evaluation.verdicts.len(), 2);
+    assert!(
+        evaluation.verdicts.iter().any(|verdict| {
+            verdict.atom == "https://example.org/goal-directed-test/unrelated(https://example.org/goal-directed-test/b)"
+                && verdict.verdict == "true"
+        }),
+        "an asserted probe outside root demand must be evaluated as true"
+    );
+    assert!(
+        evaluation.verdicts.iter().any(|verdict| {
+            verdict.atom == "https://example.org/goal-directed-test/absent(https://example.org/goal-directed-test/c)"
+                && verdict.verdict == "false"
+        }),
+        "an absent probe is false only after its own ground demand is evaluated"
+    );
 }
 
 #[test]

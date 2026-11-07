@@ -532,6 +532,7 @@ fn grammar_stem(logical_path: &str) -> String {
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-mappings".to_string(),
         message: message.into(),
     })

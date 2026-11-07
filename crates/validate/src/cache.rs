@@ -54,9 +54,9 @@ impl std::fmt::Debug for ValidationCache {
 }
 
 fn cache_error(error: impl std::fmt::Display) -> Diag {
-    Diag::of_kind(crate::error::Io {
-        detail: format!("validation action cache: {error}"),
-    })
+    Diag::of_kind(crate::error::Io::new(format!(
+        "validation action cache: {error}"
+    )))
 }
 
 impl ValidationCache {

@@ -1007,6 +1007,7 @@ pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow_erro
         .map(String::into_bytes)
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-export-evals".to_string(),
                 message: format!("canonicalize scores.ttl: {e}"),
             })

@@ -820,9 +820,9 @@ fn fetch_entities(
         })
     })?;
     let payload: Value = serde_json::from_str(&body).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("Wikidata JSON parse failed: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "Wikidata JSON parse failed: {e}"
+        )))
     })?;
     wikidata_entities(&payload)?;
     save_cached(project_root, &key, &payload)?;
@@ -879,14 +879,16 @@ fn load_cached(project_root: &Path, key: &str) -> gmeow_errors::Result<Option<Va
         return Ok(None);
     }
     let metadata = fs::metadata(&path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to read cache metadata {}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to read cache metadata {}: {e}",
+            path.display()
+        )))
     })?;
     let modified = metadata.modified().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to read cache mtime {}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to read cache mtime {}: {e}",
+            path.display()
+        )))
     })?;
     if SystemTime::now()
         .duration_since(modified)
@@ -896,9 +898,10 @@ fn load_cached(project_root: &Path, key: &str) -> gmeow_errors::Result<Option<Va
         return Ok(None);
     }
     let text = fs::read_to_string(&path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to read cache {}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to read cache {}: {e}",
+            path.display()
+        )))
     })?;
     match serde_json::from_str(&text) {
         Ok(value) => Ok(Some(value)),
@@ -910,9 +913,10 @@ fn save_cached(project_root: &Path, key: &str, payload: &Value) -> gmeow_errors:
     let path = cache_path(project_root, key);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!("failed to create cache dir {}: {e}", parent.display()),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                "failed to create cache dir {}: {e}",
+                parent.display()
+            )))
         })?;
     }
     let text = serde_json::to_string(payload).map_err(|e| {
@@ -921,32 +925,32 @@ fn save_cached(project_root: &Path, key: &str, payload: &Value) -> gmeow_errors:
         })
     })?;
     let mut file = fs::File::create(&path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to write cache {}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to write cache {}: {e}",
+            path.display()
+        )))
     })?;
     file.write_all(text.as_bytes()).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to write cache {}: {e}", path.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to write cache {}: {e}",
+            path.display()
+        )))
     })
 }
 
 pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> gmeow_errors::Result<Vec<MappingRow>> {
     let mut paths = Vec::new();
     for entry in fs::read_dir(mappings_dir).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!(
-                "failed to read mappings dir {}: {e}",
-                mappings_dir.display()
-            ),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to read mappings dir {}: {e}",
+            mappings_dir.display()
+        )))
     })? {
         let path = entry
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Io {
-                    detail: format!("failed to read mappings dir entry: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                    "failed to read mappings dir entry: {e}"
+                )))
             })?
             .path();
         if path
@@ -962,14 +966,17 @@ pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> gmeow_errors::Result<Vec
     let mut rows = Vec::new();
     for path in paths {
         let text = fs::read_to_string(&path).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!("failed to read {}: {e}", path.display()),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                "failed to read {}: {e}",
+                path.display()
+            )))
         })?;
         let set = purrdf::sssom::parse_tsv(&text).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("failed to parse {}: {}", path.display(), e.message),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                "failed to parse {}: {}",
+                path.display(),
+                e.message
+            )))
         })?;
         let source_stem = path
             .file_stem()
@@ -1104,30 +1111,32 @@ fn slice_module_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let slices = root.join("slices");
     let mut paths = Vec::new();
     for group in fs::read_dir(&slices).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("failed to read slices dir {}: {e}", slices.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "failed to read slices dir {}: {e}",
+            slices.display()
+        )))
     })? {
         let group_path = group
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Io {
-                    detail: format!("failed to read slices group: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                    "failed to read slices group: {e}"
+                )))
             })?
             .path();
         if !group_path.is_dir() {
             continue;
         }
         for slice in fs::read_dir(&group_path).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Io {
-                detail: format!("failed to read slice group {}: {e}", group_path.display()),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                "failed to read slice group {}: {e}",
+                group_path.display()
+            )))
         })? {
             let module = slice
                 .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Io {
-                        detail: format!("failed to read slice dir: {e}"),
-                    })
+                    gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+                        "failed to read slice dir: {e}"
+                    )))
                 })?
                 .path()
                 .join("module.ttl");
@@ -1138,9 +1147,10 @@ fn slice_module_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     }
     paths.sort();
     if paths.is_empty() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Io {
-            detail: format!("no slice module files found in {}", slices.display()),
-        }));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Io::new(format!(
+            "no slice module files found in {}",
+            slices.display()
+        ))));
     }
     Ok(paths)
 }

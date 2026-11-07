@@ -36,7 +36,12 @@ impl<const UNIT_INTERVAL: bool> NumericLiteral<UNIT_INTERVAL> {
     /// Refuses malformed, nonnumeric, nonfinite or out-of-range values, including
     /// values outside the selected native datatype's representable precision.
     pub fn new(mut literal: RdfLiteral) -> gmeow_errors::Result<Self> {
-        super::literal_serde::normalize(&mut literal).map_err(error)?;
+        super::literal_serde::normalize(&mut literal).map_err(|cause| {
+            gmeow_errors::Diag::of_kind(crate::error::Ir::caused_by(
+                format!("quantitative coordinate: {cause}"),
+                cause,
+            ))
+        })?;
         let value = purrdf::xsd::parse_by_iri(&literal.lexical_form, literal.datatype_iri())
             .map_err(|detail| error(detail.to_string()))?
             .ok_or_else(|| error("requires a supported RDF numeric datatype"))?;
@@ -207,7 +212,8 @@ impl<'de, const UNIT_INTERVAL: bool> Deserialize<'de> for NumericLiteral<UNIT_IN
 }
 
 fn error(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Ir {
-        detail: format!("quantitative coordinate: {}", detail.into()),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Ir::new(format!(
+        "quantitative coordinate: {}",
+        detail.into()
+    )))
 }

@@ -110,6 +110,7 @@ fn reason_product_from_artifacts(
         )
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-reason".to_string(),
                 message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
             })
@@ -184,6 +185,7 @@ pub fn reason_over_dataset(
 
 fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-reason".to_owned(),
         message: message.into(),
     })
@@ -281,12 +283,14 @@ fn reason_prepared_input(
     let closure =
         build_inferred_closure_into(&result, &alpha_edges, &mut builder).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-reason".to_string(),
                 message: format!("closure serialization failed: {e}"),
             })
         })?;
     let explanations = build_explanations_ttl(&result).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-reason".to_string(),
             message: format!("explanations serialization failed: {e}"),
         })
@@ -335,6 +339,7 @@ pub(crate) fn canonicalize_edb(
     .map(Arc::new)
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: stage_id.to_string(),
             message: format!("RDFC-1.0 canonicalize EDB: {e}"),
         })
@@ -365,6 +370,7 @@ fn resolve_witness_projections(
 ) -> Result<Vec<WitnessProjection>, gmeow_errors::Diag> {
     let fail = |message: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-reason".to_owned(),
             message,
         })
@@ -583,6 +589,7 @@ fn reason_dataset(
         }
         scope = scope.checked_add(1).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-reason".to_owned(),
                 message: "no blank scope remains for the reasoning summary".to_owned(),
             })
@@ -877,6 +884,7 @@ impl Stage for ReasonStage {
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
                     stage: "stage-reason".to_string(),
                     message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
                 })
@@ -945,6 +953,7 @@ fn require_demonstrator_classes(
         let published = certificate.to_finding().code;
         if published != code {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-reason".to_string(),
                 message: format!(
                     "termination demonstrator {world} must certify as {code}, got {published}"

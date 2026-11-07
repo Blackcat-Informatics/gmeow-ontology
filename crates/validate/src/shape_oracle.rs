@@ -108,7 +108,7 @@ pub const RAW_SPARQL_TARGET_RESIDUE: &str =
 /// malformation the reader surfaces routes through this so the oracle reports on the shared
 /// diagnostic substrate rather than a bare string.
 fn parse_err(detail: String) -> Diag {
-    Diag::of_kind(crate::error::Parse { detail })
+    Diag::of_kind(crate::error::Parse::new(detail))
 }
 
 /// A presentation / annotation predicate the reader ABSORBS or SKIPS — never routes to the
@@ -597,7 +597,12 @@ fn parse_property_shape(
                         literal.language.as_deref(),
                         literal.direction,
                     )
-                    .map_err(|detail| parse_err(format!("{ctx}: sh:message: {detail}")))?;
+                    .map_err(|detail| {
+                        Diag::of_kind(crate::error::Parse::caused_by(
+                            format!("{ctx}: sh:message: {detail}"),
+                            detail,
+                        ))
+                    })?;
                     if literal.lexical_form.trim().is_empty() {
                         return Err(parse_err(format!(
                             "{ctx}: sh:message must have nonblank lexical text"

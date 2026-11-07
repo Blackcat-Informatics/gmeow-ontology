@@ -311,7 +311,7 @@ fn finding_identity_key(finding: &Finding) -> Option<String> {
 /// `generated/shapes/`) or a member cannot be read.
 fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
     let files = purrdf::shapes::shape_union::shape_files(root)
-        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))?;
+        .map_err(|cause| Diag::of_kind(crate::error::Parse::caused_by(cause.to_string(), cause)))?;
     let mut out: Vec<u8> = Vec::new();
     for file in &files {
         let rel = file
@@ -320,9 +320,10 @@ fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
             .to_string_lossy()
             .replace('\\', "/");
         let bytes = std::fs::read(file).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("reading shape file {}: {e}", file.display()),
-            })
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("reading shape file {}: {e}", file.display()),
+                e,
+            ))
         })?;
         out.extend_from_slice(rel.as_bytes());
         out.push(0x1f);
@@ -919,9 +920,9 @@ impl ValidationRun {
                 return Ok(None);
             };
             if selected.paths.is_empty() || selected.shapes.trim().is_empty() {
-                return Err(Diag::of_kind(crate::error::Io {
-                    detail: "selected manifest SHACL requires nonempty paths and shapes".to_owned(),
-                }));
+                return Err(Diag::of_kind(crate::error::Io::new(
+                    "selected manifest SHACL requires nonempty paths and shapes".to_owned(),
+                )));
             }
             let start = Instant::now();
             let (result, metadata) = check_dsl(
@@ -1841,16 +1842,18 @@ fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<DiagLedger> 
     let mut result = DiagLedger::new();
     for manifest in find_slice_manifests(slices_dir)? {
         let slice_dir = manifest.parent().ok_or_else(|| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("manifest has no parent: {}", manifest.display()),
-            })
+            Diag::of_kind(crate::error::Io::new(format!(
+                "manifest has no parent: {}",
+                manifest.display()
+            )))
         })?;
         let slice_name = slice_dir
             .file_name()
             .ok_or_else(|| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("slice dir has no name: {}", slice_dir.display()),
-                })
+                Diag::of_kind(crate::error::Io::new(format!(
+                    "slice dir has no name: {}",
+                    slice_dir.display()
+                )))
             })?
             .to_string_lossy();
         let examples_dir = slice_dir.join("examples");
@@ -2213,14 +2216,16 @@ pub fn collect_ttl_paths(dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
 
 fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     for entry in std::fs::read_dir(dir).map_err(|e| {
-        Diag::of_kind(crate::error::Io {
-            detail: format!("read_dir {}: {e}", dir.display()),
-        })
+        Diag::of_kind(crate::error::Io::caused_by(
+            format!("read_dir {}: {e}", dir.display()),
+            e,
+        ))
     })? {
         let entry = entry.map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("dir entry in {}: {e}", dir.display()),
-            })
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("dir entry in {}: {e}", dir.display()),
+                e,
+            ))
         })?;
         let path = entry.path();
         if path.is_dir() && !path.is_symlink() {
@@ -2238,23 +2243,26 @@ fn collect_slice_test_files(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBu
     let mut paths: Vec<PathBuf> = Vec::new();
     for manifest in find_slice_manifests(slices_dir)? {
         let slice_dir = manifest.parent().ok_or_else(|| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("manifest has no parent: {}", manifest.display()),
-            })
+            Diag::of_kind(crate::error::Io::new(format!(
+                "manifest has no parent: {}",
+                manifest.display()
+            )))
         })?;
         let tests_dir = slice_dir.join("tests");
         if !tests_dir.is_dir() {
             continue;
         }
         for entry in std::fs::read_dir(&tests_dir).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("read_dir {}: {e}", tests_dir.display()),
-            })
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("read_dir {}: {e}", tests_dir.display()),
+                e,
+            ))
         })? {
             let entry = entry.map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("dir entry in {}: {e}", tests_dir.display()),
-                })
+                Diag::of_kind(crate::error::Io::caused_by(
+                    format!("dir entry in {}: {e}", tests_dir.display()),
+                    e,
+                ))
             })?;
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("ttl") {
@@ -2309,15 +2317,17 @@ fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, Pat
             continue;
         }
         for entry in std::fs::read_dir(&examples_dir).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("read_dir {}: {e}", examples_dir.display()),
-            })
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("read_dir {}: {e}", examples_dir.display()),
+                e,
+            ))
         })? {
             let entry = entry
                 .map_err(|e| {
-                    Diag::of_kind(crate::error::Io {
-                        detail: format!("dir entry in {}: {e}", examples_dir.display()),
-                    })
+                    Diag::of_kind(crate::error::Io::caused_by(
+                        format!("dir entry in {}: {e}", examples_dir.display()),
+                        e,
+                    ))
                 })?
                 .path();
             if !entry.is_file() || entry.extension().and_then(|s| s.to_str()) != Some("ttl") {
@@ -2326,13 +2336,14 @@ fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, Pat
             let name = entry
                 .strip_prefix(&root)
                 .map_err(|e| {
-                    Diag::of_kind(crate::error::Io {
-                        detail: format!(
+                    Diag::of_kind(crate::error::Io::caused_by(
+                        format!(
                             "strip prefix {} from {}: {e}",
                             root.display(),
                             entry.display()
                         ),
-                    })
+                        e,
+                    ))
                 })?
                 .components()
                 .map(|c| c.as_os_str().to_string_lossy().into_owned())

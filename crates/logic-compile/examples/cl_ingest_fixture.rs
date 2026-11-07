@@ -10,9 +10,9 @@ fn main() -> gmeow_errors::Result<()> {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
     let [source, output, source_iri] = arguments.as_slice() else {
         return Err(gmeow_errors::Diag::of_kind(
-            gmeow_logic_compile::error::Frontend {
-                detail: "expected SOURCE_TTL OUTPUT_CLIF SOURCE_IRI".into(),
-            },
+            gmeow_logic_compile::error::Frontend::new(
+                "expected SOURCE_TTL OUTPUT_CLIF SOURCE_IRI".into(),
+            ),
         ));
     };
     let (program, diagnostics) =
@@ -30,9 +30,7 @@ fn main() -> gmeow_errors::Result<()> {
         .any(|diagnostic| diagnostic.severity == Severity::Error)
     {
         return Err(gmeow_errors::Diag::of_kind(
-            gmeow_logic_compile::error::Frontend {
-                detail: "fixture source has compiler errors".into(),
-            },
+            gmeow_logic_compile::error::Frontend::new("fixture source has compiler errors".into()),
         ));
     }
     let clif = gmeow_logic_compile::clif::writer::project_clif(&program)?;

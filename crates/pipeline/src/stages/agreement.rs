@@ -38,6 +38,7 @@ const DIVERGENCE_LANE: &str = "divergence";
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-export-agreement".to_string(),
         message: message.to_string(),
     })

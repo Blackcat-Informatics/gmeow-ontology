@@ -63,6 +63,7 @@ define_diag_kind! {
 pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[
     Profile::CODE,
     Archive::CODE,
+    NativeArchive::CODE,
     SnapshotAdmission::CODE,
     AppendAdmission::CODE,
     AppendFoldAdmission::CODE,
@@ -77,11 +78,23 @@ define_diag_kind! {
     failure_class = "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable";
 }
 
+define_diag_kind! {
+    /// Native archive decoding or authorship refused an input. Preserve the
+    /// original typed cause, including failures after a member was selected.
+    pub struct NativeArchive { cause: std::sync::Arc<purrdf::ustar::UstarError> }
+    code = "gts-profile.archive-native";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS archive codec: {}", cause;
+    failure_class = "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable";
+    source = failure => Some(failure.cause.as_ref());
+}
+
 /// Eagerly intern every GTS-profile diagnostic code (idempotent).
 pub fn register_all() -> Vec<Code> {
     vec![
         Profile::register(),
         Archive::register(),
+        NativeArchive::register(),
         SnapshotAdmission::register(),
         AppendAdmission::register(),
         AppendFoldAdmission::register(),

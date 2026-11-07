@@ -31,12 +31,10 @@ pub fn owned_sources(
             }
             let path = record.slice_dir.join(&artifact.logical_path);
             let relative = path.strip_prefix(root).map_err(|why| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    detail: format!(
-                        "grounding catalog artifact {} is outside repository: {why}",
-                        path.display()
-                    ),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                    "grounding catalog artifact {} is outside repository: {why}",
+                    path.display()
+                )))
             })?;
             sources.push(OwnedGroundingSource::new(
                 owner,
@@ -57,9 +55,9 @@ pub fn discover(root: &Path) -> gmeow_errors::Result<Vec<OwnedGroundingSource>> 
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(|why| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("required grounding slice catalog: {why}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "required grounding slice catalog: {why}"
+        )))
     })?;
     owned_sources(root, &catalog)
 }
@@ -75,9 +73,9 @@ pub fn load(
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(|why| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("required grounding slice catalog: {why}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+            "required grounding slice catalog: {why}"
+        )))
     })?;
     from_catalog(root, &catalog)
 }

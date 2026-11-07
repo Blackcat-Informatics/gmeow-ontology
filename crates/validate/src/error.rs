@@ -16,11 +16,12 @@
 //! Every kind carries a single `detail` string that preserves the authored
 //! condition text verbatim (including any `<path>:` / `example <name>:` prefix
 //! the producer keys on); discrimination is by code + grade, and the message is
-//! the preserved detail.
+//! the preserved detail. IO and parse kinds can additionally retain a native cause.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 define_diag_kind! {
+    native_cause;
     /// A filesystem read/write/read-dir/create-dir/metadata/rename failed while
     /// resolving a fixture, a slice source, a manifest, a cache entry, or an
     /// armored key. The message carries the offending path alongside the
@@ -32,6 +33,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
     /// A source document failed to parse through the native codecs: a Turtle /
     /// N-Triples / JSON-LD data graph, a `Cargo.toml` manifest, a JSON Schema or
     /// instance, or a YAML instance. The underlying parser message (with any

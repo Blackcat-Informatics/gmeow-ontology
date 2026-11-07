@@ -114,6 +114,7 @@ pub fn build_corpus_from_sources(
         // a silent lossy repair that would corrupt the surface text it carries.
         let text = std::str::from_utf8(&source.content).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-mappings".to_string(),
                 message: format!(
                     "lang-translation: translation catalog '{}' is not valid UTF-8: {e}",
@@ -235,6 +236,7 @@ pub(crate) fn script_for_lang(lang: &str) -> Result<&'static str, gmeow_errors::
         "en" | "fr" => Ok("latinScript"),
         "zh" => Ok("hanScript"),
         _ => Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-mappings".to_string(),
             message: format!(
                 "lang-translation: no lang:Script mapping for BCP-47 language '{lang}'; add \

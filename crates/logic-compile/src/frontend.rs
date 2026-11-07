@@ -1819,11 +1819,10 @@ fn extract_contracts(
 /// Horn record cannot silently reinterpret them as an IRI or plain literal.
 fn rule_field_text(term: &Node) -> gmeow_errors::Result<String> {
     if matches!(term, Node::Triple(_)) {
-        return Err(Diag::of_kind(crate::error::Frontend {
-            detail:
-                "triple-valued rule field is not representable by the selected Horn atom record"
-                    .to_owned(),
-        }));
+        return Err(Diag::of_kind(crate::error::Frontend::new(
+            "triple-valued rule field is not representable by the selected Horn atom record"
+                .to_owned(),
+        )));
     }
     Ok(term_str(term))
 }
@@ -1836,12 +1835,10 @@ fn required_atom_field(
 ) -> gmeow_errors::Result<Node> {
     let mut fields = objects(store, node, &nn(predicate));
     if fields.len() != 1 {
-        return Err(Diag::of_kind(crate::error::Frontend {
-            detail: format!(
-                "reified atom requires exactly one {predicate}; found {}",
-                fields.len()
-            ),
-        }));
+        return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+            "reified atom requires exactly one {predicate}; found {}",
+            fields.len()
+        ))));
     }
     Ok(fields.remove(0))
 }
@@ -1871,9 +1868,9 @@ fn rule_resource_term(
     match formula_reader::read_atomic_carrier(store, owner, resource)? {
         Some(crate::ir::AtomicTerm::Var(value) | crate::ir::AtomicTerm::Iri(value)) => Ok(value),
         Some(crate::ir::AtomicTerm::Blank(value)) => Ok(format!("_:{value}")),
-        Some(crate::ir::AtomicTerm::Literal(_)) => Err(Diag::of_kind(crate::error::Frontend {
-            detail: "a rule subject or predicate cannot be a literal".into(),
-        })),
+        Some(crate::ir::AtomicTerm::Literal(_)) => Err(Diag::of_kind(crate::error::Frontend::new(
+            "a rule subject or predicate cannot be a literal".into(),
+        ))),
         None => Ok(subject_str(resource)),
     }
 }
@@ -1888,14 +1885,14 @@ fn read_reified_axiom(
 ) -> gmeow_errors::Result<LogicAxiom> {
     let target = required_atom_field(store, node, RDF_REIFIES)?;
     let Node::Triple(triple) = target else {
-        return Err(Diag::of_kind(crate::error::Frontend {
-            detail: "rule atom rdf:reifies must target a triple term".into(),
-        }));
+        return Err(Diag::of_kind(crate::error::Frontend::new(
+            "rule atom rdf:reifies must target a triple term".into(),
+        )));
     };
     let scope = scope_from_node(store, node, diagnostics).ok_or_else(|| {
-        Diag::of_kind(crate::error::Frontend {
-            detail: "invalid rule atom scope".into(),
-        })
+        Diag::of_kind(crate::error::Frontend::new(
+            "invalid rule atom scope".into(),
+        ))
     })?;
     native_quoted_axiom(store, node, &triple, negated, scope)
 }
@@ -2135,10 +2132,8 @@ fn closure_keys_with_value(
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &target) {
         let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
-            Diag::of_kind(crate::error::Frontend {
-                detail: diagnostic.message,
-            })
-            .with_focus(subject_str(&entry))
+            Diag::of_kind(crate::error::Frontend::new(diagnostic.message))
+                .with_focus(subject_str(&entry))
         })?;
         if value(store, &entry, &class_pred).is_some() {
             continue;
@@ -2179,10 +2174,8 @@ fn closure_validation_closed_requirements(
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
         let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
-            Diag::of_kind(crate::error::Frontend {
-                detail: diagnostic.message,
-            })
-            .with_focus(subject_str(&entry))
+            Diag::of_kind(crate::error::Frontend::new(diagnostic.message))
+                .with_focus(subject_str(&entry))
         })?;
         if let Some(Node::Iri(class)) = value(store, &entry, &class_pred) {
             set.insert((class, key));
@@ -2347,13 +2340,11 @@ fn merge_same_path_properties(
                 if let Some(previous) = severity
                     && previous != explicit
                 {
-                    return Err(Diag::of_kind(crate::error::Frontend {
-                        detail: format!(
-                            "conflicting explicit severities on property {path}: {} and {}",
-                            previous.as_str(),
-                            explicit.as_str(),
-                        ),
-                    }));
+                    return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                        "conflicting explicit severities on property {path}: {} and {}",
+                        previous.as_str(),
+                        explicit.as_str(),
+                    ))));
                 }
                 severity = Some(explicit);
             }
@@ -2410,14 +2401,12 @@ fn numeric_range_bound(
     let mut selected = None;
     for bound in objects(store, owner, predicate) {
         let error = |reason: &str| {
-            Diag::of_kind(crate::error::Frontend {
-                detail: format!(
-                    "range bound on {} at <{}>: supplied {bound:?}; requires a finite RDF numeric \
+            Diag::of_kind(crate::error::Frontend::new(format!(
+                "range bound on {} at <{}>: supplied {bound:?}; requires a finite RDF numeric \
                      literal supported by the numeric range projection: {reason}",
-                    subject_str(owner),
-                    predicate.as_str(),
-                ),
-            })
+                subject_str(owner),
+                predicate.as_str(),
+            )))
         };
         let Node::Lit(literal) = &bound else {
             return Err(error("the supplied term is not a literal"));
@@ -3161,12 +3150,10 @@ pub fn derive_validation_shapes(
                         .push(pc);
                 }
                 Some(Node::Blank { .. }) | Some(Node::Triple(_)) => {
-                    return Err(Diag::of_kind(crate::error::Frontend {
-                        detail: format!(
-                            "owl:hasValue on {on} is an anonymous node; a fixed required value \
+                    return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                        "owl:hasValue on {on} is an anonymous node; a fixed required value \
                          cannot be a blank node or quoted triple"
-                        ),
-                    }));
+                    ))));
                 }
             }
 
@@ -3237,11 +3224,9 @@ pub fn derive_validation_shapes(
                             // Non-resource fillers cannot name a datatype definition.
                             Some(Node::Lit(purrdf::RdfLiteral { .. })) | Some(Node::Triple(_)) => {}
                             None => {
-                                return Err(Diag::of_kind(crate::error::Frontend {
-                                    detail: format!(
-                                        "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
-                                    ),
-                                }));
+                                return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                                    "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
+                                ))));
                             }
                         }
                     }
@@ -3518,7 +3503,7 @@ pub fn derive_validation_shapes(
                     filler @ Node::Blank { .. } => {
                         let fs = term_as_subject(&filler).expect("blank range has a subject");
                         let failure = |detail| {
-                            Diag::of_kind(crate::error::Frontend { detail }).with_focus(p.clone())
+                            Diag::of_kind(crate::error::Frontend::new(detail)).with_focus(p.clone())
                         };
                         let mut heads = Vec::new();
                         for head in restriction_objects(&fs, &p_unionof, &p_logic_unionof) {
@@ -3562,9 +3547,9 @@ pub fn derive_validation_shapes(
                         }
                     }
                     _ => {
-                        return Err(Diag::of_kind(crate::error::Frontend {
-                            detail: "a closed property range must be a resource".into(),
-                        })
+                        return Err(Diag::of_kind(crate::error::Frontend::new(
+                            "a closed property range must be a resource".into(),
+                        ))
                         .with_focus(p.clone()));
                     }
                 };
@@ -3987,9 +3972,9 @@ pub fn derive_validation_shapes(
         if let Some((kind, term)) = failure_source {
             let failure_classes = distinct_failure_classes(store, &Subject::Iri(term.clone()))?;
             if failure_classes.len() > 1 {
-                return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!("{kind} {term} has distinct gmeow:enforcesFailureClass values"),
-                }));
+                return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                    "{kind} {term} has distinct gmeow:enforcesFailureClass values"
+                ))));
             }
             if let Some(failure_class) = failure_classes.first() {
                 shape = shape.with_failure_class(failure_class)?;
@@ -4688,10 +4673,7 @@ fn formula_objects(store: &impl FormulaSource, node: &Subject, link: &str) -> Ve
 
 /// Attach a typed frontend failure to its exact source focus.
 fn formula_err_for(focus: impl Into<String>, detail: impl Into<String>) -> Diag {
-    Diag::of_kind(crate::error::Frontend {
-        detail: detail.into(),
-    })
-    .with_focus(focus)
+    Diag::of_kind(crate::error::Frontend::new(detail.into())).with_focus(focus)
 }
 
 fn formula_err(node: &Subject, detail: impl Into<String>) -> Diag {
@@ -5372,9 +5354,7 @@ fn extract_constraints_from_source(
 /// the sole first-party error type (the Phase-6 Diag substrate); a malformed record degrades to a
 /// warning rather than aborting the parse.
 fn sugar_err(detail: impl Into<String>) -> Diag {
-    Diag::of_kind(crate::error::Frontend {
-        detail: detail.into(),
-    })
+    Diag::of_kind(crate::error::Frontend::new(detail.into()))
 }
 
 const GMEOW_ENFORCES_FAILURE_CLASS: &str =
@@ -5420,7 +5400,11 @@ fn read_messages(
         })
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
     crate::ir::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
-        sugar_err(format!("logic:message: {detail}")).with_focus(subject_str(node))
+        Diag::of_kind(crate::error::Frontend::caused_by(
+            format!("logic:message: {detail}"),
+            detail,
+        ))
+        .with_focus(subject_str(node))
     })?;
     Ok(messages)
 }
@@ -6747,11 +6731,11 @@ pub fn parse_logic_dataset(
 
 fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), Diag> {
     if is_empty(dataset) {
-        return Err(Diag::of_kind(crate::error::Frontend {
-            detail: "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
+        return Err(Diag::of_kind(crate::error::Frontend::new(
+            "Source graph is empty — nothing to parse.  Pass a non-empty graph or a \
              Turtle file with logic: triples."
                 .to_owned(),
-        }));
+        )));
     }
 
     Ok(())

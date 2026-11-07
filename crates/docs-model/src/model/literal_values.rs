@@ -18,7 +18,7 @@ struct LiteralFields {
 #[derive(Debug)]
 enum LiteralTransportError {
     Datatype(purrdf_core::IriError),
-    Components(&'static str),
+    Components(purrdf_core::LiteralComponentError),
     Direction(String),
 }
 
@@ -26,7 +26,7 @@ impl std::fmt::Display for LiteralTransportError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Datatype(error) => std::fmt::Display::fmt(error, f),
-            Self::Components(message) => f.write_str(message),
+            Self::Components(error) => std::fmt::Display::fmt(error, f),
             Self::Direction(token) => write!(f, "invalid RDF base direction {token:?}"),
         }
     }
@@ -36,7 +36,8 @@ impl std::error::Error for LiteralTransportError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Datatype(error) => Some(error),
-            Self::Components(_) | Self::Direction(_) => None,
+            Self::Components(error) => Some(error),
+            Self::Direction(_) => None,
         }
     }
 }

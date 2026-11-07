@@ -184,9 +184,7 @@ fn schema_registry() -> gmeow_errors::Result<Registry> {
 /// Preserve the operation's stable classification and the original codec cause.
 #[track_caller]
 fn parse_error(operation: &str, source: impl Error + Send + Sync + 'static) -> Diag {
-    let kind = crate::error::Parse {
-        detail: format!("{operation}: {source}"),
-    };
+    let kind = crate::error::Parse::new(format!("{operation}: {source}"));
     diagnostic_with_source(kind, source)
 }
 

@@ -428,6 +428,7 @@ pub(crate) fn load_ontology_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_
 
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "value-vocab-enrich".into(),
         message: message.into(),
     })

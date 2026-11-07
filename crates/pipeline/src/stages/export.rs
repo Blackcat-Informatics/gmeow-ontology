@@ -48,6 +48,7 @@ pub(crate) fn modeled_defs_from_upstream(
         .and_then(|p| p.artifact(crate::stages::json_schema::JSON_SCHEMA_PATH))
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
                 stage: "stage-export-export".to_string(),
                 message: "missing stage-export-json-schema gmeow.schema.json artifact for the \
                           model-existence gate"
@@ -56,6 +57,7 @@ pub(crate) fn modeled_defs_from_upstream(
         })?;
     let parsed: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
             stage: "stage-export-export".to_string(),
             message: format!("parse gmeow.schema.json for the model-existence gate: {e}"),
         })

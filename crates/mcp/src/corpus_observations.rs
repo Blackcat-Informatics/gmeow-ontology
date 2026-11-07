@@ -307,7 +307,5 @@ impl Producer {
 }
 
 fn fail(message: &str) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-        message: message.to_owned(),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Mcp::new(message.to_owned()))
 }

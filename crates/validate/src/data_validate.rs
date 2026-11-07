@@ -197,9 +197,9 @@ impl Tier1Shapes {
         ontology: Arc<RdfDataset>,
     ) -> gmeow_errors::Result<Self> {
         let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("bundled SHACL shapes failed to parse: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                "bundled SHACL shapes failed to parse: {e}"
+            )))
         })?;
         // Read the exact immutable graph retained by the SHACL parser. Its
         // blank identities and document-prefix handling govern these same shapes.
@@ -561,12 +561,12 @@ pub fn run_with(
             &mut report,
         );
         #[cfg(target_arch = "wasm32")]
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: "the Tier-2 semantic pass (`deep`) requires the native DL reasoning \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse::new(
+            "the Tier-2 semantic pass (`deep`) requires the native DL reasoning \
                      engine, which this target does not carry; re-run with `deep` unset for \
                      the full Tier-1 + advisory + abductive + enrichment pass"
                 .to_owned(),
-        }));
+        )));
     }
 
     // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
@@ -867,15 +867,16 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> gmeow_errors::Result<Ar
         // PRESERVES named graphs — the graph-preserving shape this Tier-2 path needs
         // (no longer the external gmeow-gts JSON-LD codec).
         return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("JSON-LD parse error: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
+                "JSON-LD parse error: {e}"
+            )))
         });
     }
     purrdf::parse_dataset(data_bytes, data_format, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: located_parse_error("data graph parse error", &e),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(located_parse_error(
+            "data graph parse error",
+            &e,
+        )))
     })
 }
 
@@ -1099,11 +1100,19 @@ pub fn shape_corpus_variants_from_archive(
     shape_corpus_variants_from_rows(archive_shape_rows(bytes)?)
 }
 
+/// Collect borrowed shape-archive members without copying their names or payloads.
+///
+/// # Errors
+/// Retains any detected native archive failure as the typed diagnostic cause.
 fn archive_shape_rows(bytes: &[u8]) -> gmeow_errors::Result<Vec<(&str, &[u8])>> {
     purrdf::ustar::archive_members(bytes)
         .map(|member| member.map(|member| (member.name, member.data)))
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|detail| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail }))
+        .map_err(|cause| {
+            gmeow_errors::Diag::of_kind(gmeow_gts_profile::error::NativeArchive {
+                cause: std::sync::Arc::new(cause),
+            })
+        })
 }
 
 /// Derive the selected shape surfaces from an already decoded archive, sharing

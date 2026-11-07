@@ -104,6 +104,7 @@ pub fn build_corpus() -> Result<LangLoweringCorpus, gmeow_errors::Diag> {
 /// producers, so a lowering failure surfaces as a mappings-stage failure).
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
         stage: "stage-mappings".to_string(),
         message: message.into(),
     })

@@ -68,6 +68,13 @@ fn cq_rationale_mcp_actual_caller_retains_all_native_literal_terms_and_expectati
 
 #[test]
 fn cq_rationale_mcp_actual_caller_refuses_malformed_and_conflicting_fields() {
+    fn assert_native_cause<E: std::error::Error + PartialEq + std::fmt::Debug + 'static>(
+        actual: &(dyn std::error::Error + 'static),
+        expected: E,
+    ) {
+        assert_eq!(actual.downcast_ref::<E>(), Some(&expected));
+    }
+
     for source in [
         QUESTION.replace(r#""same"@fr"#, "<urn:not-literal>"),
         QUESTION.replace("g:cqExpectRowCount 1", "g:cqExpectRowCount \"one\""),
@@ -89,6 +96,29 @@ fn cq_rationale_mcp_actual_caller_refuses_malformed_and_conflicting_fields() {
             "{error}"
         );
     }
+    let literal = purrdf::RdfLiteral {
+        lexical_form: "malformed rationale".to_owned(),
+        datatype: None,
+        language: None,
+        direction: Some(purrdf::RdfTextDirection::Ltr),
+    };
+    let native = purrdf::RdfLiteral::validate_components(
+        literal.datatype_iri(),
+        literal.language.as_deref(),
+        literal.direction,
+    )
+    .unwrap_err();
+    let term = purrdf::RdfTerm::Literal(literal);
+    let error = super::literal(Some(&term), "rationale")
+        .expect_err("a malformed native rationale must return a diagnostic");
+    assert_eq!(error.code(), crate::error::Mcp::register());
+    let kind = error
+        .downcast_ref::<crate::error::Mcp>()
+        .expect("the MCP diagnostic kind remains downcastable");
+    assert_native_cause(
+        std::error::Error::source(kind).expect("the kind retains the native component cause"),
+        native,
+    );
 }
 
 #[test]

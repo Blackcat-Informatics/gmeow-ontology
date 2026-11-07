@@ -59,7 +59,7 @@ pub const GMEOW_ENFORCES_FAILURE_CLASS: &str =
 /// Build a `validate.parse` diagnostic (the same substrate the shape oracle hard-fails
 /// on) from a shape-grounding derivation failure.
 fn grounding_err(detail: String) -> Diag {
-    Diag::of_kind(crate::error::Parse { detail })
+    Diag::of_kind(crate::error::Parse::new(detail))
 }
 
 /// The document-level prefixes the projected constraint surfaces declare

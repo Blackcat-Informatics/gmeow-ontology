@@ -98,9 +98,7 @@ pub fn load_tag_map(
     // Parse straight into the purrdf IR via the native codecs: no oxigraph `io`
     // parser, and lenient private-use language tags by construction.
     let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("RDF parse error: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!("RDF parse error: {e}")))
     })?;
 
     load_tag_map_from_dataset(&dataset)
@@ -211,7 +209,7 @@ fn build_tag_map_for(
         // Two carrier individuals sharing one internal `carrierTag` but mapping it
         // to DIFFERENT `bcp47Tag`s is a nondeterministic conflict; per the
         // no-optionality/hard-fail doctrine, reject it rather than silently letting
-        // the last writer win. (A repeated tag→SAME bcp47Tag is a harmless duplicate.)
+        // the last writer win. (A repeated tag→SAME `bcp47Tag` is a harmless duplicate.)
         if let Some(existing) = tag_map.get(&int_val)
             && existing != &bcp_val
         {
@@ -241,9 +239,7 @@ pub fn load_inverse_tag_map(
 ) -> gmeow_errors::Result<HashMap<String, String>> {
     let media_type = media_type_for(format)?;
     let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("RDF parse error: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!("RDF parse error: {e}")))
     })?;
 
     load_inverse_tag_map_from_dataset(&dataset)
@@ -726,9 +722,7 @@ where
 {
     let media_type = media_type_for(format)?;
     let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("RDF parse error: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!("RDF parse error: {e}")))
     })?;
 
     // First pass: build the quad set and record which (subject, predicate, old_lit)
@@ -791,9 +785,7 @@ pub fn filter_graph(
 ) -> gmeow_errors::Result<Vec<u8>> {
     let media_type = media_type_for(format)?;
     let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("RDF parse error: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!("RDF parse error: {e}")))
     })?;
 
     let target_preds: HashSet<&str> = predicates.iter().map(String::as_str).collect();

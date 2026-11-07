@@ -486,20 +486,18 @@ fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<RcRule> {
     // a plain Horn rule), and projections that can express it emit it from the
     // LogicProgram directly.
     if let Some(agg) = &rule.aggregation {
-        return Err(Diag::of_kind(crate::error::RelationalCore {
-            detail: format!(
-                "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
+        return Err(Diag::of_kind(crate::error::RelationalCore::new(format!(
+            "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
              relational core; carried in the logic: canon for aggregation-capable surfaces",
-                rule.head.predicate,
-                agg.function,
-                agg.aggregate_var,
-                if agg.group_keys.is_empty() {
-                    "the whole relation".to_owned()
-                } else {
-                    agg.group_keys.join(", ")
-                }
-            ),
-        }));
+            rule.head.predicate,
+            agg.function,
+            agg.aggregate_var,
+            if agg.group_keys.is_empty() {
+                "the whole relation".to_owned()
+            } else {
+                agg.group_keys.join(", ")
+            }
+        ))));
     }
     let head = lower_body_atom(&rule.head);
     let mut body: Vec<RcAtom> = rule.body.iter().map(lower_body_atom).collect();

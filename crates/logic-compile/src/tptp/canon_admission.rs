@@ -86,18 +86,14 @@ impl CanonAdmissionPublication {
 
 /// Preserve publication refusal under the shared frontend diagnostic code and grade.
 fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Frontend {
-        detail: detail.into(),
-    })
+    gmeow_errors::Diag::of_kind(crate::error::Frontend::new(detail.into()))
 }
 
 fn codec_failure(
     operation: &str,
     source: impl std::error::Error + Send + Sync + 'static,
 ) -> gmeow_errors::Diag {
-    let kind = crate::error::Frontend {
-        detail: format!("{operation}: {source}"),
-    };
+    let kind = crate::error::Frontend::new(format!("{operation}: {source}"));
     let mut diagnostic =
         gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
     if let Some(class) = kind.failure_class() {
