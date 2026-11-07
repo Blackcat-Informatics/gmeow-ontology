@@ -14156,3 +14156,59 @@ msgstr "Éviter de remplacer la base par un point, un espace de coordonnées, un
 msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."
 msgstr "Relier la fibre tangente à sa variété effective et conserver tangentSpaceAt. Préserver les spaceDimension et manifoldDimension déclarées selon leurs conventions effectives ; ne pas compléter les valeurs manquantes ni convertir silencieusement les dimensions tangentes réelles et complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Manifold"
+msgstr "Variété sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Manifold does not declare both its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind). A manifold that does not say how many dimensions and which structure it carries is ill-formed."
+msgstr "L’échec signalé lorsqu’une math:Manifold ne déclare pas à la fois sa dimension (math:manifoldDimension) et son type de structure (math:manifoldStructureKind). Une variété qui n’indique pas combien de dimensions et quelle structure elle porte est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure class identifies an incomplete manifold declaration when either manifoldDimension or manifoldStructureKind is absent. It concerns the supplied record, not the existence of the mathematical manifold; the associated conformance rules also govern supplied values and cardinalities."
+msgstr "Cette classe d’échec identifie une déclaration de variété incomplète lorsque manifoldDimension ou manifoldStructureKind manque. Elle concerne l’enregistrement fourni, non l’existence de la variété mathématique ; les règles de conformité associées régissent aussi les valeurs fournies et les cardinalités."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing manifold-missing-structure-kind counter-example records ex:formlessManifold as a math:Manifold with math:manifoldDimension 3 and no math:manifoldStructureKind. It is an authored missing-kind case, not a reported validation result."
+msgstr "Le contre-exemple manifold-missing-structure-kind existant consigne ex:formlessManifold comme une math:Manifold avec math:manifoldDimension 3 et sans math:manifoldStructureKind. Il s’agit d’un cas de type manquant rédigé dans la source, non d’un résultat de validation rapporté."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when identifying the required-declaration failure for a manifold missing either its dimension or its structure kind, including a record that supplies one but not the other."
+msgstr "Utiliser pour identifier l’échec de déclaration requise d’une variété à laquelle manque soit sa dimension, soit son type de structure, y compris un enregistrement qui fournit l’un mais pas l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing metadata as proof that no manifold exists, inventing a dimension or structure kind, or treating complete role names as proof of an atlas, Hausdorffness or second countability."
+msgstr "Éviter de traiter les métadonnées manquantes comme une preuve qu’aucune variété n’existe, d’inventer une dimension ou un type de structure, ou de considérer la désignation de tous les rôles comme une preuve d’atlas, de séparation au sens de Hausdorff ou d’existence d’une base dénombrable."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the failure class associated with the canonical manifold restrictions and closed required paths. Diagnose the actual record and supply evidenced dimension and structure-kind values; do not remove its Manifold type to hide a missing role or claim that presence alone completes conformance."
+msgstr "Garder la classe d’échec associée aux restrictions canoniques des variétés et aux chemins requis assortis d’une clôture. Diagnostiquer l’enregistrement effectif et fournir des valeurs de dimension et de type de structure étayées ; ne pas retirer son type Manifold pour masquer un rôle manquant ni prétendre que la seule présence suffit à établir la conformité."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Chart"
+msgstr "Carte sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Chart does not name its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart that does not say what it covers, how it coordinatizes, and into which space is ill-formed."
+msgstr "L’échec signalé lorsqu’une math:Chart ne nomme pas à la fois son domaine (math:chartDomain), son application de coordonnées (math:coordinateMap) et son espace de coordonnées cible (math:targetCoordinateSpace). Une carte qui ne précise pas ce qu’elle couvre, la manière dont elle le décrit par des coordonnées et son espace cible est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure class identifies an incomplete chart declaration when any of chartDomain, coordinateMap or targetCoordinateSpace is absent. Missing roles are distinct from unequal supplied dimension counts, and presence alone proves neither a homeomorphism nor complete chart conformance."
+msgstr "Cette classe d’échec identifie une déclaration de carte incomplète dès que l’un de chartDomain, coordinateMap ou targetCoordinateSpace manque. Les rôles manquants se distinguent de nombres de dimensions fournis mais inégaux, et leur seule présence ne prouve ni un homéomorphisme ni la conformité complète de la carte."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing chart-underspecified counter-example records ex:bareChart as a math:Chart without chartDomain, coordinateMap or targetCoordinateSpace. It is an authored missing-role case, not a reported validation result."
+msgstr "Le contre-exemple chart-underspecified existant consigne ex:bareChart comme une math:Chart sans chartDomain, coordinateMap ni targetCoordinateSpace. Il s’agit d’un cas de rôles manquants rédigé dans la source, non d’un résultat de validation rapporté."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when identifying the required-declaration failure for a chart missing any one or more of its domain, coordinate map and target coordinate space."
+msgstr "Utiliser pour identifier l’échec de déclaration requise d’une carte à laquelle manque au moins un élément parmi son domaine, son application de coordonnées et son espace de coordonnées cible."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling missing roles from a chart label, assuming a global chart, confusing absence with a dimension mismatch, or treating three named resources as proof of point membership, atlas compatibility or a homeomorphism."
+msgstr "Éviter de compléter les rôles manquants à partir du libellé d’une carte, de supposer une carte globale, de confondre absence et incompatibilité de dimensions, ou de traiter trois ressources nommées comme une preuve d’appartenance des points, de compatibilité d’atlas ou d’homéomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the failure class associated with the canonical chart restrictions and closed required paths. Supply the actual domain, coordinate map and target space from evidence; retain their type, cardinality, dimension and mathematical obligations for their own checks without silently assigning defaults."
+msgstr "Garder la classe d’échec associée aux restrictions canoniques des cartes et aux chemins requis assortis d’une clôture. Fournir le domaine, l’application de coordonnées et l’espace cible effectifs à partir de justifications ; conserver leurs obligations de type, de cardinalité, de dimension et leurs obligations mathématiques pour leurs propres contrôles, sans affecter silencieusement de valeurs par défaut."

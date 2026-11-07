@@ -14156,3 +14156,59 @@ msgstr "避免用点、坐标空间、度量或整个切丛替代底流形、根
 msgctxt "https://blackcatinformatics.ca/math/tangentSpaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."
 msgstr "将切纤维链接到其实际流形，并保留 tangentSpaceAt。按实际约定保留所声明的 spaceDimension 及 manifoldDimension；不填补缺失值，也不暗中转换实切空间与复切空间的维数。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Manifold"
+msgstr "欠定流形"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Manifold does not declare both its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind). A manifold that does not say how many dimensions and which structure it carries is ill-formed."
+msgstr "当 math:Manifold 未同时声明其维数（math:manifoldDimension）及结构种类（math:manifoldStructureKind）时所报告的失败。未说明有多少维及具有何种结构的流形为不良形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure class identifies an incomplete manifold declaration when either manifoldDimension or manifoldStructureKind is absent. It concerns the supplied record, not the existence of the mathematical manifold; the associated conformance rules also govern supplied values and cardinalities."
+msgstr "此失败类标明 manifoldDimension 或 manifoldStructureKind 缺失时的不完整流形声明。它涉及所提供的记录，而非数学流形是否存在；相关符合性规则还约束所提供的值及基数。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing manifold-missing-structure-kind counter-example records ex:formlessManifold as a math:Manifold with math:manifoldDimension 3 and no math:manifoldStructureKind. It is an authored missing-kind case, not a reported validation result."
+msgstr "现有 manifold-missing-structure-kind 反例将 ex:formlessManifold 记录为具有 math:manifoldDimension 3、但没有 math:manifoldStructureKind 的 math:Manifold。这是来源中编写的种类缺失案例，并非所报告的验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when identifying the required-declaration failure for a manifold missing either its dimension or its structure kind, including a record that supplies one but not the other."
+msgstr "用于标明流形缺少维数或结构种类任一项时的必需声明失败，包括提供其中一项而未提供另一项的记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing metadata as proof that no manifold exists, inventing a dimension or structure kind, or treating complete role names as proof of an atlas, Hausdorffness or second countability."
+msgstr "避免将元数据缺失视为流形不存在的证明、编造维数或结构种类，或将完整的角色指明视为图册、Hausdorff 性或第二可数性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the failure class associated with the canonical manifold restrictions and closed required paths. Diagnose the actual record and supply evidenced dimension and structure-kind values; do not remove its Manifold type to hide a missing role or claim that presence alone completes conformance."
+msgstr "保持失败类与规范流形限制及封闭的必需路径相关联。诊断实际记录，并提供有依据的维数和结构种类值；不要删除其 Manifold 类型来掩盖角色缺失，也不要声称仅有角色存在便已完全符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Chart"
+msgstr "欠定坐标图"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Chart does not name its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart that does not say what it covers, how it coordinatizes, and into which space is ill-formed."
+msgstr "当 math:Chart 未完整指明其定义域（math:chartDomain）、坐标映射（math:coordinateMap）及目标坐标空间（math:targetCoordinateSpace）时所报告的失败。未说明覆盖什么、如何赋予坐标及映入哪个空间的坐标图为不良形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure class identifies an incomplete chart declaration when any of chartDomain, coordinateMap or targetCoordinateSpace is absent. Missing roles are distinct from unequal supplied dimension counts, and presence alone proves neither a homeomorphism nor complete chart conformance."
+msgstr "此失败类标明 chartDomain、coordinateMap 或 targetCoordinateSpace 中任一项缺失时的不完整坐标图声明。角色缺失不同于已提供维数计数不相等；仅有角色存在既不证明同胚，也不证明坐标图完全符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing chart-underspecified counter-example records ex:bareChart as a math:Chart without chartDomain, coordinateMap or targetCoordinateSpace. It is an authored missing-role case, not a reported validation result."
+msgstr "现有 chart-underspecified 反例将 ex:bareChart 记录为不含 chartDomain、coordinateMap 和 targetCoordinateSpace 的 math:Chart。这是来源中编写的角色缺失案例，并非所报告的验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when identifying the required-declaration failure for a chart missing any one or more of its domain, coordinate map and target coordinate space."
+msgstr "用于标明坐标图缺少定义域、坐标映射及目标坐标空间中任意一项或多项时的必需声明失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid filling missing roles from a chart label, assuming a global chart, confusing absence with a dimension mismatch, or treating three named resources as proof of point membership, atlas compatibility or a homeomorphism."
+msgstr "避免根据坐标图标签填补缺失角色、假定存在全局坐标图、将缺失与维数不匹配混淆，或将三个已指明资源视为点归属、图册相容性或同胚的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedChart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the failure class associated with the canonical chart restrictions and closed required paths. Supply the actual domain, coordinate map and target space from evidence; retain their type, cardinality, dimension and mathematical obligations for their own checks without silently assigning defaults."
+msgstr "保持失败类与规范坐标图限制及封闭的必需路径相关联。依据证据提供实际定义域、坐标映射及目标空间；保留其类型、基数、维数及数学义务供各自检查，不暗中赋予默认值。"
