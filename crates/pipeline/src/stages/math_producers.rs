@@ -51,7 +51,7 @@ use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
 
 /// The committed producer fixtures paired with the exact producer result index they
@@ -376,8 +376,11 @@ impl Stage for MathProducersStage {
             .project_graph(Some(&purrdf::RdfTerm::iri(
                 crate::stages::carrier::GRAPH_ALIGNMENTS,
             )))?;
-        let mut artifacts =
-            gmeow_math::projection::project_requests(source.dataset(), &reference, &alignments)?;
+        let mut artifacts = measure_stage_phase(self.id(), "math-project-requests", || {
+            gmeow_math::projection::project_requests(source.dataset(), &reference, &alignments)
+        })?;
+        drop(alignments);
+        drop(reference);
         if artifacts.is_empty() {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
@@ -390,8 +393,10 @@ impl Stage for MathProducersStage {
                 query.as_bytes().to_vec(),
             );
         }
-        let turtles = producer_turtles();
-        enforce_producer_fixture_parity(input.root, &turtles)?;
+        let turtles = measure_stage_phase(self.id(), "math-native-producers", producer_turtles);
+        measure_stage_phase(self.id(), "math-producer-parity", || {
+            enforce_producer_fixture_parity(input.root, &turtles)
+        })?;
         let mut graphs: Vec<Arc<RdfDataset>> = Vec::with_capacity(turtles.len());
         for (graph_iri, turtle) in &turtles {
             graphs.push(parse_into_graph(

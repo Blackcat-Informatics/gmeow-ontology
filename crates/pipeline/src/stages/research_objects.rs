@@ -29,7 +29,7 @@ use std::sync::Arc;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
 use crate::stages::native_query;
 use crate::stages::source_load::module_files;
 
@@ -1508,23 +1508,32 @@ fn render_dcat(
     correspondence_program: CorrespondenceProgram,
     scores_ttl: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
-    // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
-    let onto = root.join("ontology").join("gmeow.ttl");
-    let bytes = std::fs::read(&onto)?;
-    parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
-    for module in module_files(root)? {
-        let bytes = std::fs::read(&module)?;
-        parsed.push(parse_into(&bytes, &module.display().to_string())?);
-    }
-    let ontology_refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let ontology = RdfDataset::union(&ontology_refs)?;
-    let catalog =
+    const STAGE: &str = "stage-export-research-objects";
+    let mut parsed = measure_stage_phase(STAGE, "dcat-parse-ontology", || {
+        let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
+        // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
+        let onto = root.join("ontology").join("gmeow.ttl");
+        let bytes = std::fs::read(&onto)?;
+        parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
+        for module in module_files(root)? {
+            let bytes = std::fs::read(&module)?;
+            parsed.push(parse_into(&bytes, &module.display().to_string())?);
+        }
+        Ok::<_, gmeow_errors::Diag>(parsed)
+    })?;
+    let ontology = measure_stage_phase(STAGE, "dcat-union-ontology", || {
+        let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+        RdfDataset::union(&refs)
+    })?;
+    let catalog = measure_stage_phase(STAGE, "dcat-admit-catalog", || {
         gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_program(
             correspondence_program,
             &gmeow_logic_compile::ingest::DslView::new(&ontology),
             &gmeow_validate::grounding_catalog::discover(root)?,
-        )?;
+        )
+    })?;
+    // The catalog owns its admitted properties; it no longer reads the union.
+    drop(ontology);
     let product =
         gmeow_logic_compile::projections::profile_program::ProjectionProfileProgram::from_bytes(
             dcat_program,
@@ -1535,17 +1544,26 @@ fn render_dcat(
             "selected DCAT product has a different profile".to_owned(),
         ));
     }
-    let prepared =
-        crate::projection_execution::PreparedProjectionProfile::prepare(&product, &catalog)?;
+    let prepared = measure_stage_phase(STAGE, "dcat-prepare-profile", || {
+        crate::projection_execution::PreparedProjectionProfile::prepare(&product, &catalog)
+    })?;
+    drop(product);
+    drop(catalog);
     // The worked-example A-Box (scores.ttl rides in from the consumed evals product).
     for (label, _name, bytes) in example_inputs(root, scores_ttl)? {
         parsed.push(parse_into(&bytes, label)?);
     }
-    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
-    let dataset = Arc::new(RdfDataset::union(&refs)?);
+    let dataset = measure_stage_phase(STAGE, "dcat-union-examples", || {
+        let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+        RdfDataset::union(&refs)
+    })?;
+    // The exact same ordered union now owns the execution input.
+    drop(parsed);
 
-    crate::projections::admit_dcat_digest_sources(&dataset)?;
-    let graph = match prepared.execute(&dataset)? {
+    measure_stage_phase(STAGE, "dcat-admit-digests", || {
+        crate::projections::admit_dcat_digest_sources(&dataset)
+    })?;
+    let graph = match measure_stage_phase(STAGE, "dcat-execute", || prepared.execute(&dataset))? {
         SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -1553,10 +1571,15 @@ fn render_dcat(
             }));
         }
     };
+    drop(dataset);
+    drop(prepared);
     // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical
     // forms to the W3C XSD mapping (the native codecs preserve raw lexical forms),
     // serialize to N-Triples (NO gts round-trip), then canonicalize to Turtle.
-    let mut quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&graph);
+    let mut quads = measure_stage_phase(STAGE, "dcat-flatten-output", || {
+        purrdf::native_quads::flat_rdf_quads_from_dataset(&graph)
+    });
+    drop(graph);
     // SPDX fixes lowercase hex, whereas XSD's generic canonical hex is uppercase.
     // Validate each external algorithm/value pair before preserving that selected spelling.
     for quad in &quads {
@@ -1591,26 +1614,35 @@ fn render_dcat(
             canonicalize_term_xsd(&mut quad.object)?;
         }
     }
-    let canon = purrdf::native_quads::flat_dataset_from_quads(&quads).map_err(|e| {
+    let canon = measure_stage_phase(STAGE, "dcat-freeze-output", || {
+        purrdf::native_quads::flat_dataset_from_quads(&quads)
+    })
+    .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("typed DCAT projection re-freeze: {e}"),
         })
     })?;
-    let nt = purrdf::serialize_dataset(
-        &canon,
-        "application/n-triples",
-        purrdf::SerializeGraph::Dataset,
-    )
+    drop(quads);
+    let nt = measure_stage_phase(STAGE, "dcat-serialize-output", || {
+        purrdf::serialize_dataset(
+            &canon,
+            "application/n-triples",
+            purrdf::SerializeGraph::Dataset,
+        )
+    })
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("typed DCAT projection serialize N-Triples: {e}"),
         })
     })?;
+    drop(canon);
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
     // `nt` is already bytes from the native serializer, so pass it by reference.
-    purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-        .map_err(gmeow_errors::Diag::from)
+    measure_stage_phase(STAGE, "dcat-normalize-output", || {
+        purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+            .map_err(gmeow_errors::Diag::from)
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
