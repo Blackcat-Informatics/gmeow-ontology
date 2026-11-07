@@ -1,0 +1,23 @@
+$ stagectl pr-checks 2613
+FAILURE quality https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078898
+CANCELLED ontology-validate https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079105
+CANCELLED heavy https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079278
+CANCELLED medium-consumer-surface https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080114
+CANCELLED maint-medium-sweep https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078703
+CANCELLED generation (${{ matrix.generation }}) https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078815
+CANCELLED fixture-prefix https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078542
+CANCELLED producer https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078787
+CANCELLED fixture-complete https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079552
+CANCELLED rust https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080050
+CANCELLED rust-archive https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079611
+CANCELLED ontology-misc https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079384
+CANCELLED ontology-reason https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078725
+CANCELLED ontology-generated https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079527
+CANCELLED rust-static https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079553
+SUCCESS CodeRabbit https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2613?scope=ghh_OusAJGA4HG8ljoOV0wJvVx8NmnZIjc2DdjmxOu0xZWA
+SUCCESS lint https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900342
+CANCELLED producer-build https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900239
+SUCCESS helpers https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900262
+CANCELLED rust-prebuild https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900292
+SUCCESS license/cla https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2613
+state: fail

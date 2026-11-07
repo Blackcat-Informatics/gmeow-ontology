@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with",
+  "branch": "paudley/2598-represent-indexed-bessel-families-with",
+  "base_ref": "origin/main",
+  "head": "18d7bebda82694251e3107f4f010b0e59b1d68f2",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/sync/20261106T230922-84f4a89f1e3d4facaa30f0bbfaea991b",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "22f7894c7c2869d1410f3021d5582edaa76d2427",
+  "merge_bases": [
+    "18d7bebda82694251e3107f4f010b0e59b1d68f2"
+  ],
+  "commit": "22f7894c7c2869d1410f3021d5582edaa76d2427"
+}

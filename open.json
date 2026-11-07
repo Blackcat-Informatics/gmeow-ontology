@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2598,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with",
+  "branch": "paudley/2598-represent-indexed-bessel-families-with",
+  "slug": "represent-indexed-bessel-families-with",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "18d7bebda82694251e3107f4f010b0e59b1d68f2",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with",
+    "branch:paudley/2598-represent-indexed-bessel-families-with",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2230-admit-native-blake3-256-digest-values caches into /home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with plus 0 dependency units from 0 other checkouts in 25.2s; 12717 unchanged files keep their built mtimes; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-05T21:51:50-0600",
+  "seed_error": ""
+}

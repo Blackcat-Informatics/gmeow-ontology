@@ -1,0 +1,3 @@
+This archive retains the complete synchronization journal for the indexed Bessel family delivery: events.jsonl, result.json and summary.md, copied without byte changes from the delivery's sync directory. It records the fast-forward from the original issue base to the current main base, with no conflicts.
+
+The broader optional delivery archive is not published because its generated review capture was refused by the attribution guard. Those complete original records remain unchanged locally. The source review, catalog lint, hook results, scoped terms CI waiver and unqualified parent requirements are recorded in the PR and squash notes. This selected archive makes no claim to contain the broader review package or runtime qualification.

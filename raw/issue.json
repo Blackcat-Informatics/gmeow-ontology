@@ -1,0 +1,63 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\nbesselJ and besselY are named with the indexed labels J\u2099 and Y\u2099 but typed as unary SpecialFunction individuals, with no selected order. Both declare realNumbers as domain; the usual real-valued Y\u2099 branch is undefined at zero and uses positive arguments. The current declarations therefore hide the order-family role and conflict with total Function meaning.\n\n## Complete indexed-family source repair\n\nPreserve the two existing IRIs and labels while explicitly representing the source's integer-order, real-valued reading as curried family maps:\n\n- besselJ: integers to the function space of realNumbers to realNumbers.\n- besselY: integers to the function space of positive real arguments to realNumbers.\n\nRetype the family resources as Function maps, separating them from unary SpecialFunction members. No arbitrary fixed order, ambient-domain reinterpretation, guessed pole value, unframed partial function or unordered Cartesian-product operand shortcut is acceptable.\n\nDefine the positive-real domain as a fully framed open interval (0, +infinity), and the two codomains as FunctionSpace plus SetBuilderExpression resources with realized member conditions and explicitly bound membership laws. Family/member-frame laws must retain the order selection and the selected member's actual domain/codomain through existing functionValueRel semantics. Those laws describe framing and selection; they must not pretend to uniquely characterize Bessel analytic values or implement their evaluation.\n\nThe anticipated inventory is nine public terms: the two existing family resources, the positive-real interval, two member-function spaces, their two membership-law roots and two family/member-frame law roots. Give every selected public term full distinct English guidance and French/Chinese translations. With this inventory, the source adds 45 English guidance fields and 63 new canonical pairs per locale. Census any necessary extra public resource honestly before freezing the final contract.\n\n## Scope and acceptance\n\n- Correct actual type/domain/codomain links, both definitions/coats, the necessary owning-design explanation and any mapping comment that inaccurately calls a family a unary member. Preserve mapping targets, strengths and provenance rather than inventing new equivalences.\n- Reuse the canonical source contracts for Function, FunctionSpace, SetBuilderExpression, Interval and Formula binding/ownership. Internal typed AST nodes must form real trees or supported acyclic DAGs with contiguous argument/binder indices.\n- No generic family class, order property, numeric-object bridge or tuple representation is added without a demonstrated need. No source label or declaration is treated as numerical evidence.\n- Full independent source/English/French/Chinese/mathematical/caller/example/design/mapping review; exact reconstruction/preservation, prose/whitespace and current catalog lint; configured hooks/signing, fresh PR and ghprsq landing.\n- Preserve all unrelated terms, the preceding scalar-function repair, constraints, fixtures, query bodies, runtime implementations/profiles and floors.\n\nThis is the indexed-family counterpart to the scalar special-function repair under #1656. The integer-order and positive-real Y branch are explicit in this contract; broader complex-order/branch behavior is not certified. Terms CI is waived by the user; other manual product execution remains outside current authorization. Native membership guards, analytic values, generated/installed/runtime behavior, measured coverage/floors and authenticated consumers remain unqualified. Every original parent requirement remains open until satisfied. Principles 4, 7, 17 and 19.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-06T03:13:57Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2598,
+  "state": "OPEN",
+  "title": "Represent indexed Bessel families with explicit order and valid domains",
+  "updatedAt": "2026-11-06T03:14:24Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2598"
+}

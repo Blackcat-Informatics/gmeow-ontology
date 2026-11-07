@@ -1,0 +1,5 @@
+The selected archive retains the original complete synchronization journal under sync/, including events.jsonl, result.json and summary.md. It also retains the issue, source validation and publication-scope records.
+
+The optional full review capture, original structured response and dispositions are excluded from publication. Their complete byte-unchanged originals are retained in the canonical checkout at .stage/queues/all-issues/bessel-2613-local-review/ as pr-comments.md, review-evidence.json and review-dispositions.json. They were moved as files without editing, compression or changed encoding. This is a deliberate omission of the optional review archive under the delivery workflow; no narrower review transcript is substituted.
+
+The selected archive does not claim to contain those review originals or executed native/runtime acceptance. Source and language review, catalog lint, configured hooks, the user's scoped terms CI waiver and the remaining parent requirements are described in the PR and squash notes. All source and required synchronization evidence remain unchanged.

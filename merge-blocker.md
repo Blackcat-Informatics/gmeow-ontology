@@ -1,0 +1,7 @@
+The reviewed signed source is published in PR #2613 at af3f656b5a39a98e4a80910cfc0bb2a936a2d569. The source merge candidate is clean and has the same tree as the reviewed head. Terms CI is waived by the user; runtime acceptance remains with the original parent.
+
+The first ghprsq merge attempt selected the complete delivery archive, including the required synchronization journal. The push guard refused its generated pr-comments.md for prohibited attribution. Remote inspection confirmed that the PR remained open, main remained unchanged, and the atomic publication did not land.
+
+A second attempt selected only a complete byte-identical synchronization journal and a scope note, preserving the broader review records unchanged locally. The merge tool refused that selection because other uncommitted delivery evidence remained outside it. No guard, hook or publication invariant was changed. Required evidence was not redacted or encoded. No merge or issue closure is claimed.
+
+The initial interpretation that resolution required an external tool change was too broad. The delivery workflow permits omitting optional review captures while retaining the mandatory synchronization journal. The complete optional review records will be kept unchanged as local campaign evidence, with that exclusion documented in the selected archive. No external tool change, guard exception or changed encoding is needed. Publication remains unproven until the required merge tool succeeds.

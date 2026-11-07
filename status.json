@@ -1,0 +1,343 @@
+{
+  "issue": 2598,
+  "pr_number": 2613,
+  "branch": "paudley/2598-represent-indexed-bessel-families-with",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with",
+  "observed_at": "2026-11-07T02:39:31.267065+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_fail",
+      "message": "CI state is fail"
+    },
+    {
+      "code": "review_debt",
+      "message": "1 new or changed review items need disposition"
+    },
+    {
+      "code": "artifacts",
+      "message": "Required merge artifacts are missing or have invalid fields/verdicts"
+    }
+  ],
+  "unavailable": [
+    {
+      "source": "ci_logs",
+      "reason": "one or more failed-job logs unavailable; see inventory"
+    }
+  ],
+  "next_actions": [
+    "Inspect saved failed-job excerpts",
+    "Read pr-comments.md and record each disposition with review-disposition",
+    "Complete: review-debt.md, validation.md, pr-checks.txt"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "22f7894c7c2869d1410f3021d5582edaa76d2427",
+    "headRefName": "paudley/2598-represent-indexed-bessel-families-with",
+    "headRefOid": "af3f656b5a39a98e4a80910cfc0bb2a936a2d569",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2613,
+    "state": "OPEN",
+    "title": "Frame indexed Bessel families and positive-real member domains",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2613"
+  },
+  "checks": {
+    "state": "fail",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078898",
+        "name": "quality",
+        "state": "FAILURE"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079105",
+        "name": "ontology-validate",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079278",
+        "name": "heavy",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080114",
+        "name": "medium-consumer-surface",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078703",
+        "name": "maint-medium-sweep",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078815",
+        "name": "generation (${{ matrix.generation }})",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078542",
+        "name": "fixture-prefix",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078787",
+        "name": "producer",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079552",
+        "name": "fixture-complete",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080050",
+        "name": "rust",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079611",
+        "name": "rust-archive",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079384",
+        "name": "ontology-misc",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078725",
+        "name": "ontology-reason",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079527",
+        "name": "ontology-generated",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079553",
+        "name": "rust-static",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2613?scope=ghh_OusAJGA4HG8ljoOV0wJvVx8NmnZIjc2DdjmxOu0xZWA",
+        "name": "CodeRabbit",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900342",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900239",
+        "name": "producer-build",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900262",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900292",
+        "name": "rust-prebuild",
+        "state": "CANCELLED"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2613",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "af3f656b5a39a98e4a80910cfc0bb2a936a2d569",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "3d906060d1a73e57fed1adedc02b4a08c1c60c432d17a7720b7a90fcb72b120e"
+  },
+  "local": {
+    "head": "af3f656b5a39a98e4a80910cfc0bb2a936a2d569",
+    "branch": "paudley/2598-represent-indexed-bessel-families-with",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2613,
+    "jobs": [
+      {
+        "name": "quality",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078898",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078898.log",
+        "excerpt": [
+          "61: 2026-11-07T02:35:28.1710385Z   if [ \"$r\" != \"success\" ]; then",
+          "62: 2026-11-07T02:35:28.1710991Z     echo \"::error::a quality job did not succeed ($r)\"",
+          "63: 2026-11-07T02:35:28.1711346Z     exit 1",
+          "64: 2026-11-07T02:35:28.1711593Z   fi",
+          "94: 2026-11-07T02:35:28.1892530Z ontology-reason=cancelled ontology-misc=cancelled",
+          "95: 2026-11-07T02:35:28.1909988Z ##[error]a quality job did not succeed (cancelled)",
+          "96: 2026-11-07T02:35:28.1917274Z ##[error]Process completed with exit code 1.",
+          "97: 2026-11-07T02:35:28.2036667Z Cleaning up orphan processes"
+        ]
+      },
+      {
+        "name": "ontology-validate",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079105",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079105.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "heavy",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079278",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079278.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "medium-consumer-surface",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080114",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274080114.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "maint-medium-sweep",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078703",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078703.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "generation (${{ matrix.generation }})",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078815",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078815.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "fixture-prefix",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078542",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078542.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "producer",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078787",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078787.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "fixture-complete",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079552",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079552.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "rust",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080050",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274080050.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "rust-archive",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079611",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079611.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "ontology-misc",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079384",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079384.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "ontology-reason",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078725",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078725.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "ontology-generated",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079527",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079527.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "rust-static",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079553",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274079553.log",
+        "error": "Log download failed (exit 1): gh: HTTP 404\n"
+      },
+      {
+        "name": "producer-build",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900239",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128271900239.log",
+        "excerpt": [
+          "430: 2026-11-07T02:27:19.8688078Z bail() {",
+          "431: 2026-11-07T02:27:19.8688297Z   printf '::error::install-action: %s\\n' \"$*\"",
+          "432: 2026-11-07T02:27:19.8688560Z   exit 1",
+          "433: 2026-11-07T02:27:19.8688729Z }",
+          "868: 2026-11-07T02:35:17.7522788Z    Compiling icu_locale_core v2.2.0",
+          "869: 2026-11-07T02:35:19.0101699Z ##[error]The operation was canceled.",
+          "870: 2026-11-07T02:35:19.0283345Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+          "871: 2026-11-07T02:35:19.0283908Z with:"
+        ]
+      },
+      {
+        "name": "rust-prebuild",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900292",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128271900292.log",
+        "excerpt": [
+          "540: 2026-11-07T02:27:29.7250954Z bail() {",
+          "541: 2026-11-07T02:27:29.7251164Z   printf '::error::install-action: %s\\n' \"$*\"",
+          "542: 2026-11-07T02:27:29.7251410Z   exit 1",
+          "543: 2026-11-07T02:27:29.7251569Z }",
+          "618: 2026-11-07T02:27:30.0982501Z bail() {",
+          "619: 2026-11-07T02:27:30.0982722Z   printf '::error::install-action: %s\\n' \"$*\"",
+          "620: 2026-11-07T02:27:30.0982965Z   exit 1",
+          "621: 2026-11-07T02:27:30.0983126Z }",
+          "1339: 2026-11-07T02:35:06.2500679Z    Compiling cargo-config2 v0.1.45",
+          "1340: 2026-11-07T02:35:18.9820840Z ##[error]The operation was canceled.",
+          "1341: 2026-11-07T02:35:19.0005622Z Post job cleanup.",
+          "1342: 2026-11-07T02:35:19.2313305Z [command]/usr/bin/git version"
+        ]
+      }
+    ],
+    "ok": false,
+    "summary": "# PR #2613 failed CI logs\n\n## quality\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078898\n\n/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128274078898.log\n61: 2026-11-07T02:35:28.1710385Z   if [ \"$r\" != \"success\" ]; then\n62: 2026-11-07T02:35:28.1710991Z     echo \"::error::a quality job did not succeed ($r)\"\n63: 2026-11-07T02:35:28.1711346Z     exit 1\n64: 2026-11-07T02:35:28.1711593Z   fi\n94: 2026-11-07T02:35:28.1892530Z ontology-reason=cancelled ontology-misc=cancelled\n95: 2026-11-07T02:35:28.1909988Z ##[error]a quality job did not succeed (cancelled)\n96: 2026-11-07T02:35:28.1917274Z ##[error]Process completed with exit code 1.\n97: 2026-11-07T02:35:28.2036667Z Cleaning up orphan processes\n\n## ontology-validate\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079105\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## heavy\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079278\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## medium-consumer-surface\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080114\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## maint-medium-sweep\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078703\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## generation (${{ matrix.generation }})\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078815\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## fixture-prefix\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078542\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## producer\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078787\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## fixture-complete\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079552\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## rust\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274080050\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## rust-archive\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079611\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## ontology-misc\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079384\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## ontology-reason\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274078725\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## ontology-generated\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079527\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## rust-static\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128274079553\n\nLOG UNAVAILABLE: Log download failed (exit 1): gh: HTTP 404\n\n\n## producer-build\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900239\n\n/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128271900239.log\n430: 2026-11-07T02:27:19.8688078Z bail() {\n431: 2026-11-07T02:27:19.8688297Z   printf '::error::install-action: %s\\n' \"$*\"\n432: 2026-11-07T02:27:19.8688560Z   exit 1\n433: 2026-11-07T02:27:19.8688729Z }\n868: 2026-11-07T02:35:17.7522788Z    Compiling icu_locale_core v2.2.0\n869: 2026-11-07T02:35:19.0101699Z ##[error]The operation was canceled.\n870: 2026-11-07T02:35:19.0283345Z ##[group]Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9\n871: 2026-11-07T02:35:19.0283908Z with:\n\n## rust-prebuild\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/42329306192/job/128271900292\n\n/home/paudley/Active/gmeow-ontology/.worktrees/2598-represent-indexed-bessel-families-with/.stage/represent-indexed-bessel-families-with/ci-logs/github-job-128271900292.log\n540: 2026-11-07T02:27:29.7250954Z bail() {\n541: 2026-11-07T02:27:29.7251164Z   printf '::error::install-action: %s\\n' \"$*\"\n542: 2026-11-07T02:27:29.7251410Z   exit 1\n543: 2026-11-07T02:27:29.7251569Z }\n618: 2026-11-07T02:27:30.0982501Z bail() {\n619: 2026-11-07T02:27:30.0982722Z   printf '::error::install-action: %s\\n' \"$*\"\n620: 2026-11-07T02:27:30.0982965Z   exit 1\n621: 2026-11-07T02:27:30.0983126Z }\n1339: 2026-11-07T02:35:06.2500679Z    Compiling cargo-config2 v0.1.45\n1340: 2026-11-07T02:35:18.9820840Z ##[error]The operation was canceled.\n1341: 2026-11-07T02:35:19.0005622Z Post job cleanup.\n1342: 2026-11-07T02:35:19.2313305Z [command]/usr/bin/git version\n\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABj2lT4A",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2613#issuecomment-6701011936",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "missing_artifacts": [
+    "review-debt.md",
+    "validation.md",
+    "pr-checks.txt"
+  ],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}
