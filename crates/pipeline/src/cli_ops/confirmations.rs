@@ -99,11 +99,11 @@ pub fn compile_mappings(
 /// - The snapshot cannot be folded into the carrier dataset.
 pub fn bundle_term_summaries(gts_bytes: &[u8]) -> Result<Vec<TermSummary>, gmeow_errors::Diag> {
     let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "bundle-checks".to_string(),
-            message: format!("fold gts snapshot: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "bundle-checks".to_string(),
+            format!("fold gts snapshot: {e}"),
+            e,
+        ))
     })?;
     let view = crate::stages::export::FoldView::new(&dataset);
     let terms = crate::stages::export::collect_terms(&view);
@@ -156,11 +156,11 @@ pub fn export_views(
     languages: &[String],
 ) -> Result<Vec<String>, gmeow_errors::Diag> {
     let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "export".to_string(),
-            message: format!("fold gts snapshot: {e}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "export".to_string(),
+            format!("fold gts snapshot: {e}"),
+            e,
+        ))
     })?;
     let langs: Vec<String> = if languages.is_empty() {
         vec!["en".to_string()]
@@ -176,11 +176,11 @@ pub fn export_views(
     let artifacts =
         crate::stages::export::render_all_with_languages(&dataset, &langs, &modeled_defs)?;
     std::fs::create_dir_all(out_dir).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "export".to_string(),
-            message: format!("cannot create {}: {e}", out_dir.display()),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "export".to_string(),
+            format!("cannot create {}: {e}", out_dir.display()),
+            e,
+        ))
     })?;
     let mut written: Vec<String> = Vec::with_capacity(artifacts.len());
     for (dist_path, bytes) in &artifacts {
@@ -193,11 +193,11 @@ pub fn export_views(
         })?;
         let dest = out_dir.join(name);
         std::fs::write(&dest, bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                cause: None,
-                stage: "export".to_string(),
-                message: format!("cannot write {}: {e}", dest.display()),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                "export".to_string(),
+                format!("cannot write {}: {e}", dest.display()),
+                e,
+            ))
         })?;
         written.push(dest.display().to_string());
     }
@@ -221,11 +221,11 @@ pub fn canonicalize_turtle(
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let canonical =
         purrdf::turtle_normalize::canonical_turtle(bytes, extra_prefixes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                cause: None,
-                stage: "normalize".to_string(),
-                message: format!("canonical turtle failed: {e}"),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                "normalize".to_string(),
+                format!("canonical turtle failed: {e}"),
+                e,
+            ))
         })?;
     Ok(canonical.into_bytes())
 }

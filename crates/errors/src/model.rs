@@ -560,6 +560,8 @@ impl From<SourceAnnotation> for SourceAnnotationWire {
     }
 }
 
+/// Serve the existing text-valued source-annotation admission and wire contract.
+/// Native component messages are presented verbatim at this boundary.
 fn validate_source_literal(literal: &purrdf_core::RdfLiteral) -> Result<(), String> {
     if let Some(datatype) = &literal.datatype {
         purrdf_core::BaseIri::parse(datatype).map_err(|error| error.to_string())?;

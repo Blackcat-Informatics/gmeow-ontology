@@ -278,6 +278,34 @@ define_diag_kind! {
     message = "codec error: {}", message;
 }
 
+/// Keep a GTS diagnostic's evidence and native admission cause beneath the codec kind.
+#[derive(Debug)]
+struct PreservedDiagnostic(gmeow_errors::Diag);
+
+impl std::fmt::Display for PreservedDiagnostic {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(&self.0, formatter)
+    }
+}
+
+impl std::error::Error for PreservedDiagnostic {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0
+            .inner()
+            .source
+            .as_deref()
+            .map(|source| source as &dyn std::error::Error)
+    }
+}
+
+/// Preserve the codec presentation while retaining the selected GTS refusal intact.
+fn gts_codec_error(cause: gmeow_errors::Diag) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(CodecError::caused_by(
+        cause.to_string(),
+        PreservedDiagnostic(cause),
+    ))
+}
+
 /// Parse `input` bytes in the `from` codec into a frozen [`RdfDataset`] IR.
 ///
 /// # Hard failures
@@ -372,8 +400,7 @@ pub fn transcode(
         // mandated door. `purrdf::gts_write::to_gts` cannot: it authors its frames
         // through `Writer::deterministic`, which passes no transform chain at all,
         // so `gmeow convert --to gts` used to ship identity-framed bytes.
-        let emission = gmeow_gts_profile::view_to_gmeow_gts(&dataset)
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::CodecError::new(e.to_string())))?;
+        let emission = gmeow_gts_profile::view_to_gmeow_gts(&dataset).map_err(gts_codec_error)?;
         let realized = realize_losses(ledger.entries(), named_graph_count, 0, 0);
         return Ok(TranscodeOutput {
             bytes: emission.bytes,

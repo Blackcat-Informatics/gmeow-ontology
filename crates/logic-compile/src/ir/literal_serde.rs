@@ -34,6 +34,8 @@ impl std::error::Error for LiteralNormalizationError {
 
 impl LiteralNormalizationError {
     /// Preserve native component failures on the concrete JSON decoder boundary.
+    /// Generic Serde errors provide only `Error::custom`, a textual boundary;
+    /// the concrete JSON decoder additionally supports retaining native causes.
     fn into_json_error(self) -> purrdf_lex::json::record::DecodeError {
         use purrdf_lex::json::record::DecodeError;
 
