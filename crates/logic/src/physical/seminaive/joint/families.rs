@@ -1138,21 +1138,27 @@ impl State {
                 &mut self.ledger,
             )?;
         }
+        // Final observations retain their outcomes in the ledger and classes.
+        // Release computation caches before validating and publishing that evidence;
+        // contextual finalization reads the evidence index, not these preparations.
+        let mut analyses = std::mem::take(&mut self.analyses);
+        if finished && self.operation == super::JointOperation::Forward {
+            analyses.evaluate(
+                &ALL,
+                &input,
+                &self.coverage,
+                values,
+                lists,
+                &mut self.ledger,
+            )?;
+        }
+        drop(analyses);
         if finished {
-            if self.operation == super::JointOperation::Forward {
-                self.analyses.evaluate(
-                    &ALL,
-                    &input,
-                    &self.coverage,
-                    values,
-                    lists,
-                    &mut self.ledger,
-                )?;
-            }
-            if let Some(class) = &mut self.class {
+            if let Some(mut class) = self.class.take() {
                 self.classes = Some(class.evaluate(&input, &mut self.ledger)?);
             }
         } else {
+            self.class = None;
             for outcome in &mut self.ledger.outcomes {
                 if let NativeFamilyCompletion::Awaiting { reads } = &outcome.completion {
                     outcome.completion = match terminal {
