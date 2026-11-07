@@ -240,9 +240,23 @@ fn logic_to_canonical_rdf12_succeeds_nonempty() {
 // ── Error path tests ──────────────────────────────────────────────────────
 
 #[test]
-fn read_to_dataset_on_owl_dl_is_non_invertible_source_error() {
+fn read_to_dataset_refuses_non_invertible_and_malformed_sources() {
     let err = read_to_dataset(b"anything", Codec::OwlDl).expect_err("expected NonInvertibleSource");
     assert!(err.is::<crate::NonInvertibleSource>(), "got {err:?}");
+
+    // A syntax source passes admission, then retains its actual native parse
+    // refusal beneath the codec kind rather than flattening it into text.
+    let malformed = read_to_dataset(b"not valid Turtle", Codec::Turtle)
+        .expect_err("malformed admitted syntax must retain its codec refusal");
+    assert_eq!(malformed.code(), crate::CodecError::register());
+    let kind = malformed
+        .downcast_ref::<crate::CodecError>()
+        .expect("the codec kind remains downcastable");
+    let native = std::error::Error::source(kind)
+        .expect("the codec kind retains its native parse cause")
+        .downcast_ref::<purrdf::RdfDiagnostic>()
+        .expect("the original RDF diagnostic remains inspectable");
+    assert_eq!(malformed.message(), format!("codec error: {native}"));
 }
 
 #[test]
