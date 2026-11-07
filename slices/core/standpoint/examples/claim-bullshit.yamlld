@@ -16,7 +16,7 @@
 '@graph':
   - '@id': ex:claim-001
     '@type':
-      - '@id': StandpointClaim
+      - StandpointClaim
     claimModality:
       '@id': gmeow:bullshit
       '@annotation':
