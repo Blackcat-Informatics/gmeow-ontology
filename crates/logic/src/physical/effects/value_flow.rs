@@ -269,10 +269,21 @@ type Row = std::sync::Arc<AdaptiveDomain>;
 /// under many keys (the corpus closure holds 2.7M rows of 126,740 distinct
 /// contents), so each distinct content is resident once. A row is never
 /// mutated in place once shared: growth interns the grown content.
+/// Replacement retires unshared displaced content eagerly; the count-based sweep
+/// collects other stale entries, including those whose snapshot owners later end.
 #[derive(Debug, Clone, Default)]
 struct RowTable {
     rows: std::collections::HashSet<InternedRow>,
     live_at_sweep: usize,
+}
+
+/// Allocated row payload only: excludes table/Arc overhead, other domains and RSS.
+#[derive(Default)]
+struct RowTableFootprint {
+    rows: usize,
+    payload_bytes: usize,
+    stale_rows: usize,
+    stale_payload_bytes: usize,
 }
 
 /// A table entry keyed by the content its row denotes.
@@ -294,6 +305,33 @@ impl std::hash::Hash for InternedRow {
 }
 
 impl RowTable {
+    /// Retire a replaced content only when the table and this displaced owner
+    /// are its sole owners. Other keyed rows and cloned summaries keep it live.
+    fn retire(&mut self, displaced: Row) {
+        if Row::strong_count(&displaced) == 2 {
+            self.rows.remove(&InternedRow(displaced));
+        }
+    }
+
+    /// One scan of allocated table payloads. Stale means the table is the only
+    /// strong owner; references in another summary's table also keep a row live.
+    fn footprint(&self) -> RowTableFootprint {
+        let mut result = RowTableFootprint::default();
+        for row in &self.rows {
+            let bytes = match row.0.as_ref() {
+                AdaptiveDomain::Dense(domain) => domain.0.capacity() * 8,
+                AdaptiveDomain::Sparse { values, .. } => values.capacity() * 8,
+            };
+            result.rows += 1;
+            result.payload_bytes += bytes;
+            if Row::strong_count(&row.0) == 1 {
+                result.stale_rows += 1;
+                result.stale_payload_bytes += bytes;
+            }
+        }
+        result
+    }
+
     /// The resident row for this content, adopting `row` when it is new.
     fn intern(&mut self, row: AdaptiveDomain) -> Row {
         let entry = InternedRow(Row::new(row));
@@ -302,8 +340,8 @@ impl RowTable {
         }
         let shared = Row::clone(&entry.0);
         self.rows.insert(entry);
-        // Superseded contents linger only until the table doubles past its last
-        // live size; a sweep keeps what some row still holds.
+        // Replacements retire their unshared old contents directly. A sweep
+        // collects other stale entries once the table doubles past its last live size.
         if self.rows.len() > 2 * self.live_at_sweep.max(1 << 12) {
             self.rows.retain(|row| Row::strong_count(&row.0) > 1);
             self.live_at_sweep = self.rows.len();
@@ -1512,7 +1550,7 @@ impl FlowSummary {
         let shared = self.rows.intern(grown);
         match row {
             std::collections::btree_map::Entry::Occupied(mut row) => {
-                row.insert(shared);
+                self.rows.retire(row.insert(shared));
             }
             std::collections::btree_map::Entry::Vacant(row) => {
                 row.insert(shared);
@@ -2695,6 +2733,7 @@ impl ValueFlow {
                 .collect();
             let started = crate::timing::Instant::now();
             if candidates.len() >= 1_000 {
+                let table = std::cell::LazyCell::new(|| state.rows.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2706,6 +2745,10 @@ impl ValueFlow {
                     producer = rule.name.as_str(),
                     variables = rule.variables,
                     body_atoms = rule.body.len(),
+                    table_rows = table.rows,
+                    table_payload_bytes = table.payload_bytes,
+                    table_stale_rows = table.stale_rows,
+                    table_stale_payload_bytes = table.stale_payload_bytes,
                     "large native value-flow refinement",
                 );
             }
@@ -2786,6 +2829,7 @@ impl ValueFlow {
                 // Field expressions run only for an enabled event. The three
                 // fields share one scan, and a disabled event performs none.
                 let support = std::cell::LazyCell::new(|| state.support_bytes());
+                let table = std::cell::LazyCell::new(|| state.rows.footprint());
                 tracing::info!(
                     target: "pipeline_reasoning_detail",
                     phase = "refine-publish-native-head",
@@ -2799,6 +2843,10 @@ impl ValueFlow {
                     logical_support_mb = support.0 >> 20,
                     resident_support_mb = support.1 >> 20,
                     resident_dense_rows = support.2,
+                    table_rows = table.rows,
+                    table_payload_bytes = table.payload_bytes,
+                    table_stale_rows = table.stale_rows,
+                    table_stale_payload_bytes = table.stale_payload_bytes,
                     transposed_dense_mb = transposed_dense_bytes >> 20,
                     rule_index,
                     visit,

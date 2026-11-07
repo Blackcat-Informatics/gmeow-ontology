@@ -2122,4 +2122,40 @@ fn interned_support_rows_share_equal_content_and_grow_without_aliasing() {
     );
     assert_eq!(indices(&state, 2), vec![node(3)]);
     assert!(!Row::ptr_eq(&row(&state, 0), &row(&state, 1)));
+
+    // A snapshot keeps displaced content alive without observing later growth.
+    opposite.insert(node(0));
+    assert!(state.publish_condition(left, 0, node(2), &opposite, size));
+    let snapshot = state.clone();
+    let snapshot_row = Row::downgrade(&row(&state, 2));
+    opposite.insert(node(1));
+    assert!(state.publish_condition(left, 0, node(2), &opposite, size));
+    assert!(
+        snapshot_row.upgrade().is_some(),
+        "the snapshot retains its row"
+    );
+    assert_eq!(indices(&snapshot, 2), {
+        let mut expected = vec![node(0), node(3)];
+        expected.sort_unstable();
+        expected
+    });
+    drop(snapshot);
+
+    // Repeated private growth must release each replaced allocation immediately,
+    // rather than retaining dense intermediate contents until a count-based sweep.
+    for value in [node(5), node(2), node(4)] {
+        let displaced = Row::downgrade(&row(&state, 2));
+        opposite.insert(value);
+        assert!(state.publish_condition(left, 0, node(2), &opposite, size));
+        assert!(
+            displaced.upgrade().is_none(),
+            "unshared replaced row is retired"
+        );
+        assert_eq!(indices(&state, 2), opposite.indices().collect::<Vec<_>>());
+    }
+    assert_eq!(
+        indices(&state, 4),
+        vec![node(3)],
+        "a live sharer is unchanged"
+    );
 }
