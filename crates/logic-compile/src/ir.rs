@@ -679,8 +679,9 @@ impl LogicAxiom {
         if let AtomicTerm::Literal(literal) = &mut obj {
             literal_serde::normalize(literal).map_err(|detail| {
                 Diag::of_kind(crate::error::Ir {
-                    detail: detail.to_owned(),
+                    detail: detail.to_string(),
                 })
+                .with_source(detail)
             })?;
         }
         Ok(Self {
@@ -2068,6 +2069,7 @@ impl Correspondence {
                 Diag::of_kind(crate::error::Ir {
                     detail: format!("Correspondence <{}> loss evidence: {error}", self.iri),
                 })
+                .with_source(error)
             })?;
         }
         evidence.sort_by(|a, b| literal_serde::sort_key(a).cmp(&literal_serde::sort_key(b)));
@@ -2097,6 +2099,7 @@ impl Correspondence {
                     Diag::of_kind(crate::error::Ir {
                         detail: format!("Correspondence caveat <{}>: {error}", caveat.iri),
                     })
+                    .with_source(error)
                 })?;
             }
             caveat
@@ -2442,8 +2445,9 @@ impl Term {
     pub fn rdf_literal(mut literal: purrdf::RdfLiteral) -> gmeow_errors::Result<Self> {
         literal_serde::normalize(&mut literal).map_err(|detail| {
             Diag::of_kind(crate::error::Ir {
-                detail: detail.to_owned(),
+                detail: detail.to_string(),
             })
+            .with_source(detail)
         })?;
         Ok(Self::Literal(literal))
     }

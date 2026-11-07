@@ -5420,7 +5420,9 @@ fn read_messages(
         })
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
     crate::ir::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
-        sugar_err(format!("logic:message: {detail}")).with_focus(subject_str(node))
+        sugar_err(format!("logic:message: {detail}"))
+            .with_focus(subject_str(node))
+            .with_source(detail)
     })?;
     Ok(messages)
 }

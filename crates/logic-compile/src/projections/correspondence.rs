@@ -1254,7 +1254,7 @@ pub(crate) fn validate_loss_evidence(c: &Correspondence) -> gmeow_errors::Result
             literal.language.as_deref(),
             literal.direction,
         )
-        .map_err(|error| field_error(&c.iri, &p_lossy_drop(), error))?;
+        .map_err(|error| field_error(&c.iri, &p_lossy_drop(), error).with_source(error))?;
     }
     let residue: Vec<&str> = c
         .loss_evidence

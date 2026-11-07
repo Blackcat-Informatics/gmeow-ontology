@@ -36,7 +36,8 @@ impl<const UNIT_INTERVAL: bool> NumericLiteral<UNIT_INTERVAL> {
     /// Refuses malformed, nonnumeric, nonfinite or out-of-range values, including
     /// values outside the selected native datatype's representable precision.
     pub fn new(mut literal: RdfLiteral) -> gmeow_errors::Result<Self> {
-        super::literal_serde::normalize(&mut literal).map_err(error)?;
+        super::literal_serde::normalize(&mut literal)
+            .map_err(|cause| error(cause.to_string()).with_source(cause))?;
         let value = purrdf::xsd::parse_by_iri(&literal.lexical_form, literal.datatype_iri())
             .map_err(|detail| error(detail.to_string()))?
             .ok_or_else(|| error("requires a supported RDF numeric datatype"))?;

@@ -186,6 +186,7 @@ impl PreparedProjectionProfile {
                                 check.id
                             ),
                         })
+                        .with_source(why)
                     })?;
             }
         }

@@ -310,8 +310,12 @@ fn finding_identity_key(finding: &Finding) -> Option<String> {
 /// If the union file list cannot be built (it fails closed on an empty
 /// `generated/shapes/`) or a member cannot be read.
 fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
-    let files = purrdf::shapes::shape_union::shape_files(root)
-        .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))?;
+    let files = purrdf::shapes::shape_union::shape_files(root).map_err(|cause| {
+        Diag::of_kind(crate::error::Parse {
+            detail: cause.to_string(),
+        })
+        .with_source(cause)
+    })?;
     let mut out: Vec<u8> = Vec::new();
     for file in &files {
         let rel = file

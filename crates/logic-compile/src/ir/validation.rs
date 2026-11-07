@@ -442,8 +442,9 @@ impl ConstraintComponent {
                     if let ShapeValue::Literal(literal) = value {
                         super::literal_serde::normalize(literal).map_err(|detail| {
                             Diag::of_kind(crate::error::Validation {
-                                detail: detail.to_owned(),
+                                detail: detail.to_string(),
                             })
+                            .with_source(detail)
                         })?;
                     }
                 }
@@ -455,8 +456,9 @@ impl ConstraintComponent {
             ConstraintComponent::HasValue(ShapeValue::Literal(literal)) => {
                 super::literal_serde::normalize(literal).map_err(|detail| {
                     Diag::of_kind(crate::error::Validation {
-                        detail: detail.to_owned(),
+                        detail: detail.to_string(),
                     })
+                    .with_source(detail)
                 })?;
             }
             ConstraintComponent::QualifiedValueShape { shape, .. } => {
@@ -758,6 +760,7 @@ impl PropertyConstraintIr {
             Diag::of_kind(crate::error::Validation {
                 detail: format!("PropertyConstraintIr.messages: {detail}"),
             })
+            .with_source(detail)
         })?;
         self.messages = messages;
         Ok(self)

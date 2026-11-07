@@ -7,17 +7,45 @@
 use purrdf::{RdfLiteral, RdfTextDirection};
 use serde::{Deserialize, Deserializer, Serializer, ser::SerializeSeq};
 
+/// A local normalization refusal or the original native component cause.
+#[derive(Debug)]
+pub(crate) enum LiteralNormalizationError {
+    Local(&'static str),
+    Components(purrdf_core::LiteralComponentError),
+}
+
+impl std::fmt::Display for LiteralNormalizationError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Local(message) => formatter.write_str(message),
+            Self::Components(error) => std::fmt::Display::fmt(error, formatter),
+        }
+    }
+}
+
+impl std::error::Error for LiteralNormalizationError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Local(_) => None,
+            Self::Components(error) => Some(error),
+        }
+    }
+}
+
 /// Check RDF component coherence using the native authority and canonicalize the
 /// implied datatype and language case. No datatype lexical value is coerced.
-pub(crate) fn normalize(literal: &mut RdfLiteral) -> Result<(), &'static str> {
+pub(crate) fn normalize(literal: &mut RdfLiteral) -> Result<(), LiteralNormalizationError> {
     let datatype = literal
         .datatype
         .as_deref()
         .unwrap_or_else(|| literal.datatype_iri());
     if datatype.trim().is_empty() {
-        return Err("a literal datatype must be a non-empty IRI");
+        return Err(LiteralNormalizationError::Local(
+            "a literal datatype must be a non-empty IRI",
+        ));
     }
-    RdfLiteral::validate_components(datatype, literal.language.as_deref(), literal.direction)?;
+    RdfLiteral::validate_components(datatype, literal.language.as_deref(), literal.direction)
+        .map_err(LiteralNormalizationError::Components)?;
     literal.datatype =
         if literal.language.is_some() || datatype == "http://www.w3.org/2001/XMLSchema#string" {
             None
@@ -97,11 +125,15 @@ pub(crate) fn sort_key(
 }
 
 /// Admit complete advisory messages as a canonical RDF set without trimming wording.
-pub(crate) fn normalize_messages(literals: &mut Vec<RdfLiteral>) -> Result<(), &'static str> {
+pub(crate) fn normalize_messages(
+    literals: &mut Vec<RdfLiteral>,
+) -> Result<(), LiteralNormalizationError> {
     for literal in literals.iter_mut() {
         normalize(literal)?;
         if literal.lexical_form.trim().is_empty() {
-            return Err("a message literal must have nonblank lexical text");
+            return Err(LiteralNormalizationError::Local(
+                "a message literal must have nonblank lexical text",
+            ));
         }
     }
     literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
@@ -260,7 +292,7 @@ pub(crate) mod single {
         datatype: String,
         language: Option<String>,
         direction: Option<RdfTextDirection>,
-    ) -> Result<RdfLiteral, &'static str> {
+    ) -> Result<RdfLiteral, LiteralNormalizationError> {
         let mut literal = RdfLiteral {
             lexical_form,
             datatype: Some(datatype),

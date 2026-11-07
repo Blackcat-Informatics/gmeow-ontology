@@ -125,7 +125,7 @@ fn literal<'a>(term: Option<&'a RdfTerm>, field: &str) -> gmeow_errors::Result<&
         literal.language.as_deref(),
         literal.direction,
     )
-    .map_err(|why| invalid(&format!("malformed {field}: {why}")))?;
+    .map_err(|why| invalid(&format!("malformed {field}: {why}")).with_source(why))?;
     Ok(literal)
 }
 

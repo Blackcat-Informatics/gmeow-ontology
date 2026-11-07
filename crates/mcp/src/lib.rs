@@ -1877,7 +1877,7 @@ impl McpView {
                 literal.language.as_deref(),
                 literal.direction,
             )
-            .map_err(|why| invalid(&format!("malformed rationale: {why}")))?;
+            .map_err(|why| invalid(&format!("malformed rationale: {why}")).with_source(why))?;
             values
                 .entry(subject.clone())
                 .or_default()

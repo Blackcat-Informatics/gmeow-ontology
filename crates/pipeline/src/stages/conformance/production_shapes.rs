@@ -30,9 +30,10 @@ impl PreparedProductionShapes {
     pub fn new(production_shapes: &str) -> gmeow_errors::Result<Self> {
         // One parse yields the dataset and the document prefix map the shapes resolve against.
         let document = parse_turtle_document(production_shapes, None)
-            .map_err(|errors| fail(errors.join("\n")))?;
+            .map_err(|errors| fail(&errors).with_source(errors))?;
         let dataset = document.dataset;
-        let shapes = from_dataset_with_prefixes(&dataset, &document.prefixes).map_err(fail)?;
+        let shapes = from_dataset_with_prefixes(&dataset, &document.prefixes)
+            .map_err(|cause| fail(&cause).with_source(cause))?;
         let classes = FailureClassIndex::from_shapes_dataset(&dataset);
         Ok(Self {
             dataset,

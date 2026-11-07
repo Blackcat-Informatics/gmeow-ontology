@@ -597,7 +597,9 @@ fn parse_property_shape(
                         literal.language.as_deref(),
                         literal.direction,
                     )
-                    .map_err(|detail| parse_err(format!("{ctx}: sh:message: {detail}")))?;
+                    .map_err(|detail| {
+                        parse_err(format!("{ctx}: sh:message: {detail}")).with_source(detail)
+                    })?;
                     if literal.lexical_form.trim().is_empty() {
                         return Err(parse_err(format!(
                             "{ctx}: sh:message must have nonblank lexical text"

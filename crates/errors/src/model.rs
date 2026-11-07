@@ -572,7 +572,7 @@ fn validate_source_literal(literal: &purrdf_core::RdfLiteral) -> Result<(), Stri
         literal.language.as_deref(),
         literal.direction,
     )
-    .map_err(str::to_owned)
+    .map_err(|cause| cause.message().to_owned())
 }
 
 impl SourceAnnotation {

@@ -170,8 +170,12 @@ fn require_non_vacuous_corpus(
     declared: &BTreeSet<String>,
     docs_terms: &BTreeSet<String>,
 ) -> Result<()> {
-    let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
-        .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
+    let shape_files = purrdf::shapes::shape_union::shape_files(project_root).map_err(|cause| {
+        Diag::of_kind(crate::error::Io {
+            detail: cause.to_string(),
+        })
+        .with_source(cause)
+    })?;
     if shape_files.is_empty() {
         return Err(Diag::of_kind(crate::error::Io {
             detail: "authoring-integrity: merged shape-file corpus floor 1 not met (got 0 \
@@ -271,8 +275,12 @@ pub fn authoring_integrity_findings(
 /// corpus the live validator sees (base `shapes/*.ttl` minus the DSL lints, the
 /// fail-closed `generated/shapes/*.ttl`, and every `slices/*/*/shapes.ttl`).
 pub fn shape_iri_collision_findings(repo_root: &Path) -> Result<Vec<Finding>> {
-    let files = purrdf::shapes::shape_union::shape_files(repo_root)
-        .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
+    let files = purrdf::shapes::shape_union::shape_files(repo_root).map_err(|cause| {
+        Diag::of_kind(crate::error::Io {
+            detail: cause.to_string(),
+        })
+        .with_source(cause)
+    })?;
     let mut loaded: Vec<(PathBuf, Dataset)> = Vec::with_capacity(files.len());
     for f in files {
         let ds = parse_ttl(&f)?;

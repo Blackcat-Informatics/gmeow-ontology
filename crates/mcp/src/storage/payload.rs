@@ -349,7 +349,7 @@ impl StructuredPayload {
                             value.language.as_deref(),
                             value.direction,
                         )
-                        .map_err(|cause| err(format!("facetText: {cause}")))?;
+                        .map_err(|cause| err(format!("facetText: {cause}")).with_source(cause))?;
                         if value.datatype_iri() == format!("{XSD}string") {
                             purrdf::xsd::simple::read_xml_string(&value.lexical_form)
                                 .map_err(|cause| err(format!("facetText: {cause}")))?;

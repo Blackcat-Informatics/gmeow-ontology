@@ -533,8 +533,9 @@ impl ConstraintIr {
         if iri.trim().is_empty() {
             return Err(ir_err("ConstraintIr.iri must be a non-empty IRI string"));
         }
-        super::literal_serde::normalize_messages(&mut messages)
-            .map_err(|detail| ir_err(format!("ConstraintIr.messages: {detail}")))?;
+        super::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
+            ir_err(format!("ConstraintIr.messages: {detail}")).with_source(detail)
+        })?;
         let target = target_from_integrity(&integrity)?;
         Ok(Self {
             iri,
