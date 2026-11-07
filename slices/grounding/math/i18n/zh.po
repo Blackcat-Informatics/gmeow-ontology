@@ -13904,3 +13904,171 @@ msgstr "避免将其视为正定黎曼度量、根据种类标签推断物理解
 msgctxt "https://blackcatinformatics.ca/math/lorentzianStructure|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select this value through manifoldStructureKind and retain the actual metricTensor, metricSignature counts and stated sign convention. Keep physical interpretations in their own attributed downstream records."
 msgstr "通过 manifoldStructureKind 选择此值，并保留实际 metricTensor、metricSignature 计数及所述符号约定。物理解释须保留在各自有归属的下游记录中。"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Manifold"
+msgstr "流形"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A manifold: a topological space locally homeomorphic to ℝⁿ, Hausdorff and second-countable, covered by a math:Atlas of charts. A subclass of math:TopologicalSpace. It declares both its dimension through math:manifoldDimension and its structure kind through math:manifoldStructureKind (topological, smooth, complex, Riemannian, Lorentzian) — a manifold missing either is ill-formed (math:UnderspecifiedManifold)."
+msgstr "流形：局部同胚于 ℝⁿ、满足 Hausdorff 条件和第二可数性，并由坐标图组成的 math:Atlas 覆盖的拓扑空间。它是 math:TopologicalSpace 的子类。它通过 math:manifoldDimension 声明维数，并通过 math:manifoldStructureKind 声明结构种类（拓扑、光滑、复、黎曼或洛伦兹）；缺少任一项的流形均为不良形式（math:UnderspecifiedManifold）。"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The mathematical object must have the stated local Euclidean, Hausdorff and second-countable structure. A record of dimension and selected kind does not supply its atlas or prove those topological obligations."
+msgstr "数学对象必须具备所述局部欧几里得、Hausdorff 和第二可数结构。维数及所选种类的记录不提供其图册，也不证明这些拓扑义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of a declared frame: ex:M a math:Manifold ; math:manifoldDimension 2 ; math:manifoldStructureKind math:topologicalStructure ."
+msgstr "声明框架的示意：ex:M a math:Manifold ; math:manifoldDimension 2 ; math:manifoldStructureKind math:topologicalStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a mathematical space with the local Euclidean, Hausdorff and second-countable structure required by this class."
+msgstr "用于具有此类要求的局部欧几里得、Hausdorff 和第二可数结构的数学空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for an arbitrary topological space, deriving chart coverage or separation from a label, or treating missing dimension or kind as an implicit default."
+msgstr "避免将其用于任意拓扑空间、根据标签推导坐标图覆盖或分离性，或将缺失维数或种类视为隐含默认值。"
+
+msgctxt "https://blackcatinformatics.ca/math/Manifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual manifoldDimension and one selected manifoldStructureKind. Identify the supplied atlas, charts and topology evidence separately; the frame declarations do not replace that mathematical structure."
+msgstr "保留实际 manifoldDimension 及唯一选定的 manifoldStructureKind。另行指明所提供的图册、坐标图及拓扑依据；框架声明不替代该数学结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Smooth Manifold"
+msgstr "光滑流形"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A smooth (C^∞) manifold: a manifold whose atlas has smooth transition maps, so differentiation is well-defined. A subclass of math:Manifold; its math:manifoldStructureKind is math:smoothStructure. The setting for tangent spaces, tensor fields, and differential geometry."
+msgstr "光滑（C^∞）流形：图册具有光滑过渡映射、因而微分是良定义的流形。它是 math:Manifold 的子类；其 math:manifoldStructureKind 为 math:smoothStructure。它是切空间、张量场及微分几何的背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Smoothness belongs to compatible transition maps of the actual atlas. This class does not by itself supply a metric, connection or complex structure; class inheritance does not require several selected-kind values."
+msgstr "光滑性属于实际图册中相容的过渡映射。此类本身不提供度量、联络或复结构；类继承不要求多个选定种类值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind: ex:M a math:SmoothManifold ; math:manifoldStructureKind math:smoothStructure ."
+msgstr "类与种类的示意：ex:M a math:SmoothManifold ; math:manifoldStructureKind math:smoothStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a manifold equipped with compatible smooth transition maps when differential constructions require that structure."
+msgstr "当微分构造需要光滑结构时，用于配备相容光滑过渡映射的流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring smoothness from continuity alone, claiming a supplied atlas or derivative from the type name, or adding ancestor-kind values to a more specific selection."
+msgstr "避免仅凭连续性推断光滑性、依据类型名称声称已提供图册或导数，或向更具体的选择添加祖先种类值。"
+
+msgctxt "https://blackcatinformatics.ca/math/SmoothManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the smooth atlas and transition evidence. Select smoothStructure when that is the declared structure; a more specific subclass retains its actual single selected kind instead of adding every ancestor kind."
+msgstr "保留光滑图册及过渡依据。当所声明结构为 smoothStructure 时选择该值；更具体的子类保留其实际唯一选定种类，不添加每个祖先种类。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complex Manifold"
+msgstr "复流形"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex manifold: a manifold with holomorphic transition maps, locally modeled on ℂⁿ. A subclass of math:SmoothManifold (a complex structure refines a smooth one); its math:manifoldStructureKind is math:complexStructure. Its real dimension is twice its complex dimension."
+msgstr "复流形：具有全纯过渡映射、局部以 ℂⁿ 为模型的流形。它是 math:SmoothManifold 的子类（复结构细化光滑结构）；其 math:manifoldStructureKind 为 math:complexStructure。其实维数是复维数的两倍。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complex manifold of complex dimension n has underlying real dimension 2n. These dimensions have different meanings; naming the class or kind does not supply compatible chart declarations or a conversion between their recorded coordinate dimensions."
+msgstr "复维数为 n 的复流形，其底层实维数为 2n。这些维数含义不同；指明类或种类不提供相容的坐标图声明，也不提供已记录坐标维数之间的转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind only: ex:C a math:ComplexManifold ; math:manifoldStructureKind math:complexStructure ."
+msgstr "仅示意类与种类：ex:C a math:ComplexManifold ; math:manifoldStructureKind math:complexStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a manifold with holomorphic coordinate transitions and the resulting complex structure."
+msgstr "用于具有全纯坐标过渡及由此产生的复结构的流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a complex manifold from complex-valued data on a real space, choosing coordinate-space counts from a bare dimension number, or treating the type as a chart-comparison certificate."
+msgstr "避免根据实空间上的复值数据推断复流形、从孤立维数数字选择坐标空间计数，或将类型视为坐标图比较证书。"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplexManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain complexStructure, the actual holomorphic chart and transition evidence, and the separately stated dimension conventions. Keep real and complex dimensions explicit without guessing target-space counts or asserting automatic reconciliation."
+msgstr "保留 complexStructure、实际全纯坐标图及过渡依据，以及另行陈述的维数约定。明确保留实维数与复维数，不猜测目标空间计数，也不断言自动协调一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Riemannian Manifold"
+msgstr "黎曼流形"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Riemannian manifold: a smooth manifold with a positive-definite math:MetricTensor giving lengths and angles. A subclass of math:SmoothManifold; its math:manifoldStructureKind is math:riemannianStructure and its metric's math:metricSignature is (n, 0). The setting of curvature, geodesics, and classical differential geometry."
+msgstr "黎曼流形：具有正定 math:MetricTensor、给出长度和角度的光滑流形。它是 math:SmoothManifold 的子类；其 math:manifoldStructureKind 为 math:riemannianStructure，其度量的 math:metricSignature 为 (n, 0)。它是曲率、测地线及经典微分几何的背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A positive-definite metric is additional mathematical structure on a smooth manifold. A type assertion does not supply tensor components, establish their laws or compute lengths, angles, geodesics or curvature."
+msgstr "正定度量是光滑流形上的附加数学结构。类型断言不提供张量分量、不确立其规律，也不计算长度、角度、测地线或曲率。"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of class and kind: ex:M a math:RiemannianManifold ; math:manifoldStructureKind math:riemannianStructure ."
+msgstr "类与种类的示意：ex:M a math:RiemannianManifold ; math:manifoldStructureKind math:riemannianStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a smooth manifold equipped with a positive-definite metric in a Riemannian geometric construction."
+msgstr "用于黎曼几何构造中配备正定度量的光滑流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for an indefinite Lorentzian metric, assuming a chosen signature is available on every smooth manifold, or claiming a geometric calculation from classification alone."
+msgstr "避免将此类用于不定的洛伦兹度量、假定所选惯性指数对在每个光滑流形上都可实现，或仅凭分类就声称已进行几何计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/RiemannianManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain riemannianStructure and the actual metricTensor, its metricSignature and the smooth chart evidence. Preserve the positive-definite signature convention and the metric relationship to this manifold."
+msgstr "保留 riemannianStructure、实际 metricTensor、其 metricSignature 及光滑坐标图依据。保留正定惯性指数对约定，以及度量与此流形的关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lorentzian Manifold"
+msgstr "洛伦兹流形"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Lorentzian manifold: a smooth manifold with a metric tensor of signature (1, n−1) (or (n−1, 1)) — one timelike and n−1 spacelike directions. A subclass of math:SmoothManifold (a pseudo-Riemannian manifold, sibling to math:RiemannianManifold, not a subclass of it since the metric is indefinite); its math:manifoldStructureKind is math:lorentzianStructure. The math object a physics slice builds spacetime on — the metric and manifold stay here on the math side; spacetime, worldlines, and proper time are physics."
+msgstr "洛伦兹流形：具有惯性指数对为 (1, n−1)（或 (n−1, 1)）的度量张量的光滑流形，有一个类时方向及 n−1 个类空方向。它是 math:SmoothManifold 的子类（是一种伪黎曼流形，与 math:RiemannianManifold 同级而非其子类，因为度量不定）；其 math:manifoldStructureKind 为 math:lorentzianStructure。它是物理切片构建时空所依托的数学对象：度量与流形保留在数学侧；时空、世界线及固有时属于物理。"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The manifold and indefinite metric are mathematical objects. One timelike direction and the remaining spacelike directions follow the declared sign convention; physical spacetime, worldlines and proper-time observations need their own interpretation and attribution."
+msgstr "流形与不定度量是数学对象。一个类时方向及其余类空方向遵循所声明的符号约定；物理时空、世界线及固有时观测需要各自的解释与归属。"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing analysis-and-geometry scene types ex:minkowski as math:LorentzianManifold and supplies math:metricTensor ex:minkowskiMetric ."
+msgstr "现有 analysis-and-geometry 场景将 ex:minkowski 声明为 math:LorentzianManifold，并提供 math:metricTensor ex:minkowskiMetric ."
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a smooth manifold equipped with a metric of Lorentzian signature under an explicitly stated sign convention."
+msgstr "用于在明确陈述的符号约定下，配备洛伦兹惯性指数对度量的光滑流形。"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as a positive-definite Riemannian manifold, inferring physical spacetime or measured time from the type, or assuming every smooth manifold carries the selected metric."
+msgstr "避免将其视为正定黎曼流形、根据类型推断物理时空或测得时间，或假定每个光滑流形都具有所选度量。"
+
+msgctxt "https://blackcatinformatics.ca/math/LorentzianManifold|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain lorentzianStructure, the actual metricTensor and metricSignature counts, and the supplied sign convention. Preserve smooth chart evidence without adding a second ancestor-kind value; keep physical interpretations separately attributed."
+msgstr "保留 lorentzianStructure、实际 metricTensor 及 metricSignature 计数，以及所提供的符号约定。保留光滑坐标图依据，不添加第二个祖先种类值；物理解释保持另行归属。"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "manifold structure kind"
+msgstr "流形结构种类"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold)."
+msgstr "将 math:Manifold 关联到其所具有的 math:ManifoldStructureKind，即拓扑、光滑、复、黎曼或洛伦兹。定义域为 math:Manifold，值域为 math:ManifoldStructureKind（以文字说明）。每个流形恰好声明一种；没有结构种类的流形为不良形式（math:UnderspecifiedManifold）。"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the resource naming the single selected structure context, not a string code or proof of the supporting mathematics. Missing selection is not topologicalStructure, and subclass membership does not materialize additional kind values."
+msgstr "宾语是指明唯一选定结构上下文的资源，不是字符串代码，也不是支持该结构的数学证明。缺少选择不表示 topologicalStructure，子类归属也不会物化额外种类值。"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Illustration of an explicit resource selection: ex:M math:manifoldStructureKind math:complexStructure ."
+msgstr "显式资源选择的示意：ex:M math:manifoldStructureKind math:complexStructure ."
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the actual structure-kind selection of a manifold declaration."
+msgstr "用于记录流形声明中实际的结构种类选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid string labels, silent defaults, selecting the strongest available label, or adding every ancestor kind because a manifold has a more specific class."
+msgstr "避免使用字符串标签、隐含默认值、选择最强的可用标签，或因流形具有更具体的类而添加每个祖先种类。"
+
+msgctxt "https://blackcatinformatics.ca/math/manifoldStructureKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one actual ManifoldStructureKind resource and retain the appropriate dimension, chart, transition and metric evidence separately. Preserve different selections in their own declared contexts rather than choosing by graph order or accumulating several selected kinds on one declaration."
+msgstr "引用一个实际 ManifoldStructureKind 资源，并另行保留适当的维数、坐标图、过渡及度量依据。将不同选择保留在各自声明的上下文中，不按图中顺序择一，也不在同一声明上累积多个选定种类。"
