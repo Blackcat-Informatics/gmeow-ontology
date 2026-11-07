@@ -4473,20 +4473,305 @@ math:riemannZeta
     skos:definition "The Riemann zeta function ζ(s) = ∑_{n≥1} n^(−s) for Re(s) > 1, meromorphically continued with a simple pole at s = 1. Its finite complex-valued form has domain math:riemannZetaDomain and codomain math:complexNumbers. Supplied correspondences link it to DLMF chapter 25 and Wikidata; naming it does not prove the Riemann hypothesis."@x-gmeow-english .
 
 math:besselJ
-    a logic:NamedIndividual , math:SpecialFunction ;
+    a logic:NamedIndividual , math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Jₙ (Bessel function, first kind)"@x-gmeow-english ;
-    math:domain math:realNumbers ;
-    math:codomain math:realNumbers ;
-    skos:definition "The Bessel function of the first kind Jₙ(x): a solution of Bessel's equation regular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+    skos:definition "The integer-order family of real Bessel functions of the first kind, n ↦ (x ↦ Jₙ(x)): a math:Function from math:integers to math:besselJMemberFunctionSpace. Each selected member is a math:SpecialFunction with domain math:realNumbers and codomain math:realNumbers. The existing identity and DLMF chapter 10 link name the analytic family; its declared frame laws do not uniquely characterize analytic values or implement evaluation."@x-gmeow-english ;
+    skos:scopeNote "This is a function-valued family: its input is an integer order and its output is a member function, not a set or scalar value. Function typing carries intended mathematical totality. The conditional member-frame law does not prove that selections or application values exist or are unique."@x-gmeow-english ;
+    skos:example "For an integer-order resource n, functionValueRel(besselJ,n,f) selects a member f; functionValueRel(f,x,y) then describes a separate application at a real argument. These two ternary relations retain both roles without fixing an arbitrary order or asserting a numerical result."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the integer-order first-kind family when the source has not selected one particular Jₙ member, or when a source selection must keep its order and member identity explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the family as an already selected unary function, replacing its integer input with an argument x, or treating a correct member frame as a proof of Bessel analytic identity or numerical evaluation."@x-gmeow-english ;
+    gmeow:howToUse "Keep domain integers and codomain besselJMemberFunctionSpace on the family. Retain a supplied order selection through functionValueRel and frame its selected member with the existing law. Use a second functionValueRel for member application; do not invent selections or values merely to witness intended totality."@x-gmeow-english ;
+    math:domain math:integers ;
+    math:codomain math:besselJMemberFunctionSpace ;
+    math:definingLaw math:besselJFamilyMemberFrameLaw .
 
 math:besselY
-    a logic:NamedIndividual , math:SpecialFunction ;
+    a logic:NamedIndividual , math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Yₙ (Bessel function, second kind)"@x-gmeow-english ;
-    math:domain math:realNumbers ;
-    math:codomain math:realNumbers ;
-    skos:definition "The Bessel function of the second kind Yₙ(x): a solution of Bessel's equation singular at the origin. Aligned to DLMF chapter 10."@x-gmeow-english .
+    skos:definition "The integer-order family of real Bessel functions of the second kind, n ↦ (x ↦ Yₙ(x)): a math:Function from math:integers to math:besselYMemberFunctionSpace. Each selected member is a math:SpecialFunction on math:besselPositiveRealArguments with codomain math:realNumbers. This explicitly selects the usual positive-real argument branch; zero and negative real arguments are excluded from that member domain. Its frame laws do not define the full analytic graph or evaluate it."@x-gmeow-english ;
+    skos:scopeNote "The family takes an integer order; a selected member takes a finite positive real argument. These are separate applications. Intended total Function meaning is restricted to those declared domains; the conditional law does not construct a member, establish output existence or extend the branch to complex arguments."@x-gmeow-english ;
+    skos:example "A supplied functionValueRel(besselY,n,f) selects a second-kind member framed on the positive-real interval. A supplied functionValueRel(f,x,y) with x in that interval has a real output obligation; no value at zero is supplied or guessed."@x-gmeow-english ;
+    gmeow:useWhen "Use for the integer-order second-kind family under its explicit positive-real argument reading, retaining the source's selected order and member when those are supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid declaring every Yₙ total on all real numbers, inserting a value at zero, fixing an unselected order or inferring a complex-order or complex-branch continuation from this real-valued family."@x-gmeow-english ;
+    gmeow:howToUse "Keep domain integers and codomain besselYMemberFunctionSpace on the family. Preserve supplied order selections and selected member frames, with besselPositiveRealArguments as the member domain. Keep member applications separate and report absent or unsupported source values without inventing them."@x-gmeow-english ;
+    math:domain math:integers ;
+    math:codomain math:besselYMemberFunctionSpace ;
+    math:definingLaw math:besselYFamilyMemberFrameLaw .
+
+math:besselPositiveRealArguments
+    a math:Interval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "positive real arguments for Bessel Y members"@x-gmeow-english ;
+    skos:definition "The open interval (0,+∞) used as the argument domain of the selected integer-order real Bessel Y members. Its lower endpoint is the numeric literal zero, its upper endpoint is math:PositiveInfinity, and both inclusions are math:openEndpoint. It contains finite positive real points; neither endpoint is a member."@x-gmeow-english ;
+    skos:scopeNote "This Interval is a set used as a member function's domain, not the family's integer-order domain or an output range. Its four explicit endpoint fields express the selected real branch without adding a numeric-object conversion or a new interval membership evaluator."@x-gmeow-english ;
+    skos:example "The declared interval has lowerEndpoint 0, upperEndpoint PositiveInfinity and two openEndpoint markers. Mathematical zero and the positive pole are excluded, so the Y-member frame does not promise a value at either boundary."@x-gmeow-english ;
+    gmeow:useWhen "Use as the shared positive-real input set for the selected Y members, keeping the branch restriction explicit and distinct from integer order selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing the zero endpoint, including the infinity pole as an argument, replacing the domain by all realNumbers or treating the interval resource as one particular argument value."@x-gmeow-english ;
+    gmeow:howToUse "Retain all four existing Interval endpoint and inclusion fields. Reference this set from the Y member-space condition and selected member domain. Keep actual argument resources and any evidence of their membership separate from the endpoint literals."@x-gmeow-english ;
+    math:lowerEndpoint 0 ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+math:besselJMemberFunctionSpace
+    a math:FunctionSpace , math:SetBuilderExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "real function space used by the Bessel J family"@x-gmeow-english ;
+    skos:definition "The FunctionSpace of all total math:Function maps with domain math:realNumbers and codomain math:realNumbers, used as the codomain of math:besselJ. It is also a math:SetBuilderExpression whose realized member condition is backed by math:besselJMemberSpaceMembershipLaw. The space includes all correctly framed maps, not only Bessel members."@x-gmeow-english ;
+    skos:scopeNote "This set is the family's codomain; the family returns a member function, not the set itself. FunctionSpace has no dedicated Function frame slots, so domain and codomain belong to each member. SpecialFunction typing is added by the separate selection law, not by this all-map membership condition."@x-gmeow-english ;
+    skos:example "A function f typed Function with domain realNumbers and codomain realNumbers meets the shared condition φ(f). The membership law relates that condition to hasElement(besselJMemberFunctionSpace,f), without claiming f is analytically a Bessel function."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the fixed real-to-real function space that is the target set of the integer-order J family."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the space itself as Function, adding Function-only frame links to it or restricting its members to SpecialFunction merely because the Bessel family selects such members."@x-gmeow-english ;
+    gmeow:howToUse "Keep FunctionSpace and SetBuilderExpression typing, the shared memberCondition Formula and its separately bound membership law. Frame each selected map through its own domain and codomain; do not enumerate illustrative members as if they exhaust the space."@x-gmeow-english ;
+    math:memberCondition _:besselJMemberCondition ;
+    math:definingLaw math:besselJMemberSpaceMembershipLaw .
+
+math:besselYMemberFunctionSpace
+    a math:FunctionSpace , math:SetBuilderExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "positive-real function space used by the Bessel Y family"@x-gmeow-english ;
+    skos:definition "The FunctionSpace of all total math:Function maps from math:besselPositiveRealArguments to math:realNumbers, used as the codomain of math:besselY. It is also a math:SetBuilderExpression with a realized member condition backed by math:besselYMemberSpaceMembershipLaw. Membership requires the positive-real domain frame, not Bessel analytic identity."@x-gmeow-english ;
+    skos:scopeNote "The space collects all correctly framed positive-real-to-real functions. It is distinct from both the positive-real argument set and any one selected Y member. Its member condition does not require SpecialFunction typing or construct analytic functions."@x-gmeow-english ;
+    skos:example "For a Function f with domain besselPositiveRealArguments and codomain realNumbers, the shared condition φ(f) gives membership in this space. A later supplied integer-order Y selection additionally frames f as SpecialFunction."@x-gmeow-english ;
+    gmeow:useWhen "Use for the codomain set of the integer-order real Y family, preserving the positive-real member-input restriction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the space by realNumbers, confusing a returned function with a scalar output or assigning Function-only domain/codomain links to this set."@x-gmeow-english ;
+    gmeow:howToUse "Retain its FunctionSpace/SetBuilderExpression types and shared realized condition, with a separate closed membership-iff law. Use the space as besselY's codomain and the positive-real interval as each selected member's domain; these roles are not interchangeable."@x-gmeow-english ;
+    math:memberCondition _:besselYMemberCondition ;
+    math:definingLaw math:besselYMemberSpaceMembershipLaw .
+
+math:besselJMemberSpaceMembershipLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "membership law for the Bessel J function space"@x-gmeow-english ;
+    skos:definition "The universally quantified equivalence stating that f belongs to math:besselJMemberFunctionSpace exactly when f is a math:Function with domain math:realNumbers and codomain math:realNumbers. Its right-hand condition is the same realized Formula used by the space's math:memberCondition."@x-gmeow-english ;
+    skos:scopeNote "The named law binds f explicitly and characterizes the all-map space through existing typing and frame predicates. It does not equate membership with being a Bessel member, enumerate functions or assert existence and uniqueness of family selections or application outputs."@x-gmeow-english ;
+    skos:example "The law reads ∀f: hasElement(besselJMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,realNumbers) ∧ codomain(f,realNumbers)]. The shared f condition is bound here independently of its use in the family frame law."@x-gmeow-english ;
+    gmeow:useWhen "Use as the explicit logical backing for the J member-space membership condition, retaining both directions of the equivalence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a one-way implication, an unbound condition or a label-only Formula for the membership equivalence. A correct frame is not a Bessel analytic characterization."@x-gmeow-english ;
+    gmeow:howToUse "Keep the closed forall-f root linked by definingLaw and reuse the same acyclic condition node as memberCondition. Preserve exactly two iff operands and contiguous argument indices; do not make the owner-scoped condition an unrelated standalone assertion."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:iff
+            [ a logic:Formula ;
+                logic:relation math:hasElement ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termIri math:besselJMemberFunctionSpace ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "f" ]
+            ] ,
+            _:besselJMemberCondition
+    ] .
+
+math:besselJFamilyMemberFrameLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conditional member-frame law for the Bessel J family"@x-gmeow-english ;
+    skos:definition "The conditional law for an integer-order selection functionValueRel(besselJ,n,f): the selected f is a math:SpecialFunction with the J member-space frame. For a supplied functionValueRel(f,x,y) at x in math:realNumbers, y belongs to math:realNumbers. It retains the family selection and member application as two uses of the existing ternary relation."@x-gmeow-english ;
+    skos:scopeNote "The law binds n and f, then x and y in the nested application condition. Its forward implication requires a frame for supplied selections even without supplied applications, but does not state that a member or output exists or is unique. Intended total Function semantics and the primitive analytic identity remain separate from this law's exact strength."@x-gmeow-english ;
+    skos:example "Given integer membership for n and a supplied besselJ(n)=f selection, the consequent requires SpecialFunction(f) and φ(f). If a real-input application f(x)=y is also supplied, its output has real membership. With no selection, the implication supplies no witness."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the order-dependent member frame and the real-output obligation for supplied J applications without erasing the selected function identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling the implication a totality proof, an existence or uniqueness theorem, a definition of Bessel analytic values or a registered numerical evaluator."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the integer-membership and family-selection guard, SpecialFunction and shared φ(f) consequent, and nested real-argument application guard. Keep functionValueRel argument order function/input/value and all variables bound; do not add fabricated selections or values."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "n" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "f" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:and
+                [ a logic:Formula ;
+                    logic:relation math:hasElement ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termIri math:integers ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "n" ]
+                ] ,
+                [ a logic:Formula ;
+                    logic:relation math:functionValueRel ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termIri math:besselJ ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "n" ] ,
+                        [ logic:termIndex 2 ; logic:termVariable "f" ]
+                ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and
+                [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                        [ logic:termIndex 1 ; logic:termIri math:SpecialFunction ]
+                ] ,
+                _:besselJMemberCondition ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "y" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ;
+                            logic:and
+                                [ a logic:Formula ;
+                                    logic:relation math:hasElement ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termIri math:realNumbers ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "x" ]
+                                ] ,
+                                [ a logic:Formula ;
+                                    logic:relation math:functionValueRel ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "y" ]
+                                ]
+                        ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:relation math:hasElement ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termIri math:realNumbers ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "y" ]
+                        ]
+                    ]
+                ]
+        ]
+    ] .
+
+math:besselYMemberSpaceMembershipLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "membership law for the Bessel Y function space"@x-gmeow-english ;
+    skos:definition "The universally quantified equivalence stating that f belongs to math:besselYMemberFunctionSpace exactly when f is a math:Function with domain math:besselPositiveRealArguments and codomain math:realNumbers. It binds the member variable used by the space's shared realized condition."@x-gmeow-english ;
+    skos:scopeNote "The equivalence defines an all-map space with a fixed positive-real source set. SpecialFunction typing, integer-order selection and analytic behavior belong to separate claims; this membership law provides no numerical membership execution or construction guarantee."@x-gmeow-english ;
+    skos:example "The law reads ∀f: hasElement(besselYMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,besselPositiveRealArguments) ∧ codomain(f,realNumbers)]. It does not admit a function framed on all realNumbers by silently changing that domain."@x-gmeow-english ;
+    gmeow:useWhen "Use to back the exact positive-real-to-real member-space criterion with a closed, two-way logical statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid weakening the criterion to a display label, leaving f free in the law root or assuming that the equivalence proves a candidate's Bessel values."@x-gmeow-english ;
+    gmeow:howToUse "Retain the bound forall-f membership root and its shared condition subtree, keeping the positive-real domain identity exact. The space links the condition through memberCondition and the law through definingLaw; those ownership and backing roles remain distinct."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:iff
+            [ a logic:Formula ;
+                logic:relation math:hasElement ;
+                logic:argument
+                    [ logic:termIndex 0 ; logic:termIri math:besselYMemberFunctionSpace ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "f" ]
+            ] ,
+            _:besselYMemberCondition
+    ] .
+
+math:besselYFamilyMemberFrameLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conditional member-frame law for the Bessel Y family"@x-gmeow-english ;
+    skos:definition "The conditional law for an integer-order selection functionValueRel(besselY,n,f): the selected f is a math:SpecialFunction with the positive-real-to-real Y member-space frame. A supplied application functionValueRel(f,x,y) with x in math:besselPositiveRealArguments has y in math:realNumbers. No application at zero or outside the selected domain is certified."@x-gmeow-english ;
+    skos:scopeNote "The selection and application guards use the same selected f with separately bound order, argument and value variables. This is a forward frame/range obligation, not a witness-producing totality law or an analytic graph definition. No continuation to arbitrary real or complex arguments follows."@x-gmeow-english ;
+    skos:example "An integer n and supplied besselY(n)=f selection require the positive-real member frame. A supplied f(x)=y with positive-real x adds the real-output obligation; a missing selection or an out-of-domain x does not create an application value."@x-gmeow-english ;
+    gmeow:useWhen "Use as logical backing for the selected integer-order Y member frame and the output range of supplied applications on its explicit real branch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a false or absent guard as a computed value, extending the domain across zero, or claiming that the frame uniquely selects the analytic Yₙ function among all correctly framed maps."@x-gmeow-english ;
+    gmeow:howToUse "Keep the family application besselY,n,f separate from the member application f,x,y. Reuse the positive-real φ(f), bind all variables and retain the domain-membership guard on x. Preserve source evidence and unresolved values without inventing numerical witnesses."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "n" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "f" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ;
+            logic:and
+                [ a logic:Formula ;
+                    logic:relation math:hasElement ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termIri math:integers ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "n" ]
+                ] ,
+                [ a logic:Formula ;
+                    logic:relation math:functionValueRel ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termIri math:besselY ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "n" ] ,
+                        [ logic:termIndex 2 ; logic:termVariable "f" ]
+                ]
+        ] ;
+        logic:consequent [ a logic:Formula ;
+            logic:and
+                [ a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument
+                        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                        [ logic:termIndex 1 ; logic:termIri math:SpecialFunction ]
+                ] ,
+                _:besselYMemberCondition ,
+                [ a logic:Formula ;
+                    logic:quantifiedVariable
+                        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "y" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ;
+                            logic:and
+                                [ a logic:Formula ;
+                                    logic:relation math:hasElement ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termIri math:besselPositiveRealArguments ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "x" ]
+                                ] ,
+                                [ a logic:Formula ;
+                                    logic:relation math:functionValueRel ;
+                                    logic:argument
+                                        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "y" ]
+                                ]
+                        ] ;
+                        logic:consequent [ a logic:Formula ;
+                            logic:relation math:hasElement ;
+                            logic:argument
+                                [ logic:termIndex 0 ; logic:termIri math:realNumbers ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "y" ]
+                        ]
+                    ]
+                ]
+        ]
+    ] .
+
+_:besselJMemberCondition
+    a logic:Formula ;
+    logic:and
+        [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:Function ]
+        ] ,
+        [ a logic:Formula ;
+            logic:relation math:domain ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:realNumbers ]
+        ] ,
+        [ a logic:Formula ;
+            logic:relation math:codomain ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:realNumbers ]
+        ] .
+
+_:besselYMemberCondition
+    a logic:Formula ;
+    logic:and
+        [ a logic:Formula ;
+            logic:relation rdf:type ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:Function ]
+        ] ,
+        [ a logic:Formula ;
+            logic:relation math:domain ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:besselPositiveRealArguments ]
+        ] ,
+        [ a logic:Formula ;
+            logic:relation math:codomain ;
+            logic:argument
+                [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+                [ logic:termIndex 1 ; logic:termIri math:realNumbers ]
+        ] .
 
 math:errorFunction
     a logic:NamedIndividual , math:SpecialFunction ;
