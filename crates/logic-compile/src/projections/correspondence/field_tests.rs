@@ -208,6 +208,16 @@ fn invalid_caveat_literal_components_fail_typed_and_cache_admission() {
         invalid["correspondences"][0]["caveats"][0]["comments"][0][slot] = value;
         assert!(serde_json::from_value::<CorrespondenceProgram>(invalid).is_err());
     }
+    let native_wire = purrdf_lex::json::read(
+        r#"["warning","http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString",null,"rtl"]"#,
+    )
+    .unwrap();
+    let error = crate::ir::literal_serde::single::from_json(&native_wire)
+        .expect_err("incoherent literal components must fail native JSON admission");
+    let cause = std::error::Error::source(&error)
+        .and_then(|cause| cause.downcast_ref::<purrdf_core::LiteralComponentError>())
+        .expect("the JSON decoder retains the original native component refusal");
+    assert_eq!(error.to_string(), cause.to_string());
     let mut caveat = program.correspondences[0].caveats[0].clone();
     caveat.comments[0].language = None;
     assert!(
@@ -504,7 +514,7 @@ fn quantitative_cache_admission_cannot_bypass_datatype_or_axis_range() {
     }
     for field in ["confidence", "evidence_strength", "probability"] {
         let mut wire = original.clone();
-        // Rounding this decimal through binary64 would incorrectly admit it as 1.
+        // Rounding this decimal through double precision would incorrectly admit it as 1.
         wire[field] = serde_json::json!(["1.000000000000000001", XSD_DECIMAL, null, null]);
         assert!(
             serde_json::from_value::<Correspondence>(wire).is_err(),

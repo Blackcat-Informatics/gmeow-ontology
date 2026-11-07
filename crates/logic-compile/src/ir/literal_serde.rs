@@ -32,6 +32,18 @@ impl std::error::Error for LiteralNormalizationError {
     }
 }
 
+impl LiteralNormalizationError {
+    /// Preserve native component failures on the concrete JSON decoder boundary.
+    fn into_json_error(self) -> purrdf_lex::json::record::DecodeError {
+        use purrdf_lex::json::record::DecodeError;
+
+        match self {
+            Self::Local(message) => DecodeError::custom(message),
+            Self::Components(cause) => DecodeError::native(cause),
+        }
+    }
+}
+
 /// Check RDF component coherence using the native authority and canonicalize the
 /// implied datatype and language case. No datatype lexical value is coerced.
 pub(crate) fn normalize(literal: &mut RdfLiteral) -> Result<(), LiteralNormalizationError> {
@@ -157,7 +169,7 @@ pub(super) mod message_set {
         value: &purrdf_lex::json::Value,
     ) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
         let mut literals = super::from_json_set(value)?;
-        normalize_messages(&mut literals).map_err(purrdf_lex::json::record::DecodeError::custom)?;
+        normalize_messages(&mut literals).map_err(LiteralNormalizationError::into_json_error)?;
         Ok(literals)
     }
 }
@@ -364,7 +376,8 @@ pub(crate) mod single {
             .map_err(|error| error.within_index_native(3, None))?;
         let direction = base_direction(direction.as_deref())
             .map_err(|error| DecodeError::custom(error).within_index_native(3, None))?;
-        from_components(lexical_form, datatype, language, direction).map_err(DecodeError::custom)
+        from_components(lexical_form, datatype, language, direction)
+            .map_err(LiteralNormalizationError::into_json_error)
     }
 }
 
