@@ -85,6 +85,8 @@ fn fixture_selector_refuses_missing_ancestors_and_mismatched_receipt_identity() 
         BTreeSet::from(["stage-parse-sources", "stage-native-codebook"]),
     );
     let bound = bound_selected_fixture_closure(&["stage-mappings"]).unwrap();
+    assert!(!bound.required.contains("stage-native-codebook"));
+    let bound = bound_selected_fixture_closure(&["stage-archive-blobs"]).unwrap();
     assert!(bound.required.contains("stage-native-codebook"));
     assert!(validate_stage_fixture_manifest(&codebook).is_err());
     codebook.closure_receipts.remove("stage-parse-sources");

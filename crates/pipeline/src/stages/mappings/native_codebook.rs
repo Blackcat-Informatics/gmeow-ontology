@@ -12,11 +12,11 @@ use crate::stages::parse_sources::SourceCatalog;
 
 /// Independent producer whose closure does not reconcile shipped browser assets.
 pub(crate) const STAGE_ID: &str = "stage-native-codebook";
-/// Internal product consumed by mappings and the explicit browser bootstrap.
-pub(crate) const CHANNEL: &str = "pipeline/native-gmn-codebook.cbor";
+/// Final artifact owned by this producer and consumed by archives and browser bootstrap.
+pub(crate) const CHANNEL: &str = native::GENERATED_PATH;
 
 /// Encode the original native tables through their single production encoder.
-pub(super) fn encode(catalog: &SourceCatalog) -> gmeow_errors::Result<Vec<u8>> {
+fn encode(catalog: &SourceCatalog) -> gmeow_errors::Result<Vec<u8>> {
     let language = catalog.language()?;
     native::encode(
         &language.dictionary,
@@ -50,7 +50,7 @@ impl Stage for NativeCodebookStage {
     }
 
     fn impl_version(&self) -> &str {
-        "native-codebook.v1"
+        "native-codebook.v2-final-artifact-owner"
     }
 
     fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {

@@ -83,8 +83,10 @@ after its full prefix, checking the original full-selector digest, and admitting
 both selections read-only before any test runner starts.
 
 The bootstrap selects `stage-native-codebook` and its original-source parser.
-That complete stage emits the authenticated internal codebook; full mappings
-consumes its bytes and publishes the existing language-projection artifact.
+That complete stage owns the authenticated codebook at
+`generated/projections/lang/gmn-codebook.cbor`. The archive stage reads that exact
+artifact directly into the language projection family. Mappings never copies
+the codebook into its independently cached contribution.
 Mappings retains its mandatory SPDX substrate reconciliation. Browser bootstrap
 therefore requires a codebook receipt, rather than a mappings receipt that also
 depends on the shipped engines being replaced.
@@ -406,7 +408,7 @@ asserted base; comparing an imported vocabulary or worked example does not admit
 its statements into that base.
 
 Browser GMN consumers embed the producer-built native codebook. The build verifies
-the selected mappings receipt and exact codebook bytes before compiling either
+the selected native-codebook receipt and exact codebook bytes before compiling either
 wrapper. Static and browser CI download the required prefix producer artifact and
 authenticate its exact selector before that admission. Only producers restore
 cache candidates; a missing consumer artifact cannot trigger production. The two independent cold

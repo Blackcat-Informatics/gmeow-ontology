@@ -157,28 +157,22 @@ pub struct CompiledMappings {
 /// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::Diag> {
     let sources = crate::stages::parse_sources::SourceCatalog::load(root)?;
-    let codebook = native_codebook::encode(&sources)?;
-    compile_mappings_with_sources(root, &sources, &codebook)
+    compile_mappings_with_sources(root, &sources)
 }
 
-/// Compile mapping projections from the supplied sources and native codebook bytes.
+/// Compile mapping projections from the supplied original sources.
 ///
 /// Catalog admission and source-policy checks remain mandatory for the selected
-/// projections; callers provide the codebook rather than rebuilding it here.
+/// projections. The separate native-codebook stage owns its final artifact.
 ///
 /// # Errors
 /// Propagates source, catalog, policy, lowering and serialization failures.
 fn compile_mappings_with_sources(
     root: &Path,
     sources: &crate::stages::parse_sources::SourceCatalog,
-    codebook: &[u8],
 ) -> Result<CompiledMappings, gmeow_errors::Diag> {
     let vocab = gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    artifacts.insert(
-        gmeow_lang_bridge::gmn1_codec::native::GENERATED_PATH.to_owned(),
-        codebook.to_vec(),
-    );
     correspondence_lower::record_worked_envelope(sources, &mut artifacts)?;
 
     // Discover the slice catalog ONCE, here, and share the single in-memory instance across
@@ -1261,7 +1255,6 @@ impl MappingsStage {
             consumes: vec![
                 "stage-compile-logic".to_string(),
                 "stage-export-constraint-shapes".to_string(),
-                native_codebook::STAGE_ID.to_owned(),
                 crate::stages::parse_sources::STAGE_ID.to_owned(),
             ],
         }
@@ -1298,7 +1291,7 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "mappings.v25-authenticated-native-codebook"
+        "mappings.v26-single-codebook-owner"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -1356,20 +1349,9 @@ impl Stage for MappingsStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let codebook = input
-            .upstream
-            .get(native_codebook::STAGE_ID)
-            .and_then(|product| product.artifact(native_codebook::CHANNEL))
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: self.id().to_owned(),
-                    message: "required authenticated native-codebook product is missing".to_owned(),
-                })
-            })?;
         let compiled = compile_mappings_with_sources(
             input.root,
             crate::stages::parse_sources::catalog(&input)?,
-            codebook,
         )?;
         let mut artifacts = compiled.artifacts;
 

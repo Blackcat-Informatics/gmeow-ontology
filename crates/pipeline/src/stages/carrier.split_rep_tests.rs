@@ -12,7 +12,7 @@ use super::*;
 ///
 /// The agreement is now STRUCTURAL — both sides call
 /// `archive_blobs::is_lang_projection_member` — so what this pins is the SET: the
-/// nested projection tree and the two non-RDF terminology surfaces are in, and the
+/// nested projection tree, native codebook and two non-RDF terminology surfaces are in, and the
 /// near misses (a sibling directory that merely shares the prefix, the RDF
 /// `.vartrans.ttl` that rides its own named graph, an unrelated projection) are out.
 #[test]
@@ -41,7 +41,14 @@ fn the_lang_projection_family_is_the_same_set_the_archive_selects() {
     .map(|(p, b)| (p.to_string(), b.to_vec()))
     .collect();
 
-    let selected = crate::stages::archive_blobs::lang_projection_members(&mappings, &glossary);
+    let codebook_path = crate::stages::mappings::native_codebook::CHANNEL;
+    let native_codebook = BTreeMap::from([(codebook_path.to_owned(), b"codebook".to_vec())]);
+    let selected = crate::stages::archive_blobs::lang_projection_members(
+        &mappings,
+        &glossary,
+        &native_codebook,
+    )
+    .expect("every language projection has its owning producer");
     let selected_paths: Vec<&str> = selected.iter().map(|(p, _)| p.as_str()).collect();
     assert_eq!(
         selected_paths,
@@ -50,11 +57,21 @@ fn the_lang_projection_family_is_the_same_set_the_archive_selects() {
             "generated/projections/glossary.tbx",
             "generated/projections/lang/bcp47-tags.ttl",
             "generated/projections/lang/ebnf/gmn.ebnf",
+            "generated/projections/lang/gmn-codebook.cbor",
             "generated/projections/lang/gmn1/v1/deep/x.gmn",
         ],
         "the archive selects exactly the lang: deliverable family, sorted"
     );
-    for path in mappings.keys().chain(glossary.keys()) {
+    let exported_codebook = selected
+        .iter()
+        .find(|(path, _)| path == codebook_path)
+        .expect("the native codebook is selected");
+    assert_eq!(exported_codebook.1.as_slice(), b"codebook");
+    for path in mappings
+        .keys()
+        .chain(glossary.keys())
+        .chain(native_codebook.keys())
+    {
         assert_eq!(
             opaque_already_carried(path),
             selected_paths.contains(&path.as_str()),
@@ -62,6 +79,24 @@ fn the_lang_projection_family_is_the_same_set_the_archive_selects() {
                  archive's selector must name the SAME set"
         );
     }
+    let missing = crate::stages::archive_blobs::lang_projection_members(
+        &mappings,
+        &glossary,
+        &BTreeMap::new(),
+    )
+    .expect_err("the native codebook cannot disappear from the archive");
+    assert!(missing.message().contains(codebook_path));
+    assert!(missing.message().contains("stage-native-codebook"));
+    let mut duplicate = mappings.clone();
+    duplicate.insert(codebook_path.to_owned(), b"codebook".to_vec());
+    let duplicate = crate::stages::archive_blobs::lang_projection_members(
+        &duplicate,
+        &glossary,
+        &native_codebook,
+    )
+    .expect_err("identical bytes cannot give mappings ownership of the native artifact");
+    assert!(duplicate.message().contains("duplicate producer"));
+    assert!(duplicate.message().contains(codebook_path));
 }
 
 /// The RDF members of the family (`.ttl`/`.nt`) are the reason the guard exists at

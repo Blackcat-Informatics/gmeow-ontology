@@ -344,7 +344,6 @@ pub fn full_spec() -> PipelineSpec {
             &[
                 "stage-compile-logic",
                 "stage-export-constraint-shapes",
-                "stage-native-codebook",
                 "stage-parse-sources",
             ],
         ),
@@ -656,6 +655,7 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-result-shapes",
             "stage-mappings",
             "stage-math-producers",
+            "stage-native-codebook",
             "stage-statements",
         ],
     ));

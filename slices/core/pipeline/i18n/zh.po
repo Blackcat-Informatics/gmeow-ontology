@@ -250,5 +250,5 @@ msgid "native codebook"
 msgstr "原生码本"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Encode the native GMN dictionary and codebook from the admitted original language source as an authenticated internal artifact. The mappings stage publishes these exact bytes in the language-projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
-msgstr "从已准入的原始语言源编码原生 GMN 字典和码本，生成经过认证的内部制品。映射阶段在语言投影制品族中发布这些完全相同的字节。此阶段仅依赖源解析，因此可在底层组件一致性核对之前重新构建浏览器引擎。"
+msgid "Encode the native GMN dictionary and codebook from the admitted original language source and publish their authenticated language projection artifact. The archive stage carries these exact bytes in the language projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
+msgstr "从已准入的原始语言源编码原生 GMN 字典和码本，并发布经过认证的语言投影制品。归档阶段将这些完全相同的字节纳入语言投影制品族。此阶段仅依赖源解析，因此可在底层组件一致性核对之前重新构建浏览器引擎。"
