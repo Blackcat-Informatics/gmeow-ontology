@@ -229,9 +229,9 @@ ciborium = "0.2"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }
-# Unix process resource accounting for the report-only performance sampler. The
-# sampler reads `getrusage(RUSAGE_CHILDREN)` around exactly one measured command;
-# production libraries never call libc through this dependency.
+# Native Unix resource accounting and GNU allocator operations. Performance sampling
+# reads child resource usage; the pipeline reclaims unused pages at explicit phase
+# handoffs and supports selected all-arena allocator observations.
 libc = "0.2"
 # Pure-Rust template engine for the static site: no build scripts, deterministic
 # rendering.
