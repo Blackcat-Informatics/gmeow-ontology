@@ -5835,6 +5835,11 @@ math:UnderspecifiedManifold
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Manifold"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Manifold does not declare both its dimension (math:manifoldDimension) and its structure kind (math:manifoldStructureKind). A manifold that does not say how many dimensions and which structure it carries is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "This failure class identifies an incomplete manifold declaration when either manifoldDimension or manifoldStructureKind is absent. It concerns the supplied record, not the existence of the mathematical manifold; the associated conformance rules also govern supplied values and cardinalities."@x-gmeow-english ;
+    skos:example "The existing manifold-missing-structure-kind counter-example records ex:formlessManifold as a math:Manifold with math:manifoldDimension 3 and no math:manifoldStructureKind. It is an authored missing-kind case, not a reported validation result."@x-gmeow-english ;
+    gmeow:useWhen "Use when identifying the required-declaration failure for a manifold missing either its dimension or its structure kind, including a record that supplies one but not the other."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating missing metadata as proof that no manifold exists, inventing a dimension or structure kind, or treating complete role names as proof of an atlas, Hausdorffness or second countability."@x-gmeow-english ;
+    gmeow:howToUse "Keep the failure class associated with the canonical manifold restrictions and closed required paths. Diagnose the actual record and supply evidenced dimension and structure-kind values; do not remove its Manifold type to hide a missing role or claim that presence alone completes conformance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnderspecifiedChart
@@ -5843,6 +5848,11 @@ math:UnderspecifiedChart
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Chart"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Chart does not name its domain (math:chartDomain), its coordinate map (math:coordinateMap), and its target coordinate space (math:targetCoordinateSpace). A chart that does not say what it covers, how it coordinatizes, and into which space is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "This failure class identifies an incomplete chart declaration when any of chartDomain, coordinateMap or targetCoordinateSpace is absent. Missing roles are distinct from unequal supplied dimension counts, and presence alone proves neither a homeomorphism nor complete chart conformance."@x-gmeow-english ;
+    skos:example "The existing chart-underspecified counter-example records ex:bareChart as a math:Chart without chartDomain, coordinateMap or targetCoordinateSpace. It is an authored missing-role case, not a reported validation result."@x-gmeow-english ;
+    gmeow:useWhen "Use when identifying the required-declaration failure for a chart missing any one or more of its domain, coordinate map and target coordinate space."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling missing roles from a chart label, assuming a global chart, confusing absence with a dimension mismatch, or treating three named resources as proof of point membership, atlas compatibility or a homeomorphism."@x-gmeow-english ;
+    gmeow:howToUse "Keep the failure class associated with the canonical chart restrictions and closed required paths. Supply the actual domain, coordinate map and target space from evidence; retain their type, cardinality, dimension and mathematical obligations for their own checks without silently assigning defaults."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DimensionMismatch
