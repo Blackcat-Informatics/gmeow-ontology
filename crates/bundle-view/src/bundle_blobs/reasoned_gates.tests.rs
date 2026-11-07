@@ -94,7 +94,16 @@ fn selected_native_laws_do_not_hide_a_malformed_later_archive_member() {
     // The selected body's header plus padded body occupy 1024 bytes. Corrupt
     // the following member's size while retaining a correct whole-blob digest.
     bytes[1024 + 124] = b'8';
-    assert!(read_member(&archive_graph(bytes)).is_err());
+    let error = read_member(&archive_graph(bytes)).unwrap_err();
+    let refusal = error
+        .downcast_ref::<gmeow_gts_profile::error::NativeArchive>()
+        .expect("the selected-member boundary retains native archive refusal");
+    assert!(
+        std::error::Error::source(refusal)
+            .unwrap()
+            .downcast_ref::<purrdf::ustar::UstarError>()
+            .is_some()
+    );
 }
 
 #[test]

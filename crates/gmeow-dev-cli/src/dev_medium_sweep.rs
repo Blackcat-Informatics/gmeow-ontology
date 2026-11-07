@@ -52,7 +52,7 @@ pub(crate) fn run(out: &Path) -> i32 {
     let baseline = match sweep::run_sweep(root) {
         Ok(baseline) => baseline,
         Err(err) => {
-            eprintln!("{TOOL}: the sweep failed: {err}");
+            eprintln!("{TOOL}: the sweep failed: {err:#}");
             return 1;
         }
     };

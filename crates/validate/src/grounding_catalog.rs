@@ -6,8 +6,48 @@
 //! mapping into this input collection.
 
 use gmeow_logic_compile::projections::grounding_catalog::OwnedGroundingSource;
-use purrdf::slice::{ArtifactRole, SliceCatalog};
-use std::path::Path;
+use purrdf::slice::{ArtifactRole, SliceCatalog, SliceInventory};
+use std::path::{Path, PathBuf};
+
+/// Whether the manifest owner may supply grounding correspondences.
+fn is_grounding_owner(owner: &str) -> bool {
+    matches!(
+        owner,
+        "https://blackcatinformatics.ca/gmeow/slices/lang"
+            | "https://blackcatinformatics.ca/gmeow/slices/math"
+            | "https://blackcatinformatics.ca/gmeow/slices/logic"
+    )
+}
+
+/// Physical inputs required by semantic catalog admission and grounding selection.
+///
+/// Every discovered manifest participates because changing an owner can admit
+/// or remove its mappings. Every artifact participates because native catalog
+/// admission reads more than the selected grounding mappings. Paths come from
+/// physical discovery without claiming RDF validity or a semantic catalog identity.
+/// Semantic consumers still use [`discover`]; [`owned_sources`] alone selects
+/// grounding authority by exact owner and Mapping role.
+pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let inventory = SliceInventory::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|why| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("required grounding slice inventory: {why}"),
+        })
+    })?;
+    let mut files = Vec::new();
+    for record in inventory.records() {
+        files.push(record.slice_dir().join("manifest.ttl"));
+        files.extend(
+            record
+                .artifacts()
+                .iter()
+                .map(|artifact| record.slice_dir().join(artifact.logical_path())),
+        );
+    }
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
 
 /// Reuse the actual discovered slice inventory and its original artifact bytes.
 pub fn owned_sources(
@@ -17,12 +57,7 @@ pub fn owned_sources(
     let mut sources = Vec::new();
     for record in catalog.records() {
         let owner = record.manifest.slice_iri.as_str();
-        if !matches!(
-            owner,
-            "https://blackcatinformatics.ca/gmeow/slices/lang"
-                | "https://blackcatinformatics.ca/gmeow/slices/math"
-                | "https://blackcatinformatics.ca/gmeow/slices/logic"
-        ) {
+        if !is_grounding_owner(owner) {
             continue;
         }
         for artifact in &record.artifacts {
@@ -47,6 +82,10 @@ pub fn owned_sources(
     }
     Ok(sources)
 }
+
+#[path = "grounding_catalog.tests.rs"]
+#[cfg(test)]
+mod tests;
 
 /// Standalone repository callers must discover the same physical slice roles;
 /// they cannot substitute a surface-local DSL union for a required catalog.

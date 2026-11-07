@@ -72,7 +72,34 @@ fn full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer() {
 #[test]
 fn fixture_selector_refuses_missing_ancestors_and_mismatched_receipt_identity() {
     let all = receipts();
-    for missing in ["stage-snapshot", "stage-mappings"] {
+    // Browser bootstrap must finish before source-load's shipped-asset reconciliation.
+    // Its genuine codebook receipt cannot grant authority to a full test prefix.
+    let mut codebook = selected_fixture_manifest(&all, WASM_CODEBOOK_STAGE_IDS).unwrap();
+    validate_wasm_codebook_manifest(&codebook).unwrap();
+    assert_eq!(
+        codebook
+            .closure_receipts
+            .keys()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from(["stage-parse-sources", "stage-native-codebook"]),
+    );
+    let bound = bound_selected_fixture_closure(&["stage-mappings"]).unwrap();
+    assert!(!bound.required.contains("stage-native-codebook"));
+    let bound = bound_selected_fixture_closure(&["stage-archive-blobs"]).unwrap();
+    assert!(bound.required.contains("stage-native-codebook"));
+    assert!(validate_stage_fixture_manifest(&codebook).is_err());
+    codebook.closure_receipts.remove("stage-parse-sources");
+    assert!(validate_wasm_codebook_manifest(&codebook).is_err());
+    let missing_codebook_ancestor: Vec<_> = all
+        .iter()
+        .filter(|receipt| receipt.context.stage_id != "stage-parse-sources")
+        .cloned()
+        .collect();
+    assert!(
+        selected_fixture_manifest(&missing_codebook_ancestor, WASM_CODEBOOK_STAGE_IDS).is_err()
+    );
+    for missing in ["stage-snapshot", "stage-mappings", "stage-native-codebook"] {
         let partial: Vec<_> = all
             .iter()
             .filter(|receipt| receipt.context.stage_id != missing)

@@ -236,10 +236,10 @@ const ARCHIVE_REPS: [&str; 11] = [
     REP_YAMLLD,
 ];
 
-/// The five PRODUCER PRODUCTS the fold reads archive members off, each an in-memory
+/// The six PRODUCER PRODUCTS the fold reads archive members off, each an in-memory
 /// artifact map keyed by logical path. Grouped into named fields (like
 /// [`ShapeSurfaces`]) for a reason that is sharper here than anywhere else in this
-/// module: all five have the SAME type, `&BTreeMap<String, Vec<u8>>`, so as positional
+/// module: all six have the SAME type, `&BTreeMap<String, Vec<u8>>`, so as positional
 /// parameters a transposition would compile silently and fold one producer's output
 /// into another's archive.
 ///
@@ -251,8 +251,10 @@ pub(crate) struct ProductArtifacts<'a> {
     /// validation/procedural shape surfaces.
     pub(crate) axioms: &'a BTreeMap<String, Vec<u8>>,
     /// `stage-mappings` — the SSSOM lift maps, the generated SPARQL surface, and the
-    /// `generated/projections/lang/**` deliverable tree.
+    /// other `generated/projections/lang/**` deliverables.
     pub(crate) mappings: &'a BTreeMap<String, Vec<u8>>,
+    /// `stage-native-codebook` — the final GMN codebook artifact, with one producer.
+    pub(crate) native_codebook: &'a BTreeMap<String, Vec<u8>>,
     /// `stage-export-glossary` — the two NON-RDF terminology surfaces that complete the
     /// `lang:` family (its `.vartrans.ttl` sibling is RDF and rides a named graph).
     pub(crate) glossary: &'a BTreeMap<String, Vec<u8>>,
@@ -312,6 +314,7 @@ pub(crate) fn build_archive_blobs(
     let ProductArtifacts {
         axioms: axiom_artifacts,
         mappings: mappings_artifacts,
+        native_codebook: native_codebook_artifacts,
         glossary: glossary_artifacts,
         models_python: models_python_artifacts,
         statements: statement_artifacts,
@@ -503,19 +506,24 @@ pub(crate) fn build_archive_blobs(
     }
     // lang-projections: the WHOLE `lang:` deliverable family — the
     // `generated/projections/lang/**` external-format deliverables off THIS run's
-    // stage-mappings product plus the two non-RDF terminology surfaces off THIS run's
-    // stage-export-glossary product — member = repo-relative path, product-sourced for the
+    // stage-mappings product, the native codebook from its sole producer, and the two
+    // non-RDF terminology surfaces off THIS run's stage-export-glossary product —
+    // member = repo-relative path, product-sourced for the
     // same stale-disk reason the mappings/queries archives are. See [`REP_LANG_PROJECTIONS`]
     // for why they are their OWN rep rather than members of the generated-opaque archive.
-    let lang_projections = lang_projection_members(mappings_artifacts, glossary_artifacts);
+    let lang_projections = lang_projection_members(
+        mappings_artifacts,
+        glossary_artifacts,
+        native_codebook_artifacts,
+    )?;
     // Fail closed, mirroring every other product-sourced archive above: a missing member
     // means a producer keyed its output under an unexpected path (or emitted none), which
     // would fold a SHORT archive AND silently shrink the population gmeow-lang-ast-v1 is
     // measured over — a silent capability degradation, not a fallback. Checked as the two
     // separate obligations they are, so the diagnosis names which producer went quiet.
-    if !lang_projections
-        .iter()
-        .any(|(path, _)| path.starts_with(crate::stages::lang_projection::LANG_PROJECTION_DIR))
+    if !mappings_artifacts
+        .keys()
+        .any(|path| path.starts_with(crate::stages::lang_projection::LANG_PROJECTION_DIR))
     {
         return Err(stage_err(
             "no generated/projections/lang/** artifacts in the stage-mappings product — the \
@@ -590,28 +598,45 @@ pub(crate) fn build_archive_blobs(
     ])
 }
 
-/// The [`REP_LANG_PROJECTIONS`] members of the two products that supply them: every
+/// The [`REP_LANG_PROJECTIONS`] members of the three products that supply them: every
 /// artifact [`is_lang_projection_member`] claims, keyed by its repo-relative committed
 /// path (so
 /// [`committed_path_for_archive_member`](crate::stages::carrier::committed_path_for_archive_member)
 /// is the identity for this rep) and sorted.
 ///
-/// `mappings_artifacts` carries the `generated/projections/lang/**` tree,
-/// `glossary_artifacts` the two non-RDF terminology surfaces; the predicate — not the
+/// `mappings_artifacts` carries the other `generated/projections/lang/**` deliverables,
+/// `glossary_artifacts` the two non-RDF terminology surfaces, and
+/// `native_codebook_artifacts` the final codebook from its sole producer; the predicate — not the
 /// source product — decides membership, so a member cannot be selected here and
 /// simultaneously admitted to the generated-opaque archive.
+///
+/// # Errors
+/// Rejects a missing native codebook or a second producer claiming its logical path.
 pub(crate) fn lang_projection_members(
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     glossary_artifacts: &BTreeMap<String, Vec<u8>>,
-) -> Vec<(String, Vec<u8>)> {
+    native_codebook_artifacts: &BTreeMap<String, Vec<u8>>,
+) -> Result<Vec<(String, Vec<u8>)>, gmeow_errors::Diag> {
+    let path = crate::stages::mappings::native_codebook::CHANNEL;
+    let codebook = native_codebook_artifacts.get(path).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {path} in the stage-native-codebook product"
+        ))
+    })?;
+    if mappings_artifacts.contains_key(path) || glossary_artifacts.contains_key(path) {
+        return Err(stage_err(&format!(
+            "duplicate producer for native codebook artifact {path}"
+        )));
+    }
     let mut out: Vec<(String, Vec<u8>)> = mappings_artifacts
         .iter()
         .chain(glossary_artifacts.iter())
         .filter(|(path, _)| is_lang_projection_member(path))
         .map(|(path, bytes)| (path.clone(), bytes.clone()))
         .collect();
+    out.push((path.to_owned(), codebook.clone()));
     out.sort_by(|a, b| a.0.cmp(&b.0));
-    out
+    Ok(out)
 }
 
 /// `(filename, bytes)` archive members sourced from a STAGE PRODUCT's in-memory
@@ -784,8 +809,9 @@ impl ArchiveBlobsStage {
     /// Construct the stage. It consumes exactly the producers whose in-memory products
     /// supply archive members: `stage-compile-logic` (the axiom surface + the
     /// validation/procedural shape surfaces), `stage-mappings` (SSSOM + generated
-    /// queries + the `lang:` projection tree), `stage-export-glossary` (the two non-RDF
+    /// queries + the other `lang:` projections), `stage-export-glossary` (the two non-RDF
     /// terminology surfaces that complete the `lang:` family),
+    /// `stage-native-codebook` (the final GMN codebook),
     /// `stage-export-json-schema` (the four JSON Schema documents),
     /// `stage-export-pydantic` (the model package), the three generated-shape export
     /// leaves, and `stage-statements` (the statement layer's two byte projections and
@@ -804,6 +830,7 @@ impl ArchiveBlobsStage {
                 "stage-export-result-shapes".to_string(),
                 "stage-mappings".to_string(),
                 "stage-math-producers".to_string(),
+                crate::stages::mappings::native_codebook::STAGE_ID.to_string(),
                 "stage-statements".to_string(),
             ],
         }
@@ -842,7 +869,7 @@ impl Stage for ArchiveBlobsStage {
         // the unit a dictionary primes, so this is what gave the claim dictionary and
         // gmeow-lang-ast-v1 the frame sets their names claim. The claim dictionary was
         // later retired for failing the two-part code; its reps ride unprimed.
-        "archive-blobs.v5-math-queries"
+        "archive-blobs.v6-native-codebook-owner"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         authored_archive_sources(root)
@@ -944,6 +971,10 @@ pub(crate) fn fold_archive_blobs(
         .get("stage-export-glossary")
         .ok_or_else(|| stage_err("missing stage-export-glossary product"))?
         .artifacts();
+    let native_codebook_artifacts = upstream
+        .get(crate::stages::mappings::native_codebook::STAGE_ID)
+        .ok_or_else(|| stage_err("missing stage-native-codebook product"))?
+        .artifacts();
     // THIS run's generated shape surfaces (REP_SHAPES members), from the producing
     // export leaves' products so the archive never lags a competency/frame edit:
     // the committed generated/shapes/*.ttl are projected back from the bundle by the
@@ -1019,6 +1050,7 @@ pub(crate) fn fold_archive_blobs(
         &ProductArtifacts {
             axioms: &compile_artifacts,
             mappings: &mappings_artifacts,
+            native_codebook: &native_codebook_artifacts,
             glossary: &glossary_artifacts,
             models_python: &models_python_artifacts,
             statements: &statement_artifacts,

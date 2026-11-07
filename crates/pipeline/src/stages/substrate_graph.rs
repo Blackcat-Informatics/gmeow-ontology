@@ -54,6 +54,7 @@ const SITE_SHIPPED_ARTIFACT: &str = "claimSiteShippedArtifact";
 const SITE_PROSE: &str = "claimSiteProse";
 
 const DIM_CRATE_VERSION: &str = "dimensionCrateVersion";
+const DIM_GIT_REV: &str = "dimensionGitRev";
 const DIM_VERSION_REQUIREMENT: &str = "dimensionVersionRequirement";
 const DIM_SHAPES_VERSION: &str = "dimensionShapesVersion";
 const DIM_WIRE_VERSION: &str = "dimensionWireVersion";
@@ -127,13 +128,23 @@ fn checked_slug(name: &str) -> Result<String, gmeow_errors::Diag> {
     }
 }
 
-/// Parse a `SUBSTRATE.txt` stamp of the form
-/// `purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130` into `(name, version)`
-/// pairs. Every non-blank line and every non-blank `;`-separated part is processed;
-/// a part that is not exactly `<name> <version>` is a HARD FAIL (no silent skipping
-/// of stamp data), and an empty stamp is rejected.
-fn parse_substrate_stamp(stamp: &str) -> Result<Vec<(String, String)>, gmeow_errors::Diag> {
+/// One typed claim from a shipped stamp. Source metadata is never an SBOM package.
+#[derive(Debug, PartialEq, Eq)]
+struct StampedClaim {
+    component: String,
+    dimension: &'static str,
+    value: String,
+}
+
+/// Parse every two-token stamp entry, retaining versions and Git identity as
+/// distinct dimensions. Git selections require the exact selected revision;
+/// registry selections reject Git metadata. Duplicate and malformed entries fail.
+fn parse_substrate_stamp(
+    stamp: &str,
+    git_revision: Option<&str>,
+) -> Result<Vec<StampedClaim>, gmeow_errors::Diag> {
     let mut out = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
     for line in stamp.lines() {
         let line = line.trim();
         if line.is_empty() {
@@ -146,21 +157,51 @@ fn parse_substrate_stamp(stamp: &str) -> Result<Vec<(String, String)>, gmeow_err
             }
             let mut it = part.split_whitespace();
             match (it.next(), it.next(), it.next()) {
-                (Some(name), Some(version), None) => {
-                    out.push((name.to_string(), version.to_string()));
+                (Some(name), Some(value), None) => {
+                    if !seen.insert(name) {
+                        return Err(stage_err(&format!(
+                            "substrate carrier: duplicate SUBSTRATE.txt field {name:?}"
+                        )));
+                    }
+                    let (component, dimension) = if name == "purrdf.git-rev" {
+                        if value.len() != 40
+                            || !value
+                                .bytes()
+                                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+                            || git_revision != Some(value)
+                        {
+                            return Err(stage_err(&format!(
+                                "substrate carrier: shipped Git revision {value:?} \
+                                 differs from the selected source {git_revision:?}"
+                            )));
+                        }
+                        ("purrdf", DIM_GIT_REV)
+                    } else {
+                        (name, DIM_CRATE_VERSION)
+                    };
+                    out.push(StampedClaim {
+                        component: component.to_owned(),
+                        dimension,
+                        value: value.to_owned(),
+                    });
                 }
                 _ => {
                     return Err(stage_err(&format!(
                         "substrate carrier: malformed SUBSTRATE.txt stamp part {part:?} — \
-                         expected exactly '<name> <version>'"
+                         expected exactly '<name> <value>'"
                     )));
                 }
             }
         }
     }
-    if out.is_empty() {
+    if !seen.contains("purrdf") {
         return Err(stage_err(
-            "substrate carrier: SUBSTRATE.txt stamp has no '<name> <version>' entries",
+            "substrate carrier: SUBSTRATE.txt stamp has no PurRDF version",
+        ));
+    }
+    if git_revision.is_some() && !seen.contains("purrdf.git-rev") {
+        return Err(stage_err(
+            "substrate carrier: SUBSTRATE.txt stamp omits the required PurRDF Git revision",
         ));
     }
     Ok(out)
@@ -438,22 +479,34 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     // Check all PurRDF component identities, then retain these as distinct claim
     // dimensions so a compatibility range is never emitted as a concrete version.
     gmeow_validate::substrate::verify_fuzz_substrate(root)?;
-    for (manifest, lock, site, witness) in [
+    let workspace = gmeow_validate::substrate::resolve_purrdf(
+        &root.join("Cargo.toml"),
+        &root.join("Cargo.lock"),
+    )?;
+    let git_revision = workspace.git_revision.clone();
+    for (resolution, site, witness) in [
+        (workspace, SITE_WORKSPACE_MANIFEST, "workspace"),
         (
-            "Cargo.toml",
-            "Cargo.lock",
-            SITE_WORKSPACE_MANIFEST,
-            "workspace",
-        ),
-        (
-            "fuzz/Cargo.toml",
-            "fuzz/Cargo.lock",
+            gmeow_validate::substrate::resolve_purrdf(
+                &root.join("fuzz/Cargo.toml"),
+                &root.join("fuzz/Cargo.lock"),
+            )?,
             SITE_FUZZ_MANIFEST,
             "fuzz",
         ),
     ] {
-        let resolution =
-            gmeow_validate::substrate::resolve_purrdf(&root.join(manifest), &root.join(lock))?;
+        if let Some(revision) = &resolution.git_revision {
+            for (claim_site, claim_witness) in [(site, None), (SITE_LOCKFILE, Some(witness.into()))]
+            {
+                claims.push(Claim {
+                    component_slug: purrdf.into(),
+                    site: claim_site,
+                    dimension: DIM_GIT_REV,
+                    value: revision.clone(),
+                    witness: claim_witness,
+                });
+            }
+        }
         claims.push(Claim {
             component_slug: purrdf.into(),
             site,
@@ -505,20 +558,22 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
             name: format!("{engine}-engine"),
             expected_sites: Vec::new(),
         });
-        for (name, version) in parse_substrate_stamp(&stamp)? {
-            let slug = checked_slug(&name)?;
-            embedded_names.insert(slug.clone());
-            embeds.push(Embed {
-                engine_slug: engine_slug.clone(),
-                embedded_slug: slug.clone(),
-            });
+        for entry in parse_substrate_stamp(&stamp, git_revision.as_deref())? {
+            let slug = checked_slug(&entry.component)?;
+            if entry.dimension == DIM_CRATE_VERSION {
+                embedded_names.insert(slug.clone());
+                embeds.push(Embed {
+                    engine_slug: engine_slug.clone(),
+                    embedded_slug: slug.clone(),
+                });
+            }
             // The shipping engine is the witness, so each engine's stamp is a distinct
             // gmeow:PinClaim (drift BETWEEN engines is caught, not collapsed).
             claims.push(Claim {
                 component_slug: slug,
                 site: SITE_SHIPPED_ARTIFACT,
-                dimension: DIM_CRATE_VERSION,
-                value: version,
+                dimension: entry.dimension,
+                value: entry.value,
                 witness: Some(engine.to_string()),
             });
         }

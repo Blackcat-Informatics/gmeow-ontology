@@ -84,6 +84,8 @@ WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 # is not a build dependency; THIS wasm-opt is.
 BINARYEN_VER := version_130
 BINARYEN_NUM := $(patsubst version_%,%,$(BINARYEN_VER))
+# Official version_130 x86_64-linux release asset SHA-256.
+BINARYEN_LINUX_X64_SHA256 := 0a18362361ad05465118cd8eeb72edaeec89de6894bc283576ef4e07aa3babcc
 
 # Refuse to optimize with an unpinned binaryen. `command -v` alone proved only that A
 # wasm-opt exists, which is how a version mismatch reached CI as an unknown-option error
@@ -173,6 +175,7 @@ MDBOOK_SMOKE_OUT := $(abspath dist/mdbook-smoke)
 # prebuild cannot compile them before their exact prepared bytes exist.
 RUST_PREBUILD_WORKSPACE_ARGS := --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm
 FIXTURE_TIMINGS_JSON ?=
+SLICE_QUALITY_FORMAT ?= text
 FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
 REASON_VERIFY_TIMINGS_JSON ?=
 REASON_VERIFY_TIMINGS_ARG := $(if $(REASON_VERIFY_TIMINGS_JSON),--timings-json $(REASON_VERIFY_TIMINGS_JSON),)
@@ -184,6 +187,7 @@ BUNDLE_IMPORT_CACHE_ROOT ?= $(abspath .cache/gmeow-bundle-import)
 BUNDLE_IMPORT_CACHE_ENV = GMEOW_BUNDLE_IMPORT_CACHE="$(BUNDLE_IMPORT_CACHE_ROOT)" GMEOW_BUNDLE_IMPORT_SOURCE_SHA256="$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 BUNDLE_IMPORT_CACHE_ARGS = --bundle-import-cache-root "$(BUNDLE_IMPORT_CACHE_ROOT)" --expected-source-digest "$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.json)
+WASM_CODEBOOK_MANIFEST := $(abspath .cache/gmeow-sync/wasm-codebook-manifest-v2.json)
 # The selector is written only by the explicit producer. Each consumer receives its
 # exact digest before process start, so a missing, stale, or test-mutated selector fails
 # rather than causing a dependency walk or producer fallback.
@@ -202,6 +206,10 @@ TEST_FIXTURE_TOOL := $(abspath dist/bin/gmeow-dev)
 
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
+
+.PHONY: print-binaryen-linux-x64-sha256
+print-binaryen-linux-x64-sha256: ## Print the pinned Linux x86_64 Binaryen archive digest.
+	@echo "$(BINARYEN_LINUX_X64_SHA256)"
 
 print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exactly this).
 	@echo "$(MDBOOK_VERSION)"
@@ -607,7 +615,7 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
 slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
-	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
+	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all) --format $(SLICE_QUALITY_FORMAT)
 
 .PHONY: slice-quality-projection-debt
 slice-quality-projection-debt: ## Report live repository projection residue and exact budget headroom.
@@ -672,6 +680,10 @@ produce-test-fixtures: ## Explicitly produce exact content-addressed corpus fixt
 
 produce-producer-independent-test-fixtures: ## Explicitly produce optimized DAG-stage fixtures before generated/ is available.
 	$(GMEOW_DEV) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
+
+.PHONY: produce-wasm-codebook
+produce-wasm-codebook: ## Produce only the authenticated browser codebook closure before rebuilding assets.
+	$(GMEOW_DEV) test-fixtures produce --scope wasm-codebook $(FIXTURE_TIMINGS_ARG)
 
 produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
 	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
@@ -905,7 +917,7 @@ query-wasm-pkg-test: query-wasm-pkg ## Build the query engine npm package and ru
 	cd crates/query-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-query-wasm Node native↔wasm parity witness lane passed"
 
-.PHONY: maint-prepare-wasm-assets maint-refresh-wasm-assets maint-refresh-validate-witness
+.PHONY: maint-prepare-wasm-assets maint-refresh-wasm-assets maint-refresh-validate-witness maint-refresh-wasm-witnesses verify-vendored-wasm-assets
 maint-refresh-validate-witness: ## Refresh the native validation attestation from the existing bundle; review the diff, then run native and Node parity.
 	cargo run -p gmeow-validate --example refresh-witness-validation
 
@@ -913,8 +925,9 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	@# Build inputs must exist before the optimized producer can reconcile their
 	@# substrate identities. Parity consumers run after that producer, never against
 	@# an obsolete bundle which the new substrate may correctly reject.
-	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg
-	$(MAKE) maint-refresh-reason-witness maint-refresh-mcp-witness
+	$(MAKE) produce-wasm-codebook
+	$(MAKE) query-wasm-pkg validate-wasm-pkg reason-wasm-pkg gmn-wasm-pkg mcp-wasm-pkg mcp-core-wasm-pkg TEST_FIXTURE_MANIFEST="$(WASM_CODEBOOK_MANIFEST)"
+	$(MAKE) maint-refresh-reason-witness
 	$(call COPY_WASM_ASSET,query,)
 	$(call COPY_WASM_ASSET,validate,)
 	$(call COPY_WASM_ASSET,reason,)
@@ -925,9 +938,20 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
 	cp crates/mcp-core-wasm/js/index.mjs crates/docs/assets/mcp-core/index.mjs
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json crates/docs/assets/mcp-core/WITNESS.core-deferral.json
+	cp crates/reason-wasm/tests/WITNESS.reason.nq crates/docs/assets/reason/WITNESS.reason.nq
 	@# Refresh all metadata in one process, after every embedded asset has changed.
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."
+
+verify-vendored-wasm-assets: ## Verify committed file digests, witness structure and exact substrate identities without producing a corpus.
+	cargo test --locked -p gmeow-docs --test query_asset --test validate_asset --test reason_asset --test gmn_asset --test mcp_asset --test attestation_gate
+
+maint-refresh-wasm-witnesses: producer-verify verify-bundle-import-test-fixture verify-vendored-wasm-assets ## Refresh native witnesses from the authenticated current bundle after assets are rebuilt.
+	$(MAKE) maint-refresh-mcp-witness maint-refresh-validate-witness maint-refresh-describe-witness
+	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
+	cp crates/mcp/tests/witness/describe.nt crates/docs/assets/query/WITNESS.describe.nt
+	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
+	$(MAKE) verify-vendored-wasm-assets
 
 maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once, then verify every Node parity lane against that bundle.
 	$(MAKE) maint-prepare-wasm-assets
@@ -1119,9 +1143,10 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# contract. The mcp-core lane additionally proves the TIERED contract end to end: the
 	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
 	@# frame to the real reasoning segment for an answer identical to the full engine's.
-	@# The vendored digest that gates the shipped bytes is exactly the one a parity run
-	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
-	@# re-vendoring cannot re-pin bytes that never passed parity).
+	@# Digest records bind the exact candidate bytes. Coordinated preparation writes
+	@# them before bundle-dependent parity; this lane must execute all six Node package
+	@# suites before quality qualification passes. CI also runs console acceptance
+	@# against the committed MCP assets and current bundle.
 	@#
 	@# HEAVY, not per-commit: this release-builds SIX engine crates for wasm32 (the
 	@# four the site dispatches to, plus the console's two MCP segments), runs
@@ -1416,13 +1441,8 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# rather than a stop: the question was raised once and answered (the chain is kept —
 	@# see bench/README.md), and re-raising it every refresh would make the lane fail
 	@# forever.
-	@# BOOTSTRAP: `stage-medium-dictionaries` refuses to run without a committed table,
-	@# and the sweep runs the whole DAG to produce one, so a tree with no table needs a
-	@# declaration-derived seed to get in. It carries ZERO measurements and is
-	@# overwritten by the real sweep on the next line; a committed seed is refused by
-	@# `the_committed_winner_table_carries_real_measurements`.
-	@test -f bench/medium-baseline.json || \
-	  $(GMEOW_DEV) medium-seed --out bench/medium-baseline.json
+	@# The explicit sweep excludes its dictionary-table consumer and GTS sink.
+	@# It therefore needs no declaration-derived seed or preexisting bundle.
 	$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 

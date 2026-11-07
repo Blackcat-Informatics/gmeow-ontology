@@ -24,7 +24,7 @@ Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 
 ## Why vendored (not built at regenerate time)
 
-The regeneration pipeline is Rust/Python only — it does not invoke `cargo` or `wasm-bindgen`.
+The Rust synchronization pipeline does not build wasm or invoke `wasm-bindgen`.
 A browser-executable wasm engine cannot be produced during the synchronization pipeline (`make check-sync`), so it is pinned
 here as a build **input** (like `crates/docs/assets/gmeow.css` and the query engine).
 Because it is a constant `include_bytes!` input, the rendered site stays byte-deterministic.
@@ -35,12 +35,12 @@ Because it is a constant `include_bytes!` input, the rendered site stays byte-de
 make maint-refresh-validate-asset
 ```
 
-This rebuilds the wasm package (`make validate-wasm-pkg`: `cargo build … --target
-wasm32-unknown-unknown --release`, then wasm-bindgen 0.2.129 `--target web`, then the
-REQUIRED `wasm-opt -Oz`) and copies the four artifacts here, rewriting `DIGESTS.blake3`
-under `GMEOW_VALIDATE_BLESS=1`. It must be run whenever the validator source changes;
-otherwise the vendored engine drifts from source. Two gates guard against a stale/broken
-blob:
+This rebuilds the wasm package (`make validate-wasm-pkg`) with a release build for
+`wasm32-unknown-unknown`, wasm-bindgen 0.2.129 with `--target web`, and the required
+`wasm-opt -Oz`. It runs the Node validation lane and copies the four artifacts here,
+rewriting `DIGESTS.blake3` through the explicit asset producer. It must run whenever
+the validator source changes; otherwise the vendored engine drifts from source.
+Two gates guard against a stale or broken blob:
 
 - a **Rust structural + digest test** (`crates/docs/tests/validate_asset.rs`, on
   `make check`) asserts the vendored `.wasm` is a real wasm module, the bindings still
@@ -48,6 +48,12 @@ blob:
 - a **Node execution test** (`crates/validate-wasm/js/tests/validate.test.mjs`, on
   `make validate-wasm-pkg-test`) loads the built engine and runs a real validation
   round-trip against the committed `gmeow.gts`.
+
+Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six
+images and record candidate digests and exact substrate identities. Those records
+alone do not attest runtime parity. After current-bundle witness refresh, ordinary
+PR CI must pass all six Node package lanes and shipped-console acceptance for the
+final commit.
 
 ## Size note
 

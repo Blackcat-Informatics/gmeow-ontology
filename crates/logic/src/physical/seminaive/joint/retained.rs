@@ -320,7 +320,7 @@ impl Reuse {
             let candidate = super::record_candidate(
                 &row.rule_iri,
                 fact,
-                &row.antecedents,
+                row.antecedents.as_slice().into(),
                 super::RoundSnapshot {
                     store: &runtime.store,
                     rel: &runtime.rel,

@@ -61,6 +61,36 @@ its digest records identify candidate bytes and do not claim parity acceptance.
 Every verification step remains mandatory. Substrate provenance records manifest
 requirements and resolved versions as separate claim dimensions.
 
+The hosted `maint_wasm_refresh` maintenance profile separates image preparation
+from bundle-dependent witnesses. Its `images` operation produces only the closed
+browser-codebook stage closure, then builds all six engines and records the exact
+Git revision beside each crate version. It returns candidate assets, the producer
+receipt, selected codebook identity, tool identities and output digest for review.
+It never qualifies those candidates as ordinary CI or parity evidence. After the
+images and genuinely measured medium table are committed, its `witnesses`
+operation produces the current bundle and authenticates its import before
+refreshing native witnesses. Final PR qualification still runs the normal producer,
+consumer and parity lanes over the reviewed committed bytes. A codebook-only
+selector cannot satisfy the full test-fixture prefix.
+
+Browser bootstrap writes its own
+`.cache/gmeow-sync/wasm-codebook-manifest-v2.json`. Image preparation explicitly
+selects that file; ordinary consumers continue to select the full
+`test-fixture-manifest-v2.json`. Bootstrap publication never replaces or reads
+the full selector. Both selections retain exact digest and action-receipt admission.
+The ordinary fixture producer verifies this boundary by producing the bootstrap
+after its full prefix, checking the original full-selector digest, and admitting
+both selections read-only before any test runner starts.
+
+The bootstrap selects `stage-native-codebook` and its original-source parser.
+That complete stage owns the authenticated codebook at
+`generated/projections/lang/gmn-codebook.cbor`. The archive stage reads that exact
+artifact directly into the language projection family. Mappings never copies
+the codebook into its independently cached contribution.
+Mappings retains its mandatory SPDX substrate reconciliation. Browser bootstrap
+therefore requires a codebook receipt, rather than a mappings receipt that also
+depends on the shipped engines being replaced.
+
 ## 2. The principles
 
 ### P1 — One producer, one run
@@ -378,7 +408,7 @@ asserted base; comparing an imported vocabulary or worked example does not admit
 its statements into that base.
 
 Browser GMN consumers embed the producer-built native codebook. The build verifies
-the selected mappings receipt and exact codebook bytes before compiling either
+the selected native-codebook receipt and exact codebook bytes before compiling either
 wrapper. Static and browser CI download the required prefix producer artifact and
 authenticate its exact selector before that admission. Only producers restore
 cache candidates; a missing consumer artifact cannot trigger production. The two independent cold

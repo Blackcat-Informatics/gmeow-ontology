@@ -141,19 +141,37 @@ fn requirements_and_resolutions_are_separate_claim_dimensions() {
 
 #[test]
 fn parses_stamp_and_prose() {
-    let stamp =
-        parse_substrate_stamp("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n")
-            .expect("well-formed stamp parses");
-    assert_eq!(stamp[0], ("purrdf".into(), "0.12.0".into()));
-    assert_eq!(stamp[2], ("binaryen".into(), "version_130".into()));
+    let stamp = parse_substrate_stamp(
+        "purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n",
+        None,
+    )
+    .expect("well-formed stamp parses");
+    assert_eq!(stamp[0].component, "purrdf");
+    assert_eq!(stamp[0].dimension, DIM_CRATE_VERSION);
+    assert_eq!(stamp[0].value, "0.12.0");
+    assert_eq!(stamp[2].component, "binaryen");
+    assert_eq!(stamp[2].value, "version_130");
     // A malformed stamp part (missing version, or extra token) is a hard fail.
     assert!(
-        parse_substrate_stamp("purrdf 0.12.0; binaryen").is_err(),
+        parse_substrate_stamp("purrdf 0.12.0; binaryen", None).is_err(),
         "a part without a version must be rejected, not silently skipped"
     );
     assert!(
-        parse_substrate_stamp("purrdf 0.12.0 extra").is_err(),
+        parse_substrate_stamp("purrdf 0.12.0 extra", None).is_err(),
         "a part with an extra token must be rejected"
+    );
+    let revision = "0123456789abcdef0123456789abcdef01234567";
+    let git = format!("purrdf 3.0.1; purrdf.git-rev {revision}");
+    let claims = parse_substrate_stamp(&git, Some(revision)).unwrap();
+    assert_eq!(claims[1].component, "purrdf");
+    assert_eq!(claims[1].dimension, DIM_GIT_REV);
+    assert_eq!(claims[1].value, revision);
+    assert!(parse_substrate_stamp("purrdf 3.0.1", Some(revision)).is_err());
+    assert!(parse_substrate_stamp(&git, None).is_err());
+    assert!(parse_substrate_stamp(&git, Some("1123456789abcdef0123456789abcdef01234567")).is_err());
+    assert!(
+        parse_substrate_stamp(&format!("{git}; purrdf.git-rev {revision}"), Some(revision))
+            .is_err()
     );
     assert_eq!(
         parse_prose_purrdf_version("projected by the Rust **purrdf 0.12.0 engine").as_deref(),

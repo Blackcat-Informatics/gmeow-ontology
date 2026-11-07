@@ -10,9 +10,14 @@ on:
         description: Refresh medium measurements using the authenticated producer
         type: boolean
         default: false
+      maint_wasm_refresh:
+        description: Prepare browser images or refresh witnesses from a current bundle
+        type: choice
+        options: [none, images, witnesses]
+        default: none
 
 concurrency:
-  group: ci-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && inputs.maint_medium_sweep && '-medium-sweep' || '' }}
+  group: ci-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && inputs.maint_medium_sweep && '-medium-sweep' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.maint_wasm_refresh != 'none' && format('-wasm-{0}', inputs.maint_wasm_refresh) || '' }}
   # Let main acceptance finish with the latest newer merge pending. Superseded
   # PR heads can be cancelled when a newer head is submitted.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -57,6 +62,21 @@ jobs:
     # a build whose peak residency grows with the corpus.
     timeout-minutes: 45
     steps:
+      - name: Validate the selected maintenance operation
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          MEDIUM_SWEEP_SELECTED: ${{ inputs.maint_medium_sweep }}
+          ASSET_REFRESH_PHASE: ${{ inputs.maint_wasm_refresh }}
+        run: |
+          set -euo pipefail
+          case "$ASSET_REFRESH_PHASE" in
+            none|images|witnesses) ;;
+            *) echo "::error::unknown WASM maintenance operation"; exit 2 ;;
+          esac
+          if [[ "$MEDIUM_SWEEP_SELECTED" == true && "$ASSET_REFRESH_PHASE" != none ]]; then
+            echo "::error::select exactly one maintenance operation"
+            exit 2
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -181,9 +201,23 @@ jobs:
 
       - name: Measure the complete medium sweep
         id: sweep
+        env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: |
           set -euo pipefail
-          make maint-medium-sweep GMEOW_DEV=./dist/bin/gmeow-dev
+          bash .github/scripts/observe-producer.sh medium-sweep dist/medium-sweep/resources.log -- \
+            make maint-medium-sweep GMEOW_DEV=./dist/bin/gmeow-dev
+
+      # Console snapshots remain useful if runner loss prevents this upload.
+      - name: Upload medium producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: medium-resources-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/medium-sweep/resources.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Record hosted measurement provenance
         if: always()
@@ -218,8 +252,144 @@ jobs:
   # complete generated tree from the same source-built producer. They run concurrently,
   # so the hard two-generation determinism proof costs one generation on the critical
   # path rather than two additional serial generations.
+  # Explicit preparation returns reviewable candidates. Normal PR qualification
+  # remains separate and must run against the final committed files.
+  maint-wasm-refresh:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.maint_wasm_refresh != 'none' }}
+    needs: [producer-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GMEOW_DEV: ./dist/bin/gmeow-dev
+      ASSET_REFRESH_PHASE: ${{ inputs.maint_wasm_refresh }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the repository Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with:
+          toolchain: nightly-2026-09-05
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Download the exact admitted producer
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.1
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Admit the transferred producer
+        run: |
+          set -euo pipefail
+          chmod +x dist/bin/gmeow-dev
+          make producer-verify
+
+      - name: Install the browser target
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Install the matching browser binding generator
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32
+        with:
+          tool: wasm-bindgen-cli@0.2.129
+
+      - name: Install the declared Binaryen release
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        run: |
+          set -euo pipefail
+          ASSET_BINARYEN_TAG="$(make --no-print-directory print-binaryen-ver)"
+          ASSET_BINARYEN_SHA256="$(make --no-print-directory print-binaryen-linux-x64-sha256)"
+          mkdir -p .cache/wasm-refresh/binaryen
+          curl --proto '=https' --tlsv1.2 -fsSL \
+            "https://github.com/WebAssembly/binaryen/releases/download/${ASSET_BINARYEN_TAG}/binaryen-${ASSET_BINARYEN_TAG}-x86_64-linux.tar.gz" \
+            -o .cache/wasm-refresh/binaryen.tar.gz
+          printf '%s  %s\n' "$ASSET_BINARYEN_SHA256" .cache/wasm-refresh/binaryen.tar.gz | sha256sum --check --strict
+          tar xzf .cache/wasm-refresh/binaryen.tar.gz -C .cache/wasm-refresh/binaryen --strip-components=1
+          echo "$GITHUB_WORKSPACE/.cache/wasm-refresh/binaryen/bin" >> "$GITHUB_PATH"
+
+      - name: Record the pipeline stage's source quality assessment
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/wasm-refresh
+          make --silent --no-print-directory slice-quality SLICE=slices/core/pipeline SLICE_QUALITY_FORMAT=rdf \
+            > dist/wasm-refresh/pipeline-quality.nq
+
+      - name: Prepare all six browser images from authenticated codebook inputs
+        if: ${{ inputs.maint_wasm_refresh == 'images' }}
+        run: |
+          set -euo pipefail
+          make maint-prepare-wasm-assets
+          make verify-vendored-wasm-assets
+
+      - name: Produce the current bundle and authenticate its exact import
+        if: ${{ inputs.maint_wasm_refresh == 'witnesses' }}
+        run: |
+          set -euo pipefail
+          make verify-vendored-wasm-assets
+          make check-sync SYNC_MODE=update
+          make produce-producer-independent-test-fixtures
+          make produce-bundle-import-test-fixture
+
+      - name: Refresh native witnesses from that bundle
+        if: ${{ inputs.maint_wasm_refresh == 'witnesses' }}
+        run: make maint-refresh-wasm-witnesses
+
+      - name: Package candidate bytes and their provenance
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- Cargo.toml Cargo.lock fuzz/Cargo.toml fuzz/Cargo.lock \
+            validations/common-logic-fol/clif2tptp/Cargo.lock
+          mkdir -p dist/wasm-refresh
+          git ls-files -z -- \
+            crates/docs/assets/query crates/docs/assets/validate crates/docs/assets/reason \
+            crates/docs/assets/gmn crates/docs/assets/mcp crates/docs/assets/mcp-core \
+            'crates/*-wasm/tests/WITNESS.*' crates/mcp/tests/witness/describe.nt \
+            > dist/wasm-refresh/files.list
+          tar --null -T dist/wasm-refresh/files.list -czf dist/wasm-refresh/outputs.tar.gz
+          sha256sum dist/wasm-refresh/outputs.tar.gz > dist/wasm-refresh/outputs.sha256
+          cp dist/bin/gmeow-dev.receipt.json dist/wasm-refresh/producer.receipt.json
+          rustc -Vv > dist/wasm-refresh/rustc.txt
+          ASSET_CODEBOOK_SHA256=''
+          ASSET_BUNDLE_SHA256=''
+          if [[ "$ASSET_REFRESH_PHASE" == images ]]; then
+            cp .cache/gmeow-sync/wasm-codebook-manifest-v2.json dist/wasm-refresh/input-selector.json
+            cp generated/projections/lang/gmn-codebook.cbor dist/wasm-refresh/codebook.cbor
+            ASSET_CODEBOOK_SHA256="$(sha256sum dist/wasm-refresh/codebook.cbor | cut -d ' ' -f1)"
+            wasm-bindgen --version > dist/wasm-refresh/wasm-bindgen.txt
+            wasm-opt --version > dist/wasm-refresh/binaryen.txt
+          else
+            cp .cache/gmeow-sync/test-fixture-manifest-v2.json dist/wasm-refresh/input-selector.json
+            ASSET_BUNDLE_SHA256="$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
+          fi
+          ASSET_SELECTOR_SHA256="$(sha256sum dist/wasm-refresh/input-selector.json | cut -d ' ' -f1)"
+          ASSET_OUTPUT_SHA256="$(sha256sum dist/wasm-refresh/outputs.tar.gz | cut -d ' ' -f1)"
+          jq -n --arg commit "$GITHUB_SHA" --arg phase "$ASSET_REFRESH_PHASE" \
+            --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg outputs_sha256 "$ASSET_OUTPUT_SHA256" --arg selector_sha256 "$ASSET_SELECTOR_SHA256" \
+            --arg codebook_sha256 "$ASSET_CODEBOOK_SHA256" \
+            --arg bundle_sha256 "$ASSET_BUNDLE_SHA256" \
+            '{commit: $commit, phase: $phase, run_id: $run, run_attempt: $attempt,
+              outputs_sha256: $outputs_sha256, input_selector_sha256: $selector_sha256,
+              input_codebook_sha256: $codebook_sha256,
+              input_bundle_sha256: $bundle_sha256,
+              qualification: "candidate bytes; ordinary CI and parity remain required"}' \
+            > dist/wasm-refresh/provenance.json
+
+      - name: Upload the complete selected candidate
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wasm-refresh-${{ inputs.maint_wasm_refresh }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/wasm-refresh/
+          if-no-files-found: error
+          retention-days: 7
+
   generation:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     name: generation (${{ matrix.generation }})
     needs: [producer-build]
     strategy:
@@ -253,12 +423,24 @@ jobs:
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
         env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
           mkdir -p dist/sync
-          make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
+          bash .github/scripts/observe-producer.sh cold-generation dist/sync/resources.log -- \
+            make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
+
+      # A dead runner may prevent artifact upload; snapshots also stream to the job log.
+      - name: Upload cold producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: generation-resources-${{ github.sha }}-${{ matrix.generation }}-${{ github.run_attempt }}
+          path: dist/sync/resources.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
         env:
@@ -383,7 +565,7 @@ jobs:
 
   # Authored-source ownership checks have no corpus or test-compilation dependency.
   helpers:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -408,7 +590,7 @@ jobs:
         run: make helpers-hygiene
 
   lint:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -454,7 +636,7 @@ jobs:
   # A missing target cache
   # is a normal Cargo rebuild; restored units remain subject to Cargo's fingerprints.
   rust-prebuild:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -517,7 +699,7 @@ jobs:
 
   # Optimized corpus work shares no test-compilation dependency or build lock.
   fixture-prefix:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     needs: [producer-build]
     outputs:
       selector_sha256: ${{ steps.selector.outputs.sha256 }}
@@ -574,10 +756,31 @@ jobs:
 
       - name: Produce optimized corpus fixtures before any test runner starts
         env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: >-
+          bash .github/scripts/observe-producer.sh fixture-prefix dist/nextest/fixture-resources.log --
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
+
+      - name: Upload fixture producer resource observations
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fixture-resources-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/nextest/fixture-resources.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Verify browser bootstrap preserves the full fixture selection
+        run: |
+          set -euo pipefail
+          prefix_selector=.cache/gmeow-sync/test-fixture-manifest-v2.json
+          prefix_sha256="$(sha256sum "$prefix_selector" | cut -d ' ' -f1)"
+          make produce-wasm-codebook
+          make verify-wasm-codebook TEST_FIXTURE_MANIFEST="$PWD/.cache/gmeow-sync/wasm-codebook-manifest-v2.json"
+          printf '%s  %s\n' "$prefix_sha256" "$prefix_selector" | sha256sum --check --strict
+          make verify-producer-independent-test-fixtures
 
       # A later failure must not discard receipts already published atomically.
       # A fresh run/attempt key advances the immutable cache after this producer.
@@ -1793,7 +1996,7 @@ jobs:
   # and Java-free. Statements now run natively via the purrdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    name: ${{ github.event_name == 'workflow_dispatch' && inputs.maint_medium_sweep && 'maintenance profile (no quality qualification)' || 'quality' }}
+    name: ${{ github.event_name == 'workflow_dispatch' && (inputs.maint_medium_sweep || inputs.maint_wasm_refresh != 'none') && 'maintenance profile (no quality qualification)' || 'quality' }}
     needs:
       - producer
       - lint
@@ -1807,7 +2010,7 @@ jobs:
       - ontology-generated
       - ontology-reason
       - ontology-misc
-    if: ${{ always() && (github.event_name != 'workflow_dispatch' || !inputs.maint_medium_sweep) }}
+    if: ${{ always() && (github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

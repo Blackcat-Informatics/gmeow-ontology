@@ -36,6 +36,7 @@
 // diagnostic on failure, without cloning or flattening its live source chain.
 #![feature(once_cell_try)]
 
+pub mod allocator_observation;
 pub mod branch_base;
 pub mod bundle;
 // The bundle READ side lives in the leaf crate `gmeow-bundle-view` so a consumer

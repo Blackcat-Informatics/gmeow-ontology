@@ -1598,7 +1598,7 @@ impl JointStratum {
                     if !state.store.contains_key(&head.key()) {
                         round.insert(
                             head.key(),
-                            record_candidate(rule, head, premises, snapshot)?,
+                            record_candidate(rule, head, premises.into(), snapshot)?,
                             ProvenanceMode::Record,
                         )?;
                     }
@@ -1678,7 +1678,7 @@ impl JointStratum {
                             record_candidate(
                                 premises.rule_iri,
                                 head,
-                                premises.source_facts,
+                                premises.source_facts.into(),
                                 snapshot,
                             )?,
                             ProvenanceMode::Record,

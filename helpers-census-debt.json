@@ -1227,13 +1227,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::new",
-    "gmeow_pipeline::stages::mappings::MappingsStage::new"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::input_files",
     "gmeow_pipeline::stages::schemas::SchemasStage::input_files"
    ]
@@ -1968,7 +1961,6 @@
     "gmeow_pipeline::stages::gts_sink::GtsSinkStage::default",
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::default",
     "gmeow_pipeline::stages::lpg::LpgStage::default",
-    "gmeow_pipeline::stages::mappings::MappingsStage::default",
     "gmeow_pipeline::stages::math_producers::MathProducersStage::default",
     "gmeow_pipeline::stages::medium_dictionaries::MediumDictionariesStage::default",
     "gmeow_pipeline::stages::metadata::MetadataStage::default",
