@@ -1,0 +1,22 @@
+Restore native producer and authenticated browser rebuilds
+
+Repair grounding-input discovery and cache-input closure, preserve native archive
+diagnostics and the GMN codebook, authenticate fixture/browser selectors, and
+release completed temporary datasets and reasoning inputs at their final consumers.
+Share complete immutable source premises within each prepared class analysis,
+retaining graph identity, public evidence, proof ordering and work accounting.
+
+Principles 4, 7, 17 and 19 govern canonical ownership and grounding.
+Independent source/design review, configured hooks/signing, hosted optimized
+producer compilation, test compilation, lint and helpers passed at bcd561365.
+Runtime producer jobs remain in progress. OOM resolution, fixed-point comparison,
+authenticated fixtures, medium measurements and browser/native/installed consumers
+are unverified. No runtime success or memory improvement is claimed.
+
+The repository owner explicitly instructed immediate merge through ghprsq and a
+new CI repair and optimization issue on November 7, 2026. Merge proceeds under
+that instruction with failed/pending CI disclosed; all unfinished acceptance is
+carried into the follow-up issue, without representing the original repair as
+fully qualified. Existing sync evidence is retained with this landing.
+
+Refs #2600.

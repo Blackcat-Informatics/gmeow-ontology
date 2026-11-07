@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2600-restore-main-producer-and-ci-after",
+  "branch": "paudley/2600-restore-main-producer-and-ci-after",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "fe0cba7181991cb6a31730cccf8e05f07266b018",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2600-restore-main-producer-and-ci-after/.stage/restore-main-producer-and-ci-after/sync/20261107T025205-acdd176eaf8e424b995933c45404013f",
+  "conflicts": [],
+  "status": "completed",
+  "base": "96fd08b8dbed51688d3a9b8d63561b6eef0253a0",
+  "merge_bases": [
+    "22f7894c7c2869d1410f3021d5582edaa76d2427"
+  ],
+  "merge_index": "3f51436ccd3467dc6f92751a915a624886cab1147b2fc555ab9a97cdda3596b9",
+  "candidate_tree": "cf77abf851db90828b70f306ee4e0e110198a4c5",
+  "candidate_patch": "candidate-335cac3376fb48bb8a252d3eab2a4b2b.patch",
+  "validation_records": [],
+  "commit": "28fab1f155008f164099d4a54d6ecdc7712c05cd",
+  "tree": "cf77abf851db90828b70f306ee4e0e110198a4c5"
+}
